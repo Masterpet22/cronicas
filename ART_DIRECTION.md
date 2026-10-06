@@ -22,7 +22,9 @@ La hoja `assets/reference/modular-character-system-v1.png` define la plantilla d
 - Capas para cabello trasero, cuerpo, rostro, ropa superior e inferior, manos, cabello delantero, accesorio, arma y efectos.
 - Anclajes `HEAD`, `NECK`, `SHOULDER_L/R`, `HAND_L/R`, `WAIST`, `FOOT_L/R` y `WEAPON_HAND`.
 
-La implementación final está en `assets/modular/`: 27 capas ilustradas y transparentes de `768 × 768` con anclajes comunes. El juego compone cuerpo, ropa inferior, calzado, ropa superior, rostro, cabello y arma; las prendas se colorean en Phaser. Los atlas fuente fueron creados con generación de imágenes a partir de la hoja técnica y se conservan para regenerar las capas sin dibujar figuras mediante código.
+El renderer activo utiliza figuras geométricas avanzadas definidas en `src/character.js` y construidas en Phaser por `src/fighters.js`. El dojo y el combate parten de la misma apariencia: cuerpo, rostro, peinado, ropa, calzado, color y arma. Esto permite pulir sistemas y animaciones sin depender todavía del arte definitivo.
+
+Los recursos de `assets/modular/` son experimentos archivados y no se cargan en runtime. No deben considerarse arte modular terminado: las piezas generadas no comparten todavía una anatomía suficientemente estricta. Solo se reactivarán cuando exista una plantilla maestra editable y todas las combinaciones superen una revisión visual.
 
 ## Vocabulario de sellos
 

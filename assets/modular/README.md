@@ -1,6 +1,6 @@
-# Personajes modulares
+# Archivo experimental de personajes modulares
 
-Este directorio contiene las capas ilustradas usadas directamente por Phaser. Todos los PNG son transparentes, miden `768 × 768` y comparten exactamente los mismos anclajes, por lo que se superponen sin ajustes manuales. El arte fuente fue creado con la generación de imágenes integrada tomando como referencia la hoja técnica del proyecto; no son figuras geométricas dibujadas por el motor.
+Este directorio conserva los atlas y capas ilustradas experimentales. Ya no se cargan directamente en Phaser: sus proporciones y anclajes visuales no son suficientemente consistentes para un personalizador de producción. Se mantienen como referencia para el futuro diseño definitivo.
 
 ## Orden de renderizado
 

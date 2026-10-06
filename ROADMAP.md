@@ -38,7 +38,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Añadir una variante manual sin límite de tiempo como opción de accesibilidad.
 - [x] Acelerar automáticamente las secuencias de técnicas ya vistas.
 - [x] Añadir opciones persistentes de volumen, movimiento de cámara y destellos.
-- [x] Sustituir los combatientes geométricos por personajes ilustrados y modulares.
+- [x] Estabilizar combatientes geométricos avanzados con piezas animables.
 
 **Criterio de salida cumplido:** la ruta de cuatro encuentros dura aproximadamente 10 a 15 minutos a ritmo normal y admite estrategias basadas en afinidades/estados o en velocidad/defensa.
 
@@ -75,15 +75,15 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Diseñar un vocabulario propio para los sellos.
 - [x] Reemplazar la cuadrícula provisional por la nueva hoja de doce símbolos.
 - [x] Diseñar una hoja técnica con cuerpo masculino, femenino, piezas, capas, anclajes y variantes.
-- [x] Exportar los cuerpos masculino y femenino como conjuntos de PNG modulares compatibles.
-- [x] Separar cuerpo, rostro, cabello delantero/trasero, ropa superior/inferior, calzado y arma.
+- [ ] Exportar cuerpos y prendas ilustrados realmente compatibles desde una plantilla artística común.
+- [ ] Separar el arte definitivo en cuerpo, rostro, cabello delantero/trasero, ropa, calzado y arma.
 - [x] Preparar cinco movimientos reutilizables mediante transformaciones: reposo, ataque, técnica, impacto y derrota.
 - [x] Crear una biblioteca ligera de efectos por elemento.
 - [x] Definir guía de color, interfaz y tipografía.
 
-**Estado: implementación visual completada.**
+**Estado: pausada mientras se valida el diseño definitivo.**
 
-**Criterio de salida técnico cumplido:** los combatientes usan 27 capas PNG ilustradas e intercambiables sobre un lienzo común, la apariencia cuenta con vista previa en el dojo y los guardados anteriores migran automáticamente. Antes de una publicación comercial o de hacer público el repositorio todavía se debe verificar documentalmente la autoría o licencia de la hoja de símbolos proporcionada.
+**Criterio de salida pendiente:** el juego usa un renderer geométrico estable y los atlas generados quedan archivados como experimentos. La fase solo se considerará terminada cuando todas las combinaciones ilustradas compartan anatomía y anclajes verificables. También se debe confirmar la autoría o licencia de la hoja de símbolos proporcionada.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 
@@ -107,4 +107,4 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Probar la demo completa con jugadores, ajustar legibilidad y dificultad, y cerrar la verificación de derechos de la hoja de símbolos antes de una publicación abierta.
+Pulir arquitectura, combate, balance e interfaz sobre el renderer geométrico; en paralelo, producir y validar una plantilla artística real antes de reactivar la sustitución visual.

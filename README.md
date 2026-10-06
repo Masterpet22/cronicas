@@ -1,4 +1,4 @@
-# Crónicas del Sello — Fase 4 visual
+# Crónicas del Sello — Prototipo jugable
 
 RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, diez misiones narrativas, progresión persistente, compañero controlado por IA, examen de rango y once rivales únicos.
 
@@ -22,7 +22,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Recorre la Plaza, el Tablón de misiones, el Dojo y el Archivo mediante sus menús.
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
-- El dojo incluye un creador visual: combina cuerpo, rostro, cinco peinados, prendas, calzado y arma con vista previa inmediata.
+- El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
 - Las técnicas se desbloquean al subir de nivel; cada nivel entrega dos puntos de atributo.
 - Selecciona una de las seis acciones con el ratón o la pantalla táctil.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
@@ -56,6 +56,7 @@ styles.css               Presentación de la página
 game.js                  Escena, combate, sellos y efectos
 ART_DIRECTION.md         Guía de identidad, paleta y escalas
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
+src/character.js         Definición visual compartida y vista previa SVG
 src/save.js              Guardado v3, apariencia, campaña, atributos y recompensas
 src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
 src/rules.js             Precisión, afinidades y estados
@@ -65,7 +66,7 @@ tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.jpg       Nueva hoja de doce símbolos
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
-assets/modular/          27 capas PNG ilustradas, atlas fuente y manifiesto
+assets/modular/          Experimentos ilustrados archivados; no se cargan en runtime
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes
 ROADMAP.md               Plan de desarrollo
 ```
@@ -78,4 +79,4 @@ npm test
 
 ## Nota sobre el arte
 
-La hoja técnica modular fue generada específicamente para este proyecto siguiendo una guía de producción aportada por el usuario. Los personajes del combate ya se construyen con piezas PNG intercambiables y personalizables desde el dojo. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.
+El juego utiliza temporalmente figuras geométricas avanzadas para mantener consistencia y permitir continuar con jugabilidad, animación e interfaz. Los atlas ilustrados se conservan como referencia experimental, pero no se cargan en el juego. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.
