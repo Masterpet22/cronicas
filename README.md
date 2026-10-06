@@ -63,8 +63,7 @@ src/ui.js                Barras y botones de combate
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.jpg       Nueva hoja de doce símbolos
-assets/characters/guardian-hero.png  Personaje original del jugador
-assets/characters/shadow-rival.png   Personaje original rival
+assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
 ROADMAP.md               Plan de desarrollo
 ```
 
@@ -76,4 +75,4 @@ npm test
 
 ## Nota sobre el arte
 
-Los dos personajes fueron generados específicamente para este proyecto y se integran como PNG transparentes. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.
+La hoja técnica modular fue generada específicamente para este proyecto siguiendo una guía de producción aportada por el usuario. Los combatientes geométricos siguen activos hasta exportar piezas PNG realmente intercambiables. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.

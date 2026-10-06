@@ -1,5 +1,5 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.4.0";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.4.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.4.1";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.4.1";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [

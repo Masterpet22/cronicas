@@ -74,7 +74,8 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 - [x] Diseñar un vocabulario propio para los sellos.
 - [x] Reemplazar la cuadrícula provisional por la nueva hoja de doce símbolos.
-- [x] Crear dos personajes originales de cuerpo completo listos para el combate.
+- [x] Diseñar una hoja técnica con cuerpo masculino, femenino, piezas, capas, anclajes y variantes.
+- [ ] Exportar los cuerpos masculino y femenino como conjuntos de PNG modulares compatibles.
 - [ ] Separar cabeza, torso, brazos, piernas, cabello, ropa y arma.
 - [x] Preparar cinco movimientos reutilizables mediante transformaciones: reposo, ataque, técnica, impacto y derrota.
 - [x] Crear una biblioteca ligera de efectos por elemento.
@@ -82,7 +83,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 **Estado: en progreso.**
 
-**Criterio de salida pendiente:** los personajes ya son originales. Antes de publicar se debe verificar documentalmente la autoría o licencia de la nueva hoja de símbolos y separar los cuerpos en piezas animables.
+**Criterio de salida pendiente:** se debe convertir la hoja técnica en piezas PNG realmente intercambiables. Antes de publicar también se debe verificar documentalmente la autoría o licencia de la nueva hoja de símbolos.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 
@@ -106,4 +107,4 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Separar los dos personajes en piezas animables y cerrar la verificación de derechos de la hoja de símbolos antes de publicar la demo en la web.
+Exportar desde la plantilla común los cuerpos, rostros, cinco cabellos, prendas, calzado y armas como capas PNG; después cerrar la verificación de derechos de la hoja de símbolos.

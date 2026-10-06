@@ -12,12 +12,17 @@ La identidad combina tinta seca, siluetas nítidas y color elemental contenido. 
 - Fuego: coral `#ff783d`; viento: menta `#67e8c3`; rayo: azul eléctrico `#68a8ff`.
 - Eclipse: ciruela `#612348` y violeta `#9a55df`.
 
-## Personajes base
+## Sistema modular de personajes
 
-- **Guardián del Alba:** marfil, carbón y azul medianoche; silueta abierta, orientación hacia la derecha y símbolo solar.
-- **Rival de la Sombra:** carbón, ciruela y plata; silueta asimétrica, orientación hacia la izquierda y símbolo lunar.
+La hoja `assets/reference/modular-character-system-v1.png` define la nueva plantilla de producción:
 
-Ambos son recortes PNG originales con transparencia. Por ahora se animan mediante transformaciones reutilizables: respiración, avance de ataque, pulso de técnica, destello de impacto y caída de derrota. La siguiente iteración deberá separar cabeza, torso, brazos y piernas para obtener animación esquelética sin dibujar cada cuadro.
+- Anime/chibi moderado, aproximadamente una cabeza por 3,5 alturas.
+- Pose neutral en vista 3/4 frontal.
+- Cuerpo masculino y femenino con la misma escala, línea de pies y anclajes.
+- Capas para cabello trasero, cuerpo, rostro, ropa superior e inferior, manos, cabello delantero, accesorio, arma y efectos.
+- Anclajes `HEAD`, `NECK`, `SHOULDER_L/R`, `HAND_L/R`, `WAIST`, `FOOT_L/R` y `WEAPON_HAND`.
+
+Los combatientes geométricos continúan como marcadores temporales. La hoja técnica no debe utilizarse como sprite recortado: primero deben exportarse sus componentes a PNG transparentes sobre un canvas común.
 
 ## Vocabulario de sellos
 
@@ -34,7 +39,7 @@ La hoja `assets/sellos-originales.jpg` fue proporcionada por el usuario. Antes d
 
 ## Escala y rendimiento
 
-- Personaje en combate: 255 px de alto.
+- Personaje en combate: aproximadamente 220–255 px de alto.
 - Sello normal: 68 px de ancho aproximado; cinematográfico: 92 px.
 - No usar vídeo ni animaciones cuadro por cuadro en la demo.
 - Mantener el modo ligero sin sacudidas ni destellos para equipos modestos.

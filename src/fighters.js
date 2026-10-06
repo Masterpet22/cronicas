@@ -22,13 +22,6 @@ export function createModularFighter(scene, x, y, clothColor, accentColor, flipp
   return { shadow, body, head, targets: [body, head], parts: { cape, weapon, torso, belt, arm1, arm2, leg1, leg2, face, hood, band } };
 }
 
-export function createSpriteFighter(scene, x, y, texture, flipped = false) {
-  const shadow = scene.add.ellipse(x, y + 100, 142, 25, 0x000000, 0.4).setDepth(4);
-  const body = scene.add.image(x, y - 28, texture).setOrigin(0.5).setDisplaySize(texture === "guardianHero" ? 213 : 180, 255).setDepth(6);
-  if (flipped) body.setFlipX(true);
-  return { shadow, body, head: body, targets: [body], parts: {}, sprite: true };
-}
-
 export function destroyFighter(fighter) {
   if (!fighter) return;
   fighter.shadow.destroy();
