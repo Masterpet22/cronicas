@@ -19,7 +19,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 ## Controles
 
 - Crea un personaje con nombre, color de atuendo y afinidad inicial.
-- Recorre la aldea desde un mapa ilustrado con nueve destinos interactivos. Cada edificio se resalta al pasar el cursor o enfocarlo con el teclado.
+- Recorre la aldea desde un mapa ilustrado con nueve destinos interactivos. Cada edificio usa una silueta SVG precisa que se resalta al pasar el cursor o enfocarla con el teclado.
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
 - El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.

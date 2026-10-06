@@ -8,9 +8,10 @@ assert.equal(new Set(VILLAGE_LOCATIONS.map(({ id }) => id)).size, 9, "Cada zona 
 
 VILLAGE_LOCATIONS.forEach((location) => {
   assert.ok(location.name && location.description, `${location.id} necesita nombre y descripción`);
-  assert.ok(location.x >= 0 && location.y >= 0 && location.w > 0 && location.h > 0, `${location.id} necesita una zona válida`);
-  assert.ok(location.x + location.w <= 101 && location.y + location.h <= 101, `${location.id} debe permanecer dentro del mapa`);
-  assert.match(location.shape, /^(polygon|ellipse)\(/, `${location.id} necesita una forma de resaltado`);
+  assert.ok(location.labelX >= 0 && location.labelX <= 1678, `${location.id} necesita una etiqueta dentro del mapa`);
+  assert.ok(location.labelY >= 0 && location.labelY <= 937, `${location.id} necesita una etiqueta dentro del mapa`);
+  assert.match(location.path, /^M[\d\s.,A-Z-]+Z$/, `${location.id} necesita una silueta SVG cerrada`);
+  assert.ok(location.path.split(/[A-Z]/).join(" ").trim().split(/\s+/).length >= 16, `${location.id} necesita un contorno detallado`);
 });
 
 console.log("Pruebas del mapa de la aldea superadas.");

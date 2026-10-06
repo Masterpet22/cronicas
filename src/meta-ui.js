@@ -1,6 +1,6 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.7.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.7.0";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.7.0";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.7.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.7.1";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.7.1";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [
@@ -10,15 +10,15 @@ const TUTORIAL = [
 ];
 
 export const VILLAGE_LOCATIONS = [
-  { id: "headquarters", name: "Cuartel General", description: "Mando, rango y estado de la aldea", x: 38.5, y: 5, w: 25, h: 50, shape: "polygon(35% 0, 66% 0, 74% 15%, 86% 25%, 88% 100%, 8% 100%, 12% 29%, 27% 19%)" },
-  { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", x: 20, y: 33, w: 22, h: 27, shape: "polygon(18% 5%, 80% 5%, 100% 38%, 91% 100%, 5% 100%, 0 38%)" },
-  { id: "archive", name: "Biblioteca", description: "Crónicas y progreso de campaña", x: 0, y: 26, w: 20, h: 32, shape: "polygon(12% 0, 83% 0, 100% 26%, 94% 100%, 0 100%, 0 27%)" },
-  { id: "shop", name: "Tienda de Objetos", description: "Suministros y equipamiento", x: 65, y: 34, w: 20, h: 27, shape: "polygon(13% 7%, 83% 5%, 100% 34%, 94% 100%, 3% 100%, 0 36%)" },
-  { id: "tower", name: "Torre de Desafíos", description: "Pruebas especiales por pisos", x: 83, y: 3, w: 15, h: 45, shape: "polygon(43% 0, 58% 0, 75% 11%, 76% 83%, 100% 100%, 0 100%, 25% 82%, 26% 12%)" },
-  { id: "arena", name: "Arena de Combate", description: "Combates de práctica y duelos", x: 69, y: 59, w: 30, h: 39, shape: "ellipse(50% 50% at 50% 50%)" },
-  { id: "inn", name: "Posada", description: "Descanso y encuentros", x: 3, y: 65, w: 29, h: 31, shape: "polygon(6% 25%, 35% 0, 75% 5%, 100% 31%, 93% 100%, 3% 100%)" },
-  { id: "missions", name: "Tablón de Misiones", description: "Historia, contratos y recompensas", x: 38, y: 72, w: 16, h: 22, shape: "polygon(9% 8%, 91% 8%, 100% 100%, 0 100%)" },
-  { id: "event", name: "Plaza de Eventos", description: "Actividades temporales", x: 46, y: 52, w: 13, h: 21, shape: "ellipse(46% 50% at 50% 50%)" }
+  { id: "headquarters", name: "Cuartel General", description: "Mando, rango y estado de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
+  { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", labelX: 505, labelY: 446, path: "M359 383 L389 373 L409 356 L427 348 L453 348 L468 333 L574 335 L596 348 L618 352 L629 369 L657 386 L636 399 L638 493 L662 505 L659 534 L620 534 L613 550 L403 550 L395 536 L354 535 L351 507 L375 493 L376 399 L347 388 Z" },
+  { id: "archive", name: "Biblioteca", description: "Crónicas y progreso de campaña", labelX: 167, labelY: 427, path: "M33 282 L47 268 L74 264 L82 256 L101 265 L110 251 L133 267 L223 267 L238 258 L252 267 L259 282 L313 329 L300 344 L303 466 L326 482 L324 514 L279 515 L273 530 L49 530 L42 517 L0 519 L0 340 L31 321 Z" },
+  { id: "shop", name: "Tienda de Objetos", description: "Suministros y equipamiento", labelX: 1227, labelY: 455, path: "M1103 366 L1125 353 L1157 351 L1168 339 L1298 341 L1314 351 L1341 355 L1352 369 L1375 386 L1358 399 L1365 489 L1385 503 L1382 535 L1353 536 L1347 554 L1112 554 L1106 540 L1075 539 L1076 510 L1090 493 L1092 399 L1069 385 Z" },
+  { id: "tower", name: "Torre de Desafíos", description: "Pruebas especiales por pisos", labelX: 1468, labelY: 343, path: "M1464 19 L1477 19 L1478 59 L1506 78 L1492 90 L1522 108 L1502 122 L1532 141 L1508 155 L1547 180 L1518 195 L1550 217 L1519 232 L1564 264 L1529 280 L1571 314 L1528 331 L1534 378 L1576 407 L1560 427 L1380 427 L1369 409 L1403 379 L1414 332 L1384 316 L1423 280 L1396 265 L1435 233 L1406 218 L1440 196 L1418 182 L1445 155 L1421 141 L1448 122 L1431 108 L1455 89 L1443 78 L1462 60 Z" },
+  { id: "arena", name: "Arena de Combate", description: "Combates de práctica y duelos", labelX: 1420, labelY: 760, path: "M1188 616 C1220 597 1243 587 1270 589 L1292 608 L1321 566 L1351 596 C1402 584 1452 584 1484 593 L1518 562 L1543 599 C1582 604 1604 610 1620 622 L1646 588 L1678 602 L1678 856 L1647 867 L1625 888 L1205 888 L1179 866 L1161 824 L1160 704 Z" },
+  { id: "inn", name: "Posada", description: "Descanso y encuentros", labelX: 263, labelY: 748, path: "M65 671 L94 653 L139 635 L174 629 L191 612 L263 612 L283 628 L348 637 L370 654 L439 676 L458 697 L494 711 L477 736 L467 844 L409 848 L397 864 L130 864 L117 852 L57 850 L57 731 L41 711 Z" },
+  { id: "missions", name: "Tablón de Misiones", description: "Historia, contratos y recompensas", labelX: 744, labelY: 798, path: "M651 735 L671 723 L811 723 L837 736 L833 754 L846 770 L845 858 L821 858 L814 870 L669 870 L662 858 L637 858 L638 769 L650 753 Z" },
+  { id: "event", name: "Plaza de Eventos", description: "Actividades temporales", labelX: 875, labelY: 602, path: "M819 501 L912 501 L912 607 L883 607 L882 628 C937 633 973 648 973 664 C973 683 923 697 861 697 C800 697 750 683 750 664 C750 647 791 633 846 628 L846 607 L819 607 Z" }
 ];
 
 const VILLAGE_SERVICES = {
@@ -77,7 +77,24 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         ${content}
       </div>`;
     root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.view; render(); }));
-    root.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.go; render(); }));
+    root.querySelectorAll("[data-go]").forEach((button) => {
+      const openLocation = () => { view = button.dataset.go; render(); };
+      button.addEventListener("click", openLocation);
+      if (button.classList.contains("village-hotspot")) {
+        const label = root.querySelector(`[data-map-label="${button.dataset.go}"]`);
+        const showLabel = () => label?.classList.add("visible");
+        const hideLabel = () => label?.classList.remove("visible");
+        button.addEventListener("mouseenter", showLabel);
+        button.addEventListener("mouseleave", hideLabel);
+        button.addEventListener("focus", showLabel);
+        button.addEventListener("blur", hideLabel);
+        button.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          openLocation();
+        });
+      }
+    });
   };
 
   const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR") => {
@@ -102,8 +119,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const companion = save.campaign.companion
       ? `<div class="notice-card ally"><strong>Mika está disponible</strong><span>Atacará automáticamente cada dos rondas.</span></div>`
       : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
-    const hotspots = VILLAGE_LOCATIONS.map((location, index) => `<button class="village-hotspot hotspot-${location.id}" data-go="${location.id}" aria-label="${escapeHtml(location.name)}: ${escapeHtml(location.description)}" style="--x:${location.x}%;--y:${location.y}%;--w:${location.w}%;--h:${location.h}%;--shape:${location.shape};--order:${index}"><span class="map-label"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(location.description)}</small></span></button>`).join("");
-    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.7.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false">${hotspots}</figure>${companion}</section>`);
+    const hotspots = VILLAGE_LOCATIONS.map((location) => `<g class="village-hotspot hotspot-${location.id}" data-go="${location.id}" role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`).join("");
+    const labels = VILLAGE_LOCATIONS.map((location) => `<span class="map-label" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(location.description)}</small></span></span>`).join("");
+    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.7.1" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
     if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
   };
 
