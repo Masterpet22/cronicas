@@ -1,14 +1,23 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.4.1";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.4.1";
-import { createModularFighter, destroyFighter } from "./src/fighters.js?v=0.4.1";
-import { createActionButton, createBar } from "./src/ui.js?v=0.4.1";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.4.1";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.4.1";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.5.0";
+import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.5.0";
+import { createLayeredFighter, destroyFighter } from "./src/fighters.js?v=0.5.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.5.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.5.0";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.5.0";
 
 const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
+const MODULAR_TEXTURES = [
+  ...["male", "female"].map((id) => [`body_${id}`, `assets/modular/body/body_${id}.png`]),
+  ...[1, 2, 3].map((id) => [`face_${id}`, `assets/modular/face/face_0${id}.png`]),
+  ...[1, 2, 3, 4, 5].flatMap((id) => [[`hair_${id}_rear`, `assets/modular/hair/hair_0${id}_rear.png`], [`hair_${id}_front`, `assets/modular/hair/hair_0${id}_front.png`]]),
+  ...[1, 2, 3].map((id) => [`top_${id}`, `assets/modular/top/top_0${id}.png`]),
+  ...[1, 2, 3].map((id) => [`bottom_${id}`, `assets/modular/bottom/bottom_0${id}.png`]),
+  ...[1, 2].map((id) => [`shoes_${id}`, `assets/modular/shoes/shoes_0${id}.png`]),
+  ...["kunai", "sword", "staff", "dagger"].map((id) => [`weapon_${id}`, `assets/modular/weapon/weapon_${id}.png`])
+];
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -17,7 +26,8 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.4.1");
+    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.5.0");
+    MODULAR_TEXTURES.forEach(([key, path]) => this.load.image(key, `${path}?v=0.5.0`));
   }
 
   create() {
@@ -186,8 +196,8 @@ class BattleScene extends Phaser.Scene {
     const auraColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
     this.heroAura = this.add.circle(220, 270, 82, auraColor, 0.055).setStrokeStyle(3, auraColor, 0.24).setDepth(5);
     this.tweens.add({ targets: this.heroAura, scale: 1.06, alpha: 0.16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.hero = createModularFighter(this, 220, 298, auraColor, 0x243149, false);
-    this.foe = createModularFighter(this, 740, 298, profile.colors.cloth, profile.colors.accent, true);
+    this.hero = createLayeredFighter(this, 220, 298, this.playerAppearance(), false);
+    this.foe = createLayeredFighter(this, 740, 298, this.enemyAppearance(profile), true);
     this.tweens.add({ targets: this.hero.targets, y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
   }
@@ -306,7 +316,7 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
-    this.foe = createModularFighter(this, 810, 298, profile.colors.cloth, profile.colors.accent, true);
+    this.foe = createLayeredFighter(this, 810, 298, this.enemyAppearance(profile), true);
     this.foe.targets.forEach((target) => target.setAlpha(0));
     this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });
@@ -337,7 +347,10 @@ class BattleScene extends Phaser.Scene {
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
-    if (this.foe.sprite) this.foe.body.setTint(0xdca8ff);
+    if (this.foe.layered) {
+      this.foe.parts.top.setTint(0x9a55df);
+      this.foe.parts.bottom.setTint(0x612348);
+    }
     else {
       this.foe.parts.cape.setFillStyle(0x612348);
       this.foe.parts.hood.setFillStyle(0x612348);
@@ -706,6 +719,17 @@ class BattleScene extends Phaser.Scene {
 
   actionCost(action) {
     return Math.max(0, action.cost - this.player.costReduction);
+  }
+
+  playerAppearance() {
+    const character = this.saveData.character;
+    const weaponMap = { kunai: "kunai", tanto: "sword", staff: "staff" };
+    return { ...character, clothColor: Number.parseInt(character.appearance.slice(1), 16), accentColor: 0x26364f, weapon: weaponMap[this.saveData.equipment.weapon] || "kunai" };
+  }
+
+  enemyAppearance(profile) {
+    const seed = this.enemyIndex + this.mission.number;
+    return { bodyType: seed % 2 ? "female" : "male", face: seed % 3 + 1, hair: seed % 5 + 1, top: seed % 3 + 1, bottom: (seed + 1) % 3 + 1, shoes: seed % 2 + 1, weapon: ["dagger", "sword", "staff", "kunai"][seed % 4], clothColor: profile.colors.cloth, accentColor: profile.colors.accent };
   }
 
   elementName(element) {

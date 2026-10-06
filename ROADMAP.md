@@ -75,15 +75,15 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Diseñar un vocabulario propio para los sellos.
 - [x] Reemplazar la cuadrícula provisional por la nueva hoja de doce símbolos.
 - [x] Diseñar una hoja técnica con cuerpo masculino, femenino, piezas, capas, anclajes y variantes.
-- [ ] Exportar los cuerpos masculino y femenino como conjuntos de PNG modulares compatibles.
-- [ ] Separar cabeza, torso, brazos, piernas, cabello, ropa y arma.
+- [x] Exportar los cuerpos masculino y femenino como conjuntos de PNG modulares compatibles.
+- [x] Separar cuerpo, rostro, cabello delantero/trasero, ropa superior/inferior, calzado y arma.
 - [x] Preparar cinco movimientos reutilizables mediante transformaciones: reposo, ataque, técnica, impacto y derrota.
 - [x] Crear una biblioteca ligera de efectos por elemento.
 - [x] Definir guía de color, interfaz y tipografía.
 
-**Estado: en progreso.**
+**Estado: implementación visual completada.**
 
-**Criterio de salida pendiente:** se debe convertir la hoja técnica en piezas PNG realmente intercambiables. Antes de publicar también se debe verificar documentalmente la autoría o licencia de la nueva hoja de símbolos.
+**Criterio de salida técnico cumplido:** los combatientes usan 27 capas PNG intercambiables sobre un lienzo común, la apariencia se edita en el dojo y los guardados anteriores migran automáticamente. Antes de una publicación comercial o de hacer público el repositorio todavía se debe verificar documentalmente la autoría o licencia de la hoja de símbolos proporcionada.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 
@@ -107,4 +107,4 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Exportar desde la plantilla común los cuerpos, rostros, cinco cabellos, prendas, calzado y armas como capas PNG; después cerrar la verificación de derechos de la hoja de símbolos.
+Probar la demo completa con jugadores, ajustar legibilidad y dificultad, y cerrar la verificación de derechos de la hoja de símbolos antes de una publicación abierta.

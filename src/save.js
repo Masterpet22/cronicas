@@ -1,7 +1,7 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.4.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.5.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
 const VALID_AFFINITIES = ["fire", "wind", "lightning"];
@@ -36,7 +36,7 @@ export function initialLoadout(affinity) {
   return [...own, ...others].filter(Boolean).map((jutsu) => jutsu.id).slice(0, 4);
 }
 
-export function createCharacter(save, { name, affinity, appearance }) {
+export function createCharacter(save, { name, affinity, appearance, bodyType, hair }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
   const cleanAffinity = VALID_AFFINITIES.includes(affinity) ? affinity : "fire";
   const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
@@ -44,7 +44,7 @@ export function createCharacter(save, { name, affinity, appearance }) {
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, appearance: cleanAppearance },
+    character: { name: cleanName, affinity: cleanAffinity, appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     loadout: initialLoadout(cleanAffinity),
@@ -72,7 +72,13 @@ export function normalizeSave(candidate) {
     character: candidate.character ? {
       name: String(candidate.character.name || "Akio").trim().slice(0, 18) || "Akio",
       affinity,
-      appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5"
+      appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5",
+      bodyType: candidate.character.bodyType === "female" ? "female" : "male",
+      face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
+      hair: Math.min(5, Math.max(1, Math.floor(Number(candidate.character.hair) || 1))),
+      top: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.top) || 1))),
+      bottom: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.bottom) || 1))),
+      shoes: Math.min(2, Math.max(1, Math.floor(Number(candidate.character.shoes) || 1)))
     } : null,
     progression: {
       level,

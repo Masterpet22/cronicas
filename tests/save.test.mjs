@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats, normalizeSave, SAVE_VERSION, spendAttribute } from "../src/save.js";
 
-let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "wind", appearance: "#34bbaa" });
-assert.equal(SAVE_VERSION, 2, "La campaña debe usar la segunda versión del guardado");
+let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "wind", appearance: "#34bbaa", bodyType: "female", hair: "4" });
+assert.equal(SAVE_VERSION, 3, "La apariencia modular debe usar la tercera versión del guardado");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "wind", "La afinidad seleccionada debe guardarse");
+assert.equal(save.character.bodyType, "female", "El cuerpo elegido debe guardarse");
+assert.equal(save.character.hair, 4, "El peinado elegido debe guardarse");
 assert.equal(save.loadout.length, 4, "El personaje debe comenzar con cuatro técnicas");
 assert.equal(new Set(save.loadout).size, 4, "La selección inicial no debe duplicar técnicas");
 
@@ -45,5 +47,17 @@ const corrupt = normalizeSave({ character: { name: "", affinity: "water" }, prog
 assert.equal(corrupt.progression.level, 1, "Los niveles inválidos deben repararse");
 assert.equal(corrupt.character.affinity, "fire", "Las afinidades inválidas deben repararse");
 assert.equal(corrupt.loadout.length, 4, "Una selección corrupta debe restaurarse");
+assert.deepEqual(
+  { bodyType: corrupt.character.bodyType, face: corrupt.character.face, hair: corrupt.character.hair, top: corrupt.character.top, bottom: corrupt.character.bottom, shoes: corrupt.character.shoes },
+  { bodyType: "male", face: 1, hair: 1, top: 1, bottom: 1, shoes: 1 },
+  "Un guardado anterior debe migrar a una apariencia modular válida"
+);
+
+const repairedAppearance = normalizeSave({ ...save, character: { ...save.character, face: 99, hair: -3, top: "3", bottom: 0, shoes: 8 } });
+assert.deepEqual(
+  { face: repairedAppearance.character.face, hair: repairedAppearance.character.hair, top: repairedAppearance.character.top, bottom: repairedAppearance.character.bottom, shoes: repairedAppearance.character.shoes },
+  { face: 3, hair: 1, top: 3, bottom: 1, shoes: 2 },
+  "Las piezas modulares fuera de rango deben repararse"
+);
 
 console.log("Pruebas de progreso superadas.");

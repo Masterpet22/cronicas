@@ -14,7 +14,7 @@ La identidad combina tinta seca, siluetas nítidas y color elemental contenido. 
 
 ## Sistema modular de personajes
 
-La hoja `assets/reference/modular-character-system-v1.png` define la nueva plantilla de producción:
+La hoja `assets/reference/modular-character-system-v1.png` define la plantilla de producción:
 
 - Anime/chibi moderado, aproximadamente una cabeza por 3,5 alturas.
 - Pose neutral en vista 3/4 frontal.
@@ -22,7 +22,7 @@ La hoja `assets/reference/modular-character-system-v1.png` define la nueva plant
 - Capas para cabello trasero, cuerpo, rostro, ropa superior e inferior, manos, cabello delantero, accesorio, arma y efectos.
 - Anclajes `HEAD`, `NECK`, `SHOULDER_L/R`, `HAND_L/R`, `WAIST`, `FOOT_L/R` y `WEAPON_HAND`.
 
-Los combatientes geométricos continúan como marcadores temporales. La hoja técnica no debe utilizarse como sprite recortado: primero deben exportarse sus componentes a PNG transparentes sobre un canvas común.
+La implementación final está en `assets/modular/`: 27 capas transparentes de `512 × 512` con anclajes comunes. El juego compone cabello trasero, cuerpo, ropa inferior, calzado, ropa superior, rostro, cabello delantero y arma; las prendas se colorean en Phaser. La hoja técnica se conserva como referencia y no se recorta como sprite.
 
 ## Vocabulario de sellos
 

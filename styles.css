@@ -85,9 +85,9 @@ h3 span { color: #f5a357; }
 .lead { color: #aeb6c6; line-height: 1.55; }
 .creator-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 26px; }
 .creator-form label:first-child, .creator-form .primary-button { grid-column: 1 / -1; }
-.creator-form label, .equipment-grid label { display: grid; gap: 7px; color: #cbd3e0; font-size: 0.78rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.07em; }
+.creator-form label, .equipment-grid label, .cosmetic-grid label { display: grid; gap: 7px; color: #cbd3e0; font-size: 0.78rem; font-weight: 750; text-transform: uppercase; letter-spacing: 0.07em; }
 input, select, button { font: inherit; }
-.creator-form input, .creator-form select, .equipment-grid select {
+.creator-form input, .creator-form select, .equipment-grid select, .cosmetic-grid select {
   min-width: 0;
   border: 1px solid #3b4658;
   border-radius: 8px;
@@ -122,6 +122,7 @@ input, select, button { font: inherit; }
 .stat-grid span { padding: 10px 4px; border-radius: 7px; background: rgba(255,255,255,0.055); color: #fff; font-size: 1.05rem; font-weight: 800; text-align: center; }
 .stat-grid small { display: block; color: #8e9bad; font-size: 0.58rem; letter-spacing: 0.1em; }
 .section-heading > strong { color: #f5a357; font-size: 0.8rem; }
+.cosmetic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 20px; }
 .equipment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
 .jutsu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; max-height: 330px; overflow-y: auto; padding-right: 4px; }
 .jutsu-card { position: relative; display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 5px 8px; border: 1px solid #303d50; border-radius: 8px; padding: 10px; background: #111925; cursor: pointer; }
@@ -173,7 +174,7 @@ input, select, button { font: inherit; }
   .dojo-layout { grid-template-columns: 1fr; }
   .dojo-card { border-inline: 0; border-radius: 0; padding: 18px 14px; }
   .creator-card { margin: 12px auto; }
-  .creator-form, .equipment-grid, .jutsu-grid { grid-template-columns: 1fr; }
+  .creator-form, .equipment-grid, .cosmetic-grid, .jutsu-grid { grid-template-columns: 1fr; }
   .creator-form label { grid-column: 1; }
   .village-topbar { align-items: flex-start; }.campaign-summary { display: grid; grid-template-columns: 1fr 1fr; }
   .village-nav { grid-template-columns: repeat(2, 1fr); }.location-grid { grid-template-columns: 1fr; }.location-grid button { min-height: 96px; }

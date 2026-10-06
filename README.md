@@ -55,15 +55,17 @@ styles.css               Presentación de la página
 game.js                  Escena, combate, sellos y efectos
 ART_DIRECTION.md         Guía de identidad, paleta y escalas
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
-src/save.js              Guardado v2, campaña, atributos y recompensas
+src/save.js              Guardado v3, apariencia, campaña, atributos y recompensas
 src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
 src/rules.js             Precisión, afinidades y estados
-src/fighters.js          Cuerpos modulares provisionales
+src/fighters.js          Composición y animación de capas de personaje
 src/ui.js                Barras y botones de combate
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.jpg       Nueva hoja de doce símbolos
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
+assets/modular/          27 capas PNG y manifiesto de anclajes
+scripts/generate_modular_assets.ps1  Generador reproducible de personajes
 ROADMAP.md               Plan de desarrollo
 ```
 
@@ -75,4 +77,4 @@ npm test
 
 ## Nota sobre el arte
 
-La hoja técnica modular fue generada específicamente para este proyecto siguiendo una guía de producción aportada por el usuario. Los combatientes geométricos siguen activos hasta exportar piezas PNG realmente intercambiables. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.
+La hoja técnica modular fue generada específicamente para este proyecto siguiendo una guía de producción aportada por el usuario. Los personajes del combate ya se construyen con piezas PNG intercambiables y personalizables desde el dojo. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.
