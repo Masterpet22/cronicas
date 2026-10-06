@@ -44,15 +44,17 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Fase 2 — Progresión del personaje
 
-- [ ] Creación de nombre, aspecto y afinidad inicial.
-- [ ] Experiencia, niveles y atributos.
-- [ ] Biblioteca de 12 jutsus: cuatro por cada una de tres afinidades.
-- [ ] Equipamiento sencillo: arma, protector y accesorio.
-- [ ] Pantalla para preparar cuatro técnicas antes de combatir.
-- [ ] Guardado local versionado.
-- [ ] Recompensas y economía sin compras reales.
+- [x] Creación de nombre, aspecto y afinidad inicial.
+- [x] Experiencia, niveles y atributos.
+- [x] Biblioteca de 12 jutsus: cuatro por cada una de tres afinidades.
+- [x] Equipamiento sencillo: arma, protector y accesorio.
+- [x] Pantalla para preparar cuatro técnicas antes de combatir.
+- [x] Guardado local versionado.
+- [x] Recompensas y economía sin compras reales.
 
-**Criterio de salida:** el jugador puede crear un personaje, completar combates y tomar decisiones permanentes de progresión.
+**Estado: completada.**
+
+**Criterio de salida cumplido:** el jugador puede crear un personaje, completar combates y tomar decisiones permanentes de progresión.
 
 ## Fase 3 — Demo jugable
 
@@ -100,4 +102,4 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Comenzar la Fase 2 con creación de personaje, elección de afinidad y guardado local versionado antes de ampliar la biblioteca de jutsus.
+Comenzar la Fase 3 con la aldea navegable por menús, el tutorial breve y la primera misión narrativa.

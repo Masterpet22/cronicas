@@ -1,6 +1,6 @@
-# Crónicas del Sello — prototipo
+# Crónicas del Sello — Fase 2
 
-Vertical slice de combate 2D por turnos inspirada en los RPG sociales de navegador. Incluye cuatro encuentros encadenados, afinidades, sellos interactivos, estados, un jefe de dos fases y opciones de accesibilidad.
+RPG 2D por turnos inspirado en los RPG sociales de navegador. Incluye creación y progreso de personaje, equipo de técnicas, doce jutsus, recompensas persistentes y una ruta de cuatro encuentros con jefe final.
 
 ## Ejecutar
 
@@ -18,6 +18,9 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 
 ## Controles
 
+- Crea un personaje con nombre, color de atuendo y afinidad inicial.
+- En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
+- Las técnicas se desbloquean al subir de nivel; cada nivel entrega dos puntos de atributo.
 - Selecciona una de las seis acciones con el ratón o la pantalla táctil.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
 - También puedes pulsar el sello iluminado con ratón o pantalla táctil.
@@ -35,7 +38,8 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Cada enemigo tiene debilidad, resistencia y patrón de acciones propios.
 - Al derrotar un enemigo se recuperan 35 PV y 25 CH antes del siguiente encuentro.
 - La técnica especial utiliza una presentación cinematográfica oscura.
-- Al finalizar aparece un botón para reiniciar el combate.
+- Cada enemigo concede experiencia y monedas; las recompensas y decisiones quedan guardadas localmente.
+- Al finalizar aparece un botón para volver al dojo y ajustar la estrategia.
 
 ## Estructura
 
@@ -43,11 +47,14 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 index.html               Entrada del juego
 styles.css               Presentación de la página
 game.js                  Escena, combate, sellos y efectos
-src/data.js              Acciones, sellos, enemigos y patrones
+src/data.js              Jutsus, equipo, sellos, enemigos y patrones
+src/save.js              Guardado versionado, atributos y recompensas
+src/meta-ui.js           Creación de personaje y pantalla del dojo
 src/rules.js             Precisión, afinidades y estados
 src/fighters.js          Cuerpos modulares provisionales
 src/ui.js                Barras y botones de combate
 tests/rules.test.mjs     Pruebas de reglas puras
+tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-ninja.png  Recurso provisional de sellos
 ROADMAP.md               Plan de desarrollo
 ```

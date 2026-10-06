@@ -1,0 +1,158 @@
+import { EQUIPMENT, JUTSU_LIBRARY } from "./data.js";
+
+export const SAVE_KEY = "cronicas-del-sello-save";
+export const SAVE_VERSION = 1;
+
+const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
+const VALID_AFFINITIES = ["fire", "wind", "lightning"];
+
+export function createDefaultSave() {
+  return {
+    version: SAVE_VERSION,
+    character: null,
+    progression: {
+      level: 1,
+      xp: 0,
+      coins: 0,
+      attributePoints: 0,
+      attributes: { power: 0, agility: 0, focus: 0 }
+    },
+    equipment: { ...DEFAULT_EQUIPMENT },
+    loadout: []
+  };
+}
+
+export function initialLoadout(affinity) {
+  const own = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1).slice(0, 2);
+  const others = VALID_AFFINITIES
+    .filter((element) => element !== affinity)
+    .map((element) => JUTSU_LIBRARY.find((jutsu) => jutsu.element === element && jutsu.unlockLevel === 1));
+  return [...own, ...others].filter(Boolean).map((jutsu) => jutsu.id).slice(0, 4);
+}
+
+export function createCharacter(save, { name, affinity, appearance }) {
+  const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
+  const cleanAffinity = VALID_AFFINITIES.includes(affinity) ? affinity : "fire";
+  const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
+  return {
+    ...createDefaultSave(),
+    ...save,
+    version: SAVE_VERSION,
+    character: { name: cleanName, affinity: cleanAffinity, appearance: cleanAppearance },
+    progression: { ...createDefaultSave().progression },
+    equipment: { ...DEFAULT_EQUIPMENT },
+    loadout: initialLoadout(cleanAffinity)
+  };
+}
+
+function validEquipment(type, id) {
+  return EQUIPMENT[type].some((item) => item.id === id) ? id : DEFAULT_EQUIPMENT[type];
+}
+
+export function normalizeSave(candidate) {
+  const defaults = createDefaultSave();
+  if (!candidate || typeof candidate !== "object") return defaults;
+  const progression = candidate.progression || {};
+  const attributes = progression.attributes || {};
+  const level = Math.max(1, Math.floor(Number(progression.level) || 1));
+  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => jutsu.unlockLevel <= level).map((jutsu) => jutsu.id));
+  const loadout = [...new Set(Array.isArray(candidate.loadout) ? candidate.loadout : [])]
+    .filter((id) => unlockedIds.has(id)).slice(0, 4);
+  const affinity = VALID_AFFINITIES.includes(candidate.character?.affinity) ? candidate.character.affinity : "fire";
+
+  return {
+    version: SAVE_VERSION,
+    character: candidate.character ? {
+      name: String(candidate.character.name || "Akio").trim().slice(0, 18) || "Akio",
+      affinity,
+      appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5"
+    } : null,
+    progression: {
+      level,
+      xp: Math.max(0, Math.floor(Number(progression.xp) || 0)),
+      coins: Math.max(0, Math.floor(Number(progression.coins) || 0)),
+      attributePoints: Math.max(0, Math.floor(Number(progression.attributePoints) || 0)),
+      attributes: {
+        power: Math.max(0, Math.floor(Number(attributes.power) || 0)),
+        agility: Math.max(0, Math.floor(Number(attributes.agility) || 0)),
+        focus: Math.max(0, Math.floor(Number(attributes.focus) || 0))
+      }
+    },
+    equipment: {
+      weapon: validEquipment("weapon", candidate.equipment?.weapon),
+      armor: validEquipment("armor", candidate.equipment?.armor),
+      accessory: validEquipment("accessory", candidate.equipment?.accessory)
+    },
+    loadout: loadout.length ? loadout : (candidate.character ? initialLoadout(affinity) : [])
+  };
+}
+
+export function loadSave(storage = globalThis.localStorage) {
+  try {
+    const raw = storage?.getItem(SAVE_KEY);
+    return normalizeSave(raw ? JSON.parse(raw) : null);
+  } catch (_) {
+    return createDefaultSave();
+  }
+}
+
+export function writeSave(save, storage = globalThis.localStorage) {
+  const normalized = normalizeSave(save);
+  try { storage?.setItem(SAVE_KEY, JSON.stringify(normalized)); } catch (_) { /* El juego continúa sin persistencia. */ }
+  return normalized;
+}
+
+export function xpForNextLevel(level) {
+  return 80 + level * 40;
+}
+
+export function awardEncounter(save, encounterIndex) {
+  const rewards = [
+    { xp: 28, coins: 18 },
+    { xp: 36, coins: 26 },
+    { xp: 48, coins: 36 },
+    { xp: 90, coins: 70 }
+  ];
+  const result = normalizeSave(save);
+  const stats = derivedStats(result);
+  const base = rewards[encounterIndex] || rewards[0];
+  const gainedXp = Math.round(base.xp * (1 + stats.xpBonus));
+  result.progression.xp += gainedXp;
+  result.progression.coins += base.coins;
+  let levelsGained = 0;
+  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
+    result.progression.xp -= xpForNextLevel(result.progression.level);
+    result.progression.level += 1;
+    result.progression.attributePoints += 2;
+    levelsGained += 1;
+  }
+  return { save: result, xp: gainedXp, coins: base.coins, levelsGained };
+}
+
+export function spendAttribute(save, attribute) {
+  const result = normalizeSave(save);
+  if (!Object.hasOwn(result.progression.attributes, attribute) || result.progression.attributePoints <= 0) return result;
+  result.progression.attributes[attribute] += 1;
+  result.progression.attributePoints -= 1;
+  return result;
+}
+
+export function derivedStats(save) {
+  const normalized = normalizeSave(save);
+  const { power, agility, focus } = normalized.progression.attributes;
+  const stats = {
+    maxHp: 100,
+    maxChakra: 70 + focus * 2,
+    speed: 12 + Math.floor(agility / 2),
+    accuracy: 95 + focus,
+    evasion: 8 + agility,
+    damageBonus: power,
+    costReduction: 0,
+    xpBonus: 0
+  };
+  Object.entries(normalized.equipment).forEach(([type, id]) => {
+    const item = EQUIPMENT[type].find((entry) => entry.id === id);
+    Object.entries(item?.bonuses || {}).forEach(([stat, value]) => { stats[stat] += value; });
+  });
+  return stats;
+}

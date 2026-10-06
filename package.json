@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/rules.test.mjs"
+    "test": "node tests/rules.test.mjs && node tests/save.test.mjs"
   }
 }

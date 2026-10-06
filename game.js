@@ -1,12 +1,16 @@
-import { SEALS, ACTIONS, ENEMY_ACTIONS, ENEMIES } from "./src/data.js";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMIES } from "./src/data.js";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js";
 import { createModularFighter, destroyFighter } from "./src/fighters.js";
 import { createActionButton, createBar } from "./src/ui.js";
+import { mountMetaUI } from "./src/meta-ui.js";
+import { awardEncounter, derivedStats, loadSave, writeSave } from "./src/save.js";
 
 const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
+let activeSave = loadSave();
+let game = null;
 
 class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
@@ -16,10 +20,14 @@ class BattleScene extends Phaser.Scene {
   }
 
   create() {
-    this.player = { hp: 100, chakra: 70, speed: 12, accuracy: 95, evasion: 8, statuses: [], guarding: false };
+    this.saveData = activeSave;
+    const stats = derivedStats(this.saveData);
+    this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
+    const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean);
+    this.actions = [BASE_ACTIONS[0], ...selectedJutsus, BASE_ACTIONS[1]];
     this.enemyIndex = 0;
     this.enemy = this.createEnemyState(ENEMIES[this.enemyIndex]);
-    this.cooldowns = Object.fromEntries(ACTIONS.map((action) => [action.id, 0]));
+    this.cooldowns = Object.fromEntries(this.actions.map((action) => [action.id, 0]));
     this.round = 1;
     this.busy = false;
     this.finished = false;
@@ -155,7 +163,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   createHud() {
-    this.playerName = this.add.text(38, 28, "AKIO  ·  RANGO NOVICIO", this.textStyle(17, "#f8f2e7", "700"));
+    this.playerName = this.add.text(38, 28, `${this.saveData.character.name.toUpperCase()}  ·  NIVEL ${this.saveData.progression.level}`, this.textStyle(17, "#f8f2e7", "700"));
     this.enemyName = this.add.text(922, 28, ENEMIES[this.enemyIndex].name, this.textStyle(17, "#f8f2e7", "700")).setOrigin(1, 0);
     this.playerHpBar = createBar(this, 38, 58, 250, 14, 0x54d69a);
     this.chakraBar = createBar(this, 38, 80, 190, 9, 0x58a7ff);
@@ -171,7 +179,8 @@ class BattleScene extends Phaser.Scene {
 
   createFighters() {
     const profile = ENEMIES[this.enemyIndex];
-    this.hero = createModularFighter(this, 220, 298, 0xe8edf5, 0x243149, false);
+    const outfitColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
+    this.hero = createModularFighter(this, 220, 298, outfitColor, 0x243149, false);
     this.foe = createModularFighter(this, 740, 298, profile.colors.cloth, profile.colors.accent, true);
     this.tweens.add({ targets: [this.hero.body, this.hero.head], y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.tweens.add({ targets: [this.foe.body, this.foe.head], y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
@@ -182,7 +191,7 @@ class BattleScene extends Phaser.Scene {
     this.messageText = this.add.text(36, 376, "", this.textStyle(14, "#f7d6a5", "600"));
     this.buttons = [];
 
-    ACTIONS.forEach((jutsu, index) => {
+    this.actions.forEach((jutsu, index) => {
       const button = createActionButton(this, jutsu, index, this.textStyle.bind(this));
       const { bg, hit } = button;
       hit.on("pointerover", () => { if (!this.busy && !this.finished) bg.setFillStyle(0x24334a); });
@@ -198,14 +207,15 @@ class BattleScene extends Phaser.Scene {
       this.setMessage(`${jutsu.name} sigue en enfriamiento.`, "#ff9d8d");
       return;
     }
-    if (this.player.chakra < jutsu.cost) {
+    const cost = this.actionCost(jutsu);
+    if (this.player.chakra < cost) {
       this.setMessage("No tienes suficiente chakra para esa técnica.", "#ff9d8d");
       this.shake(90, 0.003);
       return;
     }
 
     this.busy = true;
-    this.player.chakra -= jutsu.cost;
+    this.player.chakra -= cost;
     if (jutsu.cooldown) this.cooldowns[jutsu.id] = jutsu.cooldown + 1;
     this.refreshHud();
     this.setButtonsEnabled(false);
@@ -241,7 +251,7 @@ class BattleScene extends Phaser.Scene {
 
     this.clearGuard();
     this.advanceCooldowns();
-    this.player.chakra = Math.min(100, this.player.chakra + 8);
+    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 8);
     this.round += 1;
     this.refreshHud();
 
@@ -253,6 +263,10 @@ class BattleScene extends Phaser.Scene {
   async resolveEnemyOutcome() {
     const profile = ENEMIES[this.enemyIndex];
     if (this.enemy.hp <= 0) {
+      const reward = awardEncounter(this.saveData, this.enemyIndex);
+      this.saveData = writeSave(reward.save);
+      activeSave = this.saveData;
+      this.lastReward = reward;
       if (this.enemyIndex === ENEMIES.length - 1) {
         await this.finishBattle(true);
       } else {
@@ -269,7 +283,8 @@ class BattleScene extends Phaser.Scene {
 
   async advanceEncounter() {
     const defeatedName = ENEMIES[this.enemyIndex].name;
-    this.setMessage(`${defeatedName} ha sido derrotado. Recuperas fuerzas.`, "#79e8b5");
+    const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
+    this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
     this.stopFighterFlash(this.foe);
     this.tweens.add({ targets: [this.foe.body, this.foe.head], alpha: 0, x: "+=70", duration: 480 });
     await this.delay(560);
@@ -285,8 +300,8 @@ class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: [this.foe.body, this.foe.head], x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
     this.tweens.add({ targets: [this.foe.body, this.foe.head], y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });
 
-    this.player.hp = Math.min(100, this.player.hp + 35);
-    this.player.chakra = Math.min(100, this.player.chakra + 25);
+    this.player.hp = Math.min(this.player.maxHp, this.player.hp + 35);
+    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 25);
     this.player.statuses = [];
     this.clearGuard();
     Object.keys(this.cooldowns).forEach((id) => { this.cooldowns[id] = 0; });
@@ -431,7 +446,8 @@ class BattleScene extends Phaser.Scene {
 
   async playerAttack(jutsu, casting) {
     const elementalMultiplier = affinityMultiplier(jutsu, this.enemy);
-    const damage = Math.max(1, Math.round(jutsu.damage * casting.multiplier * elementalMultiplier));
+    const affinityBonus = jutsu.element === this.saveData.character.affinity ? 1.1 : 1;
+    const damage = Math.max(1, Math.round((jutsu.damage + this.player.damageBonus) * casting.multiplier * elementalMultiplier * affinityBonus));
     const chance = hitChance(this.player, this.enemy, jutsu);
     const originX = this.hero.body.x;
     this.tweens.add({ targets: [this.hero.body, this.hero.head], x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
@@ -466,7 +482,7 @@ class BattleScene extends Phaser.Scene {
 
   async playerGuard() {
     this.player.guarding = true;
-    this.player.chakra = Math.min(100, this.player.chakra + 12);
+    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 12);
     this.guardAura = this.add.circle(this.hero.body.x, this.hero.body.y - 18, 72, 0xf5c96b, 0.12)
       .setStrokeStyle(5, 0xf5c96b, 0.8).setDepth(8);
     this.tweens.add({ targets: this.guardAura, scale: 1.08, alpha: 0.35, duration: 420, yoyo: true, repeat: -1 });
@@ -615,14 +631,15 @@ class BattleScene extends Phaser.Scene {
   async finishBattle(won) {
     this.finished = true;
     this.busy = false;
-    this.setMessage(won ? "¡Victoria! El paso vuelve a estar libre." : "Has sido derrotado. Ajusta tu estrategia.", won ? "#79e8b5" : "#ff8e80");
+    const rewardText = won && this.lastReward ? ` +${this.lastReward.xp} PX y +${this.lastReward.coins} monedas.` : "";
+    this.setMessage(won ? `¡Victoria! El paso vuelve a estar libre.${rewardText}` : "Has sido derrotado. Ajusta tu estrategia.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;
     this.stopFighterFlash(target);
     this.tweens.add({ targets: [target.body, target.head], angle: won ? 82 : -82, y: "+=38", alpha: 0.35, duration: 650, ease: "Cubic.in" });
-    const reset = this.add.text(WIDTH / 2, 392, "REINICIAR COMBATE", this.textStyle(16, "#0b1018", "800"))
+    const reset = this.add.text(WIDTH / 2, 392, "VOLVER AL DOJO", this.textStyle(16, "#0b1018", "800"))
       .setOrigin(0.5).setPadding(20, 10).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
     reset.once("pointerup", () => {
-      reset.disableInteractive().setText("REINICIANDO...");
+      reset.disableInteractive().setText("ABRIENDO DOJO...");
       // Una recarga limpia evita conservar entradas, tweens y texturas de la
       // batalla anterior. scene.restart() puede destruir la escena mientras
       // Phaser todavía procesa el puntero y dejar el juego bloqueado.
@@ -632,21 +649,22 @@ class BattleScene extends Phaser.Scene {
 
   setButtonsEnabled(enabled) {
     this.buttons.forEach(({ hit, bg, sub, jutsu }) => {
-      const affordable = this.player.chakra >= jutsu.cost;
+      const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const available = enabled && affordable && cooldown === 0;
       if (available) hit.setInteractive({ useHandCursor: true }); else hit.disableInteractive();
       bg.setAlpha(available ? 1 : 0.43);
-      sub.setText(cooldown > 0 ? `ENFRIAMIENTO · ${cooldown} RONDA${cooldown === 1 ? "" : "S"}` : jutsu.subtitle);
+      const adjustedSubtitle = jutsu.cost > 0 ? jutsu.subtitle.replace(/^\d+CH/, `${this.actionCost(jutsu)}CH`) : jutsu.subtitle;
+      sub.setText(cooldown > 0 ? `ENFRIAMIENTO · ${cooldown} RONDA${cooldown === 1 ? "" : "S"}` : adjustedSubtitle);
       sub.setColor(cooldown > 0 ? "#ffab83" : "#aeb9c8");
     });
   }
 
   refreshHud() {
-    this.playerHpBar.fill.width = this.playerHpBar.width * (this.player.hp / 100);
-    this.chakraBar.fill.width = this.chakraBar.width * (this.player.chakra / 100);
+    this.playerHpBar.fill.width = this.playerHpBar.width * (this.player.hp / this.player.maxHp);
+    this.chakraBar.fill.width = this.chakraBar.width * (this.player.chakra / this.player.maxChakra);
     this.enemyHpBar.fill.width = this.enemyHpBar.width * (this.enemy.hp / this.enemy.maxHp);
-    this.playerStat.setText(`${this.player.hp} PV · VEL ${this.player.speed}\n${this.player.chakra} CH · EVA ${this.player.evasion}`);
+    this.playerStat.setText(`${this.player.hp}/${this.player.maxHp} PV · VEL ${this.player.speed}\n${this.player.chakra}/${this.player.maxChakra} CH · EVA ${this.player.evasion}`);
     this.enemyStat.setText(`${this.enemy.hp} PV · VEL ${this.enemy.speed}\nEVA ${this.enemy.evasion}`);
     this.playerStatusText.setText(formatStatuses(this.player));
     const affinityInfo = `DÉBIL ${this.elementName(this.enemy.weakness)} · RES ${this.elementName(this.enemy.resistance)}`;
@@ -657,6 +675,10 @@ class BattleScene extends Phaser.Scene {
 
   setMessage(text, color = "#f7d6a5") {
     this.messageText.setText(text).setColor(color);
+  }
+
+  actionCost(action) {
+    return Math.max(0, action.cost - this.player.costReduction);
   }
 
   elementName(element) {
@@ -694,13 +716,22 @@ class BattleScene extends Phaser.Scene {
   }
 }
 
-new Phaser.Game({
-  type: Phaser.AUTO,
-  parent: "game",
-  width: WIDTH,
-  height: HEIGHT,
-  backgroundColor: "#101622",
-  scene: BattleScene,
-  render: { antialias: true, pixelArt: false },
-  scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
+const metaRoot = document.getElementById("meta");
+const gameRoot = document.getElementById("game");
+
+mountMetaUI(metaRoot, activeSave, (save) => {
+  activeSave = writeSave(save);
+  metaRoot.hidden = true;
+  gameRoot.hidden = false;
+  if (game) game.destroy(true);
+  game = new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: "game",
+    width: WIDTH,
+    height: HEIGHT,
+    backgroundColor: "#101622",
+    scene: BattleScene,
+    render: { antialias: true, pixelArt: false },
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
+  });
 });
