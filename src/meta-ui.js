@@ -130,8 +130,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     }).join("");
     return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('assets/locations/${locationId}.png?v=0.9.0')" aria-label="${escapeHtml(locationName)}">
       <div class="stage-characters">${portraits}</div>
-      <div class="stage-speech" data-stage-speech ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
-      <div class="stage-ambient" data-stage-ambient hidden><strong data-ambient-speaker></strong><span data-ambient-text></span></div>
+      <div class="stage-speech" data-stage-speech aria-live="polite" ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
+      <div class="stage-ambient" data-stage-ambient role="status" aria-live="polite" hidden><strong data-ambient-speaker></strong><span data-ambient-text></span></div>
       <div class="stage-options ${introduced ? "ready" : ""}" data-stage-options ${introduced ? "" : "hidden"}>${content}</div>
     </section>`;
   };
@@ -155,7 +155,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const npc = NPCS[npcId] || NPCS[cast[0]];
       if (!npc || !ambient || !stage.isConnected) return;
       clearTimeout(tipTimer);
-      ambient.querySelector("[data-ambient-speaker]").textContent = npc.name;
+      ambient.querySelector("[data-ambient-speaker]").textContent = `${npc.name} · ${npc.title}`;
       ambient.querySelector("[data-ambient-text]").textContent = text;
       ambient.hidden = false;
       ambient.classList.remove("leaving");
@@ -188,7 +188,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     };
     const drawLine = () => {
       const [speaker, text] = lines[lineIndex];
-      speech.querySelector("[data-stage-speaker]").textContent = speaker;
+      const npc = npcByName(speaker);
+      speech.querySelector("[data-stage-speaker]").textContent = npc ? `${npc.name} · ${npc.title}` : speaker;
       speech.querySelector("[data-stage-text]").textContent = text;
       speech.querySelector("[data-stage-count]").textContent = `${lineIndex + 1}/${lines.length}`;
       speech.querySelector("[data-stage-next]").textContent = lineIndex === lines.length - 1 ? "VER OPCIONES" : "SIGUIENTE";
