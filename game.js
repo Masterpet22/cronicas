@@ -1,8 +1,9 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.6.0";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.6.0";
-import { createGeometricFighter, destroyFighter } from "./src/fighters.js?v=0.6.0";
+import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.6.1";
+import { playerFighterAppearance } from "./src/character.js?v=0.6.1";
 import { createActionButton, createBar } from "./src/ui.js?v=0.6.0";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.6.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.6.1";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.6.0";
 
 const Phaser = window.Phaser;
@@ -18,6 +19,15 @@ class BattleScene extends Phaser.Scene {
 
   preload() {
     this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.6.0");
+    // Texturas de combatientes generadas con el mismo SVG del Dojo.
+    this.saveData = activeSave;
+    this.mission = activeMission;
+    queueFighterTexture(this, this.playerAppearance());
+    this.mission.encounters.forEach((id, index) => {
+      const profile = ENEMY_ROSTER[id];
+      queueFighterTexture(this, this.enemyAppearance(profile, index));
+      if (profile.boss) queueFighterTexture(this, this.bossPhaseAppearance(profile, index));
+    });
   }
 
   create() {
@@ -337,12 +347,7 @@ class BattleScene extends Phaser.Scene {
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
-    if (this.foe.vector) {
-      this.foe.parts.top.setFillStyle(0x9a55df);
-      this.foe.parts.bottom.setFillStyle(0x612348);
-      this.foe.parts.rightLeg.setFillStyle(0x612348);
-      this.foe.parts.sash.setFillStyle(0x33194f);
-    }
+    this.foe.sprite.setTexture(fighterTextureKey(this.bossPhaseAppearance(profile, this.enemyIndex)));
     this.screenFlash(220, 130, 55, 180);
     this.tone(95, 0.35);
     this.refreshHud();
@@ -710,14 +715,16 @@ class BattleScene extends Phaser.Scene {
   }
 
   playerAppearance() {
-    const character = this.saveData.character;
-    const weaponMap = { kunai: "kunai", tanto: "sword", staff: "staff" };
-    return { ...character, clothColor: Number.parseInt(character.appearance.slice(1), 16), accentColor: 0x26364f, weapon: weaponMap[this.saveData.equipment.weapon] || "kunai" };
+    return playerFighterAppearance(this.saveData);
   }
 
-  enemyAppearance(profile) {
-    const seed = this.enemyIndex + this.mission.number;
+  enemyAppearance(profile, index = this.enemyIndex) {
+    const seed = index + this.mission.number;
     return { bodyType: seed % 2 ? "female" : "male", face: seed % 3 + 1, hair: seed % 5 + 1, top: seed % 3 + 1, bottom: (seed + 1) % 3 + 1, shoes: seed % 2 + 1, weapon: ["dagger", "sword", "staff", "kunai"][seed % 4], clothColor: profile.colors.cloth, accentColor: profile.colors.accent };
+  }
+
+  bossPhaseAppearance(profile, index = this.enemyIndex) {
+    return { ...this.enemyAppearance(profile, index), clothColor: 0x9a55df, accentColor: 0x612348 };
   }
 
   elementName(element) {

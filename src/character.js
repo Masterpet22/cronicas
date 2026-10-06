@@ -1,4 +1,19 @@
 const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
+const WEAPON_MAP = { kunai: "kunai", tanto: "sword", staff: "staff" };
+
+// Caja del SVG del combatiente. El punto (0, 0) es el centro del torso.
+export const FIGHTER_VIEWBOX = { x: -115, y: -150, width: 230, height: 285 };
+
+// Apariencia del jugador compartida por el Dojo y el combate.
+export function playerFighterAppearance(save) {
+  const character = save.character;
+  return {
+    ...character,
+    weapon: WEAPON_MAP[save.equipment?.weapon] || "kunai",
+    clothColor: character.appearance,
+    accentColor: "#25344d"
+  };
+}
 
 function clampVariant(value, max) {
   return Math.min(max, Math.max(1, Math.floor(Number(value) || 1)));
@@ -43,8 +58,10 @@ function hairSvg(style, color, ink) {
   return base;
 }
 
-export function fighterPreviewSvg(appearance) {
+export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {}) {
   const a = resolveFighterAppearance(appearance);
+  const box = FIGHTER_VIEWBOX;
+  const size = scale ? ` width="${box.width * scale}" height="${box.height * scale}"` : "";
   const torsoWidth = a.bodyType === "female" ? 66 : 76;
   const eye = a.face === 2 ? "M-22 -77 L-7 -73 M7 -73 L22 -77" : a.face === 3 ? "M-22 -76 Q-14 -68 -6 -76 M6 -76 Q14 -68 22 -76" : "M-21 -76 Q-14 -83 -7 -76 M7 -76 Q14 -83 21 -76";
   const mouth = a.face === 2 ? "M-8 -55 L8 -55" : a.face === 3 ? "M-9 -57 Q0 -49 9 -57" : "M-7 -55 Q0 -52 7 -55";
@@ -52,8 +69,8 @@ export function fighterPreviewSvg(appearance) {
   const shoeHeight = a.shoes === 2 ? 24 : 17;
   const collar = a.top === 3 ? `<path d="M-20 -31 L0 -13 L20 -31 L15 -44 L-15 -44 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="4"/>` : "";
   const vest = a.top === 2 ? `<path d="M-${torsoWidth / 2 + 8} -34 L-${torsoWidth / 2} -49 L-${torsoWidth / 2 - 5} -17 Z M${torsoWidth / 2 + 8} -34 L${torsoWidth / 2} -49 L${torsoWidth / 2 - 5} -17 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="4"/>` : "";
-  return `<svg viewBox="-115 -150 230 285" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Combatiente geométrico personalizado">
-    <ellipse cx="0" cy="117" rx="68" ry="10" fill="#05070a" opacity=".35"/>
+  return `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"${size} xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Combatiente geométrico personalizado">
+    ${shadow ? `<ellipse cx="0" cy="117" rx="68" ry="10" fill="#05070a" opacity=".35"/>` : ""}
     ${a.hair === 2 || a.hair === 4 ? hairSvg(a.hair, a.hairColor, a.ink) : ""}
     <path d="M-${legWidth + 5} 36 L-5 36 L-${legWidth - 2} 101 L-${legWidth + 20} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>
     <path d="M5 36 L${legWidth + 5} 36 L${legWidth + 20} 101 L${legWidth - 2} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>

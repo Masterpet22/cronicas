@@ -1,4 +1,4 @@
-import { fighterPreviewSvg } from "./character.js?v=0.6.0";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.6.1";
 import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.6.0";
 import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.6.0";
 
@@ -109,11 +109,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
   const equipmentOptions = (type) => EQUIPMENT[type].map((item) => `<option value="${item.id}" ${save.equipment[type] === item.id ? "selected" : ""}>${item.name} · ${item.description}</option>`).join("");
   const numberedOptions = (count, current, prefix) => Array.from({ length: count }, (_, index) => `<option value="${index + 1}" ${Number(current) === index + 1 ? "selected" : ""}>${prefix} ${index + 1}</option>`).join("");
-  const characterPreview = (character) => {
-    const weapon = ({ kunai: "kunai", tanto: "sword", staff: "staff" })[save.equipment.weapon] || "kunai";
-    const clothColor = character.appearance;
-    return `<div class="character-preview">${fighterPreviewSvg({ ...character, weapon, clothColor, accentColor: "#25344d" })}</div>`;
-  };
+  const characterPreview = () => `<div class="character-preview">${fighterPreviewSvg(playerFighterAppearance(save))}</div>`;
 
   const renderDojo = () => {
     const stats = derivedStats(save);

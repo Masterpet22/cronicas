@@ -18,4 +18,27 @@ assert.deepEqual(
   { face: 3, hair: 1, top: 1, bottom: 3, shoes: 2, weapon: "kunai" }
 );
 
+import { fighterTextureKey, queueFighterTexture } from "../src/fighters.js";
+import { playerFighterAppearance } from "../src/character.js";
+
+const playerSave = {
+  character: { name: "Akio", appearance: "#e64c3c", bodyType: "male", face: 2, hair: 3, top: 1, bottom: 2, shoes: 1 },
+  equipment: { weapon: "tanto" }
+};
+const playerApp = playerFighterAppearance(playerSave);
+assert.equal(playerApp.weapon, "sword", "El arma 'tanto' del equipo debe mapearse a 'sword' en el combatiente");
+assert.equal(playerApp.clothColor, "#e64c3c");
+
+const key1 = fighterTextureKey(playerApp);
+const key2 = fighterTextureKey(playerApp);
+assert.equal(key1, key2, "La clave de textura debe ser determinista para la misma apariencia");
+
+const loaded = [];
+const mockScene = {
+  textures: { exists: (k) => loaded.includes(k) },
+  load: { image: (k, url) => loaded.push(k) }
+};
+queueFighterTexture(mockScene, playerApp);
+assert.equal(loaded[0], key1, "queueFighterTexture debe encolar la textura con la clave correspondiente");
+
 console.log("Pruebas del personaje geométrico superadas.");
