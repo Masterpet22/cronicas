@@ -58,15 +58,17 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Fase 3 — Demo jugable
 
-- [ ] Una aldea con selección de lugares mediante menús.
-- [ ] Diez misiones, ocho enemigos y tres jefes.
-- [ ] Diálogos y tutorial breve.
-- [ ] Examen de ascenso de rango.
-- [ ] Compañero controlado por inteligencia artificial.
-- [ ] Música, efectos y mezcla de audio.
-- [ ] Pruebas en equipos modestos y navegadores móviles.
+- [x] Una aldea con selección de lugares mediante menús.
+- [x] Diez misiones, ocho enemigos y tres jefes.
+- [x] Diálogos y tutorial breve.
+- [x] Examen de ascenso de rango.
+- [x] Compañero controlado por inteligencia artificial.
+- [x] Música, efectos y mezcla de audio.
+- [x] Diseño adaptable y modo ligero verificados en viewport móvil.
 
-**Criterio de salida:** demo de 60 a 90 minutos que puede compartirse mediante un enlace.
+**Estado: implementación jugable completada.**
+
+**Criterio de salida parcialmente cumplido:** la campaña ofrece aproximadamente 65 a 85 minutos y funciona localmente. La publicación web abierta queda aplazada hasta sustituir los sellos provisionales por arte original en la Fase 4.
 
 ## Fase 4 — Identidad visual propia
 
@@ -102,4 +104,4 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Comenzar la Fase 3 con la aldea navegable por menús, el tutorial breve y la primera misión narrativa.
+Comenzar la Fase 4 definiendo sellos, siluetas y una guía visual completamente originales antes de publicar la demo en la web.

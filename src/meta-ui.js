@@ -1,47 +1,110 @@
-import { EQUIPMENT, JUTSU_LIBRARY } from "./data.js";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js";
 import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
+const TUTORIAL = [
+  ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Desde la plaza puedes visitar el dojo, el tablón de misiones y el archivo."],
+  ["Maestra Aya", "En el dojo preparas cuatro jutsus y distribuyes los puntos obtenidos al subir de nivel."],
+  ["Mika", "En combate, la velocidad decide quién actúa primero. Guardia reduce el próximo impacto y recupera chakra. Nos vemos en el tablón."]
+];
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }
 
-export function mountMetaUI(root, initialSave, onStartBattle) {
+export function mountMetaUI(root, initialSave, onStartMission) {
   let save = initialSave;
+  let view = "plaza";
 
-  const persist = (next) => {
+  const persist = (next, shouldRender = true) => {
     save = writeSave(next);
-    render();
+    if (shouldRender) render();
   };
 
   const renderCreator = () => {
     root.innerHTML = `
       <section class="dojo-card creator-card">
-        <p class="eyebrow">PRIMER PASO</p>
-        <h2>Crea tu combatiente</h2>
+        <p class="eyebrow">PRIMER PASO</p><h2>Crea tu combatiente</h2>
         <p class="lead">Tu afinidad define el estilo inicial, pero podrás aprender técnicas de los tres elementos.</p>
         <form id="character-form" class="creator-form">
           <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
-          <label>Afinidad<select name="affinity">
-            <option value="fire">Fuego · daño persistente</option>
-            <option value="wind">Viento · velocidad y precisión</option>
-            <option value="lightning">Rayo · control y potencia</option>
-          </select></label>
+          <label>Afinidad<select name="affinity"><option value="fire">Fuego · daño persistente</option><option value="wind">Viento · velocidad y precisión</option><option value="lightning">Rayo · control y potencia</option></select></label>
           <label>Color del atuendo<input name="appearance" type="color" value="#e8edf5"></label>
           <button class="primary-button" type="submit">CREAR PERSONAJE</button>
         </form>
       </section>`;
     root.querySelector("#character-form").addEventListener("submit", (event) => {
       event.preventDefault();
-      const form = new FormData(event.currentTarget);
-      persist(createCharacter(save, Object.fromEntries(form)));
+      persist(createCharacter(save, Object.fromEntries(new FormData(event.currentTarget))));
     });
   };
 
-  const options = (type) => EQUIPMENT[type].map((item) =>
-    `<option value="${item.id}" ${save.equipment[type] === item.id ? "selected" : ""}>${item.name} · ${item.description}</option>`
-  ).join("");
+  const shell = (content) => {
+    const { character, progression, campaign } = save;
+    root.innerHTML = `
+      <div class="village-shell">
+        <section class="village-topbar dojo-card">
+          <div class="profile-heading"><span class="avatar-swatch" style="--avatar:${character.appearance}"></span><div><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${escapeHtml(character.name)}</h2></div></div>
+          <div class="campaign-summary"><strong>Nivel ${progression.level}</strong><span>${progression.xp}/${xpForNextLevel(progression.level)} PX</span><span>${progression.coins} monedas</span><span>${campaign.completedMissions.length}/10 misiones</span></div>
+        </section>
+        <nav class="village-nav" aria-label="Lugares de la aldea">
+          <button data-view="plaza" class="${view === "plaza" ? "active" : ""}">Plaza</button>
+          <button data-view="missions" class="${view === "missions" ? "active" : ""}">Misiones</button>
+          <button data-view="dojo" class="${view === "dojo" ? "active" : ""}">Dojo</button>
+          <button data-view="archive" class="${view === "archive" ? "active" : ""}">Archivo</button>
+        </nav>
+        ${content}
+      </div>`;
+    root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.view; render(); }));
+  };
+
+  const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR") => {
+    let index = 0;
+    const overlay = document.createElement("div");
+    overlay.className = "dialogue-overlay";
+    const draw = () => {
+      const [speaker, dialogue] = lines[index];
+      const last = index === lines.length - 1;
+      overlay.innerHTML = `<section class="dialogue-box"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></section>`;
+      overlay.querySelector("button").addEventListener("click", () => {
+        if (!last) { index += 1; draw(); return; }
+        overlay.remove();
+        onComplete();
+      });
+    };
+    draw();
+    root.append(overlay);
+  };
+
+  const renderPlaza = () => {
+    const companion = save.campaign.companion
+      ? `<div class="notice-card ally"><strong>Mika está disponible</strong><span>Atacará automáticamente cada dos rondas.</span></div>`
+      : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
+    shell(`<section class="village-scene dojo-card"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>¿A dónde quieres ir?</h2><p class="lead">La campaña avanza desde el tablón. Puedes volver al dojo entre misiones para ajustar tu estrategia.</p></div><div class="location-grid"><button data-go="missions"><span>⚔</span><strong>Tablón de misiones</strong><small>Historia y recompensas</small></button><button data-go="dojo"><span>◈</span><strong>Dojo</strong><small>Jutsus, atributos y equipo</small></button><button data-go="archive"><span>▤</span><strong>Archivo</strong><small>Progreso de la campaña</small></button></div>${companion}</section>`);
+    root.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.go; render(); }));
+    if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
+  };
+
+  const renderMissions = () => {
+    const completed = new Set(save.campaign.completedMissions);
+    const cards = MISSIONS.map((mission, index) => {
+      const unlocked = index === 0 || completed.has(MISSIONS[index - 1].id);
+      const done = completed.has(mission.id);
+      const label = done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "ACEPTAR MISIÓN") : "BLOQUEADA";
+      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : mission.location}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
+    }).join("");
+    shell(`<section class="dojo-card mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN</p><h2>Misiones de la aldea</h2></div><strong>${completed.size}/10 completadas</strong></div><div class="mission-list">${cards}</div></section>`);
+    root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
+      const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
+      if (save.loadout.length !== 4) {
+        showDialogue([["Maestra Aya", "Debes preparar exactamente cuatro técnicas antes de aceptar una misión."]], () => { view = "dojo"; render(); }, "IR AL DOJO");
+        return;
+      }
+      showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN");
+    }));
+  };
+
+  const equipmentOptions = (type) => EQUIPMENT[type].map((item) => `<option value="${item.id}" ${save.equipment[type] === item.id ? "selected" : ""}>${item.name} · ${item.description}</option>`).join("");
 
   const renderDojo = () => {
     const stats = derivedStats(save);
@@ -49,62 +112,33 @@ export function mountMetaUI(root, initialSave, onStartBattle) {
     const techniques = JUTSU_LIBRARY.map((jutsu) => {
       const unlocked = jutsu.unlockLevel <= progression.level;
       const selected = save.loadout.includes(jutsu.id);
-      return `<label class="jutsu-card ${unlocked ? "" : "locked"} ${selected ? "selected" : ""}">
-        <input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}>
-        <span class="element-dot ${jutsu.element}"></span>
-        <strong>${jutsu.name}</strong>
-        <small>${ELEMENT_NAMES[jutsu.element]} · ${jutsu.cost} CH · ${jutsu.damage} daño${unlocked ? "" : ` · Nivel ${jutsu.unlockLevel}`}</small>
-      </label>`;
+      return `<label class="jutsu-card ${unlocked ? "" : "locked"} ${selected ? "selected" : ""}"><input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}><span class="element-dot ${jutsu.element}"></span><strong>${jutsu.name}</strong><small>${ELEMENT_NAMES[jutsu.element]} · ${jutsu.cost} CH · ${jutsu.damage} daño${unlocked ? "" : ` · Nivel ${jutsu.unlockLevel}`}</small></label>`;
     }).join("");
-
-    root.innerHTML = `
-      <div class="dojo-layout">
-        <section class="dojo-card profile-card">
-          <div class="profile-heading"><span class="avatar-swatch" style="--avatar:${character.appearance}"></span><div><p class="eyebrow">DOJO</p><h2>${escapeHtml(character.name)}</h2></div></div>
-          <p class="affinity-label">Afinidad de ${ELEMENT_NAMES[character.affinity]}</p>
-          <div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div>
-          <p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX · ${progression.coins} monedas</p>
-          <h3>Atributos <span>${progression.attributePoints} puntos</span></h3>
-          <div class="attribute-list">
-            <button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button>
-            <button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button>
-            <button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button>
-          </div>
-          <div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div>
-        </section>
-        <section class="dojo-card loadout-card">
-          <div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong id="loadout-count">${save.loadout.length}/4 técnicas</strong></div>
-          <div class="equipment-grid">
-            <label>Arma<select data-equipment="weapon">${options("weapon")}</select></label>
-            <label>Protector<select data-equipment="armor">${options("armor")}</select></label>
-            <label>Accesorio<select data-equipment="accessory">${options("accessory")}</select></label>
-          </div>
-          <div class="jutsu-grid">${techniques}</div>
-          <p id="dojo-message" class="dojo-message">Prepara exactamente cuatro técnicas antes de combatir.</p>
-          <button id="start-battle" class="primary-button" ${save.loadout.length === 4 ? "" : "disabled"}>INICIAR RUTA DE COMBATE</button>
-        </section>
-      </div>`;
-
+    shell(`<div class="dojo-layout"><section class="dojo-card profile-card"><p class="eyebrow">ENTRENAMIENTO</p><h2>Afinidad de ${ELEMENT_NAMES[character.affinity]}</h2><div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p><h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div><div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div></section><section class="dojo-card loadout-card"><div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div><div class="equipment-grid"><label>Arma<select data-equipment="weapon">${equipmentOptions("weapon")}</select></label><label>Protector<select data-equipment="armor">${equipmentOptions("armor")}</select></label><label>Accesorio<select data-equipment="accessory">${equipmentOptions("accessory")}</select></label></div><div class="jutsu-grid">${techniques}</div><p id="dojo-message" class="dojo-message">Los cambios se guardan automáticamente.</p></section></div>`);
     root.querySelectorAll("[data-attribute]").forEach((button) => button.addEventListener("click", () => persist(spendAttribute(save, button.dataset.attribute))));
-    root.querySelectorAll("[data-equipment]").forEach((select) => select.addEventListener("change", () => {
-      save.equipment[select.dataset.equipment] = select.value;
-      persist(save);
-    }));
+    root.querySelectorAll("[data-equipment]").forEach((select) => select.addEventListener("change", () => { save.equipment[select.dataset.equipment] = select.value; persist(save); }));
     root.querySelectorAll("[data-jutsu]").forEach((input) => input.addEventListener("change", () => {
       const id = input.dataset.jutsu;
-      if (input.checked && save.loadout.length >= 4) {
-        input.checked = false;
-        root.querySelector("#dojo-message").textContent = "Solo puedes preparar cuatro técnicas.";
-        return;
-      }
+      if (input.checked && save.loadout.length >= 4) { input.checked = false; root.querySelector("#dojo-message").textContent = "Solo puedes preparar cuatro técnicas."; return; }
       save.loadout = input.checked ? [...save.loadout, id] : save.loadout.filter((entry) => entry !== id);
       persist(save);
     }));
-    root.querySelector("#start-battle").addEventListener("click", () => onStartBattle(save));
   };
 
-  const render = () => save.character ? renderDojo() : renderCreator();
-  render();
+  const renderArchive = () => {
+    const completed = new Set(save.campaign.completedMissions);
+    const records = MISSIONS.map((mission) => `<li class="${completed.has(mission.id) ? "done" : ""}"><span>${completed.has(mission.id) ? "✓" : "·"}</span><div><strong>${mission.title}</strong><small>${completed.has(mission.id) ? "Completada" : "Sin completar"}</small></div></li>`).join("");
+    const ending = completed.has("m10") ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>El amanecer regresa</h2><p>El Eclipse fue roto. Tu nombre queda registrado entre los guardianes de la aldea.</p></div>` : "";
+    shell(`<section class="dojo-card archive-card"><p class="eyebrow">ARCHIVO</p><h2>Crónica de ${escapeHtml(save.character.name)}</h2><p class="lead">Rango ${save.campaign.rank} · ${completed.size} misiones · Compañero: ${save.campaign.companion ? "Mika" : "ninguno"}</p><ol>${records}</ol>${ending}</section>`);
+  };
 
-  return { refresh(nextSave) { save = nextSave; render(); } };
+  const render = () => {
+    if (!save.character) return renderCreator();
+    if (view === "missions") return renderMissions();
+    if (view === "dojo") return renderDojo();
+    if (view === "archive") return renderArchive();
+    return renderPlaza();
+  };
+  render();
+  return { refresh(nextSave) { save = nextSave; view = "plaza"; render(); } };
 }

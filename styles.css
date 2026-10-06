@@ -134,6 +134,33 @@ input, select, button { font: inherit; }
 .element-dot.fire { background: #ff783d; }.element-dot.wind { background: #67e8c3; }.element-dot.lightning { background: #68a8ff; }
 .dojo-message { min-height: 19px; color: #aeb6c6; font-size: 0.8rem; }
 .loadout-card > .primary-button { width: 100%; }
+.village-shell { display: grid; gap: 12px; }
+.village-topbar { display: flex; align-items: center; justify-content: space-between; padding-block: 14px; }
+.campaign-summary { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.campaign-summary > * { padding: 7px 10px; border-radius: 999px; background: rgba(255,255,255,0.055); color: #b8c2d1; font-size: 0.78rem; }
+.campaign-summary strong { color: #f5a357; }
+.village-nav { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.village-nav button { border: 1px solid #344154; border-radius: 8px; padding: 10px; background: #111925; color: #aeb9c8; font-weight: 750; cursor: pointer; }
+.village-nav button.active { border-color: #f5a357; background: #29212a; color: #fff; }
+.village-scene { min-height: 430px; display: grid; align-content: center; gap: 26px; background: radial-gradient(circle at 75% 15%, rgba(245,163,87,0.16), transparent 24rem), linear-gradient(145deg, rgba(26,35,52,0.98), rgba(10,15,23,0.98)); }
+.location-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.location-grid button { display: grid; gap: 5px; min-height: 140px; place-content: center; border: 1px solid #344154; border-radius: 11px; background: rgba(10,15,23,0.78); color: #f6f2e9; cursor: pointer; }
+.location-grid button:hover { border-color: #f5a357; transform: translateY(-2px); }
+.location-grid span { color: #f5a357; font-size: 2rem; }.location-grid strong { font-size: 0.95rem; }.location-grid small { color: #95a2b5; }
+.notice-card { display: flex; justify-content: space-between; gap: 12px; border-left: 3px solid #56647a; padding: 11px 14px; background: rgba(0,0,0,0.25); color: #9da9ba; font-size: 0.8rem; }
+.notice-card.ally { border-color: #67e8c3; }.notice-card strong { color: #e9edf4; }
+.dialogue-overlay { position: fixed; z-index: 100; inset: 0; display: grid; place-items: end center; padding: 28px; background: rgba(3,5,9,0.72); backdrop-filter: blur(3px); }
+.dialogue-box { position: relative; width: min(760px, 100%); min-height: 170px; border: 1px solid #56647a; border-radius: 12px; padding: 24px; background: #101722; box-shadow: 0 25px 100px #000; }
+.dialogue-box > p:not(.eyebrow) { min-height: 52px; font-size: 1.05rem; line-height: 1.55; }.dialogue-box button { float: right; }.dialogue-box small { position: absolute; left: 24px; bottom: 24px; color: #758197; }
+.mission-board { padding: 20px; }.mission-list { display: grid; gap: 8px; max-height: 520px; margin-top: 18px; overflow-y: auto; padding-right: 5px; }
+.mission-card { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 14px; border: 1px solid #303d50; border-radius: 9px; padding: 12px; background: #111925; }
+.mission-card.completed { border-color: rgba(103,232,195,0.45); }.mission-card.locked { opacity: 0.48; }
+.mission-number { color: #56647a; font-size: 1.5rem; font-weight: 850; }.mission-card.completed .mission-number { color: #67e8c3; }
+.mission-card h3 { display: block; margin: 1px 0 5px; color: #f4f7fb; font-size: 1rem; letter-spacing: 0; text-transform: none; }.mission-card p { margin: 0; color: #909daf; font-size: 0.74rem; }
+.mission-card button { border: 1px solid #f5a357; border-radius: 7px; padding: 9px 11px; background: transparent; color: #f5a357; font-size: 0.72rem; font-weight: 800; cursor: pointer; }.mission-card button:disabled { border-color: #647086; color: #647086; cursor: not-allowed; }
+.archive-card ol { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; padding: 0; list-style: none; }
+.archive-card li { display: flex; gap: 10px; padding: 11px; border: 1px solid #303d50; border-radius: 8px; color: #758197; }.archive-card li.done { color: #67e8c3; }.archive-card li div { display: grid; }.archive-card li strong { color: #d9dee7; font-size: 0.82rem; }.archive-card li small { color: inherit; }
+.ending-card { margin-top: 18px; padding: 20px; border: 1px solid #f5a357; border-radius: 10px; background: rgba(245,163,87,0.08); }
 
 @media (max-width: 650px) {
   main { width: 100%; padding-top: 12px; }
@@ -148,4 +175,8 @@ input, select, button { font: inherit; }
   .creator-card { margin: 12px auto; }
   .creator-form, .equipment-grid, .jutsu-grid { grid-template-columns: 1fr; }
   .creator-form label { grid-column: 1; }
+  .village-topbar { align-items: flex-start; }.campaign-summary { display: grid; grid-template-columns: 1fr 1fr; }
+  .village-nav { grid-template-columns: repeat(2, 1fr); }.location-grid { grid-template-columns: 1fr; }.location-grid button { min-height: 96px; }
+  .mission-card { grid-template-columns: 42px 1fr; }.mission-card button { grid-column: 1 / -1; }
+  .archive-card ol { grid-template-columns: 1fr; }.dialogue-overlay { padding: 12px; }
 }

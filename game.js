@@ -1,15 +1,16 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMIES } from "./src/data.js";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js";
 import { createModularFighter, destroyFighter } from "./src/fighters.js";
 import { createActionButton, createBar } from "./src/ui.js";
 import { mountMetaUI } from "./src/meta-ui.js";
-import { awardEncounter, derivedStats, loadSave, writeSave } from "./src/save.js";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js";
 
 const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
 let activeSave = loadSave();
+let activeMission = null;
 let game = null;
 
 class BattleScene extends Phaser.Scene {
@@ -21,12 +22,14 @@ class BattleScene extends Phaser.Scene {
 
   create() {
     this.saveData = activeSave;
+    this.mission = activeMission;
+    this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
     const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean);
     this.actions = [BASE_ACTIONS[0], ...selectedJutsus, BASE_ACTIONS[1]];
     this.enemyIndex = 0;
-    this.enemy = this.createEnemyState(ENEMIES[this.enemyIndex]);
+    this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
     this.cooldowns = Object.fromEntries(this.actions.map((action) => [action.id, 0]));
     this.round = 1;
     this.busy = false;
@@ -41,16 +44,14 @@ class BattleScene extends Phaser.Scene {
     this.createHud();
     this.createFighters();
     this.createActionPanel();
-    this.setMessage("Ronda 1: selecciona una acción.");
+    this.startMusic();
+    this.setMessage(`${this.mission.title} · Ronda 1: selecciona una acción.`);
   }
 
   configureSealMode() {
     const toggle = document.getElementById("manual-seals");
     const hint = document.getElementById("mode-hint");
-    let savedMode = "manual";
-    try { savedMode = window.localStorage.getItem("seal-input-mode") || "manual"; } catch (_) { /* El guardado es opcional. */ }
-    this.manualSeals = savedMode !== "automatic";
-    toggle.checked = this.manualSeals;
+    this.manualSeals = toggle.checked;
 
     const updateHint = () => {
       hint.textContent = this.manualSeals
@@ -75,35 +76,40 @@ class BattleScene extends Phaser.Scene {
   configurePresentationOptions() {
     const cameraToggle = document.getElementById("camera-effects");
     const flashToggle = document.getElementById("flash-effects");
+    const musicToggle = document.getElementById("music-enabled");
+    const lightToggle = document.getElementById("light-mode");
     const volumeInput = document.getElementById("game-volume");
-    const read = (key, fallback) => {
-      try { return window.localStorage.getItem(key) ?? fallback; } catch (_) { return fallback; }
-    };
-
-    this.cameraEffects = read("camera-effects", "on") === "on";
-    this.flashEffects = read("flash-effects", "on") === "on";
-    this.volume = Number(read("game-volume", "70")) / 100;
-    cameraToggle.checked = this.cameraEffects;
-    flashToggle.checked = this.flashEffects;
-    volumeInput.value = String(Math.round(this.volume * 100));
+    this.cameraEffects = cameraToggle.checked;
+    this.flashEffects = flashToggle.checked;
+    this.musicEnabled = musicToggle.checked;
+    this.lightMode = lightToggle.checked;
+    this.volume = Number(volumeInput.value) / 100;
 
     const update = () => {
       this.cameraEffects = cameraToggle.checked;
       this.flashEffects = flashToggle.checked;
+      this.musicEnabled = musicToggle.checked;
+      this.lightMode = lightToggle.checked;
       this.volume = Number(volumeInput.value) / 100;
       try {
         window.localStorage.setItem("camera-effects", this.cameraEffects ? "on" : "off");
         window.localStorage.setItem("flash-effects", this.flashEffects ? "on" : "off");
+        window.localStorage.setItem("music-enabled", this.musicEnabled ? "on" : "off");
+        window.localStorage.setItem("light-mode", this.lightMode ? "on" : "off");
         window.localStorage.setItem("game-volume", volumeInput.value);
       } catch (_) { /* Las opciones funcionan aunque no puedan persistir. */ }
     };
 
     cameraToggle.addEventListener("change", update);
     flashToggle.addEventListener("change", update);
+    musicToggle.addEventListener("change", update);
+    lightToggle.addEventListener("change", update);
     volumeInput.addEventListener("input", update);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       cameraToggle.removeEventListener("change", update);
       flashToggle.removeEventListener("change", update);
+      musicToggle.removeEventListener("change", update);
+      lightToggle.removeEventListener("change", update);
       volumeInput.removeEventListener("input", update);
     });
   }
@@ -124,7 +130,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   chooseEnemyAction() {
-    const profile = ENEMIES[this.enemyIndex];
+    const profile = this.encounters[this.enemyIndex];
     const pattern = profile.boss && this.enemy.phase === 2 ? profile.phase2Pattern : profile.pattern;
     const actionId = pattern[this.enemy.patternIndex % pattern.length];
     this.enemy.patternIndex += 1;
@@ -163,8 +169,8 @@ class BattleScene extends Phaser.Scene {
   }
 
   createHud() {
-    this.playerName = this.add.text(38, 28, `${this.saveData.character.name.toUpperCase()}  ·  NIVEL ${this.saveData.progression.level}`, this.textStyle(17, "#f8f2e7", "700"));
-    this.enemyName = this.add.text(922, 28, ENEMIES[this.enemyIndex].name, this.textStyle(17, "#f8f2e7", "700")).setOrigin(1, 0);
+    this.playerName = this.add.text(38, 28, `${this.saveData.character.name.toUpperCase()}  ·  ${this.saveData.campaign.rank.toUpperCase()} · NV ${this.saveData.progression.level}`, this.textStyle(16, "#f8f2e7", "700"));
+    this.enemyName = this.add.text(922, 28, this.encounters[this.enemyIndex].name, this.textStyle(17, "#f8f2e7", "700")).setOrigin(1, 0);
     this.playerHpBar = createBar(this, 38, 58, 250, 14, 0x54d69a);
     this.chakraBar = createBar(this, 38, 80, 190, 9, 0x58a7ff);
     this.enemyHpBar = createBar(this, 672, 58, 250, 14, 0xef665f);
@@ -172,13 +178,14 @@ class BattleScene extends Phaser.Scene {
     this.enemyStat = this.add.text(662, 54, "", this.textStyle(13, "#cdd5e3")).setOrigin(1, 0);
     this.playerStatusText = this.add.text(38, 98, "", this.textStyle(11, "#f5c96b", "700"));
     this.enemyStatusText = this.add.text(922, 98, "", this.textStyle(11, "#f5c96b", "700")).setOrigin(1, 0);
+    if (this.saveData.campaign.companion) this.companionText = this.add.text(38, 117, "MIKA · APOYO EN 2 RONDAS", this.textStyle(10, "#67e8c3", "700"));
     this.refreshHud();
 
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
   }
 
   createFighters() {
-    const profile = ENEMIES[this.enemyIndex];
+    const profile = this.encounters[this.enemyIndex];
     const outfitColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
     this.hero = createModularFighter(this, 220, 298, outfitColor, 0x243149, false);
     this.foe = createModularFighter(this, 740, 298, profile.colors.cloth, profile.colors.accent, true);
@@ -237,6 +244,8 @@ class BattleScene extends Phaser.Scene {
     if (jutsu.type === "guard") await this.playerGuard();
     else await this.playerAttack(jutsu, casting);
 
+    if (this.enemy.hp > 0 && this.saveData.campaign.companion && this.round % 2 === 0) await this.companionAttack();
+
     if (await this.resolveEnemyOutcome()) return;
 
     if (!enemyFirst) {
@@ -261,13 +270,17 @@ class BattleScene extends Phaser.Scene {
   }
 
   async resolveEnemyOutcome() {
-    const profile = ENEMIES[this.enemyIndex];
+    const profile = this.encounters[this.enemyIndex];
     if (this.enemy.hp <= 0) {
       const reward = awardEncounter(this.saveData, this.enemyIndex);
       this.saveData = writeSave(reward.save);
       activeSave = this.saveData;
       this.lastReward = reward;
-      if (this.enemyIndex === ENEMIES.length - 1) {
+      if (this.enemyIndex === this.encounters.length - 1) {
+        const completion = completeMission(this.saveData, this.mission.id);
+        this.saveData = writeSave(completion.save);
+        activeSave = this.saveData;
+        this.missionReward = completion;
         await this.finishBattle(true);
       } else {
         await this.advanceEncounter();
@@ -282,7 +295,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   async advanceEncounter() {
-    const defeatedName = ENEMIES[this.enemyIndex].name;
+    const defeatedName = this.encounters[this.enemyIndex].name;
     const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
     this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
     this.stopFighterFlash(this.foe);
@@ -291,7 +304,7 @@ class BattleScene extends Phaser.Scene {
     destroyFighter(this.foe);
 
     this.enemyIndex += 1;
-    const profile = ENEMIES[this.enemyIndex];
+    const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
     this.foe = createModularFighter(this, 810, 298, profile.colors.cloth, profile.colors.accent, true);
@@ -310,17 +323,18 @@ class BattleScene extends Phaser.Scene {
     await this.delay(620);
     this.busy = false;
     this.setButtonsEnabled(true);
-    this.setMessage(`Encuentro ${this.enemyIndex + 1}/${ENEMIES.length}: ${profile.name}.`);
+    this.setMessage(`Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
   }
 
   async triggerBossPhaseTwo() {
+    const profile = this.encounters[this.enemyIndex];
     this.enemy.phase = 2;
     this.enemy.patternIndex = 0;
     this.enemy.speed += 3;
     this.enemy.accuracy += 4;
     this.enemy.evasion += 2;
     this.enemy.weakness = "lightning";
-    this.enemyName.setText("MAESTRO DEL ECLIPSE · FASE II");
+    this.enemyName.setText(`${profile.name} · FASE II`);
     this.setMessage("El Maestro rompe su sello: comienza la Fase II.", "#d6a5ff");
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
@@ -492,12 +506,24 @@ class BattleScene extends Phaser.Scene {
     await this.delay(420);
   }
 
+  async companionAttack() {
+    const damage = 6 + this.saveData.progression.level * 2;
+    this.setMessage("Mika encuentra una apertura y lanza su kunai.", "#79e8d1");
+    this.createImpact(this.foe.body.x - 18, this.foe.body.y - 30, 0x67e8c3, 0.62);
+    this.tone(330, 0.09);
+    this.enemy.hp = Math.max(0, this.enemy.hp - damage);
+    this.floatDamage(this.foe.body.x, this.foe.body.y - 145, damage, 0x67e8c3);
+    this.flashFighter(this.foe);
+    this.refreshHud();
+    await this.delay(420);
+  }
+
   async executeEnemyAction(action) {
     const stun = this.enemy.statuses.find((status) => status.type === "stun");
     if (stun) {
       this.enemy.statuses = this.enemy.statuses.filter((status) => status !== stun);
       this.refreshHud();
-      this.setMessage("El Guardián está aturdido y pierde su acción.", "#8fc7ff");
+      this.setMessage("El rival está aturdido y pierde su acción.", "#8fc7ff");
       this.tone(180, 0.16);
       await this.delay(620);
       return;
@@ -509,7 +535,7 @@ class BattleScene extends Phaser.Scene {
     const rawDamage = Phaser.Math.Between(action.damage[0], action.damage[1]);
     const damage = this.player.guarding ? Math.ceil(rawDamage * 0.5) : rawDamage;
     const chance = hitChance(this.enemy, this.player, action);
-    this.setMessage(`El Guardián usa ${action.name}${this.player.guarding ? " contra tu guardia" : ""}...`);
+    this.setMessage(`El rival usa ${action.name}${this.player.guarding ? " contra tu guardia" : ""}...`);
     this.tweens.add({ targets: [this.foe.body, this.foe.head], x: "-=55", duration: 150, yoyo: true, hold: 40, ease: "Quad.out" });
     await this.delay(170);
 
@@ -594,7 +620,7 @@ class BattleScene extends Phaser.Scene {
     this.stopFighterFlash(fighter);
     fighter.body.setAlpha(1);
     fighter.head.setAlpha(1);
-    if (!this.flashEffects) return;
+    if (!this.flashEffects || this.lightMode) return;
     fighter.flashTween = this.tweens.add({
       targets: [fighter.body, fighter.head],
       alpha: 0.25,
@@ -631,15 +657,16 @@ class BattleScene extends Phaser.Scene {
   async finishBattle(won) {
     this.finished = true;
     this.busy = false;
-    const rewardText = won && this.lastReward ? ` +${this.lastReward.xp} PX y +${this.lastReward.coins} monedas.` : "";
-    this.setMessage(won ? `¡Victoria! El paso vuelve a estar libre.${rewardText}` : "Has sido derrotado. Ajusta tu estrategia.", won ? "#79e8b5" : "#ff8e80");
+    const rewardText = won && this.missionReward?.firstClear ? ` +${this.missionReward.xp} PX y +${this.missionReward.coins} monedas de misión.` : "";
+    const rankText = won && this.mission.exam && this.missionReward?.firstClear ? " ¡Ascenso a Guardián!" : "";
+    this.setMessage(won ? `¡Misión completada!${rewardText}${rankText}` : "Misión fallida. Conservas las recompensas de encuentros superados.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;
     this.stopFighterFlash(target);
     this.tweens.add({ targets: [target.body, target.head], angle: won ? 82 : -82, y: "+=38", alpha: 0.35, duration: 650, ease: "Cubic.in" });
-    const reset = this.add.text(WIDTH / 2, 392, "VOLVER AL DOJO", this.textStyle(16, "#0b1018", "800"))
+    const reset = this.add.text(WIDTH / 2, 392, "VOLVER A LA ALDEA", this.textStyle(16, "#0b1018", "800"))
       .setOrigin(0.5).setPadding(20, 10).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
     reset.once("pointerup", () => {
-      reset.disableInteractive().setText("ABRIENDO DOJO...");
+      reset.disableInteractive().setText("REGRESANDO...");
       // Una recarga limpia evita conservar entradas, tweens y texturas de la
       // batalla anterior. scene.restart() puede destruir la escena mientras
       // Phaser todavía procesa el puntero y dejar el juego bloqueado.
@@ -670,6 +697,7 @@ class BattleScene extends Phaser.Scene {
     const affinityInfo = `DÉBIL ${this.elementName(this.enemy.weakness)} · RES ${this.elementName(this.enemy.resistance)}`;
     const enemyStatuses = formatStatuses(this.enemy);
     this.enemyStatusText.setText(enemyStatuses ? `${affinityInfo} · ${enemyStatuses}` : affinityInfo);
+    if (this.companionText) this.companionText.setText(this.round % 2 === 0 ? "MIKA · APOYO LISTO" : "MIKA · APOYO EN 1 RONDA");
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished);
   }
 
@@ -686,11 +714,11 @@ class BattleScene extends Phaser.Scene {
   }
 
   shake(duration, intensity) {
-    if (this.cameraEffects) this.cameras.main.shake(duration, intensity);
+    if (this.cameraEffects && !this.lightMode) this.cameras.main.shake(duration, intensity);
   }
 
   screenFlash(duration, red, green, blue) {
-    if (this.flashEffects) this.cameras.main.flash(duration, red, green, blue);
+    if (this.flashEffects && !this.lightMode) this.cameras.main.flash(duration, red, green, blue);
   }
 
   textStyle(size, color, weight = "500") {
@@ -699,7 +727,19 @@ class BattleScene extends Phaser.Scene {
 
   delay(ms) { return new Promise((resolve) => this.time.delayedCall(ms, resolve)); }
 
-  tone(frequency, duration) {
+  startMusic() {
+    const notes = [110, 146, 123, 164, 110, 196];
+    let step = 0;
+    this.musicEvent = this.time.addEvent({
+      delay: 920,
+      loop: true,
+      callback: () => {
+        if (this.musicEnabled && !this.finished) this.tone(notes[step++ % notes.length], 0.42, 0.011);
+      }
+    });
+  }
+
+  tone(frequency, duration, gainAmount = 0.045) {
     if (this.volume <= 0) return;
     try {
       this.audioContext = this.audioContext || new (window.AudioContext || window.webkitAudioContext)();
@@ -707,7 +747,7 @@ class BattleScene extends Phaser.Scene {
       const gain = this.audioContext.createGain();
       oscillator.type = "triangle";
       oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(0.045 * this.volume, this.audioContext.currentTime);
+      gain.gain.setValueAtTime(gainAmount * this.volume, this.audioContext.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
       oscillator.connect(gain).connect(this.audioContext.destination);
       oscillator.start();
@@ -719,8 +759,33 @@ class BattleScene extends Phaser.Scene {
 const metaRoot = document.getElementById("meta");
 const gameRoot = document.getElementById("game");
 
-mountMetaUI(metaRoot, activeSave, (save) => {
+function bindGlobalOptions() {
+  const checkboxPreferences = [
+    ["manual-seals", "seal-input-mode", "manual", "automatic", "manual"],
+    ["camera-effects", "camera-effects", "on", "off", "on"],
+    ["flash-effects", "flash-effects", "on", "off", "on"],
+    ["music-enabled", "music-enabled", "on", "off", "on"],
+    ["light-mode", "light-mode", "on", "off", "off"]
+  ];
+  checkboxPreferences.forEach(([id, key, onValue, offValue, defaultValue]) => {
+    const input = document.getElementById(id);
+    try { input.checked = (window.localStorage.getItem(key) || defaultValue) === onValue; } catch (_) { /* Preferencias opcionales. */ }
+    input.addEventListener("change", () => {
+      try { window.localStorage.setItem(key, input.checked ? onValue : offValue); } catch (_) { /* Preferencias opcionales. */ }
+      if (id === "manual-seals") document.getElementById("mode-hint").textContent = input.checked ? "Completa las secuencias con QWER / ASDF / ZXCV." : "Los sellos se ejecutarán automáticamente.";
+    });
+  });
+  const volume = document.getElementById("game-volume");
+  try { volume.value = window.localStorage.getItem("game-volume") || "70"; } catch (_) { /* Preferencias opcionales. */ }
+  volume.addEventListener("input", () => { try { window.localStorage.setItem("game-volume", volume.value); } catch (_) { /* Preferencias opcionales. */ } });
+  document.getElementById("mode-hint").textContent = document.getElementById("manual-seals").checked ? "Completa las secuencias con QWER / ASDF / ZXCV." : "Los sellos se ejecutarán automáticamente.";
+}
+
+bindGlobalOptions();
+
+mountMetaUI(metaRoot, activeSave, (save, mission) => {
   activeSave = writeSave(save);
+  activeMission = mission;
   metaRoot.hidden = true;
   gameRoot.hidden = false;
   if (game) game.destroy(true);

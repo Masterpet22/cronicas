@@ -60,26 +60,121 @@ export const ENEMY_ACTIONS = {
   ember: { id: "ember", name: "Ascua errante", damage: [8, 12], speedMod: 0, accuracyMod: 2, color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 3 } }
 };
 
-export const ENEMIES = [
-  {
+export const ENEMY_ROSTER = {
+  gate_guard: {
     name: "GUARDIÁN DEL PASO", hp: 68, speed: 10, accuracy: 90, evasion: 5,
     weakness: "wind", resistance: "physical", pattern: ["quick", "heavy", "quick"],
     colors: { cloth: 0xe0a45a, accent: 0x3d2021 }
   },
-  {
+  ash_adept: {
     name: "ADEPTA DE CENIZA", hp: 76, speed: 9, accuracy: 92, evasion: 4,
     weakness: "lightning", resistance: "fire", pattern: ["ember", "quick", "heavy", "ember"],
     colors: { cloth: 0xd87855, accent: 0x411b24 }
   },
-  {
+  mist_scout: {
     name: "EXPLORADOR DE NIEBLA", hp: 82, speed: 13, accuracy: 91, evasion: 9,
     weakness: "fire", resistance: "wind", pattern: ["toxin", "quick", "toxin", "heavy"],
     colors: { cloth: 0x86b9c9, accent: 0x20394f }
   },
-  {
+  reed_bandit: {
+    name: "BANDIDO DEL JUNCO", hp: 70, speed: 12, accuracy: 88, evasion: 7,
+    weakness: "fire", resistance: "physical", pattern: ["quick", "quick", "heavy"],
+    colors: { cloth: 0x7ea063, accent: 0x253421 }
+  },
+  stone_hunter: {
+    name: "CAZADOR DE PIEDRA", hp: 92, speed: 8, accuracy: 93, evasion: 3,
+    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "heavy"],
+    colors: { cloth: 0x9b8c7b, accent: 0x332d2a }
+  },
+  venom_medic: {
+    name: "MÉDICA DEL VENENO", hp: 78, speed: 11, accuracy: 94, evasion: 6,
+    weakness: "wind", resistance: "fire", pattern: ["toxin", "quick", "toxin", "ember"],
+    colors: { cloth: 0x8e75b8, accent: 0x2e2145 }
+  },
+  dusk_tracker: {
+    name: "RASTREADOR DEL OCASO", hp: 88, speed: 14, accuracy: 92, evasion: 10,
+    weakness: "fire", resistance: "wind", pattern: ["quick", "toxin", "quick", "heavy"],
+    colors: { cloth: 0x52769b, accent: 0x18273b }
+  },
+  mirror_agent: {
+    name: "AGENTE DEL ESPEJO", hp: 96, speed: 12, accuracy: 96, evasion: 11,
+    weakness: "wind", resistance: "lightning", pattern: ["ember", "quick", "heavy", "toxin"],
+    colors: { cloth: 0xb7c0cb, accent: 0x303947 }
+  },
+  boss_riven: {
+    name: "RIVEN, SEÑOR DEL PUENTE", hp: 126, speed: 11, accuracy: 94, evasion: 7,
+    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "ember"],
+    phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true,
+    colors: { cloth: 0xa94d45, accent: 0x35161d }
+  },
+  boss_nerezza: {
+    name: "NEREZZA, JUEZA DEL SELLO", hp: 142, speed: 13, accuracy: 96, evasion: 9,
+    weakness: "fire", resistance: "wind", pattern: ["quick", "toxin", "heavy"],
+    phase2Pattern: ["ember", "quick", "toxin", "heavy"], boss: true,
+    colors: { cloth: 0x5579a8, accent: 0x172840 }
+  },
+  boss_eclipse: {
     name: "MAESTRO DEL ECLIPSE", hp: 118, speed: 11, accuracy: 94, evasion: 7,
     weakness: "wind", resistance: "arcane", pattern: ["quick", "ember", "heavy"],
     phase2Pattern: ["toxin", "heavy", "ember", "quick"], boss: true,
     colors: { cloth: 0x9a7bd1, accent: 0x21183f }
+  }
+};
+
+export const ENEMIES = Object.values(ENEMY_ROSTER);
+
+export const MISSIONS = [
+  {
+    id: "m01", number: 1, title: "El paso cerrado", location: "Puerta Norte", duration: "4–6 min", encounters: ["gate_guard"],
+    reward: { xp: 35, coins: 25 },
+    briefing: [
+      ["Maestra Aya", "Antes de salir, observa velocidad, precisión y afinidades. No todas las técnicas sirven contra todos."],
+      ["Mika", "Yo vigilaré desde la aldea. Usa Guardia si necesitas recuperar chakra."]
+    ]
+  },
+  {
+    id: "m02", number: 2, title: "Ecos entre los juncos", location: "Marisma Este", duration: "6–8 min", encounters: ["reed_bandit", "stone_hunter"],
+    reward: { xp: 55, coins: 40 },
+    briefing: [["Maestra Aya", "Dos desertores controlan el sendero. Vuelve con información y sin perseguirlos más allá de la marisma."]]
+  },
+  {
+    id: "m03", number: 3, title: "Niebla en el canal", location: "Canal Antiguo", duration: "6–8 min", encounters: ["mist_scout", "venom_medic"],
+    reward: { xp: 65, coins: 48 },
+    briefing: [["Mika", "Esta vez voy contigo. Atacaré cuando encuentre una apertura; tú decides el ritmo del combate."]]
+  },
+  {
+    id: "m04", number: 4, title: "Ceniza sobre el mercado", location: "Distrito Mercante", duration: "6–8 min", encounters: ["ash_adept", "dusk_tracker"],
+    reward: { xp: 72, coins: 55 },
+    briefing: [["Mercader Toma", "Robaron sellos del archivo y dejaron brasas violetas. Encuentra al responsable antes del anochecer."]]
+  },
+  {
+    id: "m05", number: 5, title: "El puente quebrado", location: "Puente de Basalto", duration: "7–9 min", encounters: ["mirror_agent", "boss_riven"],
+    reward: { xp: 95, coins: 78 },
+    briefing: [["Maestra Aya", "Riven dirige a los ladrones. Su segunda postura cambia el ritmo de sus ataques: guarda chakra para ella."]]
+  },
+  {
+    id: "m06", number: 6, title: "Rastro de veneno", location: "Bosque de Piedra", duration: "6–8 min", encounters: ["stone_hunter", "venom_medic", "dusk_tracker"],
+    reward: { xp: 88, coins: 70 },
+    briefing: [["Mika", "Las huellas regresan hacia la aldea. Alguien está probando nuestras defensas."]]
+  },
+  {
+    id: "m07", number: 7, title: "Examen de ascenso", location: "Arena del Consejo", duration: "8–10 min", encounters: ["gate_guard", "mirror_agent", "boss_nerezza"], exam: true,
+    reward: { xp: 120, coins: 100 },
+    briefing: [["Nerezza", "No busco una victoria perfecta. Quiero ver si puedes adaptarte, proteger a tu compañero y terminar lo que empiezas."]]
+  },
+  {
+    id: "m08", number: 8, title: "Sombras en el archivo", location: "Archivo Subterráneo", duration: "6–8 min", encounters: ["ash_adept", "mirror_agent", "venom_medic"],
+    reward: { xp: 105, coins: 88 },
+    briefing: [["Maestra Aya", "Ya eres guardián. Entra al archivo y averigua quién enseñó nuestros sellos al enemigo."]]
+  },
+  {
+    id: "m09", number: 9, title: "La noche sin luna", location: "Muralla Exterior", duration: "7–9 min", encounters: ["reed_bandit", "dusk_tracker", "boss_riven"],
+    reward: { xp: 125, coins: 105 },
+    briefing: [["Mika", "Riven sobrevivió al puente. Esta vez no está huyendo: está abriendo el camino para su maestro."]]
+  },
+  {
+    id: "m10", number: 10, title: "Crónicas del Eclipse", location: "Santuario del Horizonte", duration: "9–11 min", encounters: ["mist_scout", "boss_nerezza", "boss_eclipse"],
+    reward: { xp: 180, coins: 160 }, finale: true,
+    briefing: [["Maestra Aya", "Todo lo aprendido te trajo aquí. Rompe el sello del Eclipse y regresa para escribir tu propio capítulo."]]
   }
 ];

@@ -1,7 +1,7 @@
-import { EQUIPMENT, JUTSU_LIBRARY } from "./data.js";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 1;
+export const SAVE_VERSION = 2;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
 const VALID_AFFINITIES = ["fire", "wind", "lightning"];
@@ -18,7 +18,13 @@ export function createDefaultSave() {
       attributes: { power: 0, agility: 0, focus: 0 }
     },
     equipment: { ...DEFAULT_EQUIPMENT },
-    loadout: []
+    loadout: [],
+    campaign: {
+      completedMissions: [],
+      rank: "Novicio",
+      tutorialSeen: false,
+      companion: null
+    }
   };
 }
 
@@ -41,7 +47,8 @@ export function createCharacter(save, { name, affinity, appearance }) {
     character: { name: cleanName, affinity: cleanAffinity, appearance: cleanAppearance },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
-    loadout: initialLoadout(cleanAffinity)
+    loadout: initialLoadout(cleanAffinity),
+    campaign: { ...createDefaultSave().campaign }
   };
 }
 
@@ -83,7 +90,14 @@ export function normalizeSave(candidate) {
       armor: validEquipment("armor", candidate.equipment?.armor),
       accessory: validEquipment("accessory", candidate.equipment?.accessory)
     },
-    loadout: loadout.length ? loadout : (candidate.character ? initialLoadout(affinity) : [])
+    loadout: loadout.length ? loadout : (candidate.character ? initialLoadout(affinity) : []),
+    campaign: {
+      completedMissions: [...new Set(Array.isArray(candidate.campaign?.completedMissions) ? candidate.campaign.completedMissions : [])]
+        .filter((id) => MISSIONS.some((mission) => mission.id === id)),
+      rank: candidate.campaign?.rank === "Guardián" ? "Guardián" : "Novicio",
+      tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
+      companion: candidate.campaign?.companion === "mika" ? "mika" : null
+    }
   };
 }
 
@@ -127,6 +141,30 @@ export function awardEncounter(save, encounterIndex) {
     levelsGained += 1;
   }
   return { save: result, xp: gainedXp, coins: base.coins, levelsGained };
+}
+
+export function completeMission(save, missionId) {
+  const result = normalizeSave(save);
+  const mission = MISSIONS.find((entry) => entry.id === missionId);
+  if (!mission || result.campaign.completedMissions.includes(missionId)) {
+    return { save: result, xp: 0, coins: 0, levelsGained: 0, firstClear: false };
+  }
+
+  const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
+  result.progression.xp += gainedXp;
+  result.progression.coins += mission.reward.coins;
+  result.campaign.completedMissions.push(missionId);
+  if (missionId === "m02") result.campaign.companion = "mika";
+  if (mission.exam) result.campaign.rank = "Guardián";
+
+  let levelsGained = 0;
+  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
+    result.progression.xp -= xpForNextLevel(result.progression.level);
+    result.progression.level += 1;
+    result.progression.attributePoints += 2;
+    levelsGained += 1;
+  }
+  return { save: result, xp: gainedXp, coins: mission.reward.coins, levelsGained, firstClear: true };
 }
 
 export function spendAttribute(save, attribute) {

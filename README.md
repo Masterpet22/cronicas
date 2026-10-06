@@ -1,6 +1,6 @@
-# Crónicas del Sello — Fase 2
+# Crónicas del Sello — Demo Fase 3
 
-RPG 2D por turnos inspirado en los RPG sociales de navegador. Incluye creación y progreso de personaje, equipo de técnicas, doce jutsus, recompensas persistentes y una ruta de cuatro encuentros con jefe final.
+RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, diez misiones narrativas, progresión persistente, compañero controlado por IA, examen de rango y once rivales únicos.
 
 ## Ejecutar
 
@@ -19,6 +19,8 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 ## Controles
 
 - Crea un personaje con nombre, color de atuendo y afinidad inicial.
+- Recorre la Plaza, el Tablón de misiones, el Dojo y el Archivo mediante sus menús.
+- Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
 - Las técnicas se desbloquean al subir de nivel; cada nivel entrega dos puntos de atributo.
 - Selecciona una de las seis acciones con el ratón o la pantalla táctil.
@@ -39,7 +41,11 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Al derrotar un enemigo se recuperan 35 PV y 25 CH antes del siguiente encuentro.
 - La técnica especial utiliza una presentación cinematográfica oscura.
 - Cada enemigo concede experiencia y monedas; las recompensas y decisiones quedan guardadas localmente.
-- Al finalizar aparece un botón para volver al dojo y ajustar la estrategia.
+- A partir de la tercera misión, Mika ataca automáticamente cada dos rondas.
+- La séptima misión es el examen de ascenso al rango Guardián.
+- Al finalizar aparece un botón para volver a la aldea y ajustar la estrategia.
+- **Modo ligero** desactiva sacudidas y destellos de combatientes para equipos modestos.
+- La música ambiental sintetizada puede desactivarse independientemente de los demás efectos.
 
 ## Estructura
 
@@ -48,8 +54,8 @@ index.html               Entrada del juego
 styles.css               Presentación de la página
 game.js                  Escena, combate, sellos y efectos
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
-src/save.js              Guardado versionado, atributos y recompensas
-src/meta-ui.js           Creación de personaje y pantalla del dojo
+src/save.js              Guardado v2, campaña, atributos y recompensas
+src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
 src/rules.js             Precisión, afinidades y estados
 src/fighters.js          Cuerpos modulares provisionales
 src/ui.js                Barras y botones de combate

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { JUTSU_LIBRARY, ENEMIES } from "../src/data.js";
+import { JUTSU_LIBRARY, ENEMIES, MISSIONS } from "../src/data.js";
 import { applyStatus, affinityMultiplier, hitChance } from "../src/rules.js";
 
 const fire = JUTSU_LIBRARY.find((action) => action.id === "fire_embers");
@@ -16,9 +16,11 @@ applyStatus(actor, { type: "seal", label: "SELLADO", duration: 3, power: 0 });
 assert.equal(actor.statuses.length, 1, "Reaplicar un estado no debe duplicarlo");
 assert.equal(actor.statuses[0].duration, 3, "Reaplicar un estado debe refrescar su duración");
 
-assert.equal(ENEMIES.length, 4, "La vertical slice debe contener tres enemigos y un jefe");
-assert.equal(ENEMIES.at(-1).boss, true, "El último encuentro debe ser el jefe");
-assert.ok(ENEMIES.at(-1).phase2Pattern.length > 0, "El jefe debe tener un patrón para su segunda fase");
+assert.equal(ENEMIES.filter((enemy) => !enemy.boss).length, 8, "La demo debe contener ocho enemigos normales");
+assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 3, "La demo debe contener tres jefes");
+assert.ok(ENEMIES.filter((enemy) => enemy.boss).every((enemy) => enemy.phase2Pattern.length > 0), "Cada jefe debe tener una segunda fase");
+assert.equal(MISSIONS.length, 10, "La campaña debe contener diez misiones");
+assert.equal(MISSIONS.filter((mission) => mission.exam).length, 1, "Debe existir un examen de rango");
 assert.equal(JUTSU_LIBRARY.length, 12, "La biblioteca debe contener doce jutsus");
 for (const element of ["fire", "wind", "lightning"]) {
   assert.equal(JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element).length, 4, `Debe haber cuatro jutsus de ${element}`);
