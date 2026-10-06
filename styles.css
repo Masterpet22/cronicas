@@ -166,8 +166,8 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .map-label-box small { color: #c1c9d4; font-size: 0.63rem; white-space: nowrap; }
 .map-label.visible { opacity: 1; transform: translate(-50%, 0); }
 .village-map-card > .notice-card { margin: 12px; }
-.village-service { min-height: 430px; display: grid; align-content: center; }
-.village-service > .lead { max-width: 720px; }
+.village-service { min-height: 430px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(280px, .75fr); align-items: center; gap: 22px; }
+.village-service .lead { max-width: 720px; }
 .service-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 24px 0; }
 .service-grid article { display: grid; min-height: 110px; align-content: end; gap: 7px; border: 1px solid #344154; border-radius: 10px; padding: 16px; background: linear-gradient(145deg, rgba(38,48,65,0.88), rgba(13,19,29,0.92)); }
 .service-grid article span { color: #f5a357; font-size: 0.72rem; font-weight: 850; letter-spacing: 0.12em; }
@@ -176,11 +176,30 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .secondary-button { border: 1px solid #657187; border-radius: 9px; padding: 12px 18px; background: transparent; color: #e5eaf2; font-weight: 800; cursor: pointer; }
 .secondary-button:hover { border-color: #f5a357; color: #fff; }
 .development-note { border-left: 3px solid #f5a357; padding: 12px 14px; background: rgba(245,163,87,0.08); color: #bec7d4; font-size: 0.82rem; }
+.npc-guide-strip { overflow: hidden; border: 1px solid #344154; border-radius: 14px; background: linear-gradient(145deg, rgba(28,38,55,.98), rgba(9,14,22,.98)); box-shadow: 0 18px 50px rgba(0,0,0,.28); }
+.npc-guide-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-bottom: 1px solid rgba(255,255,255,.09); }
+.npc-guide-heading p { margin: 0; }.npc-guide-heading strong { color: #9da9ba; font-size: .72rem; }
+.npc-card-grid { display: grid; grid-template-columns: 1fr; }
+.npc-card-grid.multiple { grid-template-columns: repeat(2, 1fr); }
+.npc-card { position: relative; display: grid; grid-template-columns: minmax(120px, 42%) 1fr; align-items: end; min-height: 230px; overflow: hidden; background: radial-gradient(circle at 22% 34%, rgba(245,163,87,.13), transparent 52%); }
+.npc-card + .npc-card { border-left: 1px solid rgba(255,255,255,.09); }
+.npc-portrait { height: 230px; align-self: stretch; overflow: hidden; }
+.npc-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 10px 14px rgba(0,0,0,.55)); }
+.npc-card-copy { position: relative; z-index: 2; padding: 18px 14px 18px 4px; }
+.npc-card-copy h3 { display: block; margin: 2px 0 18px; color: #fff; font-size: 1rem; letter-spacing: 0; text-transform: none; }
+.npc-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.npc-actions button { border: 1px solid #657187; border-radius: 7px; padding: 8px 10px; background: rgba(8,12,19,.78); color: #dfe5ef; font-size: .68rem; font-weight: 850; cursor: pointer; }
+.npc-actions button:first-child { border-color: #f5a357; color: #f7bd7d; }.npc-actions button:hover { background: #252e3d; color: #fff; }
 .notice-card { display: flex; justify-content: space-between; gap: 12px; border-left: 3px solid #56647a; padding: 11px 14px; background: rgba(0,0,0,0.25); color: #9da9ba; font-size: 0.8rem; }
 .notice-card.ally { border-color: #67e8c3; }.notice-card strong { color: #e9edf4; }
 .dialogue-overlay { position: fixed; z-index: 100; inset: 0; display: grid; place-items: end center; padding: 28px; background: rgba(3,5,9,0.72); backdrop-filter: blur(3px); }
-.dialogue-box { position: relative; width: min(760px, 100%); min-height: 170px; border: 1px solid #56647a; border-radius: 12px; padding: 24px; background: #101722; box-shadow: 0 25px 100px #000; }
-.dialogue-box > p:not(.eyebrow) { min-height: 52px; font-size: 1.05rem; line-height: 1.55; }.dialogue-box button { float: right; }.dialogue-box small { position: absolute; left: 24px; bottom: 24px; color: #758197; }
+.dialogue-box { position: relative; width: min(820px, 100%); min-height: 170px; border: 1px solid #56647a; border-radius: 12px; padding: 24px; background: #101722; box-shadow: 0 25px 100px #000; }
+.dialogue-box.with-portrait { display: grid; grid-template-columns: 230px 1fr; gap: 12px; min-height: 290px; padding: 0 24px 0 0; overflow: hidden; background: radial-gradient(circle at 14% 35%, rgba(245,163,87,.16), transparent 35%), #101722; }
+.dialogue-portrait { position: relative; align-self: stretch; min-height: 290px; overflow: hidden; }
+.dialogue-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)); }
+.dialogue-portrait span { position: absolute; right: 8px; bottom: 8px; left: 8px; padding: 5px 8px; border-radius: 5px; background: rgba(5,8,13,.82); color: #c4ccd8; font-size: .64rem; text-align: center; }
+.dialogue-copy { position: relative; align-self: center; min-height: 170px; padding: 24px 0 54px; }
+.dialogue-copy > p:not(.eyebrow) { min-height: 52px; font-size: 1.05rem; line-height: 1.55; }.dialogue-copy button { position: absolute; right: 0; bottom: 16px; }.dialogue-copy small { position: absolute; left: 0; bottom: 24px; color: #758197; }
 .mission-board { padding: 20px; }.mission-list { display: grid; gap: 8px; max-height: 520px; margin-top: 18px; overflow-y: auto; padding-right: 5px; }
 .mission-card { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 14px; border: 1px solid #303d50; border-radius: 9px; padding: 12px; background: #111925; }
 .mission-card.completed { border-color: rgba(103,232,195,0.45); }.mission-card.locked { opacity: 0.48; }
@@ -210,7 +229,10 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
   .village-nav { display: flex; }.village-return span { display: none; }
   .map-heading { align-items: start; padding: 12px 14px; }.map-heading p:last-child { max-width: 150px; text-align: right; }
   .map-label-box { padding: 5px 7px; }.map-label-box small { display: none; }.map-label-box strong { font-size: 12px; }
-  .service-grid { grid-template-columns: 1fr; }.service-grid article { min-height: 80px; }
+  .village-service { grid-template-columns: 1fr; }.service-grid { grid-template-columns: 1fr; }.service-grid article { min-height: 80px; }
+  .npc-card-grid.multiple { grid-template-columns: 1fr; }.npc-card + .npc-card { border-top: 1px solid rgba(255,255,255,.09); border-left: 0; }
+  .npc-card { min-height: 205px; }.npc-portrait { height: 205px; }.npc-guide-heading strong { display: none; }
+  .dialogue-box.with-portrait { grid-template-columns: 125px 1fr; min-height: 230px; padding-right: 14px; }.dialogue-portrait { min-height: 230px; }.dialogue-copy { padding-top: 18px; }.dialogue-copy > p:not(.eyebrow) { font-size: .92rem; }
   .mission-card { grid-template-columns: 42px 1fr; }.mission-card button { grid-column: 1 / -1; }
   .archive-card ol { grid-template-columns: 1fr; }.dialogue-overlay { padding: 12px; }
 }

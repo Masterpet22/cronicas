@@ -61,6 +61,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Una aldea ilustrada con nueve edificios interactivos, resaltado por hover y navegación por teclado.
 - [x] Diez misiones, ocho enemigos y tres jefes.
 - [x] Diálogos y tutorial breve.
+- [x] Reparto visual por ubicación con conversaciones y guías contextuales.
 - [x] Examen de ascenso de rango.
 - [x] Compañero controlado por inteligencia artificial.
 - [x] Música, efectos y mezcla de audio.

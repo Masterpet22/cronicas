@@ -1,9 +1,9 @@
 {
   "name": "cronicas-del-sello",
-  "version": "0.7.1",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/rules.test.mjs && node tests/save.test.mjs && node tests/character.test.mjs && node tests/village-map.test.mjs && node tests/assets.test.mjs"
+    "test": "node tests/rules.test.mjs && node tests/save.test.mjs && node tests/character.test.mjs && node tests/village-map.test.mjs && node tests/npcs.test.mjs && node tests/assets.test.mjs"
   }
 }

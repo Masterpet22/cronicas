@@ -1,6 +1,7 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.7.1";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.7.1";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.7.1";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.8.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.8.0";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.8.0";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.8.0";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [
@@ -37,6 +38,7 @@ function escapeHtml(value) {
 export function mountMetaUI(root, initialSave, onStartMission) {
   let save = initialSave;
   let view = "plaza";
+  const introducedViews = new Set();
 
   const persist = (next, shouldRender = true) => {
     save = writeSave(next);
@@ -95,6 +97,11 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         });
       }
     });
+    root.querySelectorAll("[data-npc-dialogue]").forEach((button) => button.addEventListener("click", () => {
+      const npc = NPCS[button.dataset.npcId];
+      const lines = (npc?.[button.dataset.npcDialogue] || []).map((text) => [npc.name, text]);
+      if (lines.length) showDialogue(lines, () => {});
+    }));
   };
 
   const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR") => {
@@ -104,7 +111,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const draw = () => {
       const [speaker, dialogue] = lines[index];
       const last = index === lines.length - 1;
-      overlay.innerHTML = `<section class="dialogue-box"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></section>`;
+      const npc = npcByName(speaker);
+      const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=0.8.0" alt="${escapeHtml(npc.name)}"><span>${escapeHtml(npc.title)}</span></div>` : "";
+      overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       overlay.querySelector("button").addEventListener("click", () => {
         if (!last) { index += 1; draw(); return; }
         overlay.remove();
@@ -115,20 +124,37 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     root.append(overlay);
   };
 
+  const npcCast = (locationId) => {
+    const cast = LOCATION_CAST[locationId] || [];
+    if (!cast.length) return "";
+    return `<section class="npc-guide-strip" aria-label="Personajes de ${escapeHtml(VILLAGE_LOCATIONS.find((location) => location.id === locationId)?.name || locationId)}"><div class="npc-guide-heading"><p class="eyebrow">PERSONAJES DEL LUGAR</p><strong>${cast.length > 1 ? "Elige con quién hablar" : "Guía disponible"}</strong></div><div class="npc-card-grid ${cast.length > 1 ? "multiple" : ""}">${cast.map((id) => {
+      const npc = NPCS[id];
+      return `<article class="npc-card"><div class="npc-portrait"><img src="${npc.image}?v=0.8.0" alt="${escapeHtml(npc.name)}"></div><div class="npc-card-copy"><p class="eyebrow">${escapeHtml(npc.title)}</p><h3>${escapeHtml(npc.name)}</h3><div class="npc-actions"><button data-npc-id="${id}" data-npc-dialogue="intro">HABLAR</button><button data-npc-id="${id}" data-npc-dialogue="guide">GUÍA</button></div></div></article>`;
+    }).join("")}</div></section>`;
+  };
+
+  const introduceLocation = (locationId) => {
+    if (introducedViews.has(locationId)) return;
+    introducedViews.add(locationId);
+    const lines = locationDialogue(locationId, "intro");
+    if (lines.length) queueMicrotask(() => { if (view === locationId) showDialogue(lines, () => {}); });
+  };
+
   const renderPlaza = () => {
     const companion = save.campaign.companion
       ? `<div class="notice-card ally"><strong>Mika está disponible</strong><span>Atacará automáticamente cada dos rondas.</span></div>`
       : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
     const hotspots = VILLAGE_LOCATIONS.map((location) => `<g class="village-hotspot hotspot-${location.id}" data-go="${location.id}" role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`).join("");
     const labels = VILLAGE_LOCATIONS.map((location) => `<span class="map-label" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(location.description)}</small></span></span>`).join("");
-    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.7.1" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
+    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.8.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
     if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
   };
 
   const renderVillageService = (serviceId) => {
     const service = VILLAGE_SERVICES[serviceId];
     const actions = serviceId === "headquarters" ? `<div class="service-actions"><button class="primary-button" data-go="missions">VER MISIONES</button><button class="secondary-button" data-go="dojo">PREPARAR EQUIPO</button></div>` : `<p class="development-note">Sección preparada para una fase posterior. El acceso desde el mapa ya está operativo.</p>`;
-    shell(`<section class="dojo-card village-service"><p class="eyebrow">${service.eyebrow}</p><h2>${service.title}</h2><p class="lead">${service.text}</p><div class="service-grid">${service.items.map((item, index) => `<article><span>0${index + 1}</span><strong>${item}</strong></article>`).join("")}</div>${actions}</section>`);
+    shell(`<section class="dojo-card village-service"><div class="service-content"><p class="eyebrow">${service.eyebrow}</p><h2>${service.title}</h2><p class="lead">${service.text}</p><div class="service-grid">${service.items.map((item, index) => `<article><span>0${index + 1}</span><strong>${item}</strong></article>`).join("")}</div>${actions}</div>${npcCast(serviceId)}</section>`);
+    introduceLocation(serviceId);
   };
 
   const renderMissions = () => {
@@ -139,7 +165,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const label = done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "ACEPTAR MISIÓN") : "BLOQUEADA";
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : mission.location}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
-    shell(`<section class="dojo-card mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN</p><h2>Misiones de la aldea</h2></div><strong>${completed.size}/10 completadas</strong></div><div class="mission-list">${cards}</div></section>`);
+    shell(`${npcCast("missions")}<section class="dojo-card mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN</p><h2>Misiones de la aldea</h2></div><strong>${completed.size}/10 completadas</strong></div><div class="mission-list">${cards}</div></section>`);
     root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
       if (save.loadout.length !== 4) {
@@ -148,6 +174,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       }
       showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN");
     }));
+    introduceLocation("missions");
   };
 
   const equipmentOptions = (type) => EQUIPMENT[type].map((item) => `<option value="${item.id}" ${save.equipment[type] === item.id ? "selected" : ""}>${item.name} · ${item.description}</option>`).join("");
@@ -162,7 +189,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const selected = save.loadout.includes(jutsu.id);
       return `<label class="jutsu-card ${unlocked ? "" : "locked"} ${selected ? "selected" : ""}"><input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}><span class="element-dot ${jutsu.element}"></span><strong>${jutsu.name}</strong><small>${ELEMENT_NAMES[jutsu.element]} · ${jutsu.cost} CH · ${jutsu.damage} daño${unlocked ? "" : ` · Nivel ${jutsu.unlockLevel}`}</small></label>`;
     }).join("");
-    shell(`<div class="dojo-layout"><section class="dojo-card profile-card"><p class="eyebrow">ENTRENAMIENTO</p><h2>Afinidad de ${ELEMENT_NAMES[character.affinity]}</h2><div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p><h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div><div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div></section><section class="dojo-card loadout-card"><div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div><h3>Apariencia modular</h3><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div><div class="equipment-grid"><label>Arma<select data-equipment="weapon">${equipmentOptions("weapon")}</select></label><label>Protector<select data-equipment="armor">${equipmentOptions("armor")}</select></label><label>Accesorio<select data-equipment="accessory">${equipmentOptions("accessory")}</select></label></div><div class="jutsu-grid">${techniques}</div><p id="dojo-message" class="dojo-message">Los cambios se guardan automáticamente.</p></section></div>`);
+    shell(`${npcCast("dojo")}<div class="dojo-layout"><section class="dojo-card profile-card"><p class="eyebrow">ENTRENAMIENTO</p><h2>Afinidad de ${ELEMENT_NAMES[character.affinity]}</h2><div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p><h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div><div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div></section><section class="dojo-card loadout-card"><div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div><h3>Apariencia modular</h3><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div><div class="equipment-grid"><label>Arma<select data-equipment="weapon">${equipmentOptions("weapon")}</select></label><label>Protector<select data-equipment="armor">${equipmentOptions("armor")}</select></label><label>Accesorio<select data-equipment="accessory">${equipmentOptions("accessory")}</select></label></div><div class="jutsu-grid">${techniques}</div><p id="dojo-message" class="dojo-message">Los cambios se guardan automáticamente.</p></section></div>`);
     root.querySelectorAll("[data-attribute]").forEach((button) => button.addEventListener("click", () => persist(spendAttribute(save, button.dataset.attribute))));
     root.querySelectorAll("[data-equipment]").forEach((select) => select.addEventListener("change", () => { save.equipment[select.dataset.equipment] = select.value; persist(save); }));
     root.querySelectorAll("[data-cosmetic]").forEach((select) => select.addEventListener("change", () => { save.character[select.dataset.cosmetic] = select.dataset.cosmetic === "bodyType" ? select.value : Number(select.value); persist(save); }));
@@ -172,13 +199,15 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       save.loadout = input.checked ? [...save.loadout, id] : save.loadout.filter((entry) => entry !== id);
       persist(save);
     }));
+    introduceLocation("dojo");
   };
 
   const renderArchive = () => {
     const completed = new Set(save.campaign.completedMissions);
     const records = MISSIONS.map((mission) => `<li class="${completed.has(mission.id) ? "done" : ""}"><span>${completed.has(mission.id) ? "✓" : "·"}</span><div><strong>${mission.title}</strong><small>${completed.has(mission.id) ? "Completada" : "Sin completar"}</small></div></li>`).join("");
     const ending = completed.has("m10") ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>El amanecer regresa</h2><p>El Eclipse fue roto. Tu nombre queda registrado entre los guardianes de la aldea.</p></div>` : "";
-    shell(`<section class="dojo-card archive-card"><p class="eyebrow">ARCHIVO</p><h2>Crónica de ${escapeHtml(save.character.name)}</h2><p class="lead">Rango ${save.campaign.rank} · ${completed.size} misiones · Compañero: ${save.campaign.companion ? "Mika" : "ninguno"}</p><ol>${records}</ol>${ending}</section>`);
+    shell(`${npcCast("archive")}<section class="dojo-card archive-card"><p class="eyebrow">ARCHIVO</p><h2>Crónica de ${escapeHtml(save.character.name)}</h2><p class="lead">Rango ${save.campaign.rank} · ${completed.size} misiones · Compañero: ${save.campaign.companion ? "Mika" : "ninguno"}</p><ol>${records}</ol>${ending}</section>`);
+    introduceLocation("archive");
   };
 
   const render = () => {
