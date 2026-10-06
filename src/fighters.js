@@ -7,8 +7,8 @@ export function createLayeredFighter(scene, x, y, appearance, flipped = false) {
     `bottom_${appearance.bottom}`,
     `shoes_${appearance.shoes}`,
     `top_${appearance.top}`,
-    `face_${appearance.face}`,
     `hair_${appearance.hair}_front`,
+    `face_${appearance.face}`,
     `weapon_${appearance.weapon}`
   ];
   const layers = textureKeys.map((key) => scene.add.image(0, 0, key).setOrigin(0.5));

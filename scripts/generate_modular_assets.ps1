@@ -8,26 +8,30 @@ function New-Canvas {
   return [Drawing.Bitmap]::new($CanvasSize, $CanvasSize, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
 }
 
+function Get-Cell-Rect([Drawing.Bitmap]$atlas, [Drawing.Rectangle]$srcRect) {
+  $cell = [Drawing.Bitmap]::new($srcRect.Width, $srcRect.Height, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
+  $graphics = [Drawing.Graphics]::FromImage($cell)
+  $graphics.DrawImage($atlas, [Drawing.Rectangle]::new(0, 0, $cell.Width, $cell.Height), $srcRect, [Drawing.GraphicsUnit]::Pixel)
+  $graphics.Dispose()
+  return $cell
+}
+
 function Get-Cell([Drawing.Bitmap]$atlas, [int]$column, [int]$row, [int]$columns, [int]$rows) {
   $left = [Math]::Round($atlas.Width * $column / $columns)
   $top = [Math]::Round($atlas.Height * $row / $rows)
   $right = [Math]::Round($atlas.Width * ($column + 1) / $columns)
   $bottom = [Math]::Round($atlas.Height * ($row + 1) / $rows)
-  $cell = [Drawing.Bitmap]::new($right - $left, $bottom - $top, [Drawing.Imaging.PixelFormat]::Format32bppArgb)
-  $graphics = [Drawing.Graphics]::FromImage($cell)
-  $graphics.DrawImage($atlas, [Drawing.Rectangle]::new(0, 0, $cell.Width, $cell.Height), [Drawing.Rectangle]::new($left, $top, $cell.Width, $cell.Height), [Drawing.GraphicsUnit]::Pixel)
-  $graphics.Dispose()
-  return $cell
+  return Get-Cell-Rect $atlas ([Drawing.Rectangle]::new($left, $top, $right - $left, $bottom - $top))
 }
 
-function Clean-Alpha([Drawing.Bitmap]$bitmap) {
+function Clean-Alpha([Drawing.Bitmap]$bitmap, [int]$cutoff = 38) {
   for ($y = 0; $y -lt $bitmap.Height; $y++) {
     for ($x = 0; $x -lt $bitmap.Width; $x++) {
       $pixel = $bitmap.GetPixel($x, $y)
-      if ($pixel.A -lt 42) {
+      if ($pixel.A -lt $cutoff) {
         $bitmap.SetPixel($x, $y, [Drawing.Color]::Transparent)
-      } elseif ($pixel.A -lt 150) {
-        $alpha = [Math]::Min(255, [Math]::Max(0, [Math]::Round(($pixel.A - 42) * 255 / 108)))
+      } elseif ($pixel.A -lt 160) {
+        $alpha = [Math]::Min(255, [Math]::Max(0, [Math]::Round(($pixel.A - $cutoff) * 255 / (160 - $cutoff))))
         $bitmap.SetPixel($x, $y, [Drawing.Color]::FromArgb($alpha, $pixel.R, $pixel.G, $pixel.B))
       }
     }
@@ -38,7 +42,7 @@ function Get-ContentBounds([Drawing.Bitmap]$bitmap, [double]$trimBottom = 0) {
   $minX = $bitmap.Width; $minY = $bitmap.Height; $maxX = -1; $maxY = -1
   for ($y = 0; $y -lt $bitmap.Height; $y++) {
     for ($x = 0; $x -lt $bitmap.Width; $x++) {
-      if ($bitmap.GetPixel($x, $y).A -gt 32) {
+      if ($bitmap.GetPixel($x, $y).A -gt 30) {
         if ($x -lt $minX) { $minX = $x }; if ($x -gt $maxX) { $maxX = $x }
         if ($y -lt $minY) { $minY = $y }; if ($y -gt $maxY) { $maxY = $y }
       }
@@ -50,8 +54,7 @@ function Get-ContentBounds([Drawing.Bitmap]$bitmap, [double]$trimBottom = 0) {
   return [Drawing.Rectangle]::new($minX, $minY, $maxX - $minX + 1, $height)
 }
 
-function Save-Cell([Drawing.Bitmap]$atlas, [int]$column, [int]$row, [int]$columns, [int]$rows, [Drawing.Rectangle]$target, [string]$relativePath, [double]$trimBottom = 0) {
-  $cell = Get-Cell $atlas $column $row $columns $rows
+function Save-Image-From-Cell([Drawing.Bitmap]$cell, [Drawing.Rectangle]$target, [string]$relativePath, [double]$trimBottom = 0) {
   Clean-Alpha $cell
   $source = Get-ContentBounds $cell $trimBottom
   $canvas = New-Canvas
@@ -64,6 +67,11 @@ function Save-Cell([Drawing.Bitmap]$atlas, [int]$column, [int]$row, [int]$column
   [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($path)) | Out-Null
   $canvas.Save($path, [Drawing.Imaging.ImageFormat]::Png)
   $graphics.Dispose(); $canvas.Dispose(); $cell.Dispose()
+}
+
+function Save-Cell([Drawing.Bitmap]$atlas, [int]$column, [int]$row, [int]$columns, [int]$rows, [Drawing.Rectangle]$target, [string]$relativePath, [double]$trimBottom = 0) {
+  $cell = Get-Cell $atlas $column $row $columns $rows
+  Save-Image-From-Cell $cell $target $relativePath $trimBottom
 }
 
 function Save-Blank([string]$relativePath) {
@@ -93,34 +101,59 @@ $hairAtlas = [Drawing.Bitmap]::new((Join-Path $SourceRoot "hair-atlas.png"))
 $clothingAtlas = [Drawing.Bitmap]::new((Join-Path $SourceRoot "clothing-atlas.png"))
 $detailAtlas = [Drawing.Bitmap]::new((Join-Path $SourceRoot "face-weapon-atlas.png"))
 
+# 1. CUERPOS BASE
 Save-Cell $bodyAtlas 0 0 2 1 ([Drawing.Rectangle]::new(140, 18, 488, 720)) "body\body_male.png"
 Save-Cell $bodyAtlas 1 0 2 1 ([Drawing.Rectangle]::new(140, 18, 488, 720)) "body\body_female.png"
 Clear-Below "body\body_male.png" 632
 Clear-Below "body\body_female.png" 632
 
+# 2. ROSTROS
+# Proporción anatómica alineada a la cabeza (ojos a la altura de las orejas, nariz y boca sobre la barbilla)
+$faceTarget = [Drawing.Rectangle]::new(312, 80, 156, 98)
 for ($index = 0; $index -lt 3; $index++) {
-  Save-Cell $detailAtlas $index 0 4 2 ([Drawing.Rectangle]::new(260, 96, 248, 124)) ("face\face_0{0}.png" -f ($index + 1))
+  Save-Cell $detailAtlas $index 0 4 2 $faceTarget ("face\face_0{0}.png" -f ($index + 1))
 }
 
+# 3. PEINADOS (limpieza del artefacto '<' y límites exactos de celdas)
+# Limpiar exclusivamente el artefacto '<' flotante entre peinado 1 y 2
+for ($y = 295; $y -le 415; $y++) {
+  for ($x = 865; $x -le 885; $x++) {
+    $hairAtlas.SetPixel($x, $y, [Drawing.Color]::Transparent)
+  }
+}
+
+$hairCellRects = @(
+  [Drawing.Rectangle]::new(0, 0, 428, 724),
+  [Drawing.Rectangle]::new(431, 0, 434, 724),
+  [Drawing.Rectangle]::new(885, 0, 399, 724),
+  [Drawing.Rectangle]::new(1286, 0, 452, 724),
+  [Drawing.Rectangle]::new(1740, 0, 432, 724)
+)
+
 $hairTargets = @(
-  [Drawing.Rectangle]::new(184, 8, 400, 250),
-  [Drawing.Rectangle]::new(170, 4, 428, 360),
-  [Drawing.Rectangle]::new(164, 0, 440, 270),
-  [Drawing.Rectangle]::new(154, 2, 460, 360),
-  [Drawing.Rectangle]::new(160, 0, 448, 300)
+  [Drawing.Rectangle]::new(184, -4, 400, 272),
+  [Drawing.Rectangle]::new(170, 0, 428, 370),
+  [Drawing.Rectangle]::new(176, -2, 416, 280),
+  [Drawing.Rectangle]::new(166, -2, 436, 370),
+  [Drawing.Rectangle]::new(172, -2, 424, 310)
 )
 for ($index = 0; $index -lt 5; $index++) {
   Save-Blank ("hair\hair_0{0}_rear.png" -f ($index + 1))
-  Save-Cell $hairAtlas $index 0 5 1 $hairTargets[$index] ("hair\hair_0{0}_front.png" -f ($index + 1))
+  $cell = Get-Cell-Rect $hairAtlas $hairCellRects[$index]
+  Save-Image-From-Cell $cell $hairTargets[$index] ("hair\hair_0{0}_front.png" -f ($index + 1))
 }
 
+# 4. PRENDAS SUPERIORES E INFERIORES
 for ($index = 0; $index -lt 3; $index++) {
-  Save-Cell $clothingAtlas $index 0 5 2 ([Drawing.Rectangle]::new(166, 218, 436, 286)) ("top\top_0{0}.png" -f ($index + 1))
+  Save-Cell $clothingAtlas $index 0 5 2 ([Drawing.Rectangle]::new(166, 210, 436, 296)) ("top\top_0{0}.png" -f ($index + 1))
   Save-Cell $clothingAtlas $index 1 5 2 ([Drawing.Rectangle]::new(170, 410, 428, 270)) ("bottom\bottom_0{0}.png" -f ($index + 1)) 0.18
 }
+
+# 5. CALZADO
 Save-Cell $clothingAtlas 3 1 5 2 ([Drawing.Rectangle]::new(144, 620, 480, 122)) "shoes\shoes_01.png"
 Save-Cell $clothingAtlas 4 1 5 2 ([Drawing.Rectangle]::new(144, 620, 480, 122)) "shoes\shoes_02.png"
 
+# 6. ARMAS
 $weaponTargets = @(
   [Drawing.Rectangle]::new(490, 350, 188, 286),
   [Drawing.Rectangle]::new(390, 285, 278, 380),
@@ -132,6 +165,27 @@ for ($index = 0; $index -lt 4; $index++) {
   Save-Cell $detailAtlas $index 1 4 2 $weaponTargets[$index] ("weapon\weapon_{0}.png" -f $weaponNames[$index])
 }
 
+# 7. VISTA PREVIA COMPUESTA (preview.png)
+$previewCanvas = New-Canvas
+$pg = [Drawing.Graphics]::FromImage($previewCanvas)
+$previewLayers = @(
+  (Join-Path $AssetRoot "body\body_male.png"),
+  (Join-Path $AssetRoot "bottom\bottom_01.png"),
+  (Join-Path $AssetRoot "shoes\shoes_01.png"),
+  (Join-Path $AssetRoot "top\top_01.png"),
+  (Join-Path $AssetRoot "hair\hair_01_front.png"),
+  (Join-Path $AssetRoot "face\face_01.png"),
+  (Join-Path $AssetRoot "weapon\weapon_kunai.png")
+)
+foreach ($lp in $previewLayers) {
+  $layerBmp = [Drawing.Bitmap]::new($lp)
+  $pg.DrawImage($layerBmp, 0, 0, $CanvasSize, $CanvasSize)
+  $layerBmp.Dispose()
+}
+$pg.Dispose()
+$previewCanvas.Save((Join-Path $AssetRoot "preview.png"), [Drawing.Imaging.ImageFormat]::Png)
+$previewCanvas.Dispose()
+
 $bodyAtlas.Dispose(); $hairAtlas.Dispose(); $clothingAtlas.Dispose(); $detailAtlas.Dispose()
 
 $manifest = @{
@@ -142,4 +196,4 @@ $manifest = @{
 }
 $manifestJson = $manifest | ConvertTo-Json -Depth 4
 [IO.File]::WriteAllText((Join-Path $AssetRoot "manifest.json"), $manifestJson, [Text.UTF8Encoding]::new($false))
-Write-Output "Generated illustrated modular assets at $AssetRoot"
+Write-Output "Regenerated polished modular assets at $AssetRoot"

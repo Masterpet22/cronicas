@@ -1,9 +1,9 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.5.1";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.5.1";
-import { createLayeredFighter, destroyFighter } from "./src/fighters.js?v=0.5.1";
-import { createActionButton, createBar } from "./src/ui.js?v=0.5.1";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.5.1";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.5.1";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.5.2";
+import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.5.2";
+import { createLayeredFighter, destroyFighter } from "./src/fighters.js?v=0.5.2";
+import { createActionButton, createBar } from "./src/ui.js?v=0.5.2";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.5.2";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.5.2";
 
 const Phaser = window.Phaser;
 
@@ -26,8 +26,8 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.5.1");
-    MODULAR_TEXTURES.forEach(([key, path]) => this.load.image(key, `${path}?v=0.5.1`));
+    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.5.2");
+    MODULAR_TEXTURES.forEach(([key, path]) => this.load.image(key, `${path}?v=0.5.2`));
   }
 
   create() {
@@ -194,10 +194,10 @@ class BattleScene extends Phaser.Scene {
   createFighters() {
     const profile = this.encounters[this.enemyIndex];
     const auraColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
-    this.heroAura = this.add.circle(220, 270, 82, auraColor, 0.055).setStrokeStyle(3, auraColor, 0.24).setDepth(5);
+    this.heroAura = this.add.circle(220, 220, 82, auraColor, 0.055).setStrokeStyle(3, auraColor, 0.24).setDepth(5);
     this.tweens.add({ targets: this.heroAura, scale: 1.06, alpha: 0.16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.hero = createLayeredFighter(this, 220, 298, this.playerAppearance(), false);
-    this.foe = createLayeredFighter(this, 740, 298, this.enemyAppearance(profile), true);
+    this.hero = createLayeredFighter(this, 220, 248, this.playerAppearance(), false);
+    this.foe = createLayeredFighter(this, 740, 248, this.enemyAppearance(profile), true);
     this.tweens.add({ targets: this.hero.targets, y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
   }
@@ -316,7 +316,7 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
-    this.foe = createLayeredFighter(this, 810, 298, this.enemyAppearance(profile), true);
+    this.foe = createLayeredFighter(this, 810, 248, this.enemyAppearance(profile), true);
     this.foe.targets.forEach((target) => target.setAlpha(0));
     this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });

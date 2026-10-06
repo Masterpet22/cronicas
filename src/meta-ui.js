@@ -1,5 +1,5 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.5.1";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.5.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.5.2";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.5.2";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [
@@ -113,10 +113,10 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const layers = [
       `hair/hair_0${character.hair}_rear.png`, `body/body_${character.bodyType}.png`,
       `bottom/bottom_0${character.bottom}.png`, `shoes/shoes_0${character.shoes}.png`,
-      `top/top_0${character.top}.png`, `face/face_0${character.face}.png`,
-      `hair/hair_0${character.hair}_front.png`, `weapon/weapon_${weapon}.png`
+      `top/top_0${character.top}.png`, `hair/hair_0${character.hair}_front.png`,
+      `face/face_0${character.face}.png`, `weapon/weapon_${weapon}.png`
     ];
-    return `<div class="character-preview" aria-label="Vista previa del personaje">${layers.map((path) => `<img src="assets/modular/${path}?v=0.5.1" alt="">`).join("")}</div>`;
+    return `<div class="character-preview" aria-label="Vista previa del personaje">${layers.map((path) => `<img src="assets/modular/${path}?v=0.5.2" alt="">`).join("")}</div>`;
   };
 
   const renderDojo = () => {
