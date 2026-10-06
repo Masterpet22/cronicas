@@ -28,4 +28,10 @@ assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas inte
 const village = await readFile(new URL("../assets/village/aldea.png", import.meta.url));
 assert.equal(village.readUInt32BE(16), 1678, "El mapa debe conservar su ancho original");
 assert.equal(village.readUInt32BE(20), 937, "El mapa debe conservar su alto original");
+const locationIds = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
+await Promise.all(locationIds.map(async (id) => {
+  const png = await readFile(new URL(`../assets/locations/${id}.png`, import.meta.url));
+  assert.ok(png.readUInt32BE(16) >= 1500, `${id} necesita resolución panorámica suficiente`);
+  assert.ok(png.readUInt32BE(20) >= 900, `${id} necesita altura suficiente`);
+}));
 console.log("Pruebas de recursos modulares superadas.");
