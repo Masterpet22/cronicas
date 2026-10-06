@@ -19,7 +19,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 ## Controles
 
 - Crea un personaje con nombre, color de atuendo y afinidad inicial.
-- Recorre la Plaza, el Tablón de misiones, el Dojo y el Archivo mediante sus menús.
+- Recorre la aldea desde un mapa ilustrado con nueve destinos interactivos. Cada edificio se resalta al pasar el cursor o enfocarlo con el teclado.
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
 - El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
@@ -65,6 +65,7 @@ src/ui.js                Barras y botones de combate
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.jpg       Nueva hoja de doce símbolos
+assets/village/aldea.png           Mapa interactivo de la Aldea del Horizonte
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
 assets/modular/          Experimentos ilustrados archivados; no se cargan en runtime
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes
@@ -79,4 +80,4 @@ npm test
 
 ## Nota sobre el arte
 
-El juego utiliza temporalmente figuras geométricas avanzadas para mantener consistencia y permitir continuar con jugabilidad, animación e interfaz. Los atlas ilustrados se conservan como referencia experimental, pero no se cargan en el juego. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.
+El juego utiliza temporalmente figuras geométricas avanzadas para mantener consistencia y permitir continuar con jugabilidad, animación e interfaz. Los atlas ilustrados se conservan como referencia experimental, pero no se cargan en el juego. El mapa de la aldea y la hoja de símbolos fueron proporcionados por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.

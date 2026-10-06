@@ -58,7 +58,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Fase 3 — Demo jugable
 
-- [x] Una aldea con selección de lugares mediante menús.
+- [x] Una aldea ilustrada con nueve edificios interactivos, resaltado por hover y navegación por teclado.
 - [x] Diez misiones, ocho enemigos y tres jefes.
 - [x] Diálogos y tutorial breve.
 - [x] Examen de ascenso de rango.

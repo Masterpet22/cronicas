@@ -1,13 +1,34 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.6.1";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.6.0";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.6.0";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.7.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.7.0";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.7.0";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [
-  ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Desde la plaza puedes visitar el dojo, el tablón de misiones y el archivo."],
+  ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Cada edificio de la plaza conduce a una sección distinta."],
   ["Maestra Aya", "En el dojo preparas cuatro jutsus y distribuyes los puntos obtenidos al subir de nivel."],
-  ["Mika", "En combate, la velocidad decide quién actúa primero. Guardia reduce el próximo impacto y recupera chakra. Nos vemos en el tablón."]
+  ["Mika", "Pasa el cursor sobre un edificio para identificarlo. El tablón está frente a la plaza; desde allí comienzan las misiones."]
 ];
+
+export const VILLAGE_LOCATIONS = [
+  { id: "headquarters", name: "Cuartel General", description: "Mando, rango y estado de la aldea", x: 38.5, y: 5, w: 25, h: 50, shape: "polygon(35% 0, 66% 0, 74% 15%, 86% 25%, 88% 100%, 8% 100%, 12% 29%, 27% 19%)" },
+  { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", x: 20, y: 33, w: 22, h: 27, shape: "polygon(18% 5%, 80% 5%, 100% 38%, 91% 100%, 5% 100%, 0 38%)" },
+  { id: "archive", name: "Biblioteca", description: "Crónicas y progreso de campaña", x: 0, y: 26, w: 20, h: 32, shape: "polygon(12% 0, 83% 0, 100% 26%, 94% 100%, 0 100%, 0 27%)" },
+  { id: "shop", name: "Tienda de Objetos", description: "Suministros y equipamiento", x: 65, y: 34, w: 20, h: 27, shape: "polygon(13% 7%, 83% 5%, 100% 34%, 94% 100%, 3% 100%, 0 36%)" },
+  { id: "tower", name: "Torre de Desafíos", description: "Pruebas especiales por pisos", x: 83, y: 3, w: 15, h: 45, shape: "polygon(43% 0, 58% 0, 75% 11%, 76% 83%, 100% 100%, 0 100%, 25% 82%, 26% 12%)" },
+  { id: "arena", name: "Arena de Combate", description: "Combates de práctica y duelos", x: 69, y: 59, w: 30, h: 39, shape: "ellipse(50% 50% at 50% 50%)" },
+  { id: "inn", name: "Posada", description: "Descanso y encuentros", x: 3, y: 65, w: 29, h: 31, shape: "polygon(6% 25%, 35% 0, 75% 5%, 100% 31%, 93% 100%, 3% 100%)" },
+  { id: "missions", name: "Tablón de Misiones", description: "Historia, contratos y recompensas", x: 38, y: 72, w: 16, h: 22, shape: "polygon(9% 8%, 91% 8%, 100% 100%, 0 100%)" },
+  { id: "event", name: "Plaza de Eventos", description: "Actividades temporales", x: 46, y: 52, w: 13, h: 21, shape: "ellipse(46% 50% at 50% 50%)" }
+];
+
+const VILLAGE_SERVICES = {
+  headquarters: { eyebrow: "CENTRO DE MANDO", title: "Cuartel General", text: "Aquí se coordinan las defensas, los ascensos y la historia principal de la Aldea del Horizonte.", items: ["Resumen de rango y campaña", "Acceso rápido a misiones", "Informes de la aldea"] },
+  shop: { eyebrow: "DISTRITO COMERCIAL", title: "Tienda de Objetos", text: "El inventario está preparándose. Este espacio alojará consumibles, armas y mejoras adquiribles con monedas.", items: ["Pociones y restauradores", "Kunais y herramientas", "Pergaminos de mejora"] },
+  tower: { eyebrow: "DESAFÍO", title: "Torre de Desafíos", text: "Una futura serie de combates consecutivos con reglas especiales y recompensas por cada piso superado.", items: ["Nueve pisos temáticos", "Dificultad creciente", "Recompensas exclusivas"] },
+  arena: { eyebrow: "CAMPO DE PRUEBAS", title: "Arena de Combate", text: "La arena quedará reservada para entrenamientos, pruebas de composiciones y duelos sin alterar la campaña.", items: ["Combate de práctica", "Pruebas de daño", "Duelos futuros"] },
+  inn: { eyebrow: "ZONA DE DESCANSO", title: "Posada", text: "Un lugar tranquilo para conversaciones, compañeros y futuros eventos narrativos entre misiones.", items: ["Encuentros con aliados", "Escenas de historia", "Bonificaciones de descanso"] },
+  event: { eyebrow: "PLAZA CENTRAL", title: "Escenario de Eventos", text: "Este espacio se activará para festivales, comerciantes y desafíos de duración limitada.", items: ["Festivales de la aldea", "Personajes visitantes", "Eventos temporales"] }
+};
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
@@ -44,21 +65,19 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
   const shell = (content) => {
     const { character, progression, campaign } = save;
+    const currentLocation = VILLAGE_LOCATIONS.find((location) => location.id === view);
+    const navigation = view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button data-view="plaza">← Volver al mapa</button><span>${escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
     root.innerHTML = `
       <div class="village-shell">
         <section class="village-topbar dojo-card">
           <div class="profile-heading"><span class="avatar-swatch" style="--avatar:${character.appearance}"></span><div><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${escapeHtml(character.name)}</h2></div></div>
           <div class="campaign-summary"><strong>Nivel ${progression.level}</strong><span>${progression.xp}/${xpForNextLevel(progression.level)} PX</span><span>${progression.coins} monedas</span><span>${campaign.completedMissions.length}/10 misiones</span></div>
         </section>
-        <nav class="village-nav" aria-label="Lugares de la aldea">
-          <button data-view="plaza" class="${view === "plaza" ? "active" : ""}">Plaza</button>
-          <button data-view="missions" class="${view === "missions" ? "active" : ""}">Misiones</button>
-          <button data-view="dojo" class="${view === "dojo" ? "active" : ""}">Dojo</button>
-          <button data-view="archive" class="${view === "archive" ? "active" : ""}">Archivo</button>
-        </nav>
+        ${navigation}
         ${content}
       </div>`;
     root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.view; render(); }));
+    root.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.go; render(); }));
   };
 
   const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR") => {
@@ -83,9 +102,15 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const companion = save.campaign.companion
       ? `<div class="notice-card ally"><strong>Mika está disponible</strong><span>Atacará automáticamente cada dos rondas.</span></div>`
       : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
-    shell(`<section class="village-scene dojo-card"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>¿A dónde quieres ir?</h2><p class="lead">La campaña avanza desde el tablón. Puedes volver al dojo entre misiones para ajustar tu estrategia.</p></div><div class="location-grid"><button data-go="missions"><span>⚔</span><strong>Tablón de misiones</strong><small>Historia y recompensas</small></button><button data-go="dojo"><span>◈</span><strong>Dojo</strong><small>Jutsus, atributos y equipo</small></button><button data-go="archive"><span>▤</span><strong>Archivo</strong><small>Progreso de la campaña</small></button></div>${companion}</section>`);
-    root.querySelectorAll("[data-go]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.go; render(); }));
+    const hotspots = VILLAGE_LOCATIONS.map((location, index) => `<button class="village-hotspot hotspot-${location.id}" data-go="${location.id}" aria-label="${escapeHtml(location.name)}: ${escapeHtml(location.description)}" style="--x:${location.x}%;--y:${location.y}%;--w:${location.w}%;--h:${location.h}%;--shape:${location.shape};--order:${index}"><span class="map-label"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(location.description)}</small></span></button>`).join("");
+    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.7.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false">${hotspots}</figure>${companion}</section>`);
     if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
+  };
+
+  const renderVillageService = (serviceId) => {
+    const service = VILLAGE_SERVICES[serviceId];
+    const actions = serviceId === "headquarters" ? `<div class="service-actions"><button class="primary-button" data-go="missions">VER MISIONES</button><button class="secondary-button" data-go="dojo">PREPARAR EQUIPO</button></div>` : `<p class="development-note">Sección preparada para una fase posterior. El acceso desde el mapa ya está operativo.</p>`;
+    shell(`<section class="dojo-card village-service"><p class="eyebrow">${service.eyebrow}</p><h2>${service.title}</h2><p class="lead">${service.text}</p><div class="service-grid">${service.items.map((item, index) => `<article><span>0${index + 1}</span><strong>${item}</strong></article>`).join("")}</div>${actions}</section>`);
   };
 
   const renderMissions = () => {
@@ -143,6 +168,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     if (view === "missions") return renderMissions();
     if (view === "dojo") return renderDojo();
     if (view === "archive") return renderArchive();
+    if (VILLAGE_SERVICES[view]) return renderVillageService(view);
     return renderPlaza();
   };
   render();

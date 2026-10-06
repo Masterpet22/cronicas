@@ -24,4 +24,8 @@ await Promise.all(assets.map(async (asset) => {
   assert.equal(png[25], 6, `${asset} debe conservar un canal alfa`);
 }));
 assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");
+
+const village = await readFile(new URL("../assets/village/aldea.png", import.meta.url));
+assert.equal(village.readUInt32BE(16), 1678, "El mapa debe conservar su ancho original");
+assert.equal(village.readUInt32BE(20), 937, "El mapa debe conservar su alto original");
 console.log("Pruebas de recursos modulares superadas.");
