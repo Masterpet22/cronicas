@@ -2,6 +2,8 @@
 
 RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, diez misiones narrativas, progresión persistente, compañero controlado por IA, examen de rango y once rivales únicos.
 
+**Demo pública:** https://masterpet22.github.io/cronicas-del-sello/
+
 ## Ejecutar
 
 El juego usa Phaser desde un CDN, por lo que necesita conexión a Internet al abrirse.
