@@ -22,6 +22,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Recorre la aldea desde un mapa ilustrado con nueve destinos interactivos. Cada edificio usa una silueta SVG precisa que se resalta al pasar el cursor o enfocarla con el teclado.
 - Cada destino abre como una escena ilustrada: el personaje presenta el lugar mediante un bocadillo y, al terminar, aparecen sus opciones.
 - Los habitantes explican controles al explorar las opciones, hacen comentarios ocasionales y pueden recibir un clic para repetir consejos.
+- El perfil, el regreso al mapa y los ajustes funcionan como HUD flotante; ya no ocupan una cabecera separada del escenario.
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
 - El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.

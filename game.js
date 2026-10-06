@@ -804,6 +804,7 @@ bindGlobalOptions();
 mountMetaUI(metaRoot, activeSave, (save, mission) => {
   activeSave = writeSave(save);
   activeMission = mission;
+  document.querySelector(".game-settings")?.removeAttribute("open");
   metaRoot.hidden = true;
   gameRoot.hidden = false;
   if (game) game.destroy(true);
