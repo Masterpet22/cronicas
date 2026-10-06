@@ -1,9 +1,9 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.5.0";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.5.0";
-import { createLayeredFighter, destroyFighter } from "./src/fighters.js?v=0.5.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.5.0";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.5.0";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.5.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.5.1";
+import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.5.1";
+import { createLayeredFighter, destroyFighter } from "./src/fighters.js?v=0.5.1";
+import { createActionButton, createBar } from "./src/ui.js?v=0.5.1";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.5.1";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.5.1";
 
 const Phaser = window.Phaser;
 
@@ -26,8 +26,8 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.5.0");
-    MODULAR_TEXTURES.forEach(([key, path]) => this.load.image(key, `${path}?v=0.5.0`));
+    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.5.1");
+    MODULAR_TEXTURES.forEach(([key, path]) => this.load.image(key, `${path}?v=0.5.1`));
   }
 
   create() {

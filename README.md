@@ -22,6 +22,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Recorre la Plaza, el Tablón de misiones, el Dojo y el Archivo mediante sus menús.
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
+- El dojo incluye un creador visual: combina cuerpo, rostro, cinco peinados, prendas, calzado y arma con vista previa inmediata.
 - Las técnicas se desbloquean al subir de nivel; cada nivel entrega dos puntos de atributo.
 - Selecciona una de las seis acciones con el ratón o la pantalla táctil.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
@@ -64,7 +65,7 @@ tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.jpg       Nueva hoja de doce símbolos
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
-assets/modular/          27 capas PNG y manifiesto de anclajes
+assets/modular/          27 capas PNG ilustradas, atlas fuente y manifiesto
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes
 ROADMAP.md               Plan de desarrollo
 ```

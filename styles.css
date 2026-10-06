@@ -122,6 +122,9 @@ input, select, button { font: inherit; }
 .stat-grid span { padding: 10px 4px; border-radius: 7px; background: rgba(255,255,255,0.055); color: #fff; font-size: 1.05rem; font-weight: 800; text-align: center; }
 .stat-grid small { display: block; color: #8e9bad; font-size: 0.58rem; letter-spacing: 0.1em; }
 .section-heading > strong { color: #f5a357; font-size: 0.8rem; }
+.customizer { display: grid; grid-template-columns: 180px 1fr; align-items: center; gap: 14px; }
+.character-preview { position: relative; width: 180px; aspect-ratio: 1; overflow: hidden; border: 1px solid #344154; border-radius: 12px; background: radial-gradient(circle at 50% 38%, #2a3548, #101722 72%); }
+.character-preview img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 .cosmetic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 20px; }
 .equipment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
 .jutsu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; max-height: 330px; overflow-y: auto; padding-right: 4px; }
@@ -175,6 +178,8 @@ input, select, button { font: inherit; }
   .dojo-card { border-inline: 0; border-radius: 0; padding: 18px 14px; }
   .creator-card { margin: 12px auto; }
   .creator-form, .equipment-grid, .cosmetic-grid, .jutsu-grid { grid-template-columns: 1fr; }
+  .customizer { grid-template-columns: 1fr; }
+  .character-preview { width: min(220px, 100%); margin-inline: auto; }
   .creator-form label { grid-column: 1; }
   .village-topbar { align-items: flex-start; }.campaign-summary { display: grid; grid-template-columns: 1fr 1fr; }
   .village-nav { grid-template-columns: repeat(2, 1fr); }.location-grid { grid-template-columns: 1fr; }.location-grid button { min-height: 96px; }

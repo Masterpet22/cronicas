@@ -38,7 +38,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Añadir una variante manual sin límite de tiempo como opción de accesibilidad.
 - [x] Acelerar automáticamente las secuencias de técnicas ya vistas.
 - [x] Añadir opciones persistentes de volumen, movimiento de cámara y destellos.
-- [x] Sustituir los combatientes geométricos por cuerpos modulares provisionales.
+- [x] Sustituir los combatientes geométricos por personajes ilustrados y modulares.
 
 **Criterio de salida cumplido:** la ruta de cuatro encuentros dura aproximadamente 10 a 15 minutos a ritmo normal y admite estrategias basadas en afinidades/estados o en velocidad/defensa.
 
@@ -83,7 +83,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 **Estado: implementación visual completada.**
 
-**Criterio de salida técnico cumplido:** los combatientes usan 27 capas PNG intercambiables sobre un lienzo común, la apariencia se edita en el dojo y los guardados anteriores migran automáticamente. Antes de una publicación comercial o de hacer público el repositorio todavía se debe verificar documentalmente la autoría o licencia de la hoja de símbolos proporcionada.
+**Criterio de salida técnico cumplido:** los combatientes usan 27 capas PNG ilustradas e intercambiables sobre un lienzo común, la apariencia cuenta con vista previa en el dojo y los guardados anteriores migran automáticamente. Antes de una publicación comercial o de hacer público el repositorio todavía se debe verificar documentalmente la autoría o licencia de la hoja de símbolos proporcionada.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 

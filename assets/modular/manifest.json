@@ -3,46 +3,47 @@
                   1,
                   2
               ],
+    "source":  "OpenAI built-in image generation, derived from the project technical reference",
     "anchors":  {
                     "NECK":  [
-                                 256,
-                                 194
+                                 384,
+                                 235
                              ],
                     "SHOULDER_L":  [
-                                       204,
-                                       220
+                                       292,
+                                       270
                                    ],
                     "FOOT_L":  [
-                                   220,
-                                   459
+                                   310,
+                                   730
                                ],
                     "SHOULDER_R":  [
-                                       304,
-                                       220
+                                       476,
+                                       270
                                    ],
                     "HAND_L":  [
-                                   174,
-                                   319
+                                   225,
+                                   445
                                ],
                     "FOOT_R":  [
-                                   294,
-                                   459
+                                   458,
+                                   730
                                ],
                     "WAIST":  [
-                                  256,
-                                  320
+                                  384,
+                                  425
                               ],
                     "WEAPON_HAND":  [
-                                        338,
-                                        319
+                                        543,
+                                        445
                                     ],
                     "HAND_R":  [
-                                   338,
-                                   319
+                                   543,
+                                   445
                                ],
                     "HEAD":  [
-                                 256,
-                                 130
+                                 384,
+                                 145
                              ]
                 },
     "bottoms":  [
@@ -78,7 +79,7 @@
                  "female"
              ],
     "canvas":  [
-                   512,
-                   512
+                   768,
+                   768
                ]
 }

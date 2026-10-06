@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const manifest = JSON.parse((await readFile(new URL("../assets/modular/manifest.json", import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
-assert.deepEqual(manifest.canvas, [512, 512], "Todas las piezas deben compartir un lienzo de 512×512");
+assert.deepEqual(manifest.canvas, [768, 768], "Todas las piezas deben compartir un lienzo de 768×768");
 assert.deepEqual(manifest.body, ["male", "female"], "Deben existir ambos cuerpos base");
 assert.equal(manifest.hair.length, 5, "Deben existir cinco peinados");
 assert.equal(manifest.faces.length, 3, "Deben existir tres rostros");
@@ -19,8 +19,8 @@ const assets = [
 
 await Promise.all(assets.map(async (asset) => {
   const png = await readFile(new URL(`../assets/modular/${asset}`, import.meta.url));
-  assert.equal(png.readUInt32BE(16), 512, `${asset} debe medir 512 px de ancho`);
-  assert.equal(png.readUInt32BE(20), 512, `${asset} debe medir 512 px de alto`);
+  assert.equal(png.readUInt32BE(16), 768, `${asset} debe medir 768 px de ancho`);
+  assert.equal(png.readUInt32BE(20), 768, `${asset} debe medir 768 px de alto`);
   assert.equal(png[25], 6, `${asset} debe conservar un canal alfa`);
 }));
 assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");

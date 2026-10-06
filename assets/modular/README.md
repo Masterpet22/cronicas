@@ -1,6 +1,6 @@
 # Personajes modulares
 
-Este directorio contiene las capas de personajes usadas directamente por Phaser. Todos los PNG son transparentes, miden `512 × 512` y comparten exactamente los mismos anclajes, por lo que se superponen sin ajustes manuales.
+Este directorio contiene las capas ilustradas usadas directamente por Phaser. Todos los PNG son transparentes, miden `768 × 768` y comparten exactamente los mismos anclajes, por lo que se superponen sin ajustes manuales. El arte fuente fue creado con la generación de imágenes integrada tomando como referencia la hoja técnica del proyecto; no son figuras geométricas dibujadas por el motor.
 
 ## Orden de renderizado
 
@@ -23,4 +23,4 @@ Desde la raíz del proyecto:
 powershell -ExecutionPolicy Bypass -File scripts/generate_modular_assets.ps1
 ```
 
-El script produce de forma determinista los dos cuerpos, tres rostros, cinco peinados divididos en capa trasera y delantera, tres prendas superiores, tres inferiores, dos calzados y cuatro armas. Las prendas se mantienen en tonos neutros para que Phaser pueda teñirlas según cada personaje.
+El script recorta, limpia y alinea los atlas de `source/` para producir los dos cuerpos, tres rostros, cinco peinados, tres prendas superiores, tres inferiores, dos calzados y cuatro armas. Phaser puede teñir las prendas para ampliar las combinaciones sin duplicar recursos.
