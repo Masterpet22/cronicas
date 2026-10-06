@@ -1,9 +1,9 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js";
-import { createModularFighter, destroyFighter } from "./src/fighters.js";
-import { createActionButton, createBar } from "./src/ui.js";
-import { mountMetaUI } from "./src/meta-ui.js";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.4.0";
+import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.4.0";
+import { createSpriteFighter, destroyFighter } from "./src/fighters.js?v=0.4.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.4.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.4.0";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.4.0";
 
 const Phaser = window.Phaser;
 
@@ -17,7 +17,9 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-ninja.png");
+    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.4.0");
+    this.load.image("guardianHero", "assets/characters/guardian-hero.png?v=0.4.0");
+    this.load.image("shadowRival", "assets/characters/shadow-rival.png?v=0.4.0");
   }
 
   create() {
@@ -139,15 +141,12 @@ class BattleScene extends Phaser.Scene {
 
   makeSealFrames() {
     const texture = this.textures.get("sealSheet");
-    const xs = [0, 314, 628, 942];
-    const widths = [314, 314, 314, 313];
-    const ys = [0, 418, 837];
     for (let row = 0; row < 3; row += 1) {
       for (let col = 0; col < 4; col += 1) {
         const index = row * 4 + col;
         // La textura sobrevive al reinicio de la escena. Registrar los mismos
         // fotogramas otra vez deja la escena incompleta en algunas versiones.
-        if (!texture.has(index)) texture.add(index, 0, xs[col], ys[row], widths[col], 350);
+        if (!texture.has(index)) texture.add(index, 0, col * 688, row * 512, 688, 512);
       }
     }
   }
@@ -185,12 +184,13 @@ class BattleScene extends Phaser.Scene {
   }
 
   createFighters() {
-    const profile = this.encounters[this.enemyIndex];
-    const outfitColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
-    this.hero = createModularFighter(this, 220, 298, outfitColor, 0x243149, false);
-    this.foe = createModularFighter(this, 740, 298, profile.colors.cloth, profile.colors.accent, true);
-    this.tweens.add({ targets: [this.hero.body, this.hero.head], y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.tweens.add({ targets: [this.foe.body, this.foe.head], y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
+    const auraColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
+    this.heroAura = this.add.circle(220, 270, 82, auraColor, 0.055).setStrokeStyle(3, auraColor, 0.24).setDepth(5);
+    this.tweens.add({ targets: this.heroAura, scale: 1.06, alpha: 0.16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    this.hero = createSpriteFighter(this, 220, 298, "guardianHero", false);
+    this.foe = createSpriteFighter(this, 740, 298, "shadowRival", false);
+    this.tweens.add({ targets: this.hero.targets, y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
   }
 
   createActionPanel() {
@@ -299,7 +299,7 @@ class BattleScene extends Phaser.Scene {
     const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
     this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
     this.stopFighterFlash(this.foe);
-    this.tweens.add({ targets: [this.foe.body, this.foe.head], alpha: 0, x: "+=70", duration: 480 });
+    this.tweens.add({ targets: this.foe.targets, alpha: 0, x: "+=70", duration: 480 });
     await this.delay(560);
     destroyFighter(this.foe);
 
@@ -307,11 +307,10 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
-    this.foe = createModularFighter(this, 810, 298, profile.colors.cloth, profile.colors.accent, true);
-    this.foe.body.setAlpha(0);
-    this.foe.head.setAlpha(0);
-    this.tweens.add({ targets: [this.foe.body, this.foe.head], x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
-    this.tweens.add({ targets: [this.foe.body, this.foe.head], y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });
+    this.foe = createSpriteFighter(this, 810, 298, "shadowRival", false);
+    this.foe.targets.forEach((target) => target.setAlpha(0));
+    this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
+    this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });
 
     this.player.hp = Math.min(this.player.maxHp, this.player.hp + 35);
     this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 25);
@@ -339,8 +338,11 @@ class BattleScene extends Phaser.Scene {
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
-    this.foe.parts.cape.setFillStyle(0x612348);
-    this.foe.parts.hood.setFillStyle(0x612348);
+    if (this.foe.sprite) this.foe.body.setTint(0xdca8ff);
+    else {
+      this.foe.parts.cape.setFillStyle(0x612348);
+      this.foe.parts.hood.setFillStyle(0x612348);
+    }
     this.screenFlash(220, 130, 55, 180);
     this.tone(95, 0.35);
     this.refreshHud();
@@ -368,7 +370,8 @@ class BattleScene extends Phaser.Scene {
       const x = startX + i * spacing;
       const card = this.add.container(x, jutsu.cinematic ? 120 : 0).setAlpha(0).setScale(0.45).setSize(size, size);
       const plate = this.add.rectangle(0, 0, size, size, 0x0b0e14, 0.94).setStrokeStyle(2, jutsu.color, 0.9);
-      const image = this.add.image(0, -6, "sealSheet", seal.frame).setDisplaySize(size - 12, size - 20);
+      const imageWidth = size - 12;
+      const image = this.add.image(0, -6, "sealSheet", seal.frame).setDisplaySize(imageWidth, imageWidth * (512 / 688));
       const label = this.add.text(0, size / 2 - 4, `${seal.key} · ${seal.label}`, this.textStyle(jutsu.cinematic ? 12 : 9, "#fff1d6", "800")).setOrigin(0.5, 1);
       card.add([plate, image, label]);
       this.sealLayer.add(card);
@@ -464,7 +467,7 @@ class BattleScene extends Phaser.Scene {
     const damage = Math.max(1, Math.round((jutsu.damage + this.player.damageBonus) * casting.multiplier * elementalMultiplier * affinityBonus));
     const chance = hitChance(this.player, this.enemy, jutsu);
     const originX = this.hero.body.x;
-    this.tweens.add({ targets: [this.hero.body, this.hero.head], x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
+    this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
     await this.delay(125);
 
     if (!this.rollHit(chance)) {
@@ -536,7 +539,7 @@ class BattleScene extends Phaser.Scene {
     const damage = this.player.guarding ? Math.ceil(rawDamage * 0.5) : rawDamage;
     const chance = hitChance(this.enemy, this.player, action);
     this.setMessage(`El rival usa ${action.name}${this.player.guarding ? " contra tu guardia" : ""}...`);
-    this.tweens.add({ targets: [this.foe.body, this.foe.head], x: "-=55", duration: 150, yoyo: true, hold: 40, ease: "Quad.out" });
+    this.tweens.add({ targets: this.foe.targets, x: "-=55", duration: 150, yoyo: true, hold: 40, ease: "Quad.out" });
     await this.delay(170);
 
     if (!this.rollHit(chance)) {
@@ -618,18 +621,16 @@ class BattleScene extends Phaser.Scene {
 
   flashFighter(fighter) {
     this.stopFighterFlash(fighter);
-    fighter.body.setAlpha(1);
-    fighter.head.setAlpha(1);
+    fighter.targets.forEach((target) => target.setAlpha(1));
     if (!this.flashEffects || this.lightMode) return;
     fighter.flashTween = this.tweens.add({
-      targets: [fighter.body, fighter.head],
+      targets: fighter.targets,
       alpha: 0.25,
       duration: 65,
       yoyo: true,
       repeat: 2,
       onComplete: () => {
-        fighter.body.setAlpha(1);
-        fighter.head.setAlpha(1);
+        fighter.targets.forEach((target) => target.setAlpha(1));
         fighter.flashTween = null;
       }
     });
@@ -640,8 +641,7 @@ class BattleScene extends Phaser.Scene {
       fighter.flashTween.stop();
       fighter.flashTween = null;
     }
-    fighter.body.setAlpha(1);
-    fighter.head.setAlpha(1);
+    fighter.targets.forEach((target) => target.setAlpha(1));
   }
 
   floatDamage(x, y, amount, color) {
@@ -662,7 +662,7 @@ class BattleScene extends Phaser.Scene {
     this.setMessage(won ? `¡Misión completada!${rewardText}${rankText}` : "Misión fallida. Conservas las recompensas de encuentros superados.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;
     this.stopFighterFlash(target);
-    this.tweens.add({ targets: [target.body, target.head], angle: won ? 82 : -82, y: "+=38", alpha: 0.35, duration: 650, ease: "Cubic.in" });
+    this.tweens.add({ targets: target.targets, angle: won ? 82 : -82, y: "+=38", alpha: 0.35, duration: 650, ease: "Cubic.in" });
     const reset = this.add.text(WIDTH / 2, 392, "VOLVER A LA ALDEA", this.textStyle(16, "#0b1018", "800"))
       .setOrigin(0.5).setPadding(20, 10).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
     reset.once("pointerup", () => {

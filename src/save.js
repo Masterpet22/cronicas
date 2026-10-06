@@ -1,4 +1,4 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.4.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const SAVE_VERSION = 2;

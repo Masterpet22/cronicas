@@ -1,16 +1,16 @@
 export const SEALS = {
-  pajaro:    { frame: 0, label: "PÁJARO", key: "Q" },
-  jabali:    { frame: 1, label: "JABALÍ", key: "W" },
-  perro:     { frame: 2, label: "PERRO", key: "E" },
-  dragon:    { frame: 3, label: "DRAGÓN", key: "R" },
-  liebre:    { frame: 4, label: "LIEBRE", key: "A" },
-  caballo:   { frame: 5, label: "CABALLO", key: "S" },
-  mono:      { frame: 6, label: "MONO", key: "D" },
-  buey:      { frame: 7, label: "BUEY", key: "F" },
-  carnero:   { frame: 8, label: "CARNERO", key: "Z" },
-  rata:      { frame: 9, label: "RATA", key: "X" },
-  serpiente: { frame: 10, label: "SERPIENTE", key: "C" },
-  tigre:     { frame: 11, label: "TIGRE", key: "V" }
+  pajaro:    { frame: 0, label: "ALBA", key: "Q" },
+  jabali:    { frame: 1, label: "PULSO", key: "W" },
+  perro:     { frame: 2, label: "VÍNCULO", key: "E" },
+  dragon:    { frame: 3, label: "UMBRAL", key: "R" },
+  liebre:    { frame: 4, label: "FLUJO", key: "A" },
+  caballo:   { frame: 5, label: "ESPIRAL", key: "S" },
+  mono:      { frame: 6, label: "SENDERO", key: "D" },
+  buey:      { frame: 7, label: "NEXO", key: "F" },
+  carnero:   { frame: 8, label: "ESTALLIDO", key: "Z" },
+  rata:      { frame: 9, label: "ECO", key: "X" },
+  serpiente: { frame: 10, label: "RUPTURA", key: "C" },
+  tigre:     { frame: 11, label: "HORIZONTE", key: "V" }
 };
 
 export const BASE_ACTIONS = [

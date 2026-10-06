@@ -1,4 +1,4 @@
-# Crónicas del Sello — Demo Fase 3
+# Crónicas del Sello — Fase 4 visual
 
 RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, diez misiones narrativas, progresión persistente, compañero controlado por IA, examen de rango y once rivales únicos.
 
@@ -53,6 +53,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 index.html               Entrada del juego
 styles.css               Presentación de la página
 game.js                  Escena, combate, sellos y efectos
+ART_DIRECTION.md         Guía de identidad, paleta y escalas
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
 src/save.js              Guardado v2, campaña, atributos y recompensas
 src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
@@ -61,7 +62,9 @@ src/fighters.js          Cuerpos modulares provisionales
 src/ui.js                Barras y botones de combate
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
-assets/sellos-ninja.png  Recurso provisional de sellos
+assets/sellos-originales.jpg       Nueva hoja de doce símbolos
+assets/characters/guardian-hero.png  Personaje original del jugador
+assets/characters/shadow-rival.png   Personaje original rival
 ROADMAP.md               Plan de desarrollo
 ```
 
@@ -73,4 +76,4 @@ npm test
 
 ## Nota sobre el arte
 
-La cuadrícula de sellos es provisional y debe reemplazarse por arte original antes de una publicación comercial o de hacer público el repositorio. Los combatientes son cuerpos modulares construidos con formas de Phaser y también funcionan como marcadores temporales.
+Los dos personajes fueron generados específicamente para este proyecto y se integran como PNG transparentes. La nueva hoja de símbolos fue proporcionada por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio.

@@ -72,15 +72,17 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Fase 4 — Identidad visual propia
 
-- [ ] Diseñar un vocabulario original para los sellos.
-- [ ] Reemplazar la cuadrícula provisional por doce ilustraciones originales.
-- [ ] Crear dos cuerpos base modulares.
+- [x] Diseñar un vocabulario propio para los sellos.
+- [x] Reemplazar la cuadrícula provisional por la nueva hoja de doce símbolos.
+- [x] Crear dos personajes originales de cuerpo completo listos para el combate.
 - [ ] Separar cabeza, torso, brazos, piernas, cabello, ropa y arma.
-- [ ] Preparar cinco movimientos reutilizables: reposo, ataque, técnica, impacto y derrota.
-- [ ] Crear una biblioteca de efectos por elemento.
-- [ ] Definir guía de color, interfaz y tipografía.
+- [x] Preparar cinco movimientos reutilizables mediante transformaciones: reposo, ataque, técnica, impacto y derrota.
+- [x] Crear una biblioteca ligera de efectos por elemento.
+- [x] Definir guía de color, interfaz y tipografía.
 
-**Criterio de salida:** ninguna imagen temporal o perteneciente a otra propiedad permanece en el juego.
+**Estado: en progreso.**
+
+**Criterio de salida pendiente:** los personajes ya son originales. Antes de publicar se debe verificar documentalmente la autoría o licencia de la nueva hoja de símbolos y separar los cuerpos en piezas animables.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 
@@ -104,4 +106,4 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Comenzar la Fase 4 definiendo sellos, siluetas y una guía visual completamente originales antes de publicar la demo en la web.
+Separar los dos personajes en piezas animables y cerrar la verificación de derechos de la hoja de símbolos antes de publicar la demo en la web.

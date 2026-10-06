@@ -1,5 +1,5 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.4.0";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.4.0";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [
@@ -29,7 +29,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         <form id="character-form" class="creator-form">
           <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
           <label>Afinidad<select name="affinity"><option value="fire">Fuego · daño persistente</option><option value="wind">Viento · velocidad y precisión</option><option value="lightning">Rayo · control y potencia</option></select></label>
-          <label>Color del atuendo<input name="appearance" type="color" value="#e8edf5"></label>
+          <label>Color del aura<input name="appearance" type="color" value="#68a8ff"></label>
           <button class="primary-button" type="submit">CREAR PERSONAJE</button>
         </form>
       </section>`;

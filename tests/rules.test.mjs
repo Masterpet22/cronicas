@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { JUTSU_LIBRARY, ENEMIES, MISSIONS } from "../src/data.js";
+import { JUTSU_LIBRARY, ENEMIES, MISSIONS, SEALS } from "../src/data.js";
 import { applyStatus, affinityMultiplier, hitChance } from "../src/rules.js";
 
 const fire = JUTSU_LIBRARY.find((action) => action.id === "fire_embers");
@@ -21,6 +21,8 @@ assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 3, "La demo debe cont
 assert.ok(ENEMIES.filter((enemy) => enemy.boss).every((enemy) => enemy.phase2Pattern.length > 0), "Cada jefe debe tener una segunda fase");
 assert.equal(MISSIONS.length, 10, "La campaña debe contener diez misiones");
 assert.equal(MISSIONS.filter((mission) => mission.exam).length, 1, "Debe existir un examen de rango");
+assert.equal(Object.keys(SEALS).length, 12, "La hoja visual debe exponer doce sellos");
+assert.equal(new Set(Object.values(SEALS).map((seal) => seal.label)).size, 12, "Cada sello debe tener un nombre propio y único");
 assert.equal(JUTSU_LIBRARY.length, 12, "La biblioteca debe contener doce jutsus");
 for (const element of ["fire", "wind", "lightning"]) {
   assert.equal(JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element).length, 4, `Debe haber cuatro jutsus de ${element}`);
