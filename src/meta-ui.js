@@ -150,8 +150,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
     const activateSpeaker = (speaker) => {
       const activeIndex = cast.findIndex((id) => NPCS[id]?.name === speaker);
-      stage.classList.toggle("speaker-left", activeIndex <= 0);
-      stage.classList.toggle("speaker-right", activeIndex > 0);
+      const speakerOnRight = locationId === "dojo" ? activeIndex === 0 : activeIndex > 0;
+      stage.classList.toggle("speaker-left", !speakerOnRight);
+      stage.classList.toggle("speaker-right", speakerOnRight);
       stage.querySelectorAll("[data-stage-npc]").forEach((button) => button.classList.toggle("active", NPCS[button.dataset.stageNpc]?.name === speaker));
     };
     const showTip = (text, npcId = cast[0]) => {
