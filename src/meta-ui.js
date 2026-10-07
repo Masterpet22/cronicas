@@ -280,15 +280,82 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     }).join("");
     const content = `<div class="dojo-layout"><section class="stage-panel profile-card" data-comment="Poder mejora el daño; Agilidad modifica velocidad y evasión; Enfoque aumenta chakra y precisión." data-comment-npc="daichi"><p class="eyebrow">ENTRENAMIENTO</p><h2>Afinidad de ${ELEMENT_NAMES[character.affinity]}</h2><div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p><h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div><div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div></section><section class="stage-panel loadout-card" data-comment="Aquí cambias tu apariencia, equipamiento y los cuatro jutsus que podrás usar en combate." data-comment-npc="mei"><div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div><h3>Apariencia modular</h3><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div><div class="equipment-grid"><label>Arma<select data-equipment="weapon">${equipmentOptions("weapon")}</select></label><label>Protector<select data-equipment="armor">${equipmentOptions("armor")}</select></label><label>Accesorio<select data-equipment="accessory">${equipmentOptions("accessory")}</select></label></div><div class="jutsu-grid">${techniques}</div><p id="dojo-message" class="dojo-message">Los cambios se guardan automáticamente.</p></section></div>`;
     shell(locationStage("dojo", content));
-    root.querySelectorAll("[data-attribute]").forEach((button) => button.addEventListener("click", () => persist(spendAttribute(save, button.dataset.attribute))));
-    root.querySelectorAll("[data-equipment]").forEach((select) => select.addEventListener("change", () => { save.equipment[select.dataset.equipment] = select.value; persist(save); }));
-    root.querySelectorAll("[data-cosmetic]").forEach((select) => select.addEventListener("change", () => { save.character[select.dataset.cosmetic] = select.dataset.cosmetic === "bodyType" ? select.value : Number(select.value); persist(save); }));
+
+    // El Dojo es una interfaz interactiva: guardar un cambio no debe reconstruir
+    // toda la vista. Actualizamos solo los nodos afectados para conservar foco,
+    // scroll, diálogos y la sensación de respuesta inmediata.
+    const syncDojo = () => {
+      const nextStats = derivedStats(save);
+      const points = save.progression.attributePoints;
+      const attributeLabels = { power: "Poder", agility: "Agilidad", focus: "Enfoque" };
+
+      const pointsLabel = root.querySelector(".profile-card h3 span");
+      if (pointsLabel) pointsLabel.textContent = `${points} puntos`;
+
+      root.querySelectorAll("[data-attribute]").forEach((button) => {
+        const key = button.dataset.attribute;
+        button.disabled = points <= 0;
+        if (button.firstChild) button.firstChild.nodeValue = `${attributeLabels[key]} ${save.progression.attributes[key]}`;
+      });
+
+      const statValues = [nextStats.maxHp, nextStats.maxChakra, nextStats.speed, nextStats.evasion];
+      root.querySelectorAll(".stat-grid > span").forEach((item, index) => {
+        if (item.firstChild) item.firstChild.nodeValue = String(statValues[index]);
+      });
+
+      const preview = root.querySelector(".character-preview");
+      if (preview) preview.innerHTML = fighterPreviewSvg(playerFighterAppearance(save));
+
+      root.querySelectorAll("[data-equipment]").forEach((select) => {
+        select.value = save.equipment[select.dataset.equipment];
+      });
+      root.querySelectorAll("[data-cosmetic]").forEach((select) => {
+        select.value = String(save.character[select.dataset.cosmetic]);
+      });
+
+      root.querySelectorAll("[data-jutsu]").forEach((input) => {
+        const selected = save.loadout.includes(input.dataset.jutsu);
+        input.checked = selected;
+        input.closest(".jutsu-card")?.classList.toggle("selected", selected);
+      });
+
+      const loadoutCount = root.querySelector(".loadout-card .section-heading > strong");
+      if (loadoutCount) loadoutCount.textContent = `${save.loadout.length}/4 técnicas`;
+    };
+
+    const persistDojo = (next) => {
+      save = writeSave(next);
+      syncDojo();
+    };
+
+    root.querySelectorAll("[data-attribute]").forEach((button) => button.addEventListener("click", () => {
+      if (!save.progression.attributePoints) return;
+      persistDojo(spendAttribute(save, button.dataset.attribute));
+    }));
+
+    root.querySelectorAll("[data-equipment]").forEach((select) => select.addEventListener("change", () => {
+      save.equipment[select.dataset.equipment] = select.value;
+      persistDojo(save);
+    }));
+
+    root.querySelectorAll("[data-cosmetic]").forEach((select) => select.addEventListener("change", () => {
+      save.character[select.dataset.cosmetic] = select.dataset.cosmetic === "bodyType" ? select.value : Number(select.value);
+      persistDojo(save);
+    }));
+
     root.querySelectorAll("[data-jutsu]").forEach((input) => input.addEventListener("change", () => {
       const id = input.dataset.jutsu;
-      if (input.checked && save.loadout.length >= 4) { input.checked = false; root.querySelector("#dojo-message").textContent = "Solo puedes preparar cuatro técnicas."; return; }
+      const message = root.querySelector("#dojo-message");
+      if (input.checked && save.loadout.length >= 4) {
+        input.checked = false;
+        if (message) message.textContent = "Solo puedes preparar cuatro técnicas.";
+        return;
+      }
       save.loadout = input.checked ? [...save.loadout, id] : save.loadout.filter((entry) => entry !== id);
-      persist(save);
+      persistDojo(save);
+      if (message) message.textContent = "Cambios guardados.";
     }));
+
     bindLocationStage("dojo");
   };
 
