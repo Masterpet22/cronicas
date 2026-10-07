@@ -759,3 +759,35 @@ body:has(#meta:not([hidden])) .game-settings-panel {
   .notice-detail { grid-column: 2; justify-self: start; padding-left: 0; font-size: .68rem; }
   .notice-arrow { grid-column: 3; grid-row: 1 / 3; width: 38px; height: 38px; border-radius: 12px; }
 }
+
+/* Integrate village HUD directly over the map artwork */
+.village-map-card > .map-heading {
+  display: none !important;
+}
+.village-map-card .village-map {
+  margin-top: 0 !important;
+}
+.village-map-card .village-map > img {
+  display: block;
+  margin: 0;
+}
+body:has(#meta:not([hidden])) .village-shell {
+  padding-top: 0 !important;
+}
+body:has(#meta:not([hidden])) .village-topbar {
+  position: absolute;
+  z-index: 50;
+  top: 18px;
+  left: 26px;
+}
+body:has(#meta:not([hidden])) .game-heading {
+  position: absolute;
+  z-index: 55;
+  top: 18px;
+  right: 26px;
+  left: auto;
+  transform: none;
+}
+body:has(#meta:not([hidden])) .village-map-card {
+  margin-top: 0;
+}
