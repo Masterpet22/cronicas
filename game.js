@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.9.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.11.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.11.1";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.10.2";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.9.0";
 
@@ -206,21 +206,53 @@ class BattleScene extends Phaser.Scene {
 
   createHud() {
     const panel = this.add.graphics();
-    panel.fillStyle(0x06101c, 0.88); panel.fillRoundedRect(18, 14, 430, 106, 12); panel.fillRoundedRect(512, 14, 430, 106, 12);
-    panel.lineStyle(2, 0x168ed6, 0.78); panel.strokeRoundedRect(18, 14, 430, 106, 12);
-    panel.lineStyle(2, 0xf04455, 0.82); panel.strokeRoundedRect(512, 14, 430, 106, 12);
-    this.playerName = this.add.text(38, 28, `${this.saveData.character.name.toUpperCase()}  ·  ${this.saveData.campaign.rank.toUpperCase()} · NV ${this.saveData.progression.level}`, this.textStyle(16, "#f8f2e7", "700"));
-    this.enemyName = this.add.text(922, 28, this.encounters[this.enemyIndex].name, this.textStyle(17, "#f8f2e7", "700")).setOrigin(1, 0);
-    this.playerHpBar = createBar(this, 38, 58, 250, 14, 0x54d69a);
-    this.chakraBar = createBar(this, 38, 80, 190, 9, 0x58a7ff);
-    this.enemyHpBar = createBar(this, 672, 58, 250, 14, 0xef665f);
-    this.playerStat = this.add.text(298, 54, "", this.textStyle(13, "#cdd5e3")).setOrigin(0, 0);
-    this.enemyStat = this.add.text(662, 54, "", this.textStyle(13, "#cdd5e3")).setOrigin(1, 0);
-    this.playerStatusText = this.add.text(38, 98, "", this.textStyle(11, "#f5c96b", "700"));
-    this.enemyStatusText = this.add.text(922, 98, "", this.textStyle(11, "#f5c96b", "700")).setOrigin(1, 0);
-    if (this.saveData.campaign.companion) this.companionText = this.add.text(38, 117, "MIKA · APOYO EN 2 RONDAS", this.textStyle(10, "#67e8c3", "700"));
-    this.refreshHud();
+    const panelWidth = 340;
+    const panelHeight = 98;
+    const playerX = 18;
+    const enemyX = WIDTH - 18 - panelWidth;
+    const barWidth = 280;
+    const barHeight = 20;
 
+    panel.fillStyle(0x06101c, 0.9);
+    panel.fillRoundedRect(playerX, 14, panelWidth, panelHeight, 10);
+    panel.fillRoundedRect(enemyX, 14, panelWidth, panelHeight, 10);
+    panel.lineStyle(2, 0x168ed6, 0.78);
+    panel.strokeRoundedRect(playerX, 14, panelWidth, panelHeight, 10);
+    panel.lineStyle(2, 0xf04455, 0.82);
+    panel.strokeRoundedRect(enemyX, 14, panelWidth, panelHeight, 10);
+
+    this.playerName = this.add.text(
+      playerX + 16,
+      23,
+      `${this.saveData.character.name.toUpperCase()} · NV ${this.saveData.progression.level}`,
+      this.textStyle(14, "#f8f2e7", "700")
+    );
+    this.playerRank = this.add.text(
+      playerX + panelWidth - 16,
+      25,
+      this.saveData.campaign.rank.toUpperCase(),
+      this.textStyle(9, "#8fc7ff", "700")
+    ).setOrigin(1, 0);
+
+    this.enemyName = this.add.text(
+      enemyX + panelWidth - 16,
+      23,
+      this.encounters[this.enemyIndex].name.toUpperCase(),
+      this.textStyle(14, "#f8f2e7", "700")
+    ).setOrigin(1, 0);
+
+    this.playerHpBar = createBar(this, playerX + 16, 53, barWidth, barHeight, 0x54d69a);
+    this.chakraBar = createBar(this, playerX + 16, 79, barWidth, barHeight, 0x58a7ff);
+    this.enemyHpBar = createBar(this, enemyX + panelWidth - 16 - barWidth, 53, barWidth, barHeight, 0xef665f);
+
+    this.playerStatusText = this.add.text(playerX + 16, 96, "", this.textStyle(9, "#f5c96b", "700"));
+    this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 78, "", this.textStyle(9, "#f5c96b", "700")).setOrigin(1, 0);
+
+    if (this.saveData.campaign.companion) {
+      this.companionText = this.add.text(playerX + 16, 116, "MIKA · APOYO EN 2 RONDAS", this.textStyle(10, "#67e8c3", "700"));
+    }
+
+    this.refreshHud();
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
   }
 
@@ -783,11 +815,14 @@ class BattleScene extends Phaser.Scene {
   }
 
   refreshHud() {
-    this.playerHpBar.fill.width = this.playerHpBar.width * (this.player.hp / this.player.maxHp);
-    this.chakraBar.fill.width = this.chakraBar.width * (this.player.chakra / this.player.maxChakra);
-    this.enemyHpBar.fill.width = this.enemyHpBar.width * (this.enemy.hp / this.enemy.maxHp);
-    this.playerStat.setText(`${this.player.hp}/${this.player.maxHp} PV · VEL ${this.player.speed}\n${this.player.chakra}/${this.player.maxChakra} CH · EVA ${this.player.evasion}`);
-    this.enemyStat.setText(`${this.enemy.hp} PV · VEL ${this.enemy.speed}\nEVA ${this.enemy.evasion}`);
+    this.playerHpBar.fill.width = this.playerHpBar.width * Phaser.Math.Clamp(this.player.hp / this.player.maxHp, 0, 1);
+    this.chakraBar.fill.width = this.chakraBar.width * Phaser.Math.Clamp(this.player.chakra / this.player.maxChakra, 0, 1);
+    this.enemyHpBar.fill.width = this.enemyHpBar.width * Phaser.Math.Clamp(this.enemy.hp / this.enemy.maxHp, 0, 1);
+
+    this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
+    this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
+    this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
+
     this.playerStatusText.setText(formatStatuses(this.player));
     const affinityInfo = `DÉBIL ${this.elementName(this.enemy.weakness)} · RES ${this.elementName(this.enemy.resistance)}`;
     const enemyStatuses = formatStatuses(this.enemy);
