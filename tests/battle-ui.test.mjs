@@ -11,7 +11,7 @@ assert.match(battle, /createTurnTimeline\(\)/, "El combate debe crear una barra 
 assert.match(battle, /this\.turnReady/, "Las acciones deben depender de que el turno esté listo");
 assert.match(battle, /resetTurnTimeline\(\)/, "Los marcadores deben regresar al terminar una ronda");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
-assert.match(battle, /ABANDONAR MISIÓN/, "La pausa debe permitir abandonar la misión");
+assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
 assert.match(ui, /index \* 155/, "Las seis acciones deben mostrarse en una sola barra horizontal");
 
 console.log("Pruebas de interfaz de combate superadas.");
