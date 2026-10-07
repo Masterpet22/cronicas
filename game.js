@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.9.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.9.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.11.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.10.1";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.9.0";
 
@@ -10,6 +10,8 @@ const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
+const TIMELINE_START = 288;
+const TIMELINE_END = 668;
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -42,7 +44,8 @@ class BattleScene extends Phaser.Scene {
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
     this.cooldowns = Object.fromEntries(this.actions.map((action) => [action.id, 0]));
     this.round = 1;
-    this.busy = false;
+    this.busy = true;
+    this.turnReady = false;
     this.finished = false;
     this.audioContext = null;
     this.configureSealMode();
@@ -54,8 +57,11 @@ class BattleScene extends Phaser.Scene {
     this.createHud();
     this.createFighters();
     this.createActionPanel();
+    this.createTurnTimeline();
+    this.createPauseButton();
     this.startMusic();
-    this.setMessage(`${this.mission.title} · Ronda 1: selecciona una acción.`);
+    this.setMessage(`${this.mission.title} · Los combatientes toman posición.`);
+    this.startTurnCharge();
   }
 
   configureSealMode() {
@@ -161,21 +167,48 @@ class BattleScene extends Phaser.Scene {
 
   drawArena() {
     const g = this.add.graphics();
-    g.fillGradientStyle(0x1a2334, 0x1a2334, 0x47251e, 0x47251e, 1);
-    g.fillRect(0, 0, WIDTH, 410);
-    g.fillStyle(0x0d1420, 1);
-    g.fillRect(0, 410, WIDTH, 130);
-
-    g.fillStyle(0x0a0d13, 0.68);
-    g.fillTriangle(0, 345, 180, 170, 390, 345);
-    g.fillTriangle(230, 345, 485, 120, 690, 345);
-    g.fillTriangle(560, 345, 790, 155, 960, 330);
-
-    g.lineStyle(2, 0xff9e52, 0.26);
+    const theme = (this.mission.number - 1) % 3;
+    if (theme === 0) this.drawDuskPass(g);
+    else if (theme === 1) this.drawMistMarsh(g);
+    else this.drawMoonShrine(g);
+    g.fillGradientStyle(0x07101d, 0x07101d, 0x03060b, 0x03060b, 1);
+    g.fillRect(0, 350, WIDTH, 190);
+    g.lineStyle(2, theme === 1 ? 0x59d6b0 : theme === 2 ? 0x9f8cff : 0xff9e52, 0.45);
     g.lineBetween(0, 350, WIDTH, 350);
+    this.arenaLabel = ["PASO DEL CREPÚSCULO", "MARISMA DE LOS JUNCOS", "SANTUARIO DE LA LUNA"][theme];
+    this.add.text(480, 339, this.arenaLabel, this.textStyle(9, "#adc1d9", "700")).setOrigin(0.5, 1).setAlpha(0.75);
+  }
+
+  drawDuskPass(g) {
+    g.fillGradientStyle(0x071526, 0x071526, 0x6b3028, 0x6b3028, 1); g.fillRect(0, 0, WIDTH, 350);
+    g.fillStyle(0xf4a358, 0.2); g.fillCircle(785, 133, 78);
+    g.fillStyle(0x0b101b, 0.76); g.fillTriangle(-80, 350, 170, 145, 410, 350); g.fillTriangle(250, 350, 520, 105, 755, 350); g.fillTriangle(620, 350, 850, 155, 1040, 350);
+    g.fillStyle(0x301923, 0.72); g.fillRect(0, 325, WIDTH, 25);
+    for (let x = 20; x < WIDTH; x += 72) { g.fillStyle(0xffbd73, 0.18); g.fillCircle(x, 305 + (x % 3) * 5, 2); }
+  }
+
+  drawMistMarsh(g) {
+    g.fillGradientStyle(0x071a22, 0x071a22, 0x17483f, 0x17483f, 1); g.fillRect(0, 0, WIDTH, 350);
+    g.fillStyle(0xbde9dd, 0.11); g.fillCircle(745, 105, 68);
+    for (let x = 20; x < WIDTH; x += 54) {
+      const h = 105 + (x % 5) * 18; g.fillStyle(0x071713, 0.76); g.fillRect(x, 350 - h, 9, h); g.fillTriangle(x - 16, 350 - h + 30, x + 5, 350 - h - 35, x + 22, 350 - h + 34);
+    }
+    g.fillStyle(0xbceee5, 0.06); g.fillEllipse(260, 260, 470, 62); g.fillEllipse(710, 220, 520, 72); g.fillStyle(0x071414, 0.82); g.fillRect(0, 326, WIDTH, 24);
+  }
+
+  drawMoonShrine(g) {
+    g.fillGradientStyle(0x09091d, 0x09091d, 0x2b1740, 0x2b1740, 1); g.fillRect(0, 0, WIDTH, 350);
+    g.fillStyle(0xd7d5ff, 0.2); g.fillCircle(478, 113, 82); g.fillStyle(0x09091d, 0.92); g.fillCircle(510, 94, 75);
+    g.fillStyle(0x080711, 0.82); g.fillRect(0, 320, WIDTH, 30);
+    g.fillRect(410, 178, 140, 16); g.fillRect(427, 194, 14, 128); g.fillRect(519, 194, 14, 128); g.fillTriangle(388, 178, 480, 132, 572, 178);
+    for (let x = 80; x < WIDTH; x += 155) { g.fillStyle(0xaa8cff, 0.12); g.fillCircle(x, 250 - (x % 2) * 38, 3); }
   }
 
   createHud() {
+    const panel = this.add.graphics();
+    panel.fillStyle(0x06101c, 0.88); panel.fillRoundedRect(18, 14, 430, 106, 12); panel.fillRoundedRect(512, 14, 430, 106, 12);
+    panel.lineStyle(2, 0x168ed6, 0.78); panel.strokeRoundedRect(18, 14, 430, 106, 12);
+    panel.lineStyle(2, 0xf04455, 0.82); panel.strokeRoundedRect(512, 14, 430, 106, 12);
     this.playerName = this.add.text(38, 28, `${this.saveData.character.name.toUpperCase()}  ·  ${this.saveData.campaign.rank.toUpperCase()} · NV ${this.saveData.progression.level}`, this.textStyle(16, "#f8f2e7", "700"));
     this.enemyName = this.add.text(922, 28, this.encounters[this.enemyIndex].name, this.textStyle(17, "#f8f2e7", "700")).setOrigin(1, 0);
     this.playerHpBar = createBar(this, 38, 58, 250, 14, 0x54d69a);
@@ -189,6 +222,62 @@ class BattleScene extends Phaser.Scene {
     this.refreshHud();
 
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
+  }
+
+  createTurnTimeline() {
+    this.timelineLayer = this.add.container(0, 0).setDepth(12);
+    const plate = this.add.rectangle(478, 146, 430, 45, 0x06101c, 0.94).setStrokeStyle(1, 0x54769e, 0.85);
+    const title = this.add.text(478, 126, "ORDEN DE ACCIÓN", this.textStyle(9, "#9fb9d8", "700")).setOrigin(0.5);
+    const track = this.add.rectangle(478, 149, TIMELINE_END - TIMELINE_START, 5, 0x26364b, 1);
+    const finish = this.add.rectangle(TIMELINE_END, 149, 4, 25, 0xf5c96b, 1);
+    this.playerTurnMarker = this.add.circle(TIMELINE_START, 143, 11, 0x31baff, 1).setStrokeStyle(2, 0xd9f5ff);
+    this.enemyTurnMarker = this.add.circle(TIMELINE_START, 155, 11, 0xee4053, 1).setStrokeStyle(2, 0xffd8dc);
+    this.playerTurnLetter = this.add.text(TIMELINE_START, 143, "TÚ", this.textStyle(7, "#07111c", "800")).setOrigin(0.5);
+    this.enemyTurnLetter = this.add.text(TIMELINE_START, 155, "R", this.textStyle(8, "#16070b", "800")).setOrigin(0.5);
+    this.timelineLayer.add([plate, title, track, finish, this.playerTurnMarker, this.enemyTurnMarker, this.playerTurnLetter, this.enemyTurnLetter]);
+  }
+
+  createPauseButton() {
+    const bg = this.add.rectangle(888, 131, 54, 28, 0x091421, 0.94).setStrokeStyle(1, 0xf5c96b, 0.85).setDepth(25).setInteractive({ useHandCursor: true });
+    const label = this.add.text(888, 131, "Ⅱ  PAUSA", this.textStyle(9, "#f7d99b", "700")).setOrigin(0.5).setDepth(26);
+    bg.on("pointerover", () => bg.setFillStyle(0x24334a));
+    bg.on("pointerout", () => bg.setFillStyle(0x091421));
+    const openPause = () => {
+      if (this.finished || this.scene.isPaused()) return;
+      this.scene.launch("pause");
+      this.scene.pause();
+    };
+    bg.on("pointerup", openPause);
+    this.input.keyboard.on("keydown-ESC", openPause);
+    this.pauseButton = { bg, label };
+  }
+
+  startTurnCharge() {
+    if (this.finished) return;
+    this.turnReady = false;
+    this.busy = true;
+    this.setButtonsEnabled(false);
+    this.setMessage(`Ronda ${this.round} · Preparando el siguiente turno...`, "#adc9e8");
+    const enemyTarget = Phaser.Math.Clamp(TIMELINE_START + 205 + (this.enemy.speed - this.player.speed) * 8, TIMELINE_START + 125, TIMELINE_END - 24);
+    this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: enemyTarget, duration: 950, ease: "Sine.out" });
+    this.tweens.add({
+      targets: [this.playerTurnMarker, this.playerTurnLetter], x: TIMELINE_END, duration: 1050, ease: "Sine.inOut",
+      onComplete: () => {
+        if (this.finished) return;
+        this.turnReady = true;
+        this.busy = false;
+        this.setButtonsEnabled(true);
+        this.setMessage(`Ronda ${this.round} · ¡Tu turno! Selecciona una acción.`, "#f7d99b");
+        this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter], scale: 1.22, duration: 170, yoyo: true, repeat: 1 });
+      }
+    });
+  }
+
+  async resetTurnTimeline() {
+    this.turnReady = false;
+    this.setButtonsEnabled(false);
+    this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter, this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_START, duration: 330, ease: "Cubic.inOut" });
+    await this.delay(360);
   }
 
   createFighters() {
@@ -218,7 +307,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   async useJutsu(jutsu) {
-    if (this.busy || this.finished) return;
+    if (this.busy || this.finished || !this.turnReady) return;
     if (this.cooldowns[jutsu.id] > 0) {
       this.setMessage(`${jutsu.name} sigue en enfriamiento.`, "#ff9d8d");
       return;
@@ -231,6 +320,7 @@ class BattleScene extends Phaser.Scene {
     }
 
     this.busy = true;
+    this.turnReady = false;
     this.player.chakra -= cost;
     if (jutsu.cooldown) this.cooldowns[jutsu.id] = jutsu.cooldown + 1;
     this.refreshHud();
@@ -242,6 +332,7 @@ class BattleScene extends Phaser.Scene {
     const playerActionSpeed = this.player.speed + jutsu.speedMod;
     const enemyActionSpeed = this.enemy.speed + enemyAction.speedMod - (hasStatus(this.enemy, "seal") ? 4 : 0);
     const enemyFirst = enemyActionSpeed > playerActionSpeed && jutsu.type !== "guard";
+    this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_END - 20, duration: 260, ease: "Cubic.out" });
 
     if (enemyFirst) {
       this.setMessage(`${enemyAction.name} es más rápido (${enemyActionSpeed} > ${playerActionSpeed}).`);
@@ -273,9 +364,8 @@ class BattleScene extends Phaser.Scene {
     this.round += 1;
     this.refreshHud();
 
-    this.busy = false;
-    this.setButtonsEnabled(true);
-    this.setMessage(`Ronda ${this.round}: selecciona una acción.`);
+    await this.resetTurnTimeline();
+    this.startTurnCharge();
   }
 
   async resolveEnemyOutcome() {
@@ -329,9 +419,9 @@ class BattleScene extends Phaser.Scene {
     this.round += 1;
     this.refreshHud();
     await this.delay(620);
-    this.busy = false;
-    this.setButtonsEnabled(true);
+    await this.resetTurnTimeline();
     this.setMessage(`Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
+    this.startTurnCharge();
   }
 
   async triggerBossPhaseTwo() {
@@ -683,7 +773,7 @@ class BattleScene extends Phaser.Scene {
     this.buttons.forEach(({ hit, bg, sub, jutsu }) => {
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
-      const available = enabled && affordable && cooldown === 0;
+      const available = enabled && this.turnReady && affordable && cooldown === 0;
       if (available) hit.setInteractive({ useHandCursor: true }); else hit.disableInteractive();
       bg.setAlpha(available ? 1 : 0.43);
       const adjustedSubtitle = jutsu.cost > 0 ? jutsu.subtitle.replace(/^\d+CH/, `${this.actionCost(jutsu)}CH`) : jutsu.subtitle;
@@ -703,7 +793,7 @@ class BattleScene extends Phaser.Scene {
     const enemyStatuses = formatStatuses(this.enemy);
     this.enemyStatusText.setText(enemyStatuses ? `${affinityInfo} · ${enemyStatuses}` : affinityInfo);
     if (this.companionText) this.companionText.setText(this.round % 2 === 0 ? "MIKA · APOYO LISTO" : "MIKA · APOYO EN 1 RONDA");
-    if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished);
+    if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
   }
 
   setMessage(text, color = "#f7d6a5") {
@@ -774,6 +864,46 @@ class BattleScene extends Phaser.Scene {
   }
 }
 
+class PauseScene extends Phaser.Scene {
+  constructor() { super("pause"); }
+
+  create() {
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, 0.8).setOrigin(0).setDepth(100);
+    this.add.rectangle(WIDTH / 2, HEIGHT / 2, 430, 250, 0x091421, 0.98)
+      .setStrokeStyle(2, 0xf5c96b, 0.9).setDepth(101);
+    this.add.text(WIDTH / 2, 190, "MISIÓN EN PAUSA", {
+      fontFamily: "Arial, sans-serif", fontSize: "27px", color: "#f8f2e7", fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(102);
+    this.add.text(WIDTH / 2, 229, "El combate quedó congelado. Puedes retomarlo\no abandonar y regresar a la aldea.", {
+      fontFamily: "Arial, sans-serif", fontSize: "14px", color: "#aebdd1", align: "center", lineSpacing: 7
+    }).setOrigin(0.5).setDepth(102);
+
+    this.makePauseAction(480, 294, "REANUDAR COMBATE", 0x36b5e8, () => {
+      this.scene.resume("battle");
+      this.scene.stop();
+    });
+    this.makePauseAction(480, 347, "ABANDONAR MISIÓN", 0xef665f, () => {
+      const button = this.children.getByName("pause-action-ABANDONAR MISIÓN");
+      if (button) button.disableInteractive();
+      window.setTimeout(() => window.location.reload(), 80);
+    });
+    this.input.keyboard.once("keydown-ESC", () => {
+      this.scene.resume("battle");
+      this.scene.stop();
+    });
+  }
+
+  makePauseAction(x, y, label, color, callback) {
+    const bg = this.add.rectangle(x, y, 260, 39, 0x111d2c, 1).setStrokeStyle(1, color, 1).setDepth(102)
+      .setInteractive({ useHandCursor: true }).setName(`pause-action-${label}`);
+    this.add.text(x, y, label, { fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#f8f2e7", fontStyle: "bold" })
+      .setOrigin(0.5).setDepth(103);
+    bg.on("pointerover", () => bg.setFillStyle(color, 0.32));
+    bg.on("pointerout", () => bg.setFillStyle(0x111d2c, 1));
+    bg.once("pointerup", callback);
+  }
+}
+
 const metaRoot = document.getElementById("meta");
 const gameRoot = document.getElementById("game");
 
@@ -814,7 +944,7 @@ mountMetaUI(metaRoot, activeSave, (save, mission) => {
     width: WIDTH,
     height: HEIGHT,
     backgroundColor: "#101622",
-    scene: BattleScene,
+    scene: [BattleScene, PauseScene],
     render: { antialias: true, pixelArt: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
   });
