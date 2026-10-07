@@ -1212,6 +1212,9 @@ body {
   border: 0;
   background-color: transparent;
   background-image: url("assets/ui/hud-frame.png?v=0.19.0");
+  background-repeat: no-repeat;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .player-settings-trigger,
@@ -1223,6 +1226,10 @@ body {
   background-image: url("assets/ui/action-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  filter: none;
+  transform: none;
   color: #ead9bf;
 }
 
@@ -1241,6 +1248,10 @@ body {
   background-image: url("assets/ui/nav-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  filter: none;
+  transform: none;
   color: #f0dfc6;
   text-shadow: 0 2px 3px #000;
 }
@@ -1258,6 +1269,10 @@ body {
   background-image: url("assets/ui/equipment-slot-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  filter: none;
+  transform: none;
 }
 
 .creator-card,
@@ -1273,7 +1288,10 @@ body {
   background-image: url("assets/ui/panel-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
-  box-shadow: 0 24px 65px rgba(0,0,0,.56);
+  background-repeat: no-repeat;
+  box-shadow: none;
+  backdrop-filter: none;
+  filter: none;
   color: var(--ui-text);
 }
 
@@ -1283,6 +1301,9 @@ body {
   background-image: url("assets/ui/panel-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  backdrop-filter: none;
 }
 
 .dojo-section,
@@ -1304,8 +1325,11 @@ body {
   background-image: url("assets/ui/card-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
+  background-repeat: no-repeat;
   color: var(--ui-text);
-  box-shadow: 0 10px 24px rgba(0,0,0,.34);
+  box-shadow: none;
+  backdrop-filter: none;
+  filter: none;
 }
 
 .saga-card,
@@ -1314,6 +1338,33 @@ body {
   padding: 28px 42px;
   background-color: transparent;
   background-image: url("assets/ui/card-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  border-color: transparent;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+.player-settings-trigger:hover,
+.player-settings-trigger[aria-expanded="true"],
+.primary-button:hover,
+.secondary-button:hover,
+.village-return button:hover,
+.mission-card button:hover,
+.npc-actions button:hover,
+.saga-back:hover,
+.attribute-list button:hover,
+.gear-slot:hover:not(:disabled),
+.gear-slot:focus-visible {
+  background-color: transparent;
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: none;
+  filter: none;
+  transform: none;
 }
 
 .mission-card { min-height: 92px; padding: 20px 32px; }
