@@ -1,7 +1,17 @@
 export function createBar(scene, x, y, width, height, color) {
-  const bg = scene.add.rectangle(x, y, width, height, 0x05070a, 0.75).setOrigin(0, 0.5);
+  const bg = scene.add.rectangle(x, y, width, height, 0x05070a, 0.9)
+    .setOrigin(0, 0.5)
+    .setStrokeStyle(1, 0xffffff, 0.18);
   const fill = scene.add.rectangle(x + 2, y, width - 4, height - 4, color, 1).setOrigin(0, 0.5);
-  return { bg, fill, width: width - 4, x: x + 2 };
+  const valueText = scene.add.text(x + width / 2, y, "", {
+    fontFamily: "Arial, sans-serif",
+    fontSize: "11px",
+    color: "#ffffff",
+    fontStyle: "bold",
+    stroke: "#071018",
+    strokeThickness: 3
+  }).setOrigin(0.5);
+  return { bg, fill, valueText, width: width - 4, x: x + 2 };
 }
 
 export function createActionButton(scene, action, index, textStyle) {
