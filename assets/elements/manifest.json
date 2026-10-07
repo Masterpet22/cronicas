@@ -1,0 +1,59 @@
+{
+  "cellSize": [512, 512],
+  "tiers": [
+    {
+      "id": 1,
+      "rarity": "basico",
+      "grid": [2, 2],
+      "sheet": "tier-1/tier-1-sheet.png",
+      "elements": [
+        { "id": "fuego", "name": "Fuego", "icon": "tier-1/fuego.png", "parents": [] },
+        { "id": "agua", "name": "Agua", "icon": "tier-1/agua.png", "parents": [] },
+        { "id": "tierra", "name": "Tierra", "icon": "tier-1/tierra.png", "parents": [] },
+        { "id": "viento", "name": "Viento", "icon": "tier-1/viento.png", "parents": [] }
+      ]
+    },
+    {
+      "id": 2,
+      "rarity": "secundario",
+      "grid": [3, 2],
+      "sheet": "tier-2/tier-2-sheet.png",
+      "elements": [
+        { "id": "vapor", "name": "Vapor", "icon": "tier-2/vapor.png", "parents": ["agua", "fuego"] },
+        { "id": "magma", "name": "Magma", "icon": "tier-2/magma.png", "parents": ["tierra", "fuego"] },
+        { "id": "rayo", "name": "Rayo", "icon": "tier-2/rayo.png", "parents": ["viento", "fuego"] },
+        { "id": "planta", "name": "Planta", "icon": "tier-2/planta.png", "parents": ["agua", "tierra"] },
+        { "id": "hielo", "name": "Hielo", "icon": "tier-2/hielo.png", "parents": ["agua", "viento"] },
+        { "id": "arena", "name": "Arena", "icon": "tier-2/arena.png", "parents": ["tierra", "viento"] }
+      ]
+    },
+    {
+      "id": 3,
+      "rarity": "terciario",
+      "grid": [4, 2],
+      "sheet": "tier-3/tier-3-sheet.png",
+      "elements": [
+        { "id": "veneno", "name": "Veneno", "icon": "tier-3/veneno.png", "parents": ["planta", "agua"] },
+        { "id": "metal", "name": "Metal", "icon": "tier-3/metal.png", "parents": ["magma", "tierra"] },
+        { "id": "escarcha", "name": "Escarcha", "icon": "tier-3/escarcha.png", "parents": ["hielo", "viento"] },
+        { "id": "vidrio", "name": "Vidrio", "icon": "tier-3/vidrio.png", "parents": ["arena", "fuego"] },
+        { "id": "tormenta", "name": "Tormenta", "icon": "tier-3/tormenta.png", "parents": ["rayo", "viento"] },
+        { "id": "cristal", "name": "Cristal", "icon": "tier-3/cristal.png", "parents": ["hielo", "tierra"] },
+        { "id": "ceniza", "name": "Ceniza", "icon": "tier-3/ceniza.png", "parents": ["planta", "fuego"] },
+        { "id": "raiz", "name": "Raíz", "icon": "tier-3/raiz.png", "parents": ["planta", "tierra"] }
+      ]
+    },
+    {
+      "id": 4,
+      "rarity": "especial",
+      "grid": [2, 2],
+      "sheet": "tier-4/tier-4-sheet.png",
+      "elements": [
+        { "id": "plasma", "name": "Plasma", "icon": "tier-4/plasma.png", "parents": ["vapor", "rayo"] },
+        { "id": "obsidiana", "name": "Obsidiana", "icon": "tier-4/obsidiana.png", "parents": ["magma", "hielo"] },
+        { "id": "niebla", "name": "Niebla", "icon": "tier-4/niebla.png", "parents": ["vapor", "hielo"] },
+        { "id": "espora", "name": "Espora", "icon": "tier-4/espora.png", "parents": ["vapor", "planta"] }
+      ]
+    }
+  ]
+}

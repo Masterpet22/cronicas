@@ -75,6 +75,7 @@ assets/sellos-originales.webp      Hoja WebP optimizada de doce símbolos
 assets/village/aldea.webp          Mapa WebP interactivo de la Aldea del Horizonte
 assets/npcs/             Diez retratos WebP transparentes del reparto de la aldea
 assets/locations/        Nueve fondos WebP panorámicos para las escenas de cada destino
+assets/elements/         Sistema de 22 iconos elementales en cuatro niveles
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
 assets/modular/          Experimentos ilustrados archivados; no se cargan en runtime
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes
