@@ -825,7 +825,13 @@ class BattleScene extends Phaser.Scene {
     this.setMessage(won ? `¡Misión completada!${rewardText}${rankText}` : "Misión fallida. Conservas las recompensas de encuentros superados.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;
     this.stopFighterFlash(target);
-    this.tweens.add({ targets: target.targets, angle: won ? 82 : -82, y: "+=38", alpha: 0.35, duration: 650, ease: "Cubic.in" });
+    this.tweens.killTweensOf(target.targets);
+    this.tweens.add({
+      targets: target.targets,
+      alpha: 0,
+      duration: 900,
+      ease: "Sine.inOut"
+    });
     const reset = this.add.text(WIDTH / 2, 392, "VOLVER A LA ALDEA", this.textStyle(16, "#0b1018", "800"))
       .setOrigin(0.5).setPadding(20, 10).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
     reset.once("pointerup", () => {
