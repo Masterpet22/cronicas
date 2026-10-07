@@ -492,11 +492,16 @@ class BattleScene extends Phaser.Scene {
 
     const spacing = jutsu.cinematic ? 122 : 96;
     const size = jutsu.cinematic ? 104 : 80;
-    const startX = -((jutsu.seals.length - 1) * spacing) / 2;
+    const shuffledSealIds = [...jutsu.seals];
+    for (let i = shuffledSealIds.length - 1; i > 0; i -= 1) {
+      const swapIndex = Phaser.Math.Between(0, i);
+      [shuffledSealIds[i], shuffledSealIds[swapIndex]] = [shuffledSealIds[swapIndex], shuffledSealIds[i]];
+    }
+    const startX = -((shuffledSealIds.length - 1) * spacing) / 2;
     const cards = [];
 
-    for (let i = 0; i < jutsu.seals.length; i += 1) {
-      const seal = SEALS[jutsu.seals[i]];
+    for (let i = 0; i < shuffledSealIds.length; i += 1) {
+      const seal = SEALS[shuffledSealIds[i]];
       const x = startX + i * spacing;
       const card = this.add.container(x, jutsu.cinematic ? 120 : 0).setAlpha(0).setScale(0.45).setSize(size, size);
       const plate = this.add.rectangle(0, 0, size, size, 0x0b0e14, 0.94).setStrokeStyle(2, jutsu.color, 0.9);
@@ -517,10 +522,11 @@ class BattleScene extends Phaser.Scene {
       this.tweens.add({ targets: current.card, scale: 1.1, duration: 110, yoyo: true, repeat: -1, ease: "Sine.inOut" });
 
       if (manualCasting) {
-        this.setMessage(`Pulsa ${current.seal.key} · ${current.seal.label}  (${i + 1}/${cards.length})`);
-        const result = await this.waitForSealInput(current.seal.key, current.card, jutsu.color);
+        const inputWindow = jutsu.cinematic ? 1500 : 1200;
+        this.setMessage(`Haz clic en ${current.seal.label} antes de que se agote el tiempo  (${i + 1}/${cards.length})`);
+        const result = await this.waitForSealInput(current.seal.key, current.card, jutsu.color, inputWindow);
         mistakes += result.mistakes;
-        current.plate.setStrokeStyle(3, result.mistakes === 0 ? 0x66efad : 0xffc46b, 1);
+        current.plate.setStrokeStyle(3, result.timedOut ? 0xff665f : result.mistakes === 0 ? 0x66efad : 0xffc46b, 1);
       } else {
         this.setMessage(`Ejecutando ${current.seal.label}  (${i + 1}/${cards.length})`);
         await this.delay((jutsu.cinematic ? 230 : 175) * speedFactor);
@@ -557,17 +563,41 @@ class BattleScene extends Phaser.Scene {
     return { mistakes, multiplier };
   }
 
-  waitForSealInput(expectedKey, card, color) {
+  waitForSealInput(expectedKey, card, color, timeoutMs = 1200) {
     return new Promise((resolve) => {
       let mistakes = 0;
       let done = false;
+      let timedOut = false;
+
+      const timerBg = this.add.rectangle(0, card.height / 2 - 5, card.width - 12, 5, 0x202a38, 0.95).setOrigin(0.5);
+      const timerFill = this.add.rectangle(-(card.width - 12) / 2, card.height / 2 - 5, card.width - 12, 5, 0xf5c96b, 1).setOrigin(0, 0.5);
+      card.add([timerBg, timerFill]);
+
+      const timerTween = this.tweens.add({
+        targets: timerFill,
+        scaleX: 0,
+        duration: timeoutMs,
+        ease: "Linear"
+      });
+
+      const timeoutEvent = this.time.delayedCall(timeoutMs, () => {
+        if (done) return;
+        timedOut = true;
+        mistakes += 1;
+        this.tone(90, 0.1);
+        this.shake(70, 0.003);
+        this.setMessage("Tiempo agotado: el sello se perdió.", "#ff786d");
+        finish();
+      });
 
       const finish = () => {
         if (done) return;
         done = true;
+        timeoutEvent.remove(false);
+        timerTween.stop();
         this.input.keyboard.off("keydown", onKey);
         card.disableInteractive();
-        resolve({ mistakes });
+        resolve({ mistakes, timedOut });
       };
 
       const wrong = () => {
@@ -575,7 +605,7 @@ class BattleScene extends Phaser.Scene {
         this.tone(105, 0.06);
         this.shake(55, 0.002);
         this.tweens.add({ targets: card, x: card.x + 7, duration: 35, yoyo: true, repeat: 2 });
-        this.setMessage(`Sello incorrecto. Pulsa ${expectedKey}.`, "#ff9d8d");
+        this.setMessage(`Sello incorrecto. Busca ${expectedKey}.`, "#ff9d8d");
       };
 
       const onKey = (event) => {
