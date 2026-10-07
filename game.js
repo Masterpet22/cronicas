@@ -1,10 +1,10 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.15.2";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.17.1";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.15.1";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
-import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
+import { playerFighterAppearance } from "./src/character.js?v=0.17.1";
 import { createActionButton, createBar } from "./src/ui.js?v=0.15.2";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.16.0";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.15.1";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.17.1";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.17.1";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.15.1";
 
 const Phaser = window.Phaser;
@@ -262,7 +262,7 @@ class BattleScene extends Phaser.Scene {
     this.playerStatusText = this.add.text(playerX + 16, 96, "", this.textStyle(9, "#f5c96b", "700"));
     this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 78, "", this.textStyle(9, "#f5c96b", "700")).setOrigin(1, 0);
 
-    if (this.saveData.campaign.companion) {
+    if (this.saveData.equipment.companion) {
       this.companionText = this.add.text(playerX + 16, 116, "MIKA · APOYO EN 2 RONDAS", this.textStyle(10, "#67e8c3", "700"));
     }
 
@@ -393,7 +393,7 @@ class BattleScene extends Phaser.Scene {
     if (jutsu.type === "guard") await this.playerGuard();
     else await this.playerAttack(jutsu, casting);
 
-    if (this.enemy.hp > 0 && this.saveData.campaign.companion && this.round % 2 === 0) await this.companionAttack();
+    if (this.enemy.hp > 0 && this.saveData.equipment.companion && this.round % 2 === 0) await this.companionAttack();
 
     if (await this.resolveEnemyOutcome()) return;
 
@@ -445,7 +445,7 @@ class BattleScene extends Phaser.Scene {
   async advanceEncounter() {
     const defeatedName = this.encounters[this.enemyIndex].name;
     const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
-    this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
+    this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.affinityXp} PX de afinidad · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
     this.stopFighterFlash(this.foe);
     this.tweens.add({ targets: this.foe.targets, alpha: 0, x: "+=70", duration: 480 });
     await this.delay(560);
@@ -834,7 +834,7 @@ class BattleScene extends Phaser.Scene {
   async finishBattle(won) {
     this.finished = true;
     this.busy = false;
-    const rewardText = won && this.missionReward?.firstClear ? ` +${this.missionReward.xp} PX y +${this.missionReward.coins} monedas de misión.` : "";
+    const rewardText = won && this.missionReward?.firstClear ? ` +${this.missionReward.xp} PX, +${this.missionReward.affinityXp} PX de afinidad y +${this.missionReward.coins} monedas de misión.` : "";
     const rankText = won && this.mission.exam && this.missionReward?.firstClear ? " ¡Ascenso a Guardián!" : "";
     this.setMessage(won ? `¡Misión completada!${rewardText}${rankText}` : "Misión fallida. Conservas las recompensas de encuentros superados.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;

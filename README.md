@@ -27,9 +27,10 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Los bocadillos identifican siempre al hablante y su función; cuando hay varios personajes, el activo se ilumina mientras los demás quedan atenuados.
 - El perfil, el regreso al mapa y los ajustes funcionan como HUD flotante; ya no ocupan una cabecera separada del escenario.
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
-- En el dojo, equipa un arma, un protector, un accesorio y exactamente cuatro jutsus.
+- En el dojo, equipa o desequipa un arma, un protector, un accesorio y un compañero desde ranuras de inventario.
+- La afinidad se fija al crear el personaje; cambiarla o añadir otra requerirá un futuro Catalizador elemental.
 - El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
-- Las técnicas se desbloquean al subir de nivel; cada nivel entrega dos puntos de atributo.
+- Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
 - Selecciona una de las seis acciones con el ratón o la pantalla táctil.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
 - También puedes pulsar el sello iluminado con ratón o pantalla táctil.

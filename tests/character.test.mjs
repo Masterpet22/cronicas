@@ -27,6 +27,7 @@ const playerSave = {
 };
 const playerApp = playerFighterAppearance(playerSave);
 assert.equal(playerApp.weapon, "sword", "El arma 'tanto' del equipo debe mapearse a 'sword' en el combatiente");
+assert.equal(playerFighterAppearance({ ...playerSave, equipment: { weapon: null } }).weapon, "none", "Desequipar el arma debe ocultarla en el combatiente");
 assert.equal(playerApp.clothColor, "#e64c3c");
 
 const key1 = fighterTextureKey(playerApp);

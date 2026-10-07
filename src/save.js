@@ -1,10 +1,10 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.15.2";
-import { BASIC_ELEMENT_IDS, canAccessElement } from "./elements.js?v=0.15.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.17.1";
+import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.15.1";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 
-const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
+const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm", companion: null };
 const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
 
 export function createDefaultSave() {
@@ -31,8 +31,24 @@ export function createDefaultSave() {
 }
 
 export function initialLoadout(affinity) {
-  return JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1)
-    .slice(0, 4).map((jutsu) => jutsu.id);
+  return JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1 && jutsu.affinityXpRequired <= 50)
+    .sort((a, b) => a.affinityXpRequired - b.affinityXpRequired).slice(0, 2).map((jutsu) => jutsu.id);
+}
+
+export function loadoutSlotsForLevel(level) {
+  return level >= 8 ? 4 : level >= 5 ? 3 : 2;
+}
+
+export function affinityXpForElement(character, elementId) {
+  const requirements = basicRequirements(elementId);
+  if (!requirements.length) return 0;
+  return Math.min(...requirements.map((id) => Math.max(0, Math.floor(Number(character?.affinityXp?.[id]) || 0))));
+}
+
+export function isTechniqueLearned(save, jutsu) {
+  return Boolean(jutsu)
+    && jutsu.unlockLevel <= (Number(save?.progression?.level) || 1)
+    && affinityXpForElement(save?.character, jutsu.element) >= jutsu.affinityXpRequired;
 }
 
 export function createCharacter(save, { name, affinity, appearance, bodyType, hair }) {
@@ -43,7 +59,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
+    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     loadout: initialLoadout(cleanAffinity),
@@ -52,6 +68,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
 }
 
 function validEquipment(type, id) {
+  if (id === null) return null;
   return EQUIPMENT[type].some((item) => item.id === id) ? id : DEFAULT_EQUIPMENT[type];
 }
 
@@ -71,11 +88,17 @@ export function normalizeSave(candidate) {
     .filter((id) => BASIC_ELEMENT_IDS.includes(id)).slice(0, elementRank);
   if (!affinities.length) affinities.push("fuego");
   const affinity = affinities[0];
-  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => jutsu.unlockLevel <= level && canAccessElement(jutsu.element, affinities, elementRank)).map((jutsu) => jutsu.id));
-  const selectedLoadout = [...new Set(Array.isArray(candidate.loadout) ? candidate.loadout : [])]
+  const affinityXp = Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => {
+    const stored = Number(candidate.character?.affinityXp?.[id]);
+    return [id, Number.isFinite(stored) ? Math.max(0, Math.floor(stored)) : (id === affinity ? 50 : 0)];
+  }));
+  const normalizedCharacter = { affinityXp };
+  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => isTechniqueLearned({ character: normalizedCharacter, progression: { level } }, jutsu) && canAccessElement(jutsu.element, affinities, elementRank)).map((jutsu) => jutsu.id));
+  const requestedLoadout = Array.isArray(candidate.loadout) ? candidate.loadout : initialLoadout(affinity);
+  const selectedLoadout = [...new Set(requestedLoadout)]
     .filter((id) => unlockedIds.has(id));
-  const loadout = [...new Set([...selectedLoadout, ...initialLoadout(affinity)])]
-    .filter((id) => unlockedIds.has(id)).slice(0, 4);
+  const repairedLoadout = requestedLoadout.length > 0 && selectedLoadout.length === 0 ? initialLoadout(affinity) : selectedLoadout;
+  const loadout = repairedLoadout.filter((id) => unlockedIds.has(id)).slice(0, loadoutSlotsForLevel(level));
 
   return {
     version: SAVE_VERSION,
@@ -83,6 +106,7 @@ export function normalizeSave(candidate) {
       name: String(candidate.character.name || "Akio").trim().slice(0, 18) || "Akio",
       affinity,
       affinities,
+      affinityXp,
       appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5",
       bodyType: candidate.character.bodyType === "female" ? "female" : "male",
       face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
@@ -105,7 +129,8 @@ export function normalizeSave(candidate) {
     equipment: {
       weapon: validEquipment("weapon", candidate.equipment?.weapon),
       armor: validEquipment("armor", candidate.equipment?.armor),
-      accessory: validEquipment("accessory", candidate.equipment?.accessory)
+      accessory: validEquipment("accessory", candidate.equipment?.accessory),
+      companion: candidate.campaign?.companion === "mika" && candidate.equipment?.companion === "mika" ? "mika" : null
     },
     loadout: candidate.character ? loadout : [],
     campaign: {
@@ -150,6 +175,8 @@ export function awardEncounter(save, encounterIndex) {
   const gainedXp = Math.round(base.xp * (1 + stats.xpBonus));
   result.progression.xp += gainedXp;
   result.progression.coins += base.coins;
+  const affinityXp = Math.max(8, Math.round(gainedXp * 0.5));
+  result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
   let levelsGained = 0;
   while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
     result.progression.xp -= xpForNextLevel(result.progression.level);
@@ -157,7 +184,7 @@ export function awardEncounter(save, encounterIndex) {
     result.progression.attributePoints += 2;
     levelsGained += 1;
   }
-  return { save: result, xp: gainedXp, coins: base.coins, levelsGained };
+  return { save: result, xp: gainedXp, affinityXp, coins: base.coins, levelsGained };
 }
 
 export function completeMission(save, missionId) {
@@ -170,6 +197,8 @@ export function completeMission(save, missionId) {
   const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
   result.progression.xp += gainedXp;
   result.progression.coins += mission.reward.coins;
+  const affinityXp = Math.max(10, Math.round(gainedXp * 0.35));
+  result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
   result.campaign.completedMissions.push(missionId);
   if (missionId === "m02") result.campaign.companion = "mika";
   if (mission.exam) result.campaign.rank = "Guardián";
@@ -183,7 +212,7 @@ export function completeMission(save, missionId) {
     result.progression.attributePoints += 2;
     levelsGained += 1;
   }
-  return { save: result, xp: gainedXp, coins: mission.reward.coins, levelsGained, firstClear: true };
+  return { save: result, xp: gainedXp, affinityXp, coins: mission.reward.coins, levelsGained, firstClear: true };
 }
 
 export function spendAttribute(save, attribute) {
@@ -208,7 +237,7 @@ export function derivedStats(save) {
     xpBonus: 0
   };
   Object.entries(normalized.equipment).forEach(([type, id]) => {
-    const item = EQUIPMENT[type].find((entry) => entry.id === id);
+    const item = EQUIPMENT[type]?.find((entry) => entry.id === id);
     Object.entries(item?.bonuses || {}).forEach(([stat, value]) => { stats[stat] += value; });
   });
   return stats;

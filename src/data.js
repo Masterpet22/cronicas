@@ -18,6 +18,17 @@ export const BASE_ACTIONS = [
   { id: "guard", element: "none", icon: "assets/actions/guard.png", type: "guard", name: "Guardia", subtitle: "-50% · +12CH · V20", cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
 ];
 
+const AFFINITY_XP_REQUIREMENTS = {
+  fire_embers: 0, fire_breath: 20, fire_arc: 60, fire_brand: 110, fire_ring: 170, fire_phoenix: 280,
+  wind_palm: 0, wind_blade: 20, wind_step: 60, wind_wave: 110, wind_needles: 170, wind_cyclone: 280,
+  water_bullet: 0, water_whip: 20, water_wall: 75, water_lance: 150,
+  earth_fist: 0, earth_wall: 20, earth_spike: 75, earth_quake: 150,
+  lightning_spark: 90, lightning_prison: 150, lightning_chain: 210, lightning_heaven: 320,
+  vapor_burst: 120, magma_forge: 140, plant_bind: 115, ice_spear: 130, sand_coffin: 135,
+  venom_bloom: 230, metal_bastion: 250, frost_crown: 220, glass_rain: 245,
+  storm_domain: 280, crystal_prism: 240, ash_funeral: 260, root_colossus: 270
+};
+
 const extraTechnique = (id, element, name, cost, damage, speedMod, seals, color, status) => ({
   id, unlockLevel: 1, element, name,
   subtitle: `${cost}CH · V${12 + speedMod} · P92${cost >= 20 ? " · CD2" : " · CD1"}`,
@@ -69,7 +80,7 @@ export const JUTSU_LIBRARY = [
   { id: "lightning_chain", unlockLevel: 2, element: "rayo", name: "Cadena estática", subtitle: "22CH · V12 · P87 · CD2", cost: 22, damage: 26, speedMod: 0, accuracyMod: -3, cooldown: 2, seals: ["rata", "buey", "dragon"], color: 0x508ff0, status: { type: "seal", label: "SELLADO", duration: 3, power: 0 } },
   { id: "lightning_heaven", unlockLevel: 3, element: "rayo", name: "Juicio del cielo", subtitle: "36CH · V5 · P78 · CD4", cost: 36, damage: 44, speedMod: -7, accuracyMod: -12, cooldown: 4, seals: ["rata", "buey", "dragon", "tigre"], color: 0x3f78df, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } },
   ...EXTRA_ELEMENT_TECHNIQUES
-];
+].map((jutsu) => ({ ...jutsu, affinityXpRequired: AFFINITY_XP_REQUIREMENTS[jutsu.id] ?? 0 }));
 
 export const EQUIPMENT = {
   weapon: [

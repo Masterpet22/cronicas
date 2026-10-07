@@ -10,7 +10,7 @@ export const NPCS = {
     guide: [
       "Tu nivel aumenta con experiencia y cada ascenso concede puntos de atributo.",
       "Las misiones principales se desbloquean en orden. El examen de rango aparecerá cuando hayas demostrado suficiente dominio.",
-      "Antes de partir, revisa el Dojo y prepara exactamente cuatro técnicas."
+      "Antes de partir, revisa el Dojo y prepara las técnicas que permita tu nivel."
     ]
   },
   kureha: {
@@ -61,7 +61,7 @@ export const NPCS = {
     image: "assets/npcs/mei-hayate.webp",
     intro: [
       "Soy Mei Hayate. Yo me encargo de que salgas del Dojo con un equipo que realmente puedas usar.",
-      "Debes preparar cuatro jutsus. Combina afinidades, costes de chakra y enfriamientos."
+      "Comienzas con dos ranuras de jutsu. Los niveles 5 y 8 abrirán una ranura adicional."
     ],
     guide: [
       "Durante un jutsu manual, completa la secuencia con QWER, ASDF y ZXCV, o pulsa los sellos en pantalla.",
@@ -122,7 +122,7 @@ export const NPCS = {
     guide: [
       "Las misiones se abren en orden; completa la anterior para habilitar la siguiente.",
       "REPETIR permite volver a una misión superada, pero la recompensa principal solo se entrega una vez.",
-      "Si no llevas cuatro técnicas preparadas, el Tablón te enviará al Dojo."
+      "El Dojo te permite ajustar técnicas y equipo antes de partir."
     ]
   },
   nao: {

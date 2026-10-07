@@ -9,7 +9,7 @@ export function playerFighterAppearance(save) {
   const character = save.character;
   return {
     ...character,
-    weapon: WEAPON_MAP[save.equipment?.weapon] || "kunai",
+    weapon: save.equipment?.weapon === null ? "none" : WEAPON_MAP[save.equipment?.weapon] || "kunai",
     clothColor: character.appearance,
     accentColor: "#25344d"
   };
@@ -33,7 +33,7 @@ export function resolveFighterAppearance(appearance = {}) {
     top: clampVariant(appearance.top, 3),
     bottom: clampVariant(appearance.bottom, 3),
     shoes: clampVariant(appearance.shoes, 2),
-    weapon: ["kunai", "sword", "staff", "dagger"].includes(appearance.weapon) ? appearance.weapon : "kunai",
+    weapon: ["kunai", "sword", "staff", "dagger", "none"].includes(appearance.weapon) ? appearance.weapon : "kunai",
     cloth: colorHex(appearance.clothColor ?? appearance.cloth, "#3f6ea8"),
     accent: colorHex(appearance.accentColor ?? appearance.accent, "#25344d"),
     hairColor: HAIR_COLORS[hair - 1],
@@ -43,6 +43,7 @@ export function resolveFighterAppearance(appearance = {}) {
 }
 
 function weaponSvg(weapon, ink) {
+  if (weapon === "none") return "";
   if (weapon === "staff") return `<g transform="rotate(18 70 5)"><rect x="66" y="-82" width="8" height="190" rx="4" fill="#8b613c" stroke="${ink}" stroke-width="4"/></g>`;
   if (weapon === "sword") return `<g transform="rotate(28 65 4)"><path d="M62 -55 L76 -55 L72 65 L66 82 L59 65 Z" fill="#d8e2ec" stroke="${ink}" stroke-width="4"/><rect x="52" y="-62" width="34" height="8" rx="3" fill="#d6a64b" stroke="${ink}" stroke-width="3"/><rect x="62" y="-92" width="14" height="32" rx="4" fill="#68442f" stroke="${ink}" stroke-width="3"/></g>`;
   const length = weapon === "dagger" ? 54 : 44;

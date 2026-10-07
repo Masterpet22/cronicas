@@ -1,7 +1,7 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.9.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.15.2";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.9.0";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.15.1";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.17.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.17.1";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.17.1";
+import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.17.1";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.15.1";
 
 const COMING_SOON_LOCATIONS = {
@@ -14,7 +14,7 @@ const COMING_SOON_LOCATIONS = {
 };
 const TUTORIAL = [
   ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Cada edificio de la plaza conduce a una sección distinta."],
-  ["Maestra Aya", "En el dojo preparas cuatro jutsus y distribuyes los puntos obtenidos al subir de nivel."],
+  ["Maestra Aya", "En el dojo preparas técnicas según tu nivel y desarrollas la experiencia de tus afinidades."],
   ["Mika", "Las misiones de historia se reciben en el Cuartel General. El tablón de la plaza queda reservado para encargos y misiones secundarias."]
 ];
 const warmedImages = new Set();
@@ -409,10 +409,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
     root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
-      if (save.loadout.length !== 4) {
-        showDialogue([["Maestra Aya", "Debes preparar exactamente cuatro técnicas antes de iniciar una misión de historia."]], () => { view = "dojo"; selectedSagaId = null; render(); }, "IR AL DOJO");
-        return;
-      }
       showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN");
     }));
     bindLocationStage("headquarters");
@@ -424,7 +420,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     bindLocationStage("missions");
   };
 
-  const equipmentOptions = (type) => EQUIPMENT[type].map((item) => `<option value="${item.id}" ${save.equipment[type] === item.id ? "selected" : ""}>${item.name} · ${item.description}</option>`).join("");
   const numberedOptions = (count, current, prefix) => Array.from({ length: count }, (_, index) => `<option value="${index + 1}" ${Number(current) === index + 1 ? "selected" : ""}>${prefix} ${index + 1}</option>`).join("");
   const characterPreview = () => `<div class="character-preview">${fighterPreviewSvg(playerFighterAppearance(save))}</div>`;
 
@@ -433,27 +428,43 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const { progression, character } = save;
     const elementRank = save.campaign.elementRank;
     const affinities = character.affinities;
+    const techniqueCapacity = loadoutSlotsForLevel(progression.level);
     const affinitySlots = Array.from({ length: 3 }, (_, index) => {
       const slotRank = index + 1;
       const id = affinities[index];
       const unlocked = elementRank >= slotRank;
-      if (!unlocked) return `<button class="affinity-slot locked" type="button" disabled><span class="slot-index">${slotRank}</span><span><strong>Ranura bloqueada</strong><small>Requiere rango elemental ${slotRank}</small></span><span class="slot-lock" aria-hidden="true">⌾</span></button>`;
-      if (!id) return `<button class="affinity-slot empty" type="button" data-affinity-slot="${index}"><span class="slot-index">${slotRank}</span><span><strong>Agregar afinidad</strong><small>Selecciona un elemento</small></span><span class="slot-add" aria-hidden="true">＋</span></button>`;
-      return `<button class="affinity-slot selected" type="button" data-affinity-slot="${index}"><span class="slot-index">${slotRank}</span><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>${index === 0 ? "Afinidad principal" : "Afinidad activa"}</small></span><span class="slot-edit" aria-hidden="true">Cambiar</span></button>`;
+      if (!unlocked) return `<div class="affinity-slot locked"><span class="slot-index">${slotRank}</span><span><strong>Ranura bloqueada</strong><small>Requiere rango elemental ${slotRank}</small></span><span class="slot-lock" aria-hidden="true">⌾</span></div>`;
+      if (!id) return `<div class="affinity-slot empty locked"><span class="slot-index">${slotRank}</span><span><strong>Sin afinidad</strong><small>Requiere un Catalizador elemental</small></span><span class="slot-lock" aria-hidden="true">⌾</span></div>`;
+      return `<div class="affinity-slot selected"><span class="slot-index">${slotRank}</span><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>${character.affinityXp[id]} PX de afinidad</small></span><span class="slot-lock" title="Solo puede cambiarse con un objeto especial" aria-hidden="true">⌾</span></div>`;
     }).join("");
-    const affinityChoices = BASIC_ELEMENT_IDS.map((id) => `<button class="affinity-option ${affinities.includes(id) ? "active" : ""}" type="button" data-affinity-choice="${id}" ${affinities.includes(id) ? "disabled" : ""}><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>${affinities.includes(id) ? "Ya equipada" : "Elegir afinidad"}</small></span></button>`).join("");
     const accessibleBranches = Object.entries(ELEMENTS).filter(([id]) => canAccessElement(id, affinities, elementRank) && JUTSU_LIBRARY.some((jutsu) => jutsu.element === id));
     const skillBranches = accessibleBranches.map(([id, element]) => {
       const requirements = basicRequirements(id).map(elementName).join(" + ");
-      const nodes = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === id).sort((a, b) => a.unlockLevel - b.unlockLevel).map((jutsu, index) => {
-        const unlocked = jutsu.unlockLevel <= progression.level;
+      const elementXp = affinityXpForElement(character, id);
+      const nodes = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === id).sort((a, b) => a.affinityXpRequired - b.affinityXpRequired || a.unlockLevel - b.unlockLevel).map((jutsu, index) => {
+        const levelReady = jutsu.unlockLevel <= progression.level;
+        const affinityReady = elementXp >= jutsu.affinityXpRequired;
+        const unlocked = isTechniqueLearned(save, jutsu);
         const selected = save.loadout.includes(jutsu.id);
-        return `<label class="skill-node ${unlocked ? "available" : "locked"} ${selected ? "selected" : ""}"><input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}><span class="skill-step">${index + 1}</span><span class="skill-copy"><strong>${jutsu.name}</strong><small>${jutsu.cost} CH · ${jutsu.damage} daño</small></span><span class="skill-state">${selected ? "EQUIPADA" : unlocked ? `NIVEL ${jutsu.unlockLevel}` : `🔒 NIVEL ${jutsu.unlockLevel}`}</span></label>`;
+        const lockReason = [levelReady ? "" : `Nv. ${jutsu.unlockLevel}`, affinityReady ? "" : `${jutsu.affinityXpRequired} PX afinidad`].filter(Boolean).join(" · ");
+        return `<label class="skill-node ${unlocked ? "available" : "locked"} ${selected ? "selected" : ""}"><input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}><span class="skill-step">${index + 1}</span><span class="skill-copy"><strong>${jutsu.name}</strong><small>${jutsu.cost} CH · ${jutsu.damage} daño</small></span><span class="skill-state">${selected ? "EQUIPADA" : unlocked ? "APRENDIDA" : `🔒 ${lockReason}`}</span></label>`;
       }).join("");
-      return `<section class="skill-branch tier-${element.tier}" style="--branch-color:#${element.color.toString(16).padStart(6, "0")}"><header><img src="${element.icon}" alt="" width="512" height="512"><span><strong>${element.name}</strong><small>${element.tier === 1 ? "Afinidad activa" : requirements}</small></span></header><div class="skill-path">${nodes}</div></section>`;
+      return `<section class="skill-branch tier-${element.tier}" style="--branch-color:#${element.color.toString(16).padStart(6, "0")}"><header><img src="${element.icon}" alt="" width="512" height="512"><span><strong>${element.name}</strong><small>${element.tier === 1 ? `${elementXp} PX` : `${requirements} · ${elementXp} PX`}</small></span></header><div class="skill-path">${nodes}</div></section>`;
     }).join("");
-    const equipmentSlot = (type, icon, title) => `<label class="gear-slot"><span class="gear-icon" aria-hidden="true">${icon}</span><span class="gear-copy"><small>${title}</small><select data-equipment="${type}" aria-label="${title}">${equipmentOptions(type)}</select></span></label>`;
-    const companionName = save.campaign.companion === "mika" ? "Mika" : "Sin compañero";
+    const gearIcons = { weapon: "⚔", armor: "◈", accessory: "◇", companion: "♟" };
+    const gearTitles = { weapon: "Arma", armor: "Protector", accessory: "Accesorio", companion: "Compañero" };
+    const equipmentSlot = (type) => {
+      const id = save.equipment[type];
+      const item = type === "companion" ? (id === "mika" ? { name: "Mika", description: "Compañera activa" } : null) : EQUIPMENT[type].find((entry) => entry.id === id);
+      const unavailable = type === "companion" && !save.campaign.companion;
+      return `<button class="gear-slot ${id ? "equipped" : "empty"} ${unavailable ? "locked" : ""}" type="button" data-gear-slot="${type}" ${unavailable ? "disabled" : ""}><span class="gear-icon" aria-hidden="true">${gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${unavailable ? "Aún no disponible" : item?.description || "Pulsa para equipar"}</em></span><span class="gear-action" aria-hidden="true">${unavailable ? "⌾" : "+"}</span></button>`;
+    };
+    const techniqueSlotsMarkup = () => Array.from({ length: 4 }, (_, index) => {
+      const requiredLevel = index < 2 ? 1 : index === 2 ? 5 : 8;
+      const jutsu = JUTSU_LIBRARY.find((entry) => entry.id === save.loadout[index]);
+      const unlocked = index < techniqueCapacity;
+      return `<div class="technique-slot ${unlocked ? "" : "locked"}"><span>${index + 1}</span><strong>${jutsu?.name || (unlocked ? "Vacía" : `Nivel ${requiredLevel}`)}</strong><small>${jutsu ? elementName(jutsu.element) : unlocked ? "Selecciona abajo" : "Ranura bloqueada"}</small></div>`;
+    }).join("");
     const content = `<div class="dojo-layout">
       <section class="stage-panel profile-card" data-comment="Poder mejora el daño; Agilidad modifica velocidad y evasión; Enfoque aumenta chakra y precisión." data-comment-npc="daichi">
         <p class="eyebrow">ENTRENAMIENTO</p><h2>${ELEMENT_RANK_LABELS[elementRank]}</h2><p class="compact">${affinities.length}/${elementRank} afinidades activas</p>
@@ -461,15 +472,15 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         <h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div>
         <div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div>
       </section>
-      <section class="stage-panel loadout-card" data-comment="Aquí cambias afinidades, apariencia, equipamiento y las cuatro técnicas que usarás en combate." data-comment-npc="mei">
-        <div class="section-heading dojo-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Configuración de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div>
-        <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>Define las ramas de técnicas disponibles.</p></div><span>Rango ${elementRank}</span></div><div class="affinity-slots">${affinitySlots}</div><div class="affinity-selector" hidden><div><strong>Selecciona una afinidad</strong><small>El árbol se actualizará automáticamente.</small></div><div class="affinity-options">${affinityChoices}</div><button class="affinity-close" type="button">Cancelar</button></div></section>
-        <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Una pieza activa por categoría.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon", "⚔", "Arma")}${equipmentSlot("armor", "◈", "Protector")}${equipmentSlot("accessory", "◇", "Accesorio")}<div class="gear-slot companion-slot ${save.campaign.companion ? "" : "locked"}"><span class="gear-icon" aria-hidden="true">♟</span><span class="gear-copy"><small>Compañero</small><strong>${companionName}</strong><em>${save.campaign.companion ? "Compañera activa" : "Sistema en desarrollo"}</em></span>${save.campaign.companion ? "" : `<span class="slot-lock" aria-hidden="true">⌾</span>`}</div></div></section>
-        <section class="skill-tree" aria-label="Árbol de habilidades por afinidad"><div class="skill-tree-heading"><div><h3>Árbol de habilidades</h3><p>Solo aparecen técnicas compatibles con tus afinidades.</p></div><span class="tree-legend"><i></i> Disponible <i></i> Bloqueada por nivel</span></div><div class="skill-branches">${skillBranches}</div></section>
+      <section class="stage-panel loadout-card" data-comment="Aquí preparas el equipo y las técnicas que usarás en combate." data-comment-npc="mei">
+        <div class="section-heading dojo-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Configuración de combate</h2></div><strong>${save.loadout.length}/${techniqueCapacity} técnicas</strong></div>
+        <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>Se eligen al crear el personaje y progresan combatiendo.</p></div><span>Rango ${elementRank}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ Para cambiar o añadir una afinidad necesitarás un Catalizador elemental, disponible próximamente.</p></section>
+        <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Pulsa una ranura para elegir o desequipar.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("armor")}${equipmentSlot("accessory")}${equipmentSlot("companion")}</div></section>
+        <section class="skill-tree" aria-label="Árbol de habilidades por afinidad"><div class="skill-tree-heading"><div><h3>Árbol de habilidades</h3><p>Requieren nivel de personaje y experiencia de afinidad.</p></div><span class="tree-legend"><i></i> Aprendida <i></i> Bloqueada</span></div><div class="technique-slots">${techniqueSlotsMarkup()}</div><div class="skill-branches">${skillBranches}</div></section>
         <details class="appearance-panel"><summary>Personalizar apariencia <span>Opcional</span></summary><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div></details>
         <p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
       </section>
-    </div>`;
+    </div><div class="equipment-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-modal-title" hidden><div class="equipment-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">INVENTARIO</p><h2 id="equipment-modal-title">Elegir equipo</h2></div><button type="button" data-close-equipment aria-label="Cerrar">×</button></div><div class="equipment-modal-options"></div></div></div>`;
     shell(locationStage("dojo", content));
 
     // El Dojo es una interfaz interactiva: guardar un cambio no debe reconstruir
@@ -497,9 +508,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const preview = root.querySelector(".character-preview");
       if (preview) preview.innerHTML = fighterPreviewSvg(playerFighterAppearance(save));
 
-      root.querySelectorAll("[data-equipment]").forEach((select) => {
-        select.value = save.equipment[select.dataset.equipment];
-      });
       root.querySelectorAll("[data-cosmetic]").forEach((select) => {
         select.value = String(save.character[select.dataset.cosmetic]);
       });
@@ -511,11 +519,13 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         node?.classList.toggle("selected", selected);
         const state = node?.querySelector(".skill-state");
         const jutsu = JUTSU_LIBRARY.find((entry) => entry.id === input.dataset.jutsu);
-        if (state && jutsu) state.textContent = selected ? "EQUIPADA" : `NIVEL ${jutsu.unlockLevel}`;
+        if (state && jutsu && !input.disabled) state.textContent = selected ? "EQUIPADA" : "APRENDIDA";
       });
 
       const loadoutCount = root.querySelector(".loadout-card .section-heading > strong");
-      if (loadoutCount) loadoutCount.textContent = `${save.loadout.length}/4 técnicas`;
+      if (loadoutCount) loadoutCount.textContent = `${save.loadout.length}/${techniqueCapacity} técnicas`;
+      const slots = root.querySelector(".technique-slots");
+      if (slots) slots.innerHTML = techniqueSlotsMarkup();
     };
 
     const persistDojo = (next) => {
@@ -523,31 +533,36 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       syncDojo();
     };
 
-    let affinitySlotIndex = 0;
-    const affinitySelector = root.querySelector(".affinity-selector");
-    root.querySelectorAll("[data-affinity-slot]").forEach((button) => button.addEventListener("click", () => {
-      affinitySlotIndex = Number(button.dataset.affinitySlot);
-      affinitySelector.hidden = false;
-      affinitySelector.scrollIntoView({ behavior: "smooth", block: "nearest" });
-    }));
-    root.querySelector(".affinity-close")?.addEventListener("click", () => { affinitySelector.hidden = true; });
-    root.querySelectorAll("[data-affinity-choice]").forEach((button) => button.addEventListener("click", () => {
-      const nextAffinities = [...save.character.affinities];
-      nextAffinities[affinitySlotIndex] = button.dataset.affinityChoice;
-      save.character.affinities = nextAffinities.filter(Boolean);
-      save.character.affinity = save.character.affinities[0];
-      persist(save);
-    }));
-
     root.querySelectorAll("[data-attribute]").forEach((button) => button.addEventListener("click", () => {
       if (!save.progression.attributePoints) return;
       persistDojo(spendAttribute(save, button.dataset.attribute));
     }));
 
-    root.querySelectorAll("[data-equipment]").forEach((select) => select.addEventListener("change", () => {
-      save.equipment[select.dataset.equipment] = select.value;
-      persistDojo(save);
-    }));
+    const equipmentModal = root.querySelector(".equipment-modal");
+    const equipmentModalTitle = root.querySelector("#equipment-modal-title");
+    const equipmentModalOptions = root.querySelector(".equipment-modal-options");
+    const openEquipmentModal = (type) => {
+      const title = gearTitles[type];
+      const items = type === "companion"
+        ? (save.campaign.companion === "mika" ? [{ id: "mika", name: "Mika", description: "Compañera de campaña" }] : [])
+        : EQUIPMENT[type];
+      const options = [{ id: "", name: "Nada", description: "Dejar esta ranura vacía" }, ...items];
+      equipmentModalTitle.textContent = `Equipar ${title.toLowerCase()}`;
+      equipmentModalOptions.innerHTML = options.map((item) => `<button type="button" class="equipment-option ${save.equipment[type] === (item.id || null) ? "selected" : ""}" data-equipment-type="${type}" data-equipment-id="${item.id}"><span class="gear-icon" aria-hidden="true">${item.id ? gearIcons[type] : "∅"}</span><span><strong>${item.name}</strong><small>${item.description}</small></span>${save.equipment[type] === (item.id || null) ? "<em>Equipado</em>" : ""}</button>`).join("");
+      equipmentModal.hidden = false;
+      equipmentModal.querySelector(".equipment-option")?.focus();
+    };
+    root.querySelectorAll("[data-gear-slot]").forEach((button) => button.addEventListener("click", () => openEquipmentModal(button.dataset.gearSlot)));
+    root.querySelector("[data-close-equipment]")?.addEventListener("click", () => { equipmentModal.hidden = true; });
+    equipmentModal?.addEventListener("click", (event) => {
+      const option = event.target.closest("[data-equipment-type]");
+      if (option) {
+        save.equipment[option.dataset.equipmentType] = option.dataset.equipmentId || null;
+        persist(save);
+      } else if (event.target === equipmentModal) {
+        equipmentModal.hidden = true;
+      }
+    });
 
     root.querySelectorAll("[data-cosmetic]").forEach((select) => select.addEventListener("change", () => {
       save.character[select.dataset.cosmetic] = select.dataset.cosmetic === "bodyType" ? select.value : Number(select.value);
@@ -557,9 +572,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     root.querySelectorAll("[data-jutsu]").forEach((input) => input.addEventListener("change", () => {
       const id = input.dataset.jutsu;
       const message = root.querySelector("#dojo-message");
-      if (input.checked && save.loadout.length >= 4) {
+      if (input.checked && save.loadout.length >= techniqueCapacity) {
         input.checked = false;
-        if (message) message.textContent = "Solo puedes preparar cuatro técnicas.";
+        if (message) message.textContent = `Tu nivel permite preparar ${techniqueCapacity} técnicas.`;
         return;
       }
       save.loadout = input.checked ? [...save.loadout, id] : save.loadout.filter((entry) => entry !== id);
