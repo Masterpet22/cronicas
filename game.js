@@ -3,7 +3,7 @@ import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStat
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
 import { createActionButton, createBar } from "./src/ui.js?v=0.11.3";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.10.4";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.10.5";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.9.0";
 
 const Phaser = window.Phaser;
