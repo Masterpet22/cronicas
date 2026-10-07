@@ -462,3 +462,300 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
   .mission-card { grid-template-columns: 42px 1fr; }.mission-card button { grid-column: 1 / -1; }
   .archive-card ol { grid-template-columns: 1fr; }.dialogue-overlay { padding: 12px; }
 }
+
+/* Village HUD refresh based on the supplied visual reference */
+body:has(#meta:not([hidden])) main {
+  width: min(100% - 20px, 1440px);
+  padding-top: 10px;
+}
+body:has(#meta:not([hidden])) .game-heading {
+  top: 28px;
+  right: 34px;
+  left: auto;
+  transform: none;
+}
+body:has(#meta:not([hidden])) .game-settings summary {
+  width: 168px;
+  min-height: 58px;
+  border: 1px solid rgba(67,147,255,.72);
+  border-radius: 18px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, rgba(9,22,40,.96), rgba(7,15,28,.94));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03), 0 12px 32px rgba(0,0,0,.38);
+  font-size: .98rem;
+}
+body:has(#meta:not([hidden])) .game-settings summary span {
+  font-size: 1.45rem;
+}
+body:has(#meta:not([hidden])) .game-settings-panel {
+  right: 0;
+  margin-top: 4px;
+}
+
+.village-map-card {
+  position: relative;
+  border-color: rgba(66,139,232,.45);
+  border-radius: 22px;
+  background: #06101e;
+  box-shadow: 0 28px 90px rgba(0,0,0,.52), inset 0 0 0 1px rgba(255,255,255,.02);
+}
+.village-map-card::before,
+.village-map-card::after {
+  content: "";
+  position: absolute;
+  z-index: 35;
+  width: 32px;
+  height: 32px;
+  pointer-events: none;
+}
+.village-map-card::before {
+  top: 8px;
+  left: 8px;
+  border-top: 3px solid #f5a357;
+  border-left: 3px solid #f5a357;
+}
+.village-map-card::after {
+  right: 8px;
+  bottom: 8px;
+  border-right: 3px solid #f5a357;
+  border-bottom: 3px solid #f5a357;
+}
+.map-heading {
+  display: none;
+}
+.village-map {
+  overflow: hidden;
+  border-radius: 21px 21px 0 0;
+}
+.village-map::before {
+  content: "";
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(5,12,24,.42) 0%, transparent 22%, transparent 74%, rgba(5,12,24,.22) 100%),
+    linear-gradient(90deg, rgba(4,10,20,.18), transparent 16%, transparent 84%, rgba(4,10,20,.18));
+}
+.village-map::after {
+  box-shadow: inset 0 0 75px rgba(0,0,0,.36);
+}
+
+.village-topbar {
+  top: 22px;
+  left: 28px;
+  width: min(860px, calc(100% - 300px));
+  max-width: none;
+  min-height: 88px;
+  gap: 0;
+  border: 1px solid rgba(65,144,238,.7);
+  border-radius: 22px;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(8,21,38,.95), rgba(7,15,29,.92));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.025), 0 14px 38px rgba(0,0,0,.38);
+}
+.village-topbar .profile-heading {
+  min-width: 355px;
+  padding-right: 18px;
+}
+.village-topbar .avatar-swatch {
+  width: 64px;
+  height: 64px;
+  flex: 0 0 64px;
+  border: 5px solid #1d4d86;
+  box-shadow: inset 0 -15px rgba(0,0,0,.18), 0 0 0 2px rgba(90,164,255,.25);
+}
+.profile-copy {
+  min-width: 120px;
+}
+.village-topbar .profile-copy .eyebrow {
+  margin-bottom: 2px;
+  color: #ffae62;
+  font-size: .66rem;
+  letter-spacing: .22em;
+}
+.village-topbar .profile-copy h2 {
+  font-size: 1.45rem;
+  line-height: 1;
+}
+.level-chip {
+  margin-left: auto;
+  min-width: 112px;
+  border: 1px solid rgba(245,163,87,.82);
+  border-radius: 16px;
+  padding: 10px 18px;
+  background: rgba(95,55,20,.26);
+  box-shadow: inset 0 0 18px rgba(245,163,87,.08);
+  color: #f7b45d;
+  font-size: .9rem;
+  text-align: center;
+}
+.campaign-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(120px, 1fr));
+  flex: 1;
+  align-items: stretch;
+  justify-content: stretch;
+  gap: 0;
+  border-left: 1px solid rgba(132,155,188,.34);
+}
+.campaign-summary > * {
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+.summary-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: 1fr 1fr;
+  align-items: center;
+  column-gap: 10px;
+  min-width: 0;
+  padding: 8px 18px !important;
+  border-right: 1px solid rgba(132,155,188,.2);
+}
+.summary-item:last-child { border-right: 0; }
+.summary-item b {
+  grid-row: 1 / 3;
+  color: #4e98ff;
+  font-size: 1.45rem;
+  line-height: 1;
+}
+.summary-item:nth-child(3) b { color: #ffc53f; }
+.summary-item strong {
+  align-self: end;
+  color: #f7f9fc;
+  font-size: .92rem;
+  line-height: 1.1;
+}
+.summary-item small {
+  align-self: start;
+  color: #b2bccb;
+  font-size: .7rem;
+}
+
+.village-map-card > .notice-card {
+  position: relative;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: auto minmax(170px, .95fr) 1fr auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 78px;
+  margin: 0;
+  border: 1px solid rgba(64,139,235,.54);
+  border-top-color: rgba(64,139,235,.75);
+  border-left: 1px solid rgba(64,139,235,.54);
+  border-radius: 0 0 21px 21px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, rgba(8,22,41,.96), rgba(6,16,30,.98));
+  color: #c5cfdd;
+}
+.village-map-card > .notice-card::before {
+  content: "";
+  position: absolute;
+  left: 43%;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: rgba(146,166,193,.32);
+}
+.notice-icon {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #2e8fff;
+  border-radius: 11px;
+  background: rgba(24,91,166,.28);
+  color: #6bb7ff;
+  font-size: 1.1rem;
+}
+.village-map-card > .notice-card strong {
+  color: #f2f5fa;
+  font-size: .94rem;
+}
+.notice-detail {
+  justify-self: end;
+  padding-left: 22px;
+  color: #63a9ff;
+  font-size: .88rem;
+}
+.notice-arrow {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid #2e8fff;
+  border-radius: 15px;
+  color: #f0f6ff;
+  font-size: 2rem;
+  line-height: 1;
+}
+.notice-card.ally .notice-icon {
+  border-color: rgba(103,232,195,.75);
+  background: rgba(40,140,116,.2);
+  color: #67e8c3;
+}
+.notice-card.ally .notice-detail { color: #74e7c7; }
+
+@media (max-width: 980px) {
+  body:has(#meta:not([hidden])) .game-heading {
+    top: 18px;
+    right: 18px;
+  }
+  body:has(#meta:not([hidden])) .game-settings summary {
+    width: 52px;
+    min-height: 52px;
+    padding: 0;
+    font-size: 0;
+  }
+  body:has(#meta:not([hidden])) .game-settings summary span { font-size: 1.25rem; }
+  .village-topbar {
+    top: 14px;
+    left: 14px;
+    width: calc(100% - 88px);
+    min-height: 70px;
+    border-radius: 16px;
+    padding: 7px 9px;
+  }
+  .village-topbar .profile-heading { min-width: 240px; padding-right: 10px; }
+  .village-topbar .avatar-swatch { width: 48px; height: 48px; flex-basis: 48px; }
+  .village-topbar .profile-copy h2 { font-size: 1.05rem; }
+  .level-chip { min-width: 78px; padding: 7px 10px; font-size: .72rem; }
+  .summary-item { padding: 7px 10px !important; }
+  .summary-item b { font-size: 1rem; }
+  .summary-item strong { font-size: .75rem; }
+  .summary-item small { font-size: .6rem; }
+}
+@media (max-width: 650px) {
+  body:has(#meta:not([hidden])) main { width: 100%; }
+  .village-map-card { border-radius: 0; border-inline: 0; }
+  .village-map { border-radius: 0; }
+  .village-topbar {
+    top: 8px;
+    left: 8px;
+    width: calc(100% - 62px);
+    min-height: 58px;
+    padding: 5px 7px;
+    border-radius: 12px;
+  }
+  .village-topbar .profile-heading { min-width: 0; flex: 1; }
+  .village-topbar .avatar-swatch { width: 36px; height: 36px; flex-basis: 36px; border-width: 3px; }
+  .profile-copy { min-width: 0; }
+  .village-topbar .profile-copy .eyebrow { font-size: .46rem; }
+  .village-topbar .profile-copy h2 { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .82rem; }
+  .level-chip { min-width: 58px; margin-left: 6px; padding: 5px 7px; border-radius: 9px; font-size: .58rem; }
+  .campaign-summary { display: none; }
+  .village-map-card > .notice-card {
+    grid-template-columns: auto 1fr auto;
+    gap: 10px;
+    min-height: 62px;
+    border-radius: 0;
+    padding: 9px 11px;
+  }
+  .village-map-card > .notice-card::before { display: none; }
+  .notice-icon { width: 36px; height: 36px; }
+  .notice-detail { grid-column: 2; justify-self: start; padding-left: 0; font-size: .68rem; }
+  .notice-arrow { grid-column: 3; grid-row: 1 / 3; width: 38px; height: 38px; border-radius: 12px; }
+}
