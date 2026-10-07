@@ -945,39 +945,102 @@ class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
 
   create() {
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, 0.8).setOrigin(0).setDepth(100);
-    this.add.rectangle(WIDTH / 2, HEIGHT / 2, 430, 250, 0x091421, 0.98)
+    this.battle = this.scene.get("battle");
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, 0.84).setOrigin(0).setDepth(100);
+    this.add.rectangle(WIDTH / 2, HEIGHT / 2, 560, 460, 0x091421, 0.985)
       .setStrokeStyle(2, 0xf5c96b, 0.9).setDepth(101);
-    this.add.text(WIDTH / 2, 190, "MISIÓN EN PAUSA", {
-      fontFamily: "Arial, sans-serif", fontSize: "27px", color: "#f8f2e7", fontStyle: "bold"
+
+    this.add.text(WIDTH / 2, 92, "MISIÓN EN PAUSA", {
+      fontFamily: "Arial, sans-serif", fontSize: "26px", color: "#f8f2e7", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(102);
-    this.add.text(WIDTH / 2, 229, "El combate quedó congelado. Puedes retomarlo\no abandonar y regresar a la aldea.", {
-      fontFamily: "Arial, sans-serif", fontSize: "14px", color: "#aebdd1", align: "center", lineSpacing: 7
+    this.add.text(WIDTH / 2, 124, "Ajusta la partida o vuelve al combate.", {
+      fontFamily: "Arial, sans-serif", fontSize: "13px", color: "#9fb0c6"
     }).setOrigin(0.5).setDepth(102);
 
-    this.makePauseAction(480, 294, "REANUDAR COMBATE", 0x36b5e8, () => {
+    this.add.text(320, 160, "AJUSTES", {
+      fontFamily: "Arial, sans-serif", fontSize: "11px", color: "#f5c96b", fontStyle: "bold"
+    }).setDepth(102);
+
+    const rows = [
+      ["Sellos manuales", "manual-seals"],
+      ["Efectos de cámara", "camera-effects"],
+      ["Destellos", "flash-effects"],
+      ["Música", "music-enabled"],
+      ["Modo ligero", "light-mode"]
+    ];
+
+    rows.forEach(([label, id], index) => this.makePauseToggle(480, 188 + index * 38, label, id));
+
+    this.makeVolumeControl(480, 382);
+
+    this.makePauseAction(400, 447, "REANUDAR", 0x36b5e8, () => {
       this.scene.resume("battle");
       this.scene.stop();
-    });
-    this.makePauseAction(480, 347, "ABANDONAR MISIÓN", 0xef665f, () => {
-      const button = this.children.getByName("pause-action-ABANDONAR MISIÓN");
+    }, 150);
+
+    this.makePauseAction(560, 447, "ABANDONAR", 0xef665f, () => {
+      const button = this.children.getByName("pause-action-ABANDONAR");
       if (button) button.disableInteractive();
       window.setTimeout(() => window.location.reload(), 80);
-    });
+    }, 150);
+
     this.input.keyboard.once("keydown-ESC", () => {
       this.scene.resume("battle");
       this.scene.stop();
     });
   }
 
-  makePauseAction(x, y, label, color, callback) {
-    const bg = this.add.rectangle(x, y, 260, 39, 0x111d2c, 1).setStrokeStyle(1, color, 1).setDepth(102)
+  makePauseToggle(x, y, label, inputId) {
+    const input = document.getElementById(inputId);
+    const bg = this.add.rectangle(x, y, 330, 31, 0x101c2b, 1)
+      .setStrokeStyle(1, 0x41546d, 0.95).setDepth(102).setInteractive({ useHandCursor: true });
+    this.add.text(x - 150, y, label, {
+      fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
+    }).setOrigin(0, 0.5).setDepth(103);
+
+    const value = this.add.text(x + 145, y, input.checked ? "ACTIVADO" : "DESACTIVADO", {
+      fontFamily: "Arial, sans-serif", fontSize: "10px", color: input.checked ? "#79e8b5" : "#91a0b3", fontStyle: "bold"
+    }).setOrigin(1, 0.5).setDepth(103);
+
+    bg.on("pointerover", () => bg.setFillStyle(0x1a2a3d, 1));
+    bg.on("pointerout", () => bg.setFillStyle(0x101c2b, 1));
+    bg.on("pointerup", () => {
+      input.checked = !input.checked;
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      value.setText(input.checked ? "ACTIVADO" : "DESACTIVADO");
+      value.setColor(input.checked ? "#79e8b5" : "#91a0b3");
+    });
+  }
+
+  makeVolumeControl(x, y) {
+    const input = document.getElementById("game-volume");
+    this.add.text(x - 165, y, "VOLUMEN", {
+      fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
+    }).setOrigin(0, 0.5).setDepth(103);
+
+    const value = this.add.text(x, y, `${input.value}%`, {
+      fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#f5c96b", fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(103);
+
+    const adjust = (delta) => {
+      input.value = String(Phaser.Math.Clamp(Number(input.value) + delta, 0, 100));
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      value.setText(`${input.value}%`);
+    };
+
+    this.makePauseAction(x - 72, y, "−", 0x6f8fb7, () => adjust(-10), 42, false);
+    this.makePauseAction(x + 72, y, "+", 0x6f8fb7, () => adjust(10), 42, false);
+  }
+
+  makePauseAction(x, y, label, color, callback, width = 260, once = true) {
+    const bg = this.add.rectangle(x, y, width, 39, 0x111d2c, 1).setStrokeStyle(1, color, 1).setDepth(102)
       .setInteractive({ useHandCursor: true }).setName(`pause-action-${label}`);
     this.add.text(x, y, label, { fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#f8f2e7", fontStyle: "bold" })
       .setOrigin(0.5).setDepth(103);
     bg.on("pointerover", () => bg.setFillStyle(color, 0.32));
     bg.on("pointerout", () => bg.setFillStyle(0x111d2c, 1));
-    bg.once("pointerup", callback);
+    if (once) bg.once("pointerup", callback);
+    else bg.on("pointerup", callback);
   }
 }
 
