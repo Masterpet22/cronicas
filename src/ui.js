@@ -18,7 +18,7 @@ export function createActionButton(scene, action, index, textStyle) {
   const width = 145;
   const height = 102;
   const x = 18 + index * 155;
-  const y = 428;
+  const y = 368;
   const bg = scene.add.rectangle(x, y, width, height, 0x0b1524, 0.97).setOrigin(0).setStrokeStyle(1, 0x375478);
   const glow = scene.add.rectangle(x + 3, y + 3, width - 6, 3, action.color, 0.88).setOrigin(0);
   const icon = scene.add.circle(x + 29, y + 30, 20, 0x08111d, 1).setStrokeStyle(2, action.color, 0.9);
