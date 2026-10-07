@@ -4,6 +4,14 @@ import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.
 import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.9.0";
 
 const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
+const COMING_SOON_LOCATIONS = {
+  missions: { npcId: "riku", message: "El Tablón todavía no está recibiendo encargos. Próximamente podrás aceptar aquí misiones secundarias, contratos y favores de la aldea." },
+  tower: { npcId: "kureha", message: "La Torre de Desafíos permanece cerrada mientras terminamos sus pruebas y reglas especiales. Próximamente podrás poner a prueba tu equipo piso por piso." },
+  shop: { npcId: "hana", message: "La Tienda de Objetos aún está preparando su inventario. Próximamente podrás comprar consumibles, herramientas y mejoras con las monedas que consigas." },
+  event: { npcId: "nao", message: "La Plaza de Eventos todavía no ha inaugurado sus actividades. Próximamente habrá festivales, visitantes y desafíos temporales." },
+  inn: { npcId: "yuna", message: "La Posada aún está preparando sus servicios. Próximamente podrás descansar, conversar con aliados y descubrir escenas entre misiones." },
+  arena: { npcId: "goro", message: "La Arena de Combate todavía está en preparación. Próximamente podrás practicar, probar configuraciones y disputar combates sin afectar la campaña." }
+};
 const TUTORIAL = [
   ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Cada edificio de la plaza conduce a una sección distinta."],
   ["Maestra Aya", "En el dojo preparas cuatro jutsus y distribuyes los puntos obtenidos al subir de nivel."],
@@ -80,7 +88,18 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       </div>`;
     root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.view; render(); }));
     root.querySelectorAll("[data-go]").forEach((button) => {
-      const openLocation = () => { view = button.dataset.go; render(); };
+      const openLocation = () => {
+        const locationId = button.dataset.go;
+        const comingSoon = COMING_SOON_LOCATIONS[locationId];
+        if (comingSoon) {
+          const npc = NPCS[comingSoon.npcId] || NPCS[LOCATION_CAST[locationId]?.[0]];
+          const speaker = npc?.name || "Habitante de la aldea";
+          showDialogue([[speaker, comingSoon.message]], () => {}, "ENTENDIDO");
+          return;
+        }
+        view = locationId;
+        render();
+      };
       button.addEventListener("click", openLocation);
       if (button.classList.contains("village-hotspot")) {
         const label = root.querySelector(`[data-map-label="${button.dataset.go}"]`);
@@ -230,8 +249,14 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const companion = save.campaign.companion
       ? `<div class="notice-card ally"><strong>Mika está disponible</strong><span>Atacará automáticamente cada dos rondas.</span></div>`
       : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
-    const hotspots = VILLAGE_LOCATIONS.map((location) => `<g class="village-hotspot hotspot-${location.id}" data-go="${location.id}" role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`).join("");
-    const labels = VILLAGE_LOCATIONS.map((location) => `<span class="map-label" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(location.description)}</small></span></span>`).join("");
+    const hotspots = VILLAGE_LOCATIONS.map((location) => {
+      const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
+      return `<g class="village-hotspot hotspot-${location.id} ${comingSoon ? "coming-soon" : ""}" data-go="${location.id}" role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(comingSoon ? "Próximamente" : location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
+    }).join("");
+    const labels = VILLAGE_LOCATIONS.map((location) => {
+      const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
+      return `<span class="map-label ${comingSoon ? "coming-soon" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
+    }).join("");
     shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.9.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
     if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
   };
