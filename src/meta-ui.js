@@ -1,5 +1,5 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.9.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.9.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.9.1";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.9.0";
 import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.9.0";
 
@@ -292,20 +292,77 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     bindLocationStage(serviceId);
   };
 
+  let selectedSagaId = null;
+
   const renderStoryMissions = () => {
     const completed = new Set(save.campaign.completedMissions);
-    const cards = MISSIONS.map((mission, index) => {
-      const unlocked = index === 0 || completed.has(MISSIONS[index - 1].id);
+    const sagaById = new Map(STORY_SAGAS.map((saga) => [saga.id, saga]));
+    const activeSaga = selectedSagaId ? sagaById.get(selectedSagaId) : null;
+
+    const missionUnlocked = (mission) => {
+      const index = MISSIONS.findIndex((entry) => entry.id === mission.id);
+      return index === 0 || completed.has(MISSIONS[index - 1].id);
+    };
+
+    const sagaUnlocked = (saga, sagaIndex) => {
+      if (sagaIndex === 0) return true;
+      const previousSaga = STORY_SAGAS[sagaIndex - 1];
+      return previousSaga.missionIds.every((id) => completed.has(id));
+    };
+
+    if (!activeSaga) {
+      const sagaCards = STORY_SAGAS.map((saga, sagaIndex) => {
+        const unlocked = sagaUnlocked(saga, sagaIndex);
+        const sagaMissions = saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean);
+        const completedCount = sagaMissions.filter((mission) => completed.has(mission.id)).length;
+        const totalRewards = sagaMissions.reduce((totals, mission) => ({
+          xp: totals.xp + mission.reward.xp,
+          coins: totals.coins + mission.reward.coins
+        }), { xp: 0, coins: 0 });
+        return `<button class="saga-card ${unlocked ? "" : "locked"} ${completedCount === sagaMissions.length ? "completed" : ""}" type="button" data-saga="${saga.id}" ${unlocked ? "" : "disabled"}>
+          <span class="saga-number">SAGA ${String(saga.number).padStart(2, "0")}</span>
+          <strong>${escapeHtml(saga.title)}</strong>
+          <small>${escapeHtml(saga.subtitle)}</small>
+          <div class="saga-progress"><span>${completedCount}/${sagaMissions.length} misiones</span><span>${totalRewards.xp} PX · ${totalRewards.coins} monedas</span></div>
+          <span class="saga-action">${unlocked ? "VER MISIONES →" : "BLOQUEADA"}</span>
+        </button>`;
+      }).join("");
+
+      const content = `<section class="stage-panel mission-board saga-selector" data-comment="La campaña está dividida en sagas. Completa una saga para desbloquear la siguiente."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Selecciona una saga</h2></div><strong>${completed.size}/${MISSIONS.length} completadas</strong></div><p class="lead">Cada saga agrupa un arco de la historia principal. Entra en una para ver sus misiones.</p><div class="saga-grid">${sagaCards}</div></section>`;
+      shell(locationStage("headquarters", content));
+
+      root.querySelectorAll("[data-saga]").forEach((button) => button.addEventListener("click", () => {
+        if (button.disabled) return;
+        selectedSagaId = button.dataset.saga;
+        renderStoryMissions();
+      }));
+      bindLocationStage("headquarters");
+      return;
+    }
+
+    const sagaIndex = STORY_SAGAS.findIndex((saga) => saga.id === activeSaga.id);
+    const sagaMissions = activeSaga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean);
+    const cards = sagaMissions.map((mission) => {
+      const unlocked = missionUnlocked(mission);
       const done = completed.has(mission.id);
       const label = done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "INICIAR HISTORIA") : "BLOQUEADA";
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : "MISIÓN DE HISTORIA · " + mission.location}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
-    const content = `<section class="stage-panel mission-board" data-comment="El Cuartel General concentra la campaña principal. Las misiones de historia se desbloquean en orden."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Campaña principal</h2></div><strong>${completed.size}/10 completadas</strong></div><p class="lead">Aquí recibes las órdenes que hacen avanzar la historia de la Aldea del Horizonte.</p><div class="mission-list">${cards}</div></section>`;
+
+    const completedInSaga = sagaMissions.filter((mission) => completed.has(mission.id)).length;
+    const content = `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${escapeHtml(activeSaga.title)}</h2><p>${escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${sagaMissions.length}</strong></div><div class="mission-list">${cards}</div>${sagaIndex < STORY_SAGAS.length - 1 ? `<p class="saga-next-note">Completa esta saga para desbloquear <strong>${escapeHtml(STORY_SAGAS[sagaIndex + 1].title)}</strong>.</p>` : ""}</section>`;
+
     shell(locationStage("headquarters", content));
+
+    root.querySelector("[data-back-sagas]")?.addEventListener("click", () => {
+      selectedSagaId = null;
+      renderStoryMissions();
+    });
+
     root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
       if (save.loadout.length !== 4) {
-        showDialogue([["Maestra Aya", "Debes preparar exactamente cuatro técnicas antes de iniciar una misión de historia."]], () => { view = "dojo"; render(); }, "IR AL DOJO");
+        showDialogue([["Maestra Aya", "Debes preparar exactamente cuatro técnicas antes de iniciar una misión de historia."]], () => { view = "dojo"; selectedSagaId = null; render(); }, "IR AL DOJO");
         return;
       }
       showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN");

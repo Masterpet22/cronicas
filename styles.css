@@ -384,6 +384,25 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .dialogue-copy { position: relative; align-self: center; min-height: 170px; padding: 24px 0 54px; }
 .dialogue-copy > p:not(.eyebrow) { min-height: 52px; font-size: 1.05rem; line-height: 1.55; }.dialogue-copy button { position: absolute; right: 0; bottom: 16px; }.dialogue-copy small { position: absolute; left: 0; bottom: 24px; color: #758197; }
 .mission-board { padding: 20px; }.mission-list { display: grid; gap: 8px; max-height: 520px; margin-top: 18px; overflow-y: auto; padding-right: 5px; }
+.saga-selector .lead { margin-bottom: 18px; }
+.saga-grid { display: grid; gap: 12px; }
+.saga-card { display: grid; gap: 7px; width: 100%; border: 1px solid #3b4960; border-radius: 12px; padding: 16px; background: linear-gradient(145deg, rgba(26,36,53,.96), rgba(11,17,27,.98)); color: #eef3fa; text-align: left; cursor: pointer; transition: transform .16s ease, border-color .16s ease, background .16s ease; }
+.saga-card:hover:not(:disabled) { transform: translateY(-2px); border-color: #f5a357; background: linear-gradient(145deg, rgba(42,52,69,.98), rgba(16,23,34,.98)); }
+.saga-card.completed { border-color: rgba(103,232,195,.52); }
+.saga-card.locked { opacity: .45; cursor: not-allowed; }
+.saga-number { color: #f5a357; font-size: .68rem; font-weight: 900; letter-spacing: .13em; }
+.saga-card strong { font-size: 1.05rem; }
+.saga-card small { color: #aeb8c7; font-size: .76rem; }
+.saga-progress { display: flex; justify-content: space-between; gap: 12px; margin-top: 5px; color: #8592a6; font-size: .68rem; }
+.saga-action { margin-top: 3px; color: #f3c080; font-size: .7rem; font-weight: 850; letter-spacing: .06em; }
+.saga-card.completed .saga-action { color: #67e8c3; }
+.saga-header { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; margin-bottom: 16px; }
+.saga-header h2 { margin: 1px 0 3px; }
+.saga-header p { margin: 0; color: #9ca8b9; font-size: .75rem; }
+.saga-header > strong { color: #f5c96b; font-size: .82rem; }
+.saga-back { padding: 9px 11px; }
+.saga-next-note { margin: 12px 0 0; color: #8f9bad; font-size: .72rem; }
+.saga-next-note strong { color: #d6deea; }
 .mission-card { display: grid; grid-template-columns: 52px 1fr auto; align-items: center; gap: 14px; border: 1px solid #303d50; border-radius: 9px; padding: 12px; background: #111925; }
 .mission-card.completed { border-color: rgba(103,232,195,0.45); }.mission-card.locked { opacity: 0.48; }
 .mission-number { color: #56647a; font-size: 1.5rem; font-weight: 850; }.mission-card.completed .mission-number { color: #67e8c3; }
