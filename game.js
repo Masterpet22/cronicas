@@ -20,7 +20,7 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-originales.jpg?v=0.9.0");
+    this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.12.0");
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.mission = activeMission;

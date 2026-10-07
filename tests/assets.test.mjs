@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { webpDimensions } from "./webp.mjs";
 
 const manifest = JSON.parse((await readFile(new URL("../assets/modular/manifest.json", import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
 assert.deepEqual(manifest.canvas, [768, 768], "Todas las piezas deben compartir un lienzo de 768×768");
@@ -25,13 +26,13 @@ await Promise.all(assets.map(async (asset) => {
 }));
 assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");
 
-const village = await readFile(new URL("../assets/village/aldea.png", import.meta.url));
-assert.equal(village.readUInt32BE(16), 1678, "El mapa debe conservar su ancho original");
-assert.equal(village.readUInt32BE(20), 937, "El mapa debe conservar su alto original");
+const village = webpDimensions(await readFile(new URL("../assets/village/aldea.webp", import.meta.url)), "aldea.webp");
+assert.equal(village.width, 1678, "El mapa debe conservar su ancho original");
+assert.equal(village.height, 937, "El mapa debe conservar su alto original");
 const locationIds = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
 await Promise.all(locationIds.map(async (id) => {
-  const png = await readFile(new URL(`../assets/locations/${id}.png`, import.meta.url));
-  assert.ok(png.readUInt32BE(16) >= 1500, `${id} necesita resolución panorámica suficiente`);
-  assert.ok(png.readUInt32BE(20) >= 900, `${id} necesita altura suficiente`);
+  const image = webpDimensions(await readFile(new URL(`../assets/locations/${id}.webp`, import.meta.url)), `${id}.webp`);
+  assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
+  assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
 }));
 console.log("Pruebas de recursos modulares superadas.");

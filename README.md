@@ -71,10 +71,10 @@ src/fighters.js          Composición y animación de capas de personaje
 src/ui.js                Barras y botones de combate
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
-assets/sellos-originales.jpg       Nueva hoja de doce símbolos
-assets/village/aldea.png           Mapa interactivo de la Aldea del Horizonte
-assets/npcs/             Diez retratos transparentes del reparto de la aldea
-assets/locations/        Nueve fondos panorámicos para las escenas de cada destino
+assets/sellos-originales.webp      Hoja WebP optimizada de doce símbolos
+assets/village/aldea.webp          Mapa WebP interactivo de la Aldea del Horizonte
+assets/npcs/             Diez retratos WebP transparentes del reparto de la aldea
+assets/locations/        Nueve fondos WebP panorámicos para las escenas de cada destino
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
 assets/modular/          Experimentos ilustrados archivados; no se cargan en runtime
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes

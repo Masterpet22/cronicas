@@ -30,7 +30,7 @@ Los recursos de `assets/modular/` son experimentos archivados y no se cargan en 
 
 Las doce posiciones se denominan: Alba, Pulso, Vínculo, Umbral, Flujo, Espiral, Sendero, Nexo, Estallido, Eco, Ruptura y Horizonte. Sus teclas conservan la cuadrícula `QWER / ASDF / ZXCV`.
 
-La hoja `assets/sellos-originales.jpg` fue proporcionada por el usuario. Antes de una publicación comercial o de volver público el repositorio se debe conservar evidencia de autoría o licencia de esa hoja.
+La hoja optimizada `assets/sellos-originales.webp` procede del recurso proporcionado por el usuario. Antes de una publicación comercial o de volver público el repositorio se debe conservar evidencia de autoría o licencia de esa hoja.
 
 ## Interfaz y tipografía
 

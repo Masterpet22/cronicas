@@ -2,7 +2,7 @@ export const NPCS = {
   ren: {
     name: "Ren Arashiro",
     title: "Jefe de la Aldea",
-    image: "assets/npcs/ren-arashiro.png",
+    image: "assets/npcs/ren-arashiro.webp",
     intro: [
       "Soy Ren Arashiro. Mientras portes el sello de esta aldea, ninguna misión será solamente tuya.",
       "El Cuartel registra tu rango, tus victorias y las amenazas que todavía permanecen abiertas."
@@ -16,7 +16,7 @@ export const NPCS = {
   kureha: {
     name: "Kureha Tsukikage",
     title: "Guía de la Torre",
-    image: "assets/npcs/kureha-tsukikage.png",
+    image: "assets/npcs/kureha-tsukikage.webp",
     intro: [
       "Me llaman Kureha Tsukikage. La Torre no mide fuerza: revela cuánto tardas en perder el control.",
       "Sus nueve pisos abrirán cuando la campaña principal haya templado tus fundamentos."
@@ -30,7 +30,7 @@ export const NPCS = {
   sayo: {
     name: "Sayo Kisaragi",
     title: "Archivera Mayor",
-    image: "assets/npcs/sayo-kisaragi.png",
+    image: "assets/npcs/sayo-kisaragi.webp",
     intro: [
       "Soy Sayo Kisaragi. Aquí una misión no termina al cobrar la recompensa: se convierte en memoria.",
       "La Biblioteca conserva tu campaña, rango y los capítulos que aún no has completado."
@@ -44,7 +44,7 @@ export const NPCS = {
   daichi: {
     name: "Daichi Kazan",
     title: "Maestro del Dojo",
-    image: "assets/npcs/daichi-kazan.png",
+    image: "assets/npcs/daichi-kazan.webp",
     intro: [
       "Daichi Kazan. No distribuyas atributos para corregir una derrota; hazlo para construir una estrategia.",
       "Poder aumenta el daño, Agilidad mejora velocidad y evasión, y Enfoque refuerza chakra y precisión."
@@ -58,7 +58,7 @@ export const NPCS = {
   mei: {
     name: "Mei Hayate",
     title: "Instructora de Técnicas",
-    image: "assets/npcs/mei-hayate.png",
+    image: "assets/npcs/mei-hayate.webp",
     intro: [
       "Soy Mei Hayate. Yo me encargo de que salgas del Dojo con un equipo que realmente puedas usar.",
       "Debes preparar cuatro jutsus. Combina afinidades, costes de chakra y enfriamientos."
@@ -72,7 +72,7 @@ export const NPCS = {
   goro: {
     name: "Goro Tetsugan",
     title: "Campeón de la Arena",
-    image: "assets/npcs/goro-tetsugan.png",
+    image: "assets/npcs/goro-tetsugan.webp",
     intro: [
       "¡Goro Tetsugan! Aquí los errores no cuestan una campaña; cuestan orgullo.",
       "La Arena servirá para practicar rotaciones, medir daño y probar equipos sin alterar tu historia."
@@ -86,7 +86,7 @@ export const NPCS = {
   hana: {
     name: "Hana Kogane",
     title: "Mercader de Suministros",
-    image: "assets/npcs/hana-kogane.png",
+    image: "assets/npcs/hana-kogane.webp",
     intro: [
       "Hana Kogane, a tu servicio. Una bolsa llena no gana batallas, pero una compra inteligente sí puede hacerlo.",
       "Aquí se venderán herramientas, consumibles y mejoras usando las monedas de las misiones."
@@ -100,7 +100,7 @@ export const NPCS = {
   yuna: {
     name: "Yuna Ametsuki",
     title: "Anfitriona de la Posada",
-    image: "assets/npcs/yuna-ametsuki.png",
+    image: "assets/npcs/yuna-ametsuki.webp",
     intro: [
       "Bienvenido. Soy Yuna Ametsuki. Incluso un ninja necesita un lugar donde bajar la guardia.",
       "La Posada reunirá conversaciones con aliados y escenas que ocurren entre misiones."
@@ -114,7 +114,7 @@ export const NPCS = {
   riku: {
     name: "Riku Senda",
     title: "Coordinador de Misiones",
-    image: "assets/npcs/riku-senda.png",
+    image: "assets/npcs/riku-senda.webp",
     intro: [
       "Riku Senda, explorador de rutas. Yo convierto rumores en contratos que puedas sobrevivir.",
       "Cada ficha indica encuentros, duración estimada, experiencia y monedas."
@@ -128,7 +128,7 @@ export const NPCS = {
   nao: {
     name: "Nao Matsuri",
     title: "Maestre de Festivales",
-    image: "assets/npcs/nao-matsuri.png",
+    image: "assets/npcs/nao-matsuri.webp",
     intro: [
       "¡Nao Matsuri abre la plaza! Hoy está tranquila; mañana podría albergar un torneo o un mercader errante.",
       "Este escenario está reservado para actividades temporales que no alteren la campaña principal."

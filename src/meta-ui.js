@@ -17,6 +17,20 @@ const TUTORIAL = [
   ["Maestra Aya", "En el dojo preparas cuatro jutsus y distribuyes los puntos obtenidos al subir de nivel."],
   ["Mika", "Las misiones de historia se reciben en el Cuartel General. El tablón de la plaza queda reservado para encargos y misiones secundarias."]
 ];
+const warmedImages = new Set();
+
+function warmImage(src) {
+  if (warmedImages.has(src)) return;
+  warmedImages.add(src);
+  const image = new Image();
+  image.decoding = "async";
+  image.src = src;
+}
+
+function warmLocationAssets(locationId) {
+  warmImage(`assets/locations/${locationId}.webp?v=0.12.0`);
+  (LOCATION_CAST[locationId] || []).forEach((id) => warmImage(`${NPCS[id].image}?v=0.12.0`));
+}
 
 export const VILLAGE_LOCATIONS = [
   { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
@@ -122,6 +136,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       };
       button.addEventListener("click", openLocation);
       if (button.classList.contains("village-hotspot")) {
+        button.addEventListener("mouseenter", () => warmLocationAssets(button.dataset.go), { once: true });
+        button.addEventListener("focus", () => warmLocationAssets(button.dataset.go), { once: true });
         const label = root.querySelector(`[data-map-label="${button.dataset.go}"]`);
         const showLabel = () => label?.classList.add("visible");
         const hideLabel = () => label?.classList.remove("visible");
@@ -146,7 +162,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const [speaker, dialogue] = lines[index];
       const last = index === lines.length - 1;
       const npc = npcByName(speaker);
-      const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=0.9.0" alt="${escapeHtml(npc.name)}"><span>${escapeHtml(npc.title)}</span></div>` : "";
+      const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=0.12.0" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
       overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       overlay.querySelector("button").addEventListener("click", () => {
         if (!last) { index += 1; draw(); return; }
@@ -164,9 +180,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const locationName = VILLAGE_LOCATIONS.find((location) => location.id === locationId)?.name || locationId;
     const portraits = cast.map((id) => {
       const npc = NPCS[id];
-      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=0.9.0" alt="${escapeHtml(npc.name)}"><span>${escapeHtml(npc.name)}</span></button>`;
+      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=0.12.0" alt="${escapeHtml(npc.name)}" width="1145" height="1374" loading="lazy" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
     }).join("");
-    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('assets/locations/${locationId}.png?v=0.9.0')" aria-label="${escapeHtml(locationName)}">
+    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('assets/locations/${locationId}.webp?v=0.12.0')" aria-label="${escapeHtml(locationName)}">
       <div class="stage-characters">${portraits}</div>
       <div class="stage-speech" data-stage-speech aria-live="polite" ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
       <div class="stage-ambient" data-stage-ambient role="status" aria-live="polite" hidden><strong data-ambient-speaker></strong><span data-ambient-text></span></div>
@@ -277,7 +293,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
       return `<span class="map-label ${comingSoon ? "coming-soon" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
     }).join("");
-    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.9.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
+    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=0.12.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
 
     root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
       const locationId = hotspot.getAttribute("data-coming-soon");
@@ -291,6 +307,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         const speaker = npc?.name || "Habitante de la aldea";
         showDialogue([[speaker, info.message]], () => {}, "ENTENDIDO");
       };
+
+      hotspot.addEventListener("mouseenter", () => warmImage(`${NPCS[info.npcId].image}?v=0.12.0`), { once: true });
+      hotspot.addEventListener("focus", () => warmImage(`${NPCS[info.npcId].image}?v=0.12.0`), { once: true });
 
       hotspot.addEventListener("click", (event) => {
         event.preventDefault();

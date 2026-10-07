@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { LOCATION_CAST, NPCS, locationDialogue } from "../src/npcs.js";
+import { webpDimensions } from "./webp.mjs";
 
 const locations = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
 assert.deepEqual(Object.keys(LOCATION_CAST), locations, "Cada destino del mapa debe tener reparto");
@@ -16,10 +17,10 @@ for (const location of locations) {
 
 await Promise.all(Object.entries(NPCS).map(async ([id, npc]) => {
   assert.ok(npc.name && npc.title, `${id} necesita identidad y función`);
-  const png = await readFile(new URL(`../${npc.image}`, import.meta.url));
-  assert.equal(png.readUInt32BE(16), 1145, `${id} debe conservar el lienzo común`);
-  assert.ok([1373, 1374].includes(png.readUInt32BE(20)), `${id} debe conservar la altura de retrato`);
-  assert.equal(png[25], 6, `${id} debe conservar transparencia alfa`);
+  const image = webpDimensions(await readFile(new URL(`../${npc.image}`, import.meta.url)), npc.image);
+  assert.equal(image.width, 1145, `${id} debe conservar el lienzo común`);
+  assert.ok([1373, 1374].includes(image.height), `${id} debe conservar la altura de retrato`);
+  assert.equal(image.alpha, true, `${id} debe conservar transparencia alfa`);
 }));
 
 console.log("Pruebas del reparto y sus guías superadas.");
