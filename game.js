@@ -569,8 +569,11 @@ class BattleScene extends Phaser.Scene {
       let done = false;
       let timedOut = false;
 
-      const timerBg = this.add.rectangle(0, card.height / 2 - 5, card.width - 12, 5, 0x202a38, 0.95).setOrigin(0.5);
-      const timerFill = this.add.rectangle(-(card.width - 12) / 2, card.height / 2 - 5, card.width - 12, 5, 0xf5c96b, 1).setOrigin(0, 0.5);
+      // La barra de tiempo queda fuera de la tarjeta para no tapar
+      // la tecla ni el nombre del sello.
+      const timerY = card.height / 2 + 9;
+      const timerBg = this.add.rectangle(0, timerY, card.width - 12, 5, 0x202a38, 0.95).setOrigin(0.5);
+      const timerFill = this.add.rectangle(-(card.width - 12) / 2, timerY, card.width - 12, 5, 0xf5c96b, 1).setOrigin(0, 0.5);
       card.add([timerBg, timerFill]);
 
       const timerTween = this.tweens.add({
