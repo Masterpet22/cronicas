@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.9.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.11.2";
+import { createActionButton, createBar } from "./src/ui.js?v=0.11.3";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.10.2";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.9.0";
 
@@ -258,23 +258,25 @@ class BattleScene extends Phaser.Scene {
 
   createTurnTimeline() {
     this.timelineLayer = this.add.container(0, 0).setDepth(12);
-    const plate = this.add.rectangle(478, 146, 430, 45, 0x06101c, 0.94).setStrokeStyle(1, 0x54769e, 0.85);
-    const title = this.add.text(478, 126, "ORDEN DE ACCIÓN", this.textStyle(9, "#9fb9d8", "700")).setOrigin(0.5);
-    const track = this.add.rectangle(478, 149, TIMELINE_END - TIMELINE_START, 5, 0x26364b, 1);
-    const finish = this.add.rectangle(TIMELINE_END, 149, 4, 25, 0xf5c96b, 1);
-    this.playerTurnMarker = this.add.circle(TIMELINE_START, 143, 11, 0x31baff, 1).setStrokeStyle(2, 0xd9f5ff);
-    this.enemyTurnMarker = this.add.circle(TIMELINE_START, 155, 11, 0xee4053, 1).setStrokeStyle(2, 0xffd8dc);
-    this.playerTurnLetter = this.add.text(TIMELINE_START, 143, "TÚ", this.textStyle(7, "#07111c", "800")).setOrigin(0.5);
-    this.enemyTurnLetter = this.add.text(TIMELINE_START, 155, "R", this.textStyle(8, "#16070b", "800")).setOrigin(0.5);
+    const centerY = 384;
+    const trackY = 387;
+    const plate = this.add.rectangle(478, centerY, 920, 36, 0x06101c, 0.94).setStrokeStyle(1, 0x54769e, 0.85);
+    const title = this.add.text(478, centerY - 13, "ORDEN DE ACCIÓN", this.textStyle(9, "#9fb9d8", "700")).setOrigin(0.5);
+    const track = this.add.rectangle(478, trackY, TIMELINE_END - TIMELINE_START, 5, 0x26364b, 1);
+    const finish = this.add.rectangle(TIMELINE_END, trackY, 4, 25, 0xf5c96b, 1);
+    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY - 6, 11, 0x31baff, 1).setStrokeStyle(2, 0xd9f5ff);
+    this.enemyTurnMarker = this.add.circle(TIMELINE_START, trackY + 6, 11, 0xee4053, 1).setStrokeStyle(2, 0xffd8dc);
+    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 6, "TÚ", this.textStyle(7, "#07111c", "800")).setOrigin(0.5);
+    this.enemyTurnLetter = this.add.text(TIMELINE_START, trackY + 6, "R", this.textStyle(8, "#16070b", "800")).setOrigin(0.5);
     this.timelineLayer.add([plate, title, track, finish, this.playerTurnMarker, this.enemyTurnMarker, this.playerTurnLetter, this.enemyTurnLetter]);
   }
 
   createPauseButton() {
-    const bg = this.add.rectangle(548, 34, 88, 30, 0x091421, 0.96)
+    const bg = this.add.rectangle(480, 72, 96, 30, 0x091421, 0.96)
       .setStrokeStyle(1, 0xf5c96b, 0.85)
       .setDepth(25)
       .setInteractive({ useHandCursor: true });
-    const label = this.add.text(548, 34, "Ⅱ  PAUSA", this.textStyle(9, "#f7d99b", "700")).setOrigin(0.5).setDepth(26);
+    const label = this.add.text(480, 72, "Ⅱ  PAUSA", this.textStyle(9, "#f7d99b", "700")).setOrigin(0.5).setDepth(26);
     bg.on("pointerover", () => bg.setFillStyle(0x24334a));
     bg.on("pointerout", () => bg.setFillStyle(0x091421));
     const openPause = () => {
