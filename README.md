@@ -87,6 +87,10 @@ ROADMAP.md               Plan de desarrollo
 npm test
 ```
 
+## Escenario de escritorio
+
+Todas las vistas de la versión para PC comparten un escenario lógico de `1440 × 810` píxeles (`16:9`). El marco se centra y escala de forma proporcional para resoluciones menores, mientras que en monitores grandes conserva su tamaño máximo. La adaptación específica para móviles se abordará por separado.
+
 ## Nota sobre el arte
 
 El juego utiliza temporalmente figuras geométricas avanzadas para los combatientes con el fin de mantener consistencia y continuar con jugabilidad, animación e interfaz. Los atlas ilustrados se conservan como referencia experimental, pero no se cargan en combate. El mapa de la aldea, la hoja de símbolos, el fondo de la Biblioteca y los retratos originales de Ren y Kureha fueron proporcionados por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio. Los otros ocho NPC fueron generados específicamente para este prototipo. La procedencia está documentada en `assets/npcs/README.md` y `assets/locations/README.md`.
