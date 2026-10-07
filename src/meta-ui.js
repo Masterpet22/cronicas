@@ -1,7 +1,7 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.18.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.18.0";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.18.0";
-import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.18.0";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.19.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.19.1";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.19.1";
+import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.19.1";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.15.1";
 
 const COMING_SOON_LOCATIONS = {

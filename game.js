@@ -1,10 +1,10 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.18.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.19.1";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.15.1";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
-import { playerFighterAppearance } from "./src/character.js?v=0.18.0";
+import { playerFighterAppearance } from "./src/character.js?v=0.19.1";
 import { createActionButton, createBar } from "./src/ui.js?v=0.15.2";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.18.0";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.18.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.19.1";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.19.1";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.15.1";
 
 const Phaser = window.Phaser;

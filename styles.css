@@ -158,7 +158,7 @@ input, select, button { font: inherit; }
   border-radius: 9px;
   padding: 13px 18px;
   background-color: #131a26;
-  background-image: url("assets/ui/nav-button-frame.png?v=0.18.0");
+  background-image: url("assets/ui/nav-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
   color: #ffe1a8;
@@ -194,7 +194,7 @@ input, select, button { font: inherit; }
 .dojo-section-heading p, .skill-tree-heading p { margin: 0; color: #7f8da1; font-size: .65rem; }
 .dojo-section-heading > span { border: 1px solid rgba(245,163,87,.35); border-radius: 99px; padding: 4px 8px; color: #f5b978; font-size: .61rem; font-weight: 850; text-transform: uppercase; }
 .equipment-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 0; }
-.gear-slot { position: relative; display: grid !important; min-width: 0; aspect-ratio: 1; align-content: center; justify-items: center; gap: 7px !important; border: 0; border-radius: 12px; padding: 22% 18% 18% !important; background-color: #101824; background-image: url("assets/ui/equipment-slot-frame.png?v=0.18.0"); background-position: center; background-size: 100% 100%; color: #e9eef5; text-align: center; cursor: pointer; filter: drop-shadow(0 7px 9px rgba(0,0,0,.34)); transition: filter .16s ease, transform .16s ease; }
+.gear-slot { position: relative; display: grid !important; min-width: 0; aspect-ratio: 1; align-content: center; justify-items: center; gap: 7px !important; border: 0; border-radius: 12px; padding: 22% 18% 18% !important; background-color: #101824; background-image: url("assets/ui/equipment-slot-frame.png?v=0.19.0"); background-position: center; background-size: 100% 100%; color: #e9eef5; text-align: center; cursor: pointer; filter: drop-shadow(0 7px 9px rgba(0,0,0,.34)); transition: filter .16s ease, transform .16s ease; }
 .gear-slot:hover:not(:disabled), .gear-slot:focus-visible { outline: none; filter: drop-shadow(0 0 7px rgba(245,163,87,.5)); transform: translateY(-2px); }
 .gear-slot.empty { color: #aab5c5; }
 .gear-slot.locked { cursor: not-allowed; opacity: .48; }
@@ -358,7 +358,7 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .service-grid article span { color: #f5a357; font-size: 0.72rem; font-weight: 850; letter-spacing: 0.12em; }
 .service-grid article strong { font-size: 0.88rem; }
 .service-actions { display: flex; flex-wrap: wrap; gap: 9px; }
-.secondary-button { border: 0; border-radius: 9px; padding: 14px 22px; background-color: #111925; background-image: url("assets/ui/nav-button-frame.png?v=0.18.0"); background-position: center; background-size: 100% 100%; color: #e5eaf2; font-weight: 800; text-shadow: 0 2px 3px #000; cursor: pointer; }
+.secondary-button { border: 0; border-radius: 9px; padding: 14px 22px; background-color: #111925; background-image: url("assets/ui/nav-button-frame.png?v=0.19.0"); background-position: center; background-size: 100% 100%; color: #e5eaf2; font-weight: 800; text-shadow: 0 2px 3px #000; cursor: pointer; }
 .secondary-button:hover { color: #ffd697; filter: drop-shadow(0 0 6px rgba(245,163,87,.35)); }
 .development-note { border-left: 3px solid #f5a357; padding: 12px 14px; background: rgba(245,163,87,0.08); color: #bec7d4; font-size: 0.82rem; }
 .npc-guide-strip { overflow: hidden; border: 1px solid #344154; border-radius: 14px; background: linear-gradient(145deg, rgba(28,38,55,.98), rgba(9,14,22,.98)); box-shadow: 0 18px 50px rgba(0,0,0,.28); }
@@ -680,7 +680,7 @@ body:has(#meta:not([hidden])) .game-settings-panel {
   border-radius: 22px;
   padding: 15px 24px;
   background-color: rgba(7,15,29,.96);
-  background-image: url("assets/ui/hud-frame.png?v=0.18.0"), linear-gradient(180deg, rgba(8,21,38,.95), rgba(7,15,29,.94));
+  background-image: url("assets/ui/hud-frame.png?v=0.19.0"), linear-gradient(180deg, rgba(8,21,38,.95), rgba(7,15,29,.94));
   background-position: center;
   background-size: 100% 100%;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.025), 0 14px 38px rgba(0,0,0,.38);
@@ -973,7 +973,7 @@ body:has(#game:not([hidden])) .game-heading {
   border-radius: 15px;
   padding: 0;
   background-color: #0d1826;
-  background-image: url("assets/ui/action-button-frame.png?v=0.18.0");
+  background-image: url("assets/ui/action-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
   color: #dcecff;
@@ -1010,7 +1010,7 @@ body:has(#game:not([hidden])) .game-heading {
   border-radius: 18px;
   padding: 0 20px;
   background-color: #0d1623;
-  background-image: url("assets/ui/nav-button-frame.png?v=0.18.0");
+  background-image: url("assets/ui/nav-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.03), 0 12px 32px rgba(0,0,0,.38);
@@ -1188,4 +1188,223 @@ body:has(#game:not([hidden])) .game-heading {
     height: 100% !important;
     object-fit: contain;
   }
+}
+
+/* Keep the illustrated skin last so legacy blue panels cannot bleed through. */
+:root {
+  --ui-ink: #171310;
+  --ui-paper: #27211c;
+  --ui-paper-deep: #15110f;
+  --ui-wood: #5b3825;
+  --ui-rope: #b49568;
+  --ui-crimson: #9b4038;
+  --ui-gold: #dda052;
+  --ui-text: #f1e6d3;
+  --ui-muted: #b9aa96;
+}
+
+body {
+  background: radial-gradient(circle at 20% 0%, rgba(126,54,36,.24), transparent 34rem), #100d0b;
+}
+
+.village-topbar {
+  padding: 16px 28px 18px;
+  border: 0;
+  background-color: #17120f;
+  background-image: url("assets/ui/hud-frame.png?v=0.19.0"), linear-gradient(180deg, rgba(31,24,19,.98), rgba(17,13,11,.98));
+}
+
+.player-settings-trigger,
+.notice-icon,
+.notice-arrow,
+.equipment-modal-heading button {
+  border: 0;
+  background-color: var(--ui-ink);
+  background-image: url("assets/ui/action-button-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+  color: #ead9bf;
+}
+
+.primary-button,
+.secondary-button,
+.village-return button,
+.mission-card button,
+.npc-actions button,
+.saga-back,
+.attribute-list button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 5px;
+  padding: 13px 28px;
+  background-color: #201712;
+  background-image: url("assets/ui/nav-button-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+  color: #f0dfc6;
+  text-shadow: 0 2px 3px #000;
+}
+
+.village-return button {
+  min-width: 184px;
+  min-height: 62px;
+  padding: 13px 34px;
+}
+
+.gear-slot {
+  border: 0;
+  padding: 24% 20% 20% !important;
+  background-color: #1b1714;
+  background-image: url("assets/ui/equipment-slot-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.creator-card,
+.dojo-card,
+.stage-panel,
+.dialogue-box,
+.equipment-modal-card,
+.game-settings-panel {
+  border: 0;
+  border-radius: 4px;
+  padding: 34px 38px;
+  background-color: var(--ui-paper);
+  background-image: url("assets/ui/panel-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+  box-shadow: 0 24px 65px rgba(0,0,0,.56);
+  color: var(--ui-text);
+}
+
+.dialogue-box.with-portrait {
+  padding: 28px 38px 28px 0;
+  background-color: var(--ui-paper);
+  background-image: url("assets/ui/panel-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+}
+
+.dojo-section,
+.skill-tree,
+.appearance-panel,
+.affinity-selector {
+  border-color: rgba(139,95,59,.5);
+  background: rgba(24,19,16,.88);
+}
+
+.saga-card,
+.mission-card,
+.service-grid article,
+.npc-guide-strip,
+.village-map-card > .notice-card {
+  border: 0;
+  border-radius: 4px;
+  background-color: #211b17;
+  background-image: url("assets/ui/card-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+  color: var(--ui-text);
+  box-shadow: 0 10px 24px rgba(0,0,0,.34);
+}
+
+.saga-card,
+.saga-card:hover:not(:disabled) {
+  min-height: 146px;
+  padding: 28px 42px;
+  background-color: #211b17;
+  background-image: url("assets/ui/card-frame.png?v=0.19.0");
+}
+
+.mission-card { min-height: 92px; padding: 20px 32px; }
+.service-grid article, .npc-guide-strip { padding: 26px 34px; }
+.village-map-card > .notice-card { padding: 18px 34px; }
+.stage-panel.saga-selector { padding: 48px 48px 40px; }
+
+.summary-item b,
+.notice-detail,
+.notice-card.ally .notice-detail {
+  color: var(--ui-gold);
+}
+
+.player-settings-trigger:focus-visible,
+button:focus-visible {
+  outline-color: #d59a55;
+}
+
+.attribute-list button {
+  display: grid;
+  min-height: 56px;
+  align-content: center;
+  justify-items: center;
+  gap: 2px;
+  padding: 11px 30px;
+  text-align: center;
+}
+
+.attribute-list button small {
+  display: block;
+  line-height: 1.15;
+}
+
+.equipment-option,
+.jutsu-card,
+.affinity-slot,
+.affinity-option,
+.technique-slot,
+.skill-node,
+.archive-card li,
+.stat-grid span,
+.creator-form input,
+.creator-form select,
+.cosmetic-grid select,
+.equipment-grid select {
+  border-color: rgba(129,91,61,.56);
+  background: rgba(29,24,20,.94);
+  color: var(--ui-text);
+}
+
+.equipment-option,
+.affinity-option,
+.skill-node { padding: 13px 15px; }
+
+.equipment-option:hover,
+.equipment-option.selected,
+.skill-node.selected,
+.jutsu-card.selected {
+  border-color: #bc7844;
+  background: rgba(95,48,30,.55);
+}
+
+.affinity-slot.selected,
+.technique-slot {
+  border-color: rgba(156,119,72,.6);
+  background: rgba(45,35,27,.9);
+}
+
+.equipment-modal { background: rgba(14,10,8,.84); }
+.stage-options { scrollbar-color: #8d6041 #1a1512; }
+
+@media (min-width: 981px) {
+  main,
+  body:has(#meta:not([hidden])) main {
+    border-color: rgba(111,70,43,.72);
+    background: #130f0c;
+  }
+}
+
+@media (max-width: 650px) {
+  .creator-card,
+  .dojo-card,
+  .stage-panel,
+  .equipment-modal-card,
+  .game-settings-panel { padding: 26px 22px; }
+  .saga-card { padding: 24px 28px; }
+  .mission-card { padding: 18px 24px; }
+}
+
+.village-topbar .summary-item b,
+.village-map-card .notice-detail,
+.village-map-card .notice-card.ally .notice-detail {
+  color: #dda052 !important;
 }
