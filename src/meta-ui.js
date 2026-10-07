@@ -80,8 +80,16 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     root.innerHTML = `
       <div class="village-shell">
         <section class="village-topbar dojo-card">
-          <div class="profile-heading"><span class="avatar-swatch" style="--avatar:${character.appearance}"></span><div><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${escapeHtml(character.name)}</h2></div></div>
-          <div class="campaign-summary"><strong>Nivel ${progression.level}</strong><span>${progression.xp}/${xpForNextLevel(progression.level)} PX</span><span>${progression.coins} monedas</span><span>${campaign.completedMissions.length}/10 misiones</span></div>
+          <div class="profile-heading">
+            <span class="avatar-swatch" style="--avatar:${character.appearance}"></span>
+            <div class="profile-copy"><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${escapeHtml(character.name)}</h2></div>
+            <strong class="level-chip">Nivel ${progression.level}</strong>
+          </div>
+          <div class="campaign-summary">
+            <span class="summary-item"><b aria-hidden="true">★</b><strong>${progression.xp}/${xpForNextLevel(progression.level)}</strong><small>PX</small></span>
+            <span class="summary-item"><b aria-hidden="true">▣</b><strong>${progression.coins}</strong><small>monedas</small></span>
+            <span class="summary-item"><b aria-hidden="true">♛</b><strong>${campaign.completedMissions.length}/10</strong><small>misiones</small></span>
+          </div>
         </section>
         ${navigation}
         ${content}
@@ -239,8 +247,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
   const renderPlaza = () => {
     const companion = save.campaign.companion
-      ? `<div class="notice-card ally"><strong>Mika está disponible</strong><span>Atacará automáticamente cada dos rondas.</span></div>`
-      : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
+      ? `<div class="notice-card ally"><span class="notice-icon" aria-hidden="true">◆</span><strong>Mika está disponible</strong><span class="notice-detail">Atacará automáticamente cada dos rondas.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`
+      : `<div class="notice-card"><span class="notice-icon" aria-hidden="true">▣</span><strong>Compañero bloqueado</strong><span class="notice-detail">Completa “Ecos entre los juncos”.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`;
     const hotspots = VILLAGE_LOCATIONS.map((location) => {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
       return `<g class="village-hotspot hotspot-${location.id} ${comingSoon ? "coming-soon" : ""}" ${comingSoon ? `data-coming-soon="${location.id}"` : `data-go="${location.id}"`} role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(comingSoon ? "Próximamente" : location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
