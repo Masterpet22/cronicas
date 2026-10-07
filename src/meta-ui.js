@@ -1,7 +1,7 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.17.1";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.17.1";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.17.1";
-import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.17.1";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.18.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.18.0";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.18.0";
+import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.18.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.15.1";
 
 const COMING_SOON_LOCATIONS = {
@@ -453,11 +453,19 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     }).join("");
     const gearIcons = { weapon: "⚔", armor: "◈", accessory: "◇", companion: "♟" };
     const gearTitles = { weapon: "Arma", armor: "Protector", accessory: "Accesorio", companion: "Compañero" };
-    const equipmentSlot = (type) => {
+    const gearSlotState = (type) => {
       const id = save.equipment[type];
       const item = type === "companion" ? (id === "mika" ? { name: "Mika", description: "Compañera activa" } : null) : EQUIPMENT[type].find((entry) => entry.id === id);
       const unavailable = type === "companion" && !save.campaign.companion;
-      return `<button class="gear-slot ${id ? "equipped" : "empty"} ${unavailable ? "locked" : ""}" type="button" data-gear-slot="${type}" ${unavailable ? "disabled" : ""}><span class="gear-icon" aria-hidden="true">${gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${unavailable ? "Aún no disponible" : item?.description || "Pulsa para equipar"}</em></span><span class="gear-action" aria-hidden="true">${unavailable ? "⌾" : "+"}</span></button>`;
+      return { id, item, unavailable };
+    };
+    const gearSlotContents = (type) => {
+      const { item, unavailable } = gearSlotState(type);
+      return `<span class="gear-icon" aria-hidden="true">${gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${unavailable ? "Aún no disponible" : item?.description || "Pulsa para equipar"}</em></span><span class="gear-action" aria-hidden="true">${unavailable ? "⌾" : "+"}</span>`;
+    };
+    const equipmentSlot = (type) => {
+      const { id, item, unavailable } = gearSlotState(type);
+      return `<button class="gear-slot ${id ? "equipped" : "empty"} ${unavailable ? "locked" : ""}" type="button" data-gear-slot="${type}" aria-label="${gearTitles[type]}: ${item?.name || "nada equipado"}" ${unavailable ? "disabled" : ""}>${gearSlotContents(type)}</button>`;
     };
     const techniqueSlotsMarkup = () => Array.from({ length: 4 }, (_, index) => {
       const requiredLevel = index < 2 ? 1 : index === 2 ? 5 : 8;
@@ -508,6 +516,15 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const preview = root.querySelector(".character-preview");
       if (preview) preview.innerHTML = fighterPreviewSvg(playerFighterAppearance(save));
 
+      root.querySelectorAll("[data-gear-slot]").forEach((button) => {
+        const type = button.dataset.gearSlot;
+        const { id, item, unavailable } = gearSlotState(type);
+        button.className = `gear-slot ${id ? "equipped" : "empty"} ${unavailable ? "locked" : ""}`;
+        button.disabled = unavailable;
+        button.setAttribute("aria-label", `${gearTitles[type]}: ${item?.name || "nada equipado"}`);
+        button.innerHTML = gearSlotContents(type);
+      });
+
       root.querySelectorAll("[data-cosmetic]").forEach((select) => {
         select.value = String(save.character[select.dataset.cosmetic]);
       });
@@ -541,7 +558,17 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const equipmentModal = root.querySelector(".equipment-modal");
     const equipmentModalTitle = root.querySelector("#equipment-modal-title");
     const equipmentModalOptions = root.querySelector(".equipment-modal-options");
+    const stageOptions = root.querySelector(".stage-options");
+    let equipmentReturnScroll = 0;
+    let activeGearType = null;
+    const closeEquipmentModal = () => {
+      equipmentModal.hidden = true;
+      root.querySelector(`[data-gear-slot="${activeGearType}"]`)?.focus({ preventScroll: true });
+      if (stageOptions) stageOptions.scrollTop = equipmentReturnScroll;
+    };
     const openEquipmentModal = (type) => {
+      equipmentReturnScroll = stageOptions?.scrollTop || 0;
+      activeGearType = type;
       const title = gearTitles[type];
       const items = type === "companion"
         ? (save.campaign.companion === "mika" ? [{ id: "mika", name: "Mika", description: "Compañera de campaña" }] : [])
@@ -553,14 +580,15 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       equipmentModal.querySelector(".equipment-option")?.focus();
     };
     root.querySelectorAll("[data-gear-slot]").forEach((button) => button.addEventListener("click", () => openEquipmentModal(button.dataset.gearSlot)));
-    root.querySelector("[data-close-equipment]")?.addEventListener("click", () => { equipmentModal.hidden = true; });
+    root.querySelector("[data-close-equipment]")?.addEventListener("click", closeEquipmentModal);
     equipmentModal?.addEventListener("click", (event) => {
       const option = event.target.closest("[data-equipment-type]");
       if (option) {
         save.equipment[option.dataset.equipmentType] = option.dataset.equipmentId || null;
-        persist(save);
+        persistDojo(save);
+        closeEquipmentModal();
       } else if (event.target === equipmentModal) {
-        equipmentModal.hidden = true;
+        closeEquipmentModal();
       }
     });
 
