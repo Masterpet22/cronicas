@@ -221,6 +221,12 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .hotspot-shape { fill: rgba(255,158,82,0); stroke: rgba(255,188,112,0); stroke-width: 3; vector-effect: non-scaling-stroke; pointer-events: all; transition: fill .16s ease, stroke .16s ease, filter .16s ease; }
 .village-hotspot:hover .hotspot-shape { fill: rgba(255,142,55,0.22); stroke: rgba(255,192,115,0.96); filter: drop-shadow(0 0 5px rgba(255,132,50,0.95)) drop-shadow(0 0 13px rgba(250,72,38,0.7)); }
 .village-hotspot:focus-visible .hotspot-shape { fill: rgba(103,232,195,0.2); stroke: #a6f6df; filter: drop-shadow(0 0 5px #67e8c3) drop-shadow(0 0 13px rgba(103,232,195,0.65)); }
+.village-hotspot.coming-soon .hotspot-shape { fill: rgba(127,116,255,0.04); stroke: rgba(155,145,255,0.12); }
+.village-hotspot.coming-soon:hover .hotspot-shape { fill: rgba(127,116,255,0.22); stroke: rgba(176,167,255,0.98); filter: drop-shadow(0 0 5px rgba(139,128,255,0.95)) drop-shadow(0 0 14px rgba(101,91,220,0.72)); }
+.village-hotspot.coming-soon:focus-visible .hotspot-shape { fill: rgba(127,116,255,0.22); stroke: #c0b9ff; filter: drop-shadow(0 0 5px #8f83ff) drop-shadow(0 0 14px rgba(127,116,255,0.72)); }
+.map-label.coming-soon .map-label-box { border-color: rgba(157,148,255,0.9); }
+.map-label.coming-soon .map-label-box strong { color: #dedaff; }
+.map-label.coming-soon .map-label-box small { color: #aca5ff; font-weight: 800; }
 .map-label { position: absolute; z-index: 6; left: var(--label-x); top: var(--label-y); width: max-content; max-width: 240px; pointer-events: none; opacity: 0; transform: translate(-50%, 9px); transition: opacity .16s ease, transform .16s ease; }
 .map-label-box { display: grid; gap: 2px; padding: 7px 10px; border: 1px solid rgba(255,181,102,0.78); border-radius: 7px; background: rgba(6,9,15,0.94); box-shadow: 0 8px 28px rgba(0,0,0,0.72); color: #fff; text-align: center; }
 .map-label-box strong { color: #fff4df; font-size: 0.78rem; white-space: nowrap; }
