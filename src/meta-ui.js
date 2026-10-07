@@ -90,11 +90,31 @@ export function mountMetaUI(root, initialSave, onStartMission) {
             <span class="summary-item"><b aria-hidden="true">▣</b><strong>${progression.coins}</strong><small>monedas</small></span>
             <span class="summary-item"><b aria-hidden="true">♛</b><strong>${campaign.completedMissions.length}/10</strong><small>misiones</small></span>
           </div>
+          <button class="player-settings-trigger" type="button" aria-label="Abrir ajustes" aria-expanded="false">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
+          </button>
         </section>
         ${navigation}
         ${content}
       </div>`;
-    root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.view; render(); }));
+    const settingsDetails = document.querySelector(".game-settings");
+    const settingsTrigger = root.querySelector(".player-settings-trigger");
+    if (settingsTrigger && settingsDetails) {
+      settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
+      settingsTrigger.addEventListener("click", () => {
+        settingsDetails.open = !settingsDetails.open;
+        settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
+      });
+      settingsDetails.addEventListener("toggle", () => {
+        if (settingsTrigger.isConnected) settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
+      }, { once: true });
+    }
+
+    root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => {
+      document.querySelector(".game-settings")?.removeAttribute("open");
+      view = button.dataset.view;
+      render();
+    }));
     root.querySelectorAll("[data-go]").forEach((button) => {
       const openLocation = () => {
         view = button.dataset.go;
