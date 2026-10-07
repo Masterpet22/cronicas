@@ -14,8 +14,8 @@ export const SEALS = {
 };
 
 export const BASE_ACTIONS = [
-  { id: "strike", element: "physical", name: "Golpe veloz", subtitle: "0CH · V16 · P93", cost: 0, damage: 9, speedMod: 4, accuracyMod: 3, cooldown: 0, seals: [], color: 0xd7dce5 },
-  { id: "guard", element: "none", type: "guard", name: "Guardia", subtitle: "-50% · +12CH · V20", cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
+  { id: "strike", element: "physical", icon: "assets/actions/basic-strike.png", name: "Golpe veloz", subtitle: "0CH · V16 · P93", cost: 0, damage: 9, speedMod: 4, accuracyMod: 3, cooldown: 0, seals: [], color: 0xd7dce5 },
+  { id: "guard", element: "none", icon: "assets/actions/guard.png", type: "guard", name: "Guardia", subtitle: "-50% · +12CH · V20", cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
 ];
 
 const extraTechnique = (id, element, name, cost, damage, speedMod, seals, color, status) => ({

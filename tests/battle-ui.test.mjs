@@ -13,5 +13,8 @@ assert.match(battle, /resetTurnTimeline\(\)/, "Los marcadores deben regresar al 
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
 assert.match(ui, /index \* 155/, "Las seis acciones deben mostrarse en una sola barra horizontal");
+assert.match(ui, /setDisplaySize\(48, 48\)/, "Los iconos de acción deben ser legibles durante el combate");
+assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
+assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
 
 console.log("Pruebas de interfaz de combate superadas.");

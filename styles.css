@@ -191,16 +191,23 @@ input, select, button { font: inherit; }
 .affinity-slot span { display: grid; min-width: 0; }
 .affinity-slot strong { font-size: .72rem; }
 .affinity-slot small { color: #8e9daf; font-size: .58rem; }
-.combination-codex { margin: 8px 0 15px; border: 1px solid #303d50; border-radius: 9px; background: rgba(7,12,20,.52); }
-.combination-codex summary { padding: 10px 12px; color: #f3c080; font-size: .73rem; font-weight: 800; cursor: pointer; }
-.combination-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-height: 260px; overflow-y: auto; padding: 0 10px 10px; }
-.combination-card { display: flex; align-items: center; gap: 6px; min-width: 0; border: 1px solid #2f3a4c; border-radius: 8px; padding: 6px; background: #101824; }
-.combination-card.locked { opacity: .38; filter: grayscale(.45); }
-.combination-card.available { border-color: rgba(103,232,195,.55); }
-.combination-card img { width: 34px; height: 34px; flex: 0 0 34px; object-fit: contain; }
-.combination-card span { display: grid; min-width: 0; }
-.combination-card strong { font-size: .68rem; }
-.combination-card small { overflow: hidden; color: #8f9caf; font-size: .54rem; line-height: 1.25; text-overflow: ellipsis; }
+.skill-tree { margin: 10px 0 17px; border: 1px solid #34455c; border-radius: 12px; padding: 12px; background: radial-gradient(circle at 50% 0, rgba(59,112,169,.16), transparent 48%), rgba(6,11,19,.72); }
+.skill-tree-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.skill-tree-heading h3 { margin: 0; color: #f3c080; }
+.skill-tree-heading small { color: #8090a6; font-size: .63rem; }
+.skill-tree-layer { position: relative; display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 8px; min-height: 58px; }
+.skill-tree-layer + .skill-tree-layer { margin-top: 12px; }
+.skill-tree-layer + .skill-tree-layer::before { content: ""; position: absolute; top: -14px; left: 86px; width: 2px; height: 16px; background: linear-gradient(#4f78a5, #67e8c3); box-shadow: 0 0 7px rgba(103,232,195,.34); }
+.skill-tier-label { color: #7590b2; font-size: .58rem; font-weight: 900; letter-spacing: .09em; }
+.skill-node-row { display: flex; flex-wrap: wrap; gap: 7px; }
+.skill-node { display: flex; align-items: center; gap: 7px; min-width: 132px; border: 1px solid rgba(103,232,195,.45); border-radius: 9px; padding: 6px 8px; background: linear-gradient(145deg, rgba(28,51,66,.94), rgba(12,22,33,.96)); box-shadow: inset 0 0 14px rgba(103,232,195,.06); }
+.skill-node.tier-2 { border-color: rgba(104,168,255,.58); }
+.skill-node.tier-3 { border-color: rgba(245,163,87,.62); }
+.skill-node img { width: 40px; height: 40px; flex: 0 0 40px; object-fit: contain; }
+.skill-node span { display: grid; min-width: 0; }
+.skill-node strong { font-size: .7rem; }
+.skill-node small { color: #91a0b4; font-size: .54rem; line-height: 1.25; }
+.skill-tree-empty { margin: 0; border: 1px dashed #344154; border-radius: 8px; padding: 10px; color: #77869a; font-size: .65rem; }
 .element-dot { width: 8px; height: 8px; border-radius: 50%; }
 .element-dot.fire { background: #ff783d; }.element-dot.wind { background: #67e8c3; }.element-dot.lightning { background: #68a8ff; }
 .dojo-message { min-height: 19px; color: #aeb6c6; font-size: 0.8rem; }
