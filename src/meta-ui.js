@@ -89,15 +89,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => { view = button.dataset.view; render(); }));
     root.querySelectorAll("[data-go]").forEach((button) => {
       const openLocation = () => {
-        const locationId = button.dataset.go;
-        const comingSoon = COMING_SOON_LOCATIONS[locationId];
-        if (comingSoon) {
-          const npc = NPCS[comingSoon.npcId] || NPCS[LOCATION_CAST[locationId]?.[0]];
-          const speaker = npc?.name || "Habitante de la aldea";
-          showDialogue([[speaker, comingSoon.message]], () => {}, "ENTENDIDO");
-          return;
-        }
-        view = locationId;
+        view = button.dataset.go;
         render();
       };
       button.addEventListener("click", openLocation);
@@ -251,13 +243,44 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       : `<div class="notice-card"><strong>Compañero bloqueado</strong><span>Completa “Ecos entre los juncos”.</span></div>`;
     const hotspots = VILLAGE_LOCATIONS.map((location) => {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
-      return `<g class="village-hotspot hotspot-${location.id} ${comingSoon ? "coming-soon" : ""}" data-go="${location.id}" role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(comingSoon ? "Próximamente" : location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
+      return `<g class="village-hotspot hotspot-${location.id} ${comingSoon ? "coming-soon" : ""}" ${comingSoon ? `data-coming-soon="${location.id}"` : `data-go="${location.id}"`} role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(comingSoon ? "Próximamente" : location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
     }).join("");
     const labels = VILLAGE_LOCATIONS.map((location) => {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
       return `<span class="map-label ${comingSoon ? "coming-soon" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
     }).join("");
     shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.png?v=0.9.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
+
+    root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
+      const locationId = hotspot.getAttribute("data-coming-soon");
+      const info = COMING_SOON_LOCATIONS[locationId];
+      const label = root.querySelector(`[data-map-label="${locationId}"]`);
+      const showLabel = () => label?.classList.add("visible");
+      const hideLabel = () => label?.classList.remove("visible");
+      const explain = () => {
+        if (!info) return;
+        const npc = NPCS[info.npcId] || NPCS[LOCATION_CAST[locationId]?.[0]];
+        const speaker = npc?.name || "Habitante de la aldea";
+        showDialogue([[speaker, info.message]], () => {}, "ENTENDIDO");
+      };
+
+      hotspot.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        explain();
+      });
+      hotspot.addEventListener("mouseenter", showLabel);
+      hotspot.addEventListener("mouseleave", hideLabel);
+      hotspot.addEventListener("focus", showLabel);
+      hotspot.addEventListener("blur", hideLabel);
+      hotspot.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        event.stopPropagation();
+        explain();
+      });
+    });
+
     if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
   };
 
