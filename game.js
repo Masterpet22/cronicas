@@ -1,10 +1,11 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.9.0";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.9.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.15.1";
+import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.15.1";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.11.3";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.10.8";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.9.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.15.1";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.15.1";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.15.1";
+import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.15.1";
 
 const Phaser = window.Phaser;
 
@@ -24,6 +25,10 @@ class BattleScene extends Phaser.Scene {
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.mission = activeMission;
+    this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean).forEach((element) => {
+      const key = `element-${element}`;
+      if (!this.textures.exists(key)) this.load.image(key, elementIcon(element));
+    });
     queueFighterTexture(this, this.playerAppearance());
     this.mission.encounters.forEach((id, index) => {
       const profile = ENEMY_ROSTER[id];
@@ -38,7 +43,8 @@ class BattleScene extends Phaser.Scene {
     this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
-    const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean);
+    const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean)
+      .map((jutsu) => ({ ...jutsu, elementTexture: `element-${jutsu.element}` }));
     this.actions = [BASE_ACTIONS[0], ...selectedJutsus, BASE_ACTIONS[1]];
     this.enemyIndex = 0;
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
@@ -626,7 +632,7 @@ class BattleScene extends Phaser.Scene {
 
   async playerAttack(jutsu, casting) {
     const elementalMultiplier = affinityMultiplier(jutsu, this.enemy);
-    const affinityBonus = jutsu.element === this.saveData.character.affinity ? 1.1 : 1;
+    const affinityBonus = canAccessElement(jutsu.element, this.saveData.character.affinities, this.saveData.campaign.elementRank) ? 1.1 : 1;
     const damage = Math.max(1, Math.round((jutsu.damage + this.player.damageBonus) * casting.multiplier * elementalMultiplier * affinityBonus));
     const chance = hitChance(this.player, this.enemy, jutsu);
     const originX = this.hero.body.x;
@@ -895,7 +901,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   elementName(element) {
-    return ({ fire: "FUEGO", wind: "VIENTO", lightning: "RAYO", physical: "FÍSICO", arcane: "ARCANO" })[element] || element.toUpperCase();
+    return ({ fire: "FUEGO", wind: "VIENTO", lightning: "RAYO", physical: "FÍSICO", arcane: "ARCANO" })[element] || localizedElementName(element).toUpperCase();
   }
 
   shake(duration, intensity) {

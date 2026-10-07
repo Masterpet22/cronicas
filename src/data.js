@@ -18,21 +18,57 @@ export const BASE_ACTIONS = [
   { id: "guard", element: "none", type: "guard", name: "Guardia", subtitle: "-50% · +12CH · V20", cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
 ];
 
+const extraTechnique = (id, element, name, cost, damage, speedMod, seals, color, status) => ({
+  id, unlockLevel: 1, element, name,
+  subtitle: `${cost}CH · V${12 + speedMod} · P92${cost >= 20 ? " · CD2" : " · CD1"}`,
+  cost, damage, speedMod, accuracyMod: 2, cooldown: cost >= 20 ? 2 : 1, seals, color,
+  ...(status ? { status } : {})
+});
+
+const EXTRA_ELEMENT_TECHNIQUES = [
+  extraTechnique("fire_arc", "fuego", "Arco de llama", 12, 16, 2, ["serpiente", "caballo"], 0xff8d52),
+  extraTechnique("fire_brand", "fuego", "Marca ardiente", 16, 20, 0, ["tigre", "serpiente"], 0xff6b3d, { type: "burn", label: "QUEMADURA", duration: 2, power: 3 }),
+  extraTechnique("wind_step", "viento", "Paso del céfiro", 10, 14, 5, ["pajaro", "liebre"], 0x84e8cb),
+  extraTechnique("wind_wave", "viento", "Onda cortante", 16, 20, 2, ["perro", "pajaro"], 0x67e8c3),
+  extraTechnique("water_bullet", "agua", "Proyectil de agua", 10, 14, 3, ["dragon", "liebre"], 0x55bfff),
+  extraTechnique("water_whip", "agua", "Látigo de corriente", 14, 18, 2, ["dragon", "serpiente"], 0x48aee8),
+  extraTechnique("water_wall", "agua", "Muro de marea", 18, 21, -1, ["buey", "dragon"], 0x378fc9),
+  extraTechnique("water_lance", "agua", "Lanza abisal", 22, 27, -2, ["dragon", "tigre", "liebre"], 0x287bbd),
+  extraTechnique("earth_fist", "tierra", "Puño de roca", 10, 16, 0, ["buey", "perro"], 0xb78a55),
+  extraTechnique("earth_wall", "tierra", "Muralla pétrea", 14, 18, -2, ["buey", "jabali"], 0x9d7548),
+  extraTechnique("earth_spike", "tierra", "Púa tectónica", 18, 23, -1, ["perro", "buey", "tigre"], 0x8a633e),
+  extraTechnique("earth_quake", "tierra", "Pulso sísmico", 22, 28, -3, ["jabali", "buey", "dragon"], 0x765334),
+  extraTechnique("vapor_burst", "vapor", "Estallido de vapor", 21, 27, 1, ["dragon", "serpiente", "liebre"], 0xb7d8e8),
+  extraTechnique("magma_forge", "magma", "Forja de magma", 24, 31, -2, ["tigre", "buey", "serpiente"], 0xe65c32, { type: "burn", label: "QUEMADURA", duration: 3, power: 3 }),
+  extraTechnique("plant_bind", "planta", "Enredo esmeralda", 20, 24, 2, ["perro", "liebre", "buey"], 0x48bd72, { type: "seal", label: "SELLADO", duration: 2, power: 0 }),
+  extraTechnique("ice_spear", "hielo", "Lanza glacial", 22, 29, 0, ["pajaro", "dragon", "tigre"], 0x9ddfff),
+  extraTechnique("sand_coffin", "arena", "Prisión de arena", 23, 28, -1, ["buey", "perro", "dragon"], 0xd6aa5e, { type: "seal", label: "SELLADO", duration: 2, power: 0 }),
+  extraTechnique("venom_bloom", "veneno", "Flor venenosa", 27, 32, 1, ["serpiente", "perro", "dragon"], 0x6fbd55, { type: "poison", label: "VENENO", duration: 3, power: 4 }),
+  extraTechnique("metal_bastion", "metal", "Bastión de metal", 29, 36, -3, ["buey", "tigre", "dragon"], 0x9ca6b2),
+  extraTechnique("frost_crown", "escarcha", "Corona de escarcha", 26, 33, 1, ["pajaro", "liebre", "dragon"], 0xc6efff),
+  extraTechnique("glass_rain", "vidrio", "Lluvia de vidrio", 28, 37, 2, ["serpiente", "pajaro", "tigre"], 0xe8b868, { type: "bleed", label: "HERIDA", duration: 3, power: 4 }),
+  extraTechnique("storm_domain", "tormenta", "Dominio de tormenta", 31, 40, 2, ["rata", "dragon", "pajaro", "tigre"], 0x738cff, { type: "stun", label: "ATURDIDO", duration: 1, power: 0 }),
+  extraTechnique("crystal_prism", "cristal", "Prisma cristalino", 28, 36, 0, ["dragon", "buey", "liebre"], 0x8ec9e8),
+  extraTechnique("ash_funeral", "ceniza", "Réquiem de ceniza", 29, 38, -1, ["serpiente", "tigre", "caballo"], 0x9b8179, { type: "burn", label: "QUEMADURA", duration: 3, power: 4 }),
+  extraTechnique("root_colossus", "raiz", "Raíz ancestral", 30, 39, -2, ["perro", "buey", "jabali"], 0x7f9a58, { type: "seal", label: "SELLADO", duration: 3, power: 0 })
+];
+
 export const JUTSU_LIBRARY = [
-  { id: "fire_embers", unlockLevel: 1, element: "fire", name: "Ascuas veloces", subtitle: "10CH · V15 · P94 · CD1", cost: 10, damage: 14, speedMod: 3, accuracyMod: 4, cooldown: 1, seals: ["serpiente", "tigre"], color: 0xff8d52, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 2 } },
-  { id: "fire_breath", unlockLevel: 1, element: "fire", name: "Aliento de brasa", subtitle: "18CH · V10 · P90 · CD2", cost: 18, damage: 23, speedMod: -2, accuracyMod: 0, cooldown: 2, seals: ["serpiente", "carnero", "tigre"], color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 4 } },
-  { id: "fire_ring", unlockLevel: 2, element: "fire", name: "Anillo de ceniza", subtitle: "22CH · V12 · P88 · CD2", cost: 22, damage: 27, speedMod: 0, accuracyMod: -2, cooldown: 2, seals: ["caballo", "serpiente", "dragon"], color: 0xf25f3a, status: { type: "burn", label: "QUEMADURA", duration: 3, power: 3 } },
-  { id: "fire_phoenix", unlockLevel: 3, element: "fire", name: "Fénix escarlata", subtitle: "34CH · V6 · P80 · CD4", cost: 34, damage: 42, speedMod: -6, accuracyMod: -10, cooldown: 4, seals: ["caballo", "tigre", "serpiente", "dragon"], color: 0xff4935, cinematic: true, status: { type: "burn", label: "QUEMADURA", duration: 3, power: 5 } },
+  { id: "fire_embers", unlockLevel: 1, element: "fuego", name: "Ascuas veloces", subtitle: "10CH · V15 · P94 · CD1", cost: 10, damage: 14, speedMod: 3, accuracyMod: 4, cooldown: 1, seals: ["serpiente", "tigre"], color: 0xff8d52, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 2 } },
+  { id: "fire_breath", unlockLevel: 1, element: "fuego", name: "Aliento de brasa", subtitle: "18CH · V10 · P90 · CD2", cost: 18, damage: 23, speedMod: -2, accuracyMod: 0, cooldown: 2, seals: ["serpiente", "carnero", "tigre"], color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 4 } },
+  { id: "fire_ring", unlockLevel: 2, element: "fuego", name: "Anillo de ceniza", subtitle: "22CH · V12 · P88 · CD2", cost: 22, damage: 27, speedMod: 0, accuracyMod: -2, cooldown: 2, seals: ["caballo", "serpiente", "dragon"], color: 0xf25f3a, status: { type: "burn", label: "QUEMADURA", duration: 3, power: 3 } },
+  { id: "fire_phoenix", unlockLevel: 3, element: "fuego", name: "Fénix escarlata", subtitle: "34CH · V6 · P80 · CD4", cost: 34, damage: 42, speedMod: -6, accuracyMod: -10, cooldown: 4, seals: ["caballo", "tigre", "serpiente", "dragon"], color: 0xff4935, cinematic: true, status: { type: "burn", label: "QUEMADURA", duration: 3, power: 5 } },
 
-  { id: "wind_palm", unlockLevel: 1, element: "wind", name: "Palma de vacío", subtitle: "9CH · V17 · P96", cost: 9, damage: 13, speedMod: 5, accuracyMod: 6, cooldown: 0, seals: ["pajaro", "liebre"], color: 0x84e8cb },
-  { id: "wind_blade", unlockLevel: 1, element: "wind", name: "Filo de vendaval", subtitle: "15CH · V14 · P95 · CD1", cost: 15, damage: 19, speedMod: 2, accuracyMod: 5, cooldown: 1, seals: ["pajaro", "liebre", "perro"], color: 0x67e8c3, status: { type: "bleed", label: "HERIDA", duration: 3, power: 2 } },
-  { id: "wind_needles", unlockLevel: 2, element: "wind", name: "Agujas del norte", subtitle: "20CH · V16 · P90 · CD2", cost: 20, damage: 24, speedMod: 4, accuracyMod: 0, cooldown: 2, seals: ["pajaro", "perro", "buey"], color: 0x47cdb5, status: { type: "bleed", label: "HERIDA", duration: 3, power: 3 } },
-  { id: "wind_cyclone", unlockLevel: 3, element: "wind", name: "Ciclón cortante", subtitle: "32CH · V9 · P84 · CD3", cost: 32, damage: 38, speedMod: -3, accuracyMod: -6, cooldown: 3, seals: ["pajaro", "liebre", "perro", "dragon"], color: 0x36bda4, cinematic: true, status: { type: "bleed", label: "HERIDA", duration: 3, power: 4 } },
+  { id: "wind_palm", unlockLevel: 1, element: "viento", name: "Palma de vacío", subtitle: "9CH · V17 · P96", cost: 9, damage: 13, speedMod: 5, accuracyMod: 6, cooldown: 0, seals: ["pajaro", "liebre"], color: 0x84e8cb },
+  { id: "wind_blade", unlockLevel: 1, element: "viento", name: "Filo de vendaval", subtitle: "15CH · V14 · P95 · CD1", cost: 15, damage: 19, speedMod: 2, accuracyMod: 5, cooldown: 1, seals: ["pajaro", "liebre", "perro"], color: 0x67e8c3, status: { type: "bleed", label: "HERIDA", duration: 3, power: 2 } },
+  { id: "wind_needles", unlockLevel: 2, element: "viento", name: "Agujas del norte", subtitle: "20CH · V16 · P90 · CD2", cost: 20, damage: 24, speedMod: 4, accuracyMod: 0, cooldown: 2, seals: ["pajaro", "perro", "buey"], color: 0x47cdb5, status: { type: "bleed", label: "HERIDA", duration: 3, power: 3 } },
+  { id: "wind_cyclone", unlockLevel: 3, element: "viento", name: "Ciclón cortante", subtitle: "32CH · V9 · P84 · CD3", cost: 32, damage: 38, speedMod: -3, accuracyMod: -6, cooldown: 3, seals: ["pajaro", "liebre", "perro", "dragon"], color: 0x36bda4, cinematic: true, status: { type: "bleed", label: "HERIDA", duration: 3, power: 4 } },
 
-  { id: "lightning_spark", unlockLevel: 1, element: "lightning", name: "Aguja de chispa", subtitle: "11CH · V17 · P93 · CD1", cost: 11, damage: 15, speedMod: 5, accuracyMod: 3, cooldown: 1, seals: ["rata", "buey"], color: 0x8bbcff },
-  { id: "lightning_prison", unlockLevel: 1, element: "lightning", name: "Prisión del relámpago", subtitle: "28CH · V7 · P82 · CD3", cost: 28, damage: 34, speedMod: -5, accuracyMod: -8, cooldown: 3, seals: ["jabali", "buey", "dragon", "tigre"], color: 0x68a8ff, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } },
-  { id: "lightning_chain", unlockLevel: 2, element: "lightning", name: "Cadena estática", subtitle: "22CH · V12 · P87 · CD2", cost: 22, damage: 26, speedMod: 0, accuracyMod: -3, cooldown: 2, seals: ["rata", "buey", "dragon"], color: 0x508ff0, status: { type: "seal", label: "SELLADO", duration: 3, power: 0 } },
-  { id: "lightning_heaven", unlockLevel: 3, element: "lightning", name: "Juicio del cielo", subtitle: "36CH · V5 · P78 · CD4", cost: 36, damage: 44, speedMod: -7, accuracyMod: -12, cooldown: 4, seals: ["rata", "buey", "dragon", "tigre"], color: 0x3f78df, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } }
+  { id: "lightning_spark", unlockLevel: 1, element: "rayo", name: "Aguja de chispa", subtitle: "11CH · V17 · P93 · CD1", cost: 11, damage: 15, speedMod: 5, accuracyMod: 3, cooldown: 1, seals: ["rata", "buey"], color: 0x8bbcff },
+  { id: "lightning_prison", unlockLevel: 1, element: "rayo", name: "Prisión del relámpago", subtitle: "28CH · V7 · P82 · CD3", cost: 28, damage: 34, speedMod: -5, accuracyMod: -8, cooldown: 3, seals: ["jabali", "buey", "dragon", "tigre"], color: 0x68a8ff, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } },
+  { id: "lightning_chain", unlockLevel: 2, element: "rayo", name: "Cadena estática", subtitle: "22CH · V12 · P87 · CD2", cost: 22, damage: 26, speedMod: 0, accuracyMod: -3, cooldown: 2, seals: ["rata", "buey", "dragon"], color: 0x508ff0, status: { type: "seal", label: "SELLADO", duration: 3, power: 0 } },
+  { id: "lightning_heaven", unlockLevel: 3, element: "rayo", name: "Juicio del cielo", subtitle: "36CH · V5 · P78 · CD4", cost: 36, damage: 44, speedMod: -7, accuracyMod: -12, cooldown: 4, seals: ["rata", "buey", "dragon", "tigre"], color: 0x3f78df, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } },
+  ...EXTRA_ELEMENT_TECHNIQUES
 ];
 
 export const EQUIPMENT = {

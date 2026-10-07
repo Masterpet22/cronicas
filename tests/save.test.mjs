@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import { awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats, normalizeSave, SAVE_VERSION, spendAttribute } from "../src/save.js";
 
-let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "wind", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 3, "La apariencia modular debe usar la tercera versión del guardado");
+let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
+assert.equal(SAVE_VERSION, 4, "El sistema de afinidades debe usar la cuarta versión del guardado");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
-assert.equal(save.character.affinity, "wind", "La afinidad seleccionada debe guardarse");
+assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
+assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
 assert.equal(save.character.bodyType, "female", "El cuerpo elegido debe guardarse");
 assert.equal(save.character.hair, 4, "El peinado elegido debe guardarse");
 assert.equal(save.loadout.length, 4, "El personaje debe comenzar con cuatro técnicas");
@@ -37,21 +38,35 @@ const repeated = completeMission(campaignSave, "m02");
 assert.equal(repeated.firstClear, false, "Repetir una misión no debe duplicar su recompensa principal");
 campaignSave = completeMission(campaignSave, "m07").save;
 assert.equal(campaignSave.campaign.rank, "Guardián", "Aprobar el examen debe ascender el rango");
+assert.equal(campaignSave.campaign.elementRank, 2, "El examen debe abrir el segundo espacio de afinidad");
 
 let fullCampaign = save;
 for (let index = 1; index <= 10; index += 1) fullCampaign = completeMission(fullCampaign, `m${String(index).padStart(2, "0")}`).save;
 assert.equal(fullCampaign.campaign.completedMissions.length, 10, "La campaña completa debe registrar diez misiones");
 assert.equal(fullCampaign.campaign.rank, "Guardián", "La campaña completa debe conservar el ascenso");
+assert.equal(fullCampaign.campaign.elementRank, 3, "El final debe abrir el tercer espacio de afinidad");
 
 const corrupt = normalizeSave({ character: { name: "", affinity: "water" }, progression: { level: -4 }, equipment: {}, loadout: ["invalid"] });
 assert.equal(corrupt.progression.level, 1, "Los niveles inválidos deben repararse");
-assert.equal(corrupt.character.affinity, "fire", "Las afinidades inválidas deben repararse");
+assert.equal(corrupt.character.affinity, "fuego", "Las afinidades inválidas deben repararse");
 assert.equal(corrupt.loadout.length, 4, "Una selección corrupta debe restaurarse");
 assert.deepEqual(
   { bodyType: corrupt.character.bodyType, face: corrupt.character.face, hair: corrupt.character.hair, top: corrupt.character.top, bottom: corrupt.character.bottom, shoes: corrupt.character.shoes },
   { bodyType: "male", face: 1, hair: 1, top: 1, bottom: 1, shoes: 1 },
   "Un guardado anterior debe migrar a una apariencia modular válida"
 );
+
+const migrated = normalizeSave({ character: { name: "Legacy", affinity: "wind" }, progression: { level: 2 }, equipment: {}, campaign: { completedMissions: ["m07"] } });
+assert.deepEqual(migrated.character.affinities, ["viento"], "Los guardados anteriores deben migrar su afinidad básica");
+assert.equal(migrated.campaign.elementRank, 2, "El progreso anterior debe recuperar su rango elemental");
+
+const dualAffinity = normalizeSave({ ...campaignSave, character: { ...campaignSave.character, affinities: ["viento", "fuego"] }, loadout: ["lightning_spark"] });
+assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");
+assert.ok(dualAffinity.loadout.includes("lightning_spark"), "Combinar Viento y Fuego debe habilitar técnicas de Rayo");
+
+const tripleAffinity = normalizeSave({ ...fullCampaign, character: { ...fullCampaign.character, affinities: ["viento", "fuego", "agua"] }, loadout: ["storm_domain"] });
+assert.equal(tripleAffinity.character.affinities.length, 3, "El rango 3 debe conservar tres afinidades básicas");
+assert.ok(tripleAffinity.loadout.includes("storm_domain"), "Combinar Viento, Fuego y Agua debe habilitar técnicas de Tormenta");
 
 const repairedAppearance = normalizeSave({ ...save, character: { ...save.character, face: 99, hair: -3, top: "3", bottom: 0, shoes: 8 } });
 assert.deepEqual(

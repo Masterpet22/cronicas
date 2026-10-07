@@ -23,9 +23,9 @@ assert.equal(MISSIONS.length, 10, "La campaña debe contener diez misiones");
 assert.equal(MISSIONS.filter((mission) => mission.exam).length, 1, "Debe existir un examen de rango");
 assert.equal(Object.keys(SEALS).length, 12, "La hoja visual debe exponer doce sellos");
 assert.equal(new Set(Object.values(SEALS).map((seal) => seal.label)).size, 12, "Cada sello debe tener un nombre propio y único");
-assert.equal(JUTSU_LIBRARY.length, 12, "La biblioteca debe contener doce jutsus");
-for (const element of ["fire", "wind", "lightning"]) {
-  assert.equal(JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element).length, 4, `Debe haber cuatro jutsus de ${element}`);
+assert.equal(JUTSU_LIBRARY.length, 37, "La biblioteca debe cubrir técnicas básicas, secundarias y terciarias");
+for (const element of ["fuego", "agua", "tierra", "viento"]) {
+  assert.ok(JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element && jutsu.unlockLevel === 1).length >= 4, `Debe haber cuatro técnicas iniciales de ${element}`);
 }
 
 console.log("Pruebas de reglas superadas.");

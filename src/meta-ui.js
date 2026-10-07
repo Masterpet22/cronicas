@@ -1,9 +1,9 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.9.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.9.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.15.1";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.9.0";
-import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.9.0";
+import { createCharacter, derivedStats, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.15.1";
+import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.15.1";
 
-const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const COMING_SOON_LOCATIONS = {
   missions: { npcId: "riku", message: "El Tablón todavía no está recibiendo encargos. Próximamente podrás aceptar aquí misiones secundarias, contratos y favores de la aldea." },
   tower: { npcId: "kureha", message: "La Torre de Desafíos permanece cerrada mientras terminamos sus pruebas y reglas especiales. Próximamente podrás poner a prueba tu equipo piso por piso." },
@@ -68,13 +68,14 @@ export function mountMetaUI(root, initialSave, onStartMission) {
   };
 
   const renderCreator = () => {
+    const affinityChoices = BASIC_ELEMENT_IDS.map((id, index) => `<label class="affinity-choice"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>Afinidad básica</small></span></label>`).join("");
     root.innerHTML = `
       <section class="dojo-card creator-card">
         <p class="eyebrow">PRIMER PASO</p><h2>Crea tu combatiente</h2>
-        <p class="lead">Tu afinidad define el estilo inicial, pero podrás aprender técnicas de los tres elementos.</p>
+        <p class="lead">Comienzas con una afinidad básica. Los rangos 2 y 3 abrirán nuevos espacios y combinaciones.</p>
         <form id="character-form" class="creator-form">
           <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
-          <label>Afinidad<select name="affinity"><option value="fire">Fuego · daño persistente</option><option value="wind">Viento · velocidad y precisión</option><option value="lightning">Rayo · control y potencia</option></select></label>
+          <fieldset class="affinity-picker"><legend>Afinidad inicial</legend>${affinityChoices}</fieldset>
           <label>Cuerpo<select name="bodyType"><option value="male">Masculino</option><option value="female">Femenino</option></select></label>
           <label>Peinado<select name="hair"><option value="1">Corto</option><option value="2">Largo</option><option value="3">Puntiagudo</option><option value="4">Coleta</option><option value="5">Ninja</option></select></label>
           <label>Color principal y aura<input name="appearance" type="color" value="#68a8ff"></label>
@@ -430,12 +431,28 @@ export function mountMetaUI(root, initialSave, onStartMission) {
   const renderDojo = () => {
     const stats = derivedStats(save);
     const { progression, character } = save;
-    const techniques = JUTSU_LIBRARY.map((jutsu) => {
-      const unlocked = jutsu.unlockLevel <= progression.level;
-      const selected = save.loadout.includes(jutsu.id);
-      return `<label class="jutsu-card ${unlocked ? "" : "locked"} ${selected ? "selected" : ""}"><input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}><span class="element-dot ${jutsu.element}"></span><strong>${jutsu.name}</strong><small>${ELEMENT_NAMES[jutsu.element]} · ${jutsu.cost} CH · ${jutsu.damage} daño${unlocked ? "" : ` · Nivel ${jutsu.unlockLevel}`}</small></label>`;
+    const elementRank = save.campaign.elementRank;
+    const affinities = character.affinities;
+    const affinitySlots = BASIC_ELEMENT_IDS.map((id) => {
+      const selected = affinities.includes(id);
+      const primary = affinities[0] === id;
+      const disabled = !selected && affinities.length >= elementRank;
+      return `<button class="affinity-slot ${selected ? "selected" : ""}" type="button" data-affinity="${id}" ${primary || disabled ? "disabled" : ""}><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>${primary ? "Principal" : selected ? "Activa" : disabled ? "Sin espacio" : "Añadir"}</small></span></button>`;
     }).join("");
-    const content = `<div class="dojo-layout"><section class="stage-panel profile-card" data-comment="Poder mejora el daño; Agilidad modifica velocidad y evasión; Enfoque aumenta chakra y precisión." data-comment-npc="daichi"><p class="eyebrow">ENTRENAMIENTO</p><h2>Afinidad de ${ELEMENT_NAMES[character.affinity]}</h2><div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p><h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div><div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div></section><section class="stage-panel loadout-card" data-comment="Aquí cambias tu apariencia, equipamiento y los cuatro jutsus que podrás usar en combate." data-comment-npc="mei"><div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div><h3>Apariencia modular</h3><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div><div class="equipment-grid"><label>Arma<select data-equipment="weapon">${equipmentOptions("weapon")}</select></label><label>Protector<select data-equipment="armor">${equipmentOptions("armor")}</select></label><label>Accesorio<select data-equipment="accessory">${equipmentOptions("accessory")}</select></label></div><div class="jutsu-grid">${techniques}</div><p id="dojo-message" class="dojo-message">Los cambios se guardan automáticamente.</p></section></div>`;
+    const combinations = Object.entries(ELEMENTS).filter(([, element]) => element.tier > 1).map(([id, element]) => {
+      const available = canAccessElement(id, affinities, elementRank);
+      const special = element.tier === 4;
+      const requirements = basicRequirements(id).map(elementName).join(" + ");
+      return `<article class="combination-card ${available ? "available" : "locked"}"><img src="${element.icon}" alt="Icono de ${element.name}" width="512" height="512"><span><strong>${element.name}</strong><small>${special ? "Especial · reservado para el futuro" : `Nivel ${element.tier} · ${requirements}`}</small></span></article>`;
+    }).join("");
+    const techniques = JUTSU_LIBRARY.map((jutsu) => {
+      const affinityUnlocked = canAccessElement(jutsu.element, affinities, elementRank);
+      const unlocked = jutsu.unlockLevel <= progression.level && affinityUnlocked;
+      const selected = save.loadout.includes(jutsu.id);
+      const lockReason = !affinityUnlocked ? `Requiere ${basicRequirements(jutsu.element).map(elementName).join(" + ")}` : `Nivel ${jutsu.unlockLevel}`;
+      return `<label class="jutsu-card ${unlocked ? "" : "locked"} ${selected ? "selected" : ""}"><input type="checkbox" data-jutsu="${jutsu.id}" ${selected ? "checked" : ""} ${unlocked ? "" : "disabled"}><img class="element-icon" src="${elementIcon(jutsu.element)}" alt="" width="512" height="512"><strong>${jutsu.name}</strong><small>${elementName(jutsu.element)} · ${jutsu.cost} CH · ${jutsu.damage} daño${unlocked ? "" : ` · ${lockReason}`}</small></label>`;
+    }).join("");
+    const content = `<div class="dojo-layout"><section class="stage-panel profile-card" data-comment="Poder mejora el daño; Agilidad modifica velocidad y evasión; Enfoque aumenta chakra y precisión." data-comment-npc="daichi"><p class="eyebrow">ENTRENAMIENTO</p><h2>${ELEMENT_RANK_LABELS[elementRank]}</h2><p class="compact">${affinities.length}/${elementRank} afinidades activas</p><div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p><h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div><div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div></section><section class="stage-panel loadout-card" data-comment="Aquí cambias afinidades, apariencia, equipamiento y las cuatro técnicas que usarás en combate." data-comment-npc="mei"><div class="section-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Equipo de combate</h2></div><strong>${save.loadout.length}/4 técnicas</strong></div><h3>Afinidades básicas</h3><div class="affinity-slots">${affinitySlots}</div><details class="combination-codex"><summary>Combinaciones elementales</summary><div class="combination-grid">${combinations}</div></details><h3>Apariencia modular</h3><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div><div class="equipment-grid"><label>Arma<select data-equipment="weapon">${equipmentOptions("weapon")}</select></label><label>Protector<select data-equipment="armor">${equipmentOptions("armor")}</select></label><label>Accesorio<select data-equipment="accessory">${equipmentOptions("accessory")}</select></label></div><div class="jutsu-grid">${techniques}</div><p id="dojo-message" class="dojo-message">Los cambios se guardan automáticamente.</p></section></div>`;
     shell(locationStage("dojo", content));
 
     // El Dojo es una interfaz interactiva: guardar un cambio no debe reconstruir
@@ -484,6 +501,15 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       save = writeSave(next);
       syncDojo();
     };
+
+    root.querySelectorAll("[data-affinity]").forEach((button) => button.addEventListener("click", () => {
+      const id = button.dataset.affinity;
+      const selected = save.character.affinities.includes(id);
+      save.character.affinities = selected
+        ? save.character.affinities.filter((entry) => entry !== id)
+        : [...save.character.affinities, id];
+      persist(save);
+    }));
 
     root.querySelectorAll("[data-attribute]").forEach((button) => button.addEventListener("click", () => {
       if (!save.progression.attributePoints) return;

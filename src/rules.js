@@ -9,8 +9,11 @@ export function hitChance(attacker, defender, action) {
 
 export function affinityMultiplier(action, target) {
   if (!action.element || action.element === "none" || action.element === "physical") return action.element === target.resistance ? 0.9 : 1;
-  if (action.element === target.weakness) return 1.15;
-  if (action.element === target.resistance) return 0.9;
+  const legacy = { fire: "fuego", wind: "viento", lightning: "rayo" };
+  const weakness = legacy[target.weakness] || target.weakness;
+  const resistance = legacy[target.resistance] || target.resistance;
+  if (action.element === weakness) return 1.15;
+  if (action.element === resistance) return 0.9;
   return 1;
 }
 

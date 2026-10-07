@@ -1,10 +1,11 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.9.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.15.1";
+import { BASIC_ELEMENT_IDS, canAccessElement } from "./elements.js?v=0.15.1";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
-const VALID_AFFINITIES = ["fire", "wind", "lightning"];
+const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
 
 export function createDefaultSave() {
   return {
@@ -22,6 +23,7 @@ export function createDefaultSave() {
     campaign: {
       completedMissions: [],
       rank: "Novicio",
+      elementRank: 1,
       tutorialSeen: false,
       companion: null
     }
@@ -29,22 +31,19 @@ export function createDefaultSave() {
 }
 
 export function initialLoadout(affinity) {
-  const own = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1).slice(0, 2);
-  const others = VALID_AFFINITIES
-    .filter((element) => element !== affinity)
-    .map((element) => JUTSU_LIBRARY.find((jutsu) => jutsu.element === element && jutsu.unlockLevel === 1));
-  return [...own, ...others].filter(Boolean).map((jutsu) => jutsu.id).slice(0, 4);
+  return JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1)
+    .slice(0, 4).map((jutsu) => jutsu.id);
 }
 
 export function createCharacter(save, { name, affinity, appearance, bodyType, hair }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
-  const cleanAffinity = VALID_AFFINITIES.includes(affinity) ? affinity : "fire";
+  const cleanAffinity = BASIC_ELEMENT_IDS.includes(affinity) ? affinity : "fuego";
   const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
   return {
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
+    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     loadout: initialLoadout(cleanAffinity),
@@ -62,16 +61,28 @@ export function normalizeSave(candidate) {
   const progression = candidate.progression || {};
   const attributes = progression.attributes || {};
   const level = Math.max(1, Math.floor(Number(progression.level) || 1));
-  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => jutsu.unlockLevel <= level).map((jutsu) => jutsu.id));
-  const loadout = [...new Set(Array.isArray(candidate.loadout) ? candidate.loadout : [])]
+  const completedMissions = [...new Set(Array.isArray(candidate.campaign?.completedMissions) ? candidate.campaign.completedMissions : [])]
+    .filter((id) => MISSIONS.some((mission) => mission.id === id));
+  const inferredRank = completedMissions.includes("m10") ? 3 : completedMissions.includes("m07") ? 2 : 1;
+  const elementRank = Math.min(3, Math.max(inferredRank, Math.floor(Number(candidate.campaign?.elementRank) || 1)));
+  const legacyAffinity = LEGACY_AFFINITIES[candidate.character?.affinity] || candidate.character?.affinity;
+  const requestedAffinities = Array.isArray(candidate.character?.affinities) ? candidate.character.affinities : [legacyAffinity];
+  const affinities = [...new Set(requestedAffinities.map((id) => LEGACY_AFFINITIES[id] || id))]
+    .filter((id) => BASIC_ELEMENT_IDS.includes(id)).slice(0, elementRank);
+  if (!affinities.length) affinities.push("fuego");
+  const affinity = affinities[0];
+  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => jutsu.unlockLevel <= level && canAccessElement(jutsu.element, affinities, elementRank)).map((jutsu) => jutsu.id));
+  const selectedLoadout = [...new Set(Array.isArray(candidate.loadout) ? candidate.loadout : [])]
+    .filter((id) => unlockedIds.has(id));
+  const loadout = [...new Set([...selectedLoadout, ...initialLoadout(affinity)])]
     .filter((id) => unlockedIds.has(id)).slice(0, 4);
-  const affinity = VALID_AFFINITIES.includes(candidate.character?.affinity) ? candidate.character.affinity : "fire";
 
   return {
     version: SAVE_VERSION,
     character: candidate.character ? {
       name: String(candidate.character.name || "Akio").trim().slice(0, 18) || "Akio",
       affinity,
+      affinities,
       appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5",
       bodyType: candidate.character.bodyType === "female" ? "female" : "male",
       face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
@@ -96,11 +107,11 @@ export function normalizeSave(candidate) {
       armor: validEquipment("armor", candidate.equipment?.armor),
       accessory: validEquipment("accessory", candidate.equipment?.accessory)
     },
-    loadout: loadout.length ? loadout : (candidate.character ? initialLoadout(affinity) : []),
+    loadout: candidate.character ? loadout : [],
     campaign: {
-      completedMissions: [...new Set(Array.isArray(candidate.campaign?.completedMissions) ? candidate.campaign.completedMissions : [])]
-        .filter((id) => MISSIONS.some((mission) => mission.id === id)),
+      completedMissions,
       rank: candidate.campaign?.rank === "Guardián" ? "Guardián" : "Novicio",
+      elementRank,
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
       companion: candidate.campaign?.companion === "mika" ? "mika" : null
     }
@@ -162,6 +173,8 @@ export function completeMission(save, missionId) {
   result.campaign.completedMissions.push(missionId);
   if (missionId === "m02") result.campaign.companion = "mika";
   if (mission.exam) result.campaign.rank = "Guardián";
+  if (mission.exam) result.campaign.elementRank = Math.max(2, result.campaign.elementRank);
+  if (mission.finale) result.campaign.elementRank = 3;
 
   let levelsGained = 0;
   while (result.progression.xp >= xpForNextLevel(result.progression.level)) {

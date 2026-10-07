@@ -33,14 +33,14 @@
       "grid": [4, 2],
       "sheet": "tier-3/tier-3-sheet.png",
       "elements": [
-        { "id": "veneno", "name": "Veneno", "icon": "tier-3/veneno.png", "parents": ["planta", "agua"] },
-        { "id": "metal", "name": "Metal", "icon": "tier-3/metal.png", "parents": ["magma", "tierra"] },
-        { "id": "escarcha", "name": "Escarcha", "icon": "tier-3/escarcha.png", "parents": ["hielo", "viento"] },
+        { "id": "veneno", "name": "Veneno", "icon": "tier-3/veneno.png", "parents": ["planta", "fuego"] },
+        { "id": "metal", "name": "Metal", "icon": "tier-3/metal.png", "parents": ["magma", "viento"] },
+        { "id": "escarcha", "name": "Escarcha", "icon": "tier-3/escarcha.png", "parents": ["hielo", "tierra"] },
         { "id": "vidrio", "name": "Vidrio", "icon": "tier-3/vidrio.png", "parents": ["arena", "fuego"] },
-        { "id": "tormenta", "name": "Tormenta", "icon": "tier-3/tormenta.png", "parents": ["rayo", "viento"] },
+        { "id": "tormenta", "name": "Tormenta", "icon": "tier-3/tormenta.png", "parents": ["rayo", "agua"] },
         { "id": "cristal", "name": "Cristal", "icon": "tier-3/cristal.png", "parents": ["hielo", "tierra"] },
         { "id": "ceniza", "name": "Ceniza", "icon": "tier-3/ceniza.png", "parents": ["planta", "fuego"] },
-        { "id": "raiz", "name": "Raíz", "icon": "tier-3/raiz.png", "parents": ["planta", "tierra"] }
+        { "id": "raiz", "name": "Raíz", "icon": "tier-3/raiz.png", "parents": ["planta", "viento"] }
       ]
     },
     {

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { basicRequirements, canAccessElement } from "../src/elements.js";
 
 const root = new URL("../assets/elements/", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("manifest.json", root), "utf8"));
@@ -29,4 +30,9 @@ for (const tier of manifest.tiers) {
 }
 
 assert.equal(ids.size, 22, "El sistema debe contener exactamente 22 elementos únicos");
+assert.equal(canAccessElement("vapor", ["agua", "fuego"], 2), true, "Dos afinidades deben habilitar una combinación secundaria");
+assert.equal(canAccessElement("vapor", ["agua", "fuego"], 1), false, "El rango 1 no debe habilitar combinaciones secundarias");
+assert.deepEqual(basicRequirements("tormenta").sort(), ["agua", "fuego", "viento"], "Una técnica terciaria debe exigir tres afinidades básicas");
+assert.equal(canAccessElement("tormenta", ["agua", "fuego", "viento"], 3), true, "El rango 3 debe habilitar combinaciones terciarias conocidas");
+assert.equal(canAccessElement("plasma", ["agua", "fuego", "viento"], 3), false, "Los elementos especiales deben permanecer reservados");
 console.log("Pruebas de iconografía elemental superadas.");
