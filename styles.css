@@ -1210,8 +1210,8 @@ body {
 .village-topbar {
   padding: 16px 28px 18px;
   border: 0;
-  background-color: #17120f;
-  background-image: url("assets/ui/hud-frame.png?v=0.19.0"), linear-gradient(180deg, rgba(31,24,19,.98), rgba(17,13,11,.98));
+  background-color: transparent;
+  background-image: url("assets/ui/hud-frame.png?v=0.19.0");
 }
 
 .player-settings-trigger,
@@ -1219,7 +1219,7 @@ body {
 .notice-arrow,
 .equipment-modal-heading button {
   border: 0;
-  background-color: var(--ui-ink);
+  background-color: transparent;
   background-image: url("assets/ui/action-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
@@ -1237,7 +1237,7 @@ body {
   border: 0;
   border-radius: 5px;
   padding: 13px 28px;
-  background-color: #201712;
+  background-color: transparent;
   background-image: url("assets/ui/nav-button-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
@@ -1254,7 +1254,7 @@ body {
 .gear-slot {
   border: 0;
   padding: 24% 20% 20% !important;
-  background-color: #1b1714;
+  background-color: transparent;
   background-image: url("assets/ui/equipment-slot-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
@@ -1269,7 +1269,7 @@ body {
   border: 0;
   border-radius: 4px;
   padding: 34px 38px;
-  background-color: var(--ui-paper);
+  background-color: transparent;
   background-image: url("assets/ui/panel-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
@@ -1279,7 +1279,7 @@ body {
 
 .dialogue-box.with-portrait {
   padding: 28px 38px 28px 0;
-  background-color: var(--ui-paper);
+  background-color: transparent;
   background-image: url("assets/ui/panel-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
@@ -1300,7 +1300,7 @@ body {
 .village-map-card > .notice-card {
   border: 0;
   border-radius: 4px;
-  background-color: #211b17;
+  background-color: transparent;
   background-image: url("assets/ui/card-frame.png?v=0.19.0");
   background-position: center;
   background-size: 100% 100%;
@@ -1312,7 +1312,7 @@ body {
 .saga-card:hover:not(:disabled) {
   min-height: 146px;
   padding: 28px 42px;
-  background-color: #211b17;
+  background-color: transparent;
   background-image: url("assets/ui/card-frame.png?v=0.19.0");
 }
 
