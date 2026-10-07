@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.9.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.9.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.11.1";
+import { createActionButton, createBar } from "./src/ui.js?v=0.11.2";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.10.2";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.9.0";
 
@@ -270,8 +270,11 @@ class BattleScene extends Phaser.Scene {
   }
 
   createPauseButton() {
-    const bg = this.add.rectangle(888, 131, 54, 28, 0x091421, 0.94).setStrokeStyle(1, 0xf5c96b, 0.85).setDepth(25).setInteractive({ useHandCursor: true });
-    const label = this.add.text(888, 131, "Ⅱ  PAUSA", this.textStyle(9, "#f7d99b", "700")).setOrigin(0.5).setDepth(26);
+    const bg = this.add.rectangle(548, 34, 88, 30, 0x091421, 0.96)
+      .setStrokeStyle(1, 0xf5c96b, 0.85)
+      .setDepth(25)
+      .setInteractive({ useHandCursor: true });
+    const label = this.add.text(548, 34, "Ⅱ  PAUSA", this.textStyle(9, "#f7d99b", "700")).setOrigin(0.5).setDepth(26);
     bg.on("pointerover", () => bg.setFillStyle(0x24334a));
     bg.on("pointerout", () => bg.setFillStyle(0x091421));
     const openPause = () => {
@@ -324,8 +327,6 @@ class BattleScene extends Phaser.Scene {
   }
 
   createActionPanel() {
-    this.messageBg = this.add.rectangle(20, 368, 920, 32, 0x070b12, 0.92).setOrigin(0);
-    this.messageText = this.add.text(36, 376, "", this.textStyle(14, "#f7d6a5", "600"));
     this.buttons = [];
 
     this.actions.forEach((jutsu, index) => {
@@ -832,7 +833,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   setMessage(text, color = "#f7d6a5") {
-    this.messageText.setText(text).setColor(color);
+    this.lastBattleMessage = { text, color };
   }
 
   actionCost(action) {
