@@ -389,7 +389,7 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 
 @media (max-width: 650px) {
   main { width: 100%; padding-top: 0; }
-  .game-heading { top: 9px; right: 9px; padding: 0; }
+  .game-heading { top: 9px; left: calc(50% - 52px); right: auto; transform: translateX(-50%); padding: 0; }
   .game-settings summary { width: 42px; height: 42px; justify-content: center; padding: 0; font-size: 0; }
   .game-settings summary span { font-size: 1rem; }
   .game-settings-panel { width: min(340px, calc(100vw - 18px)); }
