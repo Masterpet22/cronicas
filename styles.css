@@ -791,3 +791,153 @@ body:has(#meta:not([hidden])) .game-heading {
 body:has(#meta:not([hidden])) .village-map-card {
   margin-top: 0;
 }
+
+/* Settings live inside the player HUD; back navigation owns the top-right slot */
+body:has(#meta:not([hidden])) .game-heading {
+  position: absolute;
+  z-index: 65;
+  top: 112px;
+  right: 26px;
+  left: auto;
+  width: 340px;
+  transform: none;
+  pointer-events: none;
+}
+body:has(#meta:not([hidden])) .game-settings {
+  pointer-events: none;
+}
+body:has(#meta:not([hidden])) .game-settings > summary {
+  position: absolute;
+  width: 1px !important;
+  height: 1px !important;
+  min-height: 0 !important;
+  overflow: hidden;
+  clip-path: inset(50%);
+  padding: 0 !important;
+  border: 0 !important;
+  opacity: 0;
+  pointer-events: none;
+}
+body:has(#meta:not([hidden])) .game-settings-panel {
+  top: 0;
+  right: 0;
+  width: min(390px, calc(100vw - 30px));
+  pointer-events: auto;
+}
+body:has(#game:not([hidden])) .game-heading {
+  display: none !important;
+}
+
+.village-topbar {
+  padding-right: 8px;
+}
+.player-settings-trigger {
+  display: grid;
+  place-items: center;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  margin-left: 6px;
+  border: 1px solid rgba(73,151,246,.68);
+  border-radius: 15px;
+  padding: 0;
+  background: rgba(10,26,46,.8);
+  color: #dcecff;
+  cursor: pointer;
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.player-settings-trigger svg {
+  width: 29px;
+  height: 29px;
+  fill: currentColor;
+}
+.player-settings-trigger:hover,
+.player-settings-trigger[aria-expanded="true"] {
+  border-color: #f5a357;
+  background: rgba(66,42,23,.88);
+  color: #ffd39b;
+  transform: rotate(12deg);
+}
+.player-settings-trigger:focus-visible {
+  outline: 2px solid #8fc7ff;
+  outline-offset: 2px;
+}
+
+.village-return {
+  top: 18px !important;
+  right: 26px !important;
+  left: auto !important;
+  z-index: 60;
+}
+.village-return button {
+  min-width: 168px;
+  min-height: 58px;
+  border: 1px solid rgba(67,147,255,.72);
+  border-radius: 18px;
+  padding: 0 20px;
+  background: linear-gradient(180deg, rgba(9,22,40,.96), rgba(7,15,28,.94));
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.03), 0 12px 32px rgba(0,0,0,.38);
+  color: #f1f5fb;
+  font-size: .86rem;
+  font-weight: 850;
+}
+.village-return button:hover {
+  border-color: #f5a357;
+  background: rgba(26,27,35,.96);
+}
+
+@media (max-width: 980px) {
+  .player-settings-trigger {
+    flex-basis: 46px;
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+  }
+  .player-settings-trigger svg { width: 24px; height: 24px; }
+  .village-return {
+    top: 14px !important;
+    right: 14px !important;
+  }
+  .village-return button {
+    min-width: 52px;
+    min-height: 52px;
+    width: 52px;
+    padding: 0;
+    overflow: hidden;
+    font-size: 0;
+  }
+  .village-return button::before {
+    content: "←";
+    font-size: 1.35rem;
+  }
+  body:has(#meta:not([hidden])) .game-heading {
+    top: 78px;
+    right: 14px;
+  }
+}
+@media (max-width: 650px) {
+  .player-settings-trigger {
+    flex-basis: 38px;
+    width: 38px;
+    height: 38px;
+    margin-left: 2px;
+    border-radius: 10px;
+  }
+  .player-settings-trigger svg { width: 21px; height: 21px; }
+  .village-return {
+    top: 8px !important;
+    right: 8px !important;
+  }
+  .village-return button {
+    width: 42px;
+    min-width: 42px;
+    min-height: 42px;
+    height: 42px;
+    border-radius: 12px;
+  }
+  body:has(#meta:not([hidden])) .game-heading {
+    top: 58px;
+    right: 8px;
+    width: min(340px, calc(100vw - 16px));
+  }
+}
