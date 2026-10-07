@@ -173,7 +173,22 @@ input, select, button { font: inherit; }
 .character-preview { position: relative; width: 180px; aspect-ratio: 1; overflow: hidden; border: 1px solid #344154; border-radius: 12px; background: radial-gradient(circle at 50% 38%, #2a3548, #101722 72%); }
 .character-preview svg { display: block; width: 100%; height: 100%; }
 .cosmetic-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 10px 0 20px; }
-.equipment-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
+.dojo-heading { margin-bottom: 14px; }
+.dojo-section { margin-top: 10px; border: 1px solid rgba(89,113,146,.42); border-radius: 12px; padding: 12px; background: rgba(5,11,19,.6); }
+.dojo-section-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.dojo-section-heading h3 { margin: 0 0 3px; color: #f3c080; }
+.dojo-section-heading p, .skill-tree-heading p { margin: 0; color: #7f8da1; font-size: .65rem; }
+.dojo-section-heading > span { border: 1px solid rgba(245,163,87,.35); border-radius: 99px; padding: 4px 8px; color: #f5b978; font-size: .61rem; font-weight: 850; text-transform: uppercase; }
+.equipment-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 0; }
+.gear-slot { position: relative; display: grid !important; grid-template-columns: 38px minmax(0, 1fr); align-items: center; gap: 9px !important; min-width: 0; min-height: 63px; border: 1px solid #314158; border-radius: 10px; padding: 8px !important; background: linear-gradient(145deg, rgba(24,35,51,.96), rgba(10,17,27,.96)); }
+.gear-icon { display: grid; width: 38px; height: 38px; place-items: center; border: 1px solid rgba(245,163,87,.32); border-radius: 9px; background: rgba(245,163,87,.08); color: #f5b36f; font-size: 1.1rem; }
+.gear-copy { display: grid; min-width: 0; gap: 3px; }
+.gear-copy small { color: #8290a4; font-size: .56rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+.gear-copy select { width: 100%; min-width: 0; overflow: hidden; border: 0; padding: 1px 20px 1px 0; background-color: transparent; color: #eef3f8; font-size: .68rem; font-weight: 750; text-overflow: ellipsis; }
+.gear-copy strong { overflow: hidden; color: #dce4ee; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
+.gear-copy em { color: #707f93; font-size: .56rem; font-style: normal; }
+.companion-slot { opacity: .65; }
+.companion-slot .slot-lock { margin-left: auto; }
 .jutsu-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; max-height: 330px; overflow-y: auto; padding-right: 4px; }
 .jutsu-card { position: relative; display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 5px 8px; border: 1px solid #303d50; border-radius: 8px; padding: 10px; background: #111925; cursor: pointer; }
 .jutsu-card.selected { border-color: #f5a357; background: #23202a; }
@@ -182,32 +197,65 @@ input, select, button { font: inherit; }
 .jutsu-card strong { font-size: 0.84rem; }
 .jutsu-card small { grid-column: 3; color: #9eabba; font-size: 0.67rem; }
 .element-icon { width: 34px; height: 34px; object-fit: contain; }
-.affinity-slots { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 10px; }
-.affinity-slot { display: flex; align-items: center; gap: 7px; border: 1px solid #303d50; border-radius: 9px; padding: 7px; background: #111925; color: #dfe7f2; text-align: left; cursor: pointer; }
-.affinity-slot.selected { border-color: #67e8c3; background: rgba(36,87,79,.34); }
-.affinity-slot:disabled { opacity: .52; cursor: not-allowed; }
-.affinity-slot.selected:disabled { opacity: 1; }
+.affinity-slots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.affinity-slot { position: relative; display: grid; grid-template-columns: 24px 36px minmax(0, 1fr); align-items: center; gap: 6px; min-height: 57px; border: 1px solid #303d50; border-radius: 9px; padding: 7px; background: #111925; color: #dfe7f2; text-align: left; cursor: pointer; }
+.affinity-slot.selected { border-color: #67e8c3; background: linear-gradient(145deg, rgba(36,87,79,.42), rgba(12,27,34,.9)); }
+.affinity-slot.empty { grid-template-columns: 24px minmax(0, 1fr) auto; border-style: dashed; }
+.affinity-slot.locked { grid-template-columns: 24px minmax(0, 1fr) auto; opacity: .52; cursor: not-allowed; }
 .affinity-slot img { width: 36px; height: 36px; object-fit: contain; }
 .affinity-slot span { display: grid; min-width: 0; }
-.affinity-slot strong { font-size: .72rem; }
-.affinity-slot small { color: #8e9daf; font-size: .58rem; }
-.skill-tree { margin: 10px 0 17px; border: 1px solid #34455c; border-radius: 12px; padding: 12px; background: radial-gradient(circle at 50% 0, rgba(59,112,169,.16), transparent 48%), rgba(6,11,19,.72); }
-.skill-tree-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
-.skill-tree-heading h3 { margin: 0; color: #f3c080; }
-.skill-tree-heading small { color: #8090a6; font-size: .63rem; }
-.skill-tree-layer { position: relative; display: grid; grid-template-columns: 58px 1fr; align-items: center; gap: 8px; min-height: 58px; }
-.skill-tree-layer + .skill-tree-layer { margin-top: 12px; }
-.skill-tree-layer + .skill-tree-layer::before { content: ""; position: absolute; top: -14px; left: 86px; width: 2px; height: 16px; background: linear-gradient(#4f78a5, #67e8c3); box-shadow: 0 0 7px rgba(103,232,195,.34); }
-.skill-tier-label { color: #7590b2; font-size: .58rem; font-weight: 900; letter-spacing: .09em; }
-.skill-node-row { display: flex; flex-wrap: wrap; gap: 7px; }
-.skill-node { display: flex; align-items: center; gap: 7px; min-width: 132px; border: 1px solid rgba(103,232,195,.45); border-radius: 9px; padding: 6px 8px; background: linear-gradient(145deg, rgba(28,51,66,.94), rgba(12,22,33,.96)); box-shadow: inset 0 0 14px rgba(103,232,195,.06); }
-.skill-node.tier-2 { border-color: rgba(104,168,255,.58); }
-.skill-node.tier-3 { border-color: rgba(245,163,87,.62); }
-.skill-node img { width: 40px; height: 40px; flex: 0 0 40px; object-fit: contain; }
-.skill-node span { display: grid; min-width: 0; }
-.skill-node strong { font-size: .7rem; }
-.skill-node small { color: #91a0b4; font-size: .54rem; line-height: 1.25; }
-.skill-tree-empty { margin: 0; border: 1px dashed #344154; border-radius: 8px; padding: 10px; color: #77869a; font-size: .65rem; }
+.affinity-slot strong { overflow: hidden; font-size: .68rem; text-overflow: ellipsis; white-space: nowrap; }
+.affinity-slot small { color: #8e9daf; font-size: .54rem; line-height: 1.25; }
+.slot-index { display: grid !important; width: 20px; height: 20px; place-items: center; border-radius: 50%; background: rgba(255,255,255,.08); color: #8795a8; font-size: .57rem; font-weight: 900; }
+.slot-edit { color: #74cfba; font-size: .5rem; font-weight: 850; text-transform: uppercase; }
+.slot-add { color: #67e8c3; font-size: 1.1rem; }
+.slot-lock { color: #718096; font-size: .9rem; }
+.affinity-selector { margin-top: 9px; border: 1px solid rgba(103,232,195,.3); border-radius: 10px; padding: 10px; background: #09121d; }
+.affinity-selector[hidden] { display: none; }
+.affinity-selector > div:first-child { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.affinity-selector > div:first-child strong { color: #e9eef5; font-size: .72rem; }
+.affinity-selector > div:first-child small { color: #748297; font-size: .58rem; }
+.affinity-options { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.affinity-option { display: flex; align-items: center; gap: 6px; border: 1px solid #314158; border-radius: 8px; padding: 6px; background: #111b29; color: #dfe7f2; text-align: left; cursor: pointer; }
+.affinity-option:hover:not(:disabled) { border-color: #67e8c3; }
+.affinity-option:disabled { opacity: .42; cursor: not-allowed; }
+.affinity-option img { width: 30px; height: 30px; object-fit: contain; }
+.affinity-option span { display: grid; min-width: 0; }
+.affinity-option strong { font-size: .62rem; }
+.affinity-option small { color: #8391a4; font-size: .5rem; }
+.affinity-close { margin-top: 7px; border: 0; padding: 4px 0; background: transparent; color: #8f9db0; font-size: .58rem; cursor: pointer; }
+.skill-tree { margin: 10px 0; border: 1px solid #34455c; border-radius: 12px; padding: 12px; background: radial-gradient(circle at 50% 0, rgba(59,112,169,.16), transparent 48%), rgba(6,11,19,.72); }
+.skill-tree-heading { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 11px; }
+.skill-tree-heading h3 { margin: 0 0 3px; color: #f3c080; }
+.tree-legend { display: flex; align-items: center; gap: 5px; color: #75849a; font-size: .52rem; white-space: nowrap; }
+.tree-legend i { width: 7px; height: 7px; border-radius: 50%; background: #67e8c3; }
+.tree-legend i:nth-of-type(2) { margin-left: 4px; background: #4a5668; }
+.skill-branches { display: grid; gap: 9px; }
+.skill-branch { display: grid; grid-template-columns: 104px minmax(0, 1fr); align-items: stretch; gap: 7px; }
+.skill-branch > header { display: flex; align-items: center; gap: 6px; border: 1px solid color-mix(in srgb, var(--branch-color) 56%, transparent); border-radius: 9px; padding: 7px; background: color-mix(in srgb, var(--branch-color) 10%, #0b1420); }
+.skill-branch > header img { width: 34px; height: 34px; object-fit: contain; }
+.skill-branch > header span { display: grid; min-width: 0; }
+.skill-branch > header strong { font-size: .66rem; }
+.skill-branch > header small { overflow: hidden; color: #8492a6; font-size: .48rem; text-overflow: ellipsis; white-space: nowrap; }
+.skill-path { display: grid; grid-auto-columns: minmax(112px, 1fr); grid-auto-flow: column; gap: 13px; overflow-x: auto; padding: 1px 2px 5px; }
+.skill-node { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 6px; min-width: 112px; border: 1px solid #39485c; border-radius: 9px; padding: 7px; background: linear-gradient(145deg, rgba(22,33,48,.96), rgba(9,15,24,.98)); cursor: pointer; }
+.skill-node + .skill-node::before { content: ""; position: absolute; top: 50%; right: 100%; width: 14px; height: 2px; background: #3d526c; }
+.skill-node.available { border-color: color-mix(in srgb, var(--branch-color) 55%, #33445b); }
+.skill-node.available .skill-step { border-color: var(--branch-color); color: var(--branch-color); }
+.skill-node.selected { border-color: #f5a357; box-shadow: inset 0 0 16px rgba(245,163,87,.1); }
+.skill-node.locked { opacity: .46; cursor: not-allowed; }
+.skill-node input { position: absolute; opacity: 0; pointer-events: none; }
+.skill-step { display: grid; width: 22px; height: 22px; place-items: center; border: 1px solid #536176; border-radius: 50%; color: #8795a8; font-size: .55rem; font-weight: 900; }
+.skill-copy { display: grid; min-width: 0; }
+.skill-copy strong { overflow: hidden; font-size: .62rem; text-overflow: ellipsis; white-space: nowrap; }
+.skill-copy small { color: #8290a4; font-size: .5rem; }
+.skill-state { grid-column: 1 / -1; border-top: 1px solid rgba(255,255,255,.06); padding-top: 4px; color: #718096; font-size: .47rem; font-weight: 900; letter-spacing: .06em; }
+.skill-node.selected .skill-state { color: #f5a357; }
+.appearance-panel { margin-top: 10px; border: 1px solid rgba(72,88,112,.55); border-radius: 10px; background: rgba(8,14,23,.55); }
+.appearance-panel summary { display: flex; justify-content: space-between; padding: 10px 12px; color: #aab5c4; font-size: .66rem; font-weight: 800; cursor: pointer; list-style: none; text-transform: uppercase; letter-spacing: .06em; }
+.appearance-panel summary::-webkit-details-marker { display: none; }
+.appearance-panel summary span { color: #65748a; font-size: .55rem; }
+.appearance-panel .customizer { padding: 0 12px 12px; }
 .element-dot { width: 8px; height: 8px; border-radius: 50%; }
 .element-dot.fire { background: #ff783d; }.element-dot.wind { background: #67e8c3; }.element-dot.lightning { background: #68a8ff; }
 .dojo-message { min-height: 19px; color: #aeb6c6; font-size: 0.8rem; }
@@ -493,6 +541,12 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
   .stage-panel { padding: 16px 13px; }
   .stage-options .customizer { grid-template-columns: 1fr; }.stage-options .character-preview { width: min(180px, 100%); }
   .stage-options .cosmetic-grid, .stage-options .equipment-grid { grid-template-columns: 1fr; }
+  .affinity-slots { grid-template-columns: 1fr; }
+  .affinity-options { grid-template-columns: repeat(2, 1fr); }
+  .skill-tree-heading { align-items: start; flex-direction: column; }
+  .skill-branch { grid-template-columns: 88px minmax(0, 1fr); }
+  .skill-branch > header { align-content: center; display: grid; justify-items: center; text-align: center; }
+  .skill-branch > header img { width: 30px; height: 30px; }
   .dialogue-box.with-portrait { grid-template-columns: 125px 1fr; min-height: 230px; padding-right: 14px; }.dialogue-portrait { min-height: 230px; }.dialogue-copy { padding-top: 18px; }.dialogue-copy > p:not(.eyebrow) { font-size: .92rem; }
   .mission-card { grid-template-columns: 42px 1fr; }.mission-card button { grid-column: 1 / -1; }
   .archive-card ol { grid-template-columns: 1fr; }.dialogue-overlay { padding: 12px; }
@@ -1064,6 +1118,16 @@ body:has(#game:not([hidden])) .game-heading {
   .location-stage {
     background-position: center;
     background-size: cover;
+  }
+
+  .location-dojo .stage-options {
+    width: 66%;
+    max-height: calc(100% - 142px);
+  }
+
+  .location-dojo .stage-options .dojo-layout {
+    grid-template-columns: minmax(210px, .55fr) minmax(0, 1.45fr);
+    align-items: start;
   }
 
   .dialogue-overlay {
