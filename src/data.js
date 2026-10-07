@@ -123,6 +123,12 @@ export const ENEMY_ROSTER = {
 
 export const ENEMIES = Object.values(ENEMY_ROSTER);
 
+export const STORY_SAGAS = [
+  { id: "saga-1", number: 1, title: "Los senderos de la aldea", subtitle: "Primeras amenazas y vínculos", missionIds: ["m01", "m02", "m03"] },
+  { id: "saga-2", number: 2, title: "La conspiración del sello", subtitle: "Ladrones, veneno y ascenso", missionIds: ["m04", "m05", "m06", "m07"] },
+  { id: "saga-3", number: 3, title: "Crónicas del Eclipse", subtitle: "La amenaza detrás de las sombras", missionIds: ["m08", "m09", "m10"] }
+];
+
 export const MISSIONS = [
   {
     id: "m01", number: 1, title: "El paso cerrado", location: "Puerta Norte", duration: "4–6 min", encounters: ["gate_guard"],
