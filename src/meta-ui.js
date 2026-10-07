@@ -7,23 +7,22 @@ const ELEMENT_NAMES = { fire: "Fuego", wind: "Viento", lightning: "Rayo" };
 const TUTORIAL = [
   ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Cada edificio de la plaza conduce a una sección distinta."],
   ["Maestra Aya", "En el dojo preparas cuatro jutsus y distribuyes los puntos obtenidos al subir de nivel."],
-  ["Mika", "Pasa el cursor sobre un edificio para identificarlo. El tablón está frente a la plaza; desde allí comienzan las misiones."]
+  ["Mika", "Las misiones de historia se reciben en el Cuartel General. El tablón de la plaza queda reservado para encargos y misiones secundarias."]
 ];
 
 export const VILLAGE_LOCATIONS = [
-  { id: "headquarters", name: "Cuartel General", description: "Mando, rango y estado de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
+  { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
   { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", labelX: 505, labelY: 446, path: "M359 383 L389 373 L409 356 L427 348 L453 348 L468 333 L574 335 L596 348 L618 352 L629 369 L657 386 L636 399 L638 493 L662 505 L659 534 L620 534 L613 550 L403 550 L395 536 L354 535 L351 507 L375 493 L376 399 L347 388 Z" },
   { id: "archive", name: "Biblioteca", description: "Crónicas y progreso de campaña", labelX: 167, labelY: 427, path: "M33 282 L47 268 L74 264 L82 256 L101 265 L110 251 L133 267 L223 267 L238 258 L252 267 L259 282 L313 329 L300 344 L303 466 L326 482 L324 514 L279 515 L273 530 L49 530 L42 517 L0 519 L0 340 L31 321 Z" },
   { id: "shop", name: "Tienda de Objetos", description: "Suministros y equipamiento", labelX: 1227, labelY: 455, path: "M1103 366 L1125 353 L1157 351 L1168 339 L1298 341 L1314 351 L1341 355 L1352 369 L1375 386 L1358 399 L1365 489 L1385 503 L1382 535 L1353 536 L1347 554 L1112 554 L1106 540 L1075 539 L1076 510 L1090 493 L1092 399 L1069 385 Z" },
   { id: "tower", name: "Torre de Desafíos", description: "Pruebas especiales por pisos", labelX: 1468, labelY: 343, path: "M1464 19 L1477 19 L1478 59 L1506 78 L1492 90 L1522 108 L1502 122 L1532 141 L1508 155 L1547 180 L1518 195 L1550 217 L1519 232 L1564 264 L1529 280 L1571 314 L1528 331 L1534 378 L1576 407 L1560 427 L1380 427 L1369 409 L1403 379 L1414 332 L1384 316 L1423 280 L1396 265 L1435 233 L1406 218 L1440 196 L1418 182 L1445 155 L1421 141 L1448 122 L1431 108 L1455 89 L1443 78 L1462 60 Z" },
   { id: "arena", name: "Arena de Combate", description: "Combates de práctica y duelos", labelX: 1420, labelY: 760, path: "M1188 616 C1220 597 1243 587 1270 589 L1292 608 L1321 566 L1351 596 C1402 584 1452 584 1484 593 L1518 562 L1543 599 C1582 604 1604 610 1620 622 L1646 588 L1678 602 L1678 856 L1647 867 L1625 888 L1205 888 L1179 866 L1161 824 L1160 704 Z" },
   { id: "inn", name: "Posada", description: "Descanso y encuentros", labelX: 263, labelY: 748, path: "M65 671 L94 653 L139 635 L174 629 L191 612 L263 612 L283 628 L348 637 L370 654 L439 676 L458 697 L494 711 L477 736 L467 844 L409 848 L397 864 L130 864 L117 852 L57 850 L57 731 L41 711 Z" },
-  { id: "missions", name: "Tablón de Misiones", description: "Historia, contratos y recompensas", labelX: 744, labelY: 798, path: "M651 735 L671 723 L811 723 L837 736 L833 754 L846 770 L845 858 L821 858 L814 870 L669 870 L662 858 L637 858 L638 769 L650 753 Z" },
+  { id: "missions", name: "Tablón de Misiones", description: "Misiones secundarias, contratos y recompensas", labelX: 744, labelY: 798, path: "M651 735 L671 723 L811 723 L837 736 L833 754 L846 770 L845 858 L821 858 L814 870 L669 870 L662 858 L637 858 L638 769 L650 753 Z" },
   { id: "event", name: "Plaza de Eventos", description: "Actividades temporales", labelX: 875, labelY: 602, path: "M819 501 L912 501 L912 607 L883 607 L882 628 C937 633 973 648 973 664 C973 683 923 697 861 697 C800 697 750 683 750 664 C750 647 791 633 846 628 L846 607 L819 607 Z" }
 ];
 
 const VILLAGE_SERVICES = {
-  headquarters: { eyebrow: "CENTRO DE MANDO", title: "Cuartel General", text: "Aquí se coordinan las defensas, los ascensos y la historia principal de la Aldea del Horizonte.", items: ["Resumen de rango y campaña", "Acceso rápido a misiones", "Informes de la aldea"] },
   shop: { eyebrow: "DISTRITO COMERCIAL", title: "Tienda de Objetos", text: "El inventario está preparándose. Este espacio alojará consumibles, armas y mejoras adquiribles con monedas.", items: ["Pociones y restauradores", "Kunais y herramientas", "Pergaminos de mejora"] },
   tower: { eyebrow: "DESAFÍO", title: "Torre de Desafíos", text: "Una futura serie de combates consecutivos con reglas especiales y recompensas por cada piso superado.", items: ["Nueve pisos temáticos", "Dificultad creciente", "Recompensas exclusivas"] },
   arena: { eyebrow: "CAMPO DE PRUEBAS", title: "Arena de Combate", text: "La arena quedará reservada para entrenamientos, pruebas de composiciones y duelos sin alterar la campaña.", items: ["Combate de práctica", "Pruebas de daño", "Duelos futuros"] },
@@ -245,24 +244,30 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     bindLocationStage(serviceId);
   };
 
-  const renderMissions = () => {
+  const renderStoryMissions = () => {
     const completed = new Set(save.campaign.completedMissions);
     const cards = MISSIONS.map((mission, index) => {
       const unlocked = index === 0 || completed.has(MISSIONS[index - 1].id);
       const done = completed.has(mission.id);
-      const label = done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "ACEPTAR MISIÓN") : "BLOQUEADA";
-      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : mission.location}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
+      const label = done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "INICIAR HISTORIA") : "BLOQUEADA";
+      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : "MISIÓN DE HISTORIA · " + mission.location}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
-    const content = `<section class="stage-panel mission-board" data-comment="Cada ficha muestra encuentros, duración, experiencia y monedas. Las misiones se desbloquean en orden."><div class="section-heading"><div><p class="eyebrow">TABLÓN</p><h2>Misiones de la aldea</h2></div><strong>${completed.size}/10 completadas</strong></div><div class="mission-list">${cards}</div></section>`;
-    shell(locationStage("missions", content));
+    const content = `<section class="stage-panel mission-board" data-comment="El Cuartel General concentra la campaña principal. Las misiones de historia se desbloquean en orden."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Campaña principal</h2></div><strong>${completed.size}/10 completadas</strong></div><p class="lead">Aquí recibes las órdenes que hacen avanzar la historia de la Aldea del Horizonte.</p><div class="mission-list">${cards}</div></section>`;
+    shell(locationStage("headquarters", content));
     root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
       if (save.loadout.length !== 4) {
-        showDialogue([["Maestra Aya", "Debes preparar exactamente cuatro técnicas antes de aceptar una misión."]], () => { view = "dojo"; render(); }, "IR AL DOJO");
+        showDialogue([["Maestra Aya", "Debes preparar exactamente cuatro técnicas antes de iniciar una misión de historia."]], () => { view = "dojo"; render(); }, "IR AL DOJO");
         return;
       }
       showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN");
     }));
+    bindLocationStage("headquarters");
+  };
+
+  const renderSecondaryMissions = () => {
+    const content = `<section class="stage-panel mission-board" data-comment="El tablón reúne trabajos opcionales que no bloquean el avance de la campaña principal."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>0 disponibles</strong></div><p class="lead">Aquí aparecerán contratos, favores, cacerías y encargos opcionales de los habitantes de la aldea.</p><div class="development-note"><strong>Sin encargos publicados por ahora.</strong><br>Las misiones secundarias se añadirán aquí sin alterar el progreso de la historia principal.</div></section>`;
+    shell(locationStage("missions", content));
     bindLocationStage("missions");
   };
 
@@ -370,7 +375,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
   const render = () => {
     if (!save.character) return renderCreator();
-    if (view === "missions") return renderMissions();
+    if (view === "headquarters") return renderStoryMissions();
+    if (view === "missions") return renderSecondaryMissions();
     if (view === "dojo") return renderDojo();
     if (view === "archive") return renderArchive();
     if (VILLAGE_SERVICES[view]) return renderVillageService(view);
