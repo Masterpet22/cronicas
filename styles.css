@@ -1213,7 +1213,7 @@ body {
   padding: 9px 16px 10px 96px;
   border: 0;
   background-color: transparent;
-  background-image: url("assets/ui/hud-frame.png?v=0.19.0");
+  background-image: url("assets/ui/panel-frame.png?v=0.19.3");
   background-repeat: no-repeat;
   box-shadow: none;
   backdrop-filter: none;
@@ -1586,7 +1586,7 @@ button:focus-visible {
 .village-topbar {
   padding: 9px 16px 10px 96px;
   background-color: transparent;
-  background-image: url("assets/ui/hud-frame.png?v=0.19.0");
+  background-image: url("assets/ui/panel-frame.png?v=0.19.3");
   background-position: center;
   background-size: 100% 100%;
   background-repeat: no-repeat;
