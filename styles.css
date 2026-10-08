@@ -1583,7 +1583,7 @@ button:focus-visible {
 }
 
 /* Keep the HUD artwork and its content above the generic dojo-card skin. */
-.village-topbar.dojo-card {
+.village-topbar {
   padding: 9px 16px 10px 96px;
   background-color: transparent;
   background-image: url("assets/ui/hud-frame.png?v=0.19.0");
@@ -1593,7 +1593,7 @@ button:focus-visible {
 }
 
 @media (max-width: 650px) {
-  .village-topbar.dojo-card {
+  .village-topbar {
     padding: 5px 7px 5px 50px;
   }
 }

@@ -1,7 +1,7 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.19.1";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.19.1";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.19.1";
-import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.19.1";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.19.2";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.19.2";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.19.2";
+import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.19.2";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.15.1";
 
 const COMING_SOON_LOCATIONS = {
@@ -94,7 +94,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const navigation = view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button data-view="plaza">← Volver al mapa</button><span>${escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
     root.innerHTML = `
       <div class="village-shell">
-        <section class="village-topbar dojo-card">
+        <section class="village-topbar">
           <div class="profile-heading">
             <span class="avatar-swatch" style="--avatar:${character.appearance}"></span>
             <div class="profile-copy"><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${escapeHtml(character.name)}</h2></div>
