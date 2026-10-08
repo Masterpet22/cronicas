@@ -1210,7 +1210,7 @@ body {
 .village-topbar {
   width: min(640px, calc(100% - 120px));
   min-height: 68px;
-  padding: 9px 16px 10px 48px;
+  padding: 9px 16px 10px 96px;
   border: 0;
   background-color: transparent;
   background-image: url("assets/ui/hud-frame.png?v=0.19.0");
@@ -1269,7 +1269,7 @@ body {
   .village-topbar {
     width: calc(100% - 62px);
     min-height: 58px;
-    padding: 5px 7px 5px 30px;
+    padding: 5px 7px 5px 50px;
   }
 }
 
@@ -1285,11 +1285,12 @@ body:has(#meta:not([hidden])) .game-heading {
 body:has(#meta:not([hidden])) .game-settings-panel {
   top: 0;
   right: auto;
-  left: 50%;
+  left: 18px;
+  width: min(420px, calc(100vw - 52px));
   visibility: hidden;
   opacity: 0;
-  transform: translate(-50%, -88%);
-  transform-origin: center top;
+  transform: translateY(-88%);
+  transform-origin: left top;
   pointer-events: none;
   will-change: transform, opacity;
 }
@@ -1297,7 +1298,7 @@ body:has(#meta:not([hidden])) .game-settings-panel {
 body:has(#meta:not([hidden])) .game-settings[open]:not(.is-closing) .game-settings-panel {
   visibility: visible;
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translateY(0);
   animation: settings-sign-in 320ms cubic-bezier(.2, .8, .2, 1) both;
   pointer-events: auto;
 }
@@ -1309,13 +1310,13 @@ body:has(#meta:not([hidden])) .game-settings.is-closing .game-settings-panel {
 }
 
 @keyframes settings-sign-in {
-  from { opacity: 0; transform: translate(-50%, -88%); }
-  to { opacity: 1; transform: translate(-50%, 0); }
+  from { opacity: 0; transform: translateY(-88%); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes settings-sign-out {
-  from { opacity: 1; transform: translate(-50%, 0); }
-  to { opacity: 0; transform: translate(-50%, -88%); }
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-88%); }
 }
 
 @media (max-width: 650px) {
@@ -1323,6 +1324,11 @@ body:has(#meta:not([hidden])) .game-settings.is-closing .game-settings-panel {
     top: 58px;
     left: 8px;
     width: calc(100% - 62px);
+  }
+
+  body:has(#meta:not([hidden])) .game-settings-panel {
+    left: 0;
+    width: min(360px, calc(100vw - 16px));
   }
 }
 
