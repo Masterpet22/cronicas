@@ -1283,9 +1283,9 @@ body:has(#meta:not([hidden])) .game-heading {
 }
 
 body:has(#meta:not([hidden])) .game-settings-panel {
-  top: 0;
-  right: auto;
-  left: 18px;
+  top: 12px;
+  right: 18px;
+  left: auto;
   width: min(420px, calc(100vw - 52px));
   visibility: hidden;
   opacity: 0;
@@ -1327,7 +1327,8 @@ body:has(#meta:not([hidden])) .game-settings.is-closing .game-settings-panel {
   }
 
   body:has(#meta:not([hidden])) .game-settings-panel {
-    left: 0;
+    right: 0;
+    left: auto;
     width: min(360px, calc(100vw - 16px));
   }
 }
@@ -1579,4 +1580,20 @@ button:focus-visible {
 .village-map-card .notice-detail,
 .village-map-card .notice-card.ally .notice-detail {
   color: #dda052 !important;
+}
+
+/* Keep the HUD artwork and its content above the generic dojo-card skin. */
+.village-topbar.dojo-card {
+  padding: 9px 16px 10px 96px;
+  background-color: transparent;
+  background-image: url("assets/ui/hud-frame.png?v=0.19.0");
+  background-position: center;
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+@media (max-width: 650px) {
+  .village-topbar.dojo-card {
+    padding: 5px 7px 5px 50px;
+  }
 }
