@@ -115,14 +115,33 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const settingsDetails = document.querySelector(".game-settings");
     const settingsTrigger = root.querySelector(".player-settings-trigger");
     if (settingsTrigger && settingsDetails) {
+      let closeSettingsTimer = 0;
+
+      const openSettings = () => {
+        window.clearTimeout(closeSettingsTimer);
+        settingsDetails.classList.remove("is-closing");
+        settingsDetails.open = true;
+        settingsTrigger.setAttribute("aria-expanded", "true");
+      };
+
+      const closeSettings = () => {
+        if (!settingsDetails.open) return;
+        settingsDetails.classList.add("is-closing");
+        settingsTrigger.setAttribute("aria-expanded", "false");
+        closeSettingsTimer = window.setTimeout(() => {
+          settingsDetails.open = false;
+          settingsDetails.classList.remove("is-closing");
+        }, 280);
+      };
+
       settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
       settingsTrigger.addEventListener("click", () => {
-        settingsDetails.open = !settingsDetails.open;
-        settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
+        if (settingsDetails.open && !settingsDetails.classList.contains("is-closing")) closeSettings();
+        else openSettings();
       });
       settingsDetails.addEventListener("toggle", () => {
         if (settingsTrigger.isConnected) settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
-      }, { once: true });
+      });
     }
 
     root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => {

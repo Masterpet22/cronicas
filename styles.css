@@ -1210,7 +1210,7 @@ body {
 .village-topbar {
   width: min(640px, calc(100% - 120px));
   min-height: 68px;
-  padding: 9px 16px 10px;
+  padding: 9px 16px 10px 48px;
   border: 0;
   background-color: transparent;
   background-image: url("assets/ui/hud-frame.png?v=0.19.0");
@@ -1269,7 +1269,66 @@ body {
   .village-topbar {
     width: calc(100% - 62px);
     min-height: 58px;
-    padding: 5px 7px;
+    padding: 5px 7px 5px 30px;
+  }
+}
+
+/* The settings sign drops from behind the illustrated HUD and retracts the same way. */
+body:has(#meta:not([hidden])) .game-heading {
+  z-index: 45;
+  top: 76px;
+  right: auto;
+  left: 26px;
+  width: min(640px, calc(100% - 120px));
+}
+
+body:has(#meta:not([hidden])) .game-settings-panel {
+  top: 0;
+  right: auto;
+  left: 50%;
+  visibility: hidden;
+  opacity: 0;
+  transform: translate(-50%, -88%);
+  transform-origin: center top;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+body:has(#meta:not([hidden])) .game-settings[open]:not(.is-closing) .game-settings-panel {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+  animation: settings-sign-in 320ms cubic-bezier(.2, .8, .2, 1) both;
+  pointer-events: auto;
+}
+
+body:has(#meta:not([hidden])) .game-settings.is-closing .game-settings-panel {
+  visibility: visible;
+  animation: settings-sign-out 280ms cubic-bezier(.4, 0, .8, .2) both;
+  pointer-events: none;
+}
+
+@keyframes settings-sign-in {
+  from { opacity: 0; transform: translate(-50%, -88%); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes settings-sign-out {
+  from { opacity: 1; transform: translate(-50%, 0); }
+  to { opacity: 0; transform: translate(-50%, -88%); }
+}
+
+@media (max-width: 650px) {
+  body:has(#meta:not([hidden])) .game-heading {
+    top: 58px;
+    left: 8px;
+    width: calc(100% - 62px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body:has(#meta:not([hidden])) .game-settings-panel {
+    animation-duration: 1ms !important;
   }
 }
 
