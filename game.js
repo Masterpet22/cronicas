@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.30.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
@@ -256,7 +256,7 @@ class BattleScene extends Phaser.Scene {
     const enemyX = 594;
     const barXOffset = 78;
     const barWidth = panelWidth - barXOffset - 16;
-    const barHeight = 15;
+    const barHeight = 21;
 
     this.playerName = this.add.text(
       playerX + 70,
@@ -424,7 +424,7 @@ class BattleScene extends Phaser.Scene {
     const enemyTarget = Phaser.Math.Clamp(TIMELINE_START + 330 + (this.enemy.speed - this.player.speed) * 6, TIMELINE_START + 250, TIMELINE_END - 80);
     this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: enemyTarget, duration: 950, ease: "Sine.out" });
     this.tweens.add({
-      targets: [this.playerTurnMarker, this.playerTurnLetter], x: TIMELINE_START, duration: 1050, ease: "Sine.inOut",
+      targets: [this.playerTurnMarker, this.playerTurnLetter], x: TIMELINE_END, duration: 1050, ease: "Sine.inOut",
       onComplete: () => {
         if (this.finished) return;
         this.turnReady = true;

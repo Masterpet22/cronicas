@@ -1,17 +1,17 @@
 export function createBar(scene, x, y, width, height, color) {
   const bg = scene.add.rectangle(x, y, width, height, 0x000000, 0).setOrigin(0, 0.5);
   const slot = scene.add.rectangle(x + 2, y, width - 4, height - 4, 0x000000, 0).setOrigin(0, 0.5);
-  const fill = scene.add.rectangle(x + 2, y, width - 4, height - 4, color, 1).setOrigin(0, 0.5);
+  const fill = scene.add.rectangle(x + 2, y, width - 4, height - 2, color, 1).setOrigin(0, 0.5);
   const sheen = scene.add.rectangle(x + 2, y - height / 4 + 1, width - 4, Math.max(2, Math.floor(height / 3)), 0xffffff, 0.16)
     .setOrigin(0, 0.5);
-  const valueText = scene.add.text(x + width / 2, y, "", {
+  const valueText = scene.add.text(x + width - 8, y, "", {
     fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
     fontSize: "12px",
     color: "#f4f9fd",
     fontStyle: "bold",
     stroke: "#060a10",
     strokeThickness: 2
-  }).setOrigin(0.5);
+  }).setOrigin(1, 0.5);
   return { bg, slot, fill, sheen, valueText, width: width - 4, x: x + 2 };
 }
 
@@ -36,15 +36,16 @@ function actionDescription(action) {
 }
 
 export function createActionButton(scene, action, index) {
-  const width = 146;
+  const slotCenters = [88, 245, 406, 560, 715, 873];
+  const shortcutCenters = [31, 188, 348, 504, 662, 819];
+  const width = 150;
   const height = 153;
-  const gap = 9;
-  const x = 20 + index * (width + gap);
+  const x = slotCenters[index] - width / 2;
   const y = 377;
   const accent = action?.color || 0x267bb0;
   const bg = scene.add.rectangle(x + 4, y + 4, width - 8, height - 8, 0x0b3552, 0.001).setOrigin(0).setDepth(20);
-  const shortcutBg = scene.add.rectangle(x + 20, y + 18, 27, 27, 0x000000, 0).setAngle(45).setDepth(25);
-  const shortcut = scene.add.text(x + 20, y + 18, String(index + 1), {
+  const shortcutBg = scene.add.rectangle(shortcutCenters[index], y + 18, 27, 27, 0x000000, 0).setAngle(45).setDepth(25);
+  const shortcut = scene.add.text(shortcutCenters[index], y + 18, String(index + 1), {
     fontFamily: "Cinzel, Georgia, serif", fontSize: "14px", color: action ? "#f7fbff" : "#55778c", fontStyle: "bold"
   }).setOrigin(0.5).setDepth(26);
 
@@ -62,12 +63,11 @@ export function createActionButton(scene, action, index) {
       }).setOrigin(0.5).setDepth(23);
   const name = scene.add.text(x + width / 2, y + 65, action.name, {
     fontFamily: "Cinzel, Georgia, serif",
-    fontSize: "12px",
+    fontSize: "11px",
     color: "#f7fbff",
     fontStyle: "bold",
     stroke: "#070c12",
     strokeThickness: 1,
-    wordWrap: { width: width - 18 },
     maxLines: 1
   }).setOrigin(0.5, 0).setDepth(24);
 
@@ -79,7 +79,7 @@ export function createActionButton(scene, action, index) {
   }).setOrigin(0.5, 0).setDepth(24);
   const description = scene.add.text(x + width / 2, y + 104, actionDescription(action), {
     fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: "9px",
+    fontSize: "10px",
     color: "#d6e2ec",
     fontStyle: "bold",
     align: "center",
