@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.29.0";
+const CACHE_NAME = "cronicas-assets-v0.30.0";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
@@ -11,7 +11,8 @@ const CORE_ASSETS = [
   "./assets/ui/card-frame.webp?v=0.20.0",
   "./assets/ui/action-button-frame.webp?v=0.20.0",
   "./assets/ui/equipment-slot-frame.webp?v=0.20.0",
-  "./assets/ui/hud-frame.webp?v=0.20.0"
+  "./assets/ui/hud-frame.webp?v=0.20.0",
+  "./assets/ui/battle-hud-overlay-v1.png?v=0.30.0"
 ];
 
 self.addEventListener("install", (event) => {

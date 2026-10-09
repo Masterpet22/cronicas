@@ -1,8 +1,6 @@
 export function createBar(scene, x, y, width, height, color) {
-  const bg = scene.add.rectangle(x, y, width, height, 0x030914, 0.98)
-    .setOrigin(0, 0.5)
-    .setStrokeStyle(1, 0x39617c, 0.95);
-  const slot = scene.add.rectangle(x + 2, y, width - 4, height - 4, 0x07111e, 1).setOrigin(0, 0.5);
+  const bg = scene.add.rectangle(x, y, width, height, 0x000000, 0).setOrigin(0, 0.5);
+  const slot = scene.add.rectangle(x + 2, y, width - 4, height - 4, 0x000000, 0).setOrigin(0, 0.5);
   const fill = scene.add.rectangle(x + 2, y, width - 4, height - 4, color, 1).setOrigin(0, 0.5);
   const sheen = scene.add.rectangle(x + 2, y - height / 4 + 1, width - 4, Math.max(2, Math.floor(height / 3)), 0xffffff, 0.16)
     .setOrigin(0, 0.5);
@@ -44,24 +42,13 @@ export function createActionButton(scene, action, index) {
   const x = 20 + index * (width + gap);
   const y = 377;
   const accent = action?.color || 0x267bb0;
-
-  const shadow = scene.add.rectangle(x + 3, y + 5, width, height, 0x000000, 0.42)
-    .setOrigin(0)
-    .setDepth(19);
-  const bg = scene.add.rectangle(x, y, width, height, 0x04111f, 0.99)
-    .setOrigin(0)
-    .setStrokeStyle(1.5, action ? 0x168ed0 : 0x24506c, action ? 1 : 0.72)
-    .setDepth(20);
-  const inner = scene.add.rectangle(x + 4, y + 4, width - 8, height - 8, 0x000000, 0.001)
-    .setOrigin(0).setStrokeStyle(1, 0x65cfff, action ? 0.22 : 0.08).setDepth(21);
-  const glow = scene.add.rectangle(x + 2, y + 2, width - 4, 3, accent, action ? 1 : 0.25).setOrigin(0).setDepth(22);
-  const shortcutBg = scene.add.rectangle(x + 20, y + 18, 27, 27, 0x06233a, 1)
-    .setAngle(45).setStrokeStyle(1.5, 0x47caff, action ? 1 : 0.42).setDepth(25);
+  const bg = scene.add.rectangle(x + 4, y + 4, width - 8, height - 8, 0x0b3552, 0.001).setOrigin(0).setDepth(20);
+  const shortcutBg = scene.add.rectangle(x + 20, y + 18, 27, 27, 0x000000, 0).setAngle(45).setDepth(25);
   const shortcut = scene.add.text(x + 20, y + 18, String(index + 1), {
     fontFamily: "Cinzel, Georgia, serif", fontSize: "14px", color: action ? "#f7fbff" : "#55778c", fontStyle: "bold"
   }).setOrigin(0.5).setDepth(26);
 
-  if (!action) return { empty: true, shadow, bg, inner, glow, shortcutBg, shortcut };
+  if (!action) return { empty: true, bg, shortcutBg, shortcut };
 
   const icon = scene.add.circle(x + width / 2, y + 39, 32, 0x020914, 0.96).setStrokeStyle(1.5, accent, 0.72).setDepth(22);
   const glyph = action.type === "guard" ? "◇" : action.element === "fire" ? "✦" : action.element === "wind" ? "≋" : action.element === "lightning" ? "ϟ" : "◆";
@@ -112,5 +99,5 @@ export function createActionButton(scene, action, index) {
   }).setOrigin(1, 0).setDepth(24);
 
   const hit = scene.add.rectangle(x, y, width, height, 0xffffff, 0.001).setOrigin(0).setDepth(25).setInteractive({ useHandCursor: true });
-  return { shadow, bg, inner, glow, icon, iconText, shortcutBg, shortcut, name, divider, costText, description, bottomDivider, summaryText, sub, hit, jutsu: action };
+  return { bg, icon, iconText, shortcutBg, shortcut, name, divider, costText, description, bottomDivider, summaryText, sub, hit, jutsu: action };
 }

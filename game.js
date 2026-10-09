@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.29.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.30.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
@@ -32,6 +32,7 @@ class BattleScene extends Phaser.Scene {
     this.load.image("cardFrame", "assets/ui/card-frame.webp?v=0.20.0");
     this.load.image("navFrame", "assets/ui/nav-button-frame.webp?v=0.20.0");
     this.load.image("panelFrame", "assets/ui/panel-frame.webp?v=0.20.0");
+    this.load.image("battleHudOverlay", "assets/ui/battle-hud-overlay-v1.png?v=0.30.0");
     this.load.image("bg-dusk", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
     this.load.image("bg-marsh", "assets/locations/battle-mist-marsh.jpg?v=0.20.0");
     this.load.image("bg-moon", "assets/locations/battle-moon-shrine.jpg?v=0.20.0");
@@ -86,6 +87,7 @@ class BattleScene extends Phaser.Scene {
 
     this.makeSealFrames();
     this.drawArena();
+    this.hudChrome = this.add.image(WIDTH / 2, HEIGHT / 2, "battleHudOverlay").setDisplaySize(WIDTH, HEIGHT).setDepth(18);
     this.createHud();
     this.createFighters();
     this.createActionPanel();
@@ -94,6 +96,7 @@ class BattleScene extends Phaser.Scene {
     this.startMusic();
     this.setMessage(`${this.mission.title} · Los combatientes toman posición.`);
     this.startTurnCharge();
+    this.sharpenSceneText();
   }
 
   configureSealMode() {
@@ -212,18 +215,12 @@ class BattleScene extends Phaser.Scene {
     else this.drawMoonShrine(g);
 
     // Velo inferior común al resto del metajuego: azul tinta, limpio y legible.
-    g.fillGradientStyle(0x061321, 0x061321, 0x020812, 0x020812, 0.1, 0.1, 0.97, 0.99);
+    g.fillGradientStyle(0x061321, 0x061321, 0x020812, 0x020812, 0.04, 0.04, 0.42, 0.56);
     g.fillRect(0, 282, WIDTH, 258);
-    g.lineStyle(1.5, 0x65bce9, 0.62);
+    g.lineStyle(1, 0x65bce9, 0.18);
     g.lineBetween(0, 326, WIDTH, 326);
 
     this.arenaLabel = ["PASO DEL CREPÚSCULO", "MARISMA DE LOS JUNCOS", "SANTUARIO DE LA LUNA"][theme];
-    this.add.text(480, 323, `❖  ${this.arenaLabel}  ❖`, {
-      fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "9px",
-      color: "#83d6fa",
-      fontStyle: "bold"
-    }).setOrigin(0.5, 1).setAlpha(0.85).setDepth(2);
   }
 
   drawDuskPass(g) {
@@ -253,29 +250,13 @@ class BattleScene extends Phaser.Scene {
   }
 
   createHud() {
-    const panel = this.add.graphics().setDepth(20);
     const panelWidth = 354;
     const panelHeight = 91;
     const playerX = 22;
-    const enemyX = WIDTH - 22 - panelWidth;
+    const enemyX = 594;
     const barXOffset = 78;
     const barWidth = panelWidth - barXOffset - 16;
     const barHeight = 15;
-
-    const drawPanel = (x, accent, fill) => {
-      panel.fillStyle(0x000000, 0.34);
-      panel.fillRoundedRect(x + 4, 16, panelWidth, panelHeight, 7);
-      panel.fillStyle(fill, 0.965);
-      panel.fillRoundedRect(x, 12, panelWidth, panelHeight, 7);
-      panel.lineStyle(1.25, accent, 0.98);
-      panel.strokeRoundedRect(x, 12, panelWidth, panelHeight, 7);
-      panel.fillStyle(accent, 0.95);
-      panel.fillRoundedRect(x, 12, 4, panelHeight, 2);
-      panel.lineStyle(1, 0x91d8f5, 0.16);
-      panel.lineBetween(x + 18, 44, x + panelWidth - 18, 44);
-    };
-    drawPanel(playerX, 0x35bdf2, 0x061321);
-    drawPanel(enemyX, 0xe85b69, 0x130d17);
 
     this.playerName = this.add.text(
       playerX + 70,
@@ -317,12 +298,6 @@ class BattleScene extends Phaser.Scene {
       }
     ).setOrigin(0.5, 0).setDepth(21);
 
-    const ornamentStyle = { fontFamily: '"Cinzel", Georgia, serif', fontSize: "28px", fontStyle: "bold" };
-    this.add.text(playerX + 5, 8, "❦", { ...ornamentStyle, color: "#39c8ff" }).setDepth(24);
-    this.add.text(playerX + panelWidth - 5, 8, "❦", { ...ornamentStyle, color: "#39c8ff" }).setOrigin(1, 0).setScale(-1, 1).setDepth(24);
-    this.add.text(enemyX + 5, 8, "❦", { ...ornamentStyle, color: "#ff5264" }).setDepth(24);
-    this.add.text(enemyX + panelWidth - 5, 8, "❦", { ...ornamentStyle, color: "#ff5264" }).setOrigin(1, 0).setScale(-1, 1).setDepth(24);
-
     const statStyle = { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "9px", color: "#91b2c8", fontStyle: "bold" };
     this.add.text(playerX + 18, 57, "♥  VIDA", { ...statStyle, color: "#52f3a2" }).setOrigin(0, 0.5).setDepth(24);
     this.add.text(playerX + 18, 80, "◉  CHAKRA", { ...statStyle, color: "#56cfff" }).setOrigin(0, 0.5).setDepth(24);
@@ -330,7 +305,7 @@ class BattleScene extends Phaser.Scene {
 
     this.playerHpBar = createBar(this, playerX + barXOffset, 57, barWidth, barHeight, 0x38df87);
     this.chakraBar = createBar(this, playerX + barXOffset, 80, barWidth, barHeight, 0x2eaff4);
-    this.enemyHpBar = createBar(this, enemyX + barXOffset, 57, barWidth, barHeight, 0xef4755);
+    this.enemyHpBar = createBar(this, enemyX + barXOffset, 57, barWidth - 8, barHeight, 0xef4755);
 
     [this.playerHpBar, this.chakraBar, this.enemyHpBar].forEach((bar) => {
       bar.bg.setDepth(21);
@@ -363,9 +338,8 @@ class BattleScene extends Phaser.Scene {
       }).setOrigin(1, 0).setDepth(21);
     }
 
-    this.messagePlate = this.add.rectangle(WIDTH / 2, 299, 410, 31, 0x041423, 0.96)
+    this.messagePlate = this.add.rectangle(WIDTH / 2, 299, 410, 31, 0x000000, 0.001)
       .setOrigin(0.5)
-      .setStrokeStyle(1, 0x65bce9, 0.64)
       .setDepth(22);
     this.messageText = this.add.text(WIDTH / 2, 299, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
@@ -381,27 +355,14 @@ class BattleScene extends Phaser.Scene {
   }
 
   createTurnTimeline() {
-    this.timelineLayer = this.add.container(0, 0).setDepth(12);
-    const centerY = 348;
+    this.timelineLayer = this.add.container(0, 0).setDepth(30);
     const trackY = 354;
-    const plate = this.add.rectangle(480, centerY, 742, 44, 0x041321, 0.985)
-      .setStrokeStyle(1.5, 0x159ee4, 1);
-    const innerTrim = this.add.rectangle(480, centerY, 734, 36, 0x000000, 0.001)
-      .setStrokeStyle(1, 0x67d7ff, 0.26);
-    const titlePlate = this.add.rectangle(480, centerY - 21, 176, 24, 0x06192b, 1)
-      .setStrokeStyle(1, 0x2bbdf7, 0.84);
-    const title = this.add.text(480, centerY - 21, "ORDEN DEL TURNO", {
+    const title = this.add.text(480, 327, "ORDEN DEL TURNO", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "10px",
-      color: "#82d3f7",
+      color: "#f2f7fb",
       fontStyle: "bold"
     }).setOrigin(0.5);
-    const track = this.add.rectangle(500, trackY, 620, 11, 0x12273a, 1)
-      .setStrokeStyle(1, 0x82b3cf, 0.78);
-    const arrows = [];
-    for (let x = 330; x <= 770; x += 58) arrows.push(this.add.text(x, trackY, "›", {
-      fontFamily: '"Alegreya Sans", sans-serif', fontSize: "24px", color: x < 500 ? "#2ec8ff" : "#7895aa", fontStyle: "bold"
-    }).setOrigin(0.5));
 
     this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x0c2b45, 1)
       .setStrokeStyle(3, 0x50d7ff, 1);
@@ -421,19 +382,16 @@ class BattleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.timelineLayer.add([
-      plate, innerTrim, titlePlate, title, track, ...arrows,
+      title,
       this.playerTurnMarker, this.enemyTurnMarker,
       this.playerTurnLetter, this.enemyTurnLetter
     ]);
   }
 
   createPauseButton() {
-    const bg = this.add.rectangle(480, 55, 146, 42, 0x08243a, 0.98)
-      .setStrokeStyle(1.25, 0x65bce9, 1)
+    const bg = this.add.rectangle(480, 55, 146, 42, 0x0d5b86, 0.001)
       .setDepth(25)
       .setInteractive({ useHandCursor: true });
-    this.add.text(412, 55, "❦", { fontFamily: '"Cinzel", serif', fontSize: "28px", color: "#4acbff" }).setOrigin(0.5).setDepth(26);
-    this.add.text(548, 55, "❦", { fontFamily: '"Cinzel", serif', fontSize: "28px", color: "#4acbff" }).setOrigin(0.5).setScale(-1, 1).setDepth(26);
     const label = this.add.text(480, 55, "Ⅱ  PAUSA", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "11px",
@@ -442,12 +400,10 @@ class BattleScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(26);
 
     bg.on("pointerover", () => {
-      bg.setFillStyle(0x164b6c);
-      bg.setStrokeStyle(1.5, 0xa4e2ff);
+      bg.setFillStyle(0x2b9bd0, 0.18);
     });
     bg.on("pointerout", () => {
-      bg.setFillStyle(0x08243a);
-      bg.setStrokeStyle(1.25, 0x65bce9);
+      bg.setFillStyle(0x0d5b86, 0.001);
     });
     const openPause = () => {
       if (this.finished || this.scene.isPaused()) return;
@@ -508,15 +464,11 @@ class BattleScene extends Phaser.Scene {
       const { bg, hit, shortcutBg } = button;
       hit.on("pointerover", () => {
         if (!this.busy && !this.finished) {
-          bg.setFillStyle(0x0d2e47);
-          bg.setStrokeStyle(1.5, 0x9edfff);
-          if (shortcutBg) shortcutBg.setStrokeStyle(1, 0xdff6ff);
+          bg.setFillStyle(0x2b9bd0, 0.2);
         }
       });
       hit.on("pointerout", () => {
-        bg.setFillStyle(0x06111f);
-        bg.setStrokeStyle(1.25, 0x477b9e);
-        if (shortcutBg) shortcutBg.setStrokeStyle(1, 0x65bce9);
+        bg.setFillStyle(0x0d5b86, 0.001);
       });
       hit.on("pointerdown", () => this.useJutsu(jutsu));
       this.buttons.push(button);
@@ -1118,8 +1070,16 @@ class BattleScene extends Phaser.Scene {
       fontFamily: display ? '"Cinzel", Georgia, serif' : '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: `${size}px`,
       color,
-      fontStyle: weight === "700" || weight === "800" ? "bold" : "normal"
+      fontStyle: weight === "700" || weight === "800" ? "bold" : "normal",
+      resolution: Math.max(2, Math.ceil(RENDER_RESOLUTION))
     };
+  }
+
+  sharpenSceneText() {
+    const resolution = Math.max(2, Math.ceil(RENDER_RESOLUTION));
+    this.children.list.forEach((child) => {
+      if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(resolution);
+    });
   }
 
   delay(ms) { return new Promise((resolve) => this.time.delayedCall(ms, resolve)); }
@@ -1201,6 +1161,10 @@ class PauseScene extends Phaser.Scene {
     this.input.keyboard.once("keydown-ESC", () => {
       this.scene.resume("battle");
       this.scene.stop();
+    });
+    const textResolution = Math.max(2, Math.ceil(RENDER_RESOLUTION));
+    this.children.list.forEach((child) => {
+      if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(textResolution);
     });
   }
 
