@@ -14,5 +14,8 @@ assert.match(desktopCss, /font-family: "Cinzel"/, "Los títulos deben usar la ti
 assert.match(desktopCss, /font-family: "Alegreya Sans"/, "El texto debe conservar una tipografía local legible");
 assert.match(desktopCss, /border-image: url\("assets\/ui\/panel-frame\.webp\?v=0\.20\.0"\)/, "Los paneles deben preservar las esquinas con nine-slice");
 assert.match(desktopCss, /\.saga-card\.locked,[\s\S]*opacity: 1/, "Los estados bloqueados no deben perder contraste por opacidad global");
+assert.match(desktopCss, /\.dojo-tabs/, "El Dojo debe dividir la configuración mediante pestañas");
+assert.match(desktopCss, /font-size: max\(\.75rem, 12px\)/, "La información útil debe conservar un suelo de 12 px");
+assert.match(desktopCss, /\.archive-card li \{[\s\S]*background: transparent/, "El archivo debe usar filas y divisores en lugar de cajas marrones");
 
 console.log("Pruebas del escenario de escritorio superadas.");

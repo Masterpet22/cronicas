@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 
 const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
+const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
 assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
@@ -16,5 +17,9 @@ assert.match(ui, /index \* 155/, "Las seis acciones deben mostrarse en una sola 
 assert.match(ui, /setDisplaySize\(48, 48\)/, "Los iconos de acción deben ser legibles durante el combate");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
 assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
+assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer atajos de teclado del 1 al 6");
+assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
+assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
+assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
 
 console.log("Pruebas de interfaz de combate superadas.");

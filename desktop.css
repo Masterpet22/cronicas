@@ -53,6 +53,30 @@
     font-family: var(--font-copy);
   }
 
+  main,
+  body:has(#meta:not([hidden])) main { border-color: rgba(102, 160, 205, .46); }
+
+  .app-loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 14px;
+    color: #c9d9e8;
+    font-family: var(--font-display);
+    letter-spacing: .08em;
+  }
+  .app-loading span {
+    width: 42px;
+    height: 42px;
+    border: 2px solid rgba(121, 181, 221, .2);
+    border-top-color: #79c9f2;
+    border-radius: 50%;
+    animation: loading-seal .8s linear infinite;
+  }
+  @keyframes loading-seal { to { transform: rotate(1turn); } }
+
   body,
   input,
   select,
@@ -497,4 +521,345 @@
   .stage-options.ready,
   .stage-speech,
   .stage-ambient { animation-duration: 1ms !important; }
+}
+
+/* v0.22 · Superficies de tinta: sin cajas marrones ni marcos repetidos. */
+@media (min-width: 651px) {
+  :root {
+    --surface: rgba(5, 10, 19, .86);
+    --surface-raised: rgba(9, 17, 30, .88);
+    --line: rgba(130, 166, 202, .3);
+    --text-copy: #e2e8f0;
+    --text-muted: #aebdce;
+    --text-disabled: #91a0b2;
+    font-size: clamp(15px, 1.111vw, 16px);
+  }
+
+  .creator-card,
+  .stage-panel,
+  .equipment-modal-card,
+  .game-settings-panel {
+    background: linear-gradient(150deg, rgba(7, 13, 24, .9), rgba(3, 8, 16, .82));
+  }
+
+  .primary-button,
+  .secondary-button,
+  .village-return button,
+  .mission-card button,
+  .npc-actions button,
+  .saga-back,
+  .attribute-list button {
+    border: 0;
+    border-bottom: 2px solid rgba(239, 173, 97, .76);
+    border-radius: 2px;
+    background: linear-gradient(90deg, rgba(20, 39, 61, .88), rgba(10, 20, 35, .88));
+    background-image: none;
+    box-shadow: 0 9px 22px rgba(0, 0, 0, .24);
+    color: #f5f7fb;
+    font-family: var(--font-copy);
+    font-size: max(.82rem, 13px);
+    font-weight: 700;
+    letter-spacing: .035em;
+    text-shadow: none;
+  }
+
+  .primary-button:hover,
+  .secondary-button:hover,
+  .village-return button:hover,
+  .mission-card button:hover:not(:disabled),
+  .npc-actions button:hover,
+  .saga-back:hover {
+    background: linear-gradient(90deg, rgba(29, 60, 91, .96), rgba(13, 31, 53, .96));
+    background-image: none;
+    box-shadow: 0 0 0 1px rgba(112, 190, 243, .2), 0 10px 26px rgba(0, 0, 0, .28);
+  }
+
+  .mission-card button { font-size: max(.82rem, 13px); }
+  .saga-action { color: #80c7f3; font-family: var(--font-copy); font-size: max(.82rem, 13px); }
+
+  .saga-card,
+  .mission-card,
+  .service-grid article,
+  .npc-guide-strip,
+  .village-map-card > .notice-card {
+    position: relative;
+    border: 0;
+    border-bottom: 1px solid rgba(135, 169, 204, .25);
+    border-radius: 0;
+    background: linear-gradient(90deg, rgba(18, 34, 54, .38), rgba(7, 15, 27, .08));
+    background-image: none;
+    box-shadow: none;
+  }
+
+  .saga-card::before,
+  .mission-card::before,
+  .service-grid article::before,
+  .archive-card li::before {
+    content: "";
+    position: absolute;
+    top: 16%;
+    bottom: 16%;
+    left: 0;
+    width: 2px;
+    border-radius: 2px;
+    background: rgba(111, 180, 226, .6);
+  }
+
+  .saga-card:hover:not(:disabled) {
+    border-color: rgba(126, 193, 235, .52);
+    background: linear-gradient(90deg, rgba(24, 57, 86, .58), rgba(8, 18, 31, .12));
+  }
+
+  .saga-card.locked,
+  .mission-card.locked {
+    border-color: rgba(127, 147, 170, .18);
+    background: linear-gradient(90deg, rgba(13, 24, 39, .28), transparent);
+  }
+
+  .saga-card.locked::before,
+  .mission-card.locked::before { background: rgba(117, 136, 157, .38); }
+
+  .archive-card ol { gap: 0 20px; }
+  .archive-card li {
+    position: relative;
+    min-height: 58px;
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid rgba(133, 163, 194, .22);
+    border-radius: 0;
+    padding: 10px 14px 10px 18px;
+    background: transparent;
+  }
+  .archive-card li.done::before { background: #67d4b4; }
+
+  .village-map-card > .notice-card {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    left: 18px;
+  }
+
+  .location-dojo .stage-panel {
+    border: 0;
+    border-left: 1px solid rgba(124, 166, 207, .38);
+    border-radius: 0;
+    background: linear-gradient(105deg, rgba(4, 10, 19, .9), rgba(5, 12, 23, .7));
+    box-shadow: 0 20px 48px rgba(0, 0, 0, .34);
+    backdrop-filter: blur(8px);
+  }
+
+  .dojo-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    margin: 2px 0 14px;
+    border-bottom: 1px solid rgba(128, 165, 201, .26);
+  }
+
+  .dojo-tabs button {
+    min-height: 42px;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    padding: 8px 12px;
+    background: transparent;
+    color: #9eafc1;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .dojo-tabs button[aria-selected="true"] {
+    border-bottom-color: #72c8f2;
+    color: #f2f7fb;
+    background: linear-gradient(0deg, rgba(41, 111, 153, .2), transparent 70%);
+  }
+
+  .dojo-tab-panel[hidden] { display: none; }
+  .dojo-tab-panel { animation: dojo-tab-in .18s ease both; }
+  @keyframes dojo-tab-in { from { opacity: 0; transform: translateY(5px); } }
+
+  .dojo-section,
+  .skill-tree,
+  .appearance-panel,
+  .affinity-selector {
+    border: 0;
+    border-top: 1px solid rgba(123, 161, 198, .24);
+    border-radius: 0;
+    padding: 14px 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .dojo-tab-panel > :first-child { border-top: 0; padding-top: 2px; }
+  .appearance-panel .customizer { padding: 8px 0 0; }
+
+  .attribute-list { gap: 0; }
+  .attribute-list button {
+    grid-template-columns: 1fr auto;
+    justify-items: start;
+    min-height: 58px;
+    border-bottom: 1px solid rgba(127, 163, 199, .2);
+    padding: 10px 8px;
+    background: transparent;
+    box-shadow: none;
+    text-align: left;
+  }
+  .attribute-list button small { justify-self: end; color: #9fb1c5; }
+  .stat-grid span {
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .stat-grid span + span { border-left: 1px solid rgba(126, 163, 200, .2); }
+
+  .level-chip {
+    border-color: rgba(108, 180, 225, .52);
+    background: rgba(16, 52, 78, .34);
+    color: #d9f1ff;
+  }
+
+  .affinity-slots { gap: 0; }
+  .affinity-slot {
+    border: 0;
+    border-left: 1px solid rgba(118, 158, 198, .28);
+    border-radius: 0;
+    padding: 9px 12px;
+    background: transparent;
+  }
+  .affinity-slot:first-child { border-left: 0; }
+  .affinity-slot.selected { border-color: rgba(103, 232, 195, .42); background: linear-gradient(90deg, rgba(30, 108, 111, .18), transparent); }
+
+  .gear-slot {
+    aspect-ratio: auto;
+    min-height: 112px;
+    border: 0;
+    border-right: 1px solid rgba(125, 164, 202, .22);
+    border-radius: 0;
+    padding: 12px 10px !important;
+    background: transparent;
+    background-image: none;
+    box-shadow: none;
+    filter: none;
+  }
+  .gear-slot:last-child { border-right: 0; }
+  .gear-slot:hover:not(:disabled),
+  .gear-slot:focus-visible { background: linear-gradient(180deg, rgba(40, 100, 143, .2), transparent); filter: none; transform: none; }
+  .gear-icon { border-color: rgba(106, 180, 225, .45); border-radius: 50%; background: rgba(27, 85, 122, .2); color: #86d1f5; }
+
+  .technique-slot,
+  .skill-node,
+  .affinity-option {
+    border-color: rgba(118, 158, 198, .34);
+    background: rgba(7, 18, 32, .56);
+  }
+  .skill-node.selected { border-color: #73c7ef; background: rgba(24, 78, 113, .38); box-shadow: inset 0 0 18px rgba(68, 170, 224, .12); }
+  .equipment-option,
+  .equipment-option:hover,
+  .equipment-option.selected {
+    border: 0;
+    border-bottom: 1px solid rgba(127, 164, 201, .25);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+  .equipment-option:hover { background: rgba(32, 87, 126, .2); }
+  .equipment-option.selected { border-left: 2px solid #efad61; background: linear-gradient(90deg, rgba(38, 94, 132, .26), transparent); }
+
+  .game-settings-panel .option-row { gap: 0 18px; }
+  .game-settings-panel .mode-switch {
+    min-height: 42px;
+    border: 0;
+    border-bottom: 1px solid rgba(128, 164, 199, .24);
+    border-radius: 0;
+    padding: 8px 4px;
+    background: transparent;
+  }
+  .game-settings-panel .volume-control { min-height: 44px; border-bottom: 1px solid rgba(128, 164, 199, .24); }
+
+  .creator-form input,
+  .creator-form select,
+  .cosmetic-grid select,
+  .equipment-grid select {
+    border-color: rgba(123, 164, 203, .42);
+    background: rgba(5, 13, 24, .82);
+  }
+  .affinity-choice {
+    border-color: rgba(122, 164, 204, .32);
+    background: rgba(7, 17, 30, .62);
+  }
+  .affinity-choice:has(input:checked) { border-color: #73c8f0; background: rgba(23, 72, 104, .34); }
+
+  .affinity-option small,
+  .slot-edit,
+  .skill-state,
+  .technique-slot small,
+  .skill-copy small,
+  .equipment-option em,
+  .gear-copy small,
+  .stat-grid small,
+  .tree-legend,
+  .affinity-slot small,
+  .affinity-change-note,
+  .skill-branch > header small {
+    font-size: max(.75rem, 12px);
+  }
+
+  .affinity-close {
+    min-height: 32px;
+    padding: 7px 10px;
+    color: #b8c8d8;
+    font-size: max(.75rem, 12px);
+  }
+
+  .map-label {
+    opacity: .82;
+    transform: translate(-50%, 0);
+  }
+  .map-label-box {
+    border: 0;
+    border-radius: 0;
+    padding: 5px 10px;
+    background: linear-gradient(90deg, transparent, rgba(2, 9, 18, .84) 18%, rgba(2, 9, 18, .84) 82%, transparent);
+    box-shadow: none;
+    text-shadow: 0 2px 5px #000;
+  }
+  .map-label-box small { display: none; }
+  .map-label.visible { z-index: 8; opacity: 1; }
+  .map-label.visible .map-label-box small,
+  .map-label.recommended .map-label-box small { display: block; }
+  .map-label.recommended .map-label-box strong { color: #8ed8ff; }
+  .map-label.recommended { animation: recommended-pulse 2.2s ease-in-out infinite; }
+  @keyframes recommended-pulse { 50% { filter: drop-shadow(0 0 7px rgba(81, 180, 235, .72)); } }
+
+  .stage-character:focus-visible {
+    outline: 2px solid #efad61;
+    outline-offset: 3px;
+  }
+
+  .lead,
+  .dialogue-copy,
+  .stage-speech,
+  .archive-card,
+  .mission-card,
+  .saga-card { user-select: text; }
+}
+
+@media (min-width: 651px) and (max-width: 980px) {
+  .affinity-close,
+  .dojo-tabs button { min-height: 44px; }
+  .location-dojo .stage-options { max-height: calc(100% - 98px); }
+  .location-dojo .stage-panel { padding: 13px; }
+  .location-dojo .dojo-heading { margin-bottom: 7px; }
+  .location-dojo .dojo-tabs { margin-bottom: 8px; }
+  .location-dojo .dojo-section { padding: 8px 0; }
+  .location-dojo .gear-slot {
+    min-height: 80px;
+    padding: 8px !important;
+  }
+  .map-label { max-width: 150px; }
+  .map-label-box strong { font-size: .72rem; }
+}
+
+@media (prefers-reduced-motion: reduce) and (min-width: 651px) {
+  .dojo-tab-panel,
+  .map-label.recommended { animation: none !important; }
 }

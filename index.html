@@ -12,7 +12,7 @@
   <link rel="preload" href="assets/ui/panel-frame.webp?v=0.20.0" as="image" type="image/webp">
   <link rel="preload" href="assets/ui/nav-button-frame.webp?v=0.20.0" as="image" type="image/webp">
   <link rel="stylesheet" href="styles.css?v=0.20.0">
-  <link rel="stylesheet" href="desktop.css?v=0.21.0">
+  <link rel="stylesheet" href="desktop.css?v=0.22.0">
 </head>
 <body>
   <main>
@@ -27,8 +27,8 @@
           <div class="game-options">
             <div class="option-row">
               <label class="mode-switch" for="manual-seals"><input id="manual-seals" type="checkbox" checked><span>Sellos manuales</span></label>
-              <label class="mode-switch" for="camera-effects"><input id="camera-effects" type="checkbox" checked><span>Cámara</span></label>
-              <label class="mode-switch" for="flash-effects"><input id="flash-effects" type="checkbox" checked><span>Destellos</span></label>
+              <label class="mode-switch" for="camera-effects"><input id="camera-effects" type="checkbox" checked><span>Sacudida de cámara</span></label>
+              <label class="mode-switch" for="flash-effects"><input id="flash-effects" type="checkbox" checked><span>Destellos de pantalla</span></label>
               <label class="mode-switch" for="music-enabled"><input id="music-enabled" type="checkbox" checked><span>Música</span></label>
               <label class="mode-switch" for="light-mode"><input id="light-mode" type="checkbox"><span>Modo ligero</span></label>
               <label class="volume-control" for="game-volume"><span>Volumen</span><input id="game-volume" type="range" min="0" max="100" value="70"></label>
@@ -38,11 +38,11 @@
         </div>
       </details>
     </header>
-    <section id="meta" aria-label="Dojo y progreso del personaje"></section>
+    <section id="meta" aria-label="Dojo y progreso del personaje"><div class="app-loading" role="status"><span aria-hidden="true"></span><strong>Abriendo las crónicas…</strong></div></section>
     <section id="game" aria-label="Juego de combate por turnos" hidden></section>
     <noscript>Este prototipo necesita JavaScript activado.</noscript>
   </main>
-  <script defer crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
-  <script type="module" src="game.js?v=0.21.0"></script>
+  <script defer src="assets/vendor/phaser-3.90.0.min.js"></script>
+  <script type="module" src="game.js?v=0.22.0"></script>
 </body>
 </html>

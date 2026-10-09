@@ -6,7 +6,7 @@ RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye un
 
 ## Ejecutar
 
-El juego usa Phaser desde un CDN, por lo que necesita conexión a Internet al abrirse.
+Phaser está incluido en el proyecto y los recursos esenciales se guardan en caché tras la primera visita. Para servir el juego localmente:
 
 Desde esta carpeta ejecuta:
 
@@ -31,7 +31,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - La afinidad se fija al crear el personaje; cambiarla o añadir otra requerirá un futuro Catalizador elemental.
 - El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
 - Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
-- Selecciona una de las seis acciones con el ratón o la pantalla táctil.
+- Selecciona una de las seis acciones con el ratón, la pantalla táctil o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
 - También puedes pulsar el sello iluminado con ratón o pantalla táctil.
 - Una secuencia perfecta aumenta el daño un 10 %; demasiados errores lo reducen.

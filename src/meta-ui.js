@@ -84,6 +84,7 @@ function escapeHtml(value) {
 export function mountMetaUI(root, initialSave, onStartMission) {
   let save = initialSave;
   let view = "plaza";
+  let activeDojoTab = "equipment";
   const introducedViews = new Set();
 
   const persist = (next, shouldRender = true) => {
@@ -326,7 +327,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     }).join("");
     const labels = VILLAGE_LOCATIONS.map((location) => {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
-      return `<span class="map-label ${comingSoon ? "coming-soon" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
+      const recommended = location.id === "headquarters" && save.campaign.completedMissions.length < MISSIONS.length;
+      return `<span class="map-label ${comingSoon ? "coming-soon" : ""} ${recommended ? "recommended" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(recommended ? "OBJETIVO · " + location.description : comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
     }).join("");
     shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${ASSET_VERSION}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
     scheduleLocationWarmup();
@@ -509,22 +511,55 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       return `<div class="technique-slot ${unlocked ? "" : "locked"}"><span>${index + 1}</span><strong>${jutsu?.name || (unlocked ? "Vacía" : `Nivel ${requiredLevel}`)}</strong><small>${jutsu ? elementName(jutsu.element) : unlocked ? "Selecciona abajo" : "Ranura bloqueada"}</small></div>`;
     }).join("");
     const content = `<div class="dojo-layout">
-      <section class="stage-panel profile-card" data-comment="Poder mejora el daño; Agilidad modifica velocidad y evasión; Enfoque aumenta chakra y precisión." data-comment-npc="daichi">
+      <section class="stage-panel profile-card">
         <p class="eyebrow">ENTRENAMIENTO</p><h2>${ELEMENT_RANK_LABELS[elementRank]}</h2><p class="compact">${affinities.length}/${elementRank} afinidades activas</p>
         <div class="progress-track"><span style="width:${Math.min(100, progression.xp / xpForNextLevel(progression.level) * 100)}%"></span></div><p class="compact">Nivel ${progression.level} · ${progression.xp}/${xpForNextLevel(progression.level)} PX</p>
         <h3>Atributos <span>${progression.attributePoints} puntos</span></h3><div class="attribute-list"><button data-attribute="power" ${progression.attributePoints ? "" : "disabled"}>Poder ${progression.attributes.power}<small>+1 daño</small></button><button data-attribute="agility" ${progression.attributePoints ? "" : "disabled"}>Agilidad ${progression.attributes.agility}<small>velocidad y evasión</small></button><button data-attribute="focus" ${progression.attributePoints ? "" : "disabled"}>Enfoque ${progression.attributes.focus}<small>chakra y precisión</small></button></div>
         <div class="stat-grid"><span>${stats.maxHp}<small>PV</small></span><span>${stats.maxChakra}<small>CH</small></span><span>${stats.speed}<small>VEL</small></span><span>${stats.evasion}<small>EVA</small></span></div>
       </section>
-      <section class="stage-panel loadout-card" data-comment="Aquí preparas el equipo y las técnicas que usarás en combate." data-comment-npc="mei">
+      <section class="stage-panel loadout-card">
         <div class="section-heading dojo-heading"><div><p class="eyebrow">PREPARACIÓN</p><h2>Configuración de combate</h2></div><strong>${save.loadout.length}/${techniqueCapacity} técnicas</strong></div>
-        <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>Se eligen al crear el personaje y progresan combatiendo.</p></div><span>Rango ${elementRank}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ Para cambiar o añadir una afinidad necesitarás un Catalizador elemental, disponible próximamente.</p></section>
-        <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Pulsa una ranura para elegir o desequipar.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("armor")}${equipmentSlot("accessory")}${equipmentSlot("companion")}</div></section>
-        <section class="skill-tree" aria-label="Árbol de habilidades por afinidad"><div class="skill-tree-heading"><div><h3>Árbol de habilidades</h3><p>Requieren nivel de personaje y experiencia de afinidad.</p></div><span class="tree-legend"><i></i> Aprendida <i></i> Bloqueada</span></div><div class="technique-slots">${techniqueSlotsMarkup()}</div><div class="skill-branches">${skillBranches}</div></section>
-        <details class="appearance-panel"><summary>Personalizar apariencia <span>Opcional</span></summary><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div></details>
+        <nav class="dojo-tabs" role="tablist" aria-label="Secciones de configuración">
+          <button type="button" role="tab" data-dojo-tab="equipment" aria-controls="dojo-panel-equipment">Equipo</button>
+          <button type="button" role="tab" data-dojo-tab="techniques" aria-controls="dojo-panel-techniques">Técnicas</button>
+          <button type="button" role="tab" data-dojo-tab="appearance" aria-controls="dojo-panel-appearance">Apariencia</button>
+        </nav>
+        <div id="dojo-panel-equipment" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="equipment">
+          <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>Se eligen al crear el personaje y progresan combatiendo.</p></div><span>Rango ${elementRank}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ Para cambiar o añadir una afinidad necesitarás un Catalizador elemental, disponible próximamente.</p></section>
+          <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Pulsa una ranura para elegir o desequipar.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("armor")}${equipmentSlot("accessory")}${equipmentSlot("companion")}</div></section>
+        </div>
+        <div id="dojo-panel-techniques" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="techniques">
+          <section class="skill-tree" aria-label="Árbol de habilidades por afinidad"><div class="skill-tree-heading"><div><h3>Árbol de habilidades</h3><p>Requieren nivel de personaje y experiencia de afinidad.</p></div><span class="tree-legend"><i></i> Aprendida <i></i> Bloqueada</span></div><div class="technique-slots">${techniqueSlotsMarkup()}</div><div class="skill-branches">${skillBranches}</div></section>
+        </div>
+        <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance">
+          <section class="appearance-panel"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3><p>Los cambios se reflejan también durante el combate.</p></div><span>Opcional</span></div><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div></section>
+        </div>
         <p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
       </section>
     </div><div class="equipment-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-modal-title" hidden><div class="equipment-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">INVENTARIO</p><h2 id="equipment-modal-title">Elegir equipo</h2></div><button type="button" data-close-equipment aria-label="Cerrar">×</button></div><div class="equipment-modal-options"></div></div></div>`;
     shell(locationStage("dojo", content));
+
+    const selectDojoTab = (tabId, moveFocus = false) => {
+      activeDojoTab = tabId;
+      root.querySelectorAll("[data-dojo-tab]").forEach((button) => {
+        const selected = button.dataset.dojoTab === tabId;
+        button.setAttribute("aria-selected", String(selected));
+        button.tabIndex = selected ? 0 : -1;
+        if (selected && moveFocus) button.focus();
+      });
+      root.querySelectorAll("[data-dojo-panel]").forEach((panel) => { panel.hidden = panel.dataset.dojoPanel !== tabId; });
+    };
+    root.querySelectorAll("[data-dojo-tab]").forEach((button) => {
+      button.addEventListener("click", () => selectDojoTab(button.dataset.dojoTab));
+      button.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+        const tabs = ["equipment", "techniques", "appearance"];
+        const direction = event.key === "ArrowRight" ? 1 : -1;
+        const next = (tabs.indexOf(activeDojoTab) + direction + tabs.length) % tabs.length;
+        selectDojoTab(tabs[next], true);
+      });
+    });
+    selectDojoTab(activeDojoTab);
 
     // El Dojo es una interfaz interactiva: guardar un cambio no debe reconstruir
     // toda la vista. Actualizamos solo los nodos afectados para conservar foco,

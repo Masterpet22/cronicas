@@ -34,10 +34,11 @@ La hoja optimizada `assets/sellos-originales.webp` procede del recurso proporcio
 
 ## Interfaz y tipografía
 
-- Encabezados: sans serif de sistema, peso 700–850 y espaciado compacto.
-- Etiquetas tácticas: mayúsculas pequeñas con espaciado amplio y color ámbar.
-- Texto de combate dentro de Phaser: Arial o sans serif equivalente para evitar descargas tipográficas y mantener el arranque ligero.
-- Paneles: carbón translúcido, borde frío fino y radio moderado; el ámbar se reserva para acciones y progreso.
+- Encabezados: Cinzel 600–700, reservada para títulos y rótulos de al menos 14 px.
+- Lectura, controles y combate: Alegreya Sans 400–700, con un suelo de 12 px para información útil y 13 px para acciones.
+- Etiquetas tácticas: mayúsculas breves con espaciado contenido y acentos ámbar o azul celeste.
+- Superficies: tinta azul-negra translúcida, divisores finos y acentos luminosos. Se evitan cajas marrones anidadas; el pergamino ilustrado se reserva para el marco exterior.
+- El metajuego y Phaser comparten las mismas familias tipográficas y jerarquía de color.
 
 ## Escala y rendimiento
 

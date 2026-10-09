@@ -2,8 +2,8 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.20.0";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.21.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.22.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.22.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
 
@@ -353,6 +353,14 @@ class BattleScene extends Phaser.Scene {
       hit.on("pointerdown", () => this.useJutsu(jutsu));
       this.buttons.push(button);
     });
+
+    this.onActionShortcut = (event) => {
+      const index = Number(event.key) - 1;
+      if (index < 0 || index >= this.actions.length) return;
+      this.useJutsu(this.actions[index]);
+    };
+    this.input.keyboard.on("keydown", this.onActionShortcut);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keydown", this.onActionShortcut));
   }
 
   async useJutsu(jutsu) {
@@ -921,7 +929,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   textStyle(size, color, weight = "500") {
-    return { fontFamily: "Arial, sans-serif", fontSize: `${size}px`, color, fontStyle: weight === "700" || weight === "800" ? "bold" : "normal" };
+    return { fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: `${size}px`, color, fontStyle: weight === "700" || weight === "800" ? "bold" : "normal" };
   }
 
   delay(ms) { return new Promise((resolve) => this.time.delayedCall(ms, resolve)); }
@@ -965,20 +973,20 @@ class PauseScene extends Phaser.Scene {
       .setStrokeStyle(2, 0xf5c96b, 0.9).setDepth(101);
 
     this.add.text(WIDTH / 2, 92, "MISIÓN EN PAUSA", {
-      fontFamily: "Arial, sans-serif", fontSize: "26px", color: "#f8f2e7", fontStyle: "bold"
+      fontFamily: "Cinzel, Georgia, serif", fontSize: "26px", color: "#f8f2e7", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(102);
     this.add.text(WIDTH / 2, 124, "Ajusta la partida o vuelve al combate.", {
-      fontFamily: "Arial, sans-serif", fontSize: "13px", color: "#9fb0c6"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "13px", color: "#9fb0c6"
     }).setOrigin(0.5).setDepth(102);
 
     this.add.text(320, 160, "AJUSTES", {
-      fontFamily: "Arial, sans-serif", fontSize: "11px", color: "#f5c96b", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#f5c96b", fontStyle: "bold"
     }).setDepth(102);
 
     const rows = [
       ["Sellos manuales", "manual-seals"],
-      ["Efectos de cámara", "camera-effects"],
-      ["Destellos", "flash-effects"],
+      ["Sacudida de cámara", "camera-effects"],
+      ["Destellos de pantalla", "flash-effects"],
       ["Música", "music-enabled"],
       ["Modo ligero", "light-mode"]
     ];
@@ -1009,11 +1017,11 @@ class PauseScene extends Phaser.Scene {
     const bg = this.add.rectangle(x, y, 330, 31, 0x101c2b, 1)
       .setStrokeStyle(1, 0x41546d, 0.95).setDepth(102).setInteractive({ useHandCursor: true });
     this.add.text(x - 150, y, label, {
-      fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
     }).setOrigin(0, 0.5).setDepth(103);
 
     const value = this.add.text(x + 145, y, input.checked ? "ACTIVADO" : "DESACTIVADO", {
-      fontFamily: "Arial, sans-serif", fontSize: "10px", color: input.checked ? "#79e8b5" : "#91a0b3", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "11px", color: input.checked ? "#79e8b5" : "#91a0b3", fontStyle: "bold"
     }).setOrigin(1, 0.5).setDepth(103);
 
     bg.on("pointerover", () => bg.setFillStyle(0x1a2a3d, 1));
@@ -1029,11 +1037,11 @@ class PauseScene extends Phaser.Scene {
   makeVolumeControl(x, y) {
     const input = document.getElementById("game-volume");
     this.add.text(x - 165, y, "VOLUMEN", {
-      fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
     }).setOrigin(0, 0.5).setDepth(103);
 
     const value = this.add.text(x, y, `${input.value}%`, {
-      fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#f5c96b", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#f5c96b", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(103);
 
     const adjust = (delta) => {
@@ -1049,7 +1057,7 @@ class PauseScene extends Phaser.Scene {
   makePauseAction(x, y, label, color, callback, width = 260, once = true) {
     const bg = this.add.rectangle(x, y, width, 39, 0x111d2c, 1).setStrokeStyle(1, color, 1).setDepth(102)
       .setInteractive({ useHandCursor: true }).setName(`pause-action-${label}`);
-    this.add.text(x, y, label, { fontFamily: "Arial, sans-serif", fontSize: "12px", color: "#f8f2e7", fontStyle: "bold" })
+    this.add.text(x, y, label, { fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#f8f2e7", fontStyle: "bold" })
       .setOrigin(0.5).setDepth(103);
     bg.on("pointerover", () => bg.setFillStyle(color, 0.32));
     bg.on("pointerout", () => bg.setFillStyle(0x111d2c, 1));
@@ -1062,10 +1070,11 @@ const metaRoot = document.getElementById("meta");
 const gameRoot = document.getElementById("game");
 
 function bindGlobalOptions() {
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const checkboxPreferences = [
     ["manual-seals", "seal-input-mode", "manual", "automatic", "manual"],
-    ["camera-effects", "camera-effects", "on", "off", "on"],
-    ["flash-effects", "flash-effects", "on", "off", "on"],
+    ["camera-effects", "camera-effects", "on", "off", reduceMotion ? "off" : "on"],
+    ["flash-effects", "flash-effects", "on", "off", reduceMotion ? "off" : "on"],
     ["music-enabled", "music-enabled", "on", "off", "on"],
     ["light-mode", "light-mode", "on", "off", "off"]
   ];
@@ -1093,13 +1102,18 @@ if ("serviceWorker" in navigator) {
   }, { once: true });
 }
 
-mountMetaUI(metaRoot, activeSave, (save, mission) => {
+mountMetaUI(metaRoot, activeSave, async (save, mission) => {
   activeSave = writeSave(save);
   activeMission = mission;
   document.querySelector(".game-settings")?.removeAttribute("open");
   metaRoot.hidden = true;
   gameRoot.hidden = false;
+  gameRoot.setAttribute("aria-busy", "true");
   if (game) game.destroy(true);
+  await Promise.all([
+    document.fonts.load('700 16px "Cinzel"'),
+    document.fonts.load('700 16px "Alegreya Sans"')
+  ]);
   game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: "game",
@@ -1110,4 +1124,5 @@ mountMetaUI(metaRoot, activeSave, (save, mission) => {
     render: { antialias: true, pixelArt: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
   });
+  gameRoot.removeAttribute("aria-busy");
 });

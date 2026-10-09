@@ -4,7 +4,7 @@ export function createBar(scene, x, y, width, height, color) {
     .setStrokeStyle(1, 0xffffff, 0.18);
   const fill = scene.add.rectangle(x + 2, y, width - 4, height - 4, color, 1).setOrigin(0, 0.5);
   const valueText = scene.add.text(x + width / 2, y, "", {
-    fontFamily: "Arial, sans-serif",
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
     fontSize: "11px",
     color: "#ffffff",
     fontStyle: "bold",
@@ -26,9 +26,14 @@ export function createActionButton(scene, action, index, textStyle) {
   const iconText = action.iconTexture && scene.textures.exists(action.iconTexture)
     ? scene.add.image(x + 32, y + 29, action.iconTexture).setDisplaySize(48, 48)
     : scene.add.text(x + 32, y + 29, glyph, textStyle(22, `#${action.color.toString(16).padStart(6, "0")}`, "800")).setOrigin(0.5);
+  const shortcut = scene.add.text(x + width - 12, y + 11, String(index + 1), {
+    ...textStyle(12, "#e7f4ff", "800"),
+    backgroundColor: "#173753",
+    padding: { x: 6, y: 3 }
+  }).setOrigin(1, 0);
   const name = scene.add.text(x + 12, y + 56, action.name, { ...textStyle(13, "#f4f7fb", "700"), wordWrap: { width: width - 22 }, maxLines: 1 });
   const sub = scene.add.text(x + 12, y + 78, action.subtitle, { ...textStyle(9, "#9fb3cf", "500"), wordWrap: { width: width - 22 }, maxLines: 1 });
   const hit = scene.add.rectangle(x, y, width, height, 0xffffff, 0.001).setOrigin(0).setInteractive({ useHandCursor: true });
-  return { bg, glow, icon, iconText, name, sub, hit, jutsu: action };
+  return { bg, glow, icon, iconText, shortcut, name, sub, hit, jutsu: action };
 }
 
