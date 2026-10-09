@@ -18,100 +18,99 @@ export function createBar(scene, x, y, width, height, color) {
 }
 
 function actionLines(action) {
-  if (action.type === "guard") return ["Reduce 50% del daño", "Recupera 12 chakra · Velocidad 20"];
+  if (action.type === "guard") return ["Recupera 12 chakra", "Reduce 50%", "Vel. 20"];
 
   const speed = action.subtitle.match(/(?:^|·)\s*V(\d+)/)?.[1];
   const accuracy = action.subtitle.match(/(?:^|·)\s*P(\d+)/)?.[1];
   const cooldown = action.subtitle.match(/(?:^|·)\s*CD(\d+)/)?.[1];
   const cost = action.cost > 0 ? `${action.cost} chakra` : "Sin coste";
-  const timing = [speed && `Vel. ${speed}`, accuracy && `Prec. ${accuracy}%`, cooldown && `Recarga ${cooldown}`].filter(Boolean).join(" · ");
-  return [`${cost} · ${action.damage} de daño`, timing];
+  const timing = accuracy ? `Prec. ${accuracy}%` : speed ? `Vel. ${speed}` : cooldown ? `Rec. ${cooldown}` : "";
+  return [cost, `${action.damage} de daño`, timing];
 }
 
-export function createActionButton(scene, action, index, totalActions) {
-  const gap = 10;
-  const availableWidth = 916;
-  const width = Math.min(210, Math.floor((availableWidth - gap * (totalActions - 1)) / totalActions));
-  const totalWidth = width * totalActions + gap * (totalActions - 1);
-  const height = 108;
-  const x = (960 - totalWidth) / 2 + index * (width + gap);
-  const y = 423;
-  const accent = action.color || 0x65bce9;
+function actionDescription(action) {
+  if (action.type === "guard") return "Reduce el daño recibido y recupera chakra.";
+  if (action.id === "strike") return "Ataque físico rápido contra el enemigo.";
+  if (action.id === "water_whip") return "Ataca con un látigo de agua a presión.";
+  if (action.id === "water_bullet") return "Dispara una esfera de agua concentrada.";
+  const element = ({ fuego: "fuego", agua: "agua", viento: "viento", tierra: "tierra", rayo: "rayo" })[action.element] || "energía elemental";
+  return `Técnica concentrada de ${element}.`;
+}
+
+export function createActionButton(scene, action, index) {
+  const width = 146;
+  const height = 153;
+  const gap = 9;
+  const x = 20 + index * (width + gap);
+  const y = 377;
+  const accent = action?.color || 0x267bb0;
 
   const shadow = scene.add.rectangle(x + 3, y + 5, width, height, 0x000000, 0.42)
     .setOrigin(0)
     .setDepth(19);
-  const bg = scene.add.rectangle(x, y, width, height, 0x06111f, 0.985)
+  const bg = scene.add.rectangle(x, y, width, height, 0x04111f, 0.99)
     .setOrigin(0)
-    .setStrokeStyle(1.25, 0x477b9e, 0.98)
+    .setStrokeStyle(1.5, action ? 0x168ed0 : 0x24506c, action ? 1 : 0.72)
     .setDepth(20);
+  const inner = scene.add.rectangle(x + 4, y + 4, width - 8, height - 8, 0x000000, 0.001)
+    .setOrigin(0).setStrokeStyle(1, 0x65cfff, action ? 0.22 : 0.08).setDepth(21);
+  const glow = scene.add.rectangle(x + 2, y + 2, width - 4, 3, accent, action ? 1 : 0.25).setOrigin(0).setDepth(22);
+  const shortcutBg = scene.add.rectangle(x + 20, y + 18, 27, 27, 0x06233a, 1)
+    .setAngle(45).setStrokeStyle(1.5, 0x47caff, action ? 1 : 0.42).setDepth(25);
+  const shortcut = scene.add.text(x + 20, y + 18, String(index + 1), {
+    fontFamily: "Cinzel, Georgia, serif", fontSize: "14px", color: action ? "#f7fbff" : "#55778c", fontStyle: "bold"
+  }).setOrigin(0.5).setDepth(26);
 
-  let frame = null;
-  if (scene.textures.exists("actionFrame")) {
-    if (typeof scene.add.nineslice === "function") {
-      frame = scene.add.nineslice(x + width / 2, y + height / 2, "actionFrame", null, width, height, 44, 44, 44, 44).setTint(0x16466a).setAlpha(0.06).setDepth(21);
-    } else {
-      frame = scene.add.image(x + width / 2, y + height / 2, "actionFrame").setDisplaySize(width, height).setTint(0x16466a).setAlpha(0.06).setDepth(21);
-    }
-  }
+  if (!action) return { empty: true, shadow, bg, inner, glow, shortcutBg, shortcut };
 
-  const glow = scene.add.rectangle(x + 1, y + 1, width - 2, 3, accent, 1).setOrigin(0).setDepth(22);
-  const icon = scene.add.circle(x + 35, y + 37, 25, 0x030b16, 1).setStrokeStyle(2, accent, 0.95).setDepth(22);
+  const icon = scene.add.circle(x + width / 2, y + 39, 32, 0x020914, 0.96).setStrokeStyle(1.5, accent, 0.72).setDepth(22);
   const glyph = action.type === "guard" ? "◇" : action.element === "fire" ? "✦" : action.element === "wind" ? "≋" : action.element === "lightning" ? "ϟ" : "◆";
   const iconText = action.iconTexture && scene.textures.exists(action.iconTexture)
-    ? scene.add.image(x + 35, y + 37, action.iconTexture).setDisplaySize(52, 52).setDepth(23)
-    : scene.add.text(x + 35, y + 37, glyph, {
+    ? scene.add.image(x + width / 2, y + 39, action.iconTexture).setDisplaySize(68, 68).setDepth(23)
+    : scene.add.text(x + width / 2, y + 39, glyph, {
         fontFamily: "Cinzel, Georgia, serif",
-        fontSize: "20px",
+        fontSize: "26px",
         color: `#${action.color.toString(16).padStart(6, "0")}`,
         fontStyle: "bold"
       }).setOrigin(0.5).setDepth(23);
-
-  const shortcutBg = scene.add.rectangle(x + width - 17, y + 17, 24, 24, 0x0b2c44, 1)
-    .setStrokeStyle(1, 0x65bce9, 1)
-    .setDepth(23);
-  const shortcut = scene.add.text(x + width - 17, y + 17, String(index + 1), {
-    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: "13px",
-    color: "#f7fbff",
-    fontStyle: "bold"
-  }).setOrigin(0.5).setDepth(24);
-
-  const name = scene.add.text(x + 70, y + 18, action.name, {
-    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: width >= 180 ? "15px" : "13px",
+  const name = scene.add.text(x + width / 2, y + 65, action.name, {
+    fontFamily: "Cinzel, Georgia, serif",
+    fontSize: "12px",
     color: "#f7fbff",
     fontStyle: "bold",
     stroke: "#070c12",
     strokeThickness: 1,
-    wordWrap: { width: width - 105 },
+    wordWrap: { width: width - 18 },
+    maxLines: 1
+  }).setOrigin(0.5, 0).setDepth(24);
+
+  const [cost, damage, timing] = actionLines(action);
+  const divider = scene.add.rectangle(x + 10, y + 84, width - 20, 1, 0x41a8dc, 0.34).setOrigin(0).setDepth(23);
+  const costText = scene.add.text(x + width / 2, y + 88, `◉  ${cost}`, {
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
+    fontSize: "10px", color: "#59d5ff", fontStyle: "bold"
+  }).setOrigin(0.5, 0).setDepth(24);
+  const description = scene.add.text(x + width / 2, y + 104, actionDescription(action), {
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
+    fontSize: "9px",
+    color: "#d6e2ec",
+    fontStyle: "bold",
+    align: "center",
+    wordWrap: { width: width - 18 },
     maxLines: 2,
     lineSpacing: -2
-  }).setDepth(24);
-
-  const [summary, timing] = actionLines(action);
-  const divider = scene.add.rectangle(x + 12, y + 71, width - 24, 1, 0x5f8eaa, 0.28).setOrigin(0).setDepth(23);
-  const summaryText = scene.add.text(x + 12, y + 78, summary, {
+  }).setOrigin(0.5, 0).setDepth(24);
+  const bottomDivider = scene.add.rectangle(x + 10, y + 130, width - 20, 1, 0x41a8dc, 0.34).setOrigin(0).setDepth(23);
+  const summaryText = scene.add.text(x + 12, y + 135, damage, {
     fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: width >= 180 ? "12px" : "10px",
-    color: "#dcebf5",
+    fontSize: "10px",
+    color: action.type === "guard" ? "#f3c85e" : "#ff7f83",
     fontStyle: "bold",
-    stroke: "#070c12",
-    strokeThickness: 1,
-    wordWrap: { width: width - 24 },
-    maxLines: 1
   }).setDepth(24);
-
-  const sub = scene.add.text(x + 12, y + (width >= 180 ? 95 : 91), timing, {
-    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: width >= 180 ? "10px" : "9px",
-    color: "#83bddc",
-    fontStyle: "bold",
-    wordWrap: { width: width - 24 },
-    maxLines: width >= 180 ? 1 : 2,
-    lineSpacing: -2
-  }).setDepth(24);
+  const sub = scene.add.text(x + width - 12, y + 135, timing, {
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "9px", color: "#d7e3ec", fontStyle: "bold"
+  }).setOrigin(1, 0).setDepth(24);
 
   const hit = scene.add.rectangle(x, y, width, height, 0xffffff, 0.001).setOrigin(0).setDepth(25).setInteractive({ useHandCursor: true });
-  return { shadow, bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, divider, summaryText, sub, hit, jutsu: action };
+  return { shadow, bg, inner, glow, icon, iconText, shortcutBg, shortcut, name, divider, costText, description, bottomDivider, summaryText, sub, hit, jutsu: action };
 }
