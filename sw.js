@@ -1,6 +1,6 @@
-const CACHE_NAME = "cronicas-assets-v0.22.0";
+const CACHE_NAME = "cronicas-assets-v0.23.0";
 const CORE_ASSETS = [
-  "./desktop.css?v=0.22.0",
+  "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
   "./assets/fonts/cinzel-latin-700.woff2",
   "./assets/fonts/alegreya-sans-latin-400.woff2",

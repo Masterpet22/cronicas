@@ -12,10 +12,12 @@ assert.match(css, /#game canvas \{[\s\S]*height: 100% !important/, "El combate d
 assert.match(desktopCss, /@media \(min-width: 651px\)/, "Las correcciones deben quedar limitadas a escritorio y tablet horizontal");
 assert.match(desktopCss, /font-family: "Cinzel"/, "Los títulos deben usar la tipografía temática local");
 assert.match(desktopCss, /font-family: "Alegreya Sans"/, "El texto debe conservar una tipografía local legible");
-assert.match(desktopCss, /border-image: url\("assets\/ui\/panel-frame\.webp\?v=0\.20\.0"\)/, "Los paneles deben preservar las esquinas con nine-slice");
+assert.match(desktopCss, /\.stage-panel::before,[\s\S]*display: none/, "Los paneles funcionales no deben conservar marcos marrones ilustrados");
 assert.match(desktopCss, /\.saga-card\.locked,[\s\S]*opacity: 1/, "Los estados bloqueados no deben perder contraste por opacidad global");
 assert.match(desktopCss, /\.dojo-tabs/, "El Dojo debe dividir la configuración mediante pestañas");
 assert.match(desktopCss, /font-size: max\(\.75rem, 12px\)/, "La información útil debe conservar un suelo de 12 px");
 assert.match(desktopCss, /\.archive-card li \{[\s\S]*background: transparent/, "El archivo debe usar filas y divisores en lugar de cajas marrones");
+assert.match(desktopCss, /\.stage-speech,[\s\S]*rgba\(7, 20, 36, \.98\)/, "Los diálogos deben usar una superficie oscura de alto contraste");
+assert.match(desktopCss, /\.equipment-modal \{[\s\S]*rgba\(1, 5, 12, \.86\)/, "El modal debe usar un velo azul-negro en lugar de marrón");
 
 console.log("Pruebas del escenario de escritorio superadas.");

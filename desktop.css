@@ -863,3 +863,178 @@
   .dojo-tab-panel,
   .map-label.recommended { animation: none !important; }
 }
+
+/* v0.23 · Contraste completo y retirada de las últimas superficies marrones. */
+@media (min-width: 651px) {
+  body,
+  main,
+  body:has(#meta:not([hidden])) main {
+    background-color: #030813;
+    background-image: none;
+  }
+
+  .village-topbar,
+  .creator-card,
+  .stage-panel,
+  .equipment-modal-card,
+  .game-settings-panel {
+    border: 1px solid rgba(117, 169, 210, .32);
+    background-color: rgba(3, 9, 18, .96);
+    background-image: linear-gradient(145deg, rgba(5, 13, 25, .96), rgba(2, 8, 17, .92));
+    box-shadow: 0 22px 60px rgba(0, 0, 0, .5), inset 0 1px rgba(185, 220, 244, .035);
+  }
+
+  .village-topbar::before,
+  .creator-card::before,
+  .stage-panel::before,
+  .equipment-modal-card::before,
+  .game-settings-panel::before {
+    display: none;
+  }
+
+  .village-topbar {
+    padding: 10px 16px 10px 18px;
+    border-left: 3px solid #65bce9;
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+  }
+
+  .primary-button,
+  .secondary-button,
+  .village-return button,
+  .mission-card button,
+  .npc-actions button,
+  .saga-back {
+    min-height: 44px;
+    border: 1px solid rgba(112, 192, 237, .62);
+    border-bottom: 2px solid #69c6f2;
+    border-radius: 4px;
+    background-color: rgba(9, 35, 59, .98);
+    background-image: linear-gradient(180deg, rgba(24, 76, 111, .98), rgba(9, 35, 59, .98));
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .32), inset 0 1px rgba(221, 244, 255, .12);
+    color: #f7fbff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .8);
+  }
+
+  .primary-button:hover,
+  .secondary-button:hover,
+  .village-return button:hover,
+  .mission-card button:hover:not(:disabled),
+  .npc-actions button:hover,
+  .saga-back:hover {
+    border-color: #9cddff;
+    background: linear-gradient(180deg, rgba(38, 106, 148, 1), rgba(12, 49, 79, 1));
+    box-shadow: 0 0 0 2px rgba(110, 202, 247, .16), 0 10px 26px rgba(0, 0, 0, .38);
+    color: #fff;
+  }
+
+  .primary-button:active,
+  .secondary-button:active,
+  .village-return button:active,
+  .mission-card button:active:not(:disabled),
+  .npc-actions button:active,
+  .saga-back:active {
+    transform: translateY(1px);
+    background: #0d3556;
+  }
+
+  .primary-button:disabled,
+  .secondary-button:disabled,
+  .mission-card button:disabled {
+    border-color: rgba(119, 139, 160, .42);
+    background: rgba(16, 28, 43, .76);
+    color: #8797a9;
+    opacity: 1;
+  }
+
+  .stage-speech,
+  .stage-ambient {
+    border: 1px solid rgba(117, 187, 226, .55);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(7, 20, 36, .98), rgba(3, 10, 21, .98));
+    color: #edf5fb;
+    box-shadow: 0 24px 62px rgba(0, 0, 0, .64), inset 3px 0 #65bce9;
+    backdrop-filter: blur(8px);
+  }
+
+  .stage-speech::before,
+  .stage-ambient::before { background: #071426; }
+  .stage-speaker,
+  .stage-ambient strong {
+    border-bottom-color: rgba(130, 180, 217, .28);
+    color: #82d3f7;
+  }
+  .stage-speech small { color: #a9bbcc; }
+  .stage-speech .primary-button {
+    min-width: 126px;
+    color: #fff;
+  }
+
+  .dialogue-box,
+  .dialogue-box.with-portrait {
+    border: 1px solid rgba(117, 169, 210, .38);
+    background-color: rgba(3, 10, 20, .98);
+    background-image: linear-gradient(145deg, rgba(7, 20, 36, .98), rgba(3, 10, 20, .98));
+    color: #edf5fb;
+    box-shadow: 0 26px 76px rgba(0, 0, 0, .7), inset 3px 0 #65bce9;
+  }
+
+  .stage-character span,
+  .stage-character.active span {
+    border-color: rgba(108, 190, 233, .58);
+    background: rgba(3, 15, 28, .92);
+    color: #eaf6fc;
+    box-shadow: 0 0 10px rgba(73, 171, 224, .16);
+  }
+
+  .equipment-modal {
+    background: radial-gradient(circle at 50% 42%, rgba(14, 42, 67, .34), transparent 42%), rgba(1, 5, 12, .86);
+    backdrop-filter: blur(7px) saturate(.8);
+  }
+  .equipment-modal-card {
+    border-left: 3px solid #65bce9;
+    border-radius: 5px;
+  }
+  .equipment-modal-heading {
+    border-bottom: 1px solid rgba(127, 173, 211, .26);
+    padding-bottom: 12px;
+  }
+  .equipment-modal-heading button,
+  .player-settings-trigger,
+  .notice-icon,
+  .notice-arrow {
+    border: 1px solid rgba(115, 178, 219, .46);
+    background: rgba(7, 24, 41, .94);
+    background-image: none;
+    box-shadow: none;
+    color: #d9effb;
+  }
+  .equipment-modal-heading button:hover,
+  .player-settings-trigger:hover,
+  .player-settings-trigger[aria-expanded="true"] {
+    border-color: #84d3f6;
+    background: #103a5b;
+    color: #fff;
+  }
+
+  .equipment-option.selected {
+    border-left-color: #72cdf5;
+    background: linear-gradient(90deg, rgba(24, 84, 121, .38), transparent);
+  }
+
+  .game-settings-panel .mode-switch,
+  .game-settings-panel .volume-control {
+    border-color: rgba(124, 166, 204, .25);
+    background: transparent;
+  }
+
+  .stage-options,
+  .equipment-modal-card { scrollbar-color: #4d8fb8 #07111f; }
+  .stage-options::-webkit-scrollbar-track,
+  .equipment-modal-card::-webkit-scrollbar-track { background: #07111f; }
+  .stage-options::-webkit-scrollbar-thumb,
+  .equipment-modal-card::-webkit-scrollbar-thumb {
+    border-color: #07111f;
+    background: #4d8fb8;
+  }
+}

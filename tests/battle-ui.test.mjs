@@ -21,5 +21,6 @@ assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer ata
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
+assert.match(html, /desktop\.css\?v=0\.23\.0/, "El CSS corregido debe invalidar la caché anterior");
 
 console.log("Pruebas de interfaz de combate superadas.");
