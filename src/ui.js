@@ -8,13 +8,24 @@ export function createBar(scene, x, y, width, height, color) {
     .setOrigin(0, 0.5);
   const valueText = scene.add.text(x + width / 2, y, "", {
     fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: "11px",
+    fontSize: "12px",
     color: "#fff4df",
     fontStyle: "bold",
     stroke: "#060a10",
-    strokeThickness: 3
+    strokeThickness: 2
   }).setOrigin(0.5);
   return { bg, slot, fill, sheen, valueText, width: width - 4, x: x + 2 };
+}
+
+function actionLines(action) {
+  if (action.type === "guard") return ["REDUCE DAÑO 50%", "RECUPERA 12 CH · VEL. 20"];
+
+  const speed = action.subtitle.match(/(?:^|·)\s*V(\d+)/)?.[1];
+  const accuracy = action.subtitle.match(/(?:^|·)\s*P(\d+)/)?.[1];
+  const cooldown = action.subtitle.match(/(?:^|·)\s*CD(\d+)/)?.[1];
+  const cost = action.cost > 0 ? `${action.cost} CH` : "SIN COSTE";
+  const timing = [speed && `VEL. ${speed}`, accuracy && `PREC. ${accuracy}%`, cooldown && `REC. ${cooldown}`].filter(Boolean).join(" · ");
+  return [`${cost} · ${action.damage} DAÑO`, timing];
 }
 
 export function createActionButton(scene, action, index, textStyle) {
@@ -25,60 +36,73 @@ export function createActionButton(scene, action, index, textStyle) {
 
   const bg = scene.add.rectangle(x, y, width, height, 0x0e1420, 0.98)
     .setOrigin(0)
-    .setStrokeStyle(1.5, 0x8a6b3e, 0.95);
+    .setStrokeStyle(1.5, 0x8a6b3e, 0.95)
+    .setDepth(20);
 
   let frame = null;
   if (scene.textures.exists("actionFrame")) {
     if (typeof scene.add.nineslice === "function") {
-      frame = scene.add.nineslice(x + width / 2, y + height / 2, "actionFrame", null, width, height, 44, 44, 44, 44).setAlpha(0.92);
+      frame = scene.add.nineslice(x + width / 2, y + height / 2, "actionFrame", null, width, height, 44, 44, 44, 44).setAlpha(0.3).setDepth(21);
     } else {
-      frame = scene.add.image(x + width / 2, y + height / 2, "actionFrame").setDisplaySize(width, height).setAlpha(0.92);
+      frame = scene.add.image(x + width / 2, y + height / 2, "actionFrame").setDisplaySize(width, height).setAlpha(0.3).setDepth(21);
     }
   }
 
-  const glow = scene.add.rectangle(x + 4, y + 4, width - 8, 2.5, action.color, 0.88).setOrigin(0);
-  const icon = scene.add.circle(x + 32, y + 29, 23, 0x080d14, 1).setStrokeStyle(2, 0xb88846, 0.92);
+  const glow = scene.add.rectangle(x + 4, y + 4, width - 8, 3, action.color, 0.95).setOrigin(0).setDepth(22);
+  const icon = scene.add.circle(x + 31, y + 31, 23, 0x080d14, 1).setStrokeStyle(2, action.color, 0.9).setDepth(22);
   const glyph = action.type === "guard" ? "◇" : action.element === "fire" ? "✦" : action.element === "wind" ? "≋" : action.element === "lightning" ? "ϟ" : "◆";
   const iconText = action.iconTexture && scene.textures.exists(action.iconTexture)
-    ? scene.add.image(x + 32, y + 29, action.iconTexture).setDisplaySize(48, 48)
-    : scene.add.text(x + 32, y + 29, glyph, {
+    ? scene.add.image(x + 31, y + 31, action.iconTexture).setDisplaySize(48, 48).setDepth(23)
+    : scene.add.text(x + 31, y + 31, glyph, {
         fontFamily: "Cinzel, Georgia, serif",
         fontSize: "20px",
         color: `#${action.color.toString(16).padStart(6, "0")}`,
         fontStyle: "bold"
-      }).setOrigin(0.5);
+      }).setOrigin(0.5).setDepth(23);
 
   const shortcutBg = scene.add.rectangle(x + width - 15, y + 15, 20, 20, 0x140e0b, 0.95)
-    .setStrokeStyle(1, 0xc5925c, 0.95);
+    .setStrokeStyle(1, 0xc5925c, 0.95)
+    .setDepth(23);
   const shortcut = scene.add.text(x + width - 15, y + 15, String(index + 1), {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontSize: "11px",
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
+    fontSize: "13px",
     color: "#fff4df",
     fontStyle: "bold"
-  }).setOrigin(0.5);
+  }).setOrigin(0.5).setDepth(24);
 
-  const name = scene.add.text(x + 12, y + 56, action.name, {
-    fontFamily: "Cinzel, Georgia, serif",
-    fontSize: "12px",
+  const name = scene.add.text(x + 61, y + 18, action.name, {
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
+    fontSize: "13px",
     color: "#fff4df",
     fontStyle: "bold",
     stroke: "#070c12",
-    strokeThickness: 2,
-    wordWrap: { width: width - 24 },
-    maxLines: 1
-  });
+    strokeThickness: 1,
+    wordWrap: { width: width - 87 },
+    maxLines: 2,
+    lineSpacing: -2
+  }).setDepth(24);
 
-  const sub = scene.add.text(x + 12, y + 78, action.subtitle, {
+  const [summary, timing] = actionLines(action);
+  const summaryText = scene.add.text(x + 10, y + 62, summary, {
     fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
-    fontSize: "10px",
-    color: "#c5b8a5",
+    fontSize: "11px",
+    color: "#f1dcc0",
     fontStyle: "bold",
     stroke: "#070c12",
-    strokeThickness: 2,
-    wordWrap: { width: width - 24 },
+    strokeThickness: 1,
+    wordWrap: { width: width - 20 },
     maxLines: 1
-  });
+  }).setDepth(24);
 
-  const hit = scene.add.rectangle(x, y, width, height, 0xffffff, 0.001).setOrigin(0).setInteractive({ useHandCursor: true });
-  return { bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, sub, hit, jutsu: action };
+  const sub = scene.add.text(x + 10, y + 81, timing, {
+    fontFamily: "Alegreya Sans, Segoe UI, sans-serif",
+    fontSize: "11px",
+    color: "#b9cadb",
+    fontStyle: "bold",
+    wordWrap: { width: width - 20 },
+    maxLines: 1
+  }).setDepth(24);
+
+  const hit = scene.add.rectangle(x, y, width, height, 0xffffff, 0.001).setOrigin(0).setDepth(25).setInteractive({ useHandCursor: true });
+  return { bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, summaryText, sub, hit, jutsu: action };
 }

@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.23.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.24.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
@@ -11,6 +11,11 @@ const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
+const RENDER_RESOLUTION = window.innerWidth >= 981
+  ? 1.5
+  : Math.min(2, Math.max(window.devicePixelRatio || 1, 1));
+const RENDER_WIDTH = WIDTH * RENDER_RESOLUTION;
+const RENDER_HEIGHT = HEIGHT * RENDER_RESOLUTION;
 const TIMELINE_START = 288;
 const TIMELINE_END = 668;
 let activeSave = loadSave();
@@ -51,6 +56,10 @@ class BattleScene extends Phaser.Scene {
   }
 
   create() {
+    // Phaser 3.90 no escala el framebuffer mediante GameConfig.resolution.
+    // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
+    // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
+    this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
     this.saveData = activeSave;
     this.mission = activeMission;
     this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
@@ -322,14 +331,14 @@ class BattleScene extends Phaser.Scene {
 
     this.playerStatusText = this.add.text(playerX + 16, 96, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "9px",
+      fontSize: "10px",
       color: "#f5c96b",
       fontStyle: "bold"
     }).setDepth(21);
 
     this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 78, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "9px",
+      fontSize: "10px",
       color: "#f5c96b",
       fontStyle: "bold"
     }).setOrigin(1, 0).setDepth(21);
@@ -344,17 +353,17 @@ class BattleScene extends Phaser.Scene {
     }
 
     // Cinta de mensajes y avisos de combate con estilo tradicional
-    this.messagePlate = this.add.rectangle(WIDTH / 2, 330, 580, 22, 0x080d16, 0.82)
+    this.messagePlate = this.add.rectangle(WIDTH / 2, 330, 610, 28, 0x080d16, 0.92)
       .setOrigin(0.5)
       .setStrokeStyle(1, 0x7a5b35, 0.45)
       .setDepth(22);
     this.messageText = this.add.text(WIDTH / 2, 330, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "11px",
+      fontSize: "13px",
       color: "#f7d6a5",
       fontStyle: "bold",
       stroke: "#05080e",
-      strokeThickness: 2
+      strokeThickness: 1
     }).setOrigin(0.5).setDepth(23);
 
     this.refreshHud();
@@ -371,7 +380,7 @@ class BattleScene extends Phaser.Scene {
       .setStrokeStyle(1, 0xb88846, 0.32);
     const title = this.add.text(478, centerY - 13, "ORDEN DE ACCIÓN", {
       fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "9px",
+      fontSize: "10px",
       color: "#f5a357",
       fontStyle: "bold"
     }).setOrigin(0.5);
@@ -386,7 +395,7 @@ class BattleScene extends Phaser.Scene {
       .setStrokeStyle(2, 0xef5565, 1);
     this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 6, "TÚ", {
       fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "8px",
+      fontSize: "9px",
       color: "#fff4df",
       fontStyle: "bold"
     }).setOrigin(0.5);
@@ -411,7 +420,7 @@ class BattleScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     const label = this.add.text(480, 60, "Ⅱ  PAUSA", {
       fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "10px",
+      fontSize: "11px",
       color: "#f7d99b",
       fontStyle: "bold"
     }).setOrigin(0.5).setDepth(26);
@@ -1007,16 +1016,21 @@ class BattleScene extends Phaser.Scene {
   }
 
   setButtonsEnabled(enabled) {
-    this.buttons.forEach(({ hit, bg, sub, shortcutBg, jutsu }) => {
+    this.buttons.forEach(({ hit, bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, summaryText, sub, jutsu }) => {
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const available = enabled && this.turnReady && affordable && cooldown === 0;
       if (available) hit.setInteractive({ useHandCursor: true }); else hit.disableInteractive();
-      bg.setAlpha(available ? 1 : 0.43);
-      if (shortcutBg) shortcutBg.setAlpha(available ? 1 : 0.43);
-      const adjustedSubtitle = jutsu.cost > 0 ? jutsu.subtitle.replace(/^\d+CH/, `${this.actionCost(jutsu)}CH`) : jutsu.subtitle;
-      sub.setText(cooldown > 0 ? `ENFRIAMIENTO · ${cooldown} RONDA${cooldown === 1 ? "" : "S"}` : adjustedSubtitle);
-      sub.setColor(cooldown > 0 ? "#ffab83" : "#c5b8a5");
+      const visualAlpha = available ? 1 : 0.68;
+      [bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, summaryText, sub].filter(Boolean)
+        .forEach((part) => part.setAlpha(visualAlpha));
+      if (jutsu.cost > 0 && summaryText) summaryText.setText(`${this.actionCost(jutsu)} CH · ${jutsu.damage} DAÑO`);
+      if (cooldown > 0) {
+        sub.setText(`RECARGA · ${cooldown} RONDA${cooldown === 1 ? "" : "S"}`);
+        sub.setColor("#ffb49d");
+      } else {
+        sub.setColor("#b9cadb");
+      }
     });
   }
 
@@ -1125,6 +1139,7 @@ class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
 
   create() {
+    this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
     this.battle = this.scene.get("battle");
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, 0.84).setOrigin(0).setDepth(100);
     this.add.rectangle(WIDTH / 2, HEIGHT / 2, 560, 460, 0x091421, 0.985)
@@ -1275,8 +1290,8 @@ mountMetaUI(metaRoot, activeSave, async (save, mission) => {
   game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: "game",
-    width: WIDTH,
-    height: HEIGHT,
+    width: RENDER_WIDTH,
+    height: RENDER_HEIGHT,
     backgroundColor: "#101622",
     scene: [BattleScene, PauseScene],
     render: { antialias: true, pixelArt: false },
