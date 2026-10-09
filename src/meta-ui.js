@@ -1,8 +1,8 @@
-import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.19.2";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.19.2";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.19.2";
-import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.19.2";
-import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.15.1";
+import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.20.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, STORY_SAGAS } from "./data.js?v=0.20.0";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.20.0";
+import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.20.0";
+import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 
 const COMING_SOON_LOCATIONS = {
   missions: { npcId: "riku", message: "El Tablón todavía no está recibiendo encargos. Próximamente podrás aceptar aquí misiones secundarias, contratos y favores de la aldea." },
@@ -17,19 +17,44 @@ const TUTORIAL = [
   ["Maestra Aya", "En el dojo preparas técnicas según tu nivel y desarrollas la experiencia de tus afinidades."],
   ["Mika", "Las misiones de historia se reciben en el Cuartel General. El tablón de la plaza queda reservado para encargos y misiones secundarias."]
 ];
-const warmedImages = new Set();
+const ASSET_VERSION = "0.20.0";
+const warmedImages = new Map();
+let locationWarmupScheduled = false;
 
 function warmImage(src) {
-  if (warmedImages.has(src)) return;
-  warmedImages.add(src);
-  const image = new Image();
-  image.decoding = "async";
-  image.src = src;
+  if (warmedImages.has(src)) return warmedImages.get(src);
+  const request = new Promise((resolve) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(true);
+    image.onerror = () => {
+      warmedImages.delete(src);
+      resolve(false);
+    };
+    image.src = src;
+  });
+  warmedImages.set(src, request);
+  return request;
 }
 
 function warmLocationAssets(locationId) {
-  warmImage(`assets/locations/${locationId}.webp?v=0.12.0`);
-  (LOCATION_CAST[locationId] || []).forEach((id) => warmImage(`${NPCS[id].image}?v=0.12.0`));
+  return Promise.all([
+    warmImage(`assets/locations/${locationId}.webp?v=${ASSET_VERSION}`),
+    ...(LOCATION_CAST[locationId] || []).map((id) => warmImage(`${NPCS[id].image}?v=${ASSET_VERSION}`))
+  ]);
+}
+
+function scheduleLocationWarmup() {
+  if (locationWarmupScheduled) return;
+  locationWarmupScheduled = true;
+  const run = async () => {
+    // Prioriza las tres secciones utilizables y evita competir con el mapa inicial.
+    for (const locationId of ["headquarters", "dojo", "archive"]) {
+      await warmLocationAssets(locationId);
+    }
+  };
+  if ("requestIdleCallback" in window) window.requestIdleCallback(() => { void run(); }, { timeout: 1500 });
+  else window.setTimeout(() => { void run(); }, 1200);
 }
 
 export const VILLAGE_LOCATIONS = [
@@ -60,7 +85,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
   let save = initialSave;
   let view = "plaza";
   const introducedViews = new Set();
-  let ambientTimer = 0;
 
   const persist = (next, shouldRender = true) => {
     save = writeSave(next);
@@ -182,7 +206,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const [speaker, dialogue] = lines[index];
       const last = index === lines.length - 1;
       const npc = npcByName(speaker);
-      const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=0.12.0" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
+      const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
       overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       overlay.querySelector("button").addEventListener("click", () => {
         if (!last) { index += 1; draw(); return; }
@@ -200,9 +224,9 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const locationName = VILLAGE_LOCATIONS.find((location) => location.id === locationId)?.name || locationId;
     const portraits = cast.map((id) => {
       const npc = NPCS[id];
-      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=0.12.0" alt="${escapeHtml(npc.name)}" width="1145" height="1374" loading="lazy" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
+      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" loading="lazy" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
     }).join("");
-    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('assets/locations/${locationId}.webp?v=0.12.0')" aria-label="${escapeHtml(locationName)}">
+    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('assets/locations/${locationId}.webp?v=${ASSET_VERSION}')" aria-label="${escapeHtml(locationName)}">
       <div class="stage-characters">${portraits}</div>
       <div class="stage-speech" data-stage-speech aria-live="polite" ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
       <div class="stage-ambient" data-stage-ambient role="status" aria-live="polite" hidden><strong data-ambient-speaker></strong><span data-ambient-text></span></div>
@@ -211,7 +235,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
   };
 
   const bindLocationStage = (locationId) => {
-    clearTimeout(ambientTimer);
     const stage = root.querySelector(`[data-location-stage="${locationId}"]`);
     if (!stage) return;
     const cast = LOCATION_CAST[locationId] || [];
@@ -221,6 +244,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const ambient = stage.querySelector("[data-stage-ambient]");
     let lineIndex = 0;
     let tipTimer = 0;
+    let commentHoverReadyAt = performance.now() + 650;
 
     const activateSpeaker = (speaker) => {
       const activeIndex = cast.findIndex((id) => NPCS[id]?.name === speaker);
@@ -244,15 +268,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         window.setTimeout(() => { if (ambient.isConnected) ambient.hidden = true; }, 180);
       }, 5200);
     };
-    const scheduleAmbientTip = () => {
-      ambientTimer = window.setTimeout(() => {
-        if (!stage.isConnected || view !== locationId) return;
-        const npcId = cast[Math.floor(Math.random() * cast.length)];
-        const guide = NPCS[npcId]?.guide || [];
-        if (guide.length) showTip(guide[Math.floor(Math.random() * guide.length)], npcId);
-        scheduleAmbientTip();
-      }, 18000);
-    };
     const revealOptions = () => {
       introducedViews.add(locationId);
       speech.classList.add("leaving");
@@ -260,8 +275,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         if (!stage.isConnected) return;
         speech.hidden = true;
         options.hidden = false;
+        commentHoverReadyAt = performance.now() + 650;
         requestAnimationFrame(() => options.classList.add("ready"));
-        scheduleAmbientTip();
       }, 180);
     };
     const drawLine = () => {
@@ -281,7 +296,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       });
     } else {
       stage.querySelector("[data-stage-npc]")?.classList.add("active");
-      scheduleAmbientTip();
     }
     stage.querySelectorAll("[data-stage-npc]").forEach((button) => button.addEventListener("click", () => {
       if (!options.hidden) {
@@ -291,7 +305,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     }));
     stage.querySelectorAll("[data-comment]").forEach((control) => {
       let shown = false;
-      const explain = () => {
+      const explain = (event) => {
+        if (event.type === "mouseenter" && performance.now() < commentHoverReadyAt) return;
         if (shown || options.hidden) return;
         shown = true;
         showTip(control.dataset.comment, control.dataset.commentNpc || cast[0]);
@@ -313,7 +328,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]);
       return `<span class="map-label ${comingSoon ? "coming-soon" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
     }).join("");
-    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=0.12.0" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
+    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${ASSET_VERSION}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
+    scheduleLocationWarmup();
 
     root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
       const locationId = hotspot.getAttribute("data-coming-soon");
@@ -328,8 +344,8 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         showDialogue([[speaker, info.message]], () => {}, "ENTENDIDO");
       };
 
-      hotspot.addEventListener("mouseenter", () => warmImage(`${NPCS[info.npcId].image}?v=0.12.0`), { once: true });
-      hotspot.addEventListener("focus", () => warmImage(`${NPCS[info.npcId].image}?v=0.12.0`), { once: true });
+      hotspot.addEventListener("mouseenter", () => warmImage(`${NPCS[info.npcId].image}?v=${ASSET_VERSION}`), { once: true });
+      hotspot.addEventListener("focus", () => warmImage(`${NPCS[info.npcId].image}?v=${ASSET_VERSION}`), { once: true });
 
       hotspot.addEventListener("click", (event) => {
         event.preventDefault();

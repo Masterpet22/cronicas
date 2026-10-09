@@ -1,0 +1,500 @@
+@font-face {
+  font-family: "Cinzel";
+  src: url("assets/fonts/cinzel-latin-600.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: "Cinzel";
+  src: url("assets/fonts/cinzel-latin-700.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: "Alegreya Sans";
+  src: url("assets/fonts/alegreya-sans-latin-400.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: "Alegreya Sans";
+  src: url("assets/fonts/alegreya-sans-latin-500.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: "Alegreya Sans";
+  src: url("assets/fonts/alegreya-sans-latin-700.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 700;
+}
+
+/* Corrección visual de escritorio. La composición móvil se mantiene congelada. */
+@media (min-width: 651px) {
+  :root {
+    --font-display: "Cinzel", Georgia, serif;
+    --font-copy: "Alegreya Sans", "Segoe UI", sans-serif;
+    --surface: rgba(27, 22, 18, .96);
+    --surface-raised: rgba(39, 31, 24, .96);
+    --line: rgba(190, 132, 78, .52);
+    --text-strong: #fff4df;
+    --text-copy: #e7dac8;
+    --text-muted: #bcae9c;
+    --text-disabled: #978b7d;
+    font-family: var(--font-copy);
+  }
+
+  body,
+  input,
+  select,
+  button {
+    font-family: var(--font-copy);
+  }
+
+  h1,
+  h2,
+  h3,
+  .eyebrow,
+  .saga-number,
+  .saga-action,
+  .stage-speaker,
+  .stage-ambient strong,
+  .map-label-box strong,
+  .primary-button,
+  .secondary-button,
+  .village-return button,
+  .mission-card button,
+  .npc-actions button,
+  .attribute-list button,
+  .game-settings summary {
+    font-family: var(--font-display);
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--text-strong);
+    letter-spacing: .015em;
+  }
+
+  h2 { font-size: clamp(1.42rem, 2.2vw, 1.9rem); line-height: 1.15; }
+  h3 { line-height: 1.25; }
+  p { text-wrap: pretty; }
+  .lead { color: var(--text-copy); font-size: 1rem; line-height: 1.48; }
+  .eyebrow { color: #efad61; font-size: .72rem; font-weight: 700; letter-spacing: .13em; }
+
+  /* Los paneles conservan postes y esquinas mediante nine-slice. */
+  .creator-card,
+  .stage-panel,
+  .equipment-modal-card,
+  .game-settings-panel {
+    position: relative;
+    isolation: isolate;
+    border: 0;
+    border-radius: 5px;
+    background: var(--surface);
+    background-image: none;
+    box-shadow: 0 20px 58px rgba(0, 0, 0, .48);
+    color: var(--text-copy);
+  }
+
+  .creator-card::before,
+  .stage-panel::before,
+  .equipment-modal-card::before,
+  .game-settings-panel::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border: 38px solid transparent;
+    border-width: 38px 48px;
+    border-image: url("assets/ui/panel-frame.webp?v=0.20.0") 72 96 76 96 fill / 38px 48px stretch;
+    pointer-events: none;
+  }
+
+  .creator-card > *,
+  .stage-panel > *,
+  .equipment-modal-card > *,
+  .game-settings-panel > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .creator-card {
+    width: min(760px, calc(100% - 32px));
+    padding: 46px 56px;
+  }
+
+  .stage-panel { padding: 38px 48px; }
+  .stage-panel.saga-selector { padding: 38px 48px; }
+  .equipment-modal-card { padding: 40px 48px; }
+
+  .dialogue-box,
+  .dialogue-box.with-portrait {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(43, 33, 25, .98), rgba(20, 16, 14, .98));
+    background-image: none;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, .7);
+  }
+
+  .game-settings-panel {
+    padding: 40px 42px 36px;
+  }
+
+  .game-settings-panel .mode-switch {
+    border-color: rgba(197, 146, 92, .38);
+    background: rgba(27, 21, 18, .9);
+    color: var(--text-copy);
+    font-size: .88rem;
+  }
+
+  .game-settings-panel .hint {
+    margin-top: 10px;
+    color: var(--text-muted);
+    font-size: .78rem;
+    line-height: 1.35;
+  }
+
+  /* El HUD usa su recurso panorámico, sin deformar el panel vertical. */
+  .village-topbar {
+    position: absolute;
+    isolation: isolate;
+    width: min(670px, calc(100% - 210px));
+    min-height: 72px;
+    padding: 10px 14px 10px 46px;
+    background: rgba(16, 13, 11, .92);
+    background-image: none;
+  }
+
+  .village-topbar::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    border: 13px solid transparent;
+    border-width: 13px 36px;
+    border-image: url("assets/ui/hud-frame.webp?v=0.20.0") 90 125 90 125 fill / 13px 36px stretch;
+    pointer-events: none;
+  }
+
+  .village-topbar .profile-heading { min-width: 220px; }
+  .village-topbar .profile-copy .eyebrow { font-size: .6rem; }
+  .village-topbar .profile-copy h2 { font-size: 1.08rem; }
+  .summary-item small { color: #c3b6a6; font-size: .64rem; }
+  .summary-item strong { color: var(--text-copy); font-size: .8rem; }
+  .summary-item b { font-size: 1.1rem; }
+
+  .village-return {
+    top: 16px !important;
+    right: 20px !important;
+  }
+
+  .village-return button {
+    width: auto;
+    min-width: 176px;
+    min-height: 56px;
+    height: auto;
+    padding: 12px 28px;
+    font-size: .78rem;
+    letter-spacing: .035em;
+  }
+
+  /* Una sola zona de desplazamiento y márgenes seguros frente a personajes/HUD. */
+  .stage-options {
+    width: 64%;
+    max-height: calc(100% - 128px);
+    margin: 102px 2.2% 24px auto;
+    padding: 4px 8px 18px;
+    scrollbar-gutter: stable;
+  }
+
+  .stage-options .mission-list {
+    max-height: none;
+    overflow: visible;
+  }
+
+  .stage-options::-webkit-scrollbar { width: 10px; }
+  .stage-options::-webkit-scrollbar-track { border-radius: 10px; background: rgba(20, 16, 13, .8); }
+  .stage-options::-webkit-scrollbar-thumb { border: 2px solid rgba(20, 16, 13, .8); border-radius: 10px; background: #8d6041; }
+
+  .location-stage:not(.location-dojo) .stage-character {
+    left: 1%;
+    width: 32%;
+    height: 84%;
+  }
+
+  .location-stage.has-cast:not(.location-dojo) .stage-character:first-child { left: -2%; width: 31%; }
+  .location-stage.has-cast:not(.location-dojo) .stage-character:nth-child(2) { left: 7%; width: 31%; }
+
+  /* Las tarjetas densas dejan de estirar el pergamino a proporciones extremas. */
+  .saga-card,
+  .mission-card,
+  .service-grid article,
+  .npc-guide-strip,
+  .village-map-card > .notice-card {
+    border: 1px solid rgba(153, 105, 65, .58);
+    border-radius: 8px;
+    background: linear-gradient(135deg, rgba(46, 36, 28, .97), rgba(23, 19, 16, .98));
+    background-image: none;
+    box-shadow: inset 0 1px rgba(255, 237, 206, .035), 0 8px 22px rgba(0, 0, 0, .24);
+    color: var(--text-copy);
+  }
+
+  .saga-card,
+  .saga-card:hover:not(:disabled) {
+    min-height: 112px;
+    padding: 15px 20px;
+    background-image: none;
+    transform: none;
+  }
+
+  .saga-card:hover:not(:disabled) {
+    border-color: #d69450;
+    background: linear-gradient(135deg, rgba(67, 45, 29, .98), rgba(30, 23, 18, .98));
+  }
+
+  .saga-grid { gap: 10px; }
+  .saga-card strong { color: var(--text-strong); font-size: 1.08rem; }
+  .saga-card small { color: #c8bcad; font-size: .82rem; }
+  .saga-progress { color: #afa291; font-size: .75rem; }
+  .saga-action { color: #f2bd78; font-size: .7rem; }
+
+  .saga-card.locked,
+  .mission-card.locked,
+  .gear-slot.locked,
+  .jutsu-card.locked,
+  .affinity-slot.locked,
+  .affinity-option:disabled,
+  .technique-slot.locked,
+  .skill-node.locked,
+  .attribute-list button:disabled {
+    opacity: 1;
+  }
+
+  .saga-card.locked,
+  .mission-card.locked {
+    border-color: rgba(132, 115, 96, .42);
+    background: linear-gradient(135deg, rgba(31, 27, 23, .97), rgba(19, 17, 15, .98));
+  }
+
+  .saga-card.locked strong,
+  .mission-card.locked h3 { color: #c1b6a8; }
+  .saga-card.locked small,
+  .saga-card.locked .saga-progress,
+  .mission-card.locked p { color: var(--text-disabled); }
+  .saga-card.locked .saga-action { color: #ad9d8a; }
+
+  .section-heading { align-items: flex-start; gap: 24px; }
+  .section-heading > strong { flex: 0 0 auto; color: #efb66d; font-size: .84rem; white-space: nowrap; }
+  .saga-selector .lead { margin: 14px 0 16px; }
+
+  .mission-card {
+    grid-template-columns: 48px minmax(0, 1fr) auto;
+    min-height: 88px;
+    padding: 12px 16px;
+  }
+
+  .mission-card h3 { color: var(--text-strong); font-size: 1.02rem; }
+  .mission-card p { color: #b9ad9e; font-size: .8rem; line-height: 1.35; }
+  .mission-card button { min-width: 128px; min-height: 42px; padding: 9px 18px; font-size: .66rem; }
+  .saga-header { gap: 18px; }
+  .saga-header p { color: #bcae9e; font-size: .82rem; }
+  .saga-next-note { color: #b0a392; font-size: .78rem; }
+
+  .service-grid article,
+  .npc-guide-strip { padding: 17px 20px; }
+  .village-map-card > .notice-card { padding: 14px 22px; }
+
+  .archive-card li {
+    border-color: rgba(151, 108, 69, .48);
+    background: rgba(36, 29, 23, .92);
+    color: #a99d8e;
+  }
+
+  .archive-card li strong { color: #e6dac8; font-size: .88rem; }
+  .archive-card li.done { color: #80d5bd; }
+
+  /* El Dojo prioriza información y lectura sobre decoración repetida. */
+  .location-dojo .stage-options {
+    width: 76%;
+    max-height: calc(100% - 124px);
+    margin: 98px auto 24px;
+  }
+
+  .location-dojo .stage-options .dojo-layout {
+    grid-template-columns: minmax(260px, .58fr) minmax(0, 1.42fr);
+    gap: 14px;
+  }
+
+  .location-dojo .stage-panel {
+    border: 1px solid rgba(161, 112, 70, .54);
+    border-radius: 9px;
+    padding: 17px;
+    background: rgba(25, 21, 18, .96);
+  }
+
+  .location-dojo .stage-panel::before { display: none; }
+  .location-stage.location-dojo .stage-character:first-child { right: -5%; width: 28%; }
+  .location-stage.location-dojo .stage-character:nth-child(2) { left: -5%; width: 28%; }
+  .location-dojo .stage-options .customizer { grid-template-columns: 118px minmax(0, 1fr); }
+  .location-dojo .stage-options .character-preview { width: 118px; }
+
+  .dojo-section,
+  .skill-tree,
+  .appearance-panel,
+  .affinity-selector {
+    border-color: rgba(151, 109, 72, .5);
+    background: rgba(35, 28, 23, .9);
+  }
+
+  .dojo-section { padding: 12px; }
+  .attribute-list button { min-height: 64px; padding-block: 10px; line-height: 1.12; }
+  .attribute-list button small { line-height: 1.2; }
+  .stat-grid small { font-size: .66rem; }
+  .dojo-section-heading h3,
+  .skill-tree-heading h3 { font-size: .84rem; }
+  .dojo-section-heading p,
+  .skill-tree-heading p { color: #b0a494; font-size: .72rem; line-height: 1.35; }
+  .dojo-section-heading > span { font-size: .68rem; }
+  .tree-legend { color: #a99d8e; font-size: .66rem; }
+
+  .gear-slot.locked,
+  .jutsu-card.locked,
+  .affinity-slot.locked,
+  .affinity-option:disabled,
+  .technique-slot.locked,
+  .skill-node.locked {
+    filter: saturate(.55);
+  }
+
+  .gear-copy small { color: #b0a494; font-size: .66rem; }
+  .gear-copy strong { color: #eee3d3; font-size: .76rem; }
+  .gear-copy em { color: #9f9385; font-size: .66rem; }
+  .equipment-option strong { font-size: .82rem; }
+  .equipment-option small { color: #b0a493; font-size: .7rem; }
+  .equipment-option em { font-size: .65rem; }
+
+  .affinity-slot strong { font-size: .75rem; }
+  .affinity-slot small { color: #aea292; font-size: .65rem; }
+  .slot-index { font-size: .65rem; }
+  .slot-edit { font-size: .64rem; }
+  .affinity-change-note { color: #aaa092; font-size: .66rem; }
+  .affinity-selector > div:first-child strong { font-size: .8rem; }
+  .affinity-selector > div:first-child small { color: #aaa092; font-size: .66rem; }
+  .affinity-option strong { font-size: .72rem; }
+  .affinity-option small { color: #ada191; font-size: .63rem; }
+  .affinity-close { color: #b4a898; font-size: .68rem; }
+
+  .technique-slot { min-height: 56px; padding-left: 31px; }
+  .technique-slot > span { width: 18px; height: 18px; font-size: .65rem; }
+  .technique-slot strong { color: #eee4d6; font-size: .7rem; }
+  .technique-slot small { color: #aaa092; font-size: .65rem; }
+  .skill-branch { grid-template-columns: 112px minmax(0, 1fr); }
+  .skill-branch > header strong { font-size: .74rem; }
+  .skill-branch > header small { color: #aa9e8f; font-size: .65rem; }
+  .skill-node { min-width: 124px; padding: 8px; }
+  .skill-step { font-size: .65rem; }
+  .skill-copy strong { font-size: .72rem; }
+  .skill-copy small { color: #aa9e8f; font-size: .65rem; }
+  .skill-state { color: #9f9486; font-size: .65rem; }
+  .appearance-panel summary { color: #c2b6a6; font-size: .72rem; }
+  .appearance-panel summary span { color: #9d9284; font-size: .64rem; }
+
+  .creator-form label,
+  .equipment-grid label,
+  .cosmetic-grid label {
+    color: #d2c5b4;
+    font-size: .82rem;
+  }
+
+  .creator-form input,
+  .creator-form select,
+  .cosmetic-grid select,
+  .equipment-grid select {
+    border-color: rgba(159, 113, 73, .65);
+    background: rgba(27, 22, 18, .96);
+    color: var(--text-strong);
+    font-size: .98rem;
+  }
+
+  .affinity-choice small { color: #afa393; font-size: .7rem; }
+  .affinity-choice { border-color: rgba(153, 108, 70, .58); background: rgba(31, 25, 21, .96); }
+
+  .stage-speech,
+  .stage-ambient { font-family: var(--font-copy); }
+  .stage-speech > p:not(.stage-speaker) { font-size: 1.08rem; }
+  .stage-ambient { width: min(28%, 360px); font-size: .92rem; }
+
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid #efad61;
+    outline-offset: 3px;
+  }
+}
+
+@media (min-width: 651px) and (max-width: 980px) {
+  body { min-height: 100dvh; overflow: hidden; }
+
+  main,
+  body:has(#meta:not([hidden])) main {
+    width: 100%;
+    height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+
+  #meta,
+  .village-shell,
+  .village-map-card,
+  .location-stage {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .village-map-card .village-map { position: absolute; inset: 0; height: 100%; }
+  .village-map-card .village-map > img { width: 100%; height: 100%; object-fit: cover; }
+  .creator-card { padding: 40px 48px; }
+  .stage-options { width: 69%; max-height: calc(100% - 112px); margin-top: 88px; }
+  .stage-panel,
+  .stage-panel.saga-selector { padding: 34px 40px; }
+  .stage-options:has(.saga-selector) { padding-bottom: 4px; }
+  .saga-selector .lead { margin: 8px 0 10px; }
+  .saga-selector .saga-grid { gap: 8px; }
+  .saga-selector .saga-card { min-height: 0; gap: 4px; padding: 9px 14px; }
+  .saga-selector .saga-progress,
+  .saga-selector .saga-action { margin-top: 0; }
+  .location-dojo .stage-options { width: 94%; max-height: calc(100% - 108px); margin-top: 84px; }
+  .location-dojo .stage-options .dojo-layout { grid-template-columns: minmax(230px, .55fr) minmax(0, 1.45fr); }
+  .location-stage.location-dojo .stage-character { opacity: .62; }
+  .location-dojo .gear-copy strong {
+    display: -webkit-box;
+    min-height: 1.7em;
+    overflow: hidden;
+    line-height: 1.05;
+    text-overflow: clip;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .mission-card button { min-width: 112px; }
+}
+
+@media (prefers-reduced-motion: reduce) and (min-width: 651px) {
+  .stage-options.ready,
+  .stage-speech,
+  .stage-ambient { animation-duration: 1ms !important; }
+}

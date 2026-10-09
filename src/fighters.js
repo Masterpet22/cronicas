@@ -1,4 +1,4 @@
-import { FIGHTER_VIEWBOX, fighterPreviewSvg } from "./character.js?v=0.9.0";
+import { FIGHTER_VIEWBOX, fighterPreviewSvg } from "./character.js?v=0.20.0";
 
 // Resolución a la que se rasteriza el SVG (2x para que se vea nítido).
 const TEXTURE_SCALE = 2;

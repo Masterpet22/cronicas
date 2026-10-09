@@ -1,5 +1,5 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.19.2";
-import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.15.1";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.20.0";
+import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const SAVE_VERSION = 5;

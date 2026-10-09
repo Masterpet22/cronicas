@@ -26,11 +26,11 @@ await Promise.all(assets.map(async (asset) => {
 }));
 assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");
 
-for (const asset of ["basic-strike.png", "guard.png"]) {
-  const png = await readFile(new URL(`../assets/actions/${asset}`, import.meta.url));
-  assert.equal(png.readUInt32BE(16), 512, `${asset} debe medir 512 px de ancho`);
-  assert.equal(png.readUInt32BE(20), 512, `${asset} debe medir 512 px de alto`);
-  assert.equal(png[25], 6, `${asset} debe conservar un canal alfa`);
+for (const asset of ["basic-strike.webp", "guard.webp"]) {
+  const image = webpDimensions(await readFile(new URL(`../assets/actions/${asset}`, import.meta.url)), asset);
+  assert.equal(image.width, 512, `${asset} debe medir 512 px de ancho`);
+  assert.equal(image.height, 512, `${asset} debe medir 512 px de alto`);
+  assert.equal(image.alpha, true, `${asset} debe conservar un canal alfa`);
 }
 
 const village = webpDimensions(await readFile(new URL("../assets/village/aldea.webp", import.meta.url)), "aldea.webp");

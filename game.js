@@ -1,11 +1,11 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.19.2";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.15.1";
-import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.9.0";
-import { playerFighterAppearance } from "./src/character.js?v=0.19.2";
-import { createActionButton, createBar } from "./src/ui.js?v=0.15.2";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.19.2";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.19.2";
-import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.15.1";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
+import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
+import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
+import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.20.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.21.0";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
+import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
 
 const Phaser = window.Phaser;
 
@@ -21,7 +21,7 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.12.0");
+    this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.mission = activeMission;
@@ -1084,6 +1084,14 @@ function bindGlobalOptions() {
 }
 
 bindGlobalOptions();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js").catch(() => {
+      // La caché persistente es una mejora; el juego sigue funcionando sin ella.
+    });
+  }, { once: true });
+}
 
 mountMetaUI(metaRoot, activeSave, (save, mission) => {
   activeSave = writeSave(save);

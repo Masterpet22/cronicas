@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { basicRequirements, canAccessElement } from "../src/elements.js";
+import { webpDimensions } from "./webp.mjs";
 
 const root = new URL("../assets/elements/", import.meta.url);
 const manifest = JSON.parse(await readFile(new URL("manifest.json", root), "utf8"));
@@ -22,10 +23,10 @@ for (const tier of manifest.tiers) {
     if (tier.id === 2) assert.equal(element.parents.length, 2, `${element.id} debe combinar dos básicos`);
     if (tier.id === 3) assert.equal(element.parents.length, 2, `${element.id} debe combinar un secundario y un básico`);
     if (tier.id === 4) assert.equal(element.parents.length, 2, `${element.id} debe combinar dos secundarios`);
-    const icon = await readFile(new URL(element.icon, root));
-    assert.equal(icon.readUInt32BE(16), 512, `${element.id} debe medir 512 px de ancho`);
-    assert.equal(icon.readUInt32BE(20), 512, `${element.id} debe medir 512 px de alto`);
-    assert.equal(icon[25], 6, `${element.id} debe conservar transparencia alfa`);
+    const icon = webpDimensions(await readFile(new URL(element.icon, root)), element.icon);
+    assert.equal(icon.width, 512, `${element.id} debe medir 512 px de ancho`);
+    assert.equal(icon.height, 512, `${element.id} debe medir 512 px de alto`);
+    assert.equal(icon.alpha, true, `${element.id} debe conservar transparencia alfa`);
   }
 }
 
