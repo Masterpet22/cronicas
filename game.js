@@ -22,6 +22,15 @@ class BattleScene extends Phaser.Scene {
 
   preload() {
     this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
+    this.load.image("actionFrame", "assets/ui/action-button-frame.webp?v=0.20.0");
+    this.load.image("hudFrame", "assets/ui/hud-frame.webp?v=0.20.0");
+    this.load.image("cardFrame", "assets/ui/card-frame.webp?v=0.20.0");
+    this.load.image("navFrame", "assets/ui/nav-button-frame.webp?v=0.20.0");
+    this.load.image("panelFrame", "assets/ui/panel-frame.webp?v=0.20.0");
+    this.load.image("bg-dusk", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
+    this.load.image("bg-marsh", "assets/locations/battle-mist-marsh.jpg?v=0.20.0");
+    this.load.image("bg-moon", "assets/locations/battle-moon-shrine.jpg?v=0.20.0");
+    this.load.image("bg-arena", "assets/locations/arena.webp?v=0.20.0");
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.mission = activeMission;
@@ -180,91 +189,173 @@ class BattleScene extends Phaser.Scene {
   }
 
   drawArena() {
-    const g = this.add.graphics();
     const theme = (this.mission.number - 1) % 3;
+    const bgKey = theme === 0 ? "bg-dusk" : theme === 1 ? "bg-marsh" : "bg-moon";
+    if (this.textures.exists(bgKey)) {
+      this.add.image(WIDTH / 2, HEIGHT / 2, bgKey).setDisplaySize(WIDTH, HEIGHT).setDepth(0);
+    } else if (this.textures.exists("bg-arena")) {
+      this.add.image(WIDTH / 2, HEIGHT / 2, "bg-arena").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
+    }
+
+    const g = this.add.graphics().setDepth(1);
     if (theme === 0) this.drawDuskPass(g);
     else if (theme === 1) this.drawMistMarsh(g);
     else this.drawMoonShrine(g);
-    g.fillGradientStyle(0x07101d, 0x07101d, 0x03060b, 0x03060b, 1);
-    g.fillRect(0, 350, WIDTH, 190);
-    g.lineStyle(2, theme === 1 ? 0x59d6b0 : theme === 2 ? 0x9f8cff : 0xff9e52, 0.45);
+
+    // Zócalo inferior estilizado con velo de tinta para dar soporte a la botonera y la línea temporal
+    g.fillGradientStyle(0x080d15, 0x080d15, 0x04060b, 0x04060b, 0, 0, 0.92, 0.96);
+    g.fillRect(0, 315, WIDTH, 225);
+    g.lineStyle(1.5, 0xb88846, 0.65);
     g.lineBetween(0, 350, WIDTH, 350);
+
     this.arenaLabel = ["PASO DEL CREPÚSCULO", "MARISMA DE LOS JUNCOS", "SANTUARIO DE LA LUNA"][theme];
-    this.add.text(480, 339, this.arenaLabel, this.textStyle(9, "#adc1d9", "700")).setOrigin(0.5, 1).setAlpha(0.75);
+    this.add.text(480, 344, `❖  ${this.arenaLabel}  ❖`, {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "9px",
+      color: "#f5a357",
+      fontStyle: "bold"
+    }).setOrigin(0.5, 1).setAlpha(0.85).setDepth(2);
   }
 
   drawDuskPass(g) {
-    g.fillGradientStyle(0x071526, 0x071526, 0x6b3028, 0x6b3028, 1); g.fillRect(0, 0, WIDTH, 350);
-    g.fillStyle(0xf4a358, 0.2); g.fillCircle(785, 133, 78);
-    g.fillStyle(0x0b101b, 0.76); g.fillTriangle(-80, 350, 170, 145, 410, 350); g.fillTriangle(250, 350, 520, 105, 755, 350); g.fillTriangle(620, 350, 850, 155, 1040, 350);
-    g.fillStyle(0x301923, 0.72); g.fillRect(0, 325, WIDTH, 25);
-    for (let x = 20; x < WIDTH; x += 72) { g.fillStyle(0xffbd73, 0.18); g.fillCircle(x, 305 + (x % 3) * 5, 2); }
+    g.fillGradientStyle(0x000000, 0x000000, 0x2a1210, 0x2a1210, 0.08, 0.08, 0.38, 0.38);
+    g.fillRect(0, 0, WIDTH, 350);
+    for (let x = 30; x < WIDTH; x += 64) {
+      g.fillStyle(0xffbd73, 0.22);
+      g.fillCircle(x, 260 + (x % 5) * 12, 2);
+    }
   }
 
   drawMistMarsh(g) {
-    g.fillGradientStyle(0x071a22, 0x071a22, 0x17483f, 0x17483f, 1); g.fillRect(0, 0, WIDTH, 350);
-    g.fillStyle(0xbde9dd, 0.11); g.fillCircle(745, 105, 68);
-    for (let x = 20; x < WIDTH; x += 54) {
-      const h = 105 + (x % 5) * 18; g.fillStyle(0x071713, 0.76); g.fillRect(x, 350 - h, 9, h); g.fillTriangle(x - 16, 350 - h + 30, x + 5, 350 - h - 35, x + 22, 350 - h + 34);
-    }
-    g.fillStyle(0xbceee5, 0.06); g.fillEllipse(260, 260, 470, 62); g.fillEllipse(710, 220, 520, 72); g.fillStyle(0x071414, 0.82); g.fillRect(0, 326, WIDTH, 24);
+    g.fillGradientStyle(0x000000, 0x000000, 0x0b2420, 0x0b2420, 0.08, 0.08, 0.42, 0.42);
+    g.fillRect(0, 0, WIDTH, 350);
+    g.fillStyle(0x67e8c3, 0.06);
+    g.fillEllipse(320, 320, 480, 40);
+    g.fillEllipse(720, 310, 460, 45);
   }
 
   drawMoonShrine(g) {
-    g.fillGradientStyle(0x09091d, 0x09091d, 0x2b1740, 0x2b1740, 1); g.fillRect(0, 0, WIDTH, 350);
-    g.fillStyle(0xd7d5ff, 0.2); g.fillCircle(478, 113, 82); g.fillStyle(0x09091d, 0.92); g.fillCircle(510, 94, 75);
-    g.fillStyle(0x080711, 0.82); g.fillRect(0, 320, WIDTH, 30);
-    g.fillRect(410, 178, 140, 16); g.fillRect(427, 194, 14, 128); g.fillRect(519, 194, 14, 128); g.fillTriangle(388, 178, 480, 132, 572, 178);
-    for (let x = 80; x < WIDTH; x += 155) { g.fillStyle(0xaa8cff, 0.12); g.fillCircle(x, 250 - (x % 2) * 38, 3); }
+    g.fillGradientStyle(0x000000, 0x000000, 0x1d0f2e, 0x1d0f2e, 0.08, 0.08, 0.42, 0.42);
+    g.fillRect(0, 0, WIDTH, 350);
+    for (let x = 60; x < WIDTH; x += 96) {
+      g.fillStyle(0xb879ff, 0.18);
+      g.fillCircle(x, 230 + (x % 4) * 18, 2);
+    }
   }
 
   createHud() {
-    const panel = this.add.graphics();
+    const panel = this.add.graphics().setDepth(20);
     const panelWidth = 340;
     const panelHeight = 98;
     const playerX = 18;
     const enemyX = WIDTH - 18 - panelWidth;
     const barWidth = 280;
-    const barHeight = 20;
+    const barHeight = 18;
 
-    panel.fillStyle(0x06101c, 0.9);
-    panel.fillRoundedRect(playerX, 14, panelWidth, panelHeight, 10);
-    panel.fillRoundedRect(enemyX, 14, panelWidth, panelHeight, 10);
-    panel.lineStyle(2, 0x168ed6, 0.78);
-    panel.strokeRoundedRect(playerX, 14, panelWidth, panelHeight, 10);
-    panel.lineStyle(2, 0xf04455, 0.82);
-    panel.strokeRoundedRect(enemyX, 14, panelWidth, panelHeight, 10);
+    // Placa del jugador (estilo laca tradicional con ribetes dorados)
+    panel.fillStyle(0x0c121c, 0.95);
+    panel.fillRoundedRect(playerX, 14, panelWidth, panelHeight, 6);
+    panel.lineStyle(1.5, 0x7a5b35, 0.95);
+    panel.strokeRoundedRect(playerX, 14, panelWidth, panelHeight, 6);
+    panel.lineStyle(1, 0xb88846, 0.4);
+    panel.strokeRoundedRect(playerX + 3, 17, panelWidth - 6, panelHeight - 6, 4);
+
+    // Placa del adversario (laca tradicional con acento carmesí)
+    panel.fillStyle(0x120c10, 0.95);
+    panel.fillRoundedRect(enemyX, 14, panelWidth, panelHeight, 6);
+    panel.lineStyle(1.5, 0x8a4b52, 0.95);
+    panel.strokeRoundedRect(enemyX, 14, panelWidth, panelHeight, 6);
+    panel.lineStyle(1, 0xc55c68, 0.4);
+    panel.strokeRoundedRect(enemyX + 3, 17, panelWidth - 6, panelHeight - 6, 4);
 
     this.playerName = this.add.text(
       playerX + 16,
       23,
       `${this.saveData.character.name.toUpperCase()} · NV ${this.saveData.progression.level}`,
-      this.textStyle(14, "#f8f2e7", "700")
-    );
+      {
+        fontFamily: '"Cinzel", Georgia, serif',
+        fontSize: "14px",
+        color: "#fff4df",
+        fontStyle: "bold",
+        stroke: "#06090e",
+        strokeThickness: 2
+      }
+    ).setDepth(21);
+
     this.playerRank = this.add.text(
       playerX + panelWidth - 16,
       25,
       this.saveData.campaign.rank.toUpperCase(),
-      this.textStyle(9, "#8fc7ff", "700")
-    ).setOrigin(1, 0);
+      {
+        fontFamily: '"Cinzel", Georgia, serif',
+        fontSize: "9px",
+        color: "#f5a357",
+        fontStyle: "bold"
+      }
+    ).setOrigin(1, 0).setDepth(21);
 
     this.enemyName = this.add.text(
       enemyX + panelWidth - 16,
       23,
       this.encounters[this.enemyIndex].name.toUpperCase(),
-      this.textStyle(14, "#f8f2e7", "700")
-    ).setOrigin(1, 0);
+      {
+        fontFamily: '"Cinzel", Georgia, serif',
+        fontSize: "14px",
+        color: "#fff4df",
+        fontStyle: "bold",
+        stroke: "#06090e",
+        strokeThickness: 2
+      }
+    ).setOrigin(1, 0).setDepth(21);
 
-    this.playerHpBar = createBar(this, playerX + 16, 53, barWidth, barHeight, 0x54d69a);
-    this.chakraBar = createBar(this, playerX + 16, 79, barWidth, barHeight, 0x58a7ff);
-    this.enemyHpBar = createBar(this, enemyX + panelWidth - 16 - barWidth, 53, barWidth, barHeight, 0xef665f);
+    this.playerHpBar = createBar(this, playerX + 16, 53, barWidth, barHeight, 0x2ecc71);
+    this.chakraBar = createBar(this, playerX + 16, 79, barWidth, barHeight, 0x3498db);
+    this.enemyHpBar = createBar(this, enemyX + panelWidth - 16 - barWidth, 53, barWidth, barHeight, 0xe74c3c);
 
-    this.playerStatusText = this.add.text(playerX + 16, 96, "", this.textStyle(9, "#f5c96b", "700"));
-    this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 78, "", this.textStyle(9, "#f5c96b", "700")).setOrigin(1, 0);
+    [this.playerHpBar, this.chakraBar, this.enemyHpBar].forEach((bar) => {
+      bar.bg.setDepth(21);
+      if (bar.slot) bar.slot.setDepth(21);
+      bar.fill.setDepth(22);
+      if (bar.sheen) bar.sheen.setDepth(23);
+      bar.valueText.setDepth(24);
+    });
+
+    this.playerStatusText = this.add.text(playerX + 16, 96, "", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: "9px",
+      color: "#f5c96b",
+      fontStyle: "bold"
+    }).setDepth(21);
+
+    this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 78, "", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: "9px",
+      color: "#f5c96b",
+      fontStyle: "bold"
+    }).setOrigin(1, 0).setDepth(21);
 
     if (this.saveData.equipment.companion) {
-      this.companionText = this.add.text(playerX + 16, 116, "MIKA · APOYO EN 2 RONDAS", this.textStyle(10, "#67e8c3", "700"));
+      this.companionText = this.add.text(playerX + 16, 116, "MIKA · APOYO EN 2 RONDAS", {
+        fontFamily: '"Cinzel", Georgia, serif',
+        fontSize: "10px",
+        color: "#67e8c3",
+        fontStyle: "bold"
+      }).setDepth(21);
     }
+
+    // Cinta de mensajes y avisos de combate con estilo tradicional
+    this.messagePlate = this.add.rectangle(WIDTH / 2, 330, 580, 22, 0x080d16, 0.82)
+      .setOrigin(0.5)
+      .setStrokeStyle(1, 0x7a5b35, 0.45)
+      .setDepth(22);
+    this.messageText = this.add.text(WIDTH / 2, 330, "", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: "11px",
+      color: "#f7d6a5",
+      fontStyle: "bold",
+      stroke: "#05080e",
+      strokeThickness: 2
+    }).setOrigin(0.5).setDepth(23);
 
     this.refreshHud();
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
@@ -274,25 +365,65 @@ class BattleScene extends Phaser.Scene {
     this.timelineLayer = this.add.container(0, 0).setDepth(12);
     const centerY = 384;
     const trackY = 387;
-    const plate = this.add.rectangle(478, centerY, 920, 36, 0x06101c, 0.94).setStrokeStyle(1, 0x54769e, 0.85);
-    const title = this.add.text(478, centerY - 13, "ORDEN DE ACCIÓN", this.textStyle(9, "#9fb9d8", "700")).setOrigin(0.5);
-    const track = this.add.rectangle(478, trackY, TIMELINE_END - TIMELINE_START, 5, 0x26364b, 1);
-    const finish = this.add.rectangle(TIMELINE_END, trackY, 4, 25, 0xf5c96b, 1);
-    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY - 6, 11, 0x31baff, 1).setStrokeStyle(2, 0xd9f5ff);
-    this.enemyTurnMarker = this.add.circle(TIMELINE_START, trackY + 6, 11, 0xee4053, 1).setStrokeStyle(2, 0xffd8dc);
-    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 6, "TÚ", this.textStyle(7, "#07111c", "800")).setOrigin(0.5);
-    this.enemyTurnLetter = this.add.text(TIMELINE_START, trackY + 6, "R", this.textStyle(8, "#16070b", "800")).setOrigin(0.5);
-    this.timelineLayer.add([plate, title, track, finish, this.playerTurnMarker, this.enemyTurnMarker, this.playerTurnLetter, this.enemyTurnLetter]);
+    const plate = this.add.rectangle(478, centerY, 920, 36, 0x090e18, 0.96)
+      .setStrokeStyle(1.5, 0x7a5b35, 0.92);
+    const innerTrim = this.add.rectangle(478, centerY, 912, 28, 0x000000, 0.001)
+      .setStrokeStyle(1, 0xb88846, 0.32);
+    const title = this.add.text(478, centerY - 13, "ORDEN DE ACCIÓN", {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "9px",
+      color: "#f5a357",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
+    const track = this.add.rectangle(478, trackY, TIMELINE_END - TIMELINE_START, 4, 0x162232, 1)
+      .setStrokeStyle(1, 0x6e502c, 0.55);
+    const finish = this.add.rectangle(TIMELINE_END, trackY, 5, 24, 0xf5c96b, 1)
+      .setStrokeStyle(1, 0xfff4df, 0.9);
+
+    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY - 6, 12, 0x12253d, 1)
+      .setStrokeStyle(2, 0xf5a357, 1);
+    this.enemyTurnMarker = this.add.circle(TIMELINE_START, trackY + 6, 12, 0x3d141a, 1)
+      .setStrokeStyle(2, 0xef5565, 1);
+    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 6, "TÚ", {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "8px",
+      color: "#fff4df",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
+    this.enemyTurnLetter = this.add.text(TIMELINE_START, trackY + 6, "R", {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "9px",
+      color: "#ffd8dc",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
+
+    this.timelineLayer.add([
+      plate, innerTrim, title, track, finish,
+      this.playerTurnMarker, this.enemyTurnMarker,
+      this.playerTurnLetter, this.enemyTurnLetter
+    ]);
   }
 
   createPauseButton() {
-    const bg = this.add.rectangle(480, 72, 96, 30, 0x091421, 0.96)
-      .setStrokeStyle(1, 0xf5c96b, 0.85)
+    const bg = this.add.rectangle(480, 60, 102, 30, 0x0b111b, 0.96)
+      .setStrokeStyle(1.5, 0xb88846, 0.92)
       .setDepth(25)
       .setInteractive({ useHandCursor: true });
-    const label = this.add.text(480, 72, "Ⅱ  PAUSA", this.textStyle(9, "#f7d99b", "700")).setOrigin(0.5).setDepth(26);
-    bg.on("pointerover", () => bg.setFillStyle(0x24334a));
-    bg.on("pointerout", () => bg.setFillStyle(0x091421));
+    const label = this.add.text(480, 60, "Ⅱ  PAUSA", {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "10px",
+      color: "#f7d99b",
+      fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(26);
+
+    bg.on("pointerover", () => {
+      bg.setFillStyle(0x231a14);
+      bg.setStrokeStyle(1.5, 0xf5a357);
+    });
+    bg.on("pointerout", () => {
+      bg.setFillStyle(0x0b111b);
+      bg.setStrokeStyle(1.5, 0xb88846);
+    });
     const openPause = () => {
       if (this.finished || this.scene.isPaused()) return;
       this.scene.launch("pause");
@@ -347,9 +478,19 @@ class BattleScene extends Phaser.Scene {
 
     this.actions.forEach((jutsu, index) => {
       const button = createActionButton(this, jutsu, index, this.textStyle.bind(this));
-      const { bg, hit } = button;
-      hit.on("pointerover", () => { if (!this.busy && !this.finished) bg.setFillStyle(0x24334a); });
-      hit.on("pointerout", () => bg.setFillStyle(0x182231));
+      const { bg, hit, shortcutBg } = button;
+      hit.on("pointerover", () => {
+        if (!this.busy && !this.finished) {
+          bg.setFillStyle(0x201815);
+          bg.setStrokeStyle(1.5, 0xf5a357);
+          if (shortcutBg) shortcutBg.setStrokeStyle(1, 0xfff4df);
+        }
+      });
+      hit.on("pointerout", () => {
+        bg.setFillStyle(0x0e1420);
+        bg.setStrokeStyle(1.5, 0x8a6b3e);
+        if (shortcutBg) shortcutBg.setStrokeStyle(1, 0xc5925c);
+      });
       hit.on("pointerdown", () => this.useJutsu(jutsu));
       this.buttons.push(button);
     });
@@ -854,8 +995,8 @@ class BattleScene extends Phaser.Scene {
       duration: 900,
       ease: "Sine.inOut"
     });
-    const reset = this.add.text(WIDTH / 2, 392, "VOLVER A LA ALDEA", this.textStyle(16, "#0b1018", "800"))
-      .setOrigin(0.5).setPadding(20, 10).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
+    const reset = this.add.text(WIDTH / 2, 392, "VOLVER A LA ALDEA", this.textStyle(16, "#0b1018", "800", true))
+      .setOrigin(0.5).setPadding(24, 12).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
     reset.once("pointerup", () => {
       reset.disableInteractive().setText("REGRESANDO...");
       // Una recarga limpia evita conservar entradas, tweens y texturas de la
@@ -866,22 +1007,26 @@ class BattleScene extends Phaser.Scene {
   }
 
   setButtonsEnabled(enabled) {
-    this.buttons.forEach(({ hit, bg, sub, jutsu }) => {
+    this.buttons.forEach(({ hit, bg, sub, shortcutBg, jutsu }) => {
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const available = enabled && this.turnReady && affordable && cooldown === 0;
       if (available) hit.setInteractive({ useHandCursor: true }); else hit.disableInteractive();
       bg.setAlpha(available ? 1 : 0.43);
+      if (shortcutBg) shortcutBg.setAlpha(available ? 1 : 0.43);
       const adjustedSubtitle = jutsu.cost > 0 ? jutsu.subtitle.replace(/^\d+CH/, `${this.actionCost(jutsu)}CH`) : jutsu.subtitle;
       sub.setText(cooldown > 0 ? `ENFRIAMIENTO · ${cooldown} RONDA${cooldown === 1 ? "" : "S"}` : adjustedSubtitle);
-      sub.setColor(cooldown > 0 ? "#ffab83" : "#aeb9c8");
+      sub.setColor(cooldown > 0 ? "#ffab83" : "#c5b8a5");
     });
   }
 
   refreshHud() {
     this.playerHpBar.fill.width = this.playerHpBar.width * Phaser.Math.Clamp(this.player.hp / this.player.maxHp, 0, 1);
+    if (this.playerHpBar.sheen) this.playerHpBar.sheen.width = this.playerHpBar.fill.width;
     this.chakraBar.fill.width = this.chakraBar.width * Phaser.Math.Clamp(this.player.chakra / this.player.maxChakra, 0, 1);
+    if (this.chakraBar.sheen) this.chakraBar.sheen.width = this.chakraBar.fill.width;
     this.enemyHpBar.fill.width = this.enemyHpBar.width * Phaser.Math.Clamp(this.enemy.hp / this.enemy.maxHp, 0, 1);
+    if (this.enemyHpBar.sheen) this.enemyHpBar.sheen.width = this.enemyHpBar.fill.width;
 
     this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
     this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
@@ -897,6 +1042,14 @@ class BattleScene extends Phaser.Scene {
 
   setMessage(text, color = "#f7d6a5") {
     this.lastBattleMessage = { text, color };
+    if (this.messageText) {
+      this.messageText.setText(text);
+      this.messageText.setColor(color);
+      if (this.messagePlate) {
+        this.messagePlate.setAlpha(0.85);
+        this.tweens.add({ targets: this.messagePlate, alpha: 0.65, duration: 400, yoyo: true });
+      }
+    }
   }
 
   actionCost(action) {
@@ -928,8 +1081,13 @@ class BattleScene extends Phaser.Scene {
     if (this.flashEffects && !this.lightMode) this.cameras.main.flash(duration, red, green, blue);
   }
 
-  textStyle(size, color, weight = "500") {
-    return { fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: `${size}px`, color, fontStyle: weight === "700" || weight === "800" ? "bold" : "normal" };
+  textStyle(size, color, weight = "500", display = false) {
+    return {
+      fontFamily: display ? '"Cinzel", Georgia, serif' : '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: `${size}px`,
+      color,
+      fontStyle: weight === "700" || weight === "800" ? "bold" : "normal"
+    };
   }
 
   delay(ms) { return new Promise((resolve) => this.time.delayedCall(ms, resolve)); }

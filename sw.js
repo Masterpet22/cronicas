@@ -33,7 +33,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin || request.mode === "navigate") return;
-  if (!/\.(?:css|js|png|webp|woff2)$/.test(url.pathname)) return;
+  if (!/\.(?:css|js|png|webp|woff2|jpg|jpeg)$/.test(url.pathname)) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {
