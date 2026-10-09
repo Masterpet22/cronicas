@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.24.0";
+import { createActionButton, createBar } from "./src/ui.js?v=0.27.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
@@ -211,17 +211,17 @@ class BattleScene extends Phaser.Scene {
     else if (theme === 1) this.drawMistMarsh(g);
     else this.drawMoonShrine(g);
 
-    // Zócalo inferior estilizado con velo de tinta para dar soporte a la botonera y la línea temporal
-    g.fillGradientStyle(0x080d15, 0x080d15, 0x04060b, 0x04060b, 0, 0, 0.92, 0.96);
-    g.fillRect(0, 315, WIDTH, 225);
-    g.lineStyle(1.5, 0xb88846, 0.65);
-    g.lineBetween(0, 350, WIDTH, 350);
+    // Velo inferior común al resto del metajuego: azul tinta, limpio y legible.
+    g.fillGradientStyle(0x061321, 0x061321, 0x020812, 0x020812, 0.1, 0.1, 0.97, 0.99);
+    g.fillRect(0, 314, WIDTH, 226);
+    g.lineStyle(1.5, 0x65bce9, 0.62);
+    g.lineBetween(0, 349, WIDTH, 349);
 
     this.arenaLabel = ["PASO DEL CREPÚSCULO", "MARISMA DE LOS JUNCOS", "SANTUARIO DE LA LUNA"][theme];
     this.add.text(480, 344, `❖  ${this.arenaLabel}  ❖`, {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
-      color: "#f5a357",
+      color: "#83d6fa",
       fontStyle: "bold"
     }).setOrigin(0.5, 1).setAlpha(0.85).setDepth(2);
   }
@@ -254,37 +254,37 @@ class BattleScene extends Phaser.Scene {
 
   createHud() {
     const panel = this.add.graphics().setDepth(20);
-    const panelWidth = 340;
-    const panelHeight = 98;
-    const playerX = 18;
-    const enemyX = WIDTH - 18 - panelWidth;
-    const barWidth = 280;
-    const barHeight = 18;
+    const panelWidth = 326;
+    const panelHeight = 104;
+    const playerX = 20;
+    const enemyX = WIDTH - 20 - panelWidth;
+    const barXOffset = 58;
+    const barWidth = panelWidth - barXOffset - 16;
+    const barHeight = 15;
 
-    // Placa del jugador (estilo laca tradicional con ribetes dorados)
-    panel.fillStyle(0x0c121c, 0.95);
-    panel.fillRoundedRect(playerX, 14, panelWidth, panelHeight, 6);
-    panel.lineStyle(1.5, 0x7a5b35, 0.95);
-    panel.strokeRoundedRect(playerX, 14, panelWidth, panelHeight, 6);
-    panel.lineStyle(1, 0xb88846, 0.4);
-    panel.strokeRoundedRect(playerX + 3, 17, panelWidth - 6, panelHeight - 6, 4);
-
-    // Placa del adversario (laca tradicional con acento carmesí)
-    panel.fillStyle(0x120c10, 0.95);
-    panel.fillRoundedRect(enemyX, 14, panelWidth, panelHeight, 6);
-    panel.lineStyle(1.5, 0x8a4b52, 0.95);
-    panel.strokeRoundedRect(enemyX, 14, panelWidth, panelHeight, 6);
-    panel.lineStyle(1, 0xc55c68, 0.4);
-    panel.strokeRoundedRect(enemyX + 3, 17, panelWidth - 6, panelHeight - 6, 4);
+    const drawPanel = (x, accent, fill) => {
+      panel.fillStyle(0x000000, 0.34);
+      panel.fillRoundedRect(x + 4, 18, panelWidth, panelHeight, 7);
+      panel.fillStyle(fill, 0.965);
+      panel.fillRoundedRect(x, 14, panelWidth, panelHeight, 7);
+      panel.lineStyle(1.25, accent, 0.98);
+      panel.strokeRoundedRect(x, 14, panelWidth, panelHeight, 7);
+      panel.fillStyle(accent, 0.95);
+      panel.fillRoundedRect(x, 14, 4, panelHeight, 2);
+      panel.lineStyle(1, 0x91d8f5, 0.16);
+      panel.lineBetween(x + 14, 43, x + panelWidth - 14, 43);
+    };
+    drawPanel(playerX, 0x35bdf2, 0x061321);
+    drawPanel(enemyX, 0xe85b69, 0x130d17);
 
     this.playerName = this.add.text(
       playerX + 16,
-      23,
+      21,
       `${this.saveData.character.name.toUpperCase()} · NV ${this.saveData.progression.level}`,
       {
         fontFamily: '"Cinzel", Georgia, serif',
-        fontSize: "14px",
-        color: "#fff4df",
+        fontSize: "15px",
+        color: "#f7fbff",
         fontStyle: "bold",
         stroke: "#06090e",
         strokeThickness: 2
@@ -293,33 +293,38 @@ class BattleScene extends Phaser.Scene {
 
     this.playerRank = this.add.text(
       playerX + panelWidth - 16,
-      25,
+      23,
       this.saveData.campaign.rank.toUpperCase(),
       {
         fontFamily: '"Cinzel", Georgia, serif',
         fontSize: "9px",
-        color: "#f5a357",
+        color: "#82d3f7",
         fontStyle: "bold"
       }
     ).setOrigin(1, 0).setDepth(21);
 
     this.enemyName = this.add.text(
       enemyX + panelWidth - 16,
-      23,
+      21,
       this.encounters[this.enemyIndex].name.toUpperCase(),
       {
         fontFamily: '"Cinzel", Georgia, serif',
-        fontSize: "14px",
-        color: "#fff4df",
+        fontSize: "15px",
+        color: "#f7fbff",
         fontStyle: "bold",
         stroke: "#06090e",
         strokeThickness: 2
       }
     ).setOrigin(1, 0).setDepth(21);
 
-    this.playerHpBar = createBar(this, playerX + 16, 53, barWidth, barHeight, 0x2ecc71);
-    this.chakraBar = createBar(this, playerX + 16, 79, barWidth, barHeight, 0x3498db);
-    this.enemyHpBar = createBar(this, enemyX + panelWidth - 16 - barWidth, 53, barWidth, barHeight, 0xe74c3c);
+    const statStyle = { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "9px", color: "#91b2c8", fontStyle: "bold" };
+    this.add.text(playerX + 16, 53, "VIDA", statStyle).setOrigin(0, 0.5).setDepth(24);
+    this.add.text(playerX + 16, 76, "CHAKRA", statStyle).setOrigin(0, 0.5).setDepth(24);
+    this.add.text(enemyX + 16, 53, "VIDA", statStyle).setOrigin(0, 0.5).setDepth(24);
+
+    this.playerHpBar = createBar(this, playerX + barXOffset, 53, barWidth, barHeight, 0x38d48a);
+    this.chakraBar = createBar(this, playerX + barXOffset, 76, barWidth, barHeight, 0x35a7e8);
+    this.enemyHpBar = createBar(this, enemyX + barXOffset, 53, barWidth, barHeight, 0xef6268);
 
     [this.playerHpBar, this.chakraBar, this.enemyHpBar].forEach((bar) => {
       bar.bg.setDepth(21);
@@ -329,38 +334,37 @@ class BattleScene extends Phaser.Scene {
       bar.valueText.setDepth(24);
     });
 
-    this.playerStatusText = this.add.text(playerX + 16, 96, "", {
+    this.playerStatusText = this.add.text(playerX + 16, 91, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "10px",
-      color: "#f5c96b",
+      color: "#79e8b5",
       fontStyle: "bold"
     }).setDepth(21);
 
-    this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 78, "", {
+    this.enemyStatusText = this.add.text(enemyX + panelWidth - 16, 75, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "10px",
-      color: "#f5c96b",
+      color: "#f0b55f",
       fontStyle: "bold"
     }).setOrigin(1, 0).setDepth(21);
 
     if (this.saveData.equipment.companion) {
-      this.companionText = this.add.text(playerX + 16, 116, "MIKA · APOYO EN 2 RONDAS", {
-        fontFamily: '"Cinzel", Georgia, serif',
-        fontSize: "10px",
-        color: "#67e8c3",
+      this.companionText = this.add.text(playerX + panelWidth - 16, 94, "MIKA · APOYO EN 2 RONDAS", {
+        fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+        fontSize: "9px",
+        color: "#82d3f7",
         fontStyle: "bold"
-      }).setDepth(21);
+      }).setOrigin(1, 0).setDepth(21);
     }
 
-    // Cinta de mensajes y avisos de combate con estilo tradicional
-    this.messagePlate = this.add.rectangle(WIDTH / 2, 330, 610, 28, 0x080d16, 0.92)
+    this.messagePlate = this.add.rectangle(WIDTH / 2, 330, 620, 32, 0x061321, 0.96)
       .setOrigin(0.5)
-      .setStrokeStyle(1, 0x7a5b35, 0.45)
+      .setStrokeStyle(1, 0x65bce9, 0.64)
       .setDepth(22);
     this.messageText = this.add.text(WIDTH / 2, 330, "", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "13px",
-      color: "#f7d6a5",
+      color: "#edf7fd",
       fontStyle: "bold",
       stroke: "#05080e",
       strokeThickness: 1
@@ -373,24 +377,24 @@ class BattleScene extends Phaser.Scene {
   createTurnTimeline() {
     this.timelineLayer = this.add.container(0, 0).setDepth(12);
     const centerY = 384;
-    const trackY = 387;
-    const plate = this.add.rectangle(478, centerY, 920, 36, 0x090e18, 0.96)
-      .setStrokeStyle(1.5, 0x7a5b35, 0.92);
-    const innerTrim = this.add.rectangle(478, centerY, 912, 28, 0x000000, 0.001)
-      .setStrokeStyle(1, 0xb88846, 0.32);
-    const title = this.add.text(478, centerY - 13, "ORDEN DE ACCIÓN", {
-      fontFamily: '"Cinzel", Georgia, serif',
+    const trackY = 390;
+    const plate = this.add.rectangle(480, centerY, 700, 42, 0x06111f, 0.97)
+      .setStrokeStyle(1.25, 0x477b9e, 0.98);
+    const innerTrim = this.add.rectangle(480, centerY, 692, 34, 0x000000, 0.001)
+      .setStrokeStyle(1, 0x65bce9, 0.16);
+    const title = this.add.text(480, centerY - 14, "ORDEN DEL TURNO", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "10px",
-      color: "#f5a357",
+      color: "#82d3f7",
       fontStyle: "bold"
     }).setOrigin(0.5);
-    const track = this.add.rectangle(478, trackY, TIMELINE_END - TIMELINE_START, 4, 0x162232, 1)
-      .setStrokeStyle(1, 0x6e502c, 0.55);
-    const finish = this.add.rectangle(TIMELINE_END, trackY, 5, 24, 0xf5c96b, 1)
-      .setStrokeStyle(1, 0xfff4df, 0.9);
+    const track = this.add.rectangle(478, trackY, TIMELINE_END - TIMELINE_START, 4, 0x18334a, 1)
+      .setStrokeStyle(1, 0x477b9e, 0.72);
+    const finish = this.add.rectangle(TIMELINE_END, trackY, 4, 22, 0x65bce9, 1)
+      .setStrokeStyle(1, 0xdff5ff, 0.9);
 
     this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY - 6, 12, 0x12253d, 1)
-      .setStrokeStyle(2, 0xf5a357, 1);
+      .setStrokeStyle(2, 0x65bce9, 1);
     this.enemyTurnMarker = this.add.circle(TIMELINE_START, trackY + 6, 12, 0x3d141a, 1)
       .setStrokeStyle(2, 0xef5565, 1);
     this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 6, "TÚ", {
@@ -414,24 +418,24 @@ class BattleScene extends Phaser.Scene {
   }
 
   createPauseButton() {
-    const bg = this.add.rectangle(480, 60, 102, 30, 0x0b111b, 0.96)
-      .setStrokeStyle(1.5, 0xb88846, 0.92)
+    const bg = this.add.rectangle(480, 57, 112, 34, 0x08243a, 0.98)
+      .setStrokeStyle(1.25, 0x65bce9, 1)
       .setDepth(25)
       .setInteractive({ useHandCursor: true });
-    const label = this.add.text(480, 60, "Ⅱ  PAUSA", {
-      fontFamily: '"Cinzel", Georgia, serif',
+    const label = this.add.text(480, 57, "Ⅱ  PAUSA", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "11px",
-      color: "#f7d99b",
+      color: "#f7fbff",
       fontStyle: "bold"
     }).setOrigin(0.5).setDepth(26);
 
     bg.on("pointerover", () => {
-      bg.setFillStyle(0x231a14);
-      bg.setStrokeStyle(1.5, 0xf5a357);
+      bg.setFillStyle(0x164b6c);
+      bg.setStrokeStyle(1.5, 0xa4e2ff);
     });
     bg.on("pointerout", () => {
-      bg.setFillStyle(0x0b111b);
-      bg.setStrokeStyle(1.5, 0xb88846);
+      bg.setFillStyle(0x08243a);
+      bg.setStrokeStyle(1.25, 0x65bce9);
     });
     const openPause = () => {
       if (this.finished || this.scene.isPaused()) return;
@@ -458,7 +462,7 @@ class BattleScene extends Phaser.Scene {
         this.turnReady = true;
         this.busy = false;
         this.setButtonsEnabled(true);
-        this.setMessage(`Ronda ${this.round} · ¡Tu turno! Selecciona una acción.`, "#f7d99b");
+        this.setMessage(`Ronda ${this.round} · ¡Tu turno! Selecciona una acción.`, "#bceaff");
         this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter], scale: 1.22, duration: 170, yoyo: true, repeat: 1 });
       }
     });
@@ -486,19 +490,19 @@ class BattleScene extends Phaser.Scene {
     this.buttons = [];
 
     this.actions.forEach((jutsu, index) => {
-      const button = createActionButton(this, jutsu, index, this.textStyle.bind(this));
+      const button = createActionButton(this, jutsu, index, this.actions.length);
       const { bg, hit, shortcutBg } = button;
       hit.on("pointerover", () => {
         if (!this.busy && !this.finished) {
-          bg.setFillStyle(0x201815);
-          bg.setStrokeStyle(1.5, 0xf5a357);
-          if (shortcutBg) shortcutBg.setStrokeStyle(1, 0xfff4df);
+          bg.setFillStyle(0x0d2e47);
+          bg.setStrokeStyle(1.5, 0x9edfff);
+          if (shortcutBg) shortcutBg.setStrokeStyle(1, 0xdff6ff);
         }
       });
       hit.on("pointerout", () => {
-        bg.setFillStyle(0x0e1420);
-        bg.setStrokeStyle(1.5, 0x8a6b3e);
-        if (shortcutBg) shortcutBg.setStrokeStyle(1, 0xc5925c);
+        bg.setFillStyle(0x06111f);
+        bg.setStrokeStyle(1.25, 0x477b9e);
+        if (shortcutBg) shortcutBg.setStrokeStyle(1, 0x65bce9);
       });
       hit.on("pointerdown", () => this.useJutsu(jutsu));
       this.buttons.push(button);
@@ -1016,20 +1020,20 @@ class BattleScene extends Phaser.Scene {
   }
 
   setButtonsEnabled(enabled) {
-    this.buttons.forEach(({ hit, bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, summaryText, sub, jutsu }) => {
+    this.buttons.forEach(({ hit, shadow, bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, divider, summaryText, sub, jutsu }) => {
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const available = enabled && this.turnReady && affordable && cooldown === 0;
       if (available) hit.setInteractive({ useHandCursor: true }); else hit.disableInteractive();
-      const visualAlpha = available ? 1 : 0.68;
-      [bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, summaryText, sub].filter(Boolean)
+      const visualAlpha = available ? 1 : 0.62;
+      [shadow, bg, frame, glow, icon, iconText, shortcutBg, shortcut, name, divider, summaryText, sub].filter(Boolean)
         .forEach((part) => part.setAlpha(visualAlpha));
-      if (jutsu.cost > 0 && summaryText) summaryText.setText(`${this.actionCost(jutsu)} CH · ${jutsu.damage} DAÑO`);
+      if (jutsu.cost > 0 && summaryText) summaryText.setText(`${this.actionCost(jutsu)} chakra · ${jutsu.damage} de daño`);
       if (cooldown > 0) {
-        sub.setText(`RECARGA · ${cooldown} RONDA${cooldown === 1 ? "" : "S"}`);
+        sub.setText(`Recarga: ${cooldown} ronda${cooldown === 1 ? "" : "s"}`);
         sub.setColor("#ffb49d");
       } else {
-        sub.setColor("#b9cadb");
+        sub.setColor("#83bddc");
       }
     });
   }
@@ -1047,14 +1051,14 @@ class BattleScene extends Phaser.Scene {
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
 
     this.playerStatusText.setText(formatStatuses(this.player));
-    const affinityInfo = `DÉBIL ${this.elementName(this.enemy.weakness)} · RES ${this.elementName(this.enemy.resistance)}`;
+    const affinityInfo = `DÉBIL: ${this.elementName(this.enemy.weakness)} · RESISTE: ${this.elementName(this.enemy.resistance)}`;
     const enemyStatuses = formatStatuses(this.enemy);
     this.enemyStatusText.setText(enemyStatuses ? `${affinityInfo} · ${enemyStatuses}` : affinityInfo);
     if (this.companionText) this.companionText.setText(this.round % 2 === 0 ? "MIKA · APOYO LISTO" : "MIKA · APOYO EN 1 RONDA");
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
   }
 
-  setMessage(text, color = "#f7d6a5") {
+  setMessage(text, color = "#edf7fd") {
     this.lastBattleMessage = { text, color };
     if (this.messageText) {
       this.messageText.setText(text);
@@ -1142,18 +1146,19 @@ class PauseScene extends Phaser.Scene {
     this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
     this.battle = this.scene.get("battle");
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, 0.84).setOrigin(0).setDepth(100);
-    this.add.rectangle(WIDTH / 2, HEIGHT / 2, 560, 460, 0x091421, 0.985)
-      .setStrokeStyle(2, 0xf5c96b, 0.9).setDepth(101);
+    this.add.rectangle(WIDTH / 2 + 5, HEIGHT / 2 + 7, 560, 460, 0x000000, 0.45).setDepth(101);
+    this.add.rectangle(WIDTH / 2, HEIGHT / 2, 560, 460, 0x061321, 0.99)
+      .setStrokeStyle(1.5, 0x65bce9, 0.95).setDepth(101);
 
     this.add.text(WIDTH / 2, 92, "MISIÓN EN PAUSA", {
-      fontFamily: "Cinzel, Georgia, serif", fontSize: "26px", color: "#f8f2e7", fontStyle: "bold"
+      fontFamily: "Cinzel, Georgia, serif", fontSize: "26px", color: "#f7fbff", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(102);
     this.add.text(WIDTH / 2, 124, "Ajusta la partida o vuelve al combate.", {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "13px", color: "#9fb0c6"
     }).setOrigin(0.5).setDepth(102);
 
     this.add.text(320, 160, "AJUSTES", {
-      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#f5c96b", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#82d3f7", fontStyle: "bold"
     }).setDepth(102);
 
     const rows = [
@@ -1214,7 +1219,7 @@ class PauseScene extends Phaser.Scene {
     }).setOrigin(0, 0.5).setDepth(103);
 
     const value = this.add.text(x, y, `${input.value}%`, {
-      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#f5c96b", fontStyle: "bold"
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#82d3f7", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(103);
 
     const adjust = (delta) => {
