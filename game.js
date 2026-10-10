@@ -485,7 +485,7 @@ class BattleScene extends Phaser.Scene {
 
   createFighters() {
     const profile = this.encounters[this.enemyIndex];
-    const fighterY = 292;
+    const fighterY = 372;
     this.hero = createPlayerFighter(this, 220, fighterY, this.playerAppearance());
     this.foe = createGeometricFighter(this, 740, fighterY, this.enemyAppearance(profile), true);
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
