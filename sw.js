@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.36.0";
+const CACHE_NAME = "cronicas-assets-v0.37.0";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
@@ -6,6 +6,7 @@ const CORE_ASSETS = [
   "./assets/fonts/alegreya-sans-latin-400.woff2",
   "./assets/favicon.png?v=0.20.0",
   "./assets/village/aldea.webp?v=0.20.0",
+  "./assets/locations/battle-dusk-pass.jpg?v=0.20.0",
   "./assets/ui/panel-frame.webp?v=0.20.0",
   "./assets/ui/nav-button-frame.webp?v=0.20.0",
   "./assets/ui/card-frame.webp?v=0.20.0",

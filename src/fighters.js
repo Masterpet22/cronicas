@@ -82,7 +82,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   MAN_SPRITE_LAYERS.forEach(({ id }) => {
     const key = manSpriteKey(id);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.36.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.37.0`);
   });
   return "modular";
 }
@@ -122,25 +122,72 @@ function tweenFinished(scene, config) {
 }
 
 export function startPlayerBreathing(scene, fighter) {
-  if (!fighter?.rig || fighter.breathingTween) return;
-  fighter.rig.setPosition(0, MAN_SPRITE_Y_OFFSET).setScale(MAN_SPRITE_SCALE);
-  fighter.breathingTween = scene.tweens.add({
-    targets: fighter.rig,
-    y: MAN_SPRITE_Y_OFFSET - 0.7,
-    scaleX: MAN_SPRITE_SCALE * 0.997,
-    scaleY: MAN_SPRITE_SCALE * 1.007,
-    duration: 1450,
-    yoyo: true,
-    repeat: -1,
-    ease: "Sine.inOut"
-  });
+  if (!fighter?.rig || fighter.breathingTweens?.length) return;
+  const torso = MAN_SPRITE_BY_ID.torso;
+  fighter.sprite.setPosition(torso.x, torso.y).setScale(1);
+  fighter.joints.neck.setPosition(MAN_SPRITE_JOINTS.neck.x, MAN_SPRITE_JOINTS.neck.y);
+  fighter.joints.shoulderLeft.setPosition(MAN_SPRITE_JOINTS.shoulderLeft.x, MAN_SPRITE_JOINTS.shoulderLeft.y);
+  fighter.joints.shoulderRight.setPosition(MAN_SPRITE_JOINTS.shoulderRight.x, MAN_SPRITE_JOINTS.shoulderRight.y);
+  const breath = { duration: 1550, yoyo: true, repeat: -1, ease: "Sine.inOut" };
+  fighter.breathingTweens = [
+    scene.tweens.add({ ...breath, targets: fighter.sprite, y: torso.y - 4, scaleY: 1.008 }),
+    scene.tweens.add({ ...breath, targets: fighter.joints.neck, y: MAN_SPRITE_JOINTS.neck.y - 4 }),
+    scene.tweens.add({ ...breath, targets: [fighter.joints.shoulderLeft, fighter.joints.shoulderRight], y: MAN_SPRITE_JOINTS.shoulderLeft.y - 2.5 })
+  ];
 }
 
 export function stopPlayerBreathing(fighter) {
-  fighter?.breathingTween?.stop();
+  fighter?.breathingTweens?.forEach((tween) => tween.stop());
   if (!fighter?.rig) return;
-  fighter.breathingTween = null;
-  fighter.rig.setPosition(0, MAN_SPRITE_Y_OFFSET).setScale(MAN_SPRITE_SCALE);
+  fighter.breathingTweens = [];
+  const torso = MAN_SPRITE_BY_ID.torso;
+  fighter.sprite.setPosition(torso.x, torso.y).setScale(1);
+  fighter.joints.neck.setPosition(MAN_SPRITE_JOINTS.neck.x, MAN_SPRITE_JOINTS.neck.y);
+  fighter.joints.shoulderLeft.setPosition(MAN_SPRITE_JOINTS.shoulderLeft.x, MAN_SPRITE_JOINTS.shoulderLeft.y);
+  fighter.joints.shoulderRight.setPosition(MAN_SPRITE_JOINTS.shoulderRight.x, MAN_SPRITE_JOINTS.shoulderRight.y);
+}
+
+export function startPlayerRunning(scene, fighter) {
+  if (!fighter || fighter.runningTweens?.length) return;
+  stopPlayerBreathing(fighter);
+  if (!fighter.joints?.hipLeft) {
+    fighter.runningTweens = [scene.tweens.add({ targets: fighter.body, y: fighter.body.y - 3, duration: 170, yoyo: true, repeat: -1, ease: "Sine.inOut" })];
+    return;
+  }
+  const stride = { duration: 180, yoyo: true, repeat: -1, ease: "Sine.inOut" };
+  fighter.joints.hipLeft.setAngle(-24);
+  fighter.joints.hipRight.setAngle(24);
+  fighter.joints.kneeLeft.setAngle(7);
+  fighter.joints.kneeRight.setAngle(30);
+  fighter.joints.ankleLeft.setAngle(-7);
+  fighter.joints.ankleRight.setAngle(8);
+  fighter.joints.shoulderLeft.setAngle(21);
+  fighter.joints.shoulderRight.setAngle(-21);
+  fighter.joints.elbowLeft.setAngle(-12);
+  fighter.joints.elbowRight.setAngle(12);
+  fighter.runningTweens = [
+    scene.tweens.add({ ...stride, targets: fighter.joints.hipLeft, angle: 24 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.hipRight, angle: -24 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.kneeLeft, angle: 30 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.kneeRight, angle: 7 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.ankleLeft, angle: 8 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.ankleRight, angle: -7 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.shoulderLeft, angle: -21 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.shoulderRight, angle: 21 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.elbowLeft, angle: 12 }),
+    scene.tweens.add({ ...stride, targets: fighter.joints.elbowRight, angle: -12 }),
+    scene.tweens.add({ ...stride, targets: fighter.rig, y: MAN_SPRITE_Y_OFFSET - 5, duration: 90 }),
+    scene.tweens.add({ ...stride, targets: fighter.shadow, scaleX: 1.08, scaleY: 0.84, duration: 90 })
+  ];
+}
+
+export function stopPlayerRunning(fighter) {
+  fighter?.runningTweens?.forEach((tween) => tween.stop());
+  if (!fighter) return;
+  fighter.runningTweens = [];
+  fighter.rig?.setPosition(0, MAN_SPRITE_Y_OFFSET);
+  fighter.shadow?.setScale(1);
+  Object.values(fighter.joints || {}).forEach((joint) => joint.setAngle(0));
 }
 
 export async function preparePlayerPunch(scene, fighter) {
@@ -224,7 +271,7 @@ export function createPlayerFighter(scene, x, y, appearance) {
   const head = addPart(scene, joints.neck, "cabeza", MAN_SPRITE_JOINTS.neck);
   layers.push(head);
 
-  const fighter = { shadow, body, head, rig, joints, targets: [body], layers, sprite: torso, breathingTween: null };
+  const fighter = { shadow, body, head, rig, joints, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
   startPlayerBreathing(scene, fighter);
   return fighter;
 }
@@ -232,6 +279,7 @@ export function createPlayerFighter(scene, x, y, appearance) {
 export function destroyFighter(fighter) {
   if (!fighter) return;
   stopPlayerBreathing(fighter);
+  stopPlayerRunning(fighter);
   fighter.shadow.destroy();
   [...new Set(fighter.targets || [fighter.body, fighter.head])].forEach((target) => target?.destroy(true));
 }

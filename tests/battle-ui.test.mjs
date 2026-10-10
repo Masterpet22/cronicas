@@ -22,6 +22,11 @@ assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRi
 assert.match(battle, /preparePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe preparar el brazo antes de avanzar");
 assert.match(battle, /releasePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe extender el brazo al atacar");
 assert.match(battle, /recoverPlayerPunch\(this, this\.hero\)/, "El brazo debe regresar a la pose neutral después del golpe");
+assert.match(battle, /class MissionTravelScene extends Phaser\.Scene/, "Las misiones deben comenzar con una transición por el bosque");
+assert.match(battle, /startPlayerRunning\(this, runner\)/, "La transición debe animar al jugador corriendo");
+assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproducir la carrera en sentido inverso");
+assert.match(battle, /scene: \[MissionTravelScene, BattleScene, PauseScene\]/, "La transición debe ejecutarse antes del combate");
+assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
 assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer atajos de teclado del 1 al 6");
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");

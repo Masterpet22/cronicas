@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch } from "./src/fighters.js?v=0.36.0";
+import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerRunning, stopPlayerRunning } from "./src/fighters.js?v=0.37.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
@@ -21,6 +21,57 @@ const TIMELINE_END = 812;
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
+
+class MissionTravelScene extends Phaser.Scene {
+  constructor() { super("travel"); }
+
+  preload() {
+    this.load.image("travel-forest", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
+    queuePlayerFighterTextures(this, playerFighterAppearance(activeSave));
+  }
+
+  create(data = {}) {
+    this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
+    const returning = data.direction === "toVillage";
+    this.add.image(WIDTH / 2, HEIGHT / 2, "travel-forest").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
+    const forest = this.add.graphics().setDepth(1);
+    forest.fillStyle(0x071711, 0.34).fillRect(0, 0, WIDTH, HEIGHT);
+    forest.fillStyle(0x10261b, 0.92).fillRect(0, 382, WIDTH, 158);
+    forest.fillStyle(0x1c3423, 0.96);
+    forest.fillTriangle(0, 436, 480, 356, 960, 436);
+    forest.fillStyle(0x07130d, 0.88);
+    for (let x = 18; x < WIDTH; x += 74) {
+      const height = 105 + ((x * 17) % 72);
+      forest.fillRect(x - 7, 382 - height, 14, height + 74);
+      forest.fillTriangle(x - 47, 382 - height + 54, x, 382 - height - 34, x + 47, 382 - height + 54);
+      forest.fillTriangle(x - 39, 382 - height + 92, x, 382 - height + 12, x + 39, 382 - height + 92);
+    }
+    forest.fillStyle(0x06100b, 0.82).fillRect(0, 421, WIDTH, 119);
+
+    this.add.text(WIDTH / 2, 62, returning ? "REGRESO A LA ALDEA" : "RUMBO A LA MISIÓN", {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "24px", color: "#f5edd8", fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(10);
+    this.add.text(WIDTH / 2, 94, returning ? "El sendero de vuelta atraviesa el bosque." : activeMission.title, {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "14px", color: "#bcd4c1"
+    }).setOrigin(0.5).setDepth(10);
+
+    const startX = returning ? WIDTH + 90 : -90;
+    const endX = returning ? -90 : WIDTH + 90;
+    const runner = createPlayerFighter(this, startX, 330, playerFighterAppearance(activeSave));
+    if (returning) runner.body.setScale(-1, 1);
+    startPlayerRunning(this, runner);
+    this.cameras.main.fadeIn(220, 4, 10, 7);
+    const duration = 2350;
+    this.tweens.add({ targets: runner.body, x: endX, duration, ease: "Linear" });
+    this.tweens.add({ targets: runner.shadow, x: endX, duration, ease: "Linear" });
+    this.time.delayedCall(duration - 260, () => this.cameras.main.fadeOut(250, 4, 10, 7));
+    this.time.delayedCall(duration, () => {
+      stopPlayerRunning(runner);
+      if (returning) window.location.reload();
+      else this.scene.start("battle");
+    });
+  }
+}
 
 class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
@@ -450,7 +501,6 @@ class BattleScene extends Phaser.Scene {
     this.tweens.add({ targets: this.heroAura, scale: 1.06, alpha: 0.16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.hero = createPlayerFighter(this, 220, 248, this.playerAppearance());
     this.foe = createGeometricFighter(this, 740, 248, this.enemyAppearance(profile), true);
-    this.tweens.add({ targets: this.hero.targets, y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
   }
 
@@ -983,10 +1033,7 @@ class BattleScene extends Phaser.Scene {
       .setOrigin(0.5).setPadding(24, 12).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
     reset.once("pointerup", () => {
       reset.disableInteractive().setText("REGRESANDO...");
-      // Una recarga limpia evita conservar entradas, tweens y texturas de la
-      // batalla anterior. scene.restart() puede destruir la escena mientras
-      // Phaser todavía procesa el puntero y dejar el juego bloqueado.
-      window.setTimeout(() => window.location.reload(), 80);
+      this.scene.start("travel", { direction: "toVillage" });
     });
   }
 
@@ -1281,7 +1328,7 @@ mountMetaUI(metaRoot, activeSave, async (save, mission) => {
     width: RENDER_WIDTH,
     height: RENDER_HEIGHT,
     backgroundColor: "#101622",
-    scene: [BattleScene, PauseScene],
+    scene: [MissionTravelScene, BattleScene, PauseScene],
     render: { antialias: true, pixelArt: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
   });

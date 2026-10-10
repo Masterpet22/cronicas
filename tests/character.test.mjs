@@ -18,7 +18,7 @@ assert.deepEqual(
   { face: 3, hair: 1, top: 1, bottom: 3, shoes: 2, weapon: "kunai" }
 );
 
-import { MAN_SPRITE_LAYERS, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, stopPlayerBreathing } from "../src/fighters.js";
+import { MAN_SPRITE_LAYERS, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerRunning, stopPlayerBreathing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -50,22 +50,31 @@ assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
 ].sort(), "La composición debe incluir todas las capas exportadas");
 
-const rigCalls = [];
-const breathingRig = {
-  setPosition: (...args) => { rigCalls.push(["position", ...args]); return breathingRig; },
-  setScale: (...args) => { rigCalls.push(["scale", ...args]); return breathingRig; }
+const makeTransform = () => {
+  const target = { calls: [] };
+  target.setPosition = (...args) => { target.calls.push(["position", ...args]); return target; };
+  target.setScale = (...args) => { target.calls.push(["scale", ...args]); return target; };
+  target.setAngle = (...args) => { target.calls.push(["angle", ...args]); return target; };
+  return target;
 };
-const breathingTween = { stopCalled: false, stop() { this.stopCalled = true; } };
-const breathingScene = { tweens: { add: (config) => { breathingScene.config = config; return breathingTween; } } };
-const breathingFighter = { rig: breathingRig, breathingTween: null };
+const breathingRig = makeTransform();
+const breathingSprite = makeTransform();
+const breathingJoints = { neck: makeTransform(), shoulderLeft: makeTransform(), shoulderRight: makeTransform() };
+const breathingScene = { configs: [], tweens: { add: (config) => {
+  breathingScene.configs.push(config);
+  return { stopCalled: false, stop() { this.stopCalled = true; } };
+} } };
+const breathingFighter = { rig: breathingRig, sprite: breathingSprite, joints: breathingJoints, breathingTweens: [] };
 startPlayerBreathing(breathingScene, breathingFighter);
-assert.equal(breathingScene.config.repeat, -1, "La respiración debe repetirse mientras el personaje está en reposo");
-assert.equal(breathingScene.config.yoyo, true, "La respiración debe regresar suavemente a la pose inicial");
+assert.equal(breathingScene.configs.length, 3, "La respiración debe mover torso, cuello y hombros");
+assert.ok(breathingScene.configs.every(({ repeat, yoyo }) => repeat === -1 && yoyo), "La respiración debe ser continua y reversible");
+assert.ok(breathingScene.configs.every(({ targets }) => targets !== breathingRig), "La respiración no debe desplazar el cuerpo completo ni los pies");
 stopPlayerBreathing(breathingFighter);
-assert.equal(breathingTween.stopCalled, true, "La respiración debe poder detenerse durante un ataque");
-assert.deepEqual(rigCalls.at(-1), ["scale", 0.13], "Al detenerse, la respiración debe restaurar la escala original");
+assert.equal(breathingFighter.breathingTweens.length, 0, "La respiración debe poder detenerse durante un ataque");
 assert.equal(typeof preparePlayerPunch, "function");
 assert.equal(typeof releasePlayerPunch, "function");
 assert.equal(typeof recoverPlayerPunch, "function");
+assert.equal(typeof startPlayerRunning, "function");
+assert.equal(typeof stopPlayerRunning, "function");
 
 console.log("Pruebas del personaje geométrico superadas.");
