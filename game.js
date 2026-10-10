@@ -2,19 +2,18 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.40.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.42.0";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.43.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
-import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.42.0";
+import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.43.0";
 
 const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
-const RENDER_RESOLUTION = window.innerWidth >= 981
-  ? 1.5
-  : Math.min(2, Math.max(window.devicePixelRatio || 1, 1));
+const RENDER_RESOLUTION = Math.min(3, Math.max(2, window.devicePixelRatio || 1));
+const TEXT_TEXTURE_RESOLUTION = Math.min(4, Math.max(3, Math.ceil(RENDER_RESOLUTION * 1.5)));
 const RENDER_WIDTH = WIDTH * RENDER_RESOLUTION;
 const RENDER_HEIGHT = HEIGHT * RENDER_RESOLUTION;
 const TIMELINE_START = 310;
@@ -406,21 +405,29 @@ class BattleScene extends Phaser.Scene {
       color: "#f2f7fb",
       fontStyle: "bold"
     }).setOrigin(0, 0.5);
-    const chevrons = this.add.text(565, trackY, "»»»", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "20px", color: "#29c9ff", fontStyle: "bold"
-    }).setOrigin(0.5);
+    const chevrons = this.add.graphics();
+    chevrons.lineStyle(2, 0x29c9ff, 0.62);
+    [375, 475, 575, 675, 775, 875].forEach((x) => {
+      [0, 7].forEach((offset) => {
+        chevrons.beginPath();
+        chevrons.moveTo(x + offset - 4, trackY - 4);
+        chevrons.lineTo(x + offset, trackY);
+        chevrons.lineTo(x + offset - 4, trackY + 4);
+        chevrons.strokePath();
+      });
+    });
 
-    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY - 8, 17, 0x0c2b45, 1)
+    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x0c2b45, 1)
       .setStrokeStyle(3, 0x50d7ff, 1);
-    this.enemyTurnMarker = this.add.circle(TIMELINE_START + 330, trackY - 8, 17, 0x45131b, 1)
+    this.enemyTurnMarker = this.add.circle(TIMELINE_START + 330, trackY, 17, 0x45131b, 1)
       .setStrokeStyle(3, 0xff5668, 1);
-    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 8, "TÚ", {
+    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY, "TÚ", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
       color: "#fff4df",
       fontStyle: "bold"
     }).setOrigin(0.5);
-    this.enemyTurnLetter = this.add.text(TIMELINE_START + 330, trackY - 8, "R", {
+    this.enemyTurnLetter = this.add.text(TIMELINE_START + 330, trackY, "R", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
       color: "#ffd8dc",
@@ -496,26 +503,23 @@ class BattleScene extends Phaser.Scene {
     const rail = this.add.graphics().setDepth(28);
     rail.lineStyle(3, 0x24c8ff, 0.82);
     rail.beginPath();
-    rail.moveTo(-8, 113);
-    rail.lineTo(30, 130);
-    rail.lineTo(50, 184);
-    rail.lineTo(59, 250);
-    rail.lineTo(62, 360);
-    rail.lineTo(52, 448);
-    rail.lineTo(29, 514);
-    rail.lineTo(-8, 533);
+    rail.moveTo(-8, 112);
+    rail.bezierCurveTo(108, 166, 108, 478, -8, 532);
     rail.strokePath();
     rail.lineStyle(1, 0x9cecff, 0.3);
     rail.beginPath();
-    rail.moveTo(-3, 122);
-    rail.lineTo(23, 138);
-    rail.lineTo(42, 188);
-    rail.lineTo(50, 254);
-    rail.lineTo(52, 356);
-    rail.lineTo(43, 444);
-    rail.lineTo(22, 505);
-    rail.lineTo(-3, 521);
+    rail.moveTo(-5, 122);
+    rail.bezierCurveTo(92, 172, 92, 472, -5, 522);
     rail.strokePath();
+
+    const hideTooltip = (entry) => {
+      if (entry.tooltipTimer) {
+        entry.tooltipTimer.remove(false);
+        entry.tooltipTimer = null;
+      }
+      entry.tooltip.layer.setVisible(false);
+      entry.hoverRing.setVisible(false);
+    };
 
     for (let index = 0; index < 6; index += 1) {
       const jutsu = this.actions[index] || null;
@@ -523,17 +527,16 @@ class BattleScene extends Phaser.Scene {
       if (!jutsu) continue;
       const { hit } = button;
       hit.on("pointerover", () => {
-        this.buttons.forEach((other) => {
-          other.tooltip.layer.setVisible(false);
-          other.hoverRing.setVisible(false);
-        });
+        this.buttons.forEach(hideTooltip);
         button.tooltip.layer.setVisible(true);
         button.hoverRing.setVisible(true);
+        button.tooltipTimer = this.time.delayedCall(3200, () => {
+          button.tooltip.layer.setVisible(false);
+          button.hoverRing.setVisible(false);
+          button.tooltipTimer = null;
+        });
       });
-      hit.on("pointerout", () => {
-        button.tooltip.layer.setVisible(false);
-        button.hoverRing.setVisible(false);
-      });
+      hit.on("pointerout", () => hideTooltip(button));
       hit.on("pointerdown", () => {
         if (button.available) this.useJutsu(jutsu);
       });
@@ -1105,7 +1108,7 @@ class BattleScene extends Phaser.Scene {
       const liveStats = jutsu.type === "guard"
         ? [baseCost, damage, timing]
         : [cost, damage, liveTiming];
-      button.tooltip.statText.setText(liveStats.map((line, index) => `${index === 0 ? "◉" : index === 1 ? "◆" : "»"}  ${line}`).join("\n"));
+      button.tooltip.statText.setText(liveStats.join("\n"));
     });
   }
 
@@ -1165,12 +1168,12 @@ class BattleScene extends Phaser.Scene {
       fontSize: `${size}px`,
       color,
       fontStyle: weight === "700" || weight === "800" ? "bold" : "normal",
-      resolution: Math.max(2, Math.ceil(RENDER_RESOLUTION))
+      resolution: TEXT_TEXTURE_RESOLUTION
     };
   }
 
   sharpenSceneText() {
-    const resolution = Math.max(2, Math.ceil(RENDER_RESOLUTION));
+    const resolution = TEXT_TEXTURE_RESOLUTION;
     this.children.list.forEach((child) => {
       if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(resolution);
     });
@@ -1258,7 +1261,7 @@ class PauseScene extends Phaser.Scene {
       this.scene.resume("battle");
       this.scene.stop();
     });
-    const textResolution = Math.max(2, Math.ceil(RENDER_RESOLUTION));
+    const textResolution = TEXT_TEXTURE_RESOLUTION;
     this.children.list.forEach((child) => {
       if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(textResolution);
     });
@@ -1373,7 +1376,7 @@ mountMetaUI(metaRoot, activeSave, async (save, mission) => {
     height: RENDER_HEIGHT,
     backgroundColor: "#101622",
     scene: [MissionTravelScene, BattleScene, PauseScene],
-    render: { antialias: true, pixelArt: false },
+    render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
   });
   gameRoot.removeAttribute("aria-busy");

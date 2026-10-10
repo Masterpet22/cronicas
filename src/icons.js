@@ -13,7 +13,9 @@ export const UI_ICONS = Object.freeze({
 
 export function loadUiIcons(scene) {
   Object.values(UI_ICONS).forEach(({ texture, file }) => {
-    if (!scene.textures.exists(texture)) scene.load.svg(texture, `${ICON_ROOT}/${file}`);
+    if (!scene.textures.exists(texture)) {
+      scene.load.svg(texture, `${ICON_ROOT}/${file}`, { width: 128, height: 128 });
+    }
   });
 }
 

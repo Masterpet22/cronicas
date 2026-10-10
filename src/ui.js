@@ -1,4 +1,4 @@
-import { createUiIcon } from "./icons.js?v=0.42.0";
+import { createUiIcon } from "./icons.js?v=0.43.0";
 
 export function createBar(scene, x, y, width, height, color) {
   const bg = scene.add.rectangle(x, y, width, height, 0x020812, 0.92)
@@ -82,7 +82,14 @@ function createTooltip(scene, action, index) {
   const divider = scene.add.rectangle(x + 16, y + 39, width - 32, 1, 0x8aa1b2, 0.35).setOrigin(0);
   const [cost, damage, timing] = actionLines(action);
   const stats = [cost, damage, timing].filter(Boolean);
-  const statText = scene.add.text(x + 20, y + 46, stats.map((line, statIndex) => `${statIndex === 0 ? "◉" : statIndex === 1 ? "◆" : "»"}  ${line}`).join("\n"), {
+  const statIcons = stats.map((line, statIndex) => createUiIcon(
+    scene,
+    ["energy", "damage", "speed"][statIndex],
+    x + 23,
+    y + 53 + statIndex * 17,
+    { size: 11, tint: statIndex === 1 ? 0xf1c55d : 0xdff6ff, depth: 59 }
+  ));
+  const statText = scene.add.text(x + 34, y + 46, stats.join("\n"), {
     fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
     fontSize: "11px",
     color: "#e9f5fb",
@@ -97,8 +104,8 @@ function createTooltip(scene, action, index) {
     maxLines: 2,
     lineSpacing: -1
   });
-  layer.add([bg, title, divider, statText, description]);
-  return { layer, title, statText, description };
+  layer.add([bg, title, divider, ...statIcons, statText, description]);
+  return { layer, title, statIcons, statText, description };
 }
 
 export function createActionButton(scene, action, index) {
