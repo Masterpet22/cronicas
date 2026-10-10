@@ -16,7 +16,7 @@ export function createBar(scene, x, y, width, height, color) {
     stroke: "#060a10",
     strokeThickness: 2
   }).setOrigin(1, 0.5);
-  return { bg, slot, fill, sheen, valueText, width: width - 6, x: x + 3 };
+  return { bg, slot, fill, sheen, valueText, width: width - 6, height, x: x + 3 };
 }
 
 export function actionLines(action) {
