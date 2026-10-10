@@ -21,7 +21,9 @@ assert.deepEqual(
 
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "../src/animations/clips.js";
 import { PuppetAnimationController } from "../src/animations/controller.js";
-import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
+import { validateAnimationCatalog } from "../src/animations/schema.js";
+import { animationClipDuration, sampleAnimationPose } from "../src/animations/runtime.js";
+import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, fighterTextureKey, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -85,17 +87,29 @@ stopPlayerBreathing(breathingFighter);
 assert.equal(breathingFighter.breathingTweens.length, 0, "La respiración debe poder detenerse durante un ataque");
 assert.equal(breathingFighter.animations.state, null, "Detener el reposo debe liberar el estado de la máquina");
 assert.deepEqual(animationClipList("reposo").map(({ id }) => id), ["idle-natural", "idle-alert", "idle-focus"]);
-assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold", "guard-impact"]);
-assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy"]);
+assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold", "guard-impact", "guard-hold-simple", "guard-impact-simple"]);
+assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy", "hit-light-simple", "hit-heavy-simple"]);
+assert.deepEqual(animationClipList("locomoción").map(({ id }) => id), ["run-cycle", "run-simple"]);
+assert.deepEqual(animationClipList("ataque").map(({ id }) => id), ["punch-prepare", "punch-release", "punch-recover"]);
+assert.equal(PUPPET_ANIMATION_CLIPS["punch-prepare"].restore, false, "La preparación debe conservar su pose hasta la fase de impacto");
+assert.equal(PUPPET_ANIMATION_CLIPS["punch-release"].restore, false, "El impacto debe conservar su pose hasta la recuperación");
 assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ status }) => status === "integrated"), "Los clips ofrecidos como listos deben estar integrados");
+assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ requires }) => requires.length), "Cada clip debe declarar los componentes de rig que necesita");
+assert.deepEqual(validateAnimationCatalog(PUPPET_ANIMATION_CLIPS, { idle: 1, locomotion: 2, action: 3, hit: 4, defeated: 5 }), [], "El catálogo completo debe superar la validación estructural");
+assert.ok(validateAnimationCatalog({ broken: { id: "other", tracks: [] } }, {}).length > 0, "La validación debe rechazar clips incompletos antes de ejecutarlos");
+assert.ok(animationClipDuration(PUPPET_ANIMATION_CLIPS["punch-release"]) >= 115, "El runtime compartido debe calcular la duración del clip");
+assert.equal(sampleAnimationPose(PUPPET_ANIMATION_CLIPS["punch-release"], 115).shoulderRight.angle, -68, "El muestreador compartido debe alcanzar la pose final");
 assert.ok(PUPPET_ANIMATION_CLIPS["guard-hold"].tracks.some(({ target }) => target === "shoulderRight"));
 assert.ok(PUPPET_ANIMATION_CLIPS["guard-hold"].tracks.every(({ target }) => !target.endsWith("Left")), "La guardia debe usar solo el brazo delantero derecho");
 assert.equal(typeof startPlayerGuard, "function");
 assert.equal(typeof stopPlayerGuard, "function");
 assert.equal(typeof playPlayerDamageReaction, "function");
+assert.equal(playPlayerDamageReaction, playFighterDamageReaction, "El alias anterior debe conservar compatibilidad con llamadas existentes");
 
 const controllerTarget = () => ({ x: 0, y: 0, angle: 0, scaleX: 1, scaleY: 1, alpha: 1 });
+const controllerConfigs = [];
 const controllerScene = { tweens: { add(config) {
+  controllerConfigs.push(config);
   if (config.onComplete) queueMicrotask(config.onComplete);
   return { stop() {} };
 } } };
@@ -109,6 +123,12 @@ assert.equal(controller.state, null, "La reacción debe liberar el estado y rest
 controller.loop("guard-hold");
 assert.equal(controller.play("idle-natural"), false, "El reposo no debe interrumpir una guardia de mayor prioridad");
 controller.stop();
+const geometricFighter = {
+  body: controllerTarget(), sprite: controllerTarget(), shadow: controllerTarget(), joints: {}
+};
+geometricFighter.animations = new PuppetAnimationController(controllerScene, geometricFighter);
+assert.equal(await playFighterDamageReaction(controllerScene, geometricFighter, { heavy: true }), true, "Los combatientes no articulados también deben reaccionar al daño");
+assert.equal(controllerConfigs.at(-1).x, -27, "La reacción simplificada debe usar el clip declarativo de cuerpo completo");
 assert.equal(typeof preparePlayerPunch, "function");
 assert.equal(typeof releasePlayerPunch, "function");
 assert.equal(typeof recoverPlayerPunch, "function");

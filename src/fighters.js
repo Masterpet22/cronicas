@@ -1,6 +1,7 @@
 import { FIGHTER_VIEWBOX, fighterPreviewSvg } from "./character.js?v=0.20.0";
-import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.40.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.40.0";
+import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.44.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.44.0";
+import { PUPPET_JOINTS } from "./animations/rig.js";
 
 // Resolución a la que se rasteriza el SVG (2x para que se vea nítido).
 const TEXTURE_SCALE = 2;
@@ -32,21 +33,7 @@ const MAN_SPRITE_BY_ID = Object.fromEntries(MAN_SPRITE_LAYERS.map((part) => [par
 
 // Los lados se nombran desde la perspectiva anatómica del personaje, no desde
 // la pantalla. Su lado derecho queda delante (a la izquierda de la imagen).
-export const MAN_SPRITE_JOINTS = {
-  neck: { x: 0, y: -315 },
-  shoulderRight: { x: -207, y: -310 },
-  elbowRight: { x: -305, y: -38 },
-  wristRight: { x: -304, y: 169 },
-  shoulderLeft: { x: 139, y: -310 },
-  elbowLeft: { x: 232, y: -57 },
-  wristLeft: { x: 319, y: 134 },
-  hipRight: { x: -94, y: 142 },
-  kneeRight: { x: -124, y: 407 },
-  ankleRight: { x: -153, y: 674 },
-  hipLeft: { x: 112, y: 142 },
-  kneeLeft: { x: 139, y: 401 },
-  ankleLeft: { x: 151, y: 670 }
-};
+export const MAN_SPRITE_JOINTS = PUPPET_JOINTS;
 
 function manSpriteKey(id) {
   return `player-man-${id}`;
@@ -100,7 +87,9 @@ export function createGeometricFighter(scene, x, y, appearance, flipped = false)
     .setOrigin(-FIGHTER_VIEWBOX.x / FIGHTER_VIEWBOX.width, -FIGHTER_VIEWBOX.y / FIGHTER_VIEWBOX.height)
     .setScale(1 / TEXTURE_SCALE);
   body.add(sprite);
-  return { shadow, body, head: body, targets: [body], layers: [sprite], sprite, joints: {} };
+  const fighter = { shadow, body, head: body, targets: [body], layers: [sprite], sprite, joints: {}, breathingTweens: [], runningTweens: [] };
+  fighter.animations = createPuppetAnimationController(scene, fighter);
+  return fighter;
 }
 
 function createJoint(scene, parent, name, point, parentPoint = { x: 0, y: 0 }) {
@@ -116,12 +105,6 @@ function addPart(scene, parent, id, parentPoint = { x: 0, y: 0 }) {
   image.name = id;
   parent.add(image);
   return image;
-}
-
-function tweenFinished(scene, config) {
-  return new Promise((resolve) => {
-    scene.tweens.add({ ...config, onComplete: resolve });
-  });
 }
 
 export function startPlayerBreathing(scene, fighter) {
@@ -142,95 +125,62 @@ export function stopPlayerBreathing(fighter) {
 export function startPlayerGuard(scene, fighter) {
   if (!fighter?.animations) return false;
   stopPlayerBreathing(fighter);
-  return fighter.animations.loop("guard-hold", { force: true });
+  const clipId = fighter.animations.supports("guard-hold") ? "guard-hold" : "guard-hold-simple";
+  return fighter.animations.loop(clipId, { force: true });
 }
 
 export function stopPlayerGuard(scene, fighter) {
   if (!fighter?.animations) return;
-  if (["guard-hold", "guard-impact"].includes(fighter.animations.clipId)) fighter.animations.stop({ reset: true });
+  if (["guard-hold", "guard-impact", "guard-hold-simple", "guard-impact-simple"].includes(fighter.animations.clipId)) fighter.animations.stop({ reset: true });
   startPlayerBreathing(scene, fighter);
 }
 
-export async function playPlayerDamageReaction(scene, fighter, { guarded = false, heavy = false } = {}) {
+export async function playFighterDamageReaction(scene, fighter, { guarded = false, heavy = false } = {}) {
   if (!fighter?.animations) return false;
   stopPlayerBreathing(fighter);
-  const clipId = guarded ? "guard-impact" : heavy ? "hit-heavy" : "hit-light";
+  const articulatedClip = guarded ? "guard-impact" : heavy ? "hit-heavy" : "hit-light";
+  const simpleClip = guarded ? "guard-impact-simple" : heavy ? "hit-heavy-simple" : "hit-light-simple";
+  const clipId = fighter.animations.supports(articulatedClip) ? articulatedClip : simpleClip;
   const completed = await fighter.animations.playOnce(clipId, { force: true });
   if (guarded) startPlayerGuard(scene, fighter);
   else startPlayerBreathing(scene, fighter);
   return completed;
 }
 
+// Compatibilidad con integraciones anteriores. El nombre genérico es el que
+// debe usarse en código nuevo porque la reacción sirve para cualquier luchador.
+export const playPlayerDamageReaction = playFighterDamageReaction;
+
 export function startPlayerRunning(scene, fighter) {
-  if (!fighter || fighter.runningTweens?.length) return;
+  if (!fighter?.animations || fighter.animations.state === "locomotion") return;
   stopPlayerBreathing(fighter);
-  if (!fighter.joints?.hipLeft) {
-    fighter.runningTweens = [scene.tweens.add({ targets: fighter.body, y: fighter.body.y - 3, duration: 170, yoyo: true, repeat: -1, ease: "Sine.inOut" })];
-    return;
-  }
-  const stride = { duration: 180, yoyo: true, repeat: -1, ease: "Sine.inOut" };
-  fighter.joints.hipLeft.setAngle(-24);
-  fighter.joints.hipRight.setAngle(24);
-  fighter.joints.kneeLeft.setAngle(7);
-  fighter.joints.kneeRight.setAngle(30);
-  fighter.joints.ankleLeft.setAngle(-7);
-  fighter.joints.ankleRight.setAngle(8);
-  fighter.joints.shoulderLeft.setAngle(21);
-  fighter.joints.shoulderRight.setAngle(-21);
-  fighter.joints.elbowLeft.setAngle(-12);
-  fighter.joints.elbowRight.setAngle(12);
-  fighter.runningTweens = [
-    scene.tweens.add({ ...stride, targets: fighter.joints.hipLeft, angle: 24 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.hipRight, angle: -24 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.kneeLeft, angle: 30 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.kneeRight, angle: 7 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.ankleLeft, angle: 8 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.ankleRight, angle: -7 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.shoulderLeft, angle: -21 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.shoulderRight, angle: 21 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.elbowLeft, angle: 12 }),
-    scene.tweens.add({ ...stride, targets: fighter.joints.elbowRight, angle: -12 }),
-    scene.tweens.add({ ...stride, targets: fighter.rig, y: MAN_SPRITE_Y_OFFSET - 5, duration: 90 }),
-    scene.tweens.add({ ...stride, targets: fighter.shadow, scaleX: 1.08, scaleY: 0.84, duration: 90 })
-  ];
+  const clipId = fighter.animations.supports("run-cycle") ? "run-cycle" : "run-simple";
+  fighter.animations.loop(clipId, { force: true });
+  fighter.runningTweens = [...fighter.animations.tweens];
 }
 
 export function stopPlayerRunning(fighter) {
-  fighter?.runningTweens?.forEach((tween) => tween.stop());
   if (!fighter) return;
+  if (fighter.animations?.state === "locomotion") fighter.animations.stop({ reset: true });
   fighter.runningTweens = [];
-  fighter.rig?.setPosition(0, MAN_SPRITE_Y_OFFSET);
-  fighter.shadow?.setScale(1);
-  Object.values(fighter.joints || {}).forEach((joint) => joint.setAngle(0));
 }
 
 export async function preparePlayerPunch(scene, fighter) {
-  if (!fighter?.joints?.shoulderRight) return;
+  if (!fighter?.animations?.supports("punch-prepare")) return false;
   stopPlayerBreathing(fighter);
-  await Promise.all([
-    tweenFinished(scene, { targets: fighter.joints.shoulderRight, angle: 12, duration: 95, ease: "Sine.out" }),
-    tweenFinished(scene, { targets: fighter.joints.elbowRight, angle: 18, duration: 95, ease: "Sine.out" }),
-    tweenFinished(scene, { targets: fighter.joints.wristRight, angle: -5, duration: 95, ease: "Sine.out" })
-  ]);
+  return fighter.animations.playOnce("punch-prepare", { force: true });
 }
 
 export function releasePlayerPunch(scene, fighter) {
-  if (!fighter?.joints?.shoulderRight) return Promise.resolve();
-  return Promise.all([
-    tweenFinished(scene, { targets: fighter.joints.shoulderRight, angle: -68, duration: 115, ease: "Cubic.in" }),
-    tweenFinished(scene, { targets: fighter.joints.elbowRight, angle: -4, duration: 105, ease: "Quad.in" }),
-    tweenFinished(scene, { targets: fighter.joints.wristRight, angle: 4, duration: 105, ease: "Quad.in" })
-  ]);
+  if (!fighter?.animations?.supports("punch-release")) return Promise.resolve(false);
+  return fighter.animations.playOnce("punch-release", { force: true });
 }
 
 export async function recoverPlayerPunch(scene, fighter) {
-  if (!fighter?.joints?.shoulderRight) return;
-  await Promise.all([
-    tweenFinished(scene, { targets: fighter.joints.shoulderRight, angle: 0, duration: 210, ease: "Back.out" }),
-    tweenFinished(scene, { targets: fighter.joints.elbowRight, angle: 0, duration: 190, ease: "Sine.out" }),
-    tweenFinished(scene, { targets: fighter.joints.wristRight, angle: 0, duration: 180, ease: "Sine.out" })
-  ]);
+  if (!fighter?.animations?.supports("punch-recover")) return false;
+  await fighter.animations.playOnce("punch-recover", { force: true });
   startPlayerBreathing(scene, fighter);
+  return true;
 }
 
 export function createPlayerFighter(scene, x, y, appearance, flipped = false) {

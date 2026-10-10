@@ -396,7 +396,9 @@
   </main>
 
   <script type="module">
-    import { animationClipList } from "./src/animations/clips.js?v=0.40.0";
+    import { animationClipList } from "./src/animations/clips.js?v=0.44.0";
+    import { animationClipDuration, sampleAnimationPose } from "./src/animations/runtime.js?v=0.44.0";
+    import { PUPPET_JOINTS, PUPPET_JOINT_PARENTS, PUPPET_PART_JOINTS } from "./src/animations/rig.js?v=0.44.0";
 
     "use strict";
 
@@ -452,27 +454,9 @@
     let previewingClip = null;
 
     const animationClips = animationClipList();
-    const JOINTS = {
-      neck: { x: 0, y: -315 },
-      shoulderRight: { x: -207, y: -310 }, elbowRight: { x: -305, y: -38 }, wristRight: { x: -304, y: 169 },
-      shoulderLeft: { x: 139, y: -310 }, elbowLeft: { x: 232, y: -57 }, wristLeft: { x: 319, y: 134 },
-      hipRight: { x: -94, y: 142 }, kneeRight: { x: -124, y: 407 }, ankleRight: { x: -153, y: 674 },
-      hipLeft: { x: 112, y: 142 }, kneeLeft: { x: 139, y: 401 }, ankleLeft: { x: 151, y: 670 }
-    };
-    const JOINT_PARENTS = {
-      neck: null,
-      shoulderRight: null, elbowRight: "shoulderRight", wristRight: "elbowRight",
-      shoulderLeft: null, elbowLeft: "shoulderLeft", wristLeft: "elbowLeft",
-      hipRight: null, kneeRight: "hipRight", ankleRight: "kneeRight",
-      hipLeft: null, kneeLeft: "hipLeft", ankleLeft: "kneeLeft"
-    };
-    const PART_JOINTS = {
-      cabeza: "neck",
-      brazo_derecho: "shoulderRight", antebrazo_derecho: "elbowRight", mano_derecha: "wristRight",
-      brazo_izquierdo: "shoulderLeft", antebrazo_izquierdo: "elbowLeft", mano_izquierda: "wristLeft",
-      muslo_derecho: "hipRight", pierna_derecha: "kneeRight", pie_derecho: "ankleRight",
-      muslo_izquierdo: "hipLeft", pierna_izquierda: "kneeLeft", pie_izquierdo: "ankleLeft"
-    };
+    const JOINTS = PUPPET_JOINTS;
+    const JOINT_PARENTS = PUPPET_JOINT_PARENTS;
+    const PART_JOINTS = PUPPET_PART_JOINTS;
 
     const round = value => Math.round(value * 1000) / 1000;
     const selectedPart = () => parts.find(part => part.id === selectedId);
@@ -550,45 +534,6 @@
     };
     const transformPoint = (matrix, x, y) => ({ x: matrix[0] * x + matrix[2] * y + matrix[4], y: matrix[1] * x + matrix[3] * y + matrix[5] });
 
-    function easedProgress(progress, ease = "Sine.inOut") {
-      if (ease.startsWith("Cubic")) return 1 - Math.pow(1 - progress, 3);
-      if (ease.startsWith("Quad")) return 1 - Math.pow(1 - progress, 2);
-      return (1 - Math.cos(Math.PI * progress)) / 2;
-    }
-
-    function trackProgress(track, elapsed, loop) {
-      const duration = track.duration;
-      const time = Math.max(0, elapsed - (track.delay || 0));
-      if (loop) {
-        const cycle = track.yoyo ? duration * 2 : duration;
-        let progress = (time % cycle) / duration;
-        if (track.yoyo && progress > 1) progress = 2 - progress;
-        return easedProgress(progress, track.ease);
-      }
-      let progress = time / duration;
-      if (track.yoyo) progress = progress <= 1 ? progress : Math.max(0, 2 - progress);
-      else progress = Math.min(1, progress);
-      return easedProgress(Math.max(0, Math.min(1, progress)), track.ease);
-    }
-
-    function animationPose(clip, elapsed) {
-      const pose = {};
-      clip.tracks.forEach(track => {
-        const enterDuration = track.from ? Number(clip.enterDuration || 0) : 0;
-        const entering = enterDuration > 0 && elapsed < enterDuration;
-        const progress = entering ? easedProgress(elapsed / enterDuration, "Cubic.out") : trackProgress(track, elapsed - enterDuration, clip.loop);
-        pose[track.target] ||= {};
-        Object.entries(track.to || {}).forEach(([property, end]) => {
-          const from = Number(track.from?.[property] || 0);
-          pose[track.target][property] = entering ? from * progress : from + (end - from) * progress;
-        });
-        Object.entries(track.from || {}).forEach(([property, start]) => {
-          if (!(property in (track.to || {}))) pose[track.target][property] = start;
-        });
-      });
-      return pose;
-    }
-
     function applyAnimationPose(pose) {
       const rigPose = { ...(pose.body || {}), ...(pose.rig || {}) };
       let root = multiplyMatrix(translationMatrix(rigPose.x || 0, rigPose.y || 0), rotationMatrix(rigPose.angle || 0));
@@ -650,11 +595,11 @@
       const speed = Number(animationSpeed.value) / 100;
       previewingClip = clip.id;
       const start = performance.now();
-      const totalDuration = Math.max(...clip.tracks.map(track => (track.delay || 0) + track.duration * (track.yoyo ? 2 : 1))) / speed;
+      const totalDuration = animationClipDuration(clip) / speed;
       const draw = now => {
         if (previewingClip !== clip.id) return;
         const elapsed = (now - start) * speed;
-        applyAnimationPose(animationPose(clip, elapsed));
+        applyAnimationPose(sampleAnimationPose(clip, elapsed));
         if (!clip.loop && now - start >= totalDuration) {
           stopAnimationPreview(false);
           setStatus(`Vista previa finalizada: ${clip.label}`);
@@ -668,7 +613,7 @@
 
     function renderAnimationLab() {
       animationSelect.replaceChildren();
-      const categoryLabels = { reposo: "Reposo", defensa: "Defensa", "reacción": "Reacciones al daño" };
+      const categoryLabels = { reposo: "Reposo", locomoción: "Locomoción", ataque: "Ataques", defensa: "Defensa", "reacción": "Reacciones al daño" };
       Object.entries(categoryLabels).forEach(([category, label]) => {
         const group = document.createElement("optgroup");
         group.label = label;
@@ -688,7 +633,7 @@
       const clip = animationClips.find(item => item.id === animationSelect.value);
       if (!clip) return;
       const statusLabel = clip.status === "integrated" ? "Integrada en el juego" : "En pruebas";
-      clipMeta.innerHTML = `<span class="clip-badge">${statusLabel}</span><br><strong>${clip.category}</strong> · ${clip.description}`;
+      clipMeta.innerHTML = `<span class="clip-badge">${statusLabel}</span><br><strong>${clip.category}</strong> · ${clip.description}<br><small>Rig requerido: ${clip.requires.join(", ")}</small>`;
       if (previewingClip) playAnimationPreview();
     }
 

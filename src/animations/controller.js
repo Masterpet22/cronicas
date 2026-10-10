@@ -1,6 +1,5 @@
-import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.40.0";
-
-const TRANSFORM_PROPERTIES = ["x", "y", "angle", "scaleX", "scaleY", "alpha"];
+import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.44.0";
+import { addAnimationOffsets, TRANSFORM_PROPERTIES } from "./runtime.js";
 
 function targetFor(fighter, name) {
   if (name === "torso") return fighter.sprite;
@@ -12,10 +11,6 @@ function snapshot(target) {
   return Object.fromEntries(TRANSFORM_PROPERTIES.map((property) => [property, Number(target?.[property] ?? (property.startsWith("scale") || property === "alpha" ? 1 : 0))]));
 }
 
-function addOffsets(base, offsets = {}) {
-  return Object.fromEntries(Object.entries(offsets).map(([property, value]) => [property, base[property] + value]));
-}
-
 export class PuppetAnimationController {
   constructor(scene, fighter, clips = PUPPET_ANIMATION_CLIPS) {
     this.scene = scene;
@@ -24,6 +19,7 @@ export class PuppetAnimationController {
     this.current = null;
     this.tweens = [];
     this.touched = new Map();
+    this.neutral = new Map();
     this.finished = Promise.resolve(true);
     this.resolveFinished = null;
     this.generation = 0;
@@ -31,6 +27,11 @@ export class PuppetAnimationController {
 
   get state() { return this.current?.state || null; }
   get clipId() { return this.current?.id || null; }
+
+  supports(idOrClip) {
+    const clip = typeof idOrClip === "string" ? this.clips[idOrClip] : idOrClip;
+    return Boolean(clip?.requires?.every((name) => targetFor(this.fighter, name)));
+  }
 
   canPlay(clip) {
     if (!this.current) return true;
@@ -40,6 +41,7 @@ export class PuppetAnimationController {
   play(id, { force = false, timeScale = 1 } = {}) {
     const clip = this.clips[id];
     if (!clip) throw new Error(`Clip de animación desconocido: ${id}`);
+    if (!this.supports(clip)) return false;
     if (this.current?.id === id) return true;
     if (!force && !this.canPlay(clip)) return false;
     this.stop({ reset: true });
@@ -50,21 +52,22 @@ export class PuppetAnimationController {
     this.finished = new Promise((resolve) => { this.resolveFinished = resolve; });
 
     for (const { track, target } of playableTracks) {
-      const base = this.touched.get(target) || snapshot(target);
+      const base = this.neutral.get(target) || snapshot(target);
+      this.neutral.set(target, base);
       this.touched.set(target, base);
       const enterDuration = track.from ? Number(clip.enterDuration || 0) : 0;
-      if (track.from && !enterDuration) Object.assign(target, addOffsets(base, track.from));
+      if (track.from && !enterDuration) Object.assign(target, addAnimationOffsets(base, track.from));
       if (track.from && enterDuration) {
         this.tweens.push(this.scene.tweens.add({
           targets: target,
-          ...addOffsets(base, track.from),
+          ...addAnimationOffsets(base, track.from),
           duration: Math.max(1, enterDuration / timeScale),
           ease: "Cubic.out"
         }));
       }
       const tween = this.scene.tweens.add({
         targets: target,
-        ...addOffsets(base, track.to),
+        ...addAnimationOffsets(base, track.to),
         duration: Math.max(1, track.duration / timeScale),
         delay: ((track.delay || 0) + enterDuration) / timeScale,
         ease: track.ease || "Sine.inOut",
@@ -91,7 +94,7 @@ export class PuppetAnimationController {
   complete() {
     const resolve = this.resolveFinished;
     this.tweens = [];
-    this.touched.forEach((base, target) => Object.assign(target, base));
+    if (this.current?.restore !== false) this.touched.forEach((base, target) => Object.assign(target, base));
     this.touched.clear();
     this.current = null;
     this.resolveFinished = null;

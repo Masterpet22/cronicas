@@ -1,12 +1,12 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createPlayerFighter, destroyFighter, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.43.4";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.43.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
-import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.43.0";
+import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 
 const Phaser = window.Phaser;
 
@@ -147,14 +147,17 @@ class BattleScene extends Phaser.Scene {
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
     const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean)
       .map((jutsu) => ({ ...jutsu, iconTexture: `element-${jutsu.element}` }));
+    // La barra tiene un contrato estable: Golpe siempre ocupa 1, las cuatro
+    // técnicas configurables viven en 2–5 y Guardia siempre ocupa 6.
+    const techniqueSlots = Array.from({ length: 4 }, (_, index) => selectedJutsus[index] || null);
     this.actions = [
       { ...BASE_ACTIONS[0], iconTexture: "action-strike" },
-      ...selectedJutsus,
+      ...techniqueSlots,
       { ...BASE_ACTIONS[1], iconTexture: "action-guard" }
     ];
     this.enemyIndex = 0;
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
-    this.cooldowns = Object.fromEntries(this.actions.map((action) => [action.id, 0]));
+    this.cooldowns = Object.fromEntries(this.actions.filter(Boolean).map((action) => [action.id, 0]));
     this.round = 1;
     this.busy = true;
     this.turnReady = false;
@@ -575,7 +578,8 @@ class BattleScene extends Phaser.Scene {
     this.onActionShortcut = (event) => {
       const index = Number(event.key) - 1;
       if (index < 0 || index >= this.actions.length) return;
-      this.useJutsu(this.actions[index]);
+      const jutsu = this.actions[index];
+      if (jutsu) this.useJutsu(jutsu);
     };
     this.input.keyboard.on("keydown", this.onActionShortcut);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keydown", this.onActionShortcut));
@@ -673,7 +677,7 @@ class BattleScene extends Phaser.Scene {
     const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
     this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.affinityXp} PX de afinidad · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
     this.stopFighterFlash(this.foe);
-    this.tweens.add({ targets: this.foe.targets, alpha: 0, x: "+=70", duration: 480 });
+    this.tweens.add({ targets: [...this.foe.targets, this.foe.shadow], alpha: 0, x: "+=70", duration: 480 });
     await this.delay(560);
     destroyFighter(this.foe);
 
@@ -911,24 +915,22 @@ class BattleScene extends Phaser.Scene {
     this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
     this.tone(jutsu.cinematic ? 92 : 128, 0.12);
     this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
-    this.enemy.hp = Math.max(0, this.enemy.hp - damage);
+    const { reaction } = this.loseHealth(this.enemy, this.foe, damage);
     if (jutsu.status && this.enemy.hp > 0) {
       applyStatus(this.enemy, jutsu.status);
       this.refreshHud();
     }
-    this.flashFighter(this.foe);
-    this.floatDamage(this.foe.body.x, this.foe.body.y - 120, damage, jutsu.color);
-    this.refreshHud();
     const statusNote = jutsu.status && this.enemy.hp > 0 ? ` · ${jutsu.status.label}` : "";
     const elementNote = affinityLabel(elementalMultiplier);
     this.setMessage(`${jutsu.name}: ${damage} de daño${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
     if (usesPuppetPunch) {
       await Promise.all([
+        reaction,
         recoverPlayerPunch(this, this.hero),
         this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
         this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
       ]);
-    }
+    } else await reaction;
     await this.delay(usesPuppetPunch ? 150 : 430);
     this.hero.body.x = originX;
     this.hero.shadow.x = originShadowX;
@@ -952,11 +954,8 @@ class BattleScene extends Phaser.Scene {
     this.setMessage("Mika encuentra una apertura y lanza su kunai.", "#79e8d1");
     this.createImpact(this.foe.body.x - 18, this.foe.body.y - 30, 0x67e8c3, 0.62);
     this.tone(330, 0.09);
-    this.enemy.hp = Math.max(0, this.enemy.hp - damage);
-    this.floatDamage(this.foe.body.x, this.foe.body.y - 145, damage, 0x67e8c3);
-    this.flashFighter(this.foe);
-    this.refreshHud();
-    await this.delay(420);
+    const { reaction } = this.loseHealth(this.enemy, this.foe, damage, { yOffset: -145 });
+    await Promise.all([reaction, this.delay(420)]);
   }
 
   async executeEnemyAction(action) {
@@ -1011,20 +1010,13 @@ class BattleScene extends Phaser.Scene {
     }
 
     this.createImpact(this.hero.body.x, this.hero.body.y - 10, action.color, 0.8);
-    const reaction = playPlayerDamageReaction(this, this.hero, {
-      guarded: this.player.guarding,
-      heavy: damage >= Math.max(10, Math.ceil(this.player.maxHp * 0.16))
-    });
     this.tone(110, 0.1);
     this.shake(120, 0.005);
-    this.player.hp = Math.max(0, this.player.hp - damage);
+    const { reaction } = this.loseHealth(this.player, this.hero, damage, { guarded: this.player.guarding });
     if (action.status && !this.player.guarding && this.player.hp > 0) {
       applyStatus(this.player, action.status);
       this.refreshHud();
     }
-    this.flashFighter(this.hero);
-    this.floatDamage(this.hero.body.x, this.hero.body.y - 120, damage, action.color);
-    this.refreshHud();
     await reaction;
     if (usesPuppetPunch) {
       await Promise.all([
@@ -1044,8 +1036,8 @@ class BattleScene extends Phaser.Scene {
 
   async resolveEndRoundStatuses() {
     const targets = [
-      { data: this.player, fighter: this.hero, x: this.hero.body.x, color: 0xb58cff },
-      { data: this.enemy, fighter: this.foe, x: this.foe.body.x, color: 0xff784f }
+      { data: this.player, fighter: this.hero },
+      { data: this.enemy, fighter: this.foe }
     ];
     let triggered = false;
 
@@ -1053,11 +1045,12 @@ class BattleScene extends Phaser.Scene {
       for (const status of target.data.statuses) {
         if (status.power <= 0) continue;
         triggered = true;
-        target.data.hp = Math.max(0, target.data.hp - status.power);
-        this.floatDamage(target.x, target.fighter.body.y - 118, status.power, target.color);
-        this.flashFighter(target.fighter);
-        this.setMessage(`${status.label}: ${status.power} de daño.`);
-        await this.delay(330);
+        const { amount, reaction } = this.loseHealth(target.data, target.fighter, status.power, { yOffset: -118 });
+        this.setMessage(`${status.label}: ${amount} de daño.`);
+        await Promise.all([
+          reaction,
+          this.delay(330)
+        ]);
       }
       target.data.statuses.forEach((status) => {
         if (status.type !== "stun") status.duration -= 1;
@@ -1119,9 +1112,53 @@ class BattleScene extends Phaser.Scene {
     fighter.targets.forEach((target) => target.setAlpha(1));
   }
 
-  floatDamage(x, y, amount, color) {
-    const label = this.add.text(x, y, `-${amount}`, this.textStyle(28, `#${color.toString(16).padStart(6, "0")}`, "800")).setOrigin(0.5).setDepth(40);
-    this.tweens.add({ targets: label, y: y - 38, alpha: 0, duration: 720, ease: "Cubic.out", onComplete: () => label.destroy() });
+  loseHealth(target, fighter, requestedAmount, { guarded = false, react = true, yOffset = -120 } = {}) {
+    const previousHp = target.hp;
+    const normalizedAmount = Number.isFinite(Number(requestedAmount)) ? Math.max(0, Math.round(Number(requestedAmount))) : 0;
+    target.hp = Math.max(0, previousHp - normalizedAmount);
+    const amount = previousHp - target.hp;
+    if (amount <= 0) return { amount: 0, reaction: Promise.resolve(false) };
+
+    this.floatHealthLoss(fighter.body.x, fighter.body.y + yOffset, amount);
+    this.flashFighter(fighter);
+    this.healthLossPulse(fighter);
+    this.refreshHud();
+    const reaction = react
+      ? playFighterDamageReaction(this, fighter, {
+          guarded,
+          heavy: amount >= Math.max(10, Math.ceil(target.maxHp * 0.16))
+        })
+      : Promise.resolve(false);
+    return { amount, reaction };
+  }
+
+  floatHealthLoss(x, y, amount) {
+    const icon = createUiIcon(this, "healthLoss", x - 19, y, { size: 20, tint: 0xff4057, depth: 41 });
+    const label = this.add.text(x + 7, y, `-${amount}`, this.textStyle(30, "#ff4057", "800"))
+      .setOrigin(0.5).setDepth(41).setStroke("#35040b", 4);
+    this.tweens.add({
+      targets: [icon, label],
+      y: y - 46,
+      alpha: 0,
+      scaleX: 1.12,
+      scaleY: 1.12,
+      duration: 820,
+      ease: "Cubic.out",
+      onComplete: () => { icon.destroy(); label.destroy(); }
+    });
+  }
+
+  healthLossPulse(fighter) {
+    const pulse = this.add.circle(fighter.body.x, fighter.body.y - 18, 34, 0xff4057, 0.08)
+      .setStrokeStyle(4, 0xff4057, 0.72).setDepth(14);
+    this.tweens.add({
+      targets: pulse,
+      scale: 1.9,
+      alpha: 0,
+      duration: 320,
+      ease: "Quad.out",
+      onComplete: () => pulse.destroy()
+    });
   }
 
   floatLabel(x, y, text, color) {
@@ -1137,9 +1174,9 @@ class BattleScene extends Phaser.Scene {
     this.setMessage(won ? `¡Misión completada!${rewardText}${rankText}` : "Misión fallida. Conservas las recompensas de encuentros superados.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;
     this.stopFighterFlash(target);
-    this.tweens.killTweensOf(target.targets);
+    this.tweens.killTweensOf([...target.targets, target.shadow]);
     this.tweens.add({
-      targets: target.targets,
+      targets: [...target.targets, target.shadow],
       alpha: 0,
       duration: 900,
       ease: "Sine.inOut"
@@ -1173,18 +1210,24 @@ class BattleScene extends Phaser.Scene {
   }
 
   refreshHud() {
-    this.playerHpBar.fill.width = this.playerHpBar.width * Phaser.Math.Clamp(this.player.hp / this.player.maxHp, 0, 1);
-    if (this.playerHpBar.sheen) this.playerHpBar.sheen.width = this.playerHpBar.fill.width;
+    this.updateHealthBar(this.playerHpBar, this.player.hp, this.player.maxHp);
     this.chakraBar.fill.width = this.chakraBar.width * Phaser.Math.Clamp(this.player.chakra / this.player.maxChakra, 0, 1);
     if (this.chakraBar.sheen) this.chakraBar.sheen.width = this.chakraBar.fill.width;
-    this.enemyHpBar.fill.width = this.enemyHpBar.width * Phaser.Math.Clamp(this.enemy.hp / this.enemy.maxHp, 0, 1);
-    if (this.enemyHpBar.sheen) this.enemyHpBar.sheen.width = this.enemyHpBar.fill.width;
+    this.updateHealthBar(this.enemyHpBar, this.enemy.hp, this.enemy.maxHp);
 
     this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
     this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
 
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
+  }
+
+  updateHealthBar(bar, hp, maxHp) {
+    const ratio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
+    const color = ratio > 0.5 ? 0x38df87 : ratio > 0.25 ? 0xf1c84b : 0xef4755;
+    bar.fill.width = bar.width * ratio;
+    bar.fill.setFillStyle(color, 1);
+    if (bar.sheen) bar.sheen.width = bar.fill.width;
   }
 
   setMessage(text, color = "#edf7fd") {

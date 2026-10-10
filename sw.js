@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.43.4";
+const CACHE_NAME = "cronicas-assets-v0.44.0";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
@@ -15,6 +15,7 @@ const CORE_ASSETS = [
   "./assets/ui/hud-frame.webp?v=0.20.0",
   "./assets/icons/lucide/heart.svg",
   "./assets/icons/lucide/droplets.svg",
+  "./assets/icons/lucide/droplet.svg",
   "./assets/icons/lucide/gauge.svg",
   "./assets/icons/lucide/lock.svg",
   "./assets/icons/lucide/pause.svg",

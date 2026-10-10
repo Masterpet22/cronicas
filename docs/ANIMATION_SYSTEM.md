@@ -14,6 +14,13 @@ Cada clip declara:
 - `status`: `draft` mientras se ajusta o `integrated` cuando está aprobado.
 - `loop`: indica si el movimiento se repite.
 - `tracks`: transformaciones por articulación, con duración, demora y curva.
+- `requires`: objetivos del rig que deben existir para poder reproducirlo.
+- `restore`: opcional; permite encadenar fases que mantienen la pose, como la
+  preparación y el impacto de un puñetazo.
+
+Al cargar el módulo, `schema.js` valida identificadores, estados, requisitos,
+duraciones, objetivos y propiedades numéricas. Un clip inválido detiene la
+carga con un diagnóstico concreto en vez de fallar silenciosamente en combate.
 
 Las coordenadas neutrales de las piezas siguen viviendo exclusivamente en
 `MAN_SPRITE_LAYERS`. Un clip solo guarda desplazamientos relativos; por eso una
@@ -41,6 +48,14 @@ acción se restablece la pose neutral y se vuelve al reposo correspondiente.
 5. Referenciar su `id` desde la acción, escena o estado que corresponda.
 6. Agregar una prueba que compruebe la transición y ejecutar `npm test`.
 
+La reproducción se conecta al combate mediante funciones semánticas de
+`src/fighters.js`. Las reacciones compartidas deben usar
+`playFighterDamageReaction`, que acepta cualquier marioneta (jugador, rival o
+futuros aliados); los clips no deben acoplarse a una escena o bando concreto.
+Los combatientes que todavía no tienen rig articulado usan una reacción de
+cuerpo completo como degradación compatible, así ningún tipo de cuerpo queda
+sin respuesta visual mientras se añaden sus articulaciones.
+
 ## Reposos disponibles
 
 - `idle-natural`: reposo estándar del combate.
@@ -67,3 +82,14 @@ Los nombres `derecho` e `izquierdo` siempre describen el lado anatómico del
 personaje. Los dos PNG de brazo superior fueron exportados con los nombres
 intercambiados, por lo que el catálogo usa `assetId` para corregirlos sin
 renombrar ni duplicar archivos.
+
+## Runtime compartido
+
+`runtime.js` contiene el muestreo temporal, las curvas y el cálculo de duración
+que comparten Phaser y el Laboratorio. `rig.js` contiene las articulaciones,
+sus relaciones padre-hijo y la asociación entre piezas y huesos. El juego y el
+calibrador son adaptadores de presentación; no mantienen copias de esas reglas.
+
+La carrera (`run-cycle` y su variante simple) y las tres fases del puñetazo
+(`punch-prepare`, `punch-release`, `punch-recover`) viven ahora en el catálogo,
+por lo que pueden revisarse en el Laboratorio igual que defensa y daño.

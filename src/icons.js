@@ -2,6 +2,7 @@ const ICON_ROOT = "assets/icons/lucide";
 
 export const UI_ICONS = Object.freeze({
   health: { texture: "lucide-heart", file: "heart.svg" },
+  healthLoss: { texture: "lucide-droplet", file: "droplet.svg" },
   chakra: { texture: "lucide-droplets", file: "droplets.svg" },
   speed: { texture: "lucide-gauge", file: "gauge.svg" },
   lock: { texture: "lucide-lock", file: "lock.svg" },
