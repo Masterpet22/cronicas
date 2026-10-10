@@ -21,9 +21,12 @@ assert.match(battle, /localStorage\.setItem\("hud-theme"/, "La elección del mar
 assert.match(html, /select id="hud-theme"/, "Opciones debe permitir elegir el marco de combate");
 assert.match(battle, /makeHudThemeControl\(480, 367\)/, "El menú de pausa debe permitir cambiar el marco durante el combate");
 assert.match(battle, /RANK_LEVELS/, "El rango del HUD debe representarse mediante un nivel numérico escalable");
-assert.match(battle, /const healthBarWidth = 370/, "La vida debe usar una anchura compacta que deje respirar el centro del HUD");
-assert.match(battle, /healthBarWidth, 22, 0x38df87/, "La vida debe caber dentro del hueco ilustrado sin deformarlo");
-assert.match(battle, /chakraBarWidth, 10, 0x2eaff4/, "El chakra debe conservar un perfil fino dentro de su marco");
+assert.match(battle, /displayWidth: 360/, "Los marcos de vida deben mantener una escala compacta");
+assert.match(battle, /const healthBarWidth = 326/, "La vida debe sobresalir levemente bajo el hueco transparente del marco");
+assert.match(battle, /healthBarWidth, 19, 0x38df87/, "La vida debe conservar un perfil compacto dentro del marco");
+assert.match(battle, /chakraBarWidth, 9, 0x2eaff4/, "El chakra debe conservar un perfil fino dentro de su marco");
+assert.match(battle, /enemyHealthX[\s\S]*direction: "rtl"/, "La vida enemiga debe quedar anclada a la derecha y vaciarse desde el centro");
+assert.match(ui, /fillOriginX = drainsFromLeft \? 1 : 0/, "El constructor de barras debe admitir sentidos de vaciado opuestos");
 assert.match(battle, /displayWidth \* \(theme\.health\.height \/ theme\.health\.width\)/, "El marco de vida debe respetar la proporción original de cada tema");
 assert.match(ui, /createGeometryMask\(\)/, "El relleno debe recortarse antes de quedar cubierto por el marco ilustrado");
 assert.match(battle, /barOffset: Object\.freeze/, "Cada marco debe declarar su compensación vertical de barras");
@@ -119,6 +122,6 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.44\.4/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.44\.5/, "El CSS corregido debe invalidar la caché anterior");
 
 console.log("Pruebas de interfaz de combate superadas.");
