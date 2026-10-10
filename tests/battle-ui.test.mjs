@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 
 const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
+const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
+const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const calibrator = readFileSync(new URL("../puppet-calibrator.html", import.meta.url), "utf8");
 
@@ -18,6 +20,13 @@ assert.match(battle, /index < 6/, "La barra debe conservar siempre seis espacios
 assert.match(battle, /this\.actions\[index\] \|\| null/, "Los espacios sin técnica deben renderizarse vacíos");
 assert.match(ui, /if \(!action\) \{[\s\S]*return \{ empty: true/, "Una acción ausente debe producir un espacio bloqueado");
 assert.match(ui, /setDisplaySize\(54, 54\)/, "Los iconos de acción deben caber en la semirrueda compacta");
+assert.equal(packageJson.dependencies["lucide-static"], "1.55.0", "Lucide debe permanecer fijado a una versión reproducible");
+assert.match(icons, /export function loadUiIcons/, "La integración debe exponer un cargador reutilizable de iconos");
+assert.match(icons, /export function createUiIcon/, "La integración debe exponer un constructor reutilizable para Phaser");
+assert.match(battle, /createUiIcon\(this, "health"/, "Vida debe usar el icono de Lucide");
+assert.match(battle, /createUiIcon\(this, "chakra"/, "Chakra debe usar el icono de Lucide");
+assert.match(battle, /createUiIcon\(this, "speed"/, "Velocidad debe usar el icono de Lucide");
+assert.match(ui, /createUiIcon\(scene, "lock"/, "Los espacios bloqueados deben usar el icono de Lucide");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
 assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRight/, "Solo Golpe veloz debe activar el puñetazo articulado");
 assert.match(battle, /preparePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe preparar el brazo antes de avanzar");
@@ -46,6 +55,7 @@ assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
 assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer atajos de teclado del 1 al 6");
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
 assert.match(ui, /const ACTION_POSITIONS = \[/, "Las acciones deben distribuirse sobre una semirrueda lateral");
+assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repetir nombres que ya aparecen en el tooltip");
 assert.match(battle, /rail\.lineTo\(62, 360\)/, "La interfaz debe dibujar la guía curva de la semirrueda");
 assert.match(ui, /setOrigin\(1, 0\.5\)/, "Los valores de vida y chakra deben alinearse al extremo derecho de la barra");
 assert.match(ui, /setDepth\(40\)/, "La zona interactiva de las acciones debe quedar por encima del escenario");
@@ -57,6 +67,8 @@ assert.doesNotMatch(battle, /ORDEN DEL TURNO/, "La interfaz no debe recuperar la
 assert.doesNotMatch(battle, /messagePlate/, "El combate no debe mostrar una banda de mensajes persistente");
 assert.doesNotMatch(battle, /Ronda \$\{this\.round\}/, "El HUD no debe anunciar el número de ronda");
 assert.match(battle, /setSealPrompt\(/, "Las instrucciones de sellos deben vivir dentro del minijuego y no en una banda de batalla");
+assert.match(battle, /const fighterY = 292/, "Los combatientes deben quedar más cerca del suelo");
+assert.doesNotMatch(battle, /heroAura/, "El aura decorativa permanente del jugador debe eliminarse");
 assert.match(battle, /width: RENDER_WIDTH/, "El lienzo debe renderizar a alta resolución para conservar texto nítido");
 assert.match(battle, /setZoom\(RENDER_RESOLUTION\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
 assert.doesNotMatch(battle, /battle-hud-overlay-v1\.png/, "El combate no debe cargar el overlay con tarjetas gigantes");

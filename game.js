@@ -2,10 +2,11 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.40.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.41.2";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.42.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
+import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.42.0";
 
 const Phaser = window.Phaser;
 
@@ -78,6 +79,7 @@ class BattleScene extends Phaser.Scene {
 
   preload() {
     this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
+    loadUiIcons(this);
     this.load.image("bg-dusk", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
     this.load.image("bg-marsh", "assets/locations/battle-mist-marsh.jpg?v=0.20.0");
     this.load.image("bg-moon", "assets/locations/battle-moon-shrine.jpg?v=0.20.0");
@@ -361,9 +363,12 @@ class BattleScene extends Phaser.Scene {
     ).setOrigin(0.5, 0).setDepth(21);
 
     const statStyle = { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "10px", color: "#91b2c8", fontStyle: "bold" };
-    this.add.text(playerX + 18, 57, "♥  VIDA", { ...statStyle, color: "#52f3a2" }).setOrigin(0, 0.5).setDepth(24);
-    this.add.text(playerX + 18, 80, "◉  CHAKRA", { ...statStyle, color: "#56cfff" }).setOrigin(0, 0.5).setDepth(24);
-    this.add.text(enemyX + 18, 64, "♥  VIDA", { ...statStyle, color: "#ff6571" }).setOrigin(0, 0.5).setDepth(24);
+    createUiIcon(this, "health", playerX + 22, 57, { size: 12, tint: 0x52f3a2, depth: 24 });
+    createUiIcon(this, "chakra", playerX + 22, 80, { size: 13, tint: 0x56cfff, depth: 24 });
+    createUiIcon(this, "health", enemyX + 22, 64, { size: 12, tint: 0xff6571, depth: 24 });
+    this.add.text(playerX + 32, 57, "VIDA", { ...statStyle, color: "#52f3a2" }).setOrigin(0, 0.5).setDepth(24);
+    this.add.text(playerX + 32, 80, "CHAKRA", { ...statStyle, color: "#56cfff" }).setOrigin(0, 0.5).setDepth(24);
+    this.add.text(enemyX + 32, 64, "VIDA", { ...statStyle, color: "#ff6571" }).setOrigin(0, 0.5).setDepth(24);
 
     this.playerHpBar = createBar(this, playerX + barXOffset, 57, barWidth, barHeight, 0x38df87);
     this.chakraBar = createBar(this, playerX + barXOffset, 80, barWidth, barHeight, 0x2eaff4);
@@ -393,12 +398,7 @@ class BattleScene extends Phaser.Scene {
     chrome.lineBetween(TIMELINE_START, trackY, TIMELINE_END, trackY);
     chrome.lineStyle(1, 0xa9c8d9, 0.38);
     [TIMELINE_START, 425, 540, 655, 770, TIMELINE_END].forEach((x) => chrome.lineBetween(x, trackY - 3, x, trackY + 3));
-    chrome.fillStyle(0x38caff, 0.9);
-    chrome.fillCircle(204, trackY, 9);
-    chrome.lineStyle(2, 0x06111c, 1);
-    chrome.strokeCircle(204, trackY, 5);
-    chrome.lineBetween(204, trackY, 204, trackY - 5);
-    chrome.lineBetween(204, trackY, 208, trackY + 1);
+    const speedIcon = createUiIcon(this, "speed", 204, trackY, { size: 18, tint: 0x38caff, depth: 31 });
 
     const title = this.add.text(221, trackY, "VELOCIDAD", {
       fontFamily: '"Cinzel", Georgia, serif',
@@ -428,7 +428,7 @@ class BattleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.timelineLayer.add([
-      chrome, title, chevrons,
+      chrome, speedIcon, title, chevrons,
       this.playerTurnMarker, this.enemyTurnMarker,
       this.playerTurnLetter, this.enemyTurnLetter
     ]);
@@ -439,12 +439,7 @@ class BattleScene extends Phaser.Scene {
       .setStrokeStyle(1, 0x53cfff, 0.34)
       .setDepth(25)
       .setInteractive({ useHandCursor: true });
-    const label = this.add.text(480, 24, "Ⅱ", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "10px",
-      color: "#9fdfff",
-      fontStyle: "bold"
-    }).setOrigin(0.5).setDepth(26);
+    const label = createUiIcon(this, "pause", 480, 24, { size: 13, tint: 0x9fdfff, depth: 26 });
 
     bg.on("pointerover", () => {
       bg.setFillStyle(0x2b9bd0, 0.34);
@@ -490,11 +485,9 @@ class BattleScene extends Phaser.Scene {
 
   createFighters() {
     const profile = this.encounters[this.enemyIndex];
-    const auraColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
-    this.heroAura = this.add.circle(220, 220, 82, auraColor, 0.055).setStrokeStyle(3, auraColor, 0.24).setDepth(5);
-    this.tweens.add({ targets: this.heroAura, scale: 1.06, alpha: 0.16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.hero = createPlayerFighter(this, 220, 248, this.playerAppearance());
-    this.foe = createGeometricFighter(this, 740, 248, this.enemyAppearance(profile), true);
+    const fighterY = 292;
+    this.hero = createPlayerFighter(this, 220, fighterY, this.playerAppearance());
+    this.foe = createGeometricFighter(this, 740, fighterY, this.enemyAppearance(profile), true);
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
   }
 
@@ -533,16 +526,13 @@ class BattleScene extends Phaser.Scene {
         this.buttons.forEach((other) => {
           other.tooltip.layer.setVisible(false);
           other.hoverRing.setVisible(false);
-          other.hoverPlate.setVisible(false);
         });
         button.tooltip.layer.setVisible(true);
         button.hoverRing.setVisible(true);
-        button.hoverPlate.setVisible(true);
       });
       hit.on("pointerout", () => {
         button.tooltip.layer.setVisible(false);
         button.hoverRing.setVisible(false);
-        button.hoverPlate.setVisible(false);
       });
       hit.on("pointerdown", () => {
         if (button.available) this.useJutsu(jutsu);
@@ -659,7 +649,7 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
-    this.foe = createGeometricFighter(this, 810, 248, this.enemyAppearance(profile), true);
+    this.foe = createGeometricFighter(this, 810, 292, this.enemyAppearance(profile), true);
     this.foe.targets.forEach((target) => target.setAlpha(0));
     this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });

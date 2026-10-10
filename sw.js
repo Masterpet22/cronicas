@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.41.2";
+const CACHE_NAME = "cronicas-assets-v0.42.0";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
@@ -13,6 +13,14 @@ const CORE_ASSETS = [
   "./assets/ui/action-button-frame.webp?v=0.20.0",
   "./assets/ui/equipment-slot-frame.webp?v=0.20.0",
   "./assets/ui/hud-frame.webp?v=0.20.0",
+  "./assets/icons/lucide/heart.svg",
+  "./assets/icons/lucide/droplets.svg",
+  "./assets/icons/lucide/gauge.svg",
+  "./assets/icons/lucide/lock.svg",
+  "./assets/icons/lucide/pause.svg",
+  "./assets/icons/lucide/shield.svg",
+  "./assets/icons/lucide/swords.svg",
+  "./assets/icons/lucide/zap.svg",
   "./assets/modular/man_sprites/runtime/antebrazo_derecho.png?v=0.32.0",
   "./assets/modular/man_sprites/runtime/antebrazo_izquierdo.png?v=0.32.0",
   "./assets/modular/man_sprites/runtime/brazo_derecho.png?v=0.32.0",
@@ -48,7 +56,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
   const url = new URL(request.url);
   if (request.method !== "GET" || url.origin !== self.location.origin || request.mode === "navigate") return;
-  if (!/\.(?:css|js|png|webp|woff2|jpg|jpeg)$/.test(url.pathname)) return;
+  if (!/\.(?:css|js|svg|png|webp|woff2|jpg|jpeg)$/.test(url.pathname)) return;
 
   event.respondWith(
     caches.match(request).then((cached) => {
