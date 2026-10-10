@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, queueFighterTexture, queuePlayerFighterTextures } from "./src/fighters.js?v=0.32.0";
+import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, queueFighterTexture, queuePlayerFighterTextures } from "./src/fighters.js?v=0.34.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
