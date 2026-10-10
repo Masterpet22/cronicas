@@ -20,7 +20,7 @@ assert.deepEqual(
 
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "../src/animations/clips.js";
 import { PuppetAnimationController } from "../src/animations/controller.js";
-import { MAN_SPRITE_LAYERS, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
+import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -51,6 +51,12 @@ assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
 ].sort(), "La composición debe incluir todas las capas exportadas");
+const rightUpperArm = MAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho");
+const leftUpperArm = MAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_izquierdo");
+assert.ok(rightUpperArm.x < 0 && leftUpperArm.x > 0, "Los brazos deben nombrarse desde la anatomía del personaje, no desde la pantalla");
+assert.equal(rightUpperArm.assetId, "brazo_izquierdo", "El alias debe corregir el PNG superior derecho mal exportado");
+assert.equal(leftUpperArm.assetId, "brazo_derecho", "El alias debe corregir el PNG superior izquierdo mal exportado");
+assert.ok(MAN_SPRITE_JOINTS.shoulderRight.x < 0 && MAN_SPRITE_JOINTS.hipRight.x < 0, "Las articulaciones derechas deben coincidir con brazo, mano y pierna derechos");
 
 const makeTransform = () => {
   const target = { calls: [] };
@@ -79,6 +85,8 @@ assert.deepEqual(animationClipList("reposo").map(({ id }) => id), ["idle-natural
 assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold", "guard-impact"]);
 assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy"]);
 assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ status }) => status === "integrated"), "Los clips ofrecidos como listos deben estar integrados");
+assert.ok(PUPPET_ANIMATION_CLIPS["guard-hold"].tracks.some(({ target }) => target === "shoulderRight"));
+assert.ok(PUPPET_ANIMATION_CLIPS["guard-hold"].tracks.every(({ target }) => !target.endsWith("Left")), "La guardia debe usar solo el brazo delantero derecho");
 assert.equal(typeof startPlayerGuard, "function");
 assert.equal(typeof stopPlayerGuard, "function");
 assert.equal(typeof playPlayerDamageReaction, "function");

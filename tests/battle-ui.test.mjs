@@ -23,6 +23,8 @@ assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRi
 assert.match(battle, /preparePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe preparar el brazo antes de avanzar");
 assert.match(battle, /releasePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe extender el brazo al atacar");
 assert.match(battle, /recoverPlayerPunch\(this, this\.hero\)/, "El brazo debe regresar a la pose neutral después del golpe");
+assert.match(battle, /const strikeX = this\.foe\.body\.x - 105/, "Golpe veloz debe acercarse casi hasta la posición X del rival");
+assert.match(battle, /targets: this\.hero\.shadow, x: strikeX/, "La sombra debe acompañar al personaje durante Golpe veloz");
 assert.match(battle, /class MissionTravelScene extends Phaser\.Scene/, "Las misiones deben comenzar con una transición por el bosque");
 assert.match(battle, /startPlayerRunning\(this, runner\)/, "La transición debe animar al jugador corriendo");
 assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproducir la carrera en sentido inverso");
@@ -33,8 +35,11 @@ assert.match(calibrator, /animationClipList\(\)/, "El laboratorio y el juego deb
 assert.match(calibrator, /playAnimationPreview/, "El laboratorio debe poder reproducir los clips sin alterar coordenadas");
 assert.match(calibrator, /JOINT_PARENTS/, "La vista previa debe respetar la jerarquía de articulaciones");
 assert.match(calibrator, /applyAnimationPose/, "El laboratorio debe calcular cada pose articulada por fotograma");
+assert.match(calibrator, /version: 2/, "El calibrador debe exportar la nomenclatura anatómica corregida");
+assert.match(calibrator, /data\.version === 1/, "El calibrador debe migrar JSON anteriores sin perder coordenadas");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /playPlayerDamageReaction\(this, this\.hero/, "Los impactos enemigos deben activar una reacción articulada");
+assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "La defensa debe estar conectada al combate real");
 assert.match(battle, /this\.player\.maxHp \* 0\.16/, "Los golpes fuertes deben distinguirse por el porcentaje de vida máxima");
 assert.match(battle, /stopPlayerGuard\(this, this\.hero\)/, "La pose defensiva debe liberarse al consumir la guardia");
 assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");

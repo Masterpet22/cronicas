@@ -1,6 +1,6 @@
 import { FIGHTER_VIEWBOX, fighterPreviewSvg } from "./character.js?v=0.20.0";
-import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.39.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.39.0";
+import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.40.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.40.0";
 
 // Resolución a la que se rasteriza el SVG (2x para que se vea nítido).
 const TEXTURE_SCALE = 2;
@@ -12,7 +12,7 @@ const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
 // El orden z proviene del montaje visual aprobado en puppet-calibrator.html.
 export const MAN_SPRITE_LAYERS = [
   { id: "pie_derecho", x: -175.526, y: 732.316, z: 0 },
-  { id: "brazo_derecho", x: 161.481, y: -174.474, z: 1 },
+  { id: "brazo_izquierdo", assetId: "brazo_derecho", x: 161.481, y: -174.474, z: 1 },
   { id: "mano_derecha", x: -291.203, y: 251.237, z: 2 },
   { id: "muslo_izquierdo", x: 117.315, y: 255.895, z: 3 },
   { id: "torso", x: -41, y: -72.5, z: 4 },
@@ -20,7 +20,7 @@ export const MAN_SPRITE_LAYERS = [
   { id: "pie_izquierdo", x: 153.763, y: 715.421, z: 6 },
   { id: "pierna_derecha", x: -140.026, y: 527.974, z: 7 },
   { id: "pierna_izquierda", x: 151.263, y: 520.474, z: 8 },
-  { id: "brazo_izquierdo", x: -242.955, y: -164.184, z: 9 },
+  { id: "brazo_derecho", assetId: "brazo_izquierdo", x: -242.955, y: -164.184, z: 9 },
   { id: "antebrazo_derecho", x: -315.639, y: 62.658, z: 10 },
   { id: "antebrazo_izquierdo", x: 278.403, y: 24.447, z: 11 },
   { id: "mano_izquierda", x: 355.423, y: 215.474, z: 12 },
@@ -29,22 +29,22 @@ export const MAN_SPRITE_LAYERS = [
 
 const MAN_SPRITE_BY_ID = Object.fromEntries(MAN_SPRITE_LAYERS.map((part) => [part.id, part]));
 
-// Los nombres de algunos brazos exportados están cruzados. Estas cadenas se
-// agrupan por el lado visual para que cada codo arrastre el antebrazo correcto.
-const MAN_SPRITE_JOINTS = {
+// Los lados se nombran desde la perspectiva anatómica del personaje, no desde
+// la pantalla. Su lado derecho queda delante (a la izquierda de la imagen).
+export const MAN_SPRITE_JOINTS = {
   neck: { x: 0, y: -315 },
-  shoulderLeft: { x: -207, y: -310 },
-  elbowLeft: { x: -305, y: -38 },
-  wristLeft: { x: -304, y: 169 },
-  shoulderRight: { x: 139, y: -310 },
-  elbowRight: { x: 232, y: -57 },
-  wristRight: { x: 319, y: 134 },
-  hipLeft: { x: -94, y: 142 },
-  kneeLeft: { x: -124, y: 407 },
-  ankleLeft: { x: -153, y: 674 },
-  hipRight: { x: 112, y: 142 },
-  kneeRight: { x: 139, y: 401 },
-  ankleRight: { x: 151, y: 670 }
+  shoulderRight: { x: -207, y: -310 },
+  elbowRight: { x: -305, y: -38 },
+  wristRight: { x: -304, y: 169 },
+  shoulderLeft: { x: 139, y: -310 },
+  elbowLeft: { x: 232, y: -57 },
+  wristLeft: { x: 319, y: 134 },
+  hipRight: { x: -94, y: 142 },
+  kneeRight: { x: -124, y: 407 },
+  ankleRight: { x: -153, y: 674 },
+  hipLeft: { x: 112, y: 142 },
+  kneeLeft: { x: 139, y: 401 },
+  ankleLeft: { x: 151, y: 670 }
 };
 
 function manSpriteKey(id) {
@@ -82,9 +82,9 @@ export function queuePlayerFighterTextures(scene, appearance) {
     queueFighterTexture(scene, appearance);
     return "geometric";
   }
-  MAN_SPRITE_LAYERS.forEach(({ id }) => {
+  MAN_SPRITE_LAYERS.forEach(({ id, assetId = id }) => {
     const key = manSpriteKey(id);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.39.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${assetId}.png?v=0.40.0`);
   });
   return "modular";
 }
@@ -245,40 +245,38 @@ export function createPlayerFighter(scene, x, y, appearance) {
   const joints = {};
   const layers = [];
 
-  // Brazo del lado derecho de la pantalla: se dibuja detrás del torso.
-  joints.shoulderRight = createJoint(scene, rig, "shoulderRight", MAN_SPRITE_JOINTS.shoulderRight);
-  layers.push(addPart(scene, joints.shoulderRight, "brazo_derecho", MAN_SPRITE_JOINTS.shoulderRight));
-  joints.elbowRight = createJoint(scene, joints.shoulderRight, "elbowRight", MAN_SPRITE_JOINTS.elbowRight, MAN_SPRITE_JOINTS.shoulderRight);
-  layers.push(addPart(scene, joints.elbowRight, "antebrazo_izquierdo", MAN_SPRITE_JOINTS.elbowRight));
-  joints.wristRight = createJoint(scene, joints.elbowRight, "wristRight", MAN_SPRITE_JOINTS.wristRight, MAN_SPRITE_JOINTS.elbowRight);
-  layers.push(addPart(scene, joints.wristRight, "mano_izquierda", MAN_SPRITE_JOINTS.wristRight));
+  // Lado izquierdo anatómico: se ve a la derecha y queda detrás del torso.
+  joints.shoulderLeft = createJoint(scene, rig, "shoulderLeft", MAN_SPRITE_JOINTS.shoulderLeft);
+  layers.push(addPart(scene, joints.shoulderLeft, "brazo_izquierdo", MAN_SPRITE_JOINTS.shoulderLeft));
+  joints.elbowLeft = createJoint(scene, joints.shoulderLeft, "elbowLeft", MAN_SPRITE_JOINTS.elbowLeft, MAN_SPRITE_JOINTS.shoulderLeft);
+  layers.push(addPart(scene, joints.elbowLeft, "antebrazo_izquierdo", MAN_SPRITE_JOINTS.elbowLeft));
+  joints.wristLeft = createJoint(scene, joints.elbowLeft, "wristLeft", MAN_SPRITE_JOINTS.wristLeft, MAN_SPRITE_JOINTS.elbowLeft);
+  layers.push(addPart(scene, joints.wristLeft, "mano_izquierda", MAN_SPRITE_JOINTS.wristLeft));
 
-  // Pierna del lado derecho de la pantalla: queda detrás del torso.
-  joints.hipRight = createJoint(scene, rig, "hipRight", MAN_SPRITE_JOINTS.hipRight);
-  layers.push(addPart(scene, joints.hipRight, "muslo_izquierdo", MAN_SPRITE_JOINTS.hipRight));
-  joints.kneeRight = createJoint(scene, joints.hipRight, "kneeRight", MAN_SPRITE_JOINTS.kneeRight, MAN_SPRITE_JOINTS.hipRight);
-  layers.push(addPart(scene, joints.kneeRight, "pierna_izquierda", MAN_SPRITE_JOINTS.kneeRight));
-  joints.ankleRight = createJoint(scene, joints.kneeRight, "ankleRight", MAN_SPRITE_JOINTS.ankleRight, MAN_SPRITE_JOINTS.kneeRight);
-  layers.push(addPart(scene, joints.ankleRight, "pie_izquierdo", MAN_SPRITE_JOINTS.ankleRight));
+  joints.hipLeft = createJoint(scene, rig, "hipLeft", MAN_SPRITE_JOINTS.hipLeft);
+  layers.push(addPart(scene, joints.hipLeft, "muslo_izquierdo", MAN_SPRITE_JOINTS.hipLeft));
+  joints.kneeLeft = createJoint(scene, joints.hipLeft, "kneeLeft", MAN_SPRITE_JOINTS.kneeLeft, MAN_SPRITE_JOINTS.hipLeft);
+  layers.push(addPart(scene, joints.kneeLeft, "pierna_izquierda", MAN_SPRITE_JOINTS.kneeLeft));
+  joints.ankleLeft = createJoint(scene, joints.kneeLeft, "ankleLeft", MAN_SPRITE_JOINTS.ankleLeft, MAN_SPRITE_JOINTS.kneeLeft);
+  layers.push(addPart(scene, joints.ankleLeft, "pie_izquierdo", MAN_SPRITE_JOINTS.ankleLeft));
 
   const torso = addPart(scene, rig, "torso");
   layers.push(torso);
 
-  // Pierna del lado izquierdo de la pantalla: queda delante del torso.
-  joints.hipLeft = createJoint(scene, rig, "hipLeft", MAN_SPRITE_JOINTS.hipLeft);
-  layers.push(addPart(scene, joints.hipLeft, "muslo_derecho", MAN_SPRITE_JOINTS.hipLeft));
-  joints.kneeLeft = createJoint(scene, joints.hipLeft, "kneeLeft", MAN_SPRITE_JOINTS.kneeLeft, MAN_SPRITE_JOINTS.hipLeft);
-  layers.push(addPart(scene, joints.kneeLeft, "pierna_derecha", MAN_SPRITE_JOINTS.kneeLeft));
-  joints.ankleLeft = createJoint(scene, joints.kneeLeft, "ankleLeft", MAN_SPRITE_JOINTS.ankleLeft, MAN_SPRITE_JOINTS.kneeLeft);
-  layers.push(addPart(scene, joints.ankleLeft, "pie_derecho", MAN_SPRITE_JOINTS.ankleLeft));
+  // Lado derecho anatómico: se ve a la izquierda y queda delante del torso.
+  joints.hipRight = createJoint(scene, rig, "hipRight", MAN_SPRITE_JOINTS.hipRight);
+  layers.push(addPart(scene, joints.hipRight, "muslo_derecho", MAN_SPRITE_JOINTS.hipRight));
+  joints.kneeRight = createJoint(scene, joints.hipRight, "kneeRight", MAN_SPRITE_JOINTS.kneeRight, MAN_SPRITE_JOINTS.hipRight);
+  layers.push(addPart(scene, joints.kneeRight, "pierna_derecha", MAN_SPRITE_JOINTS.kneeRight));
+  joints.ankleRight = createJoint(scene, joints.kneeRight, "ankleRight", MAN_SPRITE_JOINTS.ankleRight, MAN_SPRITE_JOINTS.kneeRight);
+  layers.push(addPart(scene, joints.ankleRight, "pie_derecho", MAN_SPRITE_JOINTS.ankleRight));
 
-  // Brazo del lado izquierdo de la pantalla: queda delante del torso.
-  joints.shoulderLeft = createJoint(scene, rig, "shoulderLeft", MAN_SPRITE_JOINTS.shoulderLeft);
-  layers.push(addPart(scene, joints.shoulderLeft, "brazo_izquierdo", MAN_SPRITE_JOINTS.shoulderLeft));
-  joints.elbowLeft = createJoint(scene, joints.shoulderLeft, "elbowLeft", MAN_SPRITE_JOINTS.elbowLeft, MAN_SPRITE_JOINTS.shoulderLeft);
-  layers.push(addPart(scene, joints.elbowLeft, "antebrazo_derecho", MAN_SPRITE_JOINTS.elbowLeft));
-  joints.wristLeft = createJoint(scene, joints.elbowLeft, "wristLeft", MAN_SPRITE_JOINTS.wristLeft, MAN_SPRITE_JOINTS.elbowLeft);
-  layers.push(addPart(scene, joints.wristLeft, "mano_derecha", MAN_SPRITE_JOINTS.wristLeft));
+  joints.shoulderRight = createJoint(scene, rig, "shoulderRight", MAN_SPRITE_JOINTS.shoulderRight);
+  layers.push(addPart(scene, joints.shoulderRight, "brazo_derecho", MAN_SPRITE_JOINTS.shoulderRight));
+  joints.elbowRight = createJoint(scene, joints.shoulderRight, "elbowRight", MAN_SPRITE_JOINTS.elbowRight, MAN_SPRITE_JOINTS.shoulderRight);
+  layers.push(addPart(scene, joints.elbowRight, "antebrazo_derecho", MAN_SPRITE_JOINTS.elbowRight));
+  joints.wristRight = createJoint(scene, joints.elbowRight, "wristRight", MAN_SPRITE_JOINTS.wristRight, MAN_SPRITE_JOINTS.elbowRight);
+  layers.push(addPart(scene, joints.wristRight, "mano_derecha", MAN_SPRITE_JOINTS.wristRight));
 
   joints.neck = createJoint(scene, rig, "neck", MAN_SPRITE_JOINTS.neck);
   const head = addPart(scene, joints.neck, "cabeza", MAN_SPRITE_JOINTS.neck);

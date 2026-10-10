@@ -1,4 +1,4 @@
-import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.39.0";
+import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.40.0";
 
 const TRANSFORM_PROPERTIES = ["x", "y", "angle", "scaleX", "scaleY", "alpha"];
 

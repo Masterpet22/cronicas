@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.39.0";
+import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.40.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
@@ -822,19 +822,35 @@ class BattleScene extends Phaser.Scene {
     const damage = Math.max(1, Math.round((jutsu.damage + this.player.damageBonus) * casting.multiplier * elementalMultiplier * affinityBonus));
     const chance = hitChance(this.player, this.enemy, jutsu);
     const originX = this.hero.body.x;
+    const originShadowX = this.hero.shadow.x;
     const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
-    if (usesPuppetPunch) await preparePlayerPunch(this, this.hero);
-    this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
-    if (usesPuppetPunch) releasePlayerPunch(this, this.hero);
-    await this.delay(125);
+    if (usesPuppetPunch) {
+      await preparePlayerPunch(this, this.hero);
+      const strikeX = this.foe.body.x - 105;
+      await Promise.all([
+        this.tween({ targets: this.hero.body, x: strikeX, duration: 250, ease: "Cubic.out" }),
+        this.tween({ targets: this.hero.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
+      ]);
+      await releasePlayerPunch(this, this.hero);
+    } else {
+      this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
+      await this.delay(125);
+    }
 
     if (!this.rollHit(chance)) {
       this.tone(205, 0.08);
       this.floatLabel(this.foe.body.x, this.foe.body.y - 118, "FALLO", 0xd7dce5);
       this.setMessage(`${jutsu.name} falló (${chance} % de precisión).`, "#d7dce5");
-      if (usesPuppetPunch) recoverPlayerPunch(this, this.hero);
-      await this.delay(430);
+      if (usesPuppetPunch) {
+        await Promise.all([
+          recoverPlayerPunch(this, this.hero),
+          this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
+          this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
+        ]);
+      }
+      await this.delay(usesPuppetPunch ? 150 : 430);
       this.hero.body.x = originX;
+      this.hero.shadow.x = originShadowX;
       return;
     }
 
@@ -852,9 +868,16 @@ class BattleScene extends Phaser.Scene {
     const statusNote = jutsu.status && this.enemy.hp > 0 ? ` · ${jutsu.status.label}` : "";
     const elementNote = affinityLabel(elementalMultiplier);
     this.setMessage(`${jutsu.name}: ${damage} de daño${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
-    if (usesPuppetPunch) recoverPlayerPunch(this, this.hero);
-    await this.delay(430);
+    if (usesPuppetPunch) {
+      await Promise.all([
+        recoverPlayerPunch(this, this.hero),
+        this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
+        this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
+      ]);
+    }
+    await this.delay(usesPuppetPunch ? 150 : 430);
     this.hero.body.x = originX;
+    this.hero.shadow.x = originShadowX;
   }
 
   async playerGuard() {
@@ -1140,6 +1163,8 @@ class BattleScene extends Phaser.Scene {
       if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(resolution);
     });
   }
+
+  tween(config) { return new Promise((resolve) => this.tweens.add({ ...config, onComplete: resolve })); }
 
   delay(ms) { return new Promise((resolve) => this.time.delayedCall(ms, resolve)); }
 

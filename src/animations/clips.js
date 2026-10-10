@@ -67,19 +67,16 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
   "guard-hold": Object.freeze({
     id: "guard-hold",
     label: "Guardia sostenida",
-    description: "Cubre rostro y torso mientras mantiene ambos pies firmes.",
+    description: "El brazo derecho delantero cubre el rostro y el torso; el otro queda libre.",
     category: "defensa",
     state: ANIMATION_STATES.ACTION,
     status: "integrated",
     loop: true,
     enterDuration: 180,
     tracks: Object.freeze([
-      { target: "shoulderLeft", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: -62 }, to: { angle: -59 } },
-      { target: "elbowLeft", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: -70 }, to: { angle: -67 } },
-      { target: "wristLeft", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: -8 }, to: { angle: -5 } },
-      { target: "shoulderRight", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: 48 }, to: { angle: 51 } },
-      { target: "elbowRight", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: 105 }, to: { angle: 108 } },
-      { target: "wristRight", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: 7 }, to: { angle: 4 } },
+      { target: "shoulderRight", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: -62 }, to: { angle: -59 } },
+      { target: "elbowRight", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: -70 }, to: { angle: -67 } },
+      { target: "wristRight", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { angle: -8 }, to: { angle: -5 } },
       { target: "rig", duration: 1150, yoyo: true, ease: "Sine.inOut", from: { x: -2, angle: -1 }, to: { x: -1, angle: -0.4 } }
     ])
   }),
@@ -92,10 +89,9 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
     status: "integrated",
     loop: false,
     tracks: Object.freeze([
-      { target: "shoulderLeft", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: -62 }, to: { angle: -69 } },
-      { target: "elbowLeft", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: -70 }, to: { angle: -77 } },
-      { target: "shoulderRight", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: 48 }, to: { angle: 55 } },
-      { target: "elbowRight", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: 105 }, to: { angle: 112 } },
+      { target: "shoulderRight", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: -62 }, to: { angle: -69 } },
+      { target: "elbowRight", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: -70 }, to: { angle: -77 } },
+      { target: "wristRight", duration: 115, yoyo: true, ease: "Quad.out", from: { angle: -8 }, to: { angle: -13 } },
       { target: "rig", duration: 115, yoyo: true, ease: "Quad.out", from: { x: -2, angle: -1 }, to: { x: -15, angle: -3.5 } }
     ])
   }),
@@ -127,10 +123,10 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
       { target: "neck", duration: 125, yoyo: true, ease: "Quad.out", to: { angle: -11 } },
       { target: "shoulderLeft", duration: 150, yoyo: true, ease: "Quad.out", to: { angle: 15 } },
       { target: "shoulderRight", duration: 150, yoyo: true, ease: "Quad.out", to: { angle: 13 } },
-      { target: "hipLeft", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: -7 } },
-      { target: "hipRight", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: 9 } },
-      { target: "kneeLeft", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: 13 } },
-      { target: "kneeRight", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: 16 } }
+      { target: "hipRight", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: -7 } },
+      { target: "hipLeft", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: 9 } },
+      { target: "kneeRight", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: 13 } },
+      { target: "kneeLeft", duration: 165, yoyo: true, ease: "Cubic.out", to: { angle: 16 } }
     ])
   })
 });

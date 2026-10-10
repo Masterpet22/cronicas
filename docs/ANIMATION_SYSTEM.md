@@ -52,7 +52,8 @@ hombros; el giro de cabeza es deliberadamente mínimo.
 
 ## Defensa y daño
 
-- `guard-hold`: postura de guardia sostenida hasta consumir el bloqueo.
+- `guard-hold`: postura sostenida con el brazo derecho delantero cubriendo el
+  pecho y el rostro; el brazo trasero permanece libre.
 - `guard-impact`: retroceso breve que conserva los brazos cubriendo el cuerpo.
 - `hit-light`: reacción corta para daño normal.
 - `hit-heavy`: reacción de cuerpo completo para golpes de al menos 16 % de la
@@ -61,3 +62,8 @@ hombros; el giro de cabeza es deliberadamente mínimo.
 El laboratorio calcula la jerarquía de la marioneta en cada fotograma. Las
 rotaciones del hombro arrastran codo, muñeca y mano, y las rotaciones de cadera
 arrastran rodilla, tobillo y pie, igual que en el rig de Phaser.
+
+Los nombres `derecho` e `izquierdo` siempre describen el lado anatómico del
+personaje. Los dos PNG de brazo superior fueron exportados con los nombres
+intercambiados, por lo que el catálogo usa `assetId` para corregirlos sin
+renombrar ni duplicar archivos.

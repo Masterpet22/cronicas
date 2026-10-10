@@ -396,7 +396,7 @@
   </main>
 
   <script type="module">
-    import { animationClipList } from "./src/animations/clips.js?v=0.39.0";
+    import { animationClipList } from "./src/animations/clips.js?v=0.40.0";
 
     "use strict";
 
@@ -406,7 +406,7 @@
     // Posición aprobada para la marioneta y utilizada también en src/fighters.js.
     const INITIAL_PARTS = [
       { id: "pie_derecho", x: -175.526, y: 732.316 },
-      { id: "brazo_derecho", x: 161.481, y: -174.474 },
+      { id: "brazo_izquierdo", assetId: "brazo_derecho", x: 161.481, y: -174.474 },
       { id: "mano_derecha", x: -291.203, y: 251.237 },
       { id: "muslo_izquierdo", x: 117.315, y: 255.895 },
       { id: "torso", x: -41, y: -72.5 },
@@ -414,7 +414,7 @@
       { id: "pie_izquierdo", x: 153.763, y: 715.421 },
       { id: "pierna_derecha", x: -140.026, y: 527.974 },
       { id: "pierna_izquierda", x: 151.263, y: 520.474 },
-      { id: "brazo_izquierdo", x: -242.955, y: -164.184 },
+      { id: "brazo_derecho", assetId: "brazo_izquierdo", x: -242.955, y: -164.184 },
       { id: "antebrazo_derecho", x: -315.639, y: 62.658 },
       { id: "antebrazo_izquierdo", x: 278.403, y: 24.447 },
       { id: "mano_izquierda", x: 355.423, y: 215.474 },
@@ -454,24 +454,24 @@
     const animationClips = animationClipList();
     const JOINTS = {
       neck: { x: 0, y: -315 },
-      shoulderLeft: { x: -207, y: -310 }, elbowLeft: { x: -305, y: -38 }, wristLeft: { x: -304, y: 169 },
-      shoulderRight: { x: 139, y: -310 }, elbowRight: { x: 232, y: -57 }, wristRight: { x: 319, y: 134 },
-      hipLeft: { x: -94, y: 142 }, kneeLeft: { x: -124, y: 407 }, ankleLeft: { x: -153, y: 674 },
-      hipRight: { x: 112, y: 142 }, kneeRight: { x: 139, y: 401 }, ankleRight: { x: 151, y: 670 }
+      shoulderRight: { x: -207, y: -310 }, elbowRight: { x: -305, y: -38 }, wristRight: { x: -304, y: 169 },
+      shoulderLeft: { x: 139, y: -310 }, elbowLeft: { x: 232, y: -57 }, wristLeft: { x: 319, y: 134 },
+      hipRight: { x: -94, y: 142 }, kneeRight: { x: -124, y: 407 }, ankleRight: { x: -153, y: 674 },
+      hipLeft: { x: 112, y: 142 }, kneeLeft: { x: 139, y: 401 }, ankleLeft: { x: 151, y: 670 }
     };
     const JOINT_PARENTS = {
       neck: null,
-      shoulderLeft: null, elbowLeft: "shoulderLeft", wristLeft: "elbowLeft",
       shoulderRight: null, elbowRight: "shoulderRight", wristRight: "elbowRight",
-      hipLeft: null, kneeLeft: "hipLeft", ankleLeft: "kneeLeft",
-      hipRight: null, kneeRight: "hipRight", ankleRight: "kneeRight"
+      shoulderLeft: null, elbowLeft: "shoulderLeft", wristLeft: "elbowLeft",
+      hipRight: null, kneeRight: "hipRight", ankleRight: "kneeRight",
+      hipLeft: null, kneeLeft: "hipLeft", ankleLeft: "kneeLeft"
     };
     const PART_JOINTS = {
       cabeza: "neck",
-      brazo_izquierdo: "shoulderLeft", antebrazo_derecho: "elbowLeft", mano_derecha: "wristLeft",
-      brazo_derecho: "shoulderRight", antebrazo_izquierdo: "elbowRight", mano_izquierda: "wristRight",
-      muslo_derecho: "hipLeft", pierna_derecha: "kneeLeft", pie_derecho: "ankleLeft",
-      muslo_izquierdo: "hipRight", pierna_izquierda: "kneeRight", pie_izquierdo: "ankleRight"
+      brazo_derecho: "shoulderRight", antebrazo_derecho: "elbowRight", mano_derecha: "wristRight",
+      brazo_izquierdo: "shoulderLeft", antebrazo_izquierdo: "elbowLeft", mano_izquierda: "wristLeft",
+      muslo_derecho: "hipRight", pierna_derecha: "kneeRight", pie_derecho: "ankleRight",
+      muslo_izquierdo: "hipLeft", pierna_izquierda: "kneeLeft", pie_izquierdo: "ankleLeft"
     };
 
     const round = value => Math.round(value * 1000) / 1000;
@@ -492,7 +492,7 @@
     function exportData() {
       const ordered = [...parts].sort((a, b) => a.z - b.z);
       return {
-        version: 1,
+        version: 2,
         coordinateSystem: {
           width: STAGE_SIZE,
           height: STAGE_SIZE,
@@ -524,7 +524,7 @@
         const image = new Image();
         image.className = `part${part.id === selectedId ? " selected" : ""}`;
         image.dataset.id = part.id;
-        image.src = `${ASSET_ROOT}/${part.id}.png`;
+        image.src = `${ASSET_ROOT}/${part.assetId || part.id}.png`;
         image.alt = part.id.replaceAll("_", " ");
         image.draggable = false;
         image.style.left = `${STAGE_SIZE / 2 + part.x}px`;
@@ -881,7 +881,14 @@
       try {
         const data = JSON.parse(output.value);
         if (!Array.isArray(data.parts)) throw new Error("Falta la lista parts");
-        const incoming = new Map(data.parts.map(part => [part.id, part]));
+        const migratedParts = data.version === 1
+          ? data.parts.map(part => {
+              if (part.id === "brazo_derecho") return { ...part, id: "brazo_izquierdo" };
+              if (part.id === "brazo_izquierdo") return { ...part, id: "brazo_derecho" };
+              return part;
+            })
+          : data.parts;
+        const incoming = new Map(migratedParts.map(part => [part.id, part]));
         parts = parts.map((part, index) => {
           const replacement = incoming.get(part.id);
           if (!replacement) return part;
@@ -897,7 +904,9 @@
           };
         });
         render();
-        setStatus("Coordenadas aplicadas.");
+        setStatus(data.version === 1
+          ? "Coordenadas aplicadas y nombres de brazos migrados a v2."
+          : "Coordenadas aplicadas.");
       } catch (error) {
         setStatus(`JSON inválido: ${error.message}`, true);
       }
