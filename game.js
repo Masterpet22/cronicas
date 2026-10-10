@@ -55,16 +55,17 @@ function drawCubicBezier(graphics, start, controlA, controlB, end, segments = 32
 }
 const TIMELINE_START = 310;
 const TIMELINE_END = 914;
+const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",
-    file: "assets/ui/hud-themes/ancestral.png?v=0.44.1",
+    file: "assets/ui/hud-themes/ancestral.png?v=0.44.2",
     health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289 }),
     chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199 })
   }),
   lunar: Object.freeze({
     texture: "hud-theme-lunar",
-    file: "assets/ui/hud-themes/lunar.png?v=0.44.1",
+    file: "assets/ui/hud-themes/lunar.png?v=0.44.2",
     health: Object.freeze({ x: 8, y: 43, width: 851, height: 128 }),
     chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67 })
   })
@@ -351,18 +352,18 @@ class BattleScene extends Phaser.Scene {
   }
 
   createHud() {
-    const panelWidth = 354;
-    const panelHeight = 88;
     const playerX = 22;
     const enemyX = 584;
-    const barXOffset = 78;
-    const barWidth = panelWidth - barXOffset - 16;
-    const barHeight = 18;
+    const playerFrameX = playerX + 208;
+    const enemyFrameX = enemyX + 204;
+    const barWidth = 252;
+    const playerBarX = playerFrameX - barWidth / 2;
+    const enemyBarX = enemyFrameX - barWidth / 2;
 
     this.registerHudThemeFrames();
 
     this.playerName = this.add.text(
-      playerX + 70,
+      playerBarX,
       20,
       `${this.saveData.character.name.toUpperCase()} · NV ${this.saveData.progression.level}`,
       {
@@ -375,20 +376,8 @@ class BattleScene extends Phaser.Scene {
       }
     ).setDepth(21);
 
-    this.playerRank = this.add.text(
-      playerX + panelWidth - 16,
-      21,
-      this.saveData.campaign.rank.toUpperCase(),
-      {
-        fontFamily: '"Cinzel", Georgia, serif',
-        fontSize: "9px",
-        color: "#82d3f7",
-        fontStyle: "bold"
-      }
-    ).setOrigin(1, 0).setDepth(21);
-
     this.enemyName = this.add.text(
-      enemyX + panelWidth / 2,
+      enemyFrameX,
       20,
       this.encounters[this.enemyIndex].name.toUpperCase(),
       {
@@ -401,24 +390,31 @@ class BattleScene extends Phaser.Scene {
       }
     ).setOrigin(0.5, 0).setDepth(21);
 
-    const statStyle = { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "10px", color: "#91b2c8", fontStyle: "bold" };
-    createUiIcon(this, "health", playerX + 22, 57, { size: 12, tint: 0x52f3a2, depth: 24 });
-    createUiIcon(this, "chakra", playerX + 22, 80, { size: 13, tint: 0x56cfff, depth: 24 });
-    createUiIcon(this, "health", enemyX + 22, 64, { size: 12, tint: 0xff6571, depth: 24 });
-    this.add.text(playerX + 32, 57, "VIDA", { ...statStyle, color: "#52f3a2" }).setOrigin(0, 0.5).setDepth(24);
-    this.add.text(playerX + 32, 80, "CHAKRA", { ...statStyle, color: "#56cfff" }).setOrigin(0, 0.5).setDepth(24);
-    this.add.text(enemyX + 32, 64, "VIDA", { ...statStyle, color: "#ff6571" }).setOrigin(0, 0.5).setDepth(24);
+    this.playerHpBar = createBar(this, playerBarX, 55, barWidth, 12, 0x38df87);
+    this.chakraBar = createBar(this, playerBarX, 82, barWidth, 7, 0x2eaff4);
+    this.enemyHpBar = createBar(this, enemyBarX, 55, barWidth, 12, 0xef4755);
 
-    this.playerHpBar = createBar(this, playerX + barXOffset, 57, barWidth, barHeight, 0x38df87);
-    this.chakraBar = createBar(this, playerX + barXOffset, 80, barWidth, barHeight, 0x2eaff4);
-    this.enemyHpBar = createBar(this, enemyX + barXOffset, 64, barWidth - 8, barHeight, 0xef4755);
+    const rankNumber = Math.max(1, RANK_LEVELS.indexOf(this.saveData.campaign.rank) + 1);
+    this.playerRankStar = this.add.text(playerFrameX, 108, "★", {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "29px",
+      color: "#f5c84b",
+      stroke: "#6a3c09",
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(24);
+    this.playerRankNumber = this.add.text(playerFrameX, 108, String(rankNumber), {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: "10px",
+      color: "#241300",
+      fontStyle: "bold"
+    }).setOrigin(0.5, 0.55).setDepth(25);
 
     this.hudFrames = {
       health: [
-        this.add.image(playerX + barXOffset + barWidth / 2, 57, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25),
-        this.add.image(enemyX + barXOffset + (barWidth - 8) / 2, 64, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25)
+        this.add.image(playerFrameX, 55, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25),
+        this.add.image(enemyFrameX, 55, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25)
       ],
-      chakra: [this.add.image(playerX + barXOffset + barWidth / 2, 80, HUD_THEMES[this.hudTheme].texture, "chakra").setDepth(25)]
+      chakra: [this.add.image(playerFrameX, 82, HUD_THEMES[this.hudTheme].texture, "chakra").setDepth(25)]
     };
     this.applyHudTheme(this.hudTheme);
 
@@ -449,8 +445,8 @@ class BattleScene extends Phaser.Scene {
   applyHudTheme(themeId) {
     const theme = HUD_THEMES[themeId] || HUD_THEMES.ancestral;
     this.hudTheme = HUD_THEMES[themeId] ? themeId : "ancestral";
-    this.hudFrames.health.forEach((frame) => frame.setTexture(theme.texture, "health").setDisplaySize(294, 40));
-    this.hudFrames.chakra.forEach((frame) => frame.setTexture(theme.texture, "chakra").setDisplaySize(282, 27));
+    this.hudFrames.health.forEach((frame) => frame.setTexture(theme.texture, "health").setDisplaySize(320, 44));
+    this.hudFrames.chakra.forEach((frame) => frame.setTexture(theme.texture, "chakra").setDisplaySize(310, 29));
   }
 
   createTurnTimeline() {
@@ -1365,16 +1361,17 @@ class PauseScene extends Phaser.Scene {
       ["Modo ligero", "light-mode"]
     ];
 
-    rows.forEach(([label, id], index) => this.makePauseToggle(480, 188 + index * 38, label, id));
+    rows.forEach(([label, id], index) => this.makePauseToggle(480, 184 + index * 34, label, id));
 
-    this.makeVolumeControl(480, 382);
+    this.makeHudThemeControl(480, 367);
+    this.makeVolumeControl(480, 410);
 
-    this.makePauseAction(400, 447, "REANUDAR", 0x36b5e8, () => {
+    this.makePauseAction(400, 465, "REANUDAR", 0x36b5e8, () => {
       this.scene.resume("battle");
       this.scene.stop();
     }, 150);
 
-    this.makePauseAction(560, 447, "ABANDONAR", 0xef665f, () => {
+    this.makePauseAction(560, 465, "ABANDONAR", 0xef665f, () => {
       const button = this.children.getByName("pause-action-ABANDONAR");
       if (button) button.disableInteractive();
       window.setTimeout(() => window.location.reload(), 80);
@@ -1427,6 +1424,29 @@ class PauseScene extends Phaser.Scene {
 
     this.makePauseAction(x - 72, y, "−", 0x6f8fb7, () => adjust(-10), 42, false);
     this.makePauseAction(x + 72, y, "+", 0x6f8fb7, () => adjust(10), 42, false);
+  }
+
+  makeHudThemeControl(x, y) {
+    const input = document.getElementById("hud-theme");
+    const themes = Object.keys(HUD_THEMES);
+    const labels = { ancestral: "PERGAMINO", lunar: "LUNAR" };
+    this.add.text(x - 165, y, "MARCO DEL HUD", {
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
+    }).setOrigin(0, 0.5).setDepth(103);
+
+    const value = this.add.text(x, y, labels[input.value] || labels.ancestral, {
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "11px", color: "#f5c96b", fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(103);
+
+    const selectTheme = (delta) => {
+      const currentIndex = Math.max(0, themes.indexOf(input.value));
+      input.value = themes[(currentIndex + delta + themes.length) % themes.length];
+      input.dispatchEvent(new Event("change", { bubbles: true }));
+      value.setText(labels[input.value] || input.value.toUpperCase());
+    };
+
+    this.makePauseAction(x - 92, y, "<", 0xb98545, () => selectTheme(-1), 38, false);
+    this.makePauseAction(x + 92, y, ">", 0xb98545, () => selectTheme(1), 38, false);
   }
 
   makePauseAction(x, y, label, color, callback, width = 260, once = true) {

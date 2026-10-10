@@ -19,6 +19,10 @@ assert.match(battle, /registerHudThemeFrames\(\)/, "Los marcos de vida y chakra 
 assert.match(battle, /applyHudTheme\(themeId\)/, "El tema debe poder cambiarse durante el combate");
 assert.match(battle, /localStorage\.setItem\("hud-theme"/, "La elección del marco debe persistir");
 assert.match(html, /select id="hud-theme"/, "Opciones debe permitir elegir el marco de combate");
+assert.match(battle, /makeHudThemeControl\(480, 367\)/, "El menú de pausa debe permitir cambiar el marco durante el combate");
+assert.match(battle, /RANK_LEVELS/, "El rango del HUD debe representarse mediante un nivel numérico escalable");
+assert.doesNotMatch(battle, /playerX \+ 32, 57, "VIDA"/, "El HUD no debe mostrar la etiqueta VIDA");
+assert.doesNotMatch(battle, /playerX \+ 32, 80, "CHAKRA"/, "El HUD no debe mostrar la etiqueta CHAKRA");
 assert.match(html, /Pergamino ancestral/, "El selector debe ofrecer Pergamino ancestral");
 assert.match(html, /Santuario lunar/, "El selector debe ofrecer Santuario lunar");
 assert.match(battle, /this\.turnReady/, "Las acciones deben depender de que el turno esté listo");
@@ -34,8 +38,8 @@ assert.match(ui, /setDisplaySize\(54, 54\)/, "Los iconos de acción deben caber 
 assert.equal(packageJson.dependencies["lucide-static"], "1.55.0", "Lucide debe permanecer fijado a una versión reproducible");
 assert.match(icons, /export function loadUiIcons/, "La integración debe exponer un cargador reutilizable de iconos");
 assert.match(icons, /export function createUiIcon/, "La integración debe exponer un constructor reutilizable para Phaser");
-assert.match(battle, /createUiIcon\(this, "health"/, "Vida debe usar el icono de Lucide");
-assert.match(battle, /createUiIcon\(this, "chakra"/, "Chakra debe usar el icono de Lucide");
+assert.doesNotMatch(battle, /createUiIcon\(this, "health"/, "El marco debe contener la vida sin una etiqueta o icono exterior");
+assert.doesNotMatch(battle, /createUiIcon\(this, "chakra"/, "El marco debe contener el chakra sin una etiqueta o icono exterior");
 assert.match(battle, /createUiIcon\(this, "speed"/, "Velocidad debe usar el icono de Lucide");
 assert.match(ui, /createUiIcon\(scene, "lock"/, "Los espacios bloqueados deben usar el icono de Lucide");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
@@ -106,6 +110,6 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.44\.1/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.44\.2/, "El CSS corregido debe invalidar la caché anterior");
 
 console.log("Pruebas de interfaz de combate superadas.");
