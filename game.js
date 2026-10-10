@@ -1,11 +1,11 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
-import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
+import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.40.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.41.2";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
-import { canAccessElement, elementIcon, elementName as localizedElementName } from "./src/elements.js?v=0.20.0";
+import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
 
 const Phaser = window.Phaser;
 
@@ -16,8 +16,8 @@ const RENDER_RESOLUTION = window.innerWidth >= 981
   : Math.min(2, Math.max(window.devicePixelRatio || 1, 1));
 const RENDER_WIDTH = WIDTH * RENDER_RESOLUTION;
 const RENDER_HEIGHT = HEIGHT * RENDER_RESOLUTION;
-const TIMELINE_START = 188;
-const TIMELINE_END = 812;
+const TIMELINE_START = 310;
+const TIMELINE_END = 914;
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -78,12 +78,6 @@ class BattleScene extends Phaser.Scene {
 
   preload() {
     this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
-    this.load.image("actionFrame", "assets/ui/action-button-frame.webp?v=0.20.0");
-    this.load.image("hudFrame", "assets/ui/hud-frame.webp?v=0.20.0");
-    this.load.image("cardFrame", "assets/ui/card-frame.webp?v=0.20.0");
-    this.load.image("navFrame", "assets/ui/nav-button-frame.webp?v=0.20.0");
-    this.load.image("panelFrame", "assets/ui/panel-frame.webp?v=0.20.0");
-    this.load.image("battleHudOverlay", "assets/ui/battle-hud-overlay-v1.png?v=0.30.0");
     this.load.image("bg-dusk", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
     this.load.image("bg-marsh", "assets/locations/battle-mist-marsh.jpg?v=0.20.0");
     this.load.image("bg-moon", "assets/locations/battle-moon-shrine.jpg?v=0.20.0");
@@ -138,14 +132,12 @@ class BattleScene extends Phaser.Scene {
 
     this.makeSealFrames();
     this.drawArena();
-    this.hudChrome = this.add.image(WIDTH / 2, HEIGHT / 2, "battleHudOverlay").setDisplaySize(WIDTH, HEIGHT).setDepth(18);
     this.createHud();
     this.createFighters();
     this.createActionPanel();
     this.createTurnTimeline();
     this.createPauseButton();
     this.startMusic();
-    this.setMessage(`${this.mission.title} · Los combatientes toman posición.`);
     this.startTurnCharge();
     this.sharpenSceneText();
   }
@@ -265,11 +257,10 @@ class BattleScene extends Phaser.Scene {
     else if (theme === 1) this.drawMistMarsh(g);
     else this.drawMoonShrine(g);
 
-    // Velo inferior común al resto del metajuego: azul tinta, limpio y legible.
-    g.fillGradientStyle(0x061321, 0x061321, 0x020812, 0x020812, 0.04, 0.04, 0.42, 0.56);
-    g.fillRect(0, 282, WIDTH, 258);
-    g.lineStyle(1, 0x65bce9, 0.18);
-    g.lineBetween(0, 326, WIDTH, 326);
+    // Solo se oscurece el borde inferior para integrar la barra de velocidad
+    // sin cubrir el campo de batalla.
+    g.fillGradientStyle(0x061321, 0x061321, 0x020812, 0x020812, 0, 0, 0.24, 0.38);
+    g.fillRect(0, 450, WIDTH, 90);
 
     this.arenaLabel = ["PASO DEL CREPÚSCULO", "MARISMA DE LOS JUNCOS", "SANTUARIO DE LA LUNA"][theme];
   }
@@ -302,16 +293,36 @@ class BattleScene extends Phaser.Scene {
 
   createHud() {
     const panelWidth = 354;
-    const panelHeight = 91;
+    const panelHeight = 88;
     const playerX = 22;
-    const enemyX = 594;
+    const enemyX = 584;
     const barXOffset = 78;
     const barWidth = panelWidth - barXOffset - 16;
-    const barHeight = 21;
+    const barHeight = 18;
+
+    const drawPanel = (x, y, width, height, accent, fill) => {
+      const panel = this.add.graphics().setDepth(18);
+      panel.fillStyle(fill, 0.94);
+      panel.fillRoundedRect(x, y, width, height, 12);
+      panel.lineStyle(2, accent, 0.95);
+      panel.strokeRoundedRect(x, y, width, height, 12);
+      panel.lineStyle(1, accent, 0.24);
+      panel.strokeRoundedRect(x + 5, y + 5, width - 10, height - 10, 9);
+      panel.lineStyle(3, accent, 0.9);
+      panel.lineBetween(x + 12, y + 3, x + 58, y + 3);
+      panel.lineBetween(x + width - 58, y + height - 3, x + width - 12, y + height - 3);
+      panel.fillStyle(accent, 0.9);
+      panel.fillTriangle(x, y + 18, x + 13, y + 5, x + 13, y + 31);
+      panel.fillTriangle(x + width, y + height - 18, x + width - 13, y + height - 5, x + width - 13, y + height - 31);
+      return panel;
+    };
+
+    this.playerHudPanel = drawPanel(playerX, 12, panelWidth, panelHeight, 0x16bff7, 0x020a14);
+    this.enemyHudPanel = drawPanel(enemyX, 12, panelWidth, panelHeight, 0xff4056, 0x16060b);
 
     this.playerName = this.add.text(
       playerX + 70,
-      19,
+      20,
       `${this.saveData.character.name.toUpperCase()} · NV ${this.saveData.progression.level}`,
       {
         fontFamily: '"Cinzel", Georgia, serif',
@@ -337,7 +348,7 @@ class BattleScene extends Phaser.Scene {
 
     this.enemyName = this.add.text(
       enemyX + panelWidth / 2,
-      19,
+      20,
       this.encounters[this.enemyIndex].name.toUpperCase(),
       {
         fontFamily: '"Cinzel", Georgia, serif',
@@ -349,14 +360,14 @@ class BattleScene extends Phaser.Scene {
       }
     ).setOrigin(0.5, 0).setDepth(21);
 
-    const statStyle = { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "9px", color: "#91b2c8", fontStyle: "bold" };
+    const statStyle = { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "10px", color: "#91b2c8", fontStyle: "bold" };
     this.add.text(playerX + 18, 57, "♥  VIDA", { ...statStyle, color: "#52f3a2" }).setOrigin(0, 0.5).setDepth(24);
     this.add.text(playerX + 18, 80, "◉  CHAKRA", { ...statStyle, color: "#56cfff" }).setOrigin(0, 0.5).setDepth(24);
-    this.add.text(enemyX + 18, 57, "♥  VIDA", { ...statStyle, color: "#ff6571" }).setOrigin(0, 0.5).setDepth(24);
+    this.add.text(enemyX + 18, 64, "♥  VIDA", { ...statStyle, color: "#ff6571" }).setOrigin(0, 0.5).setDepth(24);
 
     this.playerHpBar = createBar(this, playerX + barXOffset, 57, barWidth, barHeight, 0x38df87);
     this.chakraBar = createBar(this, playerX + barXOffset, 80, barWidth, barHeight, 0x2eaff4);
-    this.enemyHpBar = createBar(this, enemyX + barXOffset, 57, barWidth - 8, barHeight, 0xef4755);
+    this.enemyHpBar = createBar(this, enemyX + barXOffset, 64, barWidth - 8, barHeight, 0xef4755);
 
     [this.playerHpBar, this.chakraBar, this.enemyHpBar].forEach((bar) => {
       bar.bg.setDepth(21);
@@ -366,66 +377,50 @@ class BattleScene extends Phaser.Scene {
       bar.valueText.setDepth(24);
     });
 
-    this.playerStatusText = this.add.text(playerX + 18, 94, "", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "10px",
-      color: "#79e8b5",
-      fontStyle: "bold"
-    }).setDepth(21);
-
-    this.enemyStatusText = this.add.text(enemyX + panelWidth - 18, 78, "", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "10px",
-      color: "#f0b55f",
-      fontStyle: "bold"
-    }).setOrigin(1, 0).setDepth(21);
-
-    if (this.saveData.equipment.companion) {
-      this.companionText = this.add.text(playerX + panelWidth - 18, 94, "MIKA · APOYO EN 2 RONDAS", {
-        fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-        fontSize: "9px",
-        color: "#82d3f7",
-        fontStyle: "bold"
-      }).setOrigin(1, 0).setDepth(21);
-    }
-
-    this.messagePlate = this.add.rectangle(WIDTH / 2, 299, 410, 31, 0x000000, 0.001)
-      .setOrigin(0.5)
-      .setDepth(22);
-    this.messageText = this.add.text(WIDTH / 2, 299, "", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "13px",
-      color: "#edf7fd",
-      fontStyle: "bold",
-      stroke: "#05080e",
-      strokeThickness: 1
-    }).setOrigin(0.5).setDepth(23);
-
     this.refreshHud();
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
   }
 
   createTurnTimeline() {
     this.timelineLayer = this.add.container(0, 0).setDepth(30);
-    const trackY = 354;
-    const title = this.add.text(480, 327, "ORDEN DEL TURNO", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+    const trackY = 505;
+    const chrome = this.add.graphics();
+    chrome.fillStyle(0x020914, 0.92);
+    chrome.fillRoundedRect(184, 487, 752, 36, 12);
+    chrome.lineStyle(1.5, 0x4abce9, 0.72);
+    chrome.strokeRoundedRect(184, 487, 752, 36, 12);
+    chrome.lineStyle(2, 0x8bdcff, 0.46);
+    chrome.lineBetween(TIMELINE_START, trackY, TIMELINE_END, trackY);
+    chrome.lineStyle(1, 0xa9c8d9, 0.38);
+    [TIMELINE_START, 425, 540, 655, 770, TIMELINE_END].forEach((x) => chrome.lineBetween(x, trackY - 3, x, trackY + 3));
+    chrome.fillStyle(0x38caff, 0.9);
+    chrome.fillCircle(204, trackY, 9);
+    chrome.lineStyle(2, 0x06111c, 1);
+    chrome.strokeCircle(204, trackY, 5);
+    chrome.lineBetween(204, trackY, 204, trackY - 5);
+    chrome.lineBetween(204, trackY, 208, trackY + 1);
+
+    const title = this.add.text(221, trackY, "VELOCIDAD", {
+      fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "10px",
       color: "#f2f7fb",
       fontStyle: "bold"
+    }).setOrigin(0, 0.5);
+    const chevrons = this.add.text(565, trackY, "»»»", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "20px", color: "#29c9ff", fontStyle: "bold"
     }).setOrigin(0.5);
 
-    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x0c2b45, 1)
+    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY - 8, 17, 0x0c2b45, 1)
       .setStrokeStyle(3, 0x50d7ff, 1);
-    this.enemyTurnMarker = this.add.circle(TIMELINE_START + 330, trackY, 17, 0x45131b, 1)
+    this.enemyTurnMarker = this.add.circle(TIMELINE_START + 330, trackY - 8, 17, 0x45131b, 1)
       .setStrokeStyle(3, 0xff5668, 1);
-    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY, "TÚ", {
+    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY - 8, "TÚ", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
       color: "#fff4df",
       fontStyle: "bold"
     }).setOrigin(0.5);
-    this.enemyTurnLetter = this.add.text(TIMELINE_START + 330, trackY, "R", {
+    this.enemyTurnLetter = this.add.text(TIMELINE_START + 330, trackY - 8, "R", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
       color: "#ffd8dc",
@@ -433,28 +428,29 @@ class BattleScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.timelineLayer.add([
-      title,
+      chrome, title, chevrons,
       this.playerTurnMarker, this.enemyTurnMarker,
       this.playerTurnLetter, this.enemyTurnLetter
     ]);
   }
 
   createPauseButton() {
-    const bg = this.add.rectangle(480, 55, 146, 42, 0x0d5b86, 0.001)
+    const bg = this.add.circle(480, 24, 14, 0x020914, 0.72)
+      .setStrokeStyle(1, 0x53cfff, 0.34)
       .setDepth(25)
       .setInteractive({ useHandCursor: true });
-    const label = this.add.text(480, 55, "Ⅱ  PAUSA", {
+    const label = this.add.text(480, 24, "Ⅱ", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "11px",
-      color: "#f7fbff",
+      fontSize: "10px",
+      color: "#9fdfff",
       fontStyle: "bold"
     }).setOrigin(0.5).setDepth(26);
 
     bg.on("pointerover", () => {
-      bg.setFillStyle(0x2b9bd0, 0.18);
+      bg.setFillStyle(0x2b9bd0, 0.34);
     });
     bg.on("pointerout", () => {
-      bg.setFillStyle(0x0d5b86, 0.001);
+      bg.setFillStyle(0x020914, 0.72);
     });
     const openPause = () => {
       if (this.finished || this.scene.isPaused()) return;
@@ -471,7 +467,6 @@ class BattleScene extends Phaser.Scene {
     this.turnReady = false;
     this.busy = true;
     this.setButtonsEnabled(false);
-    this.setMessage(`Ronda ${this.round} · Preparando el siguiente turno...`, "#adc9e8");
     const enemyTarget = Phaser.Math.Clamp(TIMELINE_START + 330 + (this.enemy.speed - this.player.speed) * 6, TIMELINE_START + 250, TIMELINE_END - 80);
     this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: enemyTarget, duration: 950, ease: "Sine.out" });
     this.tweens.add({
@@ -481,7 +476,6 @@ class BattleScene extends Phaser.Scene {
         this.turnReady = true;
         this.busy = false;
         this.setButtonsEnabled(true);
-        this.setMessage(`Ronda ${this.round} · ¡Tu turno! Selecciona una acción.`, "#bceaff");
         this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter], scale: 1.22, duration: 170, yoyo: true, repeat: 1 });
       }
     });
@@ -506,21 +500,53 @@ class BattleScene extends Phaser.Scene {
 
   createActionPanel() {
     this.buttons = [];
+    const rail = this.add.graphics().setDepth(28);
+    rail.lineStyle(3, 0x24c8ff, 0.82);
+    rail.beginPath();
+    rail.moveTo(-8, 113);
+    rail.lineTo(30, 130);
+    rail.lineTo(50, 184);
+    rail.lineTo(59, 250);
+    rail.lineTo(62, 360);
+    rail.lineTo(52, 448);
+    rail.lineTo(29, 514);
+    rail.lineTo(-8, 533);
+    rail.strokePath();
+    rail.lineStyle(1, 0x9cecff, 0.3);
+    rail.beginPath();
+    rail.moveTo(-3, 122);
+    rail.lineTo(23, 138);
+    rail.lineTo(42, 188);
+    rail.lineTo(50, 254);
+    rail.lineTo(52, 356);
+    rail.lineTo(43, 444);
+    rail.lineTo(22, 505);
+    rail.lineTo(-3, 521);
+    rail.strokePath();
 
     for (let index = 0; index < 6; index += 1) {
       const jutsu = this.actions[index] || null;
       const button = createActionButton(this, jutsu, index);
       if (!jutsu) continue;
-      const { bg, hit, shortcutBg } = button;
+      const { hit } = button;
       hit.on("pointerover", () => {
-        if (!this.busy && !this.finished) {
-          bg.setFillStyle(0x2b9bd0, 0.2);
-        }
+        this.buttons.forEach((other) => {
+          other.tooltip.layer.setVisible(false);
+          other.hoverRing.setVisible(false);
+          other.hoverPlate.setVisible(false);
+        });
+        button.tooltip.layer.setVisible(true);
+        button.hoverRing.setVisible(true);
+        button.hoverPlate.setVisible(true);
       });
       hit.on("pointerout", () => {
-        bg.setFillStyle(0x0d5b86, 0.001);
+        button.tooltip.layer.setVisible(false);
+        button.hoverRing.setVisible(false);
+        button.hoverPlate.setVisible(false);
       });
-      hit.on("pointerdown", () => this.useJutsu(jutsu));
+      hit.on("pointerdown", () => {
+        if (button.available) this.useJutsu(jutsu);
+      });
       this.buttons.push(button);
     }
 
@@ -674,11 +700,16 @@ class BattleScene extends Phaser.Scene {
   async playSeals(jutsu) {
     const manualCasting = this.manualSeals;
     const speedFactor = this.seenJutsus.has(jutsu.id) ? 0.55 : 1;
+    this.sealPrompt = this.add.text(0, jutsu.cinematic ? 195 : 66, "", this.textStyle(12, "#eaf7ff", "800"))
+      .setOrigin(0.5)
+      .setPadding(14, 7)
+      .setBackgroundColor("rgba(2, 8, 18, 0.9)");
+    this.sealLayer.add(this.sealPrompt);
     let overlay;
     if (jutsu.cinematic) {
       overlay = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020307, 0.92).setOrigin(0).setDepth(20).setAlpha(0);
       this.tweens.add({ targets: overlay, alpha: 1, duration: 180 });
-      this.setMessage(jutsu.name.toUpperCase());
+      this.setSealPrompt(jutsu.name.toUpperCase());
       await this.delay(180 * speedFactor);
     }
 
@@ -715,12 +746,12 @@ class BattleScene extends Phaser.Scene {
 
       if (manualCasting) {
         const inputWindow = jutsu.cinematic ? 1500 : 1200;
-        this.setMessage(`Haz clic en ${current.seal.label} antes de que se agote el tiempo  (${i + 1}/${cards.length})`);
+        this.setSealPrompt(`PULSA ${current.seal.key} · ${current.seal.label.toUpperCase()}  (${i + 1}/${cards.length})`);
         const result = await this.waitForSealInput(current.seal.key, current.card, jutsu.color, inputWindow);
         mistakes += result.mistakes;
         current.plate.setStrokeStyle(3, result.timedOut ? 0xff665f : result.mistakes === 0 ? 0x66efad : 0xffc46b, 1);
       } else {
-        this.setMessage(`Ejecutando ${current.seal.label}  (${i + 1}/${cards.length})`);
+        this.setSealPrompt(`EJECUTANDO ${current.seal.label.toUpperCase()}  (${i + 1}/${cards.length})`);
         await this.delay((jutsu.cinematic ? 230 : 175) * speedFactor);
         current.plate.setStrokeStyle(3, 0x68a8ff, 1);
       }
@@ -739,12 +770,13 @@ class BattleScene extends Phaser.Scene {
           ? `Secuencia completada con ${mistakes} error${mistakes === 1 ? "" : "es"}.`
           : "Secuencia inestable: daño reducido.";
     const qualityColor = !manualCasting || mistakes <= 2 ? (manualCasting && mistakes === 0 ? "#79e8b5" : "#f7d6a5") : "#ff9d8d";
-    this.setMessage(quality, qualityColor);
+    this.setSealPrompt(quality, qualityColor);
     await this.delay(320);
     this.tone(580, 0.11);
     this.tweens.add({ targets: this.sealLayer, scale: 1.08, duration: 90, yoyo: true });
     await this.delay(150);
     this.sealLayer.removeAll(true);
+    this.sealPrompt = null;
     this.sealLayer.setScale(1);
     if (overlay) {
       this.tweens.add({ targets: overlay, alpha: 0, duration: 140, onComplete: () => overlay.destroy() });
@@ -781,7 +813,7 @@ class BattleScene extends Phaser.Scene {
         mistakes += 1;
         this.tone(90, 0.1);
         this.shake(70, 0.003);
-        this.setMessage("Tiempo agotado: el sello se perdió.", "#ff786d");
+        this.setSealPrompt("TIEMPO AGOTADO", "#ff786d");
         finish();
       });
 
@@ -800,7 +832,7 @@ class BattleScene extends Phaser.Scene {
         this.tone(105, 0.06);
         this.shake(55, 0.002);
         this.tweens.add({ targets: card, x: card.x + 7, duration: 35, yoyo: true, repeat: 2 });
-        this.setMessage(`Sello incorrecto. Busca ${expectedKey}.`, "#ff9d8d");
+        this.setSealPrompt(`SELLO INCORRECTO · PULSA ${expectedKey}`, "#ff9d8d");
       };
 
       const onKey = (event) => {
@@ -1068,21 +1100,22 @@ class BattleScene extends Phaser.Scene {
   }
 
   setButtonsEnabled(enabled) {
-    this.buttons.forEach(({ hit, shadow, bg, inner, glow, icon, iconText, shortcutBg, shortcut, name, divider, costText, description, bottomDivider, summaryText, sub, jutsu }) => {
+    this.buttons.forEach((button) => {
+      const { jutsu } = button;
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const available = enabled && this.turnReady && affordable && cooldown === 0;
-      if (available) hit.setInteractive({ useHandCursor: true }); else hit.disableInteractive();
-      const visualAlpha = available ? 1 : 0.62;
-      [shadow, bg, inner, glow, icon, iconText, shortcutBg, shortcut, name, divider, costText, description, bottomDivider, summaryText, sub].filter(Boolean)
-        .forEach((part) => part.setAlpha(visualAlpha));
-      if (jutsu.cost > 0 && costText) costText.setText(`◉  ${this.actionCost(jutsu)} chakra`);
-      if (cooldown > 0) {
-        sub.setText(`Recarga: ${cooldown} ronda${cooldown === 1 ? "" : "s"}`);
-        sub.setColor("#ffb49d");
-      } else {
-        sub.setColor("#83bddc");
-      }
+      button.available = available;
+      const visualAlpha = available ? 1 : affordable && cooldown === 0 ? 0.76 : 0.42;
+      button.visualParts.forEach((part) => part.setAlpha(visualAlpha));
+
+      const [baseCost, damage, timing] = actionLines(jutsu);
+      const cost = this.actionCost(jutsu) > 0 ? `${this.actionCost(jutsu)} chakra` : baseCost;
+      const liveTiming = cooldown > 0 ? `Recarga: ${cooldown}` : timing;
+      const liveStats = jutsu.type === "guard"
+        ? [baseCost, damage, timing]
+        : [cost, damage, liveTiming];
+      button.tooltip.statText.setText(liveStats.map((line, index) => `${index === 0 ? "◉" : index === 1 ? "◆" : "»"}  ${line}`).join("\n"));
     });
   }
 
@@ -1098,24 +1131,17 @@ class BattleScene extends Phaser.Scene {
     this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
 
-    this.playerStatusText.setText(formatStatuses(this.player));
-    const affinityInfo = `DÉBIL: ${this.elementName(this.enemy.weakness)} · RESISTE: ${this.elementName(this.enemy.resistance)}`;
-    const enemyStatuses = formatStatuses(this.enemy);
-    this.enemyStatusText.setText(enemyStatuses ? `${affinityInfo} · ${enemyStatuses}` : affinityInfo);
-    if (this.companionText) this.companionText.setText(this.round % 2 === 0 ? "MIKA · APOYO LISTO" : "MIKA · APOYO EN 1 RONDA");
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
   }
 
   setMessage(text, color = "#edf7fd") {
     this.lastBattleMessage = { text, color };
-    if (this.messageText) {
-      this.messageText.setText(text);
-      this.messageText.setColor(color);
-      if (this.messagePlate) {
-        this.messagePlate.setAlpha(0.85);
-        this.tweens.add({ targets: this.messagePlate, alpha: 0.65, duration: 400, yoyo: true });
-      }
-    }
+  }
+
+  setSealPrompt(text, color = "#eaf7ff") {
+    if (!this.sealPrompt) return;
+    this.sealPrompt.setText(text);
+    this.sealPrompt.setColor(color);
   }
 
   actionCost(action) {
@@ -1133,10 +1159,6 @@ class BattleScene extends Phaser.Scene {
 
   bossPhaseAppearance(profile, index = this.enemyIndex) {
     return { ...this.enemyAppearance(profile, index), clothColor: 0x9a55df, accentColor: 0x612348 };
-  }
-
-  elementName(element) {
-    return ({ fire: "FUEGO", wind: "VIENTO", lightning: "RAYO", physical: "FÍSICO", arcane: "ARCANO" })[element] || localizedElementName(element).toUpperCase();
   }
 
   shake(duration, intensity) {

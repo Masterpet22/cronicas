@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.40.0";
+const CACHE_NAME = "cronicas-assets-v0.41.2";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
@@ -13,7 +13,6 @@ const CORE_ASSETS = [
   "./assets/ui/action-button-frame.webp?v=0.20.0",
   "./assets/ui/equipment-slot-frame.webp?v=0.20.0",
   "./assets/ui/hud-frame.webp?v=0.20.0",
-  "./assets/ui/battle-hud-overlay-v1.png?v=0.30.0",
   "./assets/modular/man_sprites/runtime/antebrazo_derecho.png?v=0.32.0",
   "./assets/modular/man_sprites/runtime/antebrazo_izquierdo.png?v=0.32.0",
   "./assets/modular/man_sprites/runtime/brazo_derecho.png?v=0.32.0",
