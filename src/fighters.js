@@ -91,7 +91,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
 
 export function createGeometricFighter(scene, x, y, appearance, flipped = false) {
   const key = fighterTextureKey(appearance);
-  const shadow = scene.add.ellipse(x, y + 105, 142, 22, 0x000000, 0.38).setDepth(4);
+  const shadow = scene.add.ellipse(x, y + 50, 142, 22, 0x000000, 0.38).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);
   if (flipped) body.setScale(-1, 1);
   // El origen coincide con el (0, 0) del SVG (centro del torso).
