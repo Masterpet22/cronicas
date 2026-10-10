@@ -504,12 +504,12 @@ class BattleScene extends Phaser.Scene {
     rail.lineStyle(3, 0x24c8ff, 0.82);
     rail.beginPath();
     rail.moveTo(-8, 112);
-    rail.bezierCurveTo(108, 166, 108, 478, -8, 532);
+    rail.cubicBezierTo(108, 166, 108, 478, -8, 532);
     rail.strokePath();
     rail.lineStyle(1, 0x9cecff, 0.3);
     rail.beginPath();
     rail.moveTo(-5, 122);
-    rail.bezierCurveTo(92, 172, 92, 472, -5, 522);
+    rail.cubicBezierTo(92, 172, 92, 472, -5, 522);
     rail.strokePath();
 
     const hideTooltip = (entry) => {
