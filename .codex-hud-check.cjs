@@ -42,7 +42,8 @@ const fs = require("node:fs");
 
   await send("Runtime.enable");
   await send("Page.enable");
-  await evaluate(`localStorage.setItem("cronicas-del-sello-save", ${JSON.stringify(JSON.stringify(save))}); localStorage.setItem("hud-theme", "lunar"); location.reload();`);
+  await evaluate(`localStorage.setItem("cronicas-del-sello-save", ${JSON.stringify(JSON.stringify(save))}); localStorage.setItem("hud-theme", "lunar"); true`);
+  await send("Page.reload", { ignoreCache: true });
   await wait(2200);
   await evaluate(`document.querySelector('[data-go="headquarters"]')?.click(); true`);
   await wait(500);
