@@ -9,20 +9,20 @@ const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
 // Centros calibrados sobre un lienzo de 2048 x 2048 con origen en el centro.
 // El orden z proviene del montaje visual aprobado en puppet-calibrator.html.
 export const MAN_SPRITE_LAYERS = [
-  { id: "pie_derecho", x: -165, y: 675, z: 0 },
-  { id: "brazo_derecho", x: 136, y: -160, z: 1 },
-  { id: "mano_derecha", x: -285, y: 195, z: 2 },
-  { id: "muslo_izquierdo", x: 115, y: 225, z: 3 },
+  { id: "pie_derecho", x: -175.526, y: 732.316, z: 0 },
+  { id: "brazo_derecho", x: 161.481, y: -174.474, z: 1 },
+  { id: "mano_derecha", x: -291.203, y: 251.237, z: 2 },
+  { id: "muslo_izquierdo", x: 117.315, y: 255.895, z: 3 },
   { id: "torso", x: -41, y: -72.5, z: 4 },
-  { id: "muslo_derecho", x: -90, y: 230, z: 5 },
-  { id: "pie_izquierdo", x: 150, y: 660, z: 6 },
-  { id: "pierna_derecha", x: -130, y: 480, z: 7 },
-  { id: "pierna_izquierda", x: 145, y: 473, z: 8 },
-  { id: "brazo_izquierdo", x: -218, y: -150, z: 9 },
-  { id: "antebrazo_derecho", x: -295, y: 20, z: 10 },
-  { id: "antebrazo_izquierdo", x: 260, y: -17, z: 11 },
-  { id: "mano_izquierda", x: 335, y: 160, z: 12 },
-  { id: "cabeza", x: 0, y: -440, z: 13 }
+  { id: "muslo_derecho", x: -93.789, y: 261.869, z: 5 },
+  { id: "pie_izquierdo", x: 153.763, y: 715.421, z: 6 },
+  { id: "pierna_derecha", x: -140.026, y: 527.974, z: 7 },
+  { id: "pierna_izquierda", x: 151.263, y: 520.474, z: 8 },
+  { id: "brazo_izquierdo", x: -242.955, y: -164.184, z: 9 },
+  { id: "antebrazo_derecho", x: -315.639, y: 62.658, z: 10 },
+  { id: "antebrazo_izquierdo", x: 278.403, y: 24.447, z: 11 },
+  { id: "mano_izquierda", x: 355.423, y: 215.474, z: 12 },
+  { id: "cabeza", x: -10.737, y: -498.684, z: 13 }
 ];
 
 const MAN_SPRITE_BY_ID = Object.fromEntries(MAN_SPRITE_LAYERS.map((part) => [part.id, part]));
@@ -30,19 +30,19 @@ const MAN_SPRITE_BY_ID = Object.fromEntries(MAN_SPRITE_LAYERS.map((part) => [par
 // Los nombres de algunos brazos exportados están cruzados. Estas cadenas se
 // agrupan por el lado visual para que cada codo arrastre el antebrazo correcto.
 const MAN_SPRITE_JOINTS = {
-  neck: { x: 0, y: -292 },
-  shoulderLeft: { x: -182, y: -295 },
-  elbowLeft: { x: -280, y: -24 },
-  wristLeft: { x: -294, y: 130 },
-  shoulderRight: { x: 114, y: -295 },
-  elbowRight: { x: 207, y: -43 },
-  wristRight: { x: 299, y: 94 },
-  hipLeft: { x: -92, y: 132 },
-  kneeLeft: { x: -118, y: 380 },
-  ankleLeft: { x: -143, y: 625 },
-  hipRight: { x: 110, y: 132 },
-  kneeRight: { x: 136, y: 374 },
-  ankleRight: { x: 148, y: 618 }
+  neck: { x: 0, y: -315 },
+  shoulderLeft: { x: -207, y: -310 },
+  elbowLeft: { x: -305, y: -38 },
+  wristLeft: { x: -304, y: 169 },
+  shoulderRight: { x: 139, y: -310 },
+  elbowRight: { x: 232, y: -57 },
+  wristRight: { x: 319, y: 134 },
+  hipLeft: { x: -94, y: 142 },
+  kneeLeft: { x: -124, y: 407 },
+  ankleLeft: { x: -153, y: 674 },
+  hipRight: { x: 112, y: 142 },
+  kneeRight: { x: 139, y: 401 },
+  ankleRight: { x: 151, y: 670 }
 };
 
 function manSpriteKey(id) {
@@ -82,7 +82,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   MAN_SPRITE_LAYERS.forEach(({ id }) => {
     const key = manSpriteKey(id);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.34.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.35.0`);
   });
   return "modular";
 }
