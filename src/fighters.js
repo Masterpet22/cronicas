@@ -241,8 +241,8 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   if (flipped) body.setScale(-1, 1);
   const rig = scene.add.container(0, MAN_SPRITE_Y_OFFSET).setScale(MAN_SPRITE_SCALE);
   body.add(rig);
-  const nearest = globalThis.Phaser?.Textures?.FilterMode?.NEAREST ?? 1;
-  MAN_SPRITE_LAYERS.forEach(({ id }) => scene.textures.get(manSpriteKey(id)).setFilter(nearest));
+  const linear = globalThis.Phaser?.Textures?.FilterMode?.LINEAR ?? 0;
+  MAN_SPRITE_LAYERS.forEach(({ id }) => scene.textures.get(manSpriteKey(id)).setFilter(linear));
 
   const joints = {};
   const layers = [];

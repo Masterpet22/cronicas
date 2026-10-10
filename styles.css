@@ -119,7 +119,7 @@ h3 span { color: #f5a357; }
   box-shadow: 0 20px 70px rgba(0,0,0,0.42);
 }
 
-#game canvas { display: block; width: 100% !important; height: auto !important; }
+#game canvas { display: block; width: 100% !important; height: auto !important; image-rendering: auto; }
 
 #meta[hidden], #game[hidden] { display: none; }
 .dojo-layout { display: grid; grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.6fr); gap: 14px; }

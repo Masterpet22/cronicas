@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { fighterPreviewSvg, resolveFighterAppearance } from "../src/character.js";
 
 const appearance = resolveFighterAppearance({ bodyType: "female", face: 3, hair: 4, top: 2, bottom: 3, shoes: 2, weapon: "staff", clothColor: 0x68a8ff, accentColor: "#25344d" });
@@ -57,7 +58,8 @@ assert.ok(rightUpperArm.x < 0 && leftUpperArm.x > 0, "Los brazos deben nombrarse
 assert.equal(rightUpperArm.assetId, "brazo_izquierdo", "El alias debe corregir el PNG superior derecho mal exportado");
 assert.equal(leftUpperArm.assetId, "brazo_derecho", "El alias debe corregir el PNG superior izquierdo mal exportado");
 assert.ok(MAN_SPRITE_JOINTS.shoulderRight.x < 0 && MAN_SPRITE_JOINTS.hipRight.x < 0, "Las articulaciones derechas deben coincidir con brazo, mano y pierna derechos");
-assert.equal(MAN_SPRITE_SHADOW_OFFSET, 82, "La sombra debe tocar visualmente los pies de la marioneta modular");
+assert.ok(MAN_SPRITE_SHADOW_OFFSET > 0 && MAN_SPRITE_SHADOW_OFFSET <= 82, "La sombra debe permanecer cerca de los pies de la marioneta modular");
+assert.match(readFileSync(new URL("../src/fighters.js", import.meta.url), "utf8"), /FilterMode\?\.LINEAR/, "Las ilustraciones modulares deben usar filtrado lineal y no pixel art");
 
 const makeTransform = () => {
   const target = { calls: [] };

@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.43.3";
+const CACHE_NAME = "cronicas-assets-v0.43.4";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",

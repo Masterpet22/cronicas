@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createPlayerFighter, destroyFighter, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.43.3";
+import { createPlayerFighter, destroyFighter, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.43.4";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.43.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
@@ -12,10 +12,30 @@ const Phaser = window.Phaser;
 
 const WIDTH = 960;
 const HEIGHT = 540;
-const RENDER_RESOLUTION = Math.min(3, Math.max(2, window.devicePixelRatio || 1));
-const TEXT_TEXTURE_RESOLUTION = Math.min(4, Math.max(3, Math.ceil(RENDER_RESOLUTION * 1.5)));
-const RENDER_WIDTH = WIDTH * RENDER_RESOLUTION;
-const RENDER_HEIGHT = HEIGHT * RENDER_RESOLUTION;
+const MAX_RENDER_RESOLUTION = 4;
+let renderResolution = 1;
+let textTextureResolution = 2;
+
+function configureRenderResolution(element) {
+  const bounds = element.getBoundingClientRect();
+  const cssScale = Math.min(bounds.width / WIDTH, bounds.height / HEIGHT);
+  const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+  renderResolution = Math.min(MAX_RENDER_RESOLUTION, Math.max(1, cssScale * pixelRatio));
+  textTextureResolution = Math.min(4, Math.max(2, Math.ceil(renderResolution)));
+  return {
+    width: Math.round(WIDTH * renderResolution),
+    height: Math.round(HEIGHT * renderResolution)
+  };
+}
+
+function sharpenTextTree(objects, resolution = textTextureResolution) {
+  objects.forEach((child) => {
+    if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") {
+      child.setResolution(resolution);
+    }
+    if (Array.isArray(child.list)) sharpenTextTree(child.list, resolution);
+  });
+}
 
 function drawCubicBezier(graphics, start, controlA, controlB, end, segments = 32) {
   graphics.moveTo(start.x, start.y);
@@ -48,7 +68,7 @@ class MissionTravelScene extends Phaser.Scene {
   }
 
   create(data = {}) {
-    this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
+    this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     const returning = data.direction === "toVillage";
     this.add.image(WIDTH / 2, HEIGHT / 2, "travel-forest").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
     const forest = this.add.graphics().setDepth(1);
@@ -87,6 +107,7 @@ class MissionTravelScene extends Phaser.Scene {
       if (returning) window.location.reload();
       else this.scene.start("battle");
     });
+    sharpenTextTree(this.children.list);
   }
 }
 
@@ -118,7 +139,7 @@ class BattleScene extends Phaser.Scene {
     // Phaser 3.90 no escala el framebuffer mediante GameConfig.resolution.
     // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
-    this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
+    this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     this.saveData = activeSave;
     this.mission = activeMission;
     this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
@@ -1198,15 +1219,12 @@ class BattleScene extends Phaser.Scene {
       fontSize: `${size}px`,
       color,
       fontStyle: weight === "700" || weight === "800" ? "bold" : "normal",
-      resolution: TEXT_TEXTURE_RESOLUTION
+      resolution: textTextureResolution
     };
   }
 
   sharpenSceneText() {
-    const resolution = TEXT_TEXTURE_RESOLUTION;
-    this.children.list.forEach((child) => {
-      if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(resolution);
-    });
+    sharpenTextTree(this.children.list);
   }
 
   tween(config) { return new Promise((resolve) => this.tweens.add({ ...config, onComplete: resolve })); }
@@ -1246,7 +1264,7 @@ class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
 
   create() {
-    this.cameras.main.setZoom(RENDER_RESOLUTION).centerOn(WIDTH / 2, HEIGHT / 2);
+    this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     this.battle = this.scene.get("battle");
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, 0.84).setOrigin(0).setDepth(100);
     this.add.rectangle(WIDTH / 2 + 5, HEIGHT / 2 + 7, 560, 460, 0x000000, 0.45).setDepth(101);
@@ -1291,10 +1309,7 @@ class PauseScene extends Phaser.Scene {
       this.scene.resume("battle");
       this.scene.stop();
     });
-    const textResolution = TEXT_TEXTURE_RESOLUTION;
-    this.children.list.forEach((child) => {
-      if (child instanceof Phaser.GameObjects.Text && typeof child.setResolution === "function") child.setResolution(textResolution);
-    });
+    sharpenTextTree(this.children.list);
   }
 
   makePauseToggle(x, y, label, inputId) {
@@ -1399,11 +1414,12 @@ mountMetaUI(metaRoot, activeSave, async (save, mission) => {
     document.fonts.load('700 16px "Cinzel"'),
     document.fonts.load('700 16px "Alegreya Sans"')
   ]);
+  const renderSize = configureRenderResolution(gameRoot);
   game = new Phaser.Game({
     type: Phaser.AUTO,
     parent: "game",
-    width: RENDER_WIDTH,
-    height: RENDER_HEIGHT,
+    width: renderSize.width,
+    height: renderSize.height,
     backgroundColor: "#101622",
     scene: [MissionTravelScene, BattleScene, PauseScene],
     render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },

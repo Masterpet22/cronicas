@@ -76,11 +76,12 @@ assert.doesNotMatch(battle, /Ronda \$\{this\.round\}/, "El HUD no debe anunciar 
 assert.match(battle, /setSealPrompt\(/, "Las instrucciones de sellos deben vivir dentro del minijuego y no en una banda de batalla");
 assert.match(battle, /const fighterY = 372/, "Los combatientes deben quedar más cerca del suelo");
 assert.doesNotMatch(battle, /heroAura/, "El aura decorativa permanente del jugador debe eliminarse");
-assert.match(battle, /width: RENDER_WIDTH/, "El lienzo debe renderizar a alta resolución para conservar texto nítido");
-assert.match(battle, /setZoom\(RENDER_RESOLUTION\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
+assert.match(battle, /cssScale \* pixelRatio/, "El lienzo debe combinar la escala visible con el DPR del dispositivo");
+assert.match(battle, /width: renderSize\.width/, "El framebuffer debe usar el tamaño físico medido del escenario");
+assert.match(battle, /setZoom\(renderResolution\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
 assert.doesNotMatch(battle, /battle-hud-overlay-v1\.png/, "El combate no debe cargar el overlay con tarjetas gigantes");
-assert.match(battle, /setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
-assert.match(battle, /Math\.max\(2, window\.devicePixelRatio/, "El lienzo debe usar al menos resolución 2x");
+assert.match(battle, /function sharpenTextTree\(/, "El texto debe ajustarse recursivamente incluso dentro de contenedores");
+assert.match(battle, /child\.setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
 assert.match(icons, /width: 128, height: 128/, "Los SVG deben rasterizarse con suficiente resolución antes de ampliarlos");
 assert.match(battle, /this\.playerTurnMarker = this\.add\.circle\(TIMELINE_START, trackY, 17/, "El marcador del jugador debe quedar centrado verticalmente en la barra");
 assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben repartirse por toda la barra de velocidad");
