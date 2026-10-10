@@ -6,6 +6,7 @@ import { createPuppetAnimationController } from "./animations/controller.js?v=0.
 const TEXTURE_SCALE = 2;
 const MAN_SPRITE_SCALE = 0.13;
 const MAN_SPRITE_Y_OFFSET = -39;
+export const MAN_SPRITE_SHADOW_OFFSET = 60;
 const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
 
 // Centros calibrados sobre un lienzo de 2048 x 2048 con origen en el centro.
@@ -232,11 +233,12 @@ export async function recoverPlayerPunch(scene, fighter) {
   startPlayerBreathing(scene, fighter);
 }
 
-export function createPlayerFighter(scene, x, y, appearance) {
-  if (appearance?.bodyType !== "male") return createGeometricFighter(scene, x, y, appearance, false);
+export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
+  if (appearance?.bodyType !== "male") return createGeometricFighter(scene, x, y, appearance, flipped);
 
-  const shadow = scene.add.ellipse(x, y + 105, 158, 22, 0x000000, 0.4).setDepth(4);
+  const shadow = scene.add.ellipse(x, y + MAN_SPRITE_SHADOW_OFFSET, 158, 22, 0x000000, 0.4).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);
+  if (flipped) body.setScale(-1, 1);
   const rig = scene.add.container(0, MAN_SPRITE_Y_OFFSET).setScale(MAN_SPRITE_SCALE);
   body.add(rig);
   const nearest = globalThis.Phaser?.Textures?.FilterMode?.NEAREST ?? 1;

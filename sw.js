@@ -1,4 +1,4 @@
-const CACHE_NAME = "cronicas-assets-v0.43.2";
+const CACHE_NAME = "cronicas-assets-v0.43.3";
 const CORE_ASSETS = [
   "./desktop.css?v=0.23.0",
   "./assets/vendor/phaser-3.90.0.min.js",
@@ -21,20 +21,20 @@ const CORE_ASSETS = [
   "./assets/icons/lucide/shield.svg",
   "./assets/icons/lucide/swords.svg",
   "./assets/icons/lucide/zap.svg",
-  "./assets/modular/man_sprites/runtime/antebrazo_derecho.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/antebrazo_izquierdo.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/brazo_derecho.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/brazo_izquierdo.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/cabeza.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/mano_derecha.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/mano_izquierda.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/muslo_derecho.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/muslo_izquierdo.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/pie_derecho.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/pie_izquierdo.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/pierna_derecha.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/pierna_izquierda.png?v=0.32.0",
-  "./assets/modular/man_sprites/runtime/torso.png?v=0.32.0"
+  "./assets/modular/man_sprites/runtime/antebrazo_derecho.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/antebrazo_izquierdo.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/brazo_derecho.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/brazo_izquierdo.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/cabeza.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/mano_derecha.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/mano_izquierda.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/muslo_derecho.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/muslo_izquierdo.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/pie_derecho.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/pie_izquierdo.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/pierna_derecha.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/pierna_izquierda.png?v=0.40.0",
+  "./assets/modular/man_sprites/runtime/torso.png?v=0.40.0"
 ];
 
 self.addEventListener("install", (event) => {

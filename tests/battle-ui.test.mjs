@@ -48,6 +48,10 @@ assert.match(calibrator, /version: 2/, "El calibrador debe exportar la nomenclat
 assert.match(calibrator, /data\.version === 1/, "El calibrador debe migrar JSON anteriores sin perder coordenadas");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /playPlayerDamageReaction\(this, this\.hero/, "Los impactos enemigos deben activar una reacción articulada");
+assert.match(battle, /this\.foe = createPlayerFighter\(this, 740, fighterY, this\.playerAppearance\(\), true\)/, "El rival de prueba debe reutilizar la marioneta modular del jugador y mirar hacia él");
+assert.match(battle, /preparePlayerPunch\(this, this\.foe\)/, "El rival modular debe preparar el brazo antes de atacar");
+assert.match(battle, /targets: this\.foe\.shadow, x: strikeX/, "La sombra del rival debe acompañar su avance de ataque");
+assert.doesNotMatch(battle, /targets: this\.foe\.targets, y: "-=3"/, "El rival no debe flotar respecto de su sombra durante el reposo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "La defensa debe estar conectada al combate real");
 assert.match(battle, /this\.player\.maxHp \* 0\.16/, "Los golpes fuertes deben distinguirse por el porcentaje de vida máxima");
 assert.match(battle, /stopPlayerGuard\(this, this\.hero\)/, "La pose defensiva debe liberarse al consumir la guardia");

@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.40.0";
+import { createPlayerFighter, destroyFighter, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.43.3";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.43.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
@@ -112,11 +112,6 @@ class BattleScene extends Phaser.Scene {
       if (!this.textures.exists(key)) this.load.image(key, elementIcon(element));
     });
     queuePlayerFighterTextures(this, this.playerAppearance());
-    this.mission.encounters.forEach((id, index) => {
-      const profile = ENEMY_ROSTER[id];
-      queueFighterTexture(this, this.enemyAppearance(profile, index));
-      if (profile.boss) queueFighterTexture(this, this.bossPhaseAppearance(profile, index));
-    });
   }
 
   create() {
@@ -508,11 +503,9 @@ class BattleScene extends Phaser.Scene {
   }
 
   createFighters() {
-    const profile = this.encounters[this.enemyIndex];
     const fighterY = 372;
     this.hero = createPlayerFighter(this, 220, fighterY, this.playerAppearance());
-    this.foe = createGeometricFighter(this, 740, fighterY, this.enemyAppearance(profile), true);
-    this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });
+    this.foe = createPlayerFighter(this, 740, fighterY, this.playerAppearance(), true);
   }
 
   createActionPanel() {
@@ -667,10 +660,11 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
-    this.foe = createGeometricFighter(this, 810, 292, this.enemyAppearance(profile), true);
+    this.foe = createPlayerFighter(this, 810, 372, this.playerAppearance(), true);
     this.foe.targets.forEach((target) => target.setAlpha(0));
+    this.foe.shadow.setAlpha(0);
     this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
-    this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 550 });
+    this.tweens.add({ targets: this.foe.shadow, x: "-=70", alpha: 0.4, duration: 520, ease: "Cubic.out" });
 
     this.player.hp = Math.min(this.player.maxHp, this.player.hp + 35);
     this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 25);
@@ -698,7 +692,6 @@ class BattleScene extends Phaser.Scene {
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
-    this.foe.sprite.setTexture(fighterTextureKey(this.bossPhaseAppearance(profile, this.enemyIndex)));
     this.screenFlash(220, 130, 55, 180);
     this.tone(95, 0.35);
     this.refreshHud();
@@ -962,15 +955,37 @@ class BattleScene extends Phaser.Scene {
     const rawDamage = Phaser.Math.Between(action.damage[0], action.damage[1]);
     const damage = this.player.guarding ? Math.ceil(rawDamage * 0.5) : rawDamage;
     const chance = hitChance(this.enemy, this.player, action);
+    const originX = this.foe.body.x;
+    const originShadowX = this.foe.shadow.x;
+    const usesPuppetPunch = Boolean(this.foe.joints?.shoulderRight);
     this.setMessage(`El rival usa ${action.name}${this.player.guarding ? " contra tu guardia" : ""}...`);
-    this.tweens.add({ targets: this.foe.targets, x: "-=55", duration: 150, yoyo: true, hold: 40, ease: "Quad.out" });
-    await this.delay(170);
+    if (usesPuppetPunch) {
+      await preparePlayerPunch(this, this.foe);
+      const strikeX = this.hero.body.x + 105;
+      await Promise.all([
+        this.tween({ targets: this.foe.body, x: strikeX, duration: 250, ease: "Cubic.out" }),
+        this.tween({ targets: this.foe.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
+      ]);
+      await releasePlayerPunch(this, this.foe);
+    } else {
+      this.tweens.add({ targets: this.foe.targets, x: "-=55", duration: 150, yoyo: true, hold: 40, ease: "Quad.out" });
+      await this.delay(170);
+    }
 
     if (!this.rollHit(chance)) {
       this.tone(205, 0.08);
       this.floatLabel(this.hero.body.x, this.hero.body.y - 118, "ESQUIVA", 0x67e8c3);
       this.setMessage(`Esquivaste ${action.name} (${chance} % de precisión enemiga).`, "#79e8b5");
+      if (usesPuppetPunch) {
+        await Promise.all([
+          recoverPlayerPunch(this, this.foe),
+          this.tween({ targets: this.foe.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
+          this.tween({ targets: this.foe.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
+        ]);
+      }
       await this.delay(520);
+      this.foe.body.x = originX;
+      this.foe.shadow.x = originShadowX;
       return;
     }
 
@@ -990,6 +1005,15 @@ class BattleScene extends Phaser.Scene {
     this.floatDamage(this.hero.body.x, this.hero.body.y - 120, damage, action.color);
     this.refreshHud();
     await reaction;
+    if (usesPuppetPunch) {
+      await Promise.all([
+        recoverPlayerPunch(this, this.foe),
+        this.tween({ targets: this.foe.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
+        this.tween({ targets: this.foe.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
+      ]);
+      this.foe.body.x = originX;
+      this.foe.shadow.x = originShadowX;
+    }
     await this.delay(220);
   }
 
@@ -1158,15 +1182,6 @@ class BattleScene extends Phaser.Scene {
 
   playerAppearance() {
     return playerFighterAppearance(this.saveData);
-  }
-
-  enemyAppearance(profile, index = this.enemyIndex) {
-    const seed = index + this.mission.number;
-    return { bodyType: seed % 2 ? "female" : "male", face: seed % 3 + 1, hair: seed % 5 + 1, top: seed % 3 + 1, bottom: (seed + 1) % 3 + 1, shoes: seed % 2 + 1, weapon: ["dagger", "sword", "staff", "kunai"][seed % 4], clothColor: profile.colors.cloth, accentColor: profile.colors.accent };
-  }
-
-  bossPhaseAppearance(profile, index = this.enemyIndex) {
-    return { ...this.enemyAppearance(profile, index), clothColor: 0x9a55df, accentColor: 0x612348 };
   }
 
   shake(duration, intensity) {

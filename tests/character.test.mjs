@@ -20,7 +20,7 @@ assert.deepEqual(
 
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "../src/animations/clips.js";
 import { PuppetAnimationController } from "../src/animations/controller.js";
-import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
+import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -57,6 +57,7 @@ assert.ok(rightUpperArm.x < 0 && leftUpperArm.x > 0, "Los brazos deben nombrarse
 assert.equal(rightUpperArm.assetId, "brazo_izquierdo", "El alias debe corregir el PNG superior derecho mal exportado");
 assert.equal(leftUpperArm.assetId, "brazo_derecho", "El alias debe corregir el PNG superior izquierdo mal exportado");
 assert.ok(MAN_SPRITE_JOINTS.shoulderRight.x < 0 && MAN_SPRITE_JOINTS.hipRight.x < 0, "Las articulaciones derechas deben coincidir con brazo, mano y pierna derechos");
+assert.equal(MAN_SPRITE_SHADOW_OFFSET, 82, "La sombra debe tocar visualmente los pies de la marioneta modular");
 
 const makeTransform = () => {
   const target = { calls: [] };
