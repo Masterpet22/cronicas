@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const calibrator = readFileSync(new URL("../puppet-calibrator.html", import.meta.url), "utf8");
 
 assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
 assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
@@ -27,6 +28,9 @@ assert.match(battle, /startPlayerRunning\(this, runner\)/, "La transición debe 
 assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproducir la carrera en sentido inverso");
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, PauseScene\]/, "La transición debe ejecutarse antes del combate");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
+assert.match(calibrator, /Laboratorio de animación/, "El calibrador debe incluir un laboratorio para aprobar clips");
+assert.match(calibrator, /animationClipList\("reposo"\)/, "El laboratorio y el juego deben compartir el catálogo declarativo");
+assert.match(calibrator, /playAnimationPreview/, "El laboratorio debe poder reproducir los clips sin alterar coordenadas");
 assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
 assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer atajos de teclado del 1 al 6");
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");

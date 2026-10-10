@@ -178,6 +178,40 @@
       margin-top: 14px;
     }
 
+    .animation-lab {
+      display: grid;
+      gap: 9px;
+      padding: 11px;
+      border: 1px solid #33415b;
+      border-radius: 9px;
+      background: #111824;
+    }
+
+    .animation-lab select {
+      width: 100%;
+      height: 36px;
+      padding: 0 8px;
+      border: 1px solid #46536c;
+      border-radius: 6px;
+      color: #f4f7fc;
+      background: #0b1018;
+    }
+
+    .clip-meta { min-height: 48px; font-size: 12px; color: #aebbd0; line-height: 1.4; }
+    .clip-badge {
+      display: inline-block;
+      margin-bottom: 5px;
+      padding: 2px 7px;
+      border: 1px solid #287c55;
+      border-radius: 99px;
+      color: #8cf0b5;
+      background: #123323;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: .07em;
+      text-transform: uppercase;
+    }
+
     .part-row {
       display: grid;
       grid-template-columns: 29px 1fr 34px 34px;
@@ -291,6 +325,21 @@
       <h1>Calibrador de marioneta</h1>
       <p class="small">Arrastra las piezas hasta formar el personaje. Las coordenadas usan el centro amarillo como <strong>(0, 0)</strong>.</p>
 
+      <h2>Laboratorio de animación</h2>
+      <div class="animation-lab">
+        <label class="field">Clip
+          <select id="animation-select" aria-label="Clip de animación"></select>
+        </label>
+        <div id="clip-meta" class="clip-meta"></div>
+        <label class="field">Velocidad
+          <input id="animation-speed" type="range" min="50" max="150" value="100" step="10">
+        </label>
+        <div class="button-row">
+          <button id="play-animation" type="button">▶ Reproducir</button>
+          <button id="stop-animation" type="button">■ Detener</button>
+        </div>
+      </div>
+
       <div id="parts-list" class="parts-list" aria-label="Capas de la marioneta"></div>
 
       <h2>Atajos</h2>
@@ -346,7 +395,9 @@
     </aside>
   </main>
 
-  <script>
+  <script type="module">
+    import { animationClipList } from "./src/animations/clips.js?v=0.38.0";
+
     "use strict";
 
     const STAGE_SIZE = 2048;
@@ -389,11 +440,24 @@
     const fieldScale = document.querySelector("#field-scale");
     const zoomInput = document.querySelector("#zoom");
     const zoomValue = document.querySelector("#zoom-value");
+    const animationSelect = document.querySelector("#animation-select");
+    const animationSpeed = document.querySelector("#animation-speed");
+    const clipMeta = document.querySelector("#clip-meta");
 
     let parts = structuredClone(INITIAL_PARTS);
     let selectedId = "torso";
     let zoom = Number(zoomInput.value) / 100;
     let drag = null;
+    let previewAnimations = [];
+    let previewingClip = null;
+
+    const idleClips = animationClipList("reposo");
+    const PREVIEW_TARGETS = {
+      torso: ["torso"],
+      neck: ["cabeza"],
+      shoulderLeft: ["brazo_izquierdo", "antebrazo_derecho", "mano_derecha"],
+      shoulderRight: ["brazo_derecho", "antebrazo_izquierdo", "mano_izquierda"]
+    };
 
     const round = value => Math.round(value * 1000) / 1000;
     const selectedPart = () => parts.find(part => part.id === selectedId);
@@ -438,6 +502,7 @@
     }
 
     function renderParts() {
+      stopAnimationPreview(false);
       stage.querySelectorAll(".part").forEach(element => element.remove());
 
       [...parts].sort((a, b) => a.z - b.z).forEach(part => {
@@ -456,6 +521,82 @@
         stage.append(image);
       });
     }
+
+    function partTransform(part, offsets = {}) {
+      const x = Number(offsets.x || 0);
+      const y = Number(offsets.y || 0);
+      const rotation = part.rotation + Number(offsets.angle || 0);
+      const scaleX = part.scaleX + Number(offsets.scaleX || 0);
+      const scaleY = part.scaleY + Number(offsets.scaleY || 0);
+      return `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`;
+    }
+
+    function cssEase(ease = "Sine.inOut") {
+      if (ease.startsWith("Cubic")) return "cubic-bezier(.65, 0, .35, 1)";
+      if (ease.startsWith("Quad")) return "cubic-bezier(.45, 0, .55, 1)";
+      return "cubic-bezier(.37, 0, .63, 1)";
+    }
+
+    function stopAnimationPreview(clearLabel = true) {
+      previewAnimations.forEach(animation => animation.cancel());
+      previewAnimations = [];
+      previewingClip = null;
+      if (clearLabel) setStatus("Vista previa detenida.");
+    }
+
+    function playAnimationPreview() {
+      stopAnimationPreview(false);
+      const clip = idleClips.find(item => item.id === animationSelect.value);
+      if (!clip) return;
+      const speed = Number(animationSpeed.value) / 100;
+      previewingClip = clip.id;
+
+      clip.tracks.forEach(track => {
+        (PREVIEW_TARGETS[track.target] || [track.target]).forEach(id => {
+          const element = stage.querySelector(`.part[data-id="${id}"]`);
+          const part = parts.find(item => item.id === id);
+          if (!element || !part) return;
+          const animation = element.animate([
+            { transform: partTransform(part, track.from) },
+            { transform: partTransform(part, track.to) }
+          ], {
+            duration: Math.max(1, track.duration / speed),
+            delay: (track.delay || 0) / speed,
+            easing: cssEase(track.ease),
+            direction: track.yoyo ? "alternate" : "normal",
+            iterations: clip.loop ? Infinity : 1
+          });
+          previewAnimations.push(animation);
+        });
+      });
+      setStatus(`Reproduciendo: ${clip.label}`);
+    }
+
+    function renderAnimationLab() {
+      animationSelect.replaceChildren(...idleClips.map(clip => {
+        const option = document.createElement("option");
+        option.value = clip.id;
+        option.textContent = clip.label;
+        return option;
+      }));
+      animationSelect.value = "idle-natural";
+      updateClipMeta();
+    }
+
+    function updateClipMeta() {
+      const clip = idleClips.find(item => item.id === animationSelect.value);
+      if (!clip) return;
+      const statusLabel = clip.status === "integrated" ? "Integrada en el juego" : "En pruebas";
+      clipMeta.innerHTML = `<span class="clip-badge">${statusLabel}</span><br>${clip.description}`;
+      if (previewingClip) playAnimationPreview();
+    }
+
+    animationSelect.addEventListener("change", updateClipMeta);
+    animationSpeed.addEventListener("input", () => {
+      if (previewingClip) playAnimationPreview();
+    });
+    document.querySelector("#play-animation").addEventListener("click", playAnimationPreview);
+    document.querySelector("#stop-animation").addEventListener("click", () => stopAnimationPreview());
 
     function renderList() {
       partsList.replaceChildren();
@@ -699,6 +840,7 @@
     });
 
     updateStageTransform();
+    renderAnimationLab();
     render();
   </script>
 </body>

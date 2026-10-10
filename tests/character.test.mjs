@@ -18,6 +18,7 @@ assert.deepEqual(
   { face: 3, hair: 1, top: 1, bottom: 3, shoes: 2, weapon: "kunai" }
 );
 
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "../src/animations/clips.js";
 import { MAN_SPRITE_LAYERS, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerRunning, stopPlayerBreathing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
@@ -66,11 +67,15 @@ const breathingScene = { configs: [], tweens: { add: (config) => {
 } } };
 const breathingFighter = { rig: breathingRig, sprite: breathingSprite, joints: breathingJoints, breathingTweens: [] };
 startPlayerBreathing(breathingScene, breathingFighter);
-assert.equal(breathingScene.configs.length, 3, "La respiración debe mover torso, cuello y hombros");
+assert.equal(breathingFighter.animations.clipId, DEFAULT_IDLE_CLIP, "El reposo del combate debe usar el clip declarativo predeterminado");
+assert.equal(breathingScene.configs.length, 5, "La respiración debe mover torso, cuello y hombros mediante pistas declarativas");
 assert.ok(breathingScene.configs.every(({ repeat, yoyo }) => repeat === -1 && yoyo), "La respiración debe ser continua y reversible");
 assert.ok(breathingScene.configs.every(({ targets }) => targets !== breathingRig), "La respiración no debe desplazar el cuerpo completo ni los pies");
 stopPlayerBreathing(breathingFighter);
 assert.equal(breathingFighter.breathingTweens.length, 0, "La respiración debe poder detenerse durante un ataque");
+assert.equal(breathingFighter.animations.state, null, "Detener el reposo debe liberar el estado de la máquina");
+assert.deepEqual(animationClipList("reposo").map(({ id }) => id), ["idle-natural", "idle-alert", "idle-focus"]);
+assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ status }) => status === "integrated"), "Los clips ofrecidos como listos deben estar integrados");
 assert.equal(typeof preparePlayerPunch, "function");
 assert.equal(typeof releasePlayerPunch, "function");
 assert.equal(typeof recoverPlayerPunch, "function");

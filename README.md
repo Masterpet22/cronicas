@@ -4,6 +4,9 @@ RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye un
 
 **Demo pública:** https://masterpet22.github.io/cronicas/
 
+La arquitectura y el flujo de aprobación de la marioneta están documentados en
+[`docs/ANIMATION_SYSTEM.md`](docs/ANIMATION_SYSTEM.md).
+
 ## Ejecutar
 
 Phaser está incluido en el proyecto y los recursos esenciales se guardan en caché tras la primera visita. Para servir el juego localmente:

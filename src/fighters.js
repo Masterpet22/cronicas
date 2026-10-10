@@ -1,4 +1,6 @@
 import { FIGHTER_VIEWBOX, fighterPreviewSvg } from "./character.js?v=0.20.0";
+import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.38.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.38.0";
 
 // Resolución a la que se rasteriza el SVG (2x para que se vea nítido).
 const TEXTURE_SCALE = 2;
@@ -82,7 +84,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   MAN_SPRITE_LAYERS.forEach(({ id }) => {
     const key = manSpriteKey(id);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.37.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.38.0`);
   });
   return "modular";
 }
@@ -122,29 +124,18 @@ function tweenFinished(scene, config) {
 }
 
 export function startPlayerBreathing(scene, fighter) {
-  if (!fighter?.rig || fighter.breathingTweens?.length) return;
-  const torso = MAN_SPRITE_BY_ID.torso;
-  fighter.sprite.setPosition(torso.x, torso.y).setScale(1);
-  fighter.joints.neck.setPosition(MAN_SPRITE_JOINTS.neck.x, MAN_SPRITE_JOINTS.neck.y);
-  fighter.joints.shoulderLeft.setPosition(MAN_SPRITE_JOINTS.shoulderLeft.x, MAN_SPRITE_JOINTS.shoulderLeft.y);
-  fighter.joints.shoulderRight.setPosition(MAN_SPRITE_JOINTS.shoulderRight.x, MAN_SPRITE_JOINTS.shoulderRight.y);
-  const breath = { duration: 1550, yoyo: true, repeat: -1, ease: "Sine.inOut" };
-  fighter.breathingTweens = [
-    scene.tweens.add({ ...breath, targets: fighter.sprite, y: torso.y - 4, scaleY: 1.008 }),
-    scene.tweens.add({ ...breath, targets: fighter.joints.neck, y: MAN_SPRITE_JOINTS.neck.y - 4 }),
-    scene.tweens.add({ ...breath, targets: [fighter.joints.shoulderLeft, fighter.joints.shoulderRight], y: MAN_SPRITE_JOINTS.shoulderLeft.y - 2.5 })
-  ];
+  if (!fighter?.rig || fighter.animations?.clipId === DEFAULT_IDLE_CLIP) return;
+  fighter.animations ||= createPuppetAnimationController(scene, fighter);
+  fighter.animations.loop(DEFAULT_IDLE_CLIP);
+  // Alias temporal para mantener compatibilidad mientras carrera y ataques
+  // terminan de migrarse al nuevo controlador.
+  fighter.breathingTweens = [...fighter.animations.tweens];
 }
 
 export function stopPlayerBreathing(fighter) {
-  fighter?.breathingTweens?.forEach((tween) => tween.stop());
   if (!fighter?.rig) return;
+  if (fighter.animations?.state === "idle") fighter.animations.stop({ reset: true });
   fighter.breathingTweens = [];
-  const torso = MAN_SPRITE_BY_ID.torso;
-  fighter.sprite.setPosition(torso.x, torso.y).setScale(1);
-  fighter.joints.neck.setPosition(MAN_SPRITE_JOINTS.neck.x, MAN_SPRITE_JOINTS.neck.y);
-  fighter.joints.shoulderLeft.setPosition(MAN_SPRITE_JOINTS.shoulderLeft.x, MAN_SPRITE_JOINTS.shoulderLeft.y);
-  fighter.joints.shoulderRight.setPosition(MAN_SPRITE_JOINTS.shoulderRight.x, MAN_SPRITE_JOINTS.shoulderRight.y);
 }
 
 export function startPlayerRunning(scene, fighter) {
@@ -272,6 +263,7 @@ export function createPlayerFighter(scene, x, y, appearance) {
   layers.push(head);
 
   const fighter = { shadow, body, head, rig, joints, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
+  fighter.animations = createPuppetAnimationController(scene, fighter);
   startPlayerBreathing(scene, fighter);
   return fighter;
 }
