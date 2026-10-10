@@ -18,6 +18,10 @@ assert.match(battle, /this\.actions\[index\] \|\| null/, "Los espacios sin técn
 assert.match(ui, /if \(!action\) return \{ empty: true/, "Una acción ausente debe producir un recuadro vacío");
 assert.match(ui, /setDisplaySize\(68, 68\)/, "Los iconos de acción deben tener el protagonismo de la referencia");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
+assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRight/, "Solo Golpe veloz debe activar el puñetazo articulado");
+assert.match(battle, /preparePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe preparar el brazo antes de avanzar");
+assert.match(battle, /releasePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe extender el brazo al atacar");
+assert.match(battle, /recoverPlayerPunch\(this, this\.hero\)/, "El brazo debe regresar a la pose neutral después del golpe");
 assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
 assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer atajos de teclado del 1 al 6");
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");

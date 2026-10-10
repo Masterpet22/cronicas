@@ -18,7 +18,7 @@ assert.deepEqual(
   { face: 3, hair: 1, top: 1, bottom: 3, shoes: 2, weapon: "kunai" }
 );
 
-import { MAN_SPRITE_LAYERS, fighterTextureKey, queueFighterTexture, queuePlayerFighterTextures } from "../src/fighters.js";
+import { MAN_SPRITE_LAYERS, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, stopPlayerBreathing } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -49,5 +49,23 @@ assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
 ].sort(), "La composición debe incluir todas las capas exportadas");
+
+const rigCalls = [];
+const breathingRig = {
+  setPosition: (...args) => { rigCalls.push(["position", ...args]); return breathingRig; },
+  setScale: (...args) => { rigCalls.push(["scale", ...args]); return breathingRig; }
+};
+const breathingTween = { stopCalled: false, stop() { this.stopCalled = true; } };
+const breathingScene = { tweens: { add: (config) => { breathingScene.config = config; return breathingTween; } } };
+const breathingFighter = { rig: breathingRig, breathingTween: null };
+startPlayerBreathing(breathingScene, breathingFighter);
+assert.equal(breathingScene.config.repeat, -1, "La respiración debe repetirse mientras el personaje está en reposo");
+assert.equal(breathingScene.config.yoyo, true, "La respiración debe regresar suavemente a la pose inicial");
+stopPlayerBreathing(breathingFighter);
+assert.equal(breathingTween.stopCalled, true, "La respiración debe poder detenerse durante un ataque");
+assert.deepEqual(rigCalls.at(-1), ["scale", 0.13], "Al detenerse, la respiración debe restaurar la escala original");
+assert.equal(typeof preparePlayerPunch, "function");
+assert.equal(typeof releasePlayerPunch, "function");
+assert.equal(typeof recoverPlayerPunch, "function");
 
 console.log("Pruebas del personaje geométrico superadas.");

@@ -82,7 +82,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   MAN_SPRITE_LAYERS.forEach(({ id }) => {
     const key = manSpriteKey(id);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.35.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.36.0`);
   });
   return "modular";
 }
@@ -113,6 +113,63 @@ function addPart(scene, parent, id, parentPoint = { x: 0, y: 0 }) {
   image.name = id;
   parent.add(image);
   return image;
+}
+
+function tweenFinished(scene, config) {
+  return new Promise((resolve) => {
+    scene.tweens.add({ ...config, onComplete: resolve });
+  });
+}
+
+export function startPlayerBreathing(scene, fighter) {
+  if (!fighter?.rig || fighter.breathingTween) return;
+  fighter.rig.setPosition(0, MAN_SPRITE_Y_OFFSET).setScale(MAN_SPRITE_SCALE);
+  fighter.breathingTween = scene.tweens.add({
+    targets: fighter.rig,
+    y: MAN_SPRITE_Y_OFFSET - 0.7,
+    scaleX: MAN_SPRITE_SCALE * 0.997,
+    scaleY: MAN_SPRITE_SCALE * 1.007,
+    duration: 1450,
+    yoyo: true,
+    repeat: -1,
+    ease: "Sine.inOut"
+  });
+}
+
+export function stopPlayerBreathing(fighter) {
+  fighter?.breathingTween?.stop();
+  if (!fighter?.rig) return;
+  fighter.breathingTween = null;
+  fighter.rig.setPosition(0, MAN_SPRITE_Y_OFFSET).setScale(MAN_SPRITE_SCALE);
+}
+
+export async function preparePlayerPunch(scene, fighter) {
+  if (!fighter?.joints?.shoulderRight) return;
+  stopPlayerBreathing(fighter);
+  await Promise.all([
+    tweenFinished(scene, { targets: fighter.joints.shoulderRight, angle: 12, duration: 95, ease: "Sine.out" }),
+    tweenFinished(scene, { targets: fighter.joints.elbowRight, angle: 18, duration: 95, ease: "Sine.out" }),
+    tweenFinished(scene, { targets: fighter.joints.wristRight, angle: -5, duration: 95, ease: "Sine.out" })
+  ]);
+}
+
+export function releasePlayerPunch(scene, fighter) {
+  if (!fighter?.joints?.shoulderRight) return Promise.resolve();
+  return Promise.all([
+    tweenFinished(scene, { targets: fighter.joints.shoulderRight, angle: -68, duration: 115, ease: "Cubic.in" }),
+    tweenFinished(scene, { targets: fighter.joints.elbowRight, angle: -4, duration: 105, ease: "Quad.in" }),
+    tweenFinished(scene, { targets: fighter.joints.wristRight, angle: 4, duration: 105, ease: "Quad.in" })
+  ]);
+}
+
+export async function recoverPlayerPunch(scene, fighter) {
+  if (!fighter?.joints?.shoulderRight) return;
+  await Promise.all([
+    tweenFinished(scene, { targets: fighter.joints.shoulderRight, angle: 0, duration: 210, ease: "Back.out" }),
+    tweenFinished(scene, { targets: fighter.joints.elbowRight, angle: 0, duration: 190, ease: "Sine.out" }),
+    tweenFinished(scene, { targets: fighter.joints.wristRight, angle: 0, duration: 180, ease: "Sine.out" })
+  ]);
+  startPlayerBreathing(scene, fighter);
 }
 
 export function createPlayerFighter(scene, x, y, appearance) {
@@ -167,11 +224,14 @@ export function createPlayerFighter(scene, x, y, appearance) {
   const head = addPart(scene, joints.neck, "cabeza", MAN_SPRITE_JOINTS.neck);
   layers.push(head);
 
-  return { shadow, body, head, rig, joints, targets: [body], layers, sprite: torso };
+  const fighter = { shadow, body, head, rig, joints, targets: [body], layers, sprite: torso, breathingTween: null };
+  startPlayerBreathing(scene, fighter);
+  return fighter;
 }
 
 export function destroyFighter(fighter) {
   if (!fighter) return;
+  stopPlayerBreathing(fighter);
   fighter.shadow.destroy();
   [...new Set(fighter.targets || [fighter.body, fighter.head])].forEach((target) => target?.destroy(true));
 }
