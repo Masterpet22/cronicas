@@ -56,8 +56,9 @@ assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer ata
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
 assert.match(ui, /const ACTION_POSITIONS = \[/, "Las acciones deben distribuirse sobre una semirrueda lateral");
 assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repetir nombres que ya aparecen en el tooltip");
-assert.match(battle, /rail\.cubicBezierTo\(108, 166, 108, 478, -8, 532\)/, "La guía debe usar la curva cúbica compatible con Phaser");
-assert.doesNotMatch(battle, /rail\.bezierCurveTo/, "La semirrueda no debe invocar un método inexistente de Phaser");
+assert.match(battle, /function drawCubicBezier\(/, "La guía debe dibujar su curva sin depender de métodos inexistentes de Graphics");
+assert.match(battle, /drawCubicBezier\(rail, \{ x: -8, y: 112 \}/, "La semirrueda debe conservar la curva exterior");
+assert.doesNotMatch(battle, /rail\.(?:cubicBezierTo|bezierCurveTo)/, "La semirrueda no debe invocar métodos inexistentes de Phaser Graphics");
 assert.match(ui, /setOrigin\(1, 0\.5\)/, "Los valores de vida y chakra deben alinearse al extremo derecho de la barra");
 assert.match(ui, /setDepth\(40\)/, "La zona interactiva de las acciones debe quedar por encima del escenario");
 assert.match(ui, /Adopta una postura defensiva/, "La guardia debe explicar su efecto dentro del tooltip");

@@ -16,6 +16,23 @@ const RENDER_RESOLUTION = Math.min(3, Math.max(2, window.devicePixelRatio || 1))
 const TEXT_TEXTURE_RESOLUTION = Math.min(4, Math.max(3, Math.ceil(RENDER_RESOLUTION * 1.5)));
 const RENDER_WIDTH = WIDTH * RENDER_RESOLUTION;
 const RENDER_HEIGHT = HEIGHT * RENDER_RESOLUTION;
+
+function drawCubicBezier(graphics, start, controlA, controlB, end, segments = 32) {
+  graphics.moveTo(start.x, start.y);
+  for (let index = 1; index <= segments; index += 1) {
+    const t = index / segments;
+    const inverse = 1 - t;
+    const x = (inverse ** 3 * start.x)
+      + (3 * inverse ** 2 * t * controlA.x)
+      + (3 * inverse * t ** 2 * controlB.x)
+      + (t ** 3 * end.x);
+    const y = (inverse ** 3 * start.y)
+      + (3 * inverse ** 2 * t * controlA.y)
+      + (3 * inverse * t ** 2 * controlB.y)
+      + (t ** 3 * end.y);
+    graphics.lineTo(x, y);
+  }
+}
 const TIMELINE_START = 310;
 const TIMELINE_END = 914;
 let activeSave = loadSave();
@@ -503,13 +520,11 @@ class BattleScene extends Phaser.Scene {
     const rail = this.add.graphics().setDepth(28);
     rail.lineStyle(3, 0x24c8ff, 0.82);
     rail.beginPath();
-    rail.moveTo(-8, 112);
-    rail.cubicBezierTo(108, 166, 108, 478, -8, 532);
+    drawCubicBezier(rail, { x: -8, y: 112 }, { x: 108, y: 166 }, { x: 108, y: 478 }, { x: -8, y: 532 });
     rail.strokePath();
     rail.lineStyle(1, 0x9cecff, 0.3);
     rail.beginPath();
-    rail.moveTo(-5, 122);
-    rail.cubicBezierTo(92, 172, 92, 472, -5, 522);
+    drawCubicBezier(rail, { x: -5, y: 122 }, { x: 92, y: 172 }, { x: 92, y: 472 }, { x: -5, y: 522 });
     rail.strokePath();
 
     const hideTooltip = (entry) => {
