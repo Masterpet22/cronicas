@@ -773,7 +773,8 @@
     padding: 8px 4px;
     background: transparent;
   }
-  .game-settings-panel .volume-control { min-height: 44px; border-bottom: 1px solid rgba(128, 164, 199, .24); }
+  .game-settings-panel .volume-control,
+  .game-settings-panel .theme-control { min-height: 44px; border-bottom: 1px solid rgba(128, 164, 199, .24); }
 
   .creator-form input,
   .creator-form select,
@@ -1023,7 +1024,8 @@
   }
 
   .game-settings-panel .mode-switch,
-  .game-settings-panel .volume-control {
+  .game-settings-panel .volume-control,
+  .game-settings-panel .theme-control {
     border-color: rgba(124, 166, 204, .25);
     background: transparent;
   }

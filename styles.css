@@ -98,7 +98,7 @@ h3 span { color: #f5a357; }
   user-select: none;
 }
 .mode-switch input { width: 17px; height: 17px; accent-color: #f5a357; }
-.volume-control {
+.volume-control, .theme-control {
   grid-column: 1 / -1;
   display: inline-flex;
   align-items: center;
@@ -109,6 +109,15 @@ h3 span { color: #f5a357; }
   font-size: 0.78rem;
 }
 .volume-control input { width: 150px; accent-color: #f5a357; }
+.theme-control select {
+  min-width: 170px;
+  border: 1px solid rgba(245, 163, 87, .45);
+  border-radius: 7px;
+  padding: 6px 9px;
+  background: #111925;
+  color: #f6f2e9;
+  font: inherit;
+}
 .game-settings .hint { max-width: none; margin: 0; font-size: .7rem; text-align: left; }
 
 #game {

@@ -9,8 +9,8 @@
   <link rel="preload" href="assets/fonts/cinzel-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/alegreya-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/village/aldea.webp?v=0.20.0" as="image" type="image/webp" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css?v=0.44.0">
-  <link rel="stylesheet" href="desktop.css?v=0.23.0">
+  <link rel="stylesheet" href="styles.css?v=0.44.1">
+  <link rel="stylesheet" href="desktop.css?v=0.44.1">
 </head>
 <body>
   <main>
@@ -29,6 +29,7 @@
               <label class="mode-switch" for="flash-effects"><input id="flash-effects" type="checkbox" checked><span>Destellos de pantalla</span></label>
               <label class="mode-switch" for="music-enabled"><input id="music-enabled" type="checkbox" checked><span>Música</span></label>
               <label class="mode-switch" for="light-mode"><input id="light-mode" type="checkbox"><span>Modo ligero</span></label>
+              <label class="theme-control" for="hud-theme"><span>Marco de combate</span><select id="hud-theme"><option value="ancestral">Pergamino ancestral</option><option value="lunar">Santuario lunar</option></select></label>
               <label class="volume-control" for="game-volume"><span>Volumen</span><input id="game-volume" type="range" min="0" max="100" value="70"></label>
             </div>
             <p id="mode-hint" class="hint">Completa las secuencias con QWER / ASDF / ZXCV.</p>
@@ -41,6 +42,6 @@
     <noscript>Este prototipo necesita JavaScript activado.</noscript>
   </main>
   <script defer src="assets/vendor/phaser-3.90.0.min.js"></script>
-  <script type="module" src="game.js?v=0.44.0"></script>
+  <script type="module" src="game.js?v=0.44.1"></script>
 </body>
 </html>

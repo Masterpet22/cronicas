@@ -55,4 +55,8 @@ await Promise.all(locationIds.map(async (id) => {
   assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
   assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
 }));
+for (const theme of ["ancestral", "lunar"]) {
+  const png = await readFile(new URL(`../assets/ui/hud-themes/${theme}.png`, import.meta.url));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `El tema ${theme} debe ser un PNG válido`);
+}
 console.log("Pruebas de recursos modulares superadas.");

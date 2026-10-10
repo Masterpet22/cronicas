@@ -55,6 +55,20 @@ function drawCubicBezier(graphics, start, controlA, controlB, end, segments = 32
 }
 const TIMELINE_START = 310;
 const TIMELINE_END = 914;
+const HUD_THEMES = Object.freeze({
+  ancestral: Object.freeze({
+    texture: "hud-theme-ancestral",
+    file: "assets/ui/hud-themes/ancestral.png?v=0.44.1",
+    health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289 }),
+    chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199 })
+  }),
+  lunar: Object.freeze({
+    texture: "hud-theme-lunar",
+    file: "assets/ui/hud-themes/lunar.png?v=0.44.1",
+    health: Object.freeze({ x: 8, y: 43, width: 851, height: 128 }),
+    chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67 })
+  })
+});
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -121,6 +135,7 @@ class BattleScene extends Phaser.Scene {
     this.load.image("bg-marsh", "assets/locations/battle-mist-marsh.jpg?v=0.20.0");
     this.load.image("bg-moon", "assets/locations/battle-moon-shrine.jpg?v=0.20.0");
     this.load.image("bg-arena", "assets/locations/arena.webp?v=0.20.0");
+    Object.values(HUD_THEMES).forEach(({ texture, file }) => this.load.image(texture, file));
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.mission = activeMission;
@@ -210,11 +225,13 @@ class BattleScene extends Phaser.Scene {
     const musicToggle = document.getElementById("music-enabled");
     const lightToggle = document.getElementById("light-mode");
     const volumeInput = document.getElementById("game-volume");
+    const hudThemeSelect = document.getElementById("hud-theme");
     this.cameraEffects = cameraToggle.checked;
     this.flashEffects = flashToggle.checked;
     this.musicEnabled = musicToggle.checked;
     this.lightMode = lightToggle.checked;
     this.volume = Number(volumeInput.value) / 100;
+    this.hudTheme = HUD_THEMES[hudThemeSelect.value] ? hudThemeSelect.value : "ancestral";
 
     const update = () => {
       this.cameraEffects = cameraToggle.checked;
@@ -222,13 +239,16 @@ class BattleScene extends Phaser.Scene {
       this.musicEnabled = musicToggle.checked;
       this.lightMode = lightToggle.checked;
       this.volume = Number(volumeInput.value) / 100;
+      this.hudTheme = HUD_THEMES[hudThemeSelect.value] ? hudThemeSelect.value : "ancestral";
       try {
         window.localStorage.setItem("camera-effects", this.cameraEffects ? "on" : "off");
         window.localStorage.setItem("flash-effects", this.flashEffects ? "on" : "off");
         window.localStorage.setItem("music-enabled", this.musicEnabled ? "on" : "off");
         window.localStorage.setItem("light-mode", this.lightMode ? "on" : "off");
         window.localStorage.setItem("game-volume", volumeInput.value);
+        window.localStorage.setItem("hud-theme", this.hudTheme);
       } catch (_) { /* Las opciones funcionan aunque no puedan persistir. */ }
+      if (this.hudFrames) this.applyHudTheme(this.hudTheme);
     };
 
     cameraToggle.addEventListener("change", update);
@@ -236,12 +256,14 @@ class BattleScene extends Phaser.Scene {
     musicToggle.addEventListener("change", update);
     lightToggle.addEventListener("change", update);
     volumeInput.addEventListener("input", update);
+    hudThemeSelect.addEventListener("change", update);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       cameraToggle.removeEventListener("change", update);
       flashToggle.removeEventListener("change", update);
       musicToggle.removeEventListener("change", update);
       lightToggle.removeEventListener("change", update);
       volumeInput.removeEventListener("input", update);
+      hudThemeSelect.removeEventListener("change", update);
     });
   }
 
@@ -337,25 +359,7 @@ class BattleScene extends Phaser.Scene {
     const barWidth = panelWidth - barXOffset - 16;
     const barHeight = 18;
 
-    const drawPanel = (x, y, width, height, accent, fill) => {
-      const panel = this.add.graphics().setDepth(18);
-      panel.fillStyle(fill, 0.94);
-      panel.fillRoundedRect(x, y, width, height, 12);
-      panel.lineStyle(2, accent, 0.95);
-      panel.strokeRoundedRect(x, y, width, height, 12);
-      panel.lineStyle(1, accent, 0.24);
-      panel.strokeRoundedRect(x + 5, y + 5, width - 10, height - 10, 9);
-      panel.lineStyle(3, accent, 0.9);
-      panel.lineBetween(x + 12, y + 3, x + 58, y + 3);
-      panel.lineBetween(x + width - 58, y + height - 3, x + width - 12, y + height - 3);
-      panel.fillStyle(accent, 0.9);
-      panel.fillTriangle(x, y + 18, x + 13, y + 5, x + 13, y + 31);
-      panel.fillTriangle(x + width, y + height - 18, x + width - 13, y + height - 5, x + width - 13, y + height - 31);
-      return panel;
-    };
-
-    this.playerHudPanel = drawPanel(playerX, 12, panelWidth, panelHeight, 0x16bff7, 0x020a14);
-    this.enemyHudPanel = drawPanel(enemyX, 12, panelWidth, panelHeight, 0xff4056, 0x16060b);
+    this.registerHudThemeFrames();
 
     this.playerName = this.add.text(
       playerX + 70,
@@ -409,6 +413,15 @@ class BattleScene extends Phaser.Scene {
     this.chakraBar = createBar(this, playerX + barXOffset, 80, barWidth, barHeight, 0x2eaff4);
     this.enemyHpBar = createBar(this, enemyX + barXOffset, 64, barWidth - 8, barHeight, 0xef4755);
 
+    this.hudFrames = {
+      health: [
+        this.add.image(playerX + barXOffset + barWidth / 2, 57, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25),
+        this.add.image(enemyX + barXOffset + (barWidth - 8) / 2, 64, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25)
+      ],
+      chakra: [this.add.image(playerX + barXOffset + barWidth / 2, 80, HUD_THEMES[this.hudTheme].texture, "chakra").setDepth(25)]
+    };
+    this.applyHudTheme(this.hudTheme);
+
     [this.playerHpBar, this.chakraBar, this.enemyHpBar].forEach((bar) => {
       bar.bg.setDepth(21);
       if (bar.slot) bar.slot.setDepth(21);
@@ -419,6 +432,25 @@ class BattleScene extends Phaser.Scene {
 
     this.refreshHud();
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
+  }
+
+  registerHudThemeFrames() {
+    Object.values(HUD_THEMES).forEach((theme) => {
+      const texture = this.textures.get(theme.texture);
+      for (const frameName of ["health", "chakra"]) {
+        if (!texture.has(frameName)) {
+          const frame = theme[frameName];
+          texture.add(frameName, 0, frame.x, frame.y, frame.width, frame.height);
+        }
+      }
+    });
+  }
+
+  applyHudTheme(themeId) {
+    const theme = HUD_THEMES[themeId] || HUD_THEMES.ancestral;
+    this.hudTheme = HUD_THEMES[themeId] ? themeId : "ancestral";
+    this.hudFrames.health.forEach((frame) => frame.setTexture(theme.texture, "health").setDisplaySize(294, 40));
+    this.hudFrames.chakra.forEach((frame) => frame.setTexture(theme.texture, "chakra").setDisplaySize(282, 27));
   }
 
   createTurnTimeline() {
@@ -1432,6 +1464,14 @@ function bindGlobalOptions() {
   const volume = document.getElementById("game-volume");
   try { volume.value = window.localStorage.getItem("game-volume") || "70"; } catch (_) { /* Preferencias opcionales. */ }
   volume.addEventListener("input", () => { try { window.localStorage.setItem("game-volume", volume.value); } catch (_) { /* Preferencias opcionales. */ } });
+  const hudTheme = document.getElementById("hud-theme");
+  try {
+    const savedHudTheme = window.localStorage.getItem("hud-theme");
+    hudTheme.value = HUD_THEMES[savedHudTheme] ? savedHudTheme : "ancestral";
+  } catch (_) { hudTheme.value = "ancestral"; }
+  hudTheme.addEventListener("change", () => {
+    try { window.localStorage.setItem("hud-theme", hudTheme.value); } catch (_) { /* Preferencias opcionales. */ }
+  });
   document.getElementById("mode-hint").textContent = document.getElementById("manual-seals").checked ? "Completa las secuencias con QWER / ASDF / ZXCV." : "Los sellos se ejecutarán automáticamente.";
 }
 

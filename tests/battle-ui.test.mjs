@@ -12,6 +12,15 @@ assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del 
 assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
 assert.match(battle, /drawMoonShrine\(g\)/, "El combate debe incluir el fondo del santuario lunar");
 assert.match(battle, /createTurnTimeline\(\)/, "El combate debe crear una barra de orden de acción");
+assert.match(battle, /const HUD_THEMES = Object\.freeze/, "Los marcos de combate deben compartir un catálogo de temas");
+assert.match(battle, /hud-theme-ancestral/, "El HUD debe cargar el tema Pergamino ancestral");
+assert.match(battle, /hud-theme-lunar/, "El HUD debe cargar el tema Santuario lunar");
+assert.match(battle, /registerHudThemeFrames\(\)/, "Los marcos de vida y chakra deben registrarse como subframes transparentes");
+assert.match(battle, /applyHudTheme\(themeId\)/, "El tema debe poder cambiarse durante el combate");
+assert.match(battle, /localStorage\.setItem\("hud-theme"/, "La elección del marco debe persistir");
+assert.match(html, /select id="hud-theme"/, "Opciones debe permitir elegir el marco de combate");
+assert.match(html, /Pergamino ancestral/, "El selector debe ofrecer Pergamino ancestral");
+assert.match(html, /Santuario lunar/, "El selector debe ofrecer Santuario lunar");
 assert.match(battle, /this\.turnReady/, "Las acciones deben depender de que el turno esté listo");
 assert.match(battle, /resetTurnTimeline\(\)/, "Los marcadores deben regresar al terminar una ronda");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
@@ -97,6 +106,6 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.23\.0/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.44\.1/, "El CSS corregido debe invalidar la caché anterior");
 
 console.log("Pruebas de interfaz de combate superadas.");
