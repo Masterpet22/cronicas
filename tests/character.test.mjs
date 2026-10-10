@@ -18,7 +18,7 @@ assert.deepEqual(
   { face: 3, hair: 1, top: 1, bottom: 3, shoes: 2, weapon: "kunai" }
 );
 
-import { fighterTextureKey, queueFighterTexture } from "../src/fighters.js";
+import { MAN_SPRITE_LAYERS, fighterTextureKey, queueFighterTexture, queuePlayerFighterTextures } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -41,5 +41,13 @@ const mockScene = {
 };
 queueFighterTexture(mockScene, playerApp);
 assert.equal(loaded[0], key1, "queueFighterTexture debe encolar la textura con la clave correspondiente");
+
+loaded.length = 0;
+assert.equal(queuePlayerFighterTextures(mockScene, playerApp), "modular", "El cuerpo masculino debe usar los sprites modulares");
+assert.equal(loaded.length, 14, "Deben cargarse las catorce partes del cuerpo masculino");
+assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
+  "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
+  "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
+].sort(), "La composición debe incluir todas las capas exportadas");
 
 console.log("Pruebas del personaje geométrico superadas.");

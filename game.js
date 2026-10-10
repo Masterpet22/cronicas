@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createGeometricFighter, destroyFighter, fighterTextureKey, queueFighterTexture } from "./src/fighters.js?v=0.20.0";
+import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, queueFighterTexture, queuePlayerFighterTextures } from "./src/fighters.js?v=0.32.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
@@ -48,7 +48,7 @@ class BattleScene extends Phaser.Scene {
       const key = `element-${element}`;
       if (!this.textures.exists(key)) this.load.image(key, elementIcon(element));
     });
-    queueFighterTexture(this, this.playerAppearance());
+    queuePlayerFighterTextures(this, this.playerAppearance());
     this.mission.encounters.forEach((id, index) => {
       const profile = ENEMY_ROSTER[id];
       queueFighterTexture(this, this.enemyAppearance(profile, index));
@@ -448,7 +448,7 @@ class BattleScene extends Phaser.Scene {
     const auraColor = Number.parseInt(this.saveData.character.appearance.slice(1), 16);
     this.heroAura = this.add.circle(220, 220, 82, auraColor, 0.055).setStrokeStyle(3, auraColor, 0.24).setDepth(5);
     this.tweens.add({ targets: this.heroAura, scale: 1.06, alpha: 0.16, duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-    this.hero = createGeometricFighter(this, 220, 248, this.playerAppearance(), false);
+    this.hero = createPlayerFighter(this, 220, 248, this.playerAppearance());
     this.foe = createGeometricFighter(this, 740, 248, this.enemyAppearance(profile), true);
     this.tweens.add({ targets: this.hero.targets, y: "-=4", duration: 920, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.tweens.add({ targets: this.foe.targets, y: "-=3", duration: 1100, yoyo: true, repeat: -1, ease: "Sine.inOut", delay: 180 });

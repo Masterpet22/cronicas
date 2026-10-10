@@ -26,6 +26,19 @@ await Promise.all(assets.map(async (asset) => {
 }));
 assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");
 
+const manRuntimeLayers = [
+  "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
+  "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
+];
+await Promise.all(manRuntimeLayers.map(async (id) => {
+  const png = await readFile(new URL(`../assets/modular/man_sprites/runtime/${id}.png`, import.meta.url));
+  const width = png.readUInt32BE(16);
+  const height = png.readUInt32BE(20);
+  assert.ok(width > 0 && width < 600, `${id} debe estar recortado para ejecución`);
+  assert.ok(height > 0 && height < 700, `${id} debe estar recortado para ejecución`);
+  assert.equal(png[25], 6, `${id} debe conservar transparencia`);
+}));
+
 for (const asset of ["basic-strike.webp", "guard.webp"]) {
   const image = webpDimensions(await readFile(new URL(`../assets/actions/${asset}`, import.meta.url)), asset);
   assert.equal(image.width, 512, `${asset} debe medir 512 px de ancho`);
