@@ -396,7 +396,7 @@
   </main>
 
   <script type="module">
-    import { animationClipList } from "./src/animations/clips.js?v=0.38.0";
+    import { animationClipList } from "./src/animations/clips.js?v=0.39.0";
 
     "use strict";
 
@@ -448,15 +448,30 @@
     let selectedId = "torso";
     let zoom = Number(zoomInput.value) / 100;
     let drag = null;
-    let previewAnimations = [];
+    let previewFrameId = null;
     let previewingClip = null;
 
-    const idleClips = animationClipList("reposo");
-    const PREVIEW_TARGETS = {
-      torso: ["torso"],
-      neck: ["cabeza"],
-      shoulderLeft: ["brazo_izquierdo", "antebrazo_derecho", "mano_derecha"],
-      shoulderRight: ["brazo_derecho", "antebrazo_izquierdo", "mano_izquierda"]
+    const animationClips = animationClipList();
+    const JOINTS = {
+      neck: { x: 0, y: -315 },
+      shoulderLeft: { x: -207, y: -310 }, elbowLeft: { x: -305, y: -38 }, wristLeft: { x: -304, y: 169 },
+      shoulderRight: { x: 139, y: -310 }, elbowRight: { x: 232, y: -57 }, wristRight: { x: 319, y: 134 },
+      hipLeft: { x: -94, y: 142 }, kneeLeft: { x: -124, y: 407 }, ankleLeft: { x: -153, y: 674 },
+      hipRight: { x: 112, y: 142 }, kneeRight: { x: 139, y: 401 }, ankleRight: { x: 151, y: 670 }
+    };
+    const JOINT_PARENTS = {
+      neck: null,
+      shoulderLeft: null, elbowLeft: "shoulderLeft", wristLeft: "elbowLeft",
+      shoulderRight: null, elbowRight: "shoulderRight", wristRight: "elbowRight",
+      hipLeft: null, kneeLeft: "hipLeft", ankleLeft: "kneeLeft",
+      hipRight: null, kneeRight: "hipRight", ankleRight: "kneeRight"
+    };
+    const PART_JOINTS = {
+      cabeza: "neck",
+      brazo_izquierdo: "shoulderLeft", antebrazo_derecho: "elbowLeft", mano_derecha: "wristLeft",
+      brazo_derecho: "shoulderRight", antebrazo_izquierdo: "elbowRight", mano_izquierda: "wristRight",
+      muslo_derecho: "hipLeft", pierna_derecha: "kneeLeft", pie_derecho: "ankleLeft",
+      muslo_izquierdo: "hipRight", pierna_izquierda: "kneeRight", pie_izquierdo: "ankleRight"
     };
 
     const round = value => Math.round(value * 1000) / 1000;
@@ -522,72 +537,158 @@
       });
     }
 
-    function partTransform(part, offsets = {}) {
-      const x = Number(offsets.x || 0);
-      const y = Number(offsets.y || 0);
-      const rotation = part.rotation + Number(offsets.angle || 0);
-      const scaleX = part.scaleX + Number(offsets.scaleX || 0);
-      const scaleY = part.scaleY + Number(offsets.scaleY || 0);
-      return `translate(-50%, -50%) translate(${x}px, ${y}px) rotate(${rotation}deg) scale(${scaleX}, ${scaleY})`;
+    function multiplyMatrix(left, right) {
+      const [a, b, c, d, e, f] = left;
+      const [g, h, i, j, k, l] = right;
+      return [a * g + c * h, b * g + d * h, a * i + c * j, b * i + d * j, a * k + c * l + e, b * k + d * l + f];
     }
 
-    function cssEase(ease = "Sine.inOut") {
-      if (ease.startsWith("Cubic")) return "cubic-bezier(.65, 0, .35, 1)";
-      if (ease.startsWith("Quad")) return "cubic-bezier(.45, 0, .55, 1)";
-      return "cubic-bezier(.37, 0, .63, 1)";
+    const translationMatrix = (x, y) => [1, 0, 0, 1, x, y];
+    const rotationMatrix = angle => {
+      const radians = angle * Math.PI / 180;
+      return [Math.cos(radians), Math.sin(radians), -Math.sin(radians), Math.cos(radians), 0, 0];
+    };
+    const transformPoint = (matrix, x, y) => ({ x: matrix[0] * x + matrix[2] * y + matrix[4], y: matrix[1] * x + matrix[3] * y + matrix[5] });
+
+    function easedProgress(progress, ease = "Sine.inOut") {
+      if (ease.startsWith("Cubic")) return 1 - Math.pow(1 - progress, 3);
+      if (ease.startsWith("Quad")) return 1 - Math.pow(1 - progress, 2);
+      return (1 - Math.cos(Math.PI * progress)) / 2;
+    }
+
+    function trackProgress(track, elapsed, loop) {
+      const duration = track.duration;
+      const time = Math.max(0, elapsed - (track.delay || 0));
+      if (loop) {
+        const cycle = track.yoyo ? duration * 2 : duration;
+        let progress = (time % cycle) / duration;
+        if (track.yoyo && progress > 1) progress = 2 - progress;
+        return easedProgress(progress, track.ease);
+      }
+      let progress = time / duration;
+      if (track.yoyo) progress = progress <= 1 ? progress : Math.max(0, 2 - progress);
+      else progress = Math.min(1, progress);
+      return easedProgress(Math.max(0, Math.min(1, progress)), track.ease);
+    }
+
+    function animationPose(clip, elapsed) {
+      const pose = {};
+      clip.tracks.forEach(track => {
+        const enterDuration = track.from ? Number(clip.enterDuration || 0) : 0;
+        const entering = enterDuration > 0 && elapsed < enterDuration;
+        const progress = entering ? easedProgress(elapsed / enterDuration, "Cubic.out") : trackProgress(track, elapsed - enterDuration, clip.loop);
+        pose[track.target] ||= {};
+        Object.entries(track.to || {}).forEach(([property, end]) => {
+          const from = Number(track.from?.[property] || 0);
+          pose[track.target][property] = entering ? from * progress : from + (end - from) * progress;
+        });
+        Object.entries(track.from || {}).forEach(([property, start]) => {
+          if (!(property in (track.to || {}))) pose[track.target][property] = start;
+        });
+      });
+      return pose;
+    }
+
+    function applyAnimationPose(pose) {
+      const rigPose = { ...(pose.body || {}), ...(pose.rig || {}) };
+      let root = multiplyMatrix(translationMatrix(rigPose.x || 0, rigPose.y || 0), rotationMatrix(rigPose.angle || 0));
+      const matrices = {};
+
+      function jointMatrix(name) {
+        if (matrices[name]) return matrices[name];
+        const point = JOINTS[name];
+        const parentName = JOINT_PARENTS[name];
+        const parentPoint = parentName ? JOINTS[parentName] : { x: 0, y: 0 };
+        const parentMatrix = parentName ? jointMatrix(parentName) : root;
+        const offset = pose[name] || {};
+        matrices[name] = multiplyMatrix(
+          multiplyMatrix(parentMatrix, translationMatrix(point.x - parentPoint.x + (offset.x || 0), point.y - parentPoint.y + (offset.y || 0))),
+          rotationMatrix(offset.angle || 0)
+        );
+        return matrices[name];
+      }
+
+      parts.forEach(part => {
+        const element = stage.querySelector(`.part[data-id="${part.id}"]`);
+        if (!element) return;
+        const nodeName = PART_JOINTS[part.id];
+        let position;
+        let angle = rigPose.angle || 0;
+        let scaleX = part.scaleX;
+        let scaleY = part.scaleY;
+        if (nodeName) {
+          const matrix = jointMatrix(nodeName);
+          const joint = JOINTS[nodeName];
+          position = transformPoint(matrix, part.x - joint.x, part.y - joint.y);
+          angle = Math.atan2(matrix[1], matrix[0]) * 180 / Math.PI;
+        } else {
+          const own = pose[part.id] || {};
+          position = transformPoint(root, part.x + (own.x || 0), part.y + (own.y || 0));
+          angle += own.angle || 0;
+          scaleX += own.scaleX || 0;
+          scaleY += own.scaleY || 0;
+        }
+        element.style.transform = `translate(-50%, -50%) translate(${position.x - part.x}px, ${position.y - part.y}px) rotate(${part.rotation + angle}deg) scale(${scaleX}, ${scaleY})`;
+      });
     }
 
     function stopAnimationPreview(clearLabel = true) {
-      previewAnimations.forEach(animation => animation.cancel());
-      previewAnimations = [];
+      if (previewFrameId !== null) cancelAnimationFrame(previewFrameId);
+      previewFrameId = null;
       previewingClip = null;
+      parts.forEach(part => {
+        const element = stage.querySelector(`.part[data-id="${part.id}"]`);
+        if (element) element.style.transform = `translate(-50%, -50%) rotate(${part.rotation}deg) scale(${part.scaleX}, ${part.scaleY})`;
+      });
       if (clearLabel) setStatus("Vista previa detenida.");
     }
 
     function playAnimationPreview() {
       stopAnimationPreview(false);
-      const clip = idleClips.find(item => item.id === animationSelect.value);
+      const clip = animationClips.find(item => item.id === animationSelect.value);
       if (!clip) return;
       const speed = Number(animationSpeed.value) / 100;
       previewingClip = clip.id;
-
-      clip.tracks.forEach(track => {
-        (PREVIEW_TARGETS[track.target] || [track.target]).forEach(id => {
-          const element = stage.querySelector(`.part[data-id="${id}"]`);
-          const part = parts.find(item => item.id === id);
-          if (!element || !part) return;
-          const animation = element.animate([
-            { transform: partTransform(part, track.from) },
-            { transform: partTransform(part, track.to) }
-          ], {
-            duration: Math.max(1, track.duration / speed),
-            delay: (track.delay || 0) / speed,
-            easing: cssEase(track.ease),
-            direction: track.yoyo ? "alternate" : "normal",
-            iterations: clip.loop ? Infinity : 1
-          });
-          previewAnimations.push(animation);
-        });
-      });
+      const start = performance.now();
+      const totalDuration = Math.max(...clip.tracks.map(track => (track.delay || 0) + track.duration * (track.yoyo ? 2 : 1))) / speed;
+      const draw = now => {
+        if (previewingClip !== clip.id) return;
+        const elapsed = (now - start) * speed;
+        applyAnimationPose(animationPose(clip, elapsed));
+        if (!clip.loop && now - start >= totalDuration) {
+          stopAnimationPreview(false);
+          setStatus(`Vista previa finalizada: ${clip.label}`);
+          return;
+        }
+        previewFrameId = requestAnimationFrame(draw);
+      };
+      previewFrameId = requestAnimationFrame(draw);
       setStatus(`Reproduciendo: ${clip.label}`);
     }
 
     function renderAnimationLab() {
-      animationSelect.replaceChildren(...idleClips.map(clip => {
-        const option = document.createElement("option");
-        option.value = clip.id;
-        option.textContent = clip.label;
-        return option;
-      }));
+      animationSelect.replaceChildren();
+      const categoryLabels = { reposo: "Reposo", defensa: "Defensa", "reacción": "Reacciones al daño" };
+      Object.entries(categoryLabels).forEach(([category, label]) => {
+        const group = document.createElement("optgroup");
+        group.label = label;
+        animationClips.filter(clip => clip.category === category).forEach(clip => {
+          const option = document.createElement("option");
+          option.value = clip.id;
+          option.textContent = clip.label;
+          group.append(option);
+        });
+        animationSelect.append(group);
+      });
       animationSelect.value = "idle-natural";
       updateClipMeta();
     }
 
     function updateClipMeta() {
-      const clip = idleClips.find(item => item.id === animationSelect.value);
+      const clip = animationClips.find(item => item.id === animationSelect.value);
       if (!clip) return;
       const statusLabel = clip.status === "integrated" ? "Integrada en el juego" : "En pruebas";
-      clipMeta.innerHTML = `<span class="clip-badge">${statusLabel}</span><br>${clip.description}`;
+      clipMeta.innerHTML = `<span class="clip-badge">${statusLabel}</span><br><strong>${clip.category}</strong> · ${clip.description}`;
       if (previewingClip) playAnimationPreview();
     }
 

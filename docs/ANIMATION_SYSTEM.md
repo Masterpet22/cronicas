@@ -49,3 +49,15 @@ acción se restablece la pose neutral y se vuelve al reposo correspondiente.
 
 Los tres mantienen la pelvis y los pies inmóviles. Solo animan torso, cuello y
 hombros; el giro de cabeza es deliberadamente mínimo.
+
+## Defensa y daño
+
+- `guard-hold`: postura de guardia sostenida hasta consumir el bloqueo.
+- `guard-impact`: retroceso breve que conserva los brazos cubriendo el cuerpo.
+- `hit-light`: reacción corta para daño normal.
+- `hit-heavy`: reacción de cuerpo completo para golpes de al menos 16 % de la
+  vida máxima, con un mínimo de 10 puntos.
+
+El laboratorio calcula la jerarquía de la marioneta en cada fotograma. Las
+rotaciones del hombro arrastran codo, muñeca y mano, y las rotaciones de cadera
+arrastran rodilla, tobillo y pie, igual que en el rig de Phaser.

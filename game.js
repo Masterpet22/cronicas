@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.20.0";
 import { applyStatus, affinityLabel, affinityMultiplier, formatStatuses, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerRunning, stopPlayerRunning } from "./src/fighters.js?v=0.38.0";
+import { createGeometricFighter, createPlayerFighter, destroyFighter, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.39.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { createActionButton, createBar } from "./src/ui.js?v=0.31.0";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
@@ -859,6 +859,7 @@ class BattleScene extends Phaser.Scene {
 
   async playerGuard() {
     this.player.guarding = true;
+    startPlayerGuard(this, this.hero);
     this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 12);
     this.guardAura = this.add.circle(this.hero.body.x, this.hero.body.y - 18, 72, 0xf5c96b, 0.12)
       .setStrokeStyle(5, 0xf5c96b, 0.8).setDepth(8);
@@ -911,6 +912,10 @@ class BattleScene extends Phaser.Scene {
     }
 
     this.createImpact(this.hero.body.x, this.hero.body.y - 10, action.color, 0.8);
+    const reaction = playPlayerDamageReaction(this, this.hero, {
+      guarded: this.player.guarding,
+      heavy: damage >= Math.max(10, Math.ceil(this.player.maxHp * 0.16))
+    });
     this.tone(110, 0.1);
     this.shake(120, 0.005);
     this.player.hp = Math.max(0, this.player.hp - damage);
@@ -921,7 +926,8 @@ class BattleScene extends Phaser.Scene {
     this.flashFighter(this.hero);
     this.floatDamage(this.hero.body.x, this.hero.body.y - 120, damage, action.color);
     this.refreshHud();
-    await this.delay(520);
+    await reaction;
+    await this.delay(220);
   }
 
   rollHit(chance) {
@@ -965,6 +971,7 @@ class BattleScene extends Phaser.Scene {
 
   clearGuard() {
     this.player.guarding = false;
+    stopPlayerGuard(this, this.hero);
     if (this.guardAura) {
       this.tweens.killTweensOf(this.guardAura);
       this.guardAura.destroy();

@@ -1,6 +1,6 @@
 import { FIGHTER_VIEWBOX, fighterPreviewSvg } from "./character.js?v=0.20.0";
-import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.38.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.38.0";
+import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.39.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.39.0";
 
 // Resolución a la que se rasteriza el SVG (2x para que se vea nítido).
 const TEXTURE_SCALE = 2;
@@ -84,7 +84,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   MAN_SPRITE_LAYERS.forEach(({ id }) => {
     const key = manSpriteKey(id);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.38.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${id}.png?v=0.39.0`);
   });
   return "modular";
 }
@@ -136,6 +136,28 @@ export function stopPlayerBreathing(fighter) {
   if (!fighter?.rig) return;
   if (fighter.animations?.state === "idle") fighter.animations.stop({ reset: true });
   fighter.breathingTweens = [];
+}
+
+export function startPlayerGuard(scene, fighter) {
+  if (!fighter?.animations) return false;
+  stopPlayerBreathing(fighter);
+  return fighter.animations.loop("guard-hold", { force: true });
+}
+
+export function stopPlayerGuard(scene, fighter) {
+  if (!fighter?.animations) return;
+  if (["guard-hold", "guard-impact"].includes(fighter.animations.clipId)) fighter.animations.stop({ reset: true });
+  startPlayerBreathing(scene, fighter);
+}
+
+export async function playPlayerDamageReaction(scene, fighter, { guarded = false, heavy = false } = {}) {
+  if (!fighter?.animations) return false;
+  stopPlayerBreathing(fighter);
+  const clipId = guarded ? "guard-impact" : heavy ? "hit-heavy" : "hit-light";
+  const completed = await fighter.animations.playOnce(clipId, { force: true });
+  if (guarded) startPlayerGuard(scene, fighter);
+  else startPlayerBreathing(scene, fighter);
+  return completed;
 }
 
 export function startPlayerRunning(scene, fighter) {

@@ -19,7 +19,8 @@ assert.deepEqual(
 );
 
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "../src/animations/clips.js";
-import { MAN_SPRITE_LAYERS, fighterTextureKey, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerRunning, stopPlayerBreathing, stopPlayerRunning } from "../src/fighters.js";
+import { PuppetAnimationController } from "../src/animations/controller.js";
+import { MAN_SPRITE_LAYERS, fighterTextureKey, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -75,7 +76,28 @@ stopPlayerBreathing(breathingFighter);
 assert.equal(breathingFighter.breathingTweens.length, 0, "La respiración debe poder detenerse durante un ataque");
 assert.equal(breathingFighter.animations.state, null, "Detener el reposo debe liberar el estado de la máquina");
 assert.deepEqual(animationClipList("reposo").map(({ id }) => id), ["idle-natural", "idle-alert", "idle-focus"]);
+assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold", "guard-impact"]);
+assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy"]);
 assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ status }) => status === "integrated"), "Los clips ofrecidos como listos deben estar integrados");
+assert.equal(typeof startPlayerGuard, "function");
+assert.equal(typeof stopPlayerGuard, "function");
+assert.equal(typeof playPlayerDamageReaction, "function");
+
+const controllerTarget = () => ({ x: 0, y: 0, angle: 0, scaleX: 1, scaleY: 1, alpha: 1 });
+const controllerScene = { tweens: { add(config) {
+  if (config.onComplete) queueMicrotask(config.onComplete);
+  return { stop() {} };
+} } };
+const controllerFighter = {
+  rig: controllerTarget(), sprite: controllerTarget(), body: controllerTarget(), shadow: controllerTarget(),
+  joints: Object.fromEntries(["neck", "shoulderLeft", "shoulderRight", "elbowLeft", "elbowRight", "wristLeft", "wristRight", "hipLeft", "hipRight", "kneeLeft", "kneeRight"].map(name => [name, controllerTarget()]))
+};
+const controller = new PuppetAnimationController(controllerScene, controllerFighter);
+assert.equal(await controller.playOnce("hit-heavy", { force: true }), true, "Una reacción debe resolverse al terminar todas sus pistas");
+assert.equal(controller.state, null, "La reacción debe liberar el estado y restaurar la pose neutral");
+controller.loop("guard-hold");
+assert.equal(controller.play("idle-natural"), false, "El reposo no debe interrumpir una guardia de mayor prioridad");
+controller.stop();
 assert.equal(typeof preparePlayerPunch, "function");
 assert.equal(typeof releasePlayerPunch, "function");
 assert.equal(typeof recoverPlayerPunch, "function");

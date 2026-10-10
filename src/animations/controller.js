@@ -1,4 +1,4 @@
-import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.38.0";
+import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.39.0";
 
 const TRANSFORM_PROPERTIES = ["x", "y", "angle", "scaleX", "scaleY", "alpha"];
 
@@ -24,6 +24,9 @@ export class PuppetAnimationController {
     this.current = null;
     this.tweens = [];
     this.touched = new Map();
+    this.finished = Promise.resolve(true);
+    this.resolveFinished = null;
+    this.generation = 0;
   }
 
   get state() { return this.current?.state || null; }
@@ -41,35 +44,69 @@ export class PuppetAnimationController {
     if (!force && !this.canPlay(clip)) return false;
     this.stop({ reset: true });
     this.current = clip;
+    const generation = this.generation;
+    const playableTracks = clip.tracks.map((track) => ({ track, target: targetFor(this.fighter, track.target) })).filter(({ target }) => target);
+    let remaining = playableTracks.length;
+    this.finished = new Promise((resolve) => { this.resolveFinished = resolve; });
 
-    for (const track of clip.tracks) {
-      const target = targetFor(this.fighter, track.target);
-      if (!target) continue;
-      const base = snapshot(target);
+    for (const { track, target } of playableTracks) {
+      const base = this.touched.get(target) || snapshot(target);
       this.touched.set(target, base);
-      if (track.from) Object.assign(target, addOffsets(base, track.from));
+      const enterDuration = track.from ? Number(clip.enterDuration || 0) : 0;
+      if (track.from && !enterDuration) Object.assign(target, addOffsets(base, track.from));
+      if (track.from && enterDuration) {
+        this.tweens.push(this.scene.tweens.add({
+          targets: target,
+          ...addOffsets(base, track.from),
+          duration: Math.max(1, enterDuration / timeScale),
+          ease: "Cubic.out"
+        }));
+      }
       const tween = this.scene.tweens.add({
         targets: target,
         ...addOffsets(base, track.to),
         duration: Math.max(1, track.duration / timeScale),
-        delay: (track.delay || 0) / timeScale,
+        delay: ((track.delay || 0) + enterDuration) / timeScale,
         ease: track.ease || "Sine.inOut",
         yoyo: Boolean(track.yoyo),
-        repeat: clip.loop ? -1 : 0
+        repeat: clip.loop ? -1 : 0,
+        onComplete: clip.loop ? undefined : () => {
+          remaining -= 1;
+          if (remaining === 0 && generation === this.generation) this.complete();
+        }
       });
       this.tweens.push(tween);
     }
+    if (remaining === 0) this.complete();
     return true;
   }
 
   loop(id, options) { return this.play(id, options); }
 
+  async playOnce(id, options) {
+    if (!this.play(id, options)) return false;
+    return this.finished;
+  }
+
+  complete() {
+    const resolve = this.resolveFinished;
+    this.tweens = [];
+    this.touched.forEach((base, target) => Object.assign(target, base));
+    this.touched.clear();
+    this.current = null;
+    this.resolveFinished = null;
+    resolve?.(true);
+  }
+
   stop({ reset = true } = {}) {
+    this.generation += 1;
     this.tweens.forEach((tween) => tween?.stop());
     this.tweens = [];
     if (reset) this.touched.forEach((base, target) => Object.assign(target, base));
     this.touched.clear();
     this.current = null;
+    this.resolveFinished?.(false);
+    this.resolveFinished = null;
   }
 }
 

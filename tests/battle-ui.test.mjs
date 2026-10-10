@@ -29,8 +29,14 @@ assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproduci
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, PauseScene\]/, "La transición debe ejecutarse antes del combate");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(calibrator, /Laboratorio de animación/, "El calibrador debe incluir un laboratorio para aprobar clips");
-assert.match(calibrator, /animationClipList\("reposo"\)/, "El laboratorio y el juego deben compartir el catálogo declarativo");
+assert.match(calibrator, /animationClipList\(\)/, "El laboratorio y el juego deben compartir el catálogo declarativo completo");
 assert.match(calibrator, /playAnimationPreview/, "El laboratorio debe poder reproducir los clips sin alterar coordenadas");
+assert.match(calibrator, /JOINT_PARENTS/, "La vista previa debe respetar la jerarquía de articulaciones");
+assert.match(calibrator, /applyAnimationPose/, "El laboratorio debe calcular cada pose articulada por fotograma");
+assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
+assert.match(battle, /playPlayerDamageReaction\(this, this\.hero/, "Los impactos enemigos deben activar una reacción articulada");
+assert.match(battle, /this\.player\.maxHp \* 0\.16/, "Los golpes fuertes deben distinguirse por el porcentaje de vida máxima");
+assert.match(battle, /stopPlayerGuard\(this, this\.hero\)/, "La pose defensiva debe liberarse al consumir la guardia");
 assert.match(battle, /action-guard/, "La guardia debe cargar su propio icono");
 assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer atajos de teclado del 1 al 6");
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
