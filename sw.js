@@ -1,6 +1,6 @@
-const CACHE_NAME = "cronicas-assets-v0.44.3";
+const CACHE_NAME = "cronicas-assets-v0.44.4";
 const CORE_ASSETS = [
-  "./desktop.css?v=0.44.3",
+  "./desktop.css?v=0.44.4",
   "./assets/vendor/phaser-3.90.0.min.js",
   "./assets/fonts/cinzel-latin-700.woff2",
   "./assets/fonts/alegreya-sans-latin-400.woff2",
@@ -13,8 +13,8 @@ const CORE_ASSETS = [
   "./assets/ui/action-button-frame.webp?v=0.20.0",
   "./assets/ui/equipment-slot-frame.webp?v=0.20.0",
   "./assets/ui/hud-frame.webp?v=0.20.0",
-  "./assets/ui/hud-themes/ancestral.png?v=0.44.3",
-  "./assets/ui/hud-themes/lunar.png?v=0.44.3",
+  "./assets/ui/hud-themes/ancestral.png?v=0.44.4",
+  "./assets/ui/hud-themes/lunar.png?v=0.44.4",
   "./assets/icons/lucide/heart.svg",
   "./assets/icons/lucide/droplets.svg",
   "./assets/icons/lucide/droplet.svg",

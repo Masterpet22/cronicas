@@ -1,22 +1,31 @@
 import { createUiIcon } from "./icons.js?v=0.43.0";
 
 export function createBar(scene, x, y, width, height, color) {
-  const bg = scene.add.rectangle(x, y, width, height, 0x020812, 0.92)
+  const radius = Math.min(height / 2, 8);
+  const maskShape = scene.make.graphics({ x, y, add: false });
+  maskShape.fillStyle(0xffffff).fillRoundedRect(0, -height / 2, width, height, radius);
+  const slotMask = maskShape.createGeometryMask();
+  const bg = scene.add.rectangle(x, y, width, height, 0x020812, 0.96)
     .setOrigin(0, 0.5)
-    .setStrokeStyle(1, 0x258fc0, 0.72);
-  const slot = scene.add.rectangle(x + 3, y, width - 6, height - 6, 0x04111e, 0.98).setOrigin(0, 0.5);
-  const fill = scene.add.rectangle(x + 3, y, width - 6, height - 6, color, 1).setOrigin(0, 0.5);
-  const sheen = scene.add.rectangle(x + 3, y - height / 5, width - 6, Math.max(2, Math.floor(height / 3)), 0xffffff, 0.14)
-    .setOrigin(0, 0.5);
-  const valueText = scene.add.text(x + width - 8, y, "", {
+    .setMask(slotMask);
+  const slot = scene.add.rectangle(x, y, width, height, 0x04111e, 0.98)
+    .setOrigin(0, 0.5)
+    .setMask(slotMask);
+  const fill = scene.add.rectangle(x, y, width, height, color, 1)
+    .setOrigin(0, 0.5)
+    .setMask(slotMask);
+  const sheen = scene.add.rectangle(x, y - height / 4, width, Math.max(2, Math.floor(height / 3)), 0xffffff, 0.13)
+    .setOrigin(0, 0.5)
+    .setMask(slotMask);
+  const valueText = scene.add.text(x + width / 2, y, "", {
     fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-    fontSize: "12px",
+    fontSize: height <= 12 ? "10px" : "11px",
     color: "#f4f9fd",
     fontStyle: "bold",
     stroke: "#060a10",
     strokeThickness: 2
-  }).setOrigin(1, 0.5);
-  return { bg, slot, fill, sheen, valueText, width: width - 6, height, x: x + 3 };
+  }).setOrigin(0.5);
+  return { bg, slot, fill, sheen, valueText, maskShape, slotMask, width, height, x };
 }
 
 export function actionLines(action) {

@@ -21,9 +21,11 @@ assert.match(battle, /localStorage\.setItem\("hud-theme"/, "La elección del mar
 assert.match(html, /select id="hud-theme"/, "Opciones debe permitir elegir el marco de combate");
 assert.match(battle, /makeHudThemeControl\(480, 367\)/, "El menú de pausa debe permitir cambiar el marco durante el combate");
 assert.match(battle, /RANK_LEVELS/, "El rango del HUD debe representarse mediante un nivel numérico escalable");
-assert.match(battle, /const fillWidth = 425/, "Las barras del HUD deben tener al menos 425 píxeles útiles");
-assert.match(battle, /barWidth, 34, 0x38df87/, "La vida debe conservar 28 píxeles útiles de alto");
-assert.match(battle, /barWidth, 17, 0x2eaff4/, "El chakra debe conservar 11 píxeles útiles de alto");
+assert.match(battle, /const healthBarWidth = 370/, "La vida debe usar una anchura compacta que deje respirar el centro del HUD");
+assert.match(battle, /healthBarWidth, 22, 0x38df87/, "La vida debe caber dentro del hueco ilustrado sin deformarlo");
+assert.match(battle, /chakraBarWidth, 10, 0x2eaff4/, "El chakra debe conservar un perfil fino dentro de su marco");
+assert.match(battle, /displayWidth \* \(theme\.health\.height \/ theme\.health\.width\)/, "El marco de vida debe respetar la proporción original de cada tema");
+assert.match(ui, /createGeometryMask\(\)/, "El relleno debe recortarse antes de quedar cubierto por el marco ilustrado");
 assert.match(battle, /barOffset: Object\.freeze/, "Cada marco debe declarar su compensación vertical de barras");
 assert.match(battle, /playerRankStar = this\.add\.text\(110, 160/, "La estrella de rango debe quedar alineada a la izquierda");
 assert.match(battle, /setFlipX\(index === 1\)/, "El marco enemigo debe mirar hacia fuera y no chocar con el del jugador");
@@ -91,7 +93,8 @@ assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repeti
 assert.match(battle, /function drawCubicBezier\(/, "La guía debe dibujar su curva sin depender de métodos inexistentes de Graphics");
 assert.match(battle, /drawCubicBezier\(rail, \{ x: -8, y: 112 \}/, "La semirrueda debe conservar la curva exterior");
 assert.doesNotMatch(battle, /rail\.(?:cubicBezierTo|bezierCurveTo)/, "La semirrueda no debe invocar métodos inexistentes de Phaser Graphics");
-assert.match(ui, /setOrigin\(1, 0\.5\)/, "Los valores de vida y chakra deben alinearse al extremo derecho de la barra");
+assert.match(ui, /x \+ width \/ 2/, "Los valores de vida y chakra deben quedar en el centro horizontal de la barra");
+assert.match(ui, /setOrigin\(0\.5\)/, "Los valores deben centrarse sobre ambos ejes dentro del relleno");
 assert.match(ui, /setDepth\(40\)/, "La zona interactiva de las acciones debe quedar por encima del escenario");
 assert.match(ui, /Adopta una postura defensiva/, "La guardia debe explicar su efecto dentro del tooltip");
 assert.match(ui, /Prec\./, "Las estadísticas de acción deben tener etiquetas comprensibles");
@@ -116,6 +119,6 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.44\.3/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.44\.4/, "El CSS corregido debe invalidar la caché anterior");
 
 console.log("Pruebas de interfaz de combate superadas.");

@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.3";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.4";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
@@ -59,17 +59,17 @@ const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",
-    file: "assets/ui/hud-themes/ancestral.png?v=0.44.3",
-    health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289 }),
-    chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199 }),
-    barOffset: Object.freeze({ healthY: -7, chakraY: -9 })
+    file: "assets/ui/hud-themes/ancestral.png?v=0.44.4",
+    health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289, displayWidth: 430 }),
+    chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199, displayWidth: 410 }),
+    barOffset: Object.freeze({ healthY: -5, chakraY: -6 })
   }),
   lunar: Object.freeze({
     texture: "hud-theme-lunar",
-    file: "assets/ui/hud-themes/lunar.png?v=0.44.3",
-    health: Object.freeze({ x: 8, y: 43, width: 851, height: 128 }),
-    chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67 }),
-    barOffset: Object.freeze({ healthY: 5, chakraY: 3 })
+    file: "assets/ui/hud-themes/lunar.png?v=0.44.4",
+    health: Object.freeze({ x: 8, y: 43, width: 851, height: 128, displayWidth: 430 }),
+    chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67, displayWidth: 410 }),
+    barOffset: Object.freeze({ healthY: 4, chakraY: 2 })
   })
 });
 let activeSave = loadSave();
@@ -354,20 +354,21 @@ class BattleScene extends Phaser.Scene {
   }
 
   createHud() {
-    const playerFrameX = 250;
-    const enemyFrameX = 710;
-    const healthFrameY = 68;
-    const chakraFrameY = 118;
-    const fillWidth = 425;
-    const barWidth = fillWidth + 6;
-    const playerBarX = playerFrameX - barWidth / 2;
-    const enemyBarX = enemyFrameX - barWidth / 2;
+    const playerFrameX = 240;
+    const enemyFrameX = 720;
+    const healthFrameY = 64;
+    const chakraFrameY = 104;
+    const healthBarWidth = 370;
+    const chakraBarWidth = 374;
+    const playerHealthX = playerFrameX - healthBarWidth / 2;
+    const playerChakraX = playerFrameX - chakraBarWidth / 2;
+    const enemyHealthX = enemyFrameX - healthBarWidth / 2;
 
     this.registerHudThemeFrames();
 
     this.playerName = this.add.text(
-      playerBarX,
-      14,
+      playerFrameX - 190,
+      12,
       `${this.saveData.character.name.toUpperCase()} · NV ${this.saveData.progression.level}`,
       {
         fontFamily: '"Cinzel", Georgia, serif',
@@ -393,9 +394,9 @@ class BattleScene extends Phaser.Scene {
       }
     ).setOrigin(0.5, 0).setDepth(21);
 
-    this.playerHpBar = createBar(this, playerBarX, healthFrameY - 7, barWidth, 34, 0x38df87);
-    this.chakraBar = createBar(this, playerBarX, chakraFrameY - 9, barWidth, 17, 0x2eaff4);
-    this.enemyHpBar = createBar(this, enemyBarX, healthFrameY - 7, barWidth, 34, 0xef4755);
+    this.playerHpBar = createBar(this, playerHealthX, healthFrameY - 5, healthBarWidth, 22, 0x38df87);
+    this.chakraBar = createBar(this, playerChakraX, chakraFrameY - 6, chakraBarWidth, 10, 0x2eaff4);
+    this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY - 5, healthBarWidth, 22, 0xef4755);
     this.hudBarCenters = { healthFrameY, chakraFrameY };
 
     const rankNumber = Math.max(1, RANK_LEVELS.indexOf(this.saveData.campaign.rank) + 1);
@@ -451,9 +452,11 @@ class BattleScene extends Phaser.Scene {
     this.hudTheme = HUD_THEMES[themeId] ? themeId : "ancestral";
     this.hudFrames.health.forEach((frame, index) => frame
       .setTexture(theme.texture, "health")
-      .setDisplaySize(500, 84)
+      .setDisplaySize(theme.health.displayWidth, theme.health.displayWidth * (theme.health.height / theme.health.width))
       .setFlipX(index === 1));
-    this.hudFrames.chakra.forEach((frame) => frame.setTexture(theme.texture, "chakra").setDisplaySize(500, 59));
+    this.hudFrames.chakra.forEach((frame) => frame
+      .setTexture(theme.texture, "chakra")
+      .setDisplaySize(theme.chakra.displayWidth, theme.chakra.displayWidth * (theme.chakra.height / theme.chakra.width)));
     this.moveHudBar(this.playerHpBar, this.hudBarCenters.healthFrameY + theme.barOffset.healthY);
     this.moveHudBar(this.enemyHpBar, this.hudBarCenters.healthFrameY + theme.barOffset.healthY);
     this.moveHudBar(this.chakraBar, this.hudBarCenters.chakraFrameY + theme.barOffset.chakraY);
@@ -463,8 +466,9 @@ class BattleScene extends Phaser.Scene {
     bar.bg.setY(y);
     bar.slot.setY(y);
     bar.fill.setY(y);
-    if (bar.sheen) bar.sheen.setY(y - bar.height / 5);
+    if (bar.sheen) bar.sheen.setY(y - bar.height / 4);
     bar.valueText.setY(y);
+    if (bar.maskShape) bar.maskShape.setPosition(bar.x, y);
   }
 
   createTurnTimeline() {
