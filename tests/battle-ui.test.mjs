@@ -26,11 +26,16 @@ assert.match(battle, /const healthBarWidth = 326/, "La vida debe sobresalir leve
 assert.match(battle, /healthBarWidth, 24, 0x38df87/, "La vida debe cubrir verticalmente el hueco del marco sin dejar rendijas");
 assert.match(battle, /chakraBarWidth, 9, 0x2eaff4/, "El chakra debe conservar un perfil fino dentro de su marco");
 assert.match(battle, /enemyHealthX[\s\S]*direction: "rtl"/, "La vida enemiga debe quedar anclada a la derecha y vaciarse desde el centro");
-assert.match(ui, /fillOriginX = drainsFromLeft \? 1 : 0/, "El constructor de barras debe admitir sentidos de vaciado opuestos");
+assert.match(battle, /fillX = bar\.direction === "rtl" \? bar\.x \+ bar\.width - fillWidth : bar\.x/, "El relleno invertido debe reposicionarse al cambiar de ancho");
+assert.match(battle, /enemyChakraBar = createBar/, "El enemigo debe mostrar una barra de chakra simétrica");
+assert.match(battle, /enemyChakraBar\.valueText\.setVisible\(false\)/, "El chakra enemigo no debe revelar una cantidad");
+assert.match(battle, /enemyChakraLock = createUiIcon\(this, "lock"/, "El chakra enemigo debe identificarse como información bloqueada");
+assert.doesNotMatch(battle, /setBarRatio\(this\.enemyChakraBar/, "El chakra enemigo no debe vaciarse visualmente");
 assert.match(battle, /displayWidth \* \(theme\.health\.height \/ theme\.health\.width\)/, "El marco de vida debe respetar la proporción original de cada tema");
 assert.match(ui, /createGeometryMask\(\)/, "El relleno debe recortarse antes de quedar cubierto por el marco ilustrado");
 assert.match(battle, /barOffset: Object\.freeze/, "Cada marco debe declarar su compensación vertical de barras");
-assert.match(battle, /playerRankStar = this\.add\.text\(110, 160/, "La estrella de rango debe quedar alineada a la izquierda");
+assert.match(battle, /const rankY = 125/, "Las estrellas de rango deben quedar justo debajo del chakra");
+assert.match(battle, /enemyRankStar = this\.add\.text\(WIDTH - 110, rankY/, "El enemigo debe mostrar un rango simétrico");
 assert.match(battle, /setFlipX\(index === 1\)/, "El marco enemigo debe mirar hacia fuera y no chocar con el del jugador");
 assert.doesNotMatch(battle, /playerX \+ 32, 57, "VIDA"/, "El HUD no debe mostrar la etiqueta VIDA");
 assert.doesNotMatch(battle, /playerX \+ 32, 80, "CHAKRA"/, "El HUD no debe mostrar la etiqueta CHAKRA");
@@ -122,6 +127,6 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.44\.6/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.44\.7/, "El CSS corregido debe invalidar la caché anterior");
 
 console.log("Pruebas de interfaz de combate superadas.");

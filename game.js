@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.6";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
@@ -59,14 +59,14 @@ const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",
-    file: "assets/ui/hud-themes/ancestral.png?v=0.44.6",
+    file: "assets/ui/hud-themes/ancestral.png?v=0.44.7",
     health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289, displayWidth: 360 }),
     chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: -4, chakraY: -5 })
   }),
   lunar: Object.freeze({
     texture: "hud-theme-lunar",
-    file: "assets/ui/hud-themes/lunar.png?v=0.44.6",
+    file: "assets/ui/hud-themes/lunar.png?v=0.44.7",
     health: Object.freeze({ x: 8, y: 43, width: 851, height: 128, displayWidth: 360 }),
     chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: 3, chakraY: 2 })
@@ -365,6 +365,7 @@ class BattleScene extends Phaser.Scene {
     const playerHealthX = playerFrameX - healthBarWidth / 2;
     const playerChakraX = playerFrameX - chakraBarWidth / 2;
     const enemyHealthX = enemyFrameX - healthBarWidth / 2;
+    const enemyChakraX = enemyFrameX - chakraBarWidth / 2;
 
     this.registerHudThemeFrames();
 
@@ -399,17 +400,37 @@ class BattleScene extends Phaser.Scene {
     this.playerHpBar = createBar(this, playerHealthX, healthFrameY - 4, healthBarWidth, 24, 0x38df87);
     this.chakraBar = createBar(this, playerChakraX, chakraFrameY - 5, chakraBarWidth, 9, 0x2eaff4);
     this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY - 4, healthBarWidth, 24, 0xef4755, { direction: "rtl" });
+    this.enemyChakraBar = createBar(this, enemyChakraX, chakraFrameY - 5, chakraBarWidth, 9, 0x24485e, { direction: "rtl" });
+    this.enemyChakraBar.valueText.setVisible(false);
+    this.enemyChakraLock = createUiIcon(this, "lock", enemyFrameX, chakraFrameY - 5, { size: 8, tint: 0xa9bfcc, depth: 24 });
+    this.enemyChakraBar.centerIcon = this.enemyChakraLock;
     this.hudBarCenters = { healthFrameY, chakraFrameY };
 
     const rankNumber = Math.max(1, RANK_LEVELS.indexOf(this.saveData.campaign.rank) + 1);
-    this.playerRankStar = this.add.text(110, 160, "★", {
+    const rankY = 125;
+    this.playerRankStar = this.add.text(110, rankY, "★", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "29px",
       color: "#f5c84b",
       stroke: "#6a3c09",
       strokeThickness: 3
     }).setOrigin(0.5).setDepth(24);
-    this.playerRankNumber = this.add.text(110, 160, String(rankNumber), {
+    this.playerRankNumber = this.add.text(110, rankY, String(rankNumber), {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: "10px",
+      color: "#241300",
+      fontStyle: "bold"
+    }).setOrigin(0.5, 0.55).setDepth(25);
+
+    const enemyRankNumber = this.enemyRankForProfile(this.encounters[this.enemyIndex]);
+    this.enemyRankStar = this.add.text(WIDTH - 110, rankY, "★", {
+      fontFamily: '"Cinzel", Georgia, serif',
+      fontSize: "29px",
+      color: "#f5c84b",
+      stroke: "#6a3c09",
+      strokeThickness: 3
+    }).setOrigin(0.5).setDepth(24);
+    this.enemyRankNumber = this.add.text(WIDTH - 110, rankY, String(enemyRankNumber), {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
       fontSize: "10px",
       color: "#241300",
@@ -421,11 +442,14 @@ class BattleScene extends Phaser.Scene {
         this.add.image(playerFrameX, healthFrameY, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25),
         this.add.image(enemyFrameX, healthFrameY, HUD_THEMES[this.hudTheme].texture, "health").setDepth(25)
       ],
-      chakra: [this.add.image(playerFrameX, chakraFrameY, HUD_THEMES[this.hudTheme].texture, "chakra").setDepth(25)]
+      chakra: [
+        this.add.image(playerFrameX, chakraFrameY, HUD_THEMES[this.hudTheme].texture, "chakra").setDepth(25),
+        this.add.image(enemyFrameX, chakraFrameY, HUD_THEMES[this.hudTheme].texture, "chakra").setDepth(25)
+      ]
     };
     this.applyHudTheme(this.hudTheme);
 
-    [this.playerHpBar, this.chakraBar, this.enemyHpBar].forEach((bar) => {
+    [this.playerHpBar, this.chakraBar, this.enemyHpBar, this.enemyChakraBar].forEach((bar) => {
       bar.bg.setDepth(21);
       if (bar.slot) bar.slot.setDepth(21);
       bar.fill.setDepth(22);
@@ -456,12 +480,14 @@ class BattleScene extends Phaser.Scene {
       .setTexture(theme.texture, "health")
       .setDisplaySize(theme.health.displayWidth, theme.health.displayWidth * (theme.health.height / theme.health.width))
       .setFlipX(index === 1));
-    this.hudFrames.chakra.forEach((frame) => frame
+    this.hudFrames.chakra.forEach((frame, index) => frame
       .setTexture(theme.texture, "chakra")
-      .setDisplaySize(theme.chakra.displayWidth, theme.chakra.displayWidth * (theme.chakra.height / theme.chakra.width)));
+      .setDisplaySize(theme.chakra.displayWidth, theme.chakra.displayWidth * (theme.chakra.height / theme.chakra.width))
+      .setFlipX(index === 1));
     this.moveHudBar(this.playerHpBar, this.hudBarCenters.healthFrameY + theme.barOffset.healthY);
     this.moveHudBar(this.enemyHpBar, this.hudBarCenters.healthFrameY + theme.barOffset.healthY);
     this.moveHudBar(this.chakraBar, this.hudBarCenters.chakraFrameY + theme.barOffset.chakraY);
+    this.moveHudBar(this.enemyChakraBar, this.hudBarCenters.chakraFrameY + theme.barOffset.chakraY);
   }
 
   moveHudBar(bar, y) {
@@ -470,7 +496,12 @@ class BattleScene extends Phaser.Scene {
     bar.fill.setY(y);
     if (bar.sheen) bar.sheen.setY(y - bar.height / 4);
     bar.valueText.setY(y);
+    if (bar.centerIcon) bar.centerIcon.setY(y);
     if (bar.maskShape) bar.maskShape.setPosition(bar.x, y);
+  }
+
+  enemyRankForProfile(profile) {
+    return profile?.boss ? 2 : 1;
   }
 
   createTurnTimeline() {
@@ -737,6 +768,7 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
+    this.enemyRankNumber.setText(String(this.enemyRankForProfile(profile)));
     this.foe = createPlayerFighter(this, 810, 372, this.playerAppearance(), true);
     this.foe.targets.forEach((target) => target.setAlpha(0));
     this.foe.shadow.setAlpha(0);
@@ -1263,8 +1295,7 @@ class BattleScene extends Phaser.Scene {
 
   refreshHud() {
     this.updateHealthBar(this.playerHpBar, this.player.hp, this.player.maxHp);
-    this.chakraBar.fill.width = this.chakraBar.width * Phaser.Math.Clamp(this.player.chakra / this.player.maxChakra, 0, 1);
-    if (this.chakraBar.sheen) this.chakraBar.sheen.width = this.chakraBar.fill.width;
+    this.setBarRatio(this.chakraBar, this.player.chakra / this.player.maxChakra);
     this.updateHealthBar(this.enemyHpBar, this.enemy.hp, this.enemy.maxHp);
 
     this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
@@ -1277,9 +1308,19 @@ class BattleScene extends Phaser.Scene {
   updateHealthBar(bar, hp, maxHp) {
     const ratio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
     const color = ratio > 0.5 ? 0x38df87 : ratio > 0.25 ? 0xf1c84b : 0xef4755;
-    bar.fill.width = bar.width * ratio;
+    this.setBarRatio(bar, ratio);
     bar.fill.setFillStyle(color, 1);
-    if (bar.sheen) bar.sheen.width = bar.fill.width;
+  }
+
+  setBarRatio(bar, ratio) {
+    const fillWidth = bar.width * Phaser.Math.Clamp(ratio, 0, 1);
+    const fillX = bar.direction === "rtl" ? bar.x + bar.width - fillWidth : bar.x;
+    bar.fill.width = fillWidth;
+    bar.fill.setX(fillX);
+    if (bar.sheen) {
+      bar.sheen.width = fillWidth;
+      bar.sheen.setX(fillX);
+    }
   }
 
   setMessage(text, color = "#edf7fd") {
