@@ -1,10 +1,10 @@
 {
   "name": "cronicas",
-  "version": "0.44.9",
+  "version": "0.45.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/rules.test.mjs && node tests/save.test.mjs && node tests/studio-format.test.mjs && node tests/character.test.mjs && node tests/village-map.test.mjs && node tests/npcs.test.mjs && node tests/assets.test.mjs && node tests/elements.test.mjs && node tests/battle-ui.test.mjs && node tests/desktop-layout.test.mjs"
+    "test": "node tests/rules.test.mjs && node tests/save.test.mjs && node tests/studio-format.test.mjs && node tests/studio-ui.test.mjs && node tests/character.test.mjs && node tests/village-map.test.mjs && node tests/npcs.test.mjs && node tests/assets.test.mjs && node tests/elements.test.mjs && node tests/battle-ui.test.mjs && node tests/desktop-layout.test.mjs"
   },
   "dependencies": {
     "lucide-static": "1.55.0"

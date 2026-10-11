@@ -17,7 +17,7 @@ assert.match(battle, /createTurnTimeline\(\)/, "El combate debe crear una barra 
 assert.match(battle, /const HUD_THEMES = Object\.freeze/, "Los marcos de combate deben compartir un catálogo de temas");
 assert.match(battle, /hud-theme-ancestral/, "El HUD debe cargar el tema Pergamino ancestral");
 assert.match(battle, /hud-theme-lunar/, "El HUD debe cargar el tema Santuario lunar");
-assert.match(battle, /ancestral\.webp\?v=0\.44\.9/, "El marco ancestral de ejecución debe usar su copia WebP optimizada");
+assert.match(battle, /ancestral\.webp\?v=0\.45\.0/, "El marco ancestral de ejecución debe usar su copia WebP optimizada");
 assert.match(battle, /Object\.values\(HUD_THEMES\)\.forEach\(\(theme\) =>/, "Los dos marcos WebP deben quedar disponibles sin parpadeos al alternarlos");
 assert.match(battle, /registerHudThemeFrames\(\)/, "Los marcos de vida y chakra deben registrarse como subframes transparentes");
 assert.match(battle, /applyHudTheme\(themeId\)/, "El tema debe poder cambiarse durante el combate");
@@ -131,7 +131,7 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.44\.9/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.45\.0/, "El CSS corregido debe invalidar la caché anterior");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
 assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");

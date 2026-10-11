@@ -1,5 +1,5 @@
 import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.44.0";
-import { addAnimationOffsets, TRANSFORM_PROPERTIES } from "./runtime.js";
+import { addAnimationOffsets, isKeyframeAnimationClip, sampleKeyframeAnimationPose, TRANSFORM_PROPERTIES } from "./runtime.js";
 
 function targetFor(fighter, name) {
   if (name === "torso") return fighter.sprite;
@@ -47,6 +47,7 @@ export class PuppetAnimationController {
     this.stop({ reset: true });
     this.current = clip;
     const generation = this.generation;
+    if (isKeyframeAnimationClip(clip)) return this.playKeyframeClip(clip, { generation, timeScale });
     const playableTracks = clip.tracks.map((track) => ({ track, target: targetFor(this.fighter, track.target) })).filter(({ target }) => target);
     let remaining = playableTracks.length;
     this.finished = new Promise((resolve) => { this.resolveFinished = resolve; });
@@ -81,6 +82,44 @@ export class PuppetAnimationController {
       this.tweens.push(tween);
     }
     if (remaining === 0) this.complete();
+    return true;
+  }
+
+  playKeyframeClip(clip, { generation, timeScale }) {
+    const targets = new Map();
+    Object.keys(clip.keys).forEach((name) => {
+      const target = targetFor(this.fighter, name);
+      if (!target) return;
+      const base = this.neutral.get(target) || snapshot(target);
+      this.neutral.set(target, base);
+      this.touched.set(target, base);
+      targets.set(name, { target, base });
+    });
+
+    const applyAt = (elapsed) => {
+      const pose = sampleKeyframeAnimationPose(clip, elapsed);
+      Object.entries(pose).forEach(([name, offsets]) => {
+        const entry = targets.get(name);
+        if (entry) Object.assign(entry.target, addAnimationOffsets(entry.base, offsets));
+      });
+    };
+
+    applyAt(0);
+    const clock = { elapsed: 0 };
+    this.finished = new Promise((resolve) => { this.resolveFinished = resolve; });
+    const tween = this.scene.tweens.add({
+      targets: clock,
+      elapsed: clip.duration,
+      duration: Math.max(1, clip.duration / timeScale),
+      ease: "Linear",
+      repeat: clip.loop ? -1 : 0,
+      onUpdate: () => applyAt(clock.elapsed),
+      onComplete: clip.loop ? undefined : () => {
+        applyAt(clip.duration);
+        if (generation === this.generation) this.complete();
+      }
+    });
+    this.tweens.push(tween);
     return true;
   }
 

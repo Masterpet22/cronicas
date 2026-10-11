@@ -1,6 +1,6 @@
 # Crónicas Studio — Diseño y plan de implementación
 
-Estado: plan de implementación v2, 2026-10-11. Fase 1 completada en `main`.
+Estado: plan de implementación v3, 2026-10-11. Fases 1, 2 y 3 implementadas en el árbol de trabajo; fases 4 a 6 pendientes.
 
 ## Objetivo
 Construir un editor web gratuito, integrado con Crónicas, para calibrar personajes modulares, configurar esqueletos masculino/femenino, crear animaciones por fotogramas clave, asociar ropa y variantes de sprites, y exportar resultados reutilizables. El jugador configura el avatar; el desarrollador crea recursos y movimientos.
@@ -9,11 +9,11 @@ El resultado principal del Studio no es una captura ni una animación aislada: e
 
 ## Estado observado y brecha de integración
 
-- El prototipo ya crea claves de rotación, reproduce, pausa e importa/exporta `cronicas-studio/v1`.
-- El juego usa `PUPPET_ANIMATION_CLIPS`, cuyas pistas contienen `target`, `from`, `to`, `duration`, `delay`, `ease` y `yoyo`.
-- El JSON inicial del Studio solo describía secuencias `{t, angle}` y no incluía los metadatos necesarios para el catálogo.
-- Exportar un archivo desde el navegador todavía no equivale a instalarlo en el juego. Primero debe superar validación estructural, compatibilidad de rig y comparación visual entre Studio y Phaser.
-- La interfaz objetivo puede construirse sobre este flujo, pero ningún control debe guardar información que el esquema o el runtime no comprendan.
+- `cronicas-studio.html` ya crea claves multipropiedad, reproduce, pausa, conserva historial e importa/exporta `cronicas-studio/v1`.
+- El juego acepta en paralelo clips heredados por `tracks` y clips Studio por `keys`; ambos pasan por `PuppetAnimationController`.
+- `studio-adapter.js` convierte un candidato validado en un clip de catálogo sin degradarlo a un único tween.
+- Studio y el controlador del juego comparten `sampleKeyframeAnimationPose`; la prueba de paridad compara exactamente las mismas poses en puntos intermedios y finales.
+- Exportar un candidato todavía no lo instala automáticamente en la biblioteca del juego: esa aprobación e incorporación pertenecen a la fase 5.
 
 ## Principios
 1. **Separación**: esqueleto (estructura), anatomía (medidas), movimiento (animación), apariencia (skins y equipo), variantes de sprite (poses de manos/pies), anclajes (armas).
@@ -104,15 +104,18 @@ Hay dos niveles de validación:
 3. El inventario guarda IDs, no imágenes ni animaciones duplicadas.
 4. Al atacar, el juego selecciona el clip según la habilidad y el arma; la ropa sigue los huesos automáticamente.
 
-## Arquitectura recomendada
+## Arquitectura implementada
 - `puppet-calibrator.html`: conservar como herramienta de calibración.
-- `animation-studio.html`: interfaz de edición; MVP en rama.
+- `animation-studio.html`: prototipo histórico conservado por compatibilidad.
+- `cronicas-studio.html` y `cronicas-studio.css`: entrada canónica y distribución visual del editor unificado.
+- `src/studio/editor.js`: estado del proyecto, lienzo, jerarquía, inspector, timeline, historial, importación y exportación.
 - `src/animations/rig.js`: base de jerarquía ya existente.
-- `src/animations/runtime.js`: runtime actual de clips; ampliar para nuevas pistas de fotogramas clave.
+- `src/animations/runtime.js`: muestreo común de clips heredados y de fotogramas clave.
 - `src/animations/clips.js`: catálogo de movimientos existentes.
 - `src/animations/studio-format.js`: contrato, normalización, validación e importación/exportación determinista.
-- `src/animations/studio-runtime.js`: muestreo del proyecto editable con las mismas propiedades y curvas nominales del juego.
-- Futuro: `studio-adapter.js` (compatibilidad con catálogo/runtime), `skins.js` (resolución de slots) y `anatomies.js` (pivotes y escala).
+- `src/animations/studio-runtime.js`: fachada de validación y muestreo del proyecto editable.
+- `src/animations/studio-adapter.js`: conversión validada de proyectos Studio a clips del catálogo.
+- Futuro: `skins.js` (resolución de slots) y `anatomies.js` (pivotes y escala).
 
 ## Plan de implementación detallado
 
@@ -148,36 +151,40 @@ Hay dos niveles de validación:
 - La suite automatizada permanece en verde.
 - No se afirma todavía que el clip esté integrado en combate.
 
-### Fase 2 — Paridad de runtime y adaptador del juego
+### Fase 2 — Paridad de runtime y adaptador del juego (completada)
 
 **Propósito:** lograr que Studio y Phaser produzcan la misma pose para el mismo archivo y tiempo.
 
-**Tareas:**
+**Entregado:**
 
-- Definir un lector directo de fotogramas clave o un adaptador sin pérdida; no convertir secuencias complejas en un único tween.
-- Mantener los clips heredados de `clips.js` mediante una capa de compatibilidad durante la migración.
-- Resolver propiedades concurrentes por objetivo sin crear tweens que compitan entre sí.
-- Aplicar prioridad de estados, restauración de pose y bucles igual que el controlador actual.
-- Crear una prueba de paridad que muestree inicio, puntos intermedios, claves y final en ambos runtimes.
-- Añadir una vista de combate de prueba que cargue un archivo exportado como borrador.
+- Lector directo de `keys` y adaptador sin pérdida; no se aplana una animación multipista a un solo tramo.
+- Compatibilidad simultánea con el catálogo heredado de `tracks`.
+- Un reloj por clip Studio: las propiedades concurrentes se muestrean juntas y no crean tweens rivales sobre el mismo objetivo.
+- Prioridad, bucle, finalización y restauración neutral permanecen bajo `PuppetAnimationController`.
+- Curvas `Linear`, `Sine`, `Quad`, `Cubic` y `Back`, con variantes `in`, `out` e `inOut`, evaluadas por la función compartida.
+- Pruebas de paridad Studio/juego, validación de catálogo, IDs duplicados, duración, pose intermedia y restauración final.
+- Prueba de integración del controlador con un candidato exportado. La incorporación permanente al catálogo y la prueba de combate editorial siguen reservadas para la fase 5.
 
-**Criterio de salida:** diferencia cero en propiedades numéricas entre la previsualización del Studio y el adaptador de Phaser para un conjunto representativo de clips.
+**Criterio de salida alcanzado:** diferencia cero en propiedades numéricas entre la previsualización del Studio y el adaptador consumido por el controlador del juego para el conjunto automatizado.
 
-### Fase 3 — Interfaz de autor alineada con la guía visual
+### Fase 3 — Interfaz de autor alineada con la guía visual (completada)
 
 **Propósito:** reconstruir la experiencia del editor sobre el contrato ya estable.
 
-**Tareas:**
+**Entregado:**
 
-- Ajustar escala y proporciones del lienzo; el personaje debe verse completo a un zoom coherente.
-- Navegación superior por Animador, Calibrador, Sprites, Exportar y Proyecto.
-- Árbol jerárquico con visibilidad y bloqueo sin duplicar la jerarquía de `rig.js`.
-- Inspector de transformaciones relativas, no de posiciones de calibración.
-- Timeline con regla, pistas, claves, eventos, FPS de visualización y zoom temporal.
-- Vista fantasma, miniatura de previsualización y curvas nominales.
-- Deshacer/rehacer mediante comandos serializables.
+- Distribución de escritorio con cabecera de 56 px, árbol izquierdo de 270 px, área central flexible, inspector de 310 px y timeline inferior.
+- Navegación superior por Animador, Calibrador, Sprites, Exportar y Proyecto, sin `iframe`.
+- Árbol derivado de `rig.js`, capas, búsqueda, visibilidad y bloqueo de edición.
+- Inspector separado para transformaciones relativas de animación y valores absolutos de calibración.
+- Timeline con regla, pistas por objetivo, claves arrastrables con ajuste a FPS, eventos de sprite, referencia visual y zoom temporal.
+- Selección múltiple, copiar, pegar, duplicar, eliminar y atajos de reproducción/herramientas.
+- Vista fantasma regulable, miniatura de previsualización y representación de las curvas nominales permitidas.
+- Historial serializable de hasta 80 estados para deshacer y rehacer.
+- Guardado local recuperable, apertura de JSON, exportación del proyecto y exportación del candidato solo si supera validación `game`.
+- Retirada explícita de service workers y cachés antiguas antes de cargar los módulos del Studio.
 
-**Criterio de salida:** todas las operaciones visibles de la primera versión de la guía modifican campos definidos por el esquema o son controles puramente visuales.
+**Criterio de salida alcanzado:** las operaciones de animación visibles modifican campos del esquema; zoom, cuadrícula, visibilidad, bloqueo y vista fantasma son estado visual del editor. La gestión real de recursos del modo Sprites corresponde a la fase 4.
 
 ### Fase 4 — Anatomías, prendas, variantes y armas
 

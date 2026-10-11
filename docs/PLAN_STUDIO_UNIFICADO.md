@@ -1,6 +1,6 @@
-# Crónicas Studio — Plan de unificación y desarrollo
+# Crónicas Studio — Plan histórico de unificación
 
-Estado: fase 1 en desarrollo. Rama `feature/studio-unificado-fase1`. Fecha: 2026-10-11.
+Estado: sustituido el 2026-10-11 por [`CRONICAS_STUDIO.md`](CRONICAS_STUDIO.md), que es el plan canónico y conserva el desglose vigente de las fases. Este documento se mantiene únicamente como registro de la propuesta inicial; sus estados y numeración no deben usarse para decidir trabajo nuevo.
 
 ## Objetivo
 Una única aplicación web gratuita, enteramente en español, que combine calibración, animación, recursos de sprites, vestuario y vista previa; basada en la propuesta visual elegida (timeline multipista, lienzo central, inspector y vista fantasma activable).

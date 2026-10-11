@@ -8,6 +8,15 @@ import {
   validateStudioProject
 } from "../src/animations/studio-format.js";
 import { sampleStudioAnimation, validateStudioAnimation } from "../src/animations/studio-runtime.js";
+import { studioProjectToAnimationClip, studioProjectsToAnimationCatalog } from "../src/animations/studio-adapter.js";
+import { PuppetAnimationController } from "../src/animations/controller.js";
+import { validateAnimationCatalog } from "../src/animations/schema.js";
+import { animationClipDuration, animationEase, sampleAnimationPose } from "../src/animations/runtime.js";
+
+assert.equal(animationEase(0.5, "Linear"), 0.5);
+assert.equal(animationEase(0.5, "Quad.in"), 0.25);
+assert.equal(animationEase(0.5, "Quad.out"), 0.75);
+assert.equal(animationEase(0.25, "Quad.inOut"), 0.125);
 
 const legacyProject = {
   schema: STUDIO_SCHEMA,
@@ -64,6 +73,38 @@ assert.equal(pose.shoulderRight.angle, -52.5, "El muestreador debe compartir la 
 assert.equal(pose.shoulderRight.x, 8.75, "El formato debe admitir más transformaciones que el ángulo");
 assert.deepEqual(pose.rig, { y: -5, scaleX: 0.05, scaleY: -0.05, alpha: -0.5 }, "Todas las transformaciones relativas deben interpolarse de forma determinista");
 assert.equal(validateStudioAnimation(roundTrip).id, "attack_export_test");
+
+const adapted = studioProjectToAnimationClip(roundTrip);
+const priorities = { idle: 1, locomotion: 2, action: 3, hit: 4, defeated: 5 };
+assert.deepEqual(validateAnimationCatalog({ [adapted.id]: adapted }, priorities), [], "El catálogo del juego debe aceptar clips de fotogramas clave");
+assert.deepEqual(sampleAnimationPose(adapted, 500), pose, "Studio y el runtime del juego deben producir la misma pose");
+assert.equal(animationClipDuration(adapted), 1000);
+assert.deepEqual(Object.keys(studioProjectsToAnimationCatalog([roundTrip])), [adapted.id]);
+assert.throws(() => studioProjectsToAnimationCatalog([roundTrip, roundTrip]), /duplicado/);
+
+const makeTarget = () => ({ x: 0, y: 0, angle: 0, scaleX: 1, scaleY: 1, alpha: 1 });
+const tweenConfigs = [];
+const scene = { tweens: { add(config) { tweenConfigs.push(config); return { stop() {} }; } } };
+const fighter = {
+  rig: makeTarget(),
+  sprite: makeTarget(),
+  body: makeTarget(),
+  shadow: makeTarget(),
+  joints: { shoulderRight: makeTarget() }
+};
+const controller = new PuppetAnimationController(scene, fighter, { [adapted.id]: adapted });
+const finished = controller.playOnce(adapted.id, { force: true });
+assert.equal(tweenConfigs.length, 1, "Un clip multipista debe usar un solo reloj para evitar tweens en competencia");
+tweenConfigs[0].targets.elapsed = 500;
+tweenConfigs[0].onUpdate();
+assert.equal(fighter.joints.shoulderRight.angle, -52.5);
+assert.equal(fighter.rig.y, -5);
+assert.equal(fighter.rig.scaleX, 1.05);
+tweenConfigs[0].targets.elapsed = 1000;
+tweenConfigs[0].onUpdate();
+tweenConfigs[0].onComplete();
+assert.equal(await finished, true);
+assert.deepEqual(fighter.rig, makeTarget(), "Al terminar, el controlador debe restaurar la pose neutral");
 
 const empty = createStudioProject();
 assert.ok(validateStudioProject(empty, { mode: "game" }).some((error) => error.includes("al menos una pista")), "Un borrador vacío no debe marcarse como publicable");
