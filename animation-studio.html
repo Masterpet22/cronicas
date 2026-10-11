@@ -9,7 +9,7 @@
 </style>
 </head><body>
 <div class="app">
-<header class="bar"><strong>Crónicas Studio <small class="small">· Editor de animaciones (prueba)</small></strong><a href="./puppet-calibrator.html" class="nav-link">Ir al calibrador</a><button id="new">Nueva animación</button><button id="save">Exportar JSON</button><button id="open">Importar JSON</button><input type="file" id="file" accept=".json,application/json"></header>
+<header class="bar"><strong>Crónicas Studio <small class="small">· Editor de animaciones (prueba)</small></strong><a href="./cronicas-studio.html#calibrador" class="nav-link">Ir al calibrador</a><button id="new">Nueva animación</button><button id="save">Exportar JSON</button><button id="open">Importar JSON</button><input type="file" id="file" accept=".json,application/json"></header>
 <aside class="side left"><h2>Esqueleto compartido</h2><p class="small">Selecciona un hueso para editar su rotación. Se muestran los sprites originales de Crónicas. La jerarquía se calcula con rig.js y los fotogramas clave rotan huesos y piezas.</p><div id="bones" class="stack"></div></aside>
 <main class="stage"><svg id="viewport" viewBox="-650 -700 1300 1700" aria-label="Editor visual de huesos y sprites"><g id="rig"></g></svg></main>
 <aside class="side right"><h2>Propiedades</h2><label>Animación</label><input id="name" type="text" value="nuevo_movimiento" maxlength="80"><label>Duración (ms)</label><input id="duration" type="number" min="100" max="60000" step="100" value="1000"><label>Articulación seleccionada</label><strong id="selected">shoulderRight</strong><label>Ángulo (grados)</label><input type="number" id="angle" min="-360" max="360" step="1" value="0"><label>Rotar visualmente</label><input type="range" id="angle-slider" min="-180" max="180" value="0"><div class="controls" style="margin-top:14px"><button id="add">Guardar fotograma</button><button id="remove">Eliminar fotograma</button></div><p class="small">La edición crea una clave en el tiempo actual. Las claves se interpolan linealmente. No modifica el catálogo del juego todavía.</p><p class="status" id="status" role="status"></p></aside>
@@ -36,6 +36,14 @@ function updateBones(){const host=$("bones");host.replaceChildren();ids.forEach(
 const PARTS=[
 ["pie_derecho",-175.526,732.316],["brazo_izquierdo",161.481,-174.474,"brazo_derecho"],["mano_derecha",-291.203,251.237],["muslo_izquierdo",117.315,255.895],["torso",-41,-72.5],["muslo_derecho",-93.789,261.869],["pie_izquierdo",153.763,715.421],["pierna_derecha",-140.026,527.974],["pierna_izquierda",151.263,520.474],["brazo_derecho",-242.955,-164.184,"brazo_izquierdo"],["antebrazo_derecho",-315.639,62.658],["antebrazo_izquierdo",278.403,24.447],["mano_izquierda",355.423,215.474],["cabeza",-10.737,-498.684]
 ]; 
+// Reutilizar la calibración realizada en el mismo origen por el calibrador.
+try {
+ const saved=JSON.parse(localStorage.getItem("cronicas-studio:calibration:male")||"null");
+ if(saved?.version===2&&Array.isArray(saved.parts)){
+   const positions=new Map(saved.parts.filter(p=>p&&typeof p.id==="string").map(p=>[p.id,p]));
+   PARTS.forEach(part=>{const calibrated=positions.get(part[0]);if(calibrated&&Number.isFinite(calibrated.x)&&Number.isFinite(calibrated.y)){part[1]=calibrated.x;part[2]=calibrated.y}});
+ }
+} catch(err){console.warn("Calibración local ignorada",err)}
 const PART_TO_JOINT={cabeza:"neck",brazo_derecho:"shoulderRight",antebrazo_derecho:"elbowRight",mano_derecha:"wristRight",brazo_izquierdo:"shoulderLeft",antebrazo_izquierdo:"elbowLeft",mano_izquierda:"wristLeft",muslo_derecho:"hipRight",pierna_derecha:"kneeRight",pie_derecho:"ankleRight",muslo_izquierdo:"hipLeft",pierna_izquierda:"kneeLeft",pie_izquierdo:"ankleLeft"};
 const matMul=(a,b)=>[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];
 const tr=(x,y)=>[1,0,0,1,x,y];
