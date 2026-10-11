@@ -55,8 +55,12 @@ await Promise.all(locationIds.map(async (id) => {
   assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
   assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
 }));
+const hudThemeDimensions = { ancestral: [2172, 724], lunar: [866, 288] };
 for (const theme of ["ancestral", "lunar"]) {
   const png = await readFile(new URL(`../assets/ui/hud-themes/${theme}.png`, import.meta.url));
   assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `El tema ${theme} debe ser un PNG válido`);
+  const runtimeImage = webpDimensions(await readFile(new URL(`../assets/ui/hud-themes/${theme}.webp`, import.meta.url)), `${theme}.webp`);
+  assert.deepEqual([runtimeImage.width, runtimeImage.height], hudThemeDimensions[theme], `El tema optimizado ${theme} no debe recortarse`);
+  assert.equal(runtimeImage.alpha, true, `El tema optimizado ${theme} debe conservar transparencia`);
 }
 console.log("Pruebas de recursos modulares superadas.");

@@ -59,19 +59,24 @@ const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",
-    file: "assets/ui/hud-themes/ancestral.png?v=0.44.7",
+    file: "assets/ui/hud-themes/ancestral.webp?v=0.44.8",
     health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289, displayWidth: 360 }),
     chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: -4, chakraY: -5 })
   }),
   lunar: Object.freeze({
     texture: "hud-theme-lunar",
-    file: "assets/ui/hud-themes/lunar.png?v=0.44.7",
+    file: "assets/ui/hud-themes/lunar.webp?v=0.44.8",
     health: Object.freeze({ x: 8, y: 43, width: 851, height: 128, displayWidth: 360 }),
     chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: 3, chakraY: 2 })
   })
 });
+const BATTLE_ARENAS = Object.freeze([
+  Object.freeze({ texture: "travel-forest", file: "assets/locations/battle-dusk-pass.jpg?v=0.20.0" }),
+  Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh.jpg?v=0.20.0" }),
+  Object.freeze({ texture: "bg-moon", file: "assets/locations/battle-moon-shrine.jpg?v=0.20.0" })
+]);
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -80,7 +85,7 @@ class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
 
   preload() {
-    this.load.image("travel-forest", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
+    this.load.image(BATTLE_ARENAS[0].texture, BATTLE_ARENAS[0].file);
     queuePlayerFighterTextures(this, playerFighterAppearance(activeSave));
   }
 
@@ -132,13 +137,20 @@ class BattleScene extends Phaser.Scene {
   constructor() { super("battle"); }
 
   preload() {
-    this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
+    const arenaIndex = ((activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
+    const arena = BATTLE_ARENAS[arenaIndex];
+    this.battleBackgroundKey = arena.texture;
+    if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
+
+    // Ambos marcos optimizados pesan juntos menos de un tercio del PNG ancestral
+    // anterior. Cargarlos aquí evita parpadeos al alternarlos desde la pausa.
+    Object.values(HUD_THEMES).forEach((theme) => {
+      if (!this.textures.exists(theme.texture)) this.load.image(theme.texture, theme.file);
+    });
+
+    const needsSealSheet = activeSave.loadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
+    if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
     loadUiIcons(this);
-    this.load.image("bg-dusk", "assets/locations/battle-dusk-pass.jpg?v=0.20.0");
-    this.load.image("bg-marsh", "assets/locations/battle-mist-marsh.jpg?v=0.20.0");
-    this.load.image("bg-moon", "assets/locations/battle-moon-shrine.jpg?v=0.20.0");
-    this.load.image("bg-arena", "assets/locations/arena.webp?v=0.20.0");
-    Object.values(HUD_THEMES).forEach(({ texture, file }) => this.load.image(texture, file));
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.mission = activeMission;
@@ -185,7 +197,7 @@ class BattleScene extends Phaser.Scene {
     this.configurePresentationOptions();
     try { this.seenJutsus = new Set(JSON.parse(window.localStorage.getItem("seen-jutsus") || "[]")); } catch (_) { this.seenJutsus = new Set(); }
 
-    this.makeSealFrames();
+    if (this.textures.exists("sealSheet")) this.makeSealFrames();
     this.drawArena();
     this.createHud();
     this.createFighters();
@@ -307,11 +319,9 @@ class BattleScene extends Phaser.Scene {
 
   drawArena() {
     const theme = (this.mission.number - 1) % 3;
-    const bgKey = theme === 0 ? "bg-dusk" : theme === 1 ? "bg-marsh" : "bg-moon";
+    const bgKey = this.battleBackgroundKey || BATTLE_ARENAS[theme].texture;
     if (this.textures.exists(bgKey)) {
       this.add.image(WIDTH / 2, HEIGHT / 2, bgKey).setDisplaySize(WIDTH, HEIGHT).setDepth(0);
-    } else if (this.textures.exists("bg-arena")) {
-      this.add.image(WIDTH / 2, HEIGHT / 2, "bg-arena").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
     }
 
     const g = this.add.graphics().setDepth(1);
@@ -461,21 +471,40 @@ class BattleScene extends Phaser.Scene {
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
   }
 
-  registerHudThemeFrames() {
-    Object.values(HUD_THEMES).forEach((theme) => {
-      const texture = this.textures.get(theme.texture);
-      for (const frameName of ["health", "chakra"]) {
-        if (!texture.has(frameName)) {
-          const frame = theme[frameName];
-          texture.add(frameName, 0, frame.x, frame.y, frame.width, frame.height);
-        }
+  registerHudThemeFrames(themeId = this.hudTheme) {
+    const theme = HUD_THEMES[themeId] || HUD_THEMES.ancestral;
+    if (!this.textures.exists(theme.texture)) return false;
+    const texture = this.textures.get(theme.texture);
+    for (const frameName of ["health", "chakra"]) {
+      if (!texture.has(frameName)) {
+        const frame = theme[frameName];
+        texture.add(frameName, 0, frame.x, frame.y, frame.width, frame.height);
       }
+    }
+    return true;
+  }
+
+  loadHudTheme(themeId) {
+    const theme = HUD_THEMES[themeId] || HUD_THEMES.ancestral;
+    if (this.loadingHudTheme === theme.texture) return;
+    this.loadingHudTheme = theme.texture;
+    this.load.once(`filecomplete-image-${theme.texture}`, () => {
+      this.loadingHudTheme = null;
+      this.registerHudThemeFrames(themeId);
+      if (this.hudFrames && this.hudTheme === themeId) this.applyHudTheme(themeId);
     });
+    this.load.once("loaderror", () => { this.loadingHudTheme = null; });
+    this.load.image(theme.texture, theme.file);
+    this.load.start();
   }
 
   applyHudTheme(themeId) {
     const theme = HUD_THEMES[themeId] || HUD_THEMES.ancestral;
     this.hudTheme = HUD_THEMES[themeId] ? themeId : "ancestral";
+    if (!this.registerHudThemeFrames(this.hudTheme)) {
+      this.loadHudTheme(this.hudTheme);
+      return;
+    }
     this.hudFrames.health.forEach((frame, index) => frame
       .setTexture(theme.texture, "health")
       .setDisplaySize(theme.health.displayWidth, theme.health.displayWidth * (theme.health.height / theme.health.width))
@@ -1564,9 +1593,11 @@ bindGlobalOptions();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js").catch(() => {
-      // La caché persistente es una mejora; el juego sigue funcionando sin ella.
-    });
+    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
+      .then((registration) => registration.update())
+      .catch(() => {
+        // La caché persistente es una mejora; el juego sigue funcionando sin ella.
+      });
   }, { once: true });
 }
 
@@ -1590,6 +1621,7 @@ mountMetaUI(metaRoot, activeSave, async (save, mission) => {
     height: renderSize.height,
     backgroundColor: "#101622",
     scene: [MissionTravelScene, BattleScene, PauseScene],
+    loader: { maxParallelDownloads: 6 },
     render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
   });
