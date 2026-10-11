@@ -77,3 +77,14 @@ src/animations/studio-runtime.js # sampler compartido existente
 - Calibración compartida debe validarse: valores modificados por jugador/desarrollador requieren normalización.
 - Las páginas antiguas pueden abrirse por separado y continuar con su comportamiento histórico.
 - El onion skin y la línea de tiempo avanzada quedan programados para fase 3, no fingir que ya funcionan.
+
+
+## Actualización de implementación — lienzo e interfaz unificados (2026-10-11)
+- Implementado un único lienzo Canvas 2D en `cronicas-studio.html`, sin iframe, para calibrador y animador.
+- Estado común de piezas, calibración, huesos, clips, tiempo, selección y modo; persistencia local y exportación/importación de proyecto completo.
+- Se utilizan los sprites del juego y `rig.js`/`studio-runtime.js`, con jerarquía de huesos para la vista previa.
+- Nueva distribución con lista izquierda, lienzo central, inspector derecho y línea de tiempo inferior. Barra de herramientas con zoom, pan, cuadrícula y visualización de huesos.
+- Vista fantasma activable con opacidad ajustable y una pose anterior/siguiente.
+- Editor de claves de rotación y selector de tiempo en la línea inferior.
+- Pendiente: pruebas completas en navegador, calibración femenina, arrastre multipista avanzado, editor de curvas y variantes de sprites; la vista fantasma actual se basa en posiciones temporales adyacentes, no en fotogramas históricos independientes.
+- La integración con el motor de combate sigue pendiente: exportar proyecto no incorpora automáticamente clips a `clips.js`.
