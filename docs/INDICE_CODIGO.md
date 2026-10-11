@@ -122,7 +122,7 @@ Escena `PauseScene`:
 ### `src/meta-ui.js` — Aldea y metajuego
 
 - `mountMetaUI`: monta la creación del personaje, mapa, ubicaciones, diálogos, misiones, dojo y archivo.
-- `warmImage`, `warmLocationAssets`, `scheduleLocationWarmup`: precargan fondos y retratos sin bloquear la vista actual.
+- `warmImage`, `warmLocationAssets`: anticipan únicamente los fondos y retratos de la ubicación señalada o enfocada; no descargan secciones que el jugador todavía no abrió.
 - `escapeHtml`: protege el texto que se inserta en plantillas HTML.
 - `VILLAGE_LOCATIONS`: geometría, nombres y descripciones de los destinos del mapa.
 

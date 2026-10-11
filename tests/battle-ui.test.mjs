@@ -8,6 +8,7 @@ const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.me
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const calibrator = readFileSync(new URL("../puppet-calibrator.html", import.meta.url), "utf8");
 const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
+const metaUi = readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8");
 
 assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
 assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
@@ -16,7 +17,7 @@ assert.match(battle, /createTurnTimeline\(\)/, "El combate debe crear una barra 
 assert.match(battle, /const HUD_THEMES = Object\.freeze/, "Los marcos de combate deben compartir un catálogo de temas");
 assert.match(battle, /hud-theme-ancestral/, "El HUD debe cargar el tema Pergamino ancestral");
 assert.match(battle, /hud-theme-lunar/, "El HUD debe cargar el tema Santuario lunar");
-assert.match(battle, /ancestral\.webp\?v=0\.44\.8/, "El marco ancestral de ejecución debe usar su copia WebP optimizada");
+assert.match(battle, /ancestral\.webp\?v=0\.44\.9/, "El marco ancestral de ejecución debe usar su copia WebP optimizada");
 assert.match(battle, /Object\.values\(HUD_THEMES\)\.forEach\(\(theme\) =>/, "Los dos marcos WebP deben quedar disponibles sin parpadeos al alternarlos");
 assert.match(battle, /registerHudThemeFrames\(\)/, "Los marcos de vida y chakra deben registrarse como subframes transparentes");
 assert.match(battle, /applyHudTheme\(themeId\)/, "El tema debe poder cambiarse durante el combate");
@@ -130,10 +131,16 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.44\.8/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.44\.9/, "El CSS corregido debe invalidar la caché anterior");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
-assert.match(serviceWorker, /if \(cached\) return \{ response: cached/, "La caché debe responder sin iniciar otra descarga del mismo recurso");
-assert.match(battle, /updateViaCache: "none"/, "El navegador debe comprobar las correcciones del service worker sin reutilizar su script anterior");
+assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");
+assert.match(serviceWorker, /self\.registration\.unregister\(\)/, "El trabajador anterior debe desregistrarse al actualizarse");
+assert.match(serviceWorker, /client\.navigate\(client\.url\)/, "Los clientes controlados deben recargarse fuera del trabajador anterior");
+assert.doesNotMatch(battle, /serviceWorker\.register/, "El juego no debe volver a registrar una caché de aplicación");
+assert.match(html, /navigator\.serviceWorker\.getRegistrations\(\)/, "La página debe retirar registros anteriores antes de cargar recursos");
+assert.match(html, /window\.stop\(\)/, "La migración debe detener las solicitudes iniciadas por el trabajador anterior");
+assert.doesNotMatch(metaUi, /scheduleLocationWarmup/, "La plaza no debe descargar ubicaciones que el jugador todavía no abrió");
+assert.match(metaUi, /loading="eager" fetchpriority="high"/, "Los personajes de la ubicación visible deben cargarse sin marcadores diferidos");
 
 console.log("Pruebas de interfaz de combate superadas.");

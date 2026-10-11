@@ -5,12 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="Demo de RPG ninja 2D por turnos con campaña y progresión.">
   <title>Crónicas del Sello · Demo</title>
+  <script>
+    // Retira la caché de aplicación anterior antes de solicitar imágenes o módulos.
+    (() => {
+      if (!("serviceWorker" in navigator)) return;
+      const marker = "cronicas-sw-retired-v0.44.9";
+      const scope = new URL("./", window.location.href).href;
+      const wasControlled = Boolean(navigator.serviceWorker.controller);
+      const shouldReload = wasControlled && !sessionStorage.getItem(marker);
+      if (shouldReload) {
+        sessionStorage.setItem(marker, "1");
+        window.stop();
+      }
+      const cleanup = Promise.all([
+        navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(
+          registrations.filter((registration) => registration.scope === scope).map((registration) => registration.unregister())
+        )),
+        "caches" in window
+          ? caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith("cronicas-assets-")).map((key) => caches.delete(key))))
+          : Promise.resolve()
+      ]);
+      cleanup.finally(() => {
+        if (shouldReload) window.location.reload();
+        else sessionStorage.removeItem(marker);
+      });
+    })();
+  </script>
   <link rel="icon" href="assets/favicon.png?v=0.20.0" type="image/png">
   <link rel="preload" href="assets/fonts/cinzel-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/alegreya-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/village/aldea.webp?v=0.20.0" as="image" type="image/webp" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css?v=0.44.8">
-  <link rel="stylesheet" href="desktop.css?v=0.44.8">
+  <link rel="stylesheet" href="styles.css?v=0.44.9">
+  <link rel="stylesheet" href="desktop.css?v=0.44.9">
 </head>
 <body>
   <main>
@@ -42,6 +68,6 @@
     <noscript>Este prototipo necesita JavaScript activado.</noscript>
   </main>
   <script defer src="assets/vendor/phaser-3.90.0.min.js"></script>
-  <script type="module" src="game.js?v=0.44.8"></script>
+  <script type="module" src="game.js?v=0.44.9"></script>
 </body>
 </html>

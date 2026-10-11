@@ -19,7 +19,6 @@ const TUTORIAL = [
 ];
 const ASSET_VERSION = "0.20.0";
 const warmedImages = new Map();
-let locationWarmupScheduled = false;
 
 function warmImage(src) {
   if (warmedImages.has(src)) return warmedImages.get(src);
@@ -42,19 +41,6 @@ function warmLocationAssets(locationId) {
     warmImage(`assets/locations/${locationId}.webp?v=${ASSET_VERSION}`),
     ...(LOCATION_CAST[locationId] || []).map((id) => warmImage(`${NPCS[id].image}?v=${ASSET_VERSION}`))
   ]);
-}
-
-function scheduleLocationWarmup() {
-  if (locationWarmupScheduled) return;
-  locationWarmupScheduled = true;
-  const run = async () => {
-    // Prioriza las tres secciones utilizables y evita competir con el mapa inicial.
-    for (const locationId of ["headquarters", "dojo", "archive"]) {
-      await warmLocationAssets(locationId);
-    }
-  };
-  if ("requestIdleCallback" in window) window.requestIdleCallback(() => { void run(); }, { timeout: 1500 });
-  else window.setTimeout(() => { void run(); }, 1200);
 }
 
 export const VILLAGE_LOCATIONS = [
@@ -225,7 +211,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     const locationName = VILLAGE_LOCATIONS.find((location) => location.id === locationId)?.name || locationId;
     const portraits = cast.map((id) => {
       const npc = NPCS[id];
-      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" loading="lazy" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
+      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" loading="eager" fetchpriority="high" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
     }).join("");
     return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('assets/locations/${locationId}.webp?v=${ASSET_VERSION}')" aria-label="${escapeHtml(locationName)}">
       <div class="stage-characters">${portraits}</div>
@@ -331,7 +317,6 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       return `<span class="map-label ${comingSoon ? "coming-soon" : ""} ${recommended ? "recommended" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(recommended ? "OBJETIVO · " + location.description : comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
     }).join("");
     shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${ASSET_VERSION}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${companion}</section>`);
-    scheduleLocationWarmup();
 
     root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
       const locationId = hotspot.getAttribute("data-coming-soon");

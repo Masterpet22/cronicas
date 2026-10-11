@@ -3,7 +3,7 @@ import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } 
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.44.9";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
@@ -59,14 +59,14 @@ const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",
-    file: "assets/ui/hud-themes/ancestral.webp?v=0.44.8",
+    file: "assets/ui/hud-themes/ancestral.webp?v=0.44.9",
     health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289, displayWidth: 360 }),
     chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: -4, chakraY: -5 })
   }),
   lunar: Object.freeze({
     texture: "hud-theme-lunar",
-    file: "assets/ui/hud-themes/lunar.webp?v=0.44.8",
+    file: "assets/ui/hud-themes/lunar.webp?v=0.44.9",
     health: Object.freeze({ x: 8, y: 43, width: 851, height: 128, displayWidth: 360 }),
     chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: 3, chakraY: 2 })
@@ -1590,16 +1590,6 @@ function bindGlobalOptions() {
 }
 
 bindGlobalOptions();
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
-      .then((registration) => registration.update())
-      .catch(() => {
-        // La caché persistente es una mejora; el juego sigue funcionando sin ella.
-      });
-  }, { once: true });
-}
 
 mountMetaUI(metaRoot, activeSave, async (save, mission) => {
   activeSave = writeSave(save);
