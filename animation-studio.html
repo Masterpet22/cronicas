@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crónicas Studio · Editor de animaciones (prototipo)</title>
+<style>
+:root{color-scheme:dark;font:14px system-ui,sans-serif;background:#0c111a;color:#f0f4fb}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,select,input{background:#202e42;color:inherit;border:1px solid #41536d;border-radius:6px;padding:8px}button{cursor:pointer}button:hover{background:#344a65}button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid #75bfff}.app{display:grid;grid-template-columns:240px minmax(320px,1fr)260px;grid-template-rows:auto minmax(420px,1fr)230px;min-height:100vh}.bar{grid-column:1/-1;padding:12px 18px;background:#182334;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.bar strong{font-size:18px;margin-right:auto}.side{padding:14px;background:#121c2b;overflow:auto}.left{border-right:1px solid #33445c}.right{border-left:1px solid #33445c}.stage{background:radial-gradient(#293a52 1px,transparent 1px);background-size:20px 20px;display:grid;place-items:center;min-height:420px}.stage svg{height:100%;max-height:640px;width:100%;touch-action:none}.bone{stroke:#7ec8f0;stroke-width:5;stroke-linecap:round;cursor:pointer}.bone.active{stroke:#f3bf61;stroke-width:8}.joint{fill:#f3bf61;pointer-events:none}h2{font-size:13px;color:#afc1d8;letter-spacing:.08em;text-transform:uppercase}label{display:block;margin:12px 0 4px}.stack{display:grid;gap:8px}.stack button{text-align:left}.stack .selected{border-color:#e9b75b;background:#4b3927}.timeline{grid-column:1/-1;background:#161f2d;border-top:1px solid #34465c;padding:12px 18px;overflow:auto}.timeline input[type=range]{width:100%;margin:16px 0}.keys{display:flex;gap:6px;flex-wrap:wrap}.key{font-size:12px}.key.current{background:#876032}input[type=number],input[type=text],select{width:100%}.controls{display:flex;gap:8px;flex-wrap:wrap}.small{color:#a5bbd3;font-size:12px;line-height:1.5}.status{color:#a6e1bd;font-size:12px}.mono{font-family:ui-monospace,monospace}#file{display:none}@media(max-width:850px){.app{grid-template-columns:1fr;grid-template-rows:auto auto auto auto auto}.stage{min-height:460px}.timeline{grid-column:1}.side{border:0}.bar strong{width:100%}}
+</style>
+</head><body>
+<div class="app">
+<header class="bar"><strong>Crónicas Studio <small class="small">· prototipo de fotogramas clave</small></strong><a href="./puppet-calibrator.html" style="color:#a5d5ff">Volver al calibrador</a><button id="new">Nuevo clip</button><button id="save">Exportar JSON</button><button id="open">Importar JSON</button><input type="file" id="file" accept=".json,application/json"></header>
+<aside class="side left"><h2>Esqueleto compartido</h2><p class="small">Selecciona un hueso para editar su rotación. Se muestran los sprites originales de Crónicas. La jerarquía se calcula con rig.js y los fotogramas clave rotan huesos y piezas.</p><div id="bones" class="stack"></div></aside>
+<main class="stage"><svg id="viewport" viewBox="-650 -700 1300 1700" aria-label="Editor visual de huesos y sprites"><g id="rig"></g></svg></main>
+<aside class="side right"><h2>Propiedades</h2><label>Animación</label><input id="name" type="text" value="nuevo_movimiento" maxlength="80"><label>Duración (ms)</label><input id="duration" type="number" min="100" max="60000" step="100" value="1000"><label>Hueso</label><strong id="selected">shoulderRight</strong><label>Ángulo (grados)</label><input type="number" id="angle" min="-360" max="360" step="1" value="0"><label>Rotar visualmente</label><input type="range" id="angle-slider" min="-180" max="180" value="0"><div class="controls" style="margin-top:14px"><button id="add">Guardar clave</button><button id="remove">Eliminar clave</button></div><p class="small">La edición crea una clave en el tiempo actual. Las claves se interpolan linealmente. No modifica el catálogo del juego todavía.</p><p class="status" id="status" role="status"></p></aside>
+<section class="timeline"><div class="controls"><button id="play">▶ Reproducir</button><button id="pause">■ Detener</button><label style="margin:6px 0">Tiempo: <output id="current">0</output> ms</label><label style="margin:6px 0"><input id="loop" type="checkbox"> Repetir</label></div><input id="time" type="range" min="0" max="1000" value="0" step="10"><div id="keys" class="keys"></div></section>
+</div>
+<script type="module">
+import { PUPPET_JOINTS, PUPPET_JOINT_PARENTS } from "./src/animations/rig.js";
+import { sampleStudioAnimation, validateStudioAnimation } from "./src/animations/studio-runtime.js";
+const $=id=>document.getElementById(id);
+const ids=Object.keys(PUPPET_JOINTS);
+let selected="shoulderRight",ms=0,playing=false,frame=0,last=0;
+let data={schema:"cronicas-studio/v1",rig:"humanoid",anatomy:"male",animation:{id:"nuevo_movimiento",duration:1000,loop:false,keys:{}}};
+const svgNS="http://www.w3.org/2000/svg";
+const roots={neck:{x:0,y:-355},shoulderRight:{x:0,y:-200},shoulderLeft:{x:0,y:-200},hipRight:{x:0,y:150},hipLeft:{x:0,y:150}};
+function make(tag,attrs){const e=document.createElementNS(svgNS,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e}
+function val(id){return Number($(id).value)}
+function duration(){return data.animation.duration}
+function normalizeKeys(arr){return arr.sort((a,b)=>a.t-b.t)}
+function sample(id,t){return sampleStudioAnimation(data,t,ids)[id]?.angle||0}
+function updateBones(){const host=$("bones");host.replaceChildren();ids.forEach(id=>{const b=document.createElement("button");b.textContent=id;b.className=id===selected?"selected":"";b.onclick=()=>{selected=id;updateBones();sync()};host.append(b)})}
+const PARTS=[
+["pie_derecho",-175.526,732.316],["brazo_izquierdo",161.481,-174.474,"brazo_derecho"],["mano_derecha",-291.203,251.237],["muslo_izquierdo",117.315,255.895],["torso",-41,-72.5],["muslo_derecho",-93.789,261.869],["pie_izquierdo",153.763,715.421],["pierna_derecha",-140.026,527.974],["pierna_izquierda",151.263,520.474],["brazo_derecho",-242.955,-164.184,"brazo_izquierdo"],["antebrazo_derecho",-315.639,62.658],["antebrazo_izquierdo",278.403,24.447],["mano_izquierda",355.423,215.474],["cabeza",-10.737,-498.684]
+]; 
+const PART_TO_JOINT={cabeza:"neck",brazo_derecho:"shoulderRight",antebrazo_derecho:"elbowRight",mano_derecha:"wristRight",brazo_izquierdo:"shoulderLeft",antebrazo_izquierdo:"elbowLeft",mano_izquierda:"wristLeft",muslo_derecho:"hipRight",pierna_derecha:"kneeRight",pie_derecho:"ankleRight",muslo_izquierdo:"hipLeft",pierna_izquierda:"kneeLeft",pie_izquierdo:"ankleLeft"};
+const matMul=(a,b)=>[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];
+const tr=(x,y)=>[1,0,0,1,x,y];
+const rot=deg=>{const a=deg*Math.PI/180;return [Math.cos(a),Math.sin(a),-Math.sin(a),Math.cos(a),0,0]};
+const point=(m,x,y)=>({x:m[0]*x+m[2]*y+m[4],y:m[1]*x+m[3]*y+m[5]});
+function render(){
+ const host=$("rig");host.replaceChildren();
+ const cache={};
+ function matrix(id){
+  if(cache[id])return cache[id];
+  const parent=PUPPET_JOINT_PARENTS[id];
+  const p=PUPPET_JOINTS[id];
+  const from=parent?PUPPET_JOINTS[parent]:{x:0,y:0};
+  return cache[id]=matMul(matMul(parent?matrix(parent):tr(0,0),tr(p.x-from.x,p.y-from.y)),rot(sample(id,ms)));
+ }
+ PARTS.forEach(([id,x,y,assetId],z)=>{
+  const jointId=PART_TO_JOINT[id];const m=jointId?matrix(jointId):tr(0,0);
+  const joint=jointId?PUPPET_JOINTS[jointId]:{x:0,y:0};
+  const transformed=point(m,x-joint.x,y-joint.y);
+  const angle=Math.atan2(m[1],m[0])*180/Math.PI;
+  const img=make("image",{href:"./assets/modular/man_sprites/runtime/"+(assetId||id)+".png",x:0,y:0,"image-rendering":"pixelated",preserveAspectRatio:"none"});
+  img.dataset.part=id;
+  img.setAttribute("opacity","1");
+  // Sprites are centered at the calibrated coordinates, as in puppet-calibrator.
+  // Image intrinsic size is read asynchronously and cached once loaded.
+  const key=assetId||id;
+  if(!imageSizes[key]){
+    const picture=new Image();picture.src="./assets/modular/man_sprites/runtime/"+key+".png";
+    picture.onload=()=>{imageSizes[key]=[picture.naturalWidth,picture.naturalHeight];render()};
+    imageSizes[key]=[0,0];
+  }
+  const [w,h]=imageSizes[key];
+  img.setAttribute("width",w);img.setAttribute("height",h);
+  img.setAttribute("x",-w/2);img.setAttribute("y",-h/2);
+  img.setAttribute("transform","translate("+transformed.x+" "+transformed.y+") rotate("+angle+")");
+  host.append(img);
+ });
+ ids.forEach(id=>{
+  const m=matrix(id),p=PUPPET_JOINTS[id], parent=PUPPET_JOINT_PARENTS[id];
+  const pos={x:m[4],y:m[5]};
+  if(parent){const parentMatrix=matrix(parent);const line=make("line",{x1:parentMatrix[4],y1:parentMatrix[5],x2:pos.x,y2:pos.y,class:"bone"+(selected===id?" active":"")});line.onclick=()=>{selected=id;updateBones();sync()};host.append(line)}
+  const hit=make("circle",{cx:pos.x,cy:pos.y,r:14,fill:"transparent",stroke:selected===id?"#f3bf61":"#61c8ff","stroke-width":3});
+  hit.onclick=()=>{selected=id;updateBones();sync()};host.append(hit);
+ });
+ $("current").textContent=Math.round(ms);$("time").value=ms;renderKeys();
+}
+const imageSizes={};
+function renderKeys(){const host=$("keys");host.replaceChildren();const arr=data.animation.keys[selected]||[];const label=document.createElement("span");label.textContent="Claves de "+selected+":";host.append(label);arr.forEach(k=>{const b=document.createElement("button");b.className="key"+(Math.abs(k.t-ms)<5?" current":"");b.textContent=k.t+" ms · "+k.angle+"°";b.onclick=()=>{ms=k.t;sync();render()};host.append(b)})}
+function sync(){$("selected").textContent=selected;const angle=sample(selected,ms);$("angle").value=Math.round(angle*10)/10;$("angle-slider").value=Math.max(-180,Math.min(180,angle));render()}
+function addKey(){const angle=val("angle");if(!Number.isFinite(angle))return;const arr=data.animation.keys[selected]||[];const found=arr.find(k=>k.t===ms);if(found)found.angle=angle;else arr.push({t:ms,angle});data.animation.keys[selected]=normalizeKeys(arr);render();$("status").textContent="Clave guardada en "+ms+" ms"}
+function setAngle(value){$("angle").value=value;$("angle-slider").value=Math.max(-180,Math.min(180,value));addKey()}
+$("angle").addEventListener("change",()=>setAngle(val("angle")));
+$("angle-slider").addEventListener("input",()=>setAngle(val("angle-slider")));
+$("add").onclick=addKey;
+$("remove").onclick=()=>{data.animation.keys[selected]=(data.animation.keys[selected]||[]).filter(k=>k.t!==ms);sync();$("status").textContent="Clave eliminada"};
+$("time").oninput=e=>{ms=Number(e.target.value);sync()};
+$("name").onchange=e=>{data.animation.id=e.target.value.trim()||"nuevo_movimiento";e.target.value=data.animation.id};
+$("duration").onchange=e=>{data.animation.duration=Math.max(100,Math.min(60000,Number(e.target.value)||1000));$("time").max=duration();ms=Math.min(ms,duration());sync()};
+$("loop").onchange=e=>{data.animation.loop=e.target.checked};
+function tick(now){if(!playing)return;ms+=now-last;last=now;if(ms>=duration()){if(data.animation.loop)ms%=duration();else{ms=duration();playing=false}}sync();if(playing)frame=requestAnimationFrame(tick)}
+$("play").onclick=()=>{if(playing)return;if(ms>=duration())ms=0;playing=true;last=performance.now();frame=requestAnimationFrame(tick)};
+$("pause").onclick=()=>{playing=false;cancelAnimationFrame(frame)};
+$("new").onclick=()=>{playing=false;cancelAnimationFrame(frame);data={schema:"cronicas-studio/v1",rig:"humanoid",anatomy:"male",animation:{id:"nuevo_movimiento",duration:1000,loop:false,keys:{}}};ms=0;loadFields();sync()};
+function loadFields(){$("name").value=data.animation.id;$("duration").value=duration();$("time").max=duration();$("loop").checked=data.animation.loop}
+$("save").onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});const link=document.createElement("a");link.href=URL.createObjectURL(blob);link.download=data.animation.id.replace(/[^a-z0-9_-]/gi,"_")+".json";link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000);$("status").textContent="JSON exportado"};
+$("open").onclick=()=>$("file").click();
+$("file").onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const incoming=JSON.parse(await f.text());if(incoming.schema!=="cronicas-studio/v1"||!incoming.animation||typeof incoming.animation.id!=="string"||!Number.isFinite(incoming.animation.duration)||incoming.animation.duration<100||incoming.animation.duration>60000||typeof incoming.animation.keys!=="object"||!incoming.animation.keys)throw Error("Formato incompatible");for(const [id,keys] of Object.entries(incoming.animation.keys)){if(!ids.includes(id)||!Array.isArray(keys)||keys.some(k=>!Number.isFinite(k.t)||k.t<0||k.t>incoming.animation.duration||!Number.isFinite(k.angle)))throw Error("Claves inválidas") ;normalizeKeys(keys)}validateStudioAnimation(incoming,ids);data=incoming;ms=0;loadFields();sync();$("status").textContent="Archivo importado"}catch(err){$("status").textContent="Error: "+err.message}e.target.value=""};
+updateBones();loadFields();sync();
+</script></body></html>
