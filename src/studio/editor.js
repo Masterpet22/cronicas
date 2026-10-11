@@ -7,8 +7,8 @@ import {
   PUPPET_JOINT_PARENTS as PARENTS,
   PUPPET_PART_JOINTS as PART_JOINTS,
   PUPPET_TARGETS
-} from "../animations/rig.js";
-import { animationEase } from "../animations/runtime.js";
+} from "../animations/rig.js?v=0.45.1";
+import { animationEase } from "../animations/runtime.js?v=0.45.1";
 import {
   createStudioProject,
   normalizeStudioProject,
@@ -16,8 +16,8 @@ import {
   serializeStudioProject,
   STUDIO_EASES,
   validateStudioProject
-} from "../animations/studio-format.js";
-import { sampleStudioAnimation } from "../animations/studio-runtime.js";
+} from "../animations/studio-format.js?v=0.45.1";
+import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.1";
 
 const $ = (id) => document.getElementById(id);
 const BASE_SCALE = 0.32;

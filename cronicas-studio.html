@@ -6,31 +6,21 @@
   <title>Crónicas Studio · Editor unificado</title>
   <link rel="icon" href="./assets/favicon.png?v=0.20.0" type="image/png">
   <script>
-    // Retira trabajadores antiguos antes de cargar módulos y recursos del Studio.
+    // Retira trabajadores antiguos sin detener ni recargar la navegación actual.
     (() => {
       if (!("serviceWorker" in navigator)) return;
-      const marker = "cronicas-studio-sw-retired-v0.45.0";
       const scope = new URL("./", window.location.href).href;
-      const shouldReload = Boolean(navigator.serviceWorker.controller) && !sessionStorage.getItem(marker);
-      if (shouldReload) {
-        sessionStorage.setItem(marker, "1");
-        window.stop();
-      }
-      const cleanup = Promise.all([
+      Promise.all([
         navigator.serviceWorker.getRegistrations().then((registrations) => Promise.all(
           registrations.filter((registration) => registration.scope === scope).map((registration) => registration.unregister())
         )),
         "caches" in window
           ? caches.keys().then((keys) => Promise.all(keys.filter((key) => key.startsWith("cronicas-assets-")).map((key) => caches.delete(key))))
           : Promise.resolve()
-      ]);
-      cleanup.finally(() => {
-        if (shouldReload) window.location.reload();
-        else sessionStorage.removeItem(marker);
-      });
+      ]).catch((error) => console.warn("No se pudo retirar una caché antigua", error));
     })();
   </script>
-  <link rel="stylesheet" href="./cronicas-studio.css?v=0.45.0">
+  <link rel="stylesheet" href="./cronicas-studio.css?v=0.45.1">
 </head>
 <body>
   <header class="studio-header">
@@ -197,6 +187,6 @@
   </main>
 
   <input id="file" type="file" accept=".json,application/json">
-  <script type="module" src="./src/studio/editor.js?v=0.45.0"></script>
+  <script type="module" src="./src/studio/editor.js?v=0.45.1"></script>
 </body>
 </html>

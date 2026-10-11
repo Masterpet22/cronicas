@@ -43,6 +43,24 @@ assert.deepEqual(migrated.animation.requires, ["shoulderRight"]);
 assert.deepEqual(migrated.animation.keys.shoulderRight.map(({ t }) => t), [0, 1000]);
 assert.equal(sampleStudioAnimation(legacyProject, 500).shoulderRight.angle, -22.5, "La migración debe conservar la interpolación lineal anterior");
 
+const editableDraft = createStudioProject();
+editableDraft.animation.description = "";
+editableDraft.animation.keys.rig = [{ t: 0, x: 0 }];
+assert.deepEqual(
+  validateStudioProject(editableDraft, { mode: "project" }),
+  [],
+  "Un borrador debe poder dibujarse aunque su descripción todavía esté vacía"
+);
+assert.deepEqual(
+  sampleStudioAnimation(editableDraft, 0),
+  { rig: { x: 0 } },
+  "El muestreador del editor no debe bloquear el personaje por metadatos editoriales incompletos"
+);
+assert.ok(
+  validateStudioProject(editableDraft, { mode: "game" }).some((error) => error.includes("animation.description")),
+  "La exportación al juego debe seguir exigiendo una descripción"
+);
+
 const project = createStudioProject({
   id: "attack_export_test",
   label: "Ataque de prueba",

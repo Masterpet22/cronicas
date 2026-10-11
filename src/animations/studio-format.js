@@ -4,8 +4,8 @@
  * Mantiene separados el proyecto editable, la anatomía y el movimiento, y
  * ofrece una entrada única para crear, normalizar, validar e importar JSON.
  */
-import { PUPPET_TARGETS } from "./rig.js";
-import { TRANSFORM_PROPERTIES } from "./runtime.js";
+import { PUPPET_TARGETS } from "./rig.js?v=0.45.1";
+import { TRANSFORM_PROPERTIES } from "./runtime.js?v=0.45.1";
 
 export const STUDIO_SCHEMA = "cronicas-studio/v1";
 export const STUDIO_STATES = Object.freeze(["idle", "locomotion", "action", "hit", "defeated"]);
@@ -33,7 +33,9 @@ function nonEmptyString(value) {
 }
 
 function pushStringError(errors, value, path, required = true) {
-  if (value === undefined && !required) return;
+  // Los metadatos opcionales pueden permanecer vacíos mientras el proyecto es
+  // un borrador. El modo `game` vuelve a exigirlos antes de exportar.
+  if (!required && (value === undefined || (typeof value === "string" && !value.trim()))) return;
   if (!nonEmptyString(value)) errors.push(`${path}: debe ser un texto no vacío`);
 }
 
