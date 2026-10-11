@@ -26,6 +26,8 @@
     }
 
     button, input, textarea { font: inherit; }
+    .studio-link { display: block; margin: 12px 0; padding: 11px 14px; border: 1px solid #6b9fe2; border-radius: 8px; background: #23496e; color: #fff; text-align: center; text-decoration: none; font-weight: 750; }
+    .studio-link:hover { background: #34679b; }
 
     button {
       min-height: 34px;
@@ -323,11 +325,12 @@
   <main class="app">
     <aside class="panel left">
       <h1>Calibrador de marioneta</h1>
+      <a class="studio-link" href="./animation-studio.html">Ir al animador →</a>
       <p class="small">Arrastra las piezas hasta formar el personaje. Las coordenadas usan el centro amarillo como <strong>(0, 0)</strong>.</p>
 
       <h2>Laboratorio de animación</h2>
       <div class="animation-lab">
-        <label class="field">Clip
+        <label class="field">Animación
           <select id="animation-select" aria-label="Clip de animación"></select>
         </label>
         <div id="clip-meta" class="clip-meta"></div>
@@ -458,6 +461,7 @@
     const JOINT_PARENTS = PUPPET_JOINT_PARENTS;
     const PART_JOINTS = PUPPET_PART_JOINTS;
 
+    const nombrePieza = id => id.replaceAll("_", " ").replace(/\b\p{L}/gu, letra => letra.toUpperCase());
     const round = value => Math.round(value * 1000) / 1000;
     const selectedPart = () => parts.find(part => part.id === selectedId);
 
@@ -509,7 +513,7 @@
         image.className = `part${part.id === selectedId ? " selected" : ""}`;
         image.dataset.id = part.id;
         image.src = `${ASSET_ROOT}/${part.assetId || part.id}.png`;
-        image.alt = part.id.replaceAll("_", " ");
+        image.alt = nombrePieza(part.id);
         image.draggable = false;
         image.style.left = `${STAGE_SIZE / 2 + part.x}px`;
         image.style.top = `${STAGE_SIZE / 2 + part.y}px`;
@@ -664,7 +668,7 @@
 
         const name = document.createElement("span");
         name.className = "part-name";
-        name.textContent = part.id.replaceAll("_", " ");
+        name.textContent = nombrePieza(part.id);
 
         const down = document.createElement("button");
         down.type = "button";
@@ -692,7 +696,7 @@
 
     function renderFields() {
       const part = selectedPart();
-      selectedTitle.textContent = part ? part.id.replaceAll("_", " ") : "Ninguna";
+      selectedTitle.textContent = part ? nombrePieza(part.id) : "Ninguna";
       [fieldX, fieldY, fieldRotation, fieldScale].forEach(field => field.disabled = !part);
       if (!part) return;
       fieldX.value = round(part.x);
