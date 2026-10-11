@@ -1,18 +1,32 @@
 /** Crónicas Studio v1: sampler puro para editor y adaptadores de Phaser. */
-export const STUDIO_SCHEMA = "cronicas-studio/v1";
+import { animationEase, TRANSFORM_PROPERTIES } from "./runtime.js";
+import { assertValidStudioProject, normalizeStudioProject, STUDIO_SCHEMA } from "./studio-format.js";
+
+export { STUDIO_SCHEMA };
+
 export function validateStudioAnimation(project, allowedTargets = null) {
-  if (!project || project.schema !== STUDIO_SCHEMA || !project.animation) throw new Error("Proyecto de Studio incompatible");
-  const clip=project.animation;
-  if(typeof clip.id!=="string"||!clip.id.trim())throw new Error("ID de clip inválido");
-  if(!Number.isFinite(clip.duration)||clip.duration<100||clip.duration>60000)throw new Error("Duración inválida");
-  if(!clip.keys||typeof clip.keys!=="object"||Array.isArray(clip.keys))throw new Error("Claves inválidas");
-  for(const [id,frames] of Object.entries(clip.keys)){
-    if(allowedTargets&&!allowedTargets.includes(id))throw new Error("Hueso desconocido: "+id);
-    if(!Array.isArray(frames))throw new Error("Pista inválida: "+id);
-    for(const k of frames)if(!Number.isFinite(k.t)||k.t<0||k.t>clip.duration||!Number.isFinite(k.angle))throw new Error("Fotograma inválido: "+id);
-  }
-  return clip;
+  assertValidStudioProject(project, { allowedTargets, mode: "project" });
+  return normalizeStudioProject(project).animation;
 }
+
+function sampleProperty(frames, property, time) {
+  const keys = frames.filter((frame) => Number.isFinite(frame[property]));
+  if (!keys.length) return undefined;
+  if (time <= keys[0].t) return keys[0][property];
+  if (time >= keys[keys.length - 1].t) return keys[keys.length - 1][property];
+  for (let index = 1; index < keys.length; index += 1) {
+    const next = keys[index];
+    if (time > next.t) continue;
+    const previous = keys[index - 1];
+    const rawProgress = (time - previous.t) / (next.t - previous.t || 1);
+    const progress = next.ease && next.ease !== "Linear"
+      ? animationEase(rawProgress, next.ease)
+      : rawProgress;
+    return previous[property] + (next[property] - previous[property]) * progress;
+  }
+  return keys[keys.length - 1][property];
+}
+
 export function sampleStudioAnimation(project,time,targets=null) {
   const clip=validateStudioAnimation(project,targets);
   const t=clip.loop?((time%clip.duration)+clip.duration)%clip.duration:Math.max(0,Math.min(clip.duration,time));
@@ -20,15 +34,12 @@ export function sampleStudioAnimation(project,time,targets=null) {
   for(const [id,original] of Object.entries(clip.keys)){
     const keys=[...original].sort((a,b)=>a.t-b.t);
     if(!keys.length)continue;
-    let angle=keys[0].angle;
-    if(t>=keys[keys.length-1].t)angle=keys[keys.length-1].angle;
-    else if(t>keys[0].t){
-      for(let i=1;i<keys.length;i++)if(t<=keys[i].t){
-        const a=keys[i-1],b=keys[i],p=(t-a.t)/(b.t-a.t||1);
-        angle=a.angle+(b.angle-a.angle)*p;break;
-      }
-    }
-    pose[id]={angle};
+    const transform={};
+    TRANSFORM_PROPERTIES.forEach((property)=>{
+      const value=sampleProperty(keys,property,t);
+      if(value!==undefined)transform[property]=value;
+    });
+    if(Object.keys(transform).length)pose[id]=transform;
   }
   return pose;
 }

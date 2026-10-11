@@ -148,6 +148,7 @@ Escena `PauseScene`:
 | `runtime.js` | `addAnimationOffsets`, `animationEase`, `animationTrackProgress`, `sampleAnimationPose` y `animationClipDuration`: muestreo determinista de clips. |
 | `controller.js` | `PuppetAnimationController`: reproduce, prioriza, detiene y restaura clips; `createPuppetAnimationController` crea el controlador. |
 | `schema.js` | `validateAnimationCatalog` y `assertValidAnimationCatalog`: validación del catálogo utilizado por el juego. |
+| `studio-format.js` | Contrato `cronicas-studio/v1`: creación, normalización, validación e importación/exportación determinista de proyectos. |
 | `studio-runtime.js` | `validateStudioAnimation` y `sampleStudioAnimation`: validación y muestreo del formato `cronicas-studio/v1`. |
 
 ## Herramientas HTML
