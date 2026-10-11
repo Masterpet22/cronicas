@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crónicas Studio · Entorno unificado</title>
+<style>
+:root{color-scheme:dark;font:14px system-ui,sans-serif;background:#0b1220;color:#e8effa}*{box-sizing:border-box}body{margin:0}button,a{font:inherit}header{height:60px;display:flex;align-items:center;gap:16px;padding:8px 18px;background:#141f30;border-bottom:1px solid #33425a}strong{font-size:18px}nav{display:flex;gap:7px}button{padding:10px 15px;background:#202e43;border:1px solid #40536d;color:#edf3ff;border-radius:7px;cursor:pointer}button[aria-selected=true]{background:#25568a;border-color:#72b2f5;font-weight:700}button:focus-visible{outline:2px solid #9ad4ff}.grow{flex:1}.hint{color:#b9cbe1;font-size:12px}main{height:calc(100dvh - 60px);min-height:480px}iframe{border:0;width:100%;height:100%;display:block;background:#0b1220}#notice{position:absolute;bottom:15px;left:15px;padding:10px 14px;background:#21394f;border:1px solid #547294;border-radius:7px;max-width:min(560px,92vw);display:none}@media(max-width:850px){header{height:auto;min-height:60px;flex-wrap:wrap}main{height:calc(100dvh - 114px)}strong{font-size:15px}button{padding:8px}}
+</style></head><body>
+<header><strong>Crónicas Studio</strong><nav aria-label="Modos de trabajo"><button id="calibrador" aria-selected="true">Calibrador</button><button id="animador" aria-selected="false">Animador</button></nav><span class="grow"></span><span class="hint" id="caption">Ajusta las piezas del personaje</span><button id="reload" title="Recargar herramienta">Recargar vista</button></header>
+<main><iframe id="tool" title="Calibrador de personaje" src="./puppet-calibrator.html"></iframe></main><div id="notice" role="status"></div>
+<script>
+const modes={calibrador:{src:"./puppet-calibrator.html",caption:"Ajusta las piezas del personaje",title:"Calibrador de personaje"},animador:{src:"./animation-studio.html",caption:"Crea fotogramas clave y reproduce animaciones",title:"Editor de animaciones"}};
+const frame=document.getElementById("tool");let current="calibrador";
+function openMode(id){if(!modes[id])return;current=id;frame.src=modes[id].src;frame.title=modes[id].title;document.getElementById("caption").textContent=modes[id].caption;for(const name of Object.keys(modes))document.getElementById(name).setAttribute("aria-selected",String(name===id));history.replaceState(null,"","#"+id)}
+Object.keys(modes).forEach(name=>document.getElementById(name).addEventListener("click",()=>openMode(name)));
+document.getElementById("reload").onclick=()=>{frame.src=modes[current].src};
+window.addEventListener("hashchange",()=>{const name=location.hash.slice(1);if(modes[name]&&name!==current)openMode(name)});
+const initial=location.hash.slice(1);if(initial in modes)openMode(initial);
+window.addEventListener("message",event=>{if(event.origin!==location.origin||event.source!==frame.contentWindow)return;if(event.data?.type==="cronicas-studio:calibration-saved"){const notice=document.getElementById("notice");notice.textContent="Calibración actualizada. Cambia a Animador para usarla.";notice.style.display="block";setTimeout(()=>notice.style.display="none",3000)}});
+</script></body></html>

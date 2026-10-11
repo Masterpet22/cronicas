@@ -325,7 +325,7 @@
   <main class="app">
     <aside class="panel left">
       <h1>Calibrador de marioneta</h1>
-      <a class="studio-link" href="./animation-studio.html">Ir al animador →</a>
+      <a class="studio-link" href="./cronicas-studio.html#animador">Ir al animador →</a>
       <p class="small">Arrastra las piezas hasta formar el personaje. Las coordenadas usan el centro amarillo como <strong>(0, 0)</strong>.</p>
 
       <h2>Laboratorio de animación</h2>
@@ -502,6 +502,8 @@
 
     function updateOutput() {
       output.value = JSON.stringify(exportData(), null, 2);
+      try { localStorage.setItem("cronicas-studio:calibration:male", output.value); } catch (error) { console.warn("No se pudo conservar la calibración local", error); }
+      if (window.parent !== window) window.parent.postMessage({ type: "cronicas-studio:calibration-saved" }, window.location.origin);
     }
 
     function renderParts() {
