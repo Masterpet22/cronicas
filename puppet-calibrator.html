@@ -896,10 +896,6 @@
       if (event.key !== "[" && event.key !== "]") render();
     });
 
-    window.addEventListener("beforeunload", event => {
-      event.preventDefault();
-    });
-
     updateStageTransform();
     renderAnimationLab();
     render();
