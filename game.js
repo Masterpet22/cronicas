@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.5";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.6";
 import { mountMetaUI } from "./src/meta-ui.js?v=0.23.0";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.20.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
@@ -59,14 +59,14 @@ const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",
-    file: "assets/ui/hud-themes/ancestral.png?v=0.44.5",
+    file: "assets/ui/hud-themes/ancestral.png?v=0.44.6",
     health: Object.freeze({ x: 28, y: 127, width: 2119, height: 289, displayWidth: 360 }),
     chakra: Object.freeze({ x: 38, y: 434, width: 2097, height: 199, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: -4, chakraY: -5 })
   }),
   lunar: Object.freeze({
     texture: "hud-theme-lunar",
-    file: "assets/ui/hud-themes/lunar.png?v=0.44.5",
+    file: "assets/ui/hud-themes/lunar.png?v=0.44.6",
     health: Object.freeze({ x: 8, y: 43, width: 851, height: 128, displayWidth: 360 }),
     chakra: Object.freeze({ x: 12, y: 182, width: 843, height: 67, displayWidth: 340 }),
     barOffset: Object.freeze({ healthY: 3, chakraY: 2 })
@@ -396,9 +396,9 @@ class BattleScene extends Phaser.Scene {
       }
     ).setOrigin(0.5, 0).setDepth(21);
 
-    this.playerHpBar = createBar(this, playerHealthX, healthFrameY - 4, healthBarWidth, 19, 0x38df87);
+    this.playerHpBar = createBar(this, playerHealthX, healthFrameY - 4, healthBarWidth, 24, 0x38df87);
     this.chakraBar = createBar(this, playerChakraX, chakraFrameY - 5, chakraBarWidth, 9, 0x2eaff4);
-    this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY - 4, healthBarWidth, 19, 0xef4755, { direction: "rtl" });
+    this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY - 4, healthBarWidth, 24, 0xef4755, { direction: "rtl" });
     this.hudBarCenters = { healthFrameY, chakraFrameY };
 
     const rankNumber = Math.max(1, RANK_LEVELS.indexOf(this.saveData.campaign.rank) + 1);

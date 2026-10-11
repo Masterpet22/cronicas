@@ -6,6 +6,8 @@ RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye un
 
 La arquitectura y el flujo de aprobación de la marioneta están documentados en
 [`docs/ANIMATION_SYSTEM.md`](docs/ANIMATION_SYSTEM.md).
+El mapa completo de archivos, módulos y funciones está en
+[`docs/INDICE_CODIGO.md`](docs/INDICE_CODIGO.md).
 
 ## Ejecutar
 
@@ -60,6 +62,9 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 
 ## Estructura
 
+Este resumen conserva los nombres físicos necesarios para los imports. Consulta
+[`docs/INDICE_CODIGO.md`](docs/INDICE_CODIGO.md) para sus nombres funcionales en español y el inventario detallado.
+
 ```text
 index.html               Entrada del juego
 styles.css               Presentación de la página
@@ -67,12 +72,14 @@ game.js                  Escena, combate, sellos y efectos
 ART_DIRECTION.md         Guía de identidad, paleta y escalas
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
 src/character.js         Definición visual compartida y vista previa SVG
-src/save.js              Guardado v3, apariencia, campaña, atributos y recompensas
+src/save.js              Guardado v5, apariencia, campaña, atributos y recompensas
 src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
 src/npcs.js              Reparto, funciones y guías de cada ubicación
 src/rules.js             Precisión, afinidades y estados
 src/fighters.js          Composición y animación de capas de personaje
 src/ui.js                Barras y botones de combate
+animation-studio.html    Prototipo del editor de animaciones por fotogramas clave
+docs/INDICE_CODIGO.md    Índice en español de archivos, módulos y funciones
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.webp      Hoja WebP optimizada de doce símbolos
@@ -81,7 +88,7 @@ assets/npcs/             Diez retratos WebP transparentes del reparto de la alde
 assets/locations/        Nueve fondos WebP panorámicos para las escenas de cada destino
 assets/elements/         Sistema de 22 iconos elementales en cuatro niveles
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
-assets/modular/          Experimentos ilustrados archivados; no se cargan en runtime
+assets/modular/          Capas, atlas y piezas utilizadas por el personaje modular
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes
 ROADMAP.md               Plan de desarrollo
 ```
