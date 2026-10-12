@@ -7,8 +7,8 @@ import {
   PUPPET_JOINT_PARENTS as PARENTS,
   PUPPET_PART_JOINTS as PART_JOINTS,
   PUPPET_TARGETS
-} from "../animations/rig.js?v=0.45.1";
-import { animationEase } from "../animations/runtime.js?v=0.45.1";
+} from "../animations/rig.js?v=0.45.2";
+import { animationEase } from "../animations/runtime.js?v=0.45.2";
 import {
   createStudioProject,
   normalizeStudioProject,
@@ -16,8 +16,8 @@ import {
   serializeStudioProject,
   STUDIO_EASES,
   validateStudioProject
-} from "../animations/studio-format.js?v=0.45.1";
-import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.1";
+} from "../animations/studio-format.js?v=0.45.2";
+import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.2";
 
 const $ = (id) => document.getElementById(id);
 const BASE_SCALE = 0.32;
@@ -473,7 +473,7 @@ function renderInspector() {
   $("clip-description").value = clip.description;
   $("clip-category").value = clip.category;
   $("clip-state").value = clip.state;
-  drawCurve();
+  if (rightTab === "curves") drawCurve();
 }
 
 function renderPresets() {
@@ -486,24 +486,36 @@ function renderPresets() {
     const button = document.createElement("button");
     button.className = "small-button";
     button.textContent = text;
-    button.onclick = () => { $("key-ease").value = value; showRightTab("curves"); drawCurve(); };
+    button.onclick = () => { $("key-ease").value = value; showRightTab("curves"); };
     host.append(button);
   });
 }
 
 function drawCurve() {
   const curveCanvas = $("curve-canvas");
-  const curveContext = curveCanvas.getContext("2d");
-  resizeCanvas(curveCanvas, curveContext);
   const width = curveCanvas.clientWidth;
   const height = curveCanvas.clientHeight;
+  // El canvas mide 0 × 0 mientras su pestaña está oculta. Además de ser un
+  // trabajo inútil, usar width / 6 como incremento en ese estado produce un
+  // bucle infinito (0 += 0) que termina agotando la memoria del renderer.
+  if (width <= 0 || height <= 0) return;
+  const curveContext = curveCanvas.getContext("2d");
+  resizeCanvas(curveCanvas, curveContext);
   const ease = $("key-ease").value || "Linear";
   curveContext.clearRect(0, 0, width, height);
   curveContext.strokeStyle = "#213952";
   curveContext.lineWidth = 1;
   curveContext.beginPath();
-  for (let x = 0; x <= width; x += width / 6) { curveContext.moveTo(x, 0); curveContext.lineTo(x, height); }
-  for (let y = 0; y <= height; y += height / 4) { curveContext.moveTo(0, y); curveContext.lineTo(width, y); }
+  for (let column = 0; column <= 6; column += 1) {
+    const x = column / 6 * width;
+    curveContext.moveTo(x, 0);
+    curveContext.lineTo(x, height);
+  }
+  for (let row = 0; row <= 4; row += 1) {
+    const y = row / 4 * height;
+    curveContext.moveTo(0, y);
+    curveContext.lineTo(width, y);
+  }
   curveContext.stroke();
   curveContext.strokeStyle = "#58a6ff";
   curveContext.lineWidth = 3;
