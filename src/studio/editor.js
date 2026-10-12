@@ -7,8 +7,8 @@ import {
   PUPPET_JOINT_PARENTS as PARENTS,
   PUPPET_PART_JOINTS as PART_JOINTS,
   PUPPET_TARGETS
-} from "../animations/rig.js?v=0.45.2";
-import { animationEase } from "../animations/runtime.js?v=0.45.2";
+} from "../animations/rig.js?v=0.45.3";
+import { animationEase } from "../animations/runtime.js?v=0.45.3";
 import {
   createStudioProject,
   normalizeStudioProject,
@@ -16,8 +16,8 @@ import {
   serializeStudioProject,
   STUDIO_EASES,
   validateStudioProject
-} from "../animations/studio-format.js?v=0.45.2";
-import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.2";
+} from "../animations/studio-format.js?v=0.45.3";
+import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.3";
 
 const $ = (id) => document.getElementById(id);
 const BASE_SCALE = 0.32;
@@ -199,11 +199,26 @@ const rotate = (angle = 0) => {
 };
 const scale = (x = 1, y = x) => [x, 0, 0, y, 0, 0];
 const point = (matrix, x, y) => ({ x: matrix[0] * x + matrix[2] * y + matrix[4], y: matrix[1] * x + matrix[3] * y + matrix[5] });
+function localDelta(matrix, x, y) {
+  const determinant = matrix[0] * matrix[3] - matrix[1] * matrix[2];
+  if (Math.abs(determinant) < 1e-8) return { x, y };
+  return {
+    x: (matrix[3] * x - matrix[2] * y) / determinant,
+    y: (-matrix[1] * x + matrix[0] * y) / determinant
+  };
+}
 function transformMatrix(transform = {}) {
   return multiply(
     multiply(translate(transform.x || 0, transform.y || 0), rotate(transform.angle || 0)),
     scale(1 + (transform.scaleX || 0), 1 + (transform.scaleY || 0))
   );
+}
+
+function parentMatrixForTarget(target, state) {
+  if (target === "rig") return [1, 0, 0, 1, 0, 0];
+  if (target === "torso") return state.root;
+  const parent = PARENTS[target];
+  return parent ? state.joints[parent] : state.root;
 }
 
 function matrices(at = time) {
@@ -812,6 +827,22 @@ function setKey() {
   refresh();
 }
 
+function previewKeyFromInspector() {
+  if (lockedTargets.has(selectedTarget)) return;
+  const frame = readTransformFields();
+  upsertKey(selectedTarget, frame);
+  selectedKeys = new Set([`${selectedTarget}:${frame.t}`]);
+  draw();
+  status(`Vista previa del fotograma: ${label(selectedTarget)}`);
+}
+
+function commitKeyFromInspector() {
+  if (lockedTargets.has(selectedTarget)) return status(`${label(selectedTarget)} está bloqueado`);
+  previewKeyFromInspector();
+  commit(`Fotograma actualizado: ${label(selectedTarget)}`);
+  refresh();
+}
+
 function deleteSelectedKeys() {
   if (lockedTargets.has(selectedTarget) && !selectedKeys.size) return status(`${label(selectedTarget)} está bloqueado`);
   if (!selectedKeys.size) {
@@ -962,7 +993,14 @@ function bindControls() {
   };
   $("set-key").onclick = setKey;
   $("delete-key").onclick = deleteSelectedKeys;
-  $("key-ease").onchange = drawCurve;
+  Object.values(TRANSFORM_FIELDS).forEach((id) => {
+    $(id).oninput = previewKeyFromInspector;
+    $(id).onchange = commitKeyFromInspector;
+  });
+  $("key-ease").onchange = () => {
+    commitKeyFromInspector();
+    if (rightTab === "curves") drawCurve();
+  };
   $("add-event").onclick = () => {
     const slot = $("event-slot").value.trim();
     const variant = $("event-variant").value.trim();
@@ -1056,14 +1094,14 @@ function bindCanvas() {
       });
       if (chosen) {
         selectedPart = chosen;
-        if (!lockedParts.has(chosen)) interaction = { type: "piece", start: world, x: part().x, y: part().y };
+        if (!lockedParts.has(chosen)) interaction = { type: "piece", start: world, x: part().x, y: part().y, moved: false };
         refresh();
       }
       return;
     }
     const state = matrices(time);
     let chosen = "rig";
-    let distance = Math.hypot(world.x, world.y);
+    let distance = Math.hypot(world.x - state.root[4], world.y - state.root[5]);
     Object.entries(state.joints).forEach(([id, matrix]) => {
       const score = Math.hypot(world.x - matrix[4], world.y - matrix[5]);
       if (score < distance) { chosen = id; distance = score; }
@@ -1071,7 +1109,22 @@ function bindCanvas() {
     if (distance < 60) {
       selectedTarget = chosen;
       selectedKeys.clear();
-      if (tool === "rotate" && !lockedTargets.has(chosen)) interaction = { type: "rotate", startX: world.x, angle: pose()[chosen]?.angle || 0 };
+      if (!lockedTargets.has(chosen)) {
+        const sampled = state.pose[chosen] || {};
+        if (tool === "select") {
+          interaction = {
+            type: "translate",
+            target: chosen,
+            start: world,
+            x: sampled.x || 0,
+            y: sampled.y || 0,
+            parentMatrix: parentMatrixForTarget(chosen, state),
+            moved: false
+          };
+        } else if (tool === "rotate") {
+          interaction = { type: "rotate", target: chosen, startX: world.x, angle: sampled.angle || 0, moved: false };
+        }
+      }
       refresh();
     }
   };
@@ -1085,17 +1138,41 @@ function bindCanvas() {
     } else if (interaction.type === "piece") {
       part().x = interaction.x + world.x - interaction.start.x;
       part().y = interaction.y + world.y - interaction.start.y;
+      interaction.moved = true;
       draw();
+    } else if (interaction.type === "translate") {
+      const delta = localDelta(
+        interaction.parentMatrix,
+        world.x - interaction.start.x,
+        world.y - interaction.start.y
+      );
+      const current = exactKey(interaction.target) || { t: Math.round(time) };
+      upsertKey(interaction.target, {
+        ...current,
+        x: interaction.x + delta.x,
+        y: interaction.y + delta.y
+      });
+      interaction.moved = true;
+      draw();
+      renderInspector();
     } else if (interaction.type === "rotate") {
       const angle = Math.max(-360, Math.min(360, interaction.angle + (world.x - interaction.startX) * 0.45));
-      const current = exactKey() || { t: Math.round(time) };
-      upsertKey(selectedTarget, { ...current, angle });
+      const current = exactKey(interaction.target) || { t: Math.round(time) };
+      upsertKey(interaction.target, { ...current, angle });
+      interaction.moved = true;
       draw();
       renderInspector();
     }
   };
   canvas.onpointerup = () => {
-    if (interaction && interaction.type !== "pan") commit(interaction.type === "piece" ? "Pieza desplazada" : "Rotación actualizada");
+    if (interaction?.moved) {
+      const message = interaction.type === "piece"
+        ? "Pieza desplazada"
+        : interaction.type === "translate"
+          ? "Posición animada actualizada"
+          : "Rotación actualizada";
+      commit(message);
+    }
     interaction = null;
     refresh();
   };

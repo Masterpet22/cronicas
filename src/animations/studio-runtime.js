@@ -1,6 +1,6 @@
 /** Crónicas Studio v1: sampler puro para editor y adaptadores de Phaser. */
-import { sampleKeyframeAnimationPose } from "./runtime.js?v=0.45.2";
-import { assertValidStudioProject, normalizeStudioProject, STUDIO_SCHEMA } from "./studio-format.js?v=0.45.2";
+import { sampleKeyframeAnimationPose } from "./runtime.js?v=0.45.3";
+import { assertValidStudioProject, normalizeStudioProject, STUDIO_SCHEMA } from "./studio-format.js?v=0.45.3";
 
 export { STUDIO_SCHEMA };
 
