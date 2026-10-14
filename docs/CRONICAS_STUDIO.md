@@ -89,14 +89,15 @@ Hay dos niveles de validación:
 - Armas montadas sobre sockets (`rightHandGrip`, `backSheath`); la animación puede mover el arma entre sockets.
 
 ## Flujo de autor
-1. Cargar sprites PNG transparentes.
-2. Calibrar pivotes y jerarquía para cada anatomía.
-3. Crear animación en línea de tiempo, insertar claves, interpolar y previsualizar.
-4. Configurar variantes de manos/pies y sockets.
-5. Probar el mismo clip en ambos rigs y con distintas vestimentas.
-6. Exportar JSON determinista del proyecto.
-7. Ejecutar validación de candidato, comparar su pose en Studio y Phaser y marcarlo como aprobado.
-8. Incorporar el clip a la biblioteca del juego; habilidades y escenas solo referencian su `id`.
+1. Cargar sprites PNG transparentes o PSD; el Studio convierte cada capa de imagen del PSD en un sprite PNG independiente, conserva su nombre, posición, visibilidad y orden, y vincula automáticamente los nombres compatibles con piezas del rig.
+2. La lista admite selección individual o múltiple: clic normal reemplaza la selección, `Ctrl+clic` alterna elementos, `Shift+clic` selecciona rangos y `Shift+↑/↓` extiende o reduce el rango desde el ancla. Con dos o más sprites aparece una barra contextual fija para mostrar/ocultar, bloquear/desbloquear, duplicar o eliminar el conjunto; `Ctrl+D` y `Supr` actúan sobre la misma selección.
+3. Calibrar pivotes y jerarquía para cada anatomía.
+4. Crear animación en línea de tiempo, insertar claves, interpolar y previsualizar.
+5. Configurar variantes de manos/pies y sockets.
+6. Probar el mismo clip en ambos rigs y con distintas vestimentas.
+7. Exportar JSON determinista del proyecto.
+8. Ejecutar validación de candidato, comparar su pose en Studio y Phaser y marcarlo como aprobado.
+9. Incorporar el clip a la biblioteca del juego; habilidades y escenas solo referencian su `id`.
 
 ## Flujo del jugador
 1. Selecciona anatomía.

@@ -20,7 +20,7 @@
       ]).catch((error) => console.warn("No se pudo retirar una caché antigua", error));
     })();
   </script>
-  <link rel="stylesheet" href="./cronicas-studio.css?v=0.45.3">
+  <link rel="stylesheet" href="./cronicas-studio.css?v=0.47.3">
 </head>
 <body>
   <header class="studio-header">
@@ -35,8 +35,8 @@
     <div class="header-spacer"></div>
     <label class="project-title">Proyecto <input id="project-name" value="nuevo_movimiento" maxlength="80" aria-label="ID del proyecto"></label>
     <div class="header-actions">
-      <button id="undo" class="header-action" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
-      <button id="redo" class="header-action" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">↷</button>
+      <button id="undo" class="header-action history-action" title="Deshacer (Ctrl+Z)" aria-label="Deshacer">↶</button>
+      <button id="redo" class="header-action history-action" title="Rehacer (Ctrl+Y)" aria-label="Rehacer">↷</button>
       <button id="header-play" class="header-action" title="Reproducir (Espacio)">▶ Reproducir</button>
       <button id="open-file" class="header-action">Abrir JSON</button>
       <button id="save-local" class="header-action primary">▣ Guardar</button>
@@ -52,33 +52,45 @@
       </div>
       <div class="panel-body">
         <input id="search" class="search" type="search" placeholder="Buscar articulación…">
-        <div id="tree" class="tree"></div>
+        <div id="multi-selection-toolbar" class="multi-selection-toolbar" role="toolbar" aria-label="Acciones para sprites seleccionados" hidden>
+          <span id="multi-selection-count" class="multi-selection-count">2</span>
+          <button id="multi-visibility" class="multi-action" type="button" title="Mostrar u ocultar seleccionados" aria-label="Mostrar u ocultar seleccionados">◉</button>
+          <button id="multi-lock" class="multi-action" type="button" title="Bloquear o desbloquear seleccionados" aria-label="Bloquear o desbloquear seleccionados">◇</button>
+          <button id="multi-duplicate" class="multi-action" type="button" title="Duplicar seleccionados" aria-label="Duplicar seleccionados">⧉</button>
+          <button id="multi-delete" class="multi-action delete" type="button" title="Eliminar seleccionados" aria-label="Eliminar seleccionados">×</button>
+        </div>
+        <div id="tree" class="tree" role="listbox" aria-label="Lista del estudio"></div>
       </div>
       <div id="tree-meta" class="tree-meta">Rig humanoide · Proyecto local</div>
     </aside>
 
     <section class="workspace">
       <div class="toolbar">
-        <div class="tool-group">
-          <button class="tool-button active" data-tool="select" title="Seleccionar y mover objetivo (V)">↖</button>
-          <button class="tool-button" data-tool="pan" title="Mover vista (H)">✥</button>
-          <button class="tool-button" data-tool="rotate" title="Rotar (R)">↻</button>
-          <button id="fit" class="tool-button" title="Centrar">▣</button>
+        <div id="toolbar-scroll" class="toolbar-scroll">
+          <div class="tool-group">
+            <button class="tool-button active" data-tool="select" title="Seleccionar y mover objetivo (V)">↖</button>
+            <button class="tool-button" data-tool="pan" title="Mover vista (H)">✥</button>
+            <button class="tool-button" data-tool="rotate" title="Rotar (R)">↻</button>
+            <button id="fit" class="tool-button" title="Centrar">▣</button>
+          </div>
+          <div class="tool-group view-group">
+            <select id="view" class="tool-select" aria-label="Vista"><option>Vista: Frontal</option></select>
+          </div>
+          <div id="toolbar-more-panel" class="tool-group toolbar-secondary" role="group" aria-label="Opciones de visualización adicionales">
+            <label class="inline-control"><input id="grid" type="checkbox" checked> Cuadrícula</label>
+            <label class="inline-control"><input id="bones" type="checkbox" checked> Huesos</label>
+            <label class="inline-control"><input id="ghost" type="checkbox" checked> Vista fantasma</label>
+            <label class="inline-control">Opacidad <input id="ghost-alpha" class="opacity-slider" type="range" min="5" max="70" value="28"></label>
+          </div>
+          <div class="tool-group zoom-group">
+            <button id="zoomout" class="tool-button" aria-label="Alejar">−</button>
+            <input id="zoom" class="zoom-slider" type="range" min="40" max="220" value="100" aria-label="Zoom">
+            <output id="zoom-label" class="zoom-output">100 %</output>
+            <button id="zoomin" class="tool-button" aria-label="Acercar">+</button>
+            <button id="fullscreen" class="tool-button" title="Pantalla completa">⛶</button>
+          </div>
         </div>
-        <div class="tool-group">
-          <select id="view" class="tool-select" aria-label="Vista"><option>Vista: Frontal</option></select>
-          <label class="inline-control"><input id="grid" type="checkbox" checked> Cuadrícula</label>
-          <label class="inline-control"><input id="bones" type="checkbox" checked> Huesos</label>
-          <label class="inline-control"><input id="ghost" type="checkbox" checked> Vista fantasma</label>
-          <label class="inline-control">Opacidad <input id="ghost-alpha" class="opacity-slider" type="range" min="5" max="70" value="28"></label>
-        </div>
-        <div class="tool-group">
-          <button id="zoomout" class="tool-button" aria-label="Alejar">−</button>
-          <input id="zoom" class="zoom-slider" type="range" min="40" max="220" value="100" aria-label="Zoom">
-          <output id="zoom-label" class="zoom-output">100 %</output>
-          <button id="zoomin" class="tool-button" aria-label="Acercar">+</button>
-          <button id="fullscreen" class="tool-button" title="Pantalla completa">⛶</button>
-        </div>
+        <button id="toolbar-more" class="tool-button toolbar-more" type="button" aria-controls="toolbar-more-panel" aria-expanded="false">Más <span aria-hidden="true">▾</span></button>
       </div>
       <div id="viewport" class="viewport">
         <canvas id="canvas" aria-label="Lienzo del personaje y su esqueleto"></canvas>
@@ -137,6 +149,15 @@
           </div>
 
           <div id="calibration-inspector" hidden>
+            <section id="sprite-import-section" class="inspector-section" hidden>
+              <h2>Importar sprite</h2>
+              <div class="sprite-import-preview">
+                <img id="sprite-import-preview" alt="Vista previa del sprite seleccionado">
+                <div><strong id="sprite-import-name">Sprite original</strong><span id="sprite-import-meta">PNG o PSD · máximo 25 MB</span></div>
+              </div>
+              <div class="button-row"><button id="import-sprite" class="small-button primary">Importar PNG o PSD</button><button id="reset-sprite" class="small-button">Restaurar original</button></div>
+              <p class="muted">El PNG reemplaza la pieza seleccionada. En PSD, cada capa de imagen se convierte en un sprite independiente y conserva su nombre, posición, visibilidad y orden.</p>
+            </section>
             <section class="inspector-section">
               <h2>Transformación de calibración</h2>
               <div class="field-grid">
@@ -149,7 +170,13 @@
             </section>
           </div>
 
-          <section class="inspector-section"><h2>Estado</h2><p id="status" class="status">Listo</p></section>
+          <section class="inspector-section">
+            <h2>Historial de cambios</h2>
+            <div class="button-row history-controls"><button id="history-undo" class="small-button">↶ Deshacer</button><button id="history-redo" class="small-button">↷ Rehacer</button></div>
+            <ol id="change-history" class="change-history" aria-label="Historial de cambios de esta sesión"></ol>
+            <p class="muted history-note">Esta sesión · hasta 80 estados. Selecciona un cambio para volver a ese punto.</p>
+          </section>
+          <section class="inspector-section"><h2>Estado</h2><p id="status" class="status" aria-live="polite">Listo</p></section>
         </div>
 
         <div id="presets-panel" hidden>
@@ -187,6 +214,8 @@
   </main>
 
   <input id="file" type="file" accept=".json,application/json">
-  <script type="module" src="./src/studio/editor.js?v=0.45.3"></script>
+  <input id="sprite-file" type="file" accept=".png,.psd,image/png,image/vnd.adobe.photoshop">
+  <script src="./src/vendor/ag-psd.bundle.js?v=31.0.3"></script>
+  <script type="module" src="./src/studio/editor.js?v=0.47.3"></script>
 </body>
 </html>

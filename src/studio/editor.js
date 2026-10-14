@@ -18,10 +18,14 @@ import {
   validateStudioProject
 } from "../animations/studio-format.js?v=0.45.3";
 import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.3";
+import { collectPsdLayers, normalizeLayerId, uniquePartId } from "./psd-layers.js?v=0.47.1";
 
 const $ = (id) => document.getElementById(id);
 const BASE_SCALE = 0.32;
 const STORAGE_KEY = "cronicas-studio:project";
+const MAX_SPRITE_FILE_SIZE = 25 * 1024 * 1024;
+const MAX_SPRITE_DIMENSION = 4096;
+const MAX_PSD_MEMORY = 256 * 1024 * 1024;
 const TARGETS = [...new Set(["rig", "torso", ...Object.keys(JOINTS)])];
 const LABELS = {
   rig: "Torso",
@@ -66,6 +70,10 @@ const freshParts = () => PRESET.map(([id, x, y, assetId], z) => ({
 }));
 const freshProject = () => ({ version: 2, fps: 24, parts: freshParts(), clip: createStudioProject() });
 const label = (id) => LABELS[id] || id.replaceAll("_", " ").replace(/^./, (value) => value.toUpperCase());
+const partLabel = (itemOrId) => {
+  const item = typeof itemOrId === "string" ? project.parts.find((candidate) => candidate.id === itemOrId) : itemOrId;
+  return item?.displayName || label(item?.id || itemOrId);
+};
 
 let project = freshProject();
 let mode = "animador";
@@ -74,6 +82,8 @@ let rightTab = "inspector";
 let tool = "select";
 let selectedTarget = "rig";
 let selectedPart = "torso";
+let selectedParts = new Set(["torso"]);
+let partSelectionAnchor = "torso";
 let selectedKeys = new Set();
 let keyClipboard = [];
 let hiddenTargets = new Set();
@@ -102,8 +112,62 @@ function status(message) { $("status").textContent = message; }
 function duration() { return project.clip.animation.duration; }
 function fps() { return Number(project.fps || 24); }
 function part() { return project.parts.find((item) => item.id === selectedPart); }
+function selectedPartItems() { return project.parts.filter((item) => selectedParts.has(item.id)); }
 function pose(at = time) { return sampleStudioAnimation(project.clip, at, PUPPET_TARGETS); }
 function snapshot() { return JSON.stringify(project); }
+
+function visibleLayerItems() {
+  const search = $("search").value.trim().toLocaleLowerCase();
+  return [...project.parts]
+    .sort((left, right) => right.z - left.z)
+    .filter((item) => partLabel(item).toLocaleLowerCase().includes(search));
+}
+
+function selectSinglePart(id) {
+  selectedPart = id;
+  selectedParts = new Set([id]);
+  partSelectionAnchor = id;
+}
+
+function syncPartSelection() {
+  const available = new Set(project.parts.map((item) => item.id));
+  selectedParts = new Set([...selectedParts].filter((id) => available.has(id)));
+  if (!available.has(selectedPart)) selectedPart = selectedParts.values().next().value || project.parts[0]?.id || "torso";
+  if (!selectedParts.size && available.has(selectedPart)) selectedParts.add(selectedPart);
+  if (!available.has(partSelectionAnchor)) partSelectionAnchor = selectedPart;
+}
+
+function selectPartRange(toId) {
+  const items = visibleLayerItems();
+  const anchorIndex = Math.max(0, items.findIndex((item) => item.id === partSelectionAnchor));
+  const targetIndex = items.findIndex((item) => item.id === toId);
+  if (targetIndex < 0) return;
+  const [start, end] = anchorIndex <= targetIndex ? [anchorIndex, targetIndex] : [targetIndex, anchorIndex];
+  selectedParts = new Set(items.slice(start, end + 1).map((item) => item.id));
+  selectedPart = toId;
+}
+
+function handlePartSelection(item, event) {
+  if (event.shiftKey) {
+    selectPartRange(item.id);
+  } else if (event.ctrlKey || event.metaKey) {
+    if (selectedParts.has(item.id) && selectedParts.size > 1) selectedParts.delete(item.id);
+    else selectedParts.add(item.id);
+    selectedPart = selectedParts.has(item.id) ? item.id : selectedParts.values().next().value;
+    partSelectionAnchor = item.id;
+  } else {
+    selectSinglePart(item.id);
+  }
+  refresh();
+}
+
+function setToolbarMore(open) {
+  const button = $("toolbar-more");
+  const panel = $("toolbar-more-panel");
+  panel.classList.toggle("open", open);
+  button.setAttribute("aria-expanded", String(open));
+  button.querySelector("span").textContent = open ? "▴" : "▾";
+}
 
 function normalizeLoadedProject(candidate) {
   if (candidate?.clip) {
@@ -137,54 +201,236 @@ function saveLocal(message = null) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(project));
     if (message) status(message);
+    return true;
   } catch (error) {
     console.warn("No se pudo guardar la copia local", error);
     status("El navegador no permitió guardar la copia local; exporta el proyecto para no perder cambios");
+    return false;
   }
 }
 
-function checkpoint() {
+function checkpoint(changeLabel = "Estado actualizado") {
   const current = snapshot();
-  if (undoHistory[historyIndex] === current) return;
+  if (undoHistory[historyIndex]?.snapshot === current) return;
   undoHistory.splice(historyIndex + 1);
-  undoHistory.push(current);
+  undoHistory.push({ snapshot: current, label: changeLabel });
   if (undoHistory.length > 80) undoHistory.shift();
   historyIndex = undoHistory.length - 1;
   updateHistoryButtons();
 }
 
 function commit(message) {
-  saveLocal();
-  checkpoint();
-  if (message) status(message);
+  const saved = saveLocal();
+  checkpoint(message || "Estado actualizado");
+  if (message && saved) status(message);
 }
 
 function restoreHistory(index) {
   if (index < 0 || index >= undoHistory.length) return;
+  const previousIndex = historyIndex;
+  const previousEntry = undoHistory[previousIndex];
   historyIndex = index;
-  project = JSON.parse(undoHistory[historyIndex]);
+  const entry = undoHistory[historyIndex];
+  project = JSON.parse(entry.snapshot);
   project.clip = normalizeStudioProject(project.clip);
+  syncPartSelection();
   time = Math.min(time, duration());
   ensureImages();
-  saveLocal();
+  const saved = saveLocal();
   refresh();
   updateHistoryButtons();
+  if (!saved) return;
+  if (index === previousIndex - 1) status(`Deshecho: ${previousEntry.label}`);
+  else if (index === previousIndex + 1) status(`Rehecho: ${entry.label}`);
+  else status(`Restaurado: ${entry.label}`);
 }
 
 function updateHistoryButtons() {
-  $("undo").disabled = historyIndex <= 0;
-  $("redo").disabled = historyIndex >= undoHistory.length - 1;
+  const cannotUndo = historyIndex <= 0;
+  const cannotRedo = historyIndex >= undoHistory.length - 1;
+  ["undo", "history-undo"].forEach((id) => { $(id).disabled = cannotUndo; });
+  ["redo", "history-redo"].forEach((id) => { $(id).disabled = cannotRedo; });
+  renderChangeHistory();
+}
+
+function renderChangeHistory() {
+  const host = $("change-history");
+  host.replaceChildren();
+  [...undoHistory].reverse().forEach((entry, reverseIndex) => {
+    const index = undoHistory.length - reverseIndex - 1;
+    const item = document.createElement("li");
+    const button = document.createElement("button");
+    button.className = `history-entry${index === historyIndex ? " current" : ""}${index > historyIndex ? " future" : ""}`;
+    button.type = "button";
+    button.title = `Volver a: ${entry.label}`;
+    button.setAttribute("aria-current", index === historyIndex ? "step" : "false");
+    const step = document.createElement("span");
+    step.className = "history-step";
+    step.textContent = String(index + 1).padStart(2, "0");
+    const change = document.createElement("span");
+    change.className = "history-label";
+    change.textContent = entry.label;
+    button.append(step, change);
+    button.onclick = () => restoreHistory(index);
+    item.append(button);
+    host.append(item);
+  });
 }
 
 function ensureImages() {
   project.parts.forEach((item) => {
-    if (images[item.id]?.dataset.assetId === item.assetId) return;
+    const source = item.sprite?.dataUrl || `./assets/modular/man_sprites/runtime/${encodeURIComponent(item.assetId || item.id)}.png`;
+    const sourceKey = item.sprite?.key || (item.sprite?.dataUrl
+      ? `${item.sprite.name}:${item.sprite.dataUrl.length}:${item.sprite.dataUrl.slice(-24)}`
+      : item.assetId);
+    if (images[item.id]?.dataset.sourceKey === sourceKey) return;
     const image = new Image();
-    image.dataset.assetId = item.assetId;
-    image.src = `./assets/modular/man_sprites/runtime/${encodeURIComponent(item.assetId || item.id)}.png`;
+    image.dataset.sourceKey = sourceKey;
+    image.src = source;
     image.onload = draw;
     images[item.id] = image;
   });
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error("No se pudo leer el archivo"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImage(source) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("El PNG no contiene una imagen válida"));
+    image.src = source;
+  });
+}
+
+function validateSpriteDimensions(width, height) {
+  if (!width || !height) throw new Error("El sprite está vacío");
+  if (width > MAX_SPRITE_DIMENSION || height > MAX_SPRITE_DIMENSION) {
+    throw new Error(`El sprite supera ${MAX_SPRITE_DIMENSION} px por lado`);
+  }
+}
+
+async function decodeSpriteFile(file) {
+  if (file.size > MAX_SPRITE_FILE_SIZE) throw new Error("El archivo supera el límite de 25 MB");
+  const extension = file.name.split(".").pop()?.toLocaleLowerCase();
+  if (extension === "png" || file.type === "image/png") {
+    const dataUrl = await readFileAsDataUrl(file);
+    const image = await loadImage(dataUrl);
+    validateSpriteDimensions(image.naturalWidth, image.naturalHeight);
+    return { type: "single", dataUrl, width: image.naturalWidth, height: image.naturalHeight, format: "PNG" };
+  }
+  if (extension !== "psd" && file.type !== "image/vnd.adobe.photoshop") {
+    throw new Error("Selecciona un archivo PNG o PSD");
+  }
+  if (!window.agPsd?.readPsd) throw new Error("El lector de PSD no está disponible");
+  const psd = window.agPsd.readPsd(await file.arrayBuffer(), {
+    skipCompositeImageData: true,
+    skipThumbnail: true,
+    skipLinkedFilesData: true,
+    totalMemoryLimit: MAX_PSD_MEMORY
+  });
+  validateSpriteDimensions(psd.width, psd.height);
+  const layers = collectPsdLayers(psd.children);
+  if (!layers.length) throw new Error("El PSD no contiene capas de imagen utilizables");
+  layers.forEach((layer) => validateSpriteDimensions(layer.width, layer.height));
+  return { type: "layers", width: psd.width, height: psd.height, format: "PSD", layers };
+}
+
+function importPsdLayers(decoded, file) {
+  const reserved = new Set(project.parts.map((item) => item.id));
+  const assigned = new Set();
+  const topZ = Math.max(0, ...project.parts.map((item) => Number(item.z) || 0));
+  let imported = 0;
+  let skipped = 0;
+  let firstPartId = null;
+
+  decoded.layers.forEach((layer, index) => {
+    const normalizedId = normalizeLayerId(layer.name);
+    let current = project.parts.find((item) => item.id === normalizedId && !assigned.has(item.id));
+    if (current && lockedParts.has(current.id)) {
+      skipped += 1;
+      return;
+    }
+    const isNew = !current;
+    const importedOnly = isNew || current?.sprite?.removable === true;
+    if (isNew) {
+      current = {
+        id: uniquePartId(layer.name, reserved),
+        assetId: normalizedId,
+        rotation: 0,
+        scaleX: 1,
+        scaleY: 1
+      };
+      project.parts.push(current);
+    } else {
+      assigned.add(current.id);
+    }
+    const original = importedOnly ? null : {
+      x: current.x,
+      y: current.y,
+      z: current.z,
+      rotation: current.rotation,
+      scaleX: current.scaleX,
+      scaleY: current.scaleY,
+      visible: current.visible,
+      displayName: current.displayName || null
+    };
+    current.displayName = layer.name;
+    current.x = layer.left + layer.width / 2 - decoded.width / 2;
+    current.y = layer.top + layer.height / 2 - decoded.height / 2;
+    current.z = topZ + decoded.layers.length - index;
+    current.rotation = 0;
+    current.scaleX = 1;
+    current.scaleY = 1;
+    current.visible = !layer.hidden;
+    current.sprite = {
+      dataUrl: layer.canvas.toDataURL("image/png"),
+      width: layer.width,
+      height: layer.height,
+      format: "PSD",
+      name: layer.name,
+      source: `${file.name} › ${layer.path}`,
+      removable: importedOnly,
+      original,
+      key: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${file.lastModified}-${index}`
+    };
+    delete images[current.id];
+    firstPartId ||= current.id;
+    imported += 1;
+  });
+
+  if (!imported) throw new Error("Todas las capas coincidentes están bloqueadas");
+  selectSinglePart(firstPartId);
+  ensureImages();
+  const skippedText = skipped ? `; ${skipped} bloqueada(s) omitida(s)` : "";
+  commit(`${imported} capa(s) de ${file.name} importada(s)${skippedText}`);
+}
+
+async function importSprite(file) {
+  const current = part();
+  if (!current) throw new Error("Selecciona una pieza antes de importar");
+  status(`Importando ${file.name}…`);
+  const decoded = await decodeSpriteFile(file);
+  if (decoded.type === "layers") {
+    importPsdLayers(decoded, file);
+    refresh();
+    return;
+  }
+  current.sprite = {
+    ...decoded,
+    name: file.name,
+    key: globalThis.crypto?.randomUUID?.() || `${Date.now()}-${file.lastModified}`
+  };
+  ensureImages();
+  commit(`${file.name} importado en ${partLabel(current)}`);
+  refresh();
 }
 
 const multiply = (left, right) => [
@@ -392,6 +638,7 @@ function appendTreeNode(node, depth, search) {
   if (!visible) return;
   const row = document.createElement("div");
   row.className = `tree-row${selectedTarget === node.id ? " active" : ""}`;
+  row.setAttribute("role", "option");
   row.style.paddingLeft = `${depth * 17}px`;
   const icon = document.createElement("span");
   icon.className = "tree-icon";
@@ -420,17 +667,23 @@ function appendTreeNode(node, depth, search) {
 }
 
 function renderLayers(search) {
-  [...project.parts].sort((left, right) => right.z - left.z).forEach((item) => {
-    if (!label(item.id).toLocaleLowerCase().includes(search)) return;
+  visibleLayerItems().forEach((item) => {
     const row = document.createElement("div");
-    row.className = `tree-row${selectedPart === item.id ? " active" : ""}`;
+    const isSelected = selectedParts.has(item.id);
+    row.className = `tree-row${isSelected ? " active" : ""}${selectedPart === item.id ? " focused" : ""}`;
+    row.dataset.partId = item.id;
+    row.setAttribute("role", "option");
     const icon = document.createElement("span");
     icon.className = "tree-icon";
     icon.textContent = "◇";
     const button = document.createElement("button");
     button.className = "tree-select";
-    button.textContent = label(item.id);
-    button.onclick = () => { selectedPart = item.id; refresh(); };
+    button.textContent = partLabel(item);
+    button.title = `Seleccionar ${partLabel(item)}`;
+    button.onclick = (event) => handlePartSelection(item, event);
+    row.onclick = (event) => {
+      if (event.target === row || event.target === icon) handlePartSelection(item, event);
+    };
     const toggle = document.createElement("button");
     toggle.className = "tree-toggle";
     toggle.textContent = item.visible ? "◉" : "○";
@@ -443,32 +696,162 @@ function renderLayers(search) {
       lockedParts.has(item.id) ? lockedParts.delete(item.id) : lockedParts.add(item.id);
       refresh();
     };
-    row.append(icon, button, toggle, lock);
+    const duplicate = document.createElement("button");
+    duplicate.className = "tree-action duplicate";
+    duplicate.textContent = "⧉";
+    duplicate.title = `Duplicar ${partLabel(item)}`;
+    duplicate.setAttribute("aria-label", `Duplicar ${partLabel(item)}`);
+    duplicate.disabled = lockedParts.has(item.id);
+    duplicate.onclick = () => duplicatePart(item);
+    const remove = document.createElement("button");
+    remove.className = "tree-action delete";
+    remove.textContent = "×";
+    remove.title = `Eliminar ${partLabel(item)}`;
+    remove.setAttribute("aria-label", `Eliminar ${partLabel(item)}`);
+    remove.disabled = lockedParts.has(item.id) || project.parts.length <= 1;
+    remove.onclick = () => deletePart(item);
+    row.setAttribute("aria-selected", String(isSelected));
+    row.append(icon, button, toggle, lock, duplicate, remove);
     $("tree").append(row);
   });
+}
+
+function duplicatePart(source) {
+  duplicateParts(source ? [source] : []);
+}
+
+function duplicateParts(sources) {
+  const available = sources.filter((source) => source && !lockedParts.has(source.id));
+  if (!available.length) return status("Los sprites seleccionados están bloqueados");
+  const reserved = new Set(project.parts.map((item) => item.id));
+  let topZ = Math.max(0, ...project.parts.map((item) => Number(item.z) || 0));
+  const clones = available.map((source) => {
+    const displayName = `${partLabel(source)} copia`;
+    const clone = structuredClone(source);
+    clone.id = uniquePartId(displayName, reserved);
+    clone.displayName = displayName;
+    clone.x = Number(source.x || 0) + 20;
+    clone.y = Number(source.y || 0) + 20;
+    clone.z = ++topZ;
+    if (clone.sprite) {
+      clone.sprite.name = displayName;
+      clone.sprite.removable = true;
+      clone.sprite.original = null;
+      clone.sprite.key = globalThis.crypto?.randomUUID?.() || `${Date.now()}-${clone.id}`;
+    }
+    project.parts.push(clone);
+    return clone;
+  });
+  selectedParts = new Set(clones.map((clone) => clone.id));
+  selectedPart = clones.at(-1).id;
+  partSelectionAnchor = clones[0].id;
+  ensureImages();
+  commit(clones.length === 1 ? `${partLabel(clones[0])} duplicado` : `${clones.length} sprites duplicados`);
+  refresh();
+}
+
+function deletePart(target) {
+  deleteParts(target ? [target] : []);
+}
+
+function deleteParts(targets) {
+  const removable = targets.filter((target) => target && !lockedParts.has(target.id));
+  if (!removable.length) return status("Los sprites seleccionados están bloqueados");
+  if (project.parts.length - removable.length < 1) return status("El proyecto debe conservar al menos un sprite");
+  const prompt = removable.length === 1
+    ? `¿Eliminar ${partLabel(removable[0])}? Puedes recuperar el sprite con Deshacer.`
+    : `¿Eliminar los ${removable.length} sprites seleccionados? Puedes recuperarlos con Deshacer.`;
+  if (!confirm(prompt)) return;
+  const removedIds = new Set(removable.map((target) => target.id));
+  const firstIndex = Math.min(...removable.map((target) => project.parts.indexOf(target)));
+  removable.forEach((target) => {
+    delete images[target.id];
+    lockedParts.delete(target.id);
+  });
+  project.parts = project.parts.filter((item) => !removedIds.has(item.id));
+  selectSinglePart(project.parts[Math.min(firstIndex, project.parts.length - 1)]?.id || "torso");
+  commit(removable.length === 1 ? `${partLabel(removable[0])} eliminado` : `${removable.length} sprites eliminados`);
+  refresh();
+}
+
+function renderMultiSelectionToolbar(layerMode) {
+  const toolbar = $("multi-selection-toolbar");
+  const items = selectedPartItems();
+  const visible = layerMode && items.length > 1;
+  toolbar.hidden = !visible;
+  if (!visible) return;
+  const allVisible = items.every((item) => item.visible !== false);
+  const allLocked = items.every((item) => lockedParts.has(item.id));
+  const editableCount = items.filter((item) => !lockedParts.has(item.id)).length;
+  $("multi-selection-count").textContent = String(items.length);
+  $("multi-selection-count").title = `${items.length} sprites seleccionados`;
+  $("multi-visibility").textContent = allVisible ? "◉" : "○";
+  $("multi-visibility").title = allVisible ? "Ocultar seleccionados" : "Mostrar seleccionados";
+  $("multi-visibility").setAttribute("aria-label", $("multi-visibility").title);
+  $("multi-lock").textContent = allLocked ? "◆" : "◇";
+  $("multi-lock").title = allLocked ? "Desbloquear seleccionados" : "Bloquear seleccionados";
+  $("multi-lock").setAttribute("aria-label", $("multi-lock").title);
+  $("multi-duplicate").disabled = editableCount === 0;
+  $("multi-delete").disabled = editableCount === 0 || project.parts.length - editableCount < 1;
+}
+
+function toggleSelectedVisibility() {
+  const items = selectedPartItems();
+  if (items.length < 2) return;
+  const nextVisible = !items.every((item) => item.visible !== false);
+  items.forEach((item) => { item.visible = nextVisible; });
+  commit(`${items.length} sprites ${nextVisible ? "mostrados" : "ocultados"}`);
+  refresh();
+}
+
+function toggleSelectedLocks() {
+  const items = selectedPartItems();
+  if (items.length < 2) return;
+  const unlock = items.every((item) => lockedParts.has(item.id));
+  items.forEach((item) => unlock ? lockedParts.delete(item.id) : lockedParts.add(item.id));
+  status(`${items.length} sprites ${unlock ? "desbloqueados" : "bloqueados"}`);
+  refresh();
 }
 
 function renderTree() {
   $("tree").replaceChildren();
   const search = $("search").value.trim().toLocaleLowerCase();
-  if (leftTab === "layers" || mode === "calibrador" || mode === "sprites") renderLayers(search);
+  const layerMode = leftTab === "layers" || mode === "calibrador" || mode === "sprites";
+  $("tree").setAttribute("aria-multiselectable", String(layerMode));
+  renderMultiSelectionToolbar(layerMode);
+  if (layerMode) renderLayers(search);
   else if (leftTab === "tracks") {
     TARGETS.filter((target) => (project.clip.animation.keys[target] || []).length || !search)
       .filter((target) => label(target).toLocaleLowerCase().includes(search))
       .forEach((target) => appendTreeNode({ id: target }, 0, search));
   } else TREE.forEach((node) => appendTreeNode(node, 0, search));
-  $("tree-meta").textContent = `${project.clip.rig} · ${project.clip.anatomy} · ${Object.keys(project.clip.animation.keys).length} pistas`;
+  $("tree-meta").textContent = layerMode
+    ? `${selectedParts.size} seleccionado(s) · Ctrl+clic o Shift+↑/↓`
+    : `${project.clip.rig} · ${project.clip.anatomy} · ${Object.keys(project.clip.animation.keys).length} pistas`;
 }
 
 function renderInspector() {
   const calibration = mode === "calibrador" || mode === "sprites";
   $("animation-inspector").hidden = calibration;
   $("calibration-inspector").hidden = !calibration;
-  $("selected-name").textContent = label(calibration ? selectedPart : selectedTarget);
-  $("selected-type").textContent = calibration ? `Pieza · Capa ${part()?.z ?? 0}` : `Hueso · Objetivo: ${selectedTarget}`;
+  $("selected-name").textContent = calibration ? partLabel(selectedPart) : label(selectedTarget);
+  $("selected-type").textContent = calibration
+    ? `${selectedParts.size > 1 ? `${selectedParts.size} sprites · Principal` : "Pieza"} · Capa ${part()?.z ?? 0}`
+    : `Hueso · Objetivo: ${selectedTarget}`;
   if (calibration) {
     const current = part();
     if (!current) return;
+    $("sprite-import-section").hidden = mode !== "sprites";
+    if (mode === "sprites") {
+      const imported = current.sprite;
+      $("sprite-import-preview").src = images[current.id]?.src || "";
+      $("sprite-import-name").textContent = imported?.name || "Sprite original";
+      $("sprite-import-meta").textContent = imported
+        ? `${imported.format} · ${imported.width} × ${imported.height} px${imported.source ? ` · ${imported.source}` : ""}`
+        : "PNG o PSD · máximo 25 MB";
+      $("reset-sprite").disabled = !imported || lockedParts.has(current.id);
+      $("import-sprite").disabled = lockedParts.has(current.id);
+    }
     $("part-x").value = current.x;
     $("part-y").value = current.y;
     $("part-rotation").value = current.rotation;
@@ -693,7 +1076,7 @@ function makeSpriteRow() {
     const image = document.createElement("img");
     image.className = "sprite-frame";
     image.alt = "";
-    image.src = "./assets/modular/man_sprites/runtime/torso.png";
+    image.src = images[selectedPart]?.src || "./assets/modular/man_sprites/runtime/torso.png";
     image.style.left = `${index / count * 100}%`;
     line.append(image);
   }
@@ -746,7 +1129,7 @@ function renderModeOverlay() {
       if (!confirm("¿Crear un proyecto nuevo? El proyecto actual quedará reemplazado en el guardado local.")) return;
       project = freshProject();
       selectedTarget = "rig";
-      selectedPart = "torso";
+      selectSinglePart("torso");
       selectedKeys.clear();
       time = 0;
       ensureImages();
@@ -758,6 +1141,7 @@ function renderModeOverlay() {
 
 function refresh() {
   project.clip = normalizeStudioProject(project.clip);
+  syncPartSelection();
   $("project-name").value = project.clip.animation.id;
   $("duration").value = duration();
   $("loop").checked = project.clip.animation.loop;
@@ -959,10 +1343,52 @@ function bindControls() {
   document.querySelectorAll("[data-right-tab]").forEach((button) => { button.onclick = () => showRightTab(button.dataset.rightTab); });
   document.querySelectorAll("[data-tool]").forEach((button) => { button.onclick = () => setTool(button.dataset.tool); });
   $("search").oninput = renderTree;
+  $("multi-visibility").onclick = toggleSelectedVisibility;
+  $("multi-lock").onclick = toggleSelectedLocks;
+  $("multi-duplicate").onclick = () => duplicateParts(selectedPartItems());
+  $("multi-delete").onclick = () => deleteParts(selectedPartItems());
+  $("toolbar-more").onclick = (event) => {
+    event.stopPropagation();
+    setToolbarMore(!$("toolbar-more-panel").classList.contains("open"));
+  };
+  $("toolbar-more-panel").onclick = (event) => event.stopPropagation();
+  document.addEventListener("click", () => setToolbarMore(false));
   $("undo").onclick = () => restoreHistory(historyIndex - 1);
   $("redo").onclick = () => restoreHistory(historyIndex + 1);
+  $("history-undo").onclick = () => restoreHistory(historyIndex - 1);
+  $("history-redo").onclick = () => restoreHistory(historyIndex + 1);
   $("save-local").onclick = () => { saveLocal("Proyecto guardado en este navegador"); };
   $("open-file").onclick = () => $("file").click();
+  $("import-sprite").onclick = () => $("sprite-file").click();
+  $("reset-sprite").onclick = () => {
+    const current = part();
+    if (!current?.sprite || lockedParts.has(current.id)) return;
+    const sprite = current.sprite;
+    delete images[current.id];
+    if (sprite.removable) {
+      project.parts = project.parts.filter((item) => item !== current);
+      selectSinglePart(project.parts.find((item) => item.id === "torso")?.id || project.parts[0]?.id || "torso");
+    } else {
+      if (sprite.original) {
+        Object.assign(current, sprite.original);
+        if (sprite.original.displayName === null) delete current.displayName;
+      }
+      delete current.sprite;
+    }
+    ensureImages();
+    commit(sprite.removable ? `${partLabel(current)} eliminado` : `Sprite original restaurado en ${partLabel(current)}`);
+    refresh();
+  };
+  $("sprite-file").onchange = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      await importSprite(file);
+    } catch (error) {
+      status(`No se pudo importar el sprite: ${error.message}`);
+    }
+    event.target.value = "";
+  };
   $("project-name").onchange = () => {
     project.clip.animation.id = $("project-name").value.trim() || "nuevo_movimiento";
     commit("ID del proyecto actualizado");
@@ -1016,7 +1442,7 @@ function bindControls() {
   ["part-x", "part-y", "part-rotation", "part-scale"].forEach((id) => {
     $(id).onchange = () => {
       const current = part();
-      if (lockedParts.has(current.id)) return status(`${label(current.id)} está bloqueado`);
+      if (lockedParts.has(current.id)) return status(`${partLabel(current)} está bloqueado`);
       current.x = Number($("part-x").value);
       current.y = Number($("part-y").value);
       current.rotation = Number($("part-rotation").value);
@@ -1028,14 +1454,14 @@ function bindControls() {
     };
   });
   $("flip-part").onclick = () => {
-    if (lockedParts.has(part().id)) return status(`${label(part().id)} está bloqueado`);
+    if (lockedParts.has(part().id)) return status(`${partLabel(part())} está bloqueado`);
     part().scaleX *= -1;
     commit("Pieza volteada");
     refresh();
   };
   const moveLayer = (delta) => {
     const current = part();
-    if (lockedParts.has(current.id)) return status(`${label(current.id)} está bloqueado`);
+    if (lockedParts.has(current.id)) return status(`${partLabel(current)} está bloqueado`);
     const other = project.parts.find((item) => item.z === current.z + delta);
     if (other) { other.z = current.z; current.z += delta; commit("Orden de capas actualizado"); refresh(); }
   };
@@ -1056,7 +1482,7 @@ function bindControls() {
     try {
       project = normalizeLoadedProject(JSON.parse(await file.text()));
       selectedTarget = "rig";
-      selectedPart = "torso";
+      selectSinglePart(project.parts.find((item) => item.id === "torso")?.id || project.parts[0]?.id || "torso");
       selectedKeys.clear();
       time = 0;
       ensureImages();
@@ -1093,7 +1519,7 @@ function bindCanvas() {
         if (score < 1.4 && score < distance) { chosen = item.id; distance = score; }
       });
       if (chosen) {
-        selectedPart = chosen;
+        selectSinglePart(chosen);
         if (!lockedParts.has(chosen)) interaction = { type: "piece", start: world, x: part().x, y: part().y, moved: false };
         refresh();
       }
@@ -1179,12 +1605,46 @@ function bindCanvas() {
   canvas.onpointercancel = canvas.onpointerup;
 }
 
+function movePartSelection(direction, extend) {
+  const items = visibleLayerItems();
+  if (!items.length) return;
+  const currentIndex = items.findIndex((item) => item.id === selectedPart);
+  const originIndex = currentIndex < 0 ? (direction > 0 ? -1 : items.length) : currentIndex;
+  const nextIndex = Math.max(0, Math.min(items.length - 1, originIndex + direction));
+  const nextId = items[nextIndex].id;
+  if (extend) selectPartRange(nextId);
+  else selectSinglePart(nextId);
+  refresh();
+  requestAnimationFrame(() => $("tree").querySelector(`[data-part-id="${CSS.escape(nextId)}"]`)?.scrollIntoView({ block: "nearest" }));
+}
+
 function bindKeyboard() {
   window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && $("toolbar-more-panel").classList.contains("open")) {
+      setToolbarMore(false);
+      $("toolbar-more").focus();
+      return;
+    }
     const editing = /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "");
     if (event.ctrlKey && event.key.toLowerCase() === "z") { event.preventDefault(); restoreHistory(historyIndex - 1); return; }
     if (event.ctrlKey && event.key.toLowerCase() === "y") { event.preventDefault(); restoreHistory(historyIndex + 1); return; }
     if (editing) return;
+    const partListActive = mode === "sprites" || mode === "calibrador" || leftTab === "layers";
+    if (partListActive && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
+      event.preventDefault();
+      movePartSelection(event.key === "ArrowUp" ? -1 : 1, event.shiftKey);
+      return;
+    }
+    if (partListActive && event.ctrlKey && event.key.toLowerCase() === "d") {
+      event.preventDefault();
+      duplicateParts(selectedPartItems());
+      return;
+    }
+    if (partListActive && (event.key === "Delete" || event.key === "Backspace")) {
+      event.preventDefault();
+      deleteParts(selectedPartItems());
+      return;
+    }
     if (event.ctrlKey && event.key.toLowerCase() === "c") { event.preventDefault(); copySelectedKeys(); }
     else if (event.ctrlKey && event.key.toLowerCase() === "v") { event.preventDefault(); pasteKeys(); }
     else if (event.ctrlKey && event.key.toLowerCase() === "d") { event.preventDefault(); copySelectedKeys(); pasteKeys(time + 1000 / fps()); }
@@ -1201,6 +1661,7 @@ function bindKeyboard() {
 function initialize() {
   project = loadInitialProject();
   project.clip = normalizeStudioProject(project.clip);
+  syncPartSelection();
   STUDIO_EASES.forEach((ease) => {
     const option = document.createElement("option");
     option.value = ease;
@@ -1212,7 +1673,7 @@ function initialize() {
   bindCanvas();
   bindKeyboard();
   window.addEventListener("resize", draw);
-  checkpoint();
+  checkpoint("Inicio de la sesión");
   const requestedMode = location.hash.slice(1);
   setMode(["animador", "calibrador", "sprites", "exportar", "proyecto"].includes(requestedMode) ? requestedMode : "animador");
 }
