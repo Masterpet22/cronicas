@@ -88,7 +88,7 @@ function sampleKeyframeProperty(frames, property, time) {
   return keys[keys.length - 1][property];
 }
 
-/** Muestrea offsets relativos de un clip exportado por Crónicas Studio. */
+/** Muestrea offsets relativos de un clip del catálogo del juego. */
 export function sampleKeyframeAnimationPose(clip, elapsed) {
   if (!isKeyframeAnimationClip(clip)) return {};
   const duration = Math.max(1, Number(clip.duration || 0));

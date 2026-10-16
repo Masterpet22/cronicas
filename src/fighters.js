@@ -11,7 +11,7 @@ export const MAN_SPRITE_SHADOW_OFFSET = 60;
 const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
 
 // Centros calibrados sobre un lienzo de 2048 x 2048 con origen en el centro.
-// El orden z proviene del montaje visual aprobado en puppet-calibrator.html.
+// El orden z mantiene la superposición anatómica aprobada para el juego.
 export const MAN_SPRITE_LAYERS = [
   { id: "pie_derecho", x: -175.526, y: 732.316, z: 0 },
   { id: "brazo_izquierdo", assetId: "brazo_derecho", x: 161.481, y: -174.474, z: 1 },

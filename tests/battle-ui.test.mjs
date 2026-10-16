@@ -6,7 +6,6 @@ const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
 const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const calibrator = readFileSync(new URL("../puppet-calibrator.html", import.meta.url), "utf8");
 const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 const metaUi = readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8");
 
@@ -76,14 +75,6 @@ assert.match(battle, /startPlayerRunning\(this, runner\)/, "La transición debe 
 assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproducir la carrera en sentido inverso");
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, PauseScene\]/, "La transición debe ejecutarse antes del combate");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
-assert.match(calibrator, /Laboratorio de animación/, "El calibrador debe incluir un laboratorio para aprobar clips");
-assert.match(calibrator, /animationClipList\(\)/, "El laboratorio y el juego deben compartir el catálogo declarativo completo");
-assert.match(calibrator, /playAnimationPreview/, "El laboratorio debe poder reproducir los clips sin alterar coordenadas");
-assert.match(calibrator, /JOINT_PARENTS/, "La vista previa debe respetar la jerarquía de articulaciones");
-assert.match(calibrator, /applyAnimationPose/, "El laboratorio debe calcular cada pose articulada por fotograma");
-assert.match(calibrator, /sampleAnimationPose/, "El laboratorio y Phaser deben compartir el muestreador de clips");
-assert.match(calibrator, /version: 2/, "El calibrador debe exportar la nomenclatura anatómica corregida");
-assert.match(calibrator, /data\.version === 1/, "El calibrador debe migrar JSON anteriores sin perder coordenadas");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /loseHealth\(this\.player, this\.hero/, "Los impactos enemigos deben pasar por la reacción centralizada");
 assert.match(battle, /loseHealth\(this\.enemy, this\.foe/, "El rival debe reaccionar visualmente al recibir daño");

@@ -2,9 +2,8 @@
 
 ## Fuente única
 
-Todos los movimientos aprobados viven en `src/animations/clips.js`. El juego y
-el laboratorio de `puppet-calibrator.html` leen ese mismo catálogo; no se deben
-copiar valores de animación entre archivos.
+Todos los movimientos aprobados del juego viven en `src/animations/clips.js`;
+no se deben copiar valores de animación entre archivos.
 
 Cada clip declara:
 
@@ -39,10 +38,10 @@ La máquina usa este orden, de menor a mayor prioridad:
 Un estado de menor prioridad no puede interrumpir uno superior. Al terminar una
 acción se restablece la pose neutral y se vuelve al reposo correspondiente.
 
-## Flujo para crear y aprobar un clip
+## Flujo para integrar un clip
 
 1. Crear el clip con `status: "draft"` en el catálogo.
-2. Revisarlo en el Laboratorio de animación del calibrador, a varias velocidades.
+2. Revisarlo dentro del juego a varias velocidades.
 3. Confirmar que las piezas no se separan y que la pose base no cambia.
 4. Cambiar el estado a `integrated`.
 5. Referenciar su `id` desde la acción, escena o estado que corresponda.
@@ -74,7 +73,7 @@ hombros; el giro de cabeza es deliberadamente mínimo.
 - `hit-heavy`: reacción de cuerpo completo para golpes de al menos 16 % de la
   vida máxima, con un mínimo de 10 puntos.
 
-El laboratorio calcula la jerarquía de la marioneta en cada fotograma. Las
+El runtime calcula la jerarquía de la marioneta en cada fotograma. Las
 rotaciones del hombro arrastran codo, muñeca y mano, y las rotaciones de cadera
 arrastran rodilla, tobillo y pie, igual que en el rig de Phaser.
 
@@ -86,10 +85,9 @@ renombrar ni duplicar archivos.
 ## Runtime compartido
 
 `runtime.js` contiene el muestreo temporal, las curvas y el cálculo de duración
-que comparten Phaser y el Laboratorio. `rig.js` contiene las articulaciones,
-sus relaciones padre-hijo y la asociación entre piezas y huesos. El juego y el
-calibrador son adaptadores de presentación; no mantienen copias de esas reglas.
+que usa Phaser. `rig.js` contiene las articulaciones, sus relaciones padre-hijo
+y la asociación entre piezas y huesos. El juego no mantiene copias de esas reglas.
 
 La carrera (`run-cycle` y su variante simple) y las tres fases del puñetazo
 (`punch-prepare`, `punch-release`, `punch-recover`) viven ahora en el catálogo,
-por lo que pueden revisarse en el Laboratorio igual que defensa y daño.
+por lo que comparten el mismo sistema que defensa y daño.

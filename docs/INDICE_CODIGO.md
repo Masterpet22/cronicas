@@ -25,10 +25,6 @@ index.html
 | `styles.css` | Estilos generales | Presentación de creación de personaje, aldea, ubicaciones, dojo, diálogos y misiones. |
 | `desktop.css` | Diseño de escritorio | Adapta la interfaz al escenario lógico de escritorio y sus resoluciones. |
 | `sw.js` | Caché sin conexión | Instala, actualiza y sirve los recursos estáticos versionados. |
-| `cronicas-studio.html` | Entrada de Crónicas Studio | Editor unificado de calibración, animación, sprites, validación y exportación. |
-| `cronicas-studio.css` | Diseño de Crónicas Studio | Distribución de cabecera, árbol, lienzo, inspector y timeline inspirada en la guía visual. |
-| `animation-studio.html` | Estudio de animación histórico | Prototipo inicial conservado para no romper enlaces y archivos anteriores. |
-| `puppet-calibrator.html` | Calibrador de marioneta | Ajusta posiciones, pivotes, orden de capas y previsualiza clips del personaje modular. |
 | `package.json` / `package-lock.json` | Configuración del proyecto | Versión, dependencia fija de iconos y comando de pruebas. |
 
 ## Orquestador de escenas: `game.js`
@@ -147,26 +143,9 @@ Escena `PauseScene`:
 | --- | --- |
 | `rig.js` | `PUPPET_JOINTS`, `PUPPET_JOINT_PARENTS`, `PUPPET_PART_JOINTS` y `PUPPET_TARGETS`: jerarquía y objetivos del esqueleto. |
 | `clips.js` | Estados, prioridades, catálogo `PUPPET_ANIMATION_CLIPS`, clip neutral y `animationClipList`. |
-| `runtime.js` | Muestreo determinista de clips heredados y Studio: curvas, duración, detección de formato y `sampleKeyframeAnimationPose`. |
-| `controller.js` | `PuppetAnimationController`: reproduce, prioriza, detiene y restaura ambos formatos; los clips Studio usan un reloj compartido. |
+| `runtime.js` | Muestreo determinista de clips del juego: curvas, duración y `sampleKeyframeAnimationPose`. |
+| `controller.js` | `PuppetAnimationController`: reproduce, prioriza, detiene y restaura los movimientos del juego. |
 | `schema.js` | `validateAnimationCatalog` y `assertValidAnimationCatalog`: validación de catálogos con `tracks` o `keys`, sin mezclarlos. |
-| `studio-format.js` | Contrato `cronicas-studio/v1`: creación, normalización, validación e importación/exportación determinista de proyectos. |
-| `studio-runtime.js` | `validateStudioAnimation` y `sampleStudioAnimation`: fachada del editor sobre el muestreador común. |
-| `studio-adapter.js` | Convierte uno o varios proyectos Studio validados en clips y catálogos consumibles por el juego. |
-
-## Editor unificado: `src/studio`
-
-| Archivo | Contenido y funciones |
-| --- | --- |
-| `editor.js` | Estado del proyecto, carga de sprites, matrices del rig, render Canvas, jerarquía, bloqueo/visibilidad, inspector, timeline, historial, reproducción, importación y exportación. |
-
-## Herramientas HTML
-
-`cronicas-studio.html` es la herramienta principal y delega su lógica a `src/studio/editor.js`. Ofrece cinco modos, un solo lienzo, pistas multipropiedad, eventos de sprite, vista fantasma, historial, guardado local y exportación condicionada por la validación del juego.
-
-`animation-studio.html` conserva el prototipo anterior y sus funciones `updateBones`, `render`, `renderKeys`, `sync`, `addKey`, `setAngle`, `tick` y `loadFields` para compatibilidad temporal.
-
-`puppet-calibrator.html` incluye `exportData`, `renderParts`, `applyAnimationPose`, `playAnimationPreview`, `renderAnimationLab`, `renderList`, `renderFields`, `selectPart`, `startDrag`, `endDrag`, `changeLayer` y `updateSelectedFromFields`.
 
 ## Scripts de recursos
 
@@ -179,8 +158,6 @@ Escena `PauseScene`:
 | --- | --- |
 | `tests/rules.test.mjs` | Precisión, afinidades y estados. |
 | `tests/save.test.mjs` | Guardado, migración, progresión, equipo y recompensas. |
-| `tests/studio-format.test.mjs` | Contrato, migración, adaptador, catálogo, paridad de runtime y restauración neutral. |
-| `tests/studio-ui.test.mjs` | Estructura canónica del editor, modos, paneles, timeline y conexión con el contrato. |
 | `tests/character.test.mjs` | Apariencia y composición del personaje. |
 | `tests/village-map.test.mjs` | Mapa y destinos de la aldea. |
 | `tests/npcs.test.mjs` | Reparto y diálogos. |

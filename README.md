@@ -6,9 +6,6 @@ RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye un
 
 La arquitectura y el flujo de aprobación de la marioneta están documentados en
 [`docs/ANIMATION_SYSTEM.md`](docs/ANIMATION_SYSTEM.md).
-El editor unificado y su flujo de exportación están documentados en
-[`docs/CRONICAS_STUDIO.md`](docs/CRONICAS_STUDIO.md) y se abren desde
-[`cronicas-studio.html`](cronicas-studio.html).
 El mapa completo de archivos, módulos y funciones está en
 [`docs/INDICE_CODIGO.md`](docs/INDICE_CODIGO.md).
 
@@ -81,9 +78,6 @@ src/npcs.js              Reparto, funciones y guías de cada ubicación
 src/rules.js             Precisión, afinidades y estados
 src/fighters.js          Composición y animación de capas de personaje
 src/ui.js                Barras y botones de combate
-cronicas-studio.html     Editor unificado de calibración, animación y exportación
-cronicas-studio.css      Distribución visual del Studio
-animation-studio.html    Prototipo histórico conservado por compatibilidad
 docs/INDICE_CODIGO.md    Índice en español de archivos, módulos y funciones
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
