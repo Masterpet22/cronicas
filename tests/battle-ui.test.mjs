@@ -70,6 +70,9 @@ assert.match(icons, /export function createUiIcon/, "La integración debe expone
 assert.doesNotMatch(battle, /createUiIcon\(this, "health"/, "El marco debe contener la vida sin una etiqueta o icono exterior");
 assert.doesNotMatch(battle, /createUiIcon\(this, "chakra"/, "El marco debe contener el chakra sin una etiqueta o icono exterior");
 assert.match(battle, /createUiIcon\(this, "speed"/, "Velocidad debe usar el icono de Lucide");
+assert.match(battle, /load\.spritesheet\(FIRE_BREATH_VFX\.texture/, "Aliento de brasa debe cargar su spritesheet dedicado");
+assert.match(battle, /jutsu\.id === "fire_breath"\) await this\.playFireBreathEffect\(\)/, "Aliento de brasa debe ejecutar la animación antes de aplicar el impacto");
+assert.match(battle, /this\.foe\.body\.x, this\.foe\.shadow\.y \+ 8/, "La llama debe aparecer sobre la posición actual del enemigo");
 assert.match(ui, /createUiIcon\(scene, "lock"/, "Los espacios bloqueados deben usar el icono de Lucide");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
 assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRight/, "Solo Golpe veloz debe activar el puñetazo articulado");

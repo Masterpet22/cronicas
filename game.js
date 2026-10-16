@@ -77,6 +77,14 @@ const BATTLE_ARENAS = Object.freeze([
   Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh.jpg?v=0.20.0" }),
   Object.freeze({ texture: "bg-moon", file: "assets/locations/battle-moon-shrine.jpg?v=0.20.0" })
 ]);
+const FIRE_BREATH_VFX = Object.freeze({
+  texture: "fire-breath-vfx",
+  animation: "fire-breath-eruption",
+  file: "assets/vfx/fire-breath-spritesheet.png?v=0.49.0",
+  frameWidth: 313,
+  frameHeight: 717,
+  frames: 7
+});
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -166,6 +174,13 @@ class BattleScene extends Phaser.Scene {
 
     const needsSealSheet = activeSave.loadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
+    if (activeSave.loadout.includes("fire_breath") && !this.textures.exists(FIRE_BREATH_VFX.texture)) {
+      this.load.spritesheet(FIRE_BREATH_VFX.texture, FIRE_BREATH_VFX.file, {
+        frameWidth: FIRE_BREATH_VFX.frameWidth,
+        frameHeight: FIRE_BREATH_VFX.frameHeight,
+        endFrame: FIRE_BREATH_VFX.frames - 1
+      });
+    }
     if (activeMission?.id === "m11") {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
       const master = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
@@ -193,6 +208,15 @@ class BattleScene extends Phaser.Scene {
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
     this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     this.saveData = activeSave;
+    if (this.textures.exists(FIRE_BREATH_VFX.texture) && !this.anims.exists(FIRE_BREATH_VFX.animation)) {
+      this.anims.create({
+        key: FIRE_BREATH_VFX.animation,
+        frames: this.anims.generateFrameNumbers(FIRE_BREATH_VFX.texture, { start: 0, end: FIRE_BREATH_VFX.frames - 1 }),
+        frameRate: 11,
+        repeat: 0,
+        hideOnComplete: true
+      });
+    }
     this.mission = activeMission;
     this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
@@ -1174,7 +1198,8 @@ class BattleScene extends Phaser.Scene {
       return;
     }
 
-    this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
+    if (jutsu.id === "fire_breath") await this.playFireBreathEffect();
+    else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
     this.tone(jutsu.cinematic ? 92 : 128, 0.12);
     this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
     const { reaction } = this.loseHealth(this.enemy, this.foe, damage);
@@ -1196,6 +1221,21 @@ class BattleScene extends Phaser.Scene {
     await this.delay(usesPuppetPunch ? 150 : 430);
     this.hero.body.x = originX;
     this.hero.shadow.x = originShadowX;
+  }
+
+  playFireBreathEffect() {
+    if (!this.textures.exists(FIRE_BREATH_VFX.texture) || !this.anims.exists(FIRE_BREATH_VFX.animation)) return Promise.resolve();
+    const flame = this.add.sprite(this.foe.body.x, this.foe.shadow.y + 8, FIRE_BREATH_VFX.texture, 0)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(170, 390)
+      .setDepth(14);
+    return new Promise((resolve) => {
+      flame.once("animationcomplete", () => {
+        flame.destroy();
+        resolve();
+      });
+      flame.play(FIRE_BREATH_VFX.animation);
+    });
   }
 
   async playerGuard() {
