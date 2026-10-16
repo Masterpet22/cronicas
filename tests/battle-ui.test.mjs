@@ -83,7 +83,12 @@ assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproduci
 assert.match(battle, /class MissionEpilogueScene extends Phaser\.Scene/, "La primera misión debe incluir el encuentro final con Sayo");
 assert.match(battle, /Aldea de Kagemori/, "Sayo debe señalar Kagemori como el lugar donde perdió el rastro");
 assert.match(battle, /activeMission\?\.type === "investigation"/, "El viaje de investigación debe abrir la zona explorable en lugar de iniciar un combate");
-assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, ResultsScene, PauseScene\]/, "Viaje, combate, epílogo, resultados y pausa deben formar el flujo de misión");
+assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las investigaciones secundarias deben tener resultados propios");
+assert.match(battle, /playInvestigationPhase\(\)/, "La segunda misión principal debe incluir una fase de investigación");
+assert.match(battle, /playPrisonerChoice\(\)/, "El teniente derrotado debe abrir una decisión persistente");
+assert.match(battle, /nextSideMissionGoldMultiplier = choice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
+assert.match(battle, /punishedBoss[\s\S]*profile\.hp \+ \(punishedBoss \? 22 : 0\)/, "Eliminar al teniente debe fortalecer a Akumori");
+assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "Viaje, combate, epílogos y ambos resultados deben formar el flujo de misión");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /loseHealth\(this\.player, this\.hero/, "Los impactos enemigos deben pasar por la reacción centralizada");
@@ -136,7 +141,7 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.46\.0/, "El CSS corregido debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.47\.0/, "El CSS corregido debe invalidar la caché anterior");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
 assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");
@@ -159,6 +164,8 @@ assert.match(metaUi, /mission\.briefing[\s\S]*"COMENZAR MISIÓN", "story"/, "Los
 assert.match(metaUi, /bodyType === "male" \? NPCS\.mei : NPCS\.daichi/, "Mei debe enseñar al avatar masculino y Daichi al femenino");
 assert.match(metaUi, /data-clue="\$\{clue\.id\}"/, "Kagemori debe ofrecer puntos de investigación interactivos");
 assert.match(metaUi, /banditBossMissionUnlocked = true/, "Reunir las pistas debe desbloquear la segunda misión principal");
+assert.match(metaUi, /filter\(\(mission\) => !mission\.unlockFlag/, "Las misiones bloqueadas no deben renderizarse antes de cumplir su requisito");
+assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
 assert.match(battle, /bodyType === "male" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el mismo maestro asignado");
 assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
 assert.doesNotMatch(battle, /const halo =|add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");

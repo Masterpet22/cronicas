@@ -1,8 +1,8 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.21.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.22.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 6;
+export const SAVE_VERSION = 7;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm", companion: null };
 const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
@@ -29,7 +29,12 @@ export function createDefaultSave() {
       sayoEncounterSeen: false,
       secondaryBoardUnlocked: false,
       kagemoriInvestigated: false,
-      banditBossMissionUnlocked: false
+      banditBossMissionUnlocked: false,
+      banditPrisonerChoice: null,
+      nextSideMissionGoldMultiplier: 1,
+      archiveUnlocked: false,
+      sayoRelicPending: false,
+      sayoRelicDelivered: false
     }
   };
 }
@@ -146,7 +151,12 @@ export function normalizeSave(candidate) {
       sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),
       secondaryBoardUnlocked: Boolean(candidate.campaign?.secondaryBoardUnlocked),
       kagemoriInvestigated: Boolean(candidate.campaign?.kagemoriInvestigated),
-      banditBossMissionUnlocked: Boolean(candidate.campaign?.banditBossMissionUnlocked)
+      banditBossMissionUnlocked: Boolean(candidate.campaign?.banditBossMissionUnlocked),
+      banditPrisonerChoice: ["interrogate", "eliminate"].includes(candidate.campaign?.banditPrisonerChoice) ? candidate.campaign.banditPrisonerChoice : null,
+      nextSideMissionGoldMultiplier: Number(candidate.campaign?.nextSideMissionGoldMultiplier) === 2 ? 2 : 1,
+      archiveUnlocked: Boolean(candidate.campaign?.archiveUnlocked),
+      sayoRelicPending: Boolean(candidate.campaign?.sayoRelicPending),
+      sayoRelicDelivered: Boolean(candidate.campaign?.sayoRelicDelivered)
     }
   };
 }
@@ -209,6 +219,10 @@ export function completeMission(save, missionId) {
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
   result.campaign.completedMissions.push(missionId);
   if (missionId === "m02") result.campaign.companion = "mika";
+  if (missionId === "m11") {
+    result.campaign.archiveUnlocked = true;
+    result.campaign.sayoRelicPending = true;
+  }
   if (mission.exam) result.campaign.rank = "Guardián";
   if (mission.exam) result.campaign.elementRank = Math.max(2, result.campaign.elementRank);
   if (mission.finale) result.campaign.elementRank = 3;

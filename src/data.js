@@ -124,6 +124,22 @@ export const ENEMY_ROSTER = {
     phase2Pattern: ["quick", "heavy", "quick", "ember"], boss: true,
     colors: { cloth: 0x8f5747, accent: 0x321b19 }
   },
+  bandit_pathfinder: {
+    name: "RASTREADOR BANDIDO", hp: 72, speed: 12, accuracy: 89, evasion: 7,
+    weakness: "fire", resistance: "physical", pattern: ["quick", "toxin", "heavy"],
+    colors: { cloth: 0x53684b, accent: 0x1d2b20 }
+  },
+  bandit_lieutenant: {
+    name: "TENIENTE DE LA CANTERA", hp: 86, speed: 11, accuracy: 92, evasion: 7,
+    weakness: "wind", resistance: "physical", pattern: ["heavy", "quick", "toxin"],
+    colors: { cloth: 0x755744, accent: 0x2d1e19 }
+  },
+  boss_akumori: {
+    name: "AKUMORI, JEFE DEL DESFILADERO", hp: 118, speed: 12, accuracy: 94, evasion: 8,
+    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "toxin"],
+    phase2Pattern: ["ember", "heavy", "quick", "toxin"], boss: true,
+    colors: { cloth: 0x6d3e48, accent: 0x25131a }
+  },
   gate_guard: {
     name: "GUARDIÁN DEL PASO", hp: 68, speed: 10, accuracy: 90, evasion: 5,
     weakness: "wind", resistance: "physical", pattern: ["quick", "heavy", "quick"],
@@ -201,14 +217,6 @@ export const SECONDARY_MISSIONS = [
   }
 ];
 
-export const STORY_MISSION_PREVIEWS = [
-  {
-    id: "m11", number: 2, title: "Asalto al Desfiladero del Cuervo", location: "Guarida de los bandidos", duration: "Por definir", rank: "D", encounters: [],
-    reward: { xp: 0, coins: 0 }, comingSoon: true, unlockFlag: "banditBossMissionUnlocked",
-    briefing: [["Sayo Kisaragi", "Nami confirmó la ruta. El jefe de los bandidos se oculta en el Desfiladero del Cuervo."]]
-  }
-];
-
 export const MISSIONS = [
   {
     id: "m01", number: 1, title: "Tras las huellas del gato", location: "Bosque del Este", duration: "8–10 min", rank: "D", encounters: ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"],
@@ -262,5 +270,11 @@ export const MISSIONS = [
     id: "m10", number: 10, title: "Crónicas del Eclipse", location: "Santuario del Horizonte", duration: "9–11 min", encounters: ["mist_scout", "boss_nerezza", "boss_eclipse"],
     reward: { xp: 180, coins: 160 }, finale: true,
     briefing: [["Maestra Aya", "Todo lo aprendido te trajo aquí. Rompe el sello del Eclipse y regresa para escribir tu propio capítulo."]]
+  },
+  {
+    id: "m11", number: 2, title: "Asalto al Desfiladero del Cuervo", location: "Ruta de la cantera", duration: "12–15 min", rank: "D",
+    encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { xp: 95, coins: 80 },
+    unlockFlag: "banditBossMissionUnlocked", scriptedPhases: true, relic: "Medallón de obsidiana",
+    briefing: [["Ren Arashiro", "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera."]]
   }
 ];

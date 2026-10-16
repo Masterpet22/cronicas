@@ -16,11 +16,12 @@ applyStatus(actor, { type: "seal", label: "SELLADO", duration: 3, power: 0 });
 assert.equal(actor.statuses.length, 1, "Reaplicar un estado no debe duplicarlo");
 assert.equal(actor.statuses[0].duration, 3, "Reaplicar un estado debe refrescar su duración");
 
-assert.equal(ENEMIES.filter((enemy) => !enemy.boss).length, 10, "La demo debe incluir los dos bandidos del tutorial entre sus enemigos normales");
-assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 4, "La demo debe incluir a Varek entre sus jefes");
+assert.equal(ENEMIES.filter((enemy) => !enemy.boss).length, 12, "La campaña debe incluir los bandidos del desfiladero entre sus enemigos normales");
+assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 5, "La campaña debe incluir a Akumori entre sus jefes");
 assert.ok(ENEMIES.filter((enemy) => enemy.boss).every((enemy) => enemy.phase2Pattern.length > 0), "Cada jefe debe tener una segunda fase");
-assert.equal(MISSIONS.length, 10, "La campaña debe contener diez misiones");
+assert.equal(MISSIONS.length, 11, "La campaña debe contener las diez misiones base y la nueva misión del desfiladero");
 assert.deepEqual(MISSIONS[0].encounters, ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"], "La primera misión debe encadenar dos bandidos y un minijefe");
+assert.deepEqual(MISSIONS.find((mission) => mission.id === "m11").encounters, ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], "La segunda misión de la saga debe cerrar con Akumori");
 assert.equal(MISSIONS.filter((mission) => mission.exam).length, 1, "Debe existir un examen de rango");
 assert.equal(Object.keys(SEALS).length, 12, "La hoja visual debe exponer doce sellos");
 assert.equal(new Set(Object.values(SEALS).map((seal) => seal.label)).size, 12, "Cada sello debe tener un nombre propio y único");

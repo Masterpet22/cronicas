@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, spendAttribute } from "../src/save.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 6, "Las banderas de historia deben usar la sexta versión del guardado");
+assert.equal(SAVE_VERSION, 7, "Las decisiones y el desbloqueo de la Biblioteca deben usar la séptima versión del guardado");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
 assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
@@ -67,6 +67,11 @@ assert.equal(migrated.campaign.elementRank, 2, "El progreso anterior debe recupe
 assert.equal(migrated.campaign.secondaryBoardUnlocked, false, "Un guardado anterior debe iniciar el nuevo Tablón cerrado");
 const storyState = normalizeSave({ ...migrated, campaign: { ...migrated.campaign, sayoEncounterSeen: true, secondaryBoardUnlocked: true, kagemoriInvestigated: true, banditBossMissionUnlocked: true } });
 assert.equal(storyState.campaign.banditBossMissionUnlocked, true, "El hallazgo de la guarida debe persistir tras normalizar el guardado");
+const interrogated = normalizeSave({ ...storyState, campaign: { ...storyState.campaign, banditPrisonerChoice: "interrogate", nextSideMissionGoldMultiplier: 2 } });
+assert.equal(interrogated.campaign.nextSideMissionGoldMultiplier, 2, "Interrogar debe conservar el multiplicador de monedas");
+const canyonComplete = completeMission(interrogated, "m11").save;
+assert.equal(canyonComplete.campaign.archiveUnlocked, true, "Vencer a Akumori debe desbloquear la Biblioteca");
+assert.equal(canyonComplete.campaign.sayoRelicPending, true, "El medallón debe quedar pendiente de entrega a Sayo");
 
 const dualAffinity = normalizeSave({ ...campaignSave, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, loadout: ["lightning_spark"] });
 assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");
