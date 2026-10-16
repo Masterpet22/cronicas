@@ -145,8 +145,12 @@ assert.match(html, /window\.stop\(\)/, "La migración debe detener las solicitud
 assert.doesNotMatch(metaUi, /scheduleLocationWarmup/, "La plaza no debe descargar ubicaciones que el jugador todavía no abrió");
 assert.match(metaUi, /loading="eager" fetchpriority="high"/, "Los personajes de la ubicación visible deben cargarse sin marcadores diferidos");
 assert.match(metaUi, /story-character[\s\S]*story-dialogue-panel/, "Historia debe separar al personaje del panel de diálogo");
+assert.match(metaUi, /location\.classList\.add\("story-dialogue-active"\)/, "El diálogo de historia debe ocultar temporalmente la composición anterior de la escena");
+assert.match(metaUi, /location\.classList\.remove\("story-dialogue-active"\)/, "La escena original debe restaurarse al terminar el diálogo");
 assert.doesNotMatch(styles, /story-bubble/, "El bocadillo crema anterior debe desaparecer por completo");
 assert.doesNotMatch(styles, /story-dialogue-panel::(?:before|after)/, "El panel de historia no debe tener cola ni pico");
+assert.match(styles, /@keyframes story-enter-left[\s\S]*@keyframes story-enter-right/, "Los personajes deben poder entrar desde ambos lados");
+assert.match(styles, /story-character-right\.story-entering img[\s\S]*story-turn-left/, "Un personaje que entra por la derecha debe voltearse hacia el diálogo");
 assert.match(styles, /@media \(max-width: 1050px\), \(max-height: 650px\)/, "El diálogo debe adaptarse a portátiles pequeños");
 assert.match(metaUi, /mission\.briefing[\s\S]*"COMENZAR MISIÓN", "story"/, "Los diálogos de historia de una misión deben usar bocadillos");
 assert.match(metaUi, /bodyType === "male" \? NPCS\.mei : NPCS\.daichi/, "Mei debe enseñar al avatar masculino y Daichi al femenino");

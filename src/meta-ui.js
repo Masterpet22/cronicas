@@ -201,22 +201,37 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
   const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR", type = "message") => {
     let index = 0;
+    let previousSpeaker = null;
+    let nextSpeakerSide = "left";
+    const speakerSides = new Map();
+    const location = type === "story" ? root.querySelector("[data-location-stage]") : null;
     const overlay = document.createElement("div");
     overlay.className = `dialogue-overlay dialogue-${type}`;
+    if (location) location.classList.add("story-dialogue-active");
     const draw = () => {
       const [speaker, dialogue] = lines[index];
       const last = index === lines.length - 1;
       const npc = npcByName(speaker);
       if (type === "story") {
         const role = npc?.title || "Historia";
-        const character = npc ? `<div class="story-character"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.name)}</span></div>` : "";
+        if (!speakerSides.has(speaker)) {
+          speakerSides.set(speaker, nextSpeakerSide);
+          nextSpeakerSide = nextSpeakerSide === "left" ? "right" : "left";
+        }
+        const side = speakerSides.get(speaker);
+        const entering = previousSpeaker !== speaker;
+        overlay.classList.toggle("story-speaker-left", side === "left");
+        overlay.classList.toggle("story-speaker-right", side === "right");
+        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.name)}</span></div>` : "";
         overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${escapeHtml(speaker)} · ${escapeHtml(role)}</header><p>${escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></footer></section>`;
+        previousSpeaker = speaker;
       } else {
         const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
         overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       }
       overlay.querySelector("button").addEventListener("click", () => {
         if (!last) { index += 1; draw(); return; }
+        if (location) location.classList.remove("story-dialogue-active");
         overlay.remove();
         onComplete();
       });
