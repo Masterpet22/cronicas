@@ -103,13 +103,17 @@ textarea { width: 100%; min-height: 68px; resize: vertical; }
 .inline-control { display: flex; align-items: center; gap: 5px; color: #c2d0e1; white-space: nowrap; }
 .inline-control input[type="checkbox"] { accent-color: var(--blue); }
 .opacity-slider { width: 90px; }
+.ghost-label { min-width: 92px; color: #78baff; font-size: 11px; white-space: nowrap; }
 .zoom-slider { width: 92px; }
 .zoom-output { min-width: 42px; text-align: center; }
 
 .viewport { position: relative; flex: 1; min-height: 0; overflow: hidden; background: #071421; }
 #canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: default; }
+.viewport.select #canvas { cursor: move; }
 .viewport.pan #canvas { cursor: grab; }
 .viewport.pan #canvas:active { cursor: grabbing; }
+.viewport.rotate #canvas { cursor: crosshair; }
+.viewport.scale #canvas { cursor: nwse-resize; }
 .canvas-status { position: absolute; right: 12px; bottom: 10px; padding: 5px 9px; border: 1px solid #29435d; border-radius: 5px; background: #0c1b2be8; color: #bfd0e3; pointer-events: none; }
 .preview-card { position: absolute; top: 13px; right: 14px; width: 220px; border: 1px solid #36526f; border-radius: 8px; background: #0b1726e8; box-shadow: 0 8px 24px #0007; overflow: hidden; }
 .preview-title { display: flex; justify-content: space-between; padding: 7px 10px; border-bottom: 1px solid var(--line); color: #d5e5f8; font-weight: 650; }
@@ -140,6 +144,8 @@ textarea { width: 100%; min-height: 68px; resize: vertical; }
 .small-button.danger { color: #ffc0bd; border-color: #704041; }
 .muted { color: var(--muted); font-size: 12px; line-height: 1.45; }
 .status { color: #a7e0bc; white-space: pre-line; }
+.draft-status { margin: 10px 0 0; padding: 7px 8px; border: 1px solid #2d4663; border-radius: 5px; color: var(--muted); background: #0c1929; font-size: 12px; }
+.draft-status.dirty { color: #ffd38a; border-color: #765c31; background: #33260f; }
 .preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 #curve-canvas { width: 100%; height: 150px; display: block; border: 1px solid var(--line); border-radius: 6px; background: #091522; }
 
@@ -166,6 +172,7 @@ textarea { width: 100%; min-height: 68px; resize: vertical; }
 .track-line:hover { background-color: #10243a; }
 .key-marker { position: absolute; top: 9px; width: 10px; height: 10px; padding: 0; transform: translateX(-50%) rotate(45deg); border: 1px solid #d9ecff; border-radius: 1px; background: #72b3f5; }
 .key-marker.selected { background: var(--gold); border-color: #fff0c7; box-shadow: 0 0 0 3px #efbd6733; }
+.key-marker.draft { background: #33260f; border-color: #ffd38a; box-shadow: 0 0 0 3px #efbd6740; }
 .key-marker.locked { cursor: not-allowed; opacity: .55; }
 .event-marker { position: absolute; top: 4px; min-width: 70px; max-width: 120px; height: 20px; padding: 2px 7px; transform: translateX(-6px); border: 1px solid #9a75e8; border-radius: 5px; background: #5e329c; color: #fff; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sprite-frame { position: absolute; top: 2px; width: 24px; height: 24px; transform: translateX(-50%); border: 1px solid #36516d; border-radius: 3px; background: #13243a; object-fit: contain; }

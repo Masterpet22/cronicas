@@ -108,6 +108,22 @@ export const ENEMY_ACTIONS = {
 };
 
 export const ENEMY_ROSTER = {
+  tutorial_bandit: {
+    name: "BANDIDO", hp: 54, speed: 9, accuracy: 84, evasion: 4,
+    weakness: "wind", resistance: "physical", pattern: ["quick", "quick", "heavy"],
+    colors: { cloth: 0x7b6a50, accent: 0x2c241d }
+  },
+  tutorial_bandit_second: {
+    name: "BANDIDO", hp: 62, speed: 10, accuracy: 87, evasion: 5,
+    weakness: "fire", resistance: "physical", pattern: ["quick", "heavy", "quick"],
+    colors: { cloth: 0x596b4d, accent: 0x20291d }
+  },
+  boss_varek: {
+    name: "VAREK, EL RAPTAFELINOS", hp: 94, speed: 11, accuracy: 90, evasion: 7,
+    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "heavy"],
+    phase2Pattern: ["quick", "heavy", "quick", "ember"], boss: true,
+    colors: { cloth: 0x8f5747, accent: 0x321b19 }
+  },
   gate_guard: {
     name: "GUARDIÁN DEL PASO", hp: 68, speed: 10, accuracy: 90, evasion: 5,
     weakness: "wind", resistance: "physical", pattern: ["quick", "heavy", "quick"],
@@ -171,18 +187,16 @@ export const ENEMY_ROSTER = {
 export const ENEMIES = Object.values(ENEMY_ROSTER);
 
 export const STORY_SAGAS = [
-  { id: "saga-1", number: 1, title: "Los senderos de la aldea", subtitle: "Primeras amenazas y vínculos", missionIds: ["m01", "m02", "m03"] },
-  { id: "saga-2", number: 2, title: "La conspiración del sello", subtitle: "Ladrones, veneno y ascenso", missionIds: ["m04", "m05", "m06", "m07"] },
-  { id: "saga-3", number: 3, title: "Crónicas del Eclipse", subtitle: "La amenaza detrás de las sombras", missionIds: ["m08", "m09", "m10"] }
+  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01"] }
 ];
 
 export const MISSIONS = [
   {
-    id: "m01", number: 1, title: "El paso cerrado", location: "Puerta Norte", duration: "4–6 min", encounters: ["gate_guard"],
-    reward: { xp: 35, coins: 25 },
+    id: "m01", number: 1, title: "Tras las huellas del gato", location: "Bosque del Este", duration: "8–10 min", rank: "D", encounters: ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"],
+    reward: { xp: 55, coins: 40 },
     briefing: [
-      ["Maestra Aya", "Antes de salir, observa velocidad, precisión y afinidades. No todas las técnicas sirven contra todos."],
-      ["Mika", "Yo vigilaré desde la aldea. Usa Guardia si necesitas recuperar chakra."]
+      ["Ren Arashiro", "Tenemos una misión de clase D. Un grupo de ladrones robó el gato de una familia de la aldea y huyó hacia el Bosque del Este."],
+      ["Ren Arashiro", "Sigue sus huellas, derrota a los bandidos y trae al gato de vuelta. Parece sencillo, pero no subestimes a quien dirige el grupo."]
     ]
   },
   {

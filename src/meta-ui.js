@@ -12,11 +12,16 @@ const COMING_SOON_LOCATIONS = {
   inn: { npcId: "yuna", message: "La Posada aún está preparando sus servicios. Próximamente podrás descansar, conversar con aliados y descubrir escenas entre misiones." },
   arena: { npcId: "goro", message: "La Arena de Combate todavía está en preparación. Próximamente podrás practicar, probar configuraciones y disputar combates sin afectar la campaña." }
 };
-const TUTORIAL = [
-  ["Maestra Aya", "Bienvenido a la Aldea del Horizonte. Cada edificio de la plaza conduce a una sección distinta."],
-  ["Maestra Aya", "En el dojo preparas técnicas según tu nivel y desarrollas la experiencia de tus afinidades."],
-  ["Mika", "Las misiones de historia se reciben en el Cuartel General. El tablón de la plaza queda reservado para encargos y misiones secundarias."]
-];
+const welcomeDialogue = (character) => {
+  const master = character.bodyType === "female" ? "Mei Hayate" : "Daichi Kazan";
+  return [
+    ["Ren Arashiro", `Enhorabuena, ${character.name}. Desde hoy formas parte de los combatientes de la Aldea del Horizonte.`],
+    [master, character.bodyType === "female"
+      ? "Has dado el primer paso. En el dojo te enseñaré a dominar tu afinidad y a preparar cada técnica."
+      : "Has dado el primer paso. En el dojo te enseñaré a convertir tu afinidad en una estrategia."],
+    ["Ren Arashiro", "Tu primer encargo ya está listo. Revisa la saga Futuro prometedor y comienza con la misión de clase D."]
+  ];
+};
 const ASSET_VERSION = "0.20.0";
 const warmedImages = new Map();
 
@@ -95,7 +100,14 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       </section>`;
     root.querySelector("#character-form").addEventListener("submit", (event) => {
       event.preventDefault();
-      persist(createCharacter(save, Object.fromEntries(new FormData(event.currentTarget))));
+      save = writeSave(createCharacter(save, Object.fromEntries(new FormData(event.currentTarget))));
+      view = "headquarters";
+      introducedViews.add("headquarters");
+      render();
+      showDialogue(welcomeDialogue(save.character), () => {
+        save.campaign.tutorialSeen = true;
+        persist(save);
+      }, "VER SAGAS");
     });
   };
 
@@ -114,7 +126,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
           <div class="campaign-summary">
             <span class="summary-item"><b aria-hidden="true">★</b><strong>${progression.xp}/${xpForNextLevel(progression.level)}</strong><small>PX</small></span>
             <span class="summary-item"><b aria-hidden="true">▣</b><strong>${progression.coins}</strong><small>monedas</small></span>
-            <span class="summary-item"><b aria-hidden="true">♛</b><strong>${campaign.completedMissions.length}/10</strong><small>misiones</small></span>
+            <span class="summary-item"><b aria-hidden="true">♛</b><strong>${campaign.completedMissions.filter((id) => STORY_SAGAS.some((saga) => saga.missionIds.includes(id))).length}/${STORY_SAGAS.reduce((total, saga) => total + saga.missionIds.length, 0)}</strong><small>misiones</small></span>
           </div>
           <button class="player-settings-trigger" type="button" aria-label="Abrir ajustes" aria-expanded="false">
             <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
@@ -351,7 +363,14 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       });
     });
 
-    if (!save.campaign.tutorialSeen) showDialogue(TUTORIAL, () => { save.campaign.tutorialSeen = true; persist(save); });
+    if (!save.campaign.tutorialSeen) {
+      showDialogue(welcomeDialogue(save.character), () => {
+        save.campaign.tutorialSeen = true;
+        view = "headquarters";
+        introducedViews.add("headquarters");
+        persist(save);
+      }, "IR AL CUARTEL");
+    }
   };
 
   const renderVillageService = (serviceId) => {
@@ -416,7 +435,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const unlocked = missionUnlocked(mission);
       const done = completed.has(mission.id);
       const label = done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "INICIAR HISTORIA") : "BLOQUEADA";
-      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : "MISIÓN DE HISTORIA · " + mission.location}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
+      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : `MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}`}</p><h3>${mission.title}</h3><p>${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas</p></div><button data-mission="${mission.id}" ${unlocked ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
 
     const completedInSaga = sagaMissions.filter((mission) => completed.has(mission.id)).length;

@@ -14,14 +14,14 @@ for (const id of ["canvas", "preview-canvas", "tree", "inspector-panel", "timeli
   assert.match(html, new RegExp(`id=["']${id}["']`), `Debe existir el control ${id}`);
 }
 assert.doesNotMatch(html, /<iframe\b/i, "El Studio unificado no debe depender de vistas embebidas");
-assert.match(html, /src=["']\.\/src\/studio\/editor\.js\?v=0\.45\.3["']/);
+assert.match(html, /src=["']\.\/src\/studio\/editor\.js\?v=0\.45\.4["']/);
 assert.match(html, /navigator\.serviceWorker\.getRegistrations\(\)/, "El Studio debe retirar cachés heredadas antes de iniciar");
 assert.doesNotMatch(html, /window\.stop\(\)/, "La limpieza del Studio no debe abortar la navegación actual");
 assert.match(html, /id=["']timeline-zoom["']/, "El timeline debe tener zoom temporal independiente");
 assert.match(css, /grid-template-columns:\s*270px\s+minmax\(480px,\s*1fr\)\s+310px/);
 assert.match(css, /\.timeline\s*\{[^}]*grid-column:\s*1\s*\/\s*-1/s);
 assert.match(editor, /sampleStudioAnimation/);
-assert.match(editor, /studio-format\.js\?v=0\.45\.3/, "Los módulos internos deben invalidar la caché junto con el editor");
+assert.match(editor, /studio-format\.js\?v=0\.45\.4/, "Los módulos internos deben invalidar la caché junto con el editor");
 assert.match(editor, /validateStudioProject/);
 assert.match(editor, /mode:\s*["']game["']/);
 assert.match(editor, /function restoreHistory/);
@@ -38,6 +38,16 @@ assert.match(html, /data-tool=["']select["'][^>]*title=["']Seleccionar y mover o
 assert.match(editor, /interaction = \{\s*type: ["']translate["']/, "El Animador debe iniciar el arrastre de posición");
 assert.match(editor, /function localDelta\(/, "El arrastre debe convertir el movimiento al espacio local del hueso");
 assert.match(editor, /\$\(id\)\.oninput = previewKeyFromInspector/, "Los campos de transformación deben previsualizar sus cambios");
-assert.match(editor, /\$\(id\)\.onchange = commitKeyFromInspector/, "Los campos de transformación deben guardar sus cambios");
+assert.match(editor, /\$\(id\)\.onchange = previewKeyFromInspector/, "Los campos deben conservar el cambio como borrador hasta guardarlo");
+for (const id of ["discard-key-draft", "duplicate-key", "reset-transform", "mirror-pose", "previous-key", "next-key", "ghost-label"]) {
+  assert.match(html, new RegExp(`id=["']${id}["']`), `Debe existir el control ${id}`);
+}
+assert.match(html, /data-tool=["']scale["']/, "El Animador debe ofrecer escalado visual");
+assert.match(editor, /sampledPose:\s*ghostPose/, "La vista fantasma debe dibujar una instantánea guardada exacta");
+assert.doesNotMatch(editor, /time\s*[-+]\s*step/, "La vista fantasma no debe usar tiempos interpolados aproximados");
+assert.match(editor, /let draftFrames = new Map\(\)/, "La pose en edición debe permanecer separada del proyecto guardado");
+assert.match(editor, /function duplicateCurrentKey\(/);
+assert.match(editor, /function mirrorCurrentPose\(/);
+assert.match(editor, /function resetSelectedTransform\(/);
 
 console.log("Pruebas de interfaz de Crónicas Studio superadas.");

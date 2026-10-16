@@ -567,7 +567,7 @@ class BattleScene extends Phaser.Scene {
 
     this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x0c2b45, 1)
       .setStrokeStyle(3, 0x50d7ff, 1);
-    this.enemyTurnMarker = this.add.circle(TIMELINE_START + 330, trackY, 17, 0x45131b, 1)
+    this.enemyTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x45131b, 1)
       .setStrokeStyle(3, 0xff5668, 1);
     this.playerTurnLetter = this.add.text(TIMELINE_START, trackY, "TÚ", {
       fontFamily: '"Cinzel", Georgia, serif',
@@ -575,7 +575,7 @@ class BattleScene extends Phaser.Scene {
       color: "#fff4df",
       fontStyle: "bold"
     }).setOrigin(0.5);
-    this.enemyTurnLetter = this.add.text(TIMELINE_START + 330, trackY, "R", {
+    this.enemyTurnLetter = this.add.text(TIMELINE_START, trackY, "R", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
       color: "#ffd8dc",
@@ -795,6 +795,7 @@ class BattleScene extends Phaser.Scene {
 
     this.enemyIndex += 1;
     const profile = this.encounters[this.enemyIndex];
+    await this.playEncounterTransition(profile);
     this.enemy = this.createEnemyState(profile);
     this.enemyName.setText(profile.name);
     this.enemyRankNumber.setText(String(this.enemyRankForProfile(profile)));
@@ -815,6 +816,22 @@ class BattleScene extends Phaser.Scene {
     await this.resetTurnTimeline();
     this.setMessage(`Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
     this.startTurnCharge();
+  }
+
+  async playEncounterTransition(profile) {
+    const shade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02070d, 0)
+      .setOrigin(0).setDepth(70);
+    const chapter = this.add.text(WIDTH / 2, 236, `RASTRO ${this.enemyIndex + 1} DE ${this.encounters.length}`, this.textStyle(12, "#64d7ff", "800", true))
+      .setOrigin(0.5).setAlpha(0).setDepth(71);
+    const title = this.add.text(WIDTH / 2, 270, profile.boss ? "EL CABECILLA BLOQUEA EL CAMINO" : "LAS HUELLAS CONTINÚAN", this.textStyle(22, "#f7edd7", "800", true))
+      .setOrigin(0.5).setAlpha(0).setDepth(71);
+    await this.tween({ targets: shade, alpha: 0.94, duration: 260, ease: "Sine.out" });
+    await this.tween({ targets: [chapter, title], alpha: 1, y: "-=8", duration: 260, ease: "Cubic.out" });
+    await this.delay(620);
+    await this.tween({ targets: [shade, chapter, title], alpha: 0, duration: 300, ease: "Sine.in" });
+    shade.destroy();
+    chapter.destroy();
+    title.destroy();
   }
 
   async triggerBossPhaseTwo() {

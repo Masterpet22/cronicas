@@ -7,8 +7,8 @@ import {
   PUPPET_JOINT_PARENTS as PARENTS,
   PUPPET_PART_JOINTS as PART_JOINTS,
   PUPPET_TARGETS
-} from "../animations/rig.js?v=0.45.3";
-import { animationEase } from "../animations/runtime.js?v=0.45.3";
+} from "../animations/rig.js?v=0.45.4";
+import { animationEase } from "../animations/runtime.js?v=0.45.4";
 import {
   createStudioProject,
   normalizeStudioProject,
@@ -16,8 +16,8 @@ import {
   serializeStudioProject,
   STUDIO_EASES,
   validateStudioProject
-} from "../animations/studio-format.js?v=0.45.3";
-import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.3";
+} from "../animations/studio-format.js?v=0.45.4";
+import { sampleStudioAnimation } from "../animations/studio-runtime.js?v=0.45.4";
 
 const $ = (id) => document.getElementById(id);
 const BASE_SCALE = 0.32;
@@ -60,6 +60,15 @@ const TRANSFORM_FIELDS = {
   x: "key-x", y: "key-y", angle: "key-angle", alpha: "key-alpha",
   scaleX: "key-scale-x", scaleY: "key-scale-y"
 };
+const MIRROR_TARGETS = Object.freeze({
+  rig: "rig", torso: "torso", neck: "neck",
+  shoulderRight: "shoulderLeft", shoulderLeft: "shoulderRight",
+  elbowRight: "elbowLeft", elbowLeft: "elbowRight",
+  wristRight: "wristLeft", wristLeft: "wristRight",
+  hipRight: "hipLeft", hipLeft: "hipRight",
+  kneeRight: "kneeLeft", kneeLeft: "kneeRight",
+  ankleRight: "ankleLeft", ankleLeft: "ankleRight"
+});
 
 const freshParts = () => PRESET.map(([id, x, y, assetId], z) => ({
   id, x, y, assetId: assetId || id, rotation: 0, scaleX: 1, scaleY: 1, visible: true, z
@@ -91,6 +100,10 @@ let interaction = null;
 let dragKey = null;
 let undoHistory = [];
 let historyIndex = -1;
+let draftTime = null;
+let draftFrames = new Map();
+let ghostPose = null;
+let ghostTime = null;
 
 const canvas = $("canvas");
 const context = canvas.getContext("2d");
@@ -102,8 +115,91 @@ function status(message) { $("status").textContent = message; }
 function duration() { return project.clip.animation.duration; }
 function fps() { return Number(project.fps || 24); }
 function part() { return project.parts.find((item) => item.id === selectedPart); }
-function pose(at = time) { return sampleStudioAnimation(project.clip, at, PUPPET_TARGETS); }
+function committedPose(at = time) { return sampleStudioAnimation(project.clip, at, PUPPET_TARGETS); }
+function frameTransform(frame = {}) {
+  return Object.fromEntries(Object.keys(TRANSFORM_FIELDS)
+    .filter((property) => Object.hasOwn(frame, property))
+    .map((property) => [property, frame[property]]));
+}
+function pose(at = time) {
+  const sampled = committedPose(at);
+  if (draftTime !== null && Math.abs(at - draftTime) < 0.5) {
+    draftFrames.forEach((frame, target) => {
+      sampled[target] = { ...(sampled[target] || {}), ...frameTransform(frame) };
+    });
+  }
+  return sampled;
+}
 function snapshot() { return JSON.stringify(project); }
+
+function hasDraft() { return draftTime !== null && draftFrames.size > 0; }
+
+function clearDraft() {
+  draftTime = null;
+  draftFrames.clear();
+  updateDraftUI();
+}
+
+function beginDraft(at = Math.round(time)) {
+  if (draftTime === at) return;
+  draftTime = at;
+  draftFrames = new Map();
+}
+
+function draftFrame(target) {
+  if (draftTime !== Math.round(time)) return null;
+  return draftFrames.get(target) || null;
+}
+
+function ensureDraftFrame(target) {
+  const at = Math.round(time);
+  beginDraft(at);
+  if (!draftFrames.has(target)) {
+    const sampled = committedPose(at)[target] || {};
+    const saved = exactKey(target, at);
+    draftFrames.set(target, { t: at, ...frameTransform(sampled), ...(saved ? structuredClone(saved) : {}) });
+  }
+  return draftFrames.get(target);
+}
+
+function setDraftFrame(target, frame) {
+  const at = Math.round(time);
+  beginDraft(at);
+  draftFrames.set(target, { ...structuredClone(frame), t: at });
+  selectedKeys = new Set([...draftFrames.keys()].map((item) => `${item}:${at}`));
+  updateDraftUI();
+}
+
+function updateDraftUI() {
+  const host = $("draft-status");
+  if (!host) return;
+  const dirty = hasDraft();
+  host.classList.toggle("dirty", dirty);
+  host.textContent = dirty
+    ? draftTime === Math.round(time)
+      ? `${draftFrames.size} objetivo(s) con cambios sin guardar · ${draftTime} ms`
+      : `Borrador pendiente en ${draftTime} ms`
+    : "Sin cambios pendientes";
+  $("set-key")?.classList.toggle("dirty", dirty);
+  if ($("discard-key-draft")) $("discard-key-draft").disabled = !dirty;
+}
+
+function setGhostFromCommitted(at) {
+  ghostPose = structuredClone(committedPose(at));
+  ghostTime = Math.round(at);
+  updateGhostLabel();
+}
+
+function clearGhost() {
+  ghostPose = null;
+  ghostTime = null;
+  updateGhostLabel();
+}
+
+function updateGhostLabel() {
+  const output = $("ghost-label");
+  if (output) output.textContent = ghostPose ? `Guardado · ${ghostTime} ms` : "Sin referencia";
+}
 
 function normalizeLoadedProject(candidate) {
   if (candidate?.clip) {
@@ -165,6 +261,8 @@ function restoreHistory(index) {
   project = JSON.parse(undoHistory[historyIndex]);
   project.clip = normalizeStudioProject(project.clip);
   time = Math.min(time, duration());
+  clearDraft();
+  resetGhostFromProject(time);
   ensureImages();
   saveLocal();
   refresh();
@@ -221,8 +319,8 @@ function parentMatrixForTarget(target, state) {
   return parent ? state.joints[parent] : state.root;
 }
 
-function matrices(at = time) {
-  const sampled = pose(at);
+function matrices(at = time, sampledPose = null) {
+  const sampled = sampledPose || pose(at);
   const root = transformMatrix(sampled.rig);
   const memo = {};
   function joint(id) {
@@ -268,8 +366,8 @@ function targetHidden(partId) {
   return target ? hiddenTargets.has(target) : false;
 }
 
-function renderFigure(targetContext, at, { alpha = 1, tint = false } = {}) {
-  const state = matrices(at);
+function renderFigure(targetContext, at, { alpha = 1, tint = false, sampledPose = null } = {}) {
+  const state = matrices(at, sampledPose);
   targetContext.save();
   targetContext.globalAlpha *= alpha;
   [...project.parts].sort((left, right) => left.z - right.z).forEach((item) => {
@@ -292,7 +390,7 @@ function renderFigure(targetContext, at, { alpha = 1, tint = false } = {}) {
     targetContext.drawImage(image, -image.naturalWidth / 2, -image.naturalHeight / 2);
     if (tint) {
       targetContext.globalCompositeOperation = "source-atop";
-      targetContext.globalAlpha = 0.45;
+      targetContext.globalAlpha *= 0.45;
       targetContext.fillStyle = "#79b8ef";
       targetContext.fillRect(-image.naturalWidth / 2, -image.naturalHeight / 2, image.naturalWidth, image.naturalHeight);
     }
@@ -337,6 +435,63 @@ function drawBones(at) {
   });
 }
 
+function targetMatrix(state, target = selectedTarget) {
+  if (target === "rig") return state.root;
+  if (target === "torso") return multiply(state.root, transformMatrix(state.pose.torso));
+  return state.joints[target] || state.root;
+}
+
+function drawTransformGizmo(at) {
+  if (mode !== "animador" || tool === "pan") return;
+  const state = matrices(at);
+  const matrix = targetMatrix(state);
+  const inverseViewScale = 1 / (BASE_SCALE * zoom);
+  context.save();
+  context.translate(matrix[4], matrix[5]);
+  context.scale(inverseViewScale, inverseViewScale);
+  context.lineWidth = 2;
+  context.fillStyle = "#ffffff";
+  context.strokeStyle = "#ffffff";
+  context.beginPath();
+  context.arc(0, 0, 5, 0, Math.PI * 2);
+  context.fill();
+
+  if (tool === "rotate") {
+    context.strokeStyle = "#efbd67";
+    context.beginPath();
+    context.arc(0, 0, 31, -Math.PI * 0.85, Math.PI * 0.85);
+    context.stroke();
+    context.fillStyle = "#efbd67";
+    context.beginPath();
+    context.moveTo(21, -24);
+    context.lineTo(31, -23);
+    context.lineTo(27, -14);
+    context.closePath();
+    context.fill();
+  } else if (tool === "scale") {
+    context.strokeStyle = "#b58cff";
+    context.strokeRect(-24, -24, 48, 48);
+    [[-24, -24], [24, -24], [-24, 24], [24, 24]].forEach(([x, y]) => {
+      context.fillStyle = "#b58cff";
+      context.fillRect(x - 4, y - 4, 8, 8);
+    });
+  } else {
+    context.strokeStyle = "#ff6b6b";
+    context.fillStyle = "#ff6b6b";
+    context.beginPath();
+    context.moveTo(0, 0); context.lineTo(42, 0); context.stroke();
+    context.beginPath();
+    context.moveTo(42, 0); context.lineTo(33, -5); context.lineTo(33, 5); context.closePath(); context.fill();
+    context.strokeStyle = "#6fe08b";
+    context.fillStyle = "#6fe08b";
+    context.beginPath();
+    context.moveTo(0, 0); context.lineTo(0, 42); context.stroke();
+    context.beginPath();
+    context.moveTo(0, 42); context.lineTo(-5, 33); context.lineTo(5, 33); context.closePath(); context.fill();
+  }
+  context.restore();
+}
+
 function drawPreview() {
   resizeCanvas(previewCanvas, previewContext);
   const width = previewCanvas.clientWidth;
@@ -368,18 +523,19 @@ function draw() {
   context.translate(base.x, base.y);
   context.scale(viewScale, viewScale);
   drawGrid(width, height, base, viewScale);
-  if (mode === "animador" && $("ghost").checked) {
-    const step = Math.max(1000 / fps() * 4, duration() / 10);
+  if (mode === "animador" && $("ghost").checked && ghostPose) {
     const ghostAlpha = Number($("ghost-alpha").value) / 100;
-    renderFigure(context, Math.max(0, time - step), { alpha: ghostAlpha, tint: true });
-    renderFigure(context, Math.min(duration(), time + step), { alpha: ghostAlpha, tint: true });
+    renderFigure(context, ghostTime, { alpha: ghostAlpha, tint: true, sampledPose: ghostPose });
   }
   renderFigure(context, mode === "animador" ? time : 0);
   drawBones(mode === "animador" ? time : 0);
+  drawTransformGizmo(mode === "animador" ? time : 0);
   context.restore();
   $("zoom-label").textContent = `${Math.round(zoom * 100)} %`;
   $("zoom").value = Math.round(zoom * 100);
-  $("canvas-status").textContent = `Zoom: ${Math.round(zoom * 100)} % · ${label(mode)} · ${Math.round(time)} ms`;
+  const pending = hasDraft() ? ` · Borrador ${draftTime} ms` : "";
+  $("canvas-status").textContent = `Zoom: ${Math.round(zoom * 100)} % · ${label(mode)} · ${Math.round(time)} ms${pending}`;
+  updateGhostLabel();
   drawPreview();
 }
 
@@ -478,11 +634,13 @@ function renderInspector() {
     return;
   }
   const sampled = pose()[selectedTarget] || {};
-  const key = exactKey();
+  const key = draftFrame(selectedTarget) || exactKey();
   Object.entries(TRANSFORM_FIELDS).forEach(([property, id]) => { $(id).value = Number(key?.[property] ?? sampled[property] ?? 0).toFixed(property.startsWith("scale") || property === "alpha" ? 2 : 1); });
   $("key-ease").value = key?.ease || "Linear";
   [...Object.values(TRANSFORM_FIELDS), "key-ease", "set-key", "delete-key"]
     .forEach((id) => { $(id).disabled = lockedTargets.has(selectedTarget); });
+  ["reset-transform", "mirror-pose"].forEach((id) => { $(id).disabled = lockedTargets.has(selectedTarget); });
+  updateDraftUI();
   const clip = project.clip.animation;
   $("clip-label").value = clip.label;
   $("clip-description").value = clip.description;
@@ -549,6 +707,7 @@ function drawCurve() {
 function setTime(next, rebuild = false) {
   time = Math.max(0, Math.min(duration(), next));
   updateTimeDisplays();
+  updateDraftUI();
   draw();
   if (rebuild) { renderInspector(); renderTimeline(); }
 }
@@ -567,12 +726,41 @@ function selectKey(target, at, append = false) {
   if (append && selectedKeys.has(key)) selectedKeys.delete(key); else selectedKeys.add(key);
   selectedTarget = target;
   time = at;
+  setGhostFromCommitted(at);
   refresh();
+}
+
+function allKeyTimes() {
+  return [...new Set(Object.values(project.clip.animation.keys)
+    .flatMap((frames) => frames.map((frame) => frame.t)))]
+    .sort((left, right) => left - right);
+}
+
+function resetGhostFromProject(preferredTime = time) {
+  const times = allKeyTimes();
+  if (!times.length) return clearGhost();
+  const at = [...times].reverse().find((candidate) => candidate <= preferredTime) ?? times[0];
+  setGhostFromCommitted(at);
+}
+
+function goToAdjacentKey(direction) {
+  const times = allKeyTimes();
+  const next = direction < 0
+    ? [...times].reverse().find((at) => at < time - 0.5)
+    : times.find((at) => at > time + 0.5);
+  if (next === undefined) return status(direction < 0 ? "No hay una clave anterior" : "No hay una clave siguiente");
+  time = next;
+  const targets = TARGETS.filter((target) => exactKey(target, next));
+  selectedKeys = new Set(targets.map((target) => `${target}:${next}`));
+  if (targets.length && !targets.includes(selectedTarget)) selectedTarget = targets[0];
+  setGhostFromCommitted(next);
+  refresh();
+  status(`Clave ${direction < 0 ? "anterior" : "siguiente"}: ${next} ms`);
 }
 
 function snapTime(raw) {
   const frame = 1000 / fps();
-  return Math.max(0, Math.min(duration(), Math.round(raw / frame) * frame));
+  return Math.max(0, Math.min(duration(), Math.round(Math.round(raw / frame) * frame)));
 }
 
 function timelineLineClick(event, line) {
@@ -603,7 +791,8 @@ function makeTrackRow(target) {
   (project.clip.animation.keys[target] || []).forEach((frame) => {
     const marker = document.createElement("button");
     const identity = `${target}:${frame.t}`;
-    marker.className = `key-marker${selectedKeys.has(identity) ? " selected" : ""}${lockedTargets.has(target) ? " locked" : ""}`;
+    const pending = draftTime === frame.t && draftFrames.has(target);
+    marker.className = `key-marker${selectedKeys.has(identity) ? " selected" : ""}${lockedTargets.has(target) ? " locked" : ""}${pending ? " draft" : ""}`;
     marker.style.left = `${frame.t / duration() * 100}%`;
     marker.title = `${frame.t} ms · ${Object.entries(frame).filter(([field]) => field !== "t" && field !== "ease").map(([field, value]) => `${field}: ${value}`).join(" ")}`;
     marker.onpointerdown = (event) => {
@@ -646,6 +835,13 @@ function makeTrackRow(target) {
     marker.onclick = (event) => { event.stopPropagation(); selectKey(target, frame.t, event.shiftKey); };
     line.append(marker);
   });
+  if (draftTime !== null && draftFrames.has(target) && !exactKey(target, draftTime)) {
+    const marker = document.createElement("span");
+    marker.className = "key-marker selected draft";
+    marker.style.left = `${draftTime / duration() * 100}%`;
+    marker.title = `${draftTime} ms · borrador sin guardar`;
+    line.append(marker);
+  }
   line.append(makePlayhead());
   row.append(trackLabel, line);
   return row;
@@ -749,6 +945,8 @@ function renderModeOverlay() {
       selectedPart = "torso";
       selectedKeys.clear();
       time = 0;
+      clearDraft();
+      clearGhost();
       ensureImages();
       commit("Proyecto nuevo creado");
       setMode("animador");
@@ -787,7 +985,7 @@ function setMode(next) {
   if (next === "animador") leftTab = "skeleton";
   document.querySelectorAll("[data-left-tab]").forEach((button) => button.classList.toggle("active", button.dataset.leftTab === leftTab));
   $("ghost").disabled = next !== "animador";
-  $("viewport").classList.toggle("pan", tool === "pan");
+  setTool(tool);
   window.history.replaceState(null, "", `#${next}`);
   refresh();
 }
@@ -795,7 +993,9 @@ function setMode(next) {
 function setTool(next) {
   tool = next;
   document.querySelectorAll("[data-tool]").forEach((button) => button.classList.toggle("active", button.dataset.tool === next));
-  $("viewport").classList.toggle("pan", next === "pan");
+  $("viewport").classList.remove("select", "pan", "rotate", "scale");
+  $("viewport").classList.add(next);
+  draw();
 }
 
 function readTransformFields() {
@@ -820,26 +1020,92 @@ function upsertKey(target, frame) {
 }
 
 function setKey() {
-  if (lockedTargets.has(selectedTarget)) return status(`${label(selectedTarget)} está bloqueado`);
-  upsertKey(selectedTarget, readTransformFields());
-  selectedKeys = new Set([`${selectedTarget}:${Math.round(time)}`]);
-  commit(`Fotograma guardado: ${label(selectedTarget)}`);
+  if (!hasDraft()) setDraftFrame(selectedTarget, readTransformFields());
+  if (draftTime !== Math.round(time)) return status(`El borrador pendiente pertenece a ${draftTime} ms`);
+  const editable = [...draftFrames.entries()].filter(([target]) => !lockedTargets.has(target));
+  if (!editable.length) return status("Los objetivos del borrador están bloqueados");
+  const at = draftTime;
+  editable.forEach(([target, frame]) => upsertKey(target, structuredClone(frame)));
+  selectedKeys = new Set(editable.map(([target]) => `${target}:${at}`));
+  clearDraft();
+  commit(`${editable.length} objetivo(s) guardado(s) en ${at} ms`);
+  setGhostFromCommitted(at);
+  time = at;
   refresh();
 }
 
 function previewKeyFromInspector() {
   if (lockedTargets.has(selectedTarget)) return;
   const frame = readTransformFields();
-  upsertKey(selectedTarget, frame);
-  selectedKeys = new Set([`${selectedTarget}:${frame.t}`]);
+  setDraftFrame(selectedTarget, frame);
   draw();
-  status(`Vista previa del fotograma: ${label(selectedTarget)}`);
+  renderTimeline();
+  status(`Vista previa sin guardar: ${label(selectedTarget)}`);
 }
 
-function commitKeyFromInspector() {
+function discardKeyDraft() {
+  if (!hasDraft()) return status("No hay cambios pendientes");
+  const discardedTime = draftTime;
+  clearDraft();
+  selectedKeys.clear();
+  refresh();
+  status(`Cambios de ${discardedTime} ms descartados`);
+}
+
+function resetSelectedTransform() {
   if (lockedTargets.has(selectedTarget)) return status(`${label(selectedTarget)} está bloqueado`);
-  previewKeyFromInspector();
-  commit(`Fotograma actualizado: ${label(selectedTarget)}`);
+  setDraftFrame(selectedTarget, {
+    t: Math.round(time), x: 0, y: 0, angle: 0, alpha: 0, scaleX: 0, scaleY: 0
+  });
+  refresh();
+  status(`Transformación restablecida en borrador: ${label(selectedTarget)}`);
+}
+
+function mirrorTransform(transform = {}) {
+  const mirrored = { x: 0, y: 0, angle: 0, alpha: 0, scaleX: 0, scaleY: 0 };
+  Object.keys(TRANSFORM_FIELDS).forEach((property) => {
+    if (Object.hasOwn(transform, property)) mirrored[property] = transform[property];
+  });
+  mirrored.x *= -1;
+  mirrored.angle *= -1;
+  return mirrored;
+}
+
+function mirrorCurrentPose() {
+  const at = Math.round(time);
+  beginDraft(at);
+  const sampled = pose(time);
+  const active = new Set([...Object.keys(project.clip.animation.keys), ...draftFrames.keys()]);
+  [...active].forEach((target) => {
+    const counterpart = MIRROR_TARGETS[target];
+    if (counterpart) active.add(counterpart);
+  });
+  if (!active.size) active.add(selectedTarget);
+  const mirrored = [];
+  active.forEach((sourceTarget) => {
+    const target = MIRROR_TARGETS[sourceTarget];
+    if (!target || lockedTargets.has(target)) return;
+    mirrored.push([target, { t: at, ...mirrorTransform(sampled[sourceTarget]) }]);
+  });
+  mirrored.forEach(([target, frame]) => draftFrames.set(target, frame));
+  selectedKeys = new Set(mirrored.map(([target]) => `${target}:${at}`));
+  updateDraftUI();
+  refresh();
+  status(`Pose reflejada en borrador · ${mirrored.length} objetivo(s)`);
+}
+
+function duplicateCurrentKey() {
+  if (hasDraft()) return status("Guarda o descarta el borrador antes de duplicar");
+  const at = Math.round(time);
+  const source = TARGETS.map((target) => [target, exactKey(target, at)]).filter(([, frame]) => frame);
+  if (!source.length) return status("No hay claves guardadas en el tiempo actual");
+  const next = snapTime(at + 1000 / fps());
+  if (next === at) return status("No hay espacio para duplicar antes del final");
+  setGhostFromCommitted(at);
+  source.forEach(([target, frame]) => upsertKey(target, { ...structuredClone(frame), t: next }));
+  selectedKeys = new Set(source.map(([target]) => `${target}:${next}`));
+  time = next;
+  commit(`${source.length} clave(s) duplicadas en ${next} ms`);
   refresh();
 }
 
@@ -862,6 +1128,7 @@ function deleteSelectedKeys() {
     }
   });
   selectedKeys.clear();
+  clearDraft();
   commit("Fotogramas eliminados");
   refresh();
 }
@@ -921,6 +1188,7 @@ function exportClip() {
 
 function play() {
   if (playing) return;
+  if (hasDraft()) return status("Guarda o descarta el borrador antes de reproducir");
   if (time >= duration()) time = 0;
   playing = true;
   lastTick = performance.now();
@@ -961,7 +1229,9 @@ function bindControls() {
   $("search").oninput = renderTree;
   $("undo").onclick = () => restoreHistory(historyIndex - 1);
   $("redo").onclick = () => restoreHistory(historyIndex + 1);
-  $("save-local").onclick = () => { saveLocal("Proyecto guardado en este navegador"); };
+  $("save-local").onclick = () => {
+    saveLocal(hasDraft() ? "Proyecto guardado; el borrador del fotograma sigue pendiente" : "Proyecto guardado en este navegador");
+  };
   $("open-file").onclick = () => $("file").click();
   $("project-name").onchange = () => {
     project.clip.animation.id = $("project-name").value.trim() || "nuevo_movimiento";
@@ -973,7 +1243,9 @@ function bindControls() {
   $("play").onclick = play;
   $("pause").onclick = pause;
   $("first").onclick = () => setTime(0, true);
+  $("previous-key").onclick = () => goToAdjacentKey(-1);
   $("last").onclick = () => setTime(duration(), true);
+  $("next-key").onclick = () => goToAdjacentKey(1);
   $("scrub").oninput = () => setTime(Number($("scrub").value), true);
   $("fps").onchange = () => { project.fps = Number($("fps").value); commit("FPS de visualización actualizado"); refresh(); };
   $("duration").onchange = () => {
@@ -992,13 +1264,17 @@ function bindControls() {
     renderTimeline();
   };
   $("set-key").onclick = setKey;
+  $("discard-key-draft").onclick = discardKeyDraft;
+  $("duplicate-key").onclick = duplicateCurrentKey;
+  $("reset-transform").onclick = resetSelectedTransform;
+  $("mirror-pose").onclick = mirrorCurrentPose;
   $("delete-key").onclick = deleteSelectedKeys;
   Object.values(TRANSFORM_FIELDS).forEach((id) => {
     $(id).oninput = previewKeyFromInspector;
-    $(id).onchange = commitKeyFromInspector;
+    $(id).onchange = previewKeyFromInspector;
   });
   $("key-ease").onchange = () => {
-    commitKeyFromInspector();
+    previewKeyFromInspector();
     if (rightTab === "curves") drawCurve();
   };
   $("add-event").onclick = () => {
@@ -1059,6 +1335,8 @@ function bindControls() {
       selectedPart = "torso";
       selectedKeys.clear();
       time = 0;
+      clearDraft();
+      resetGhostFromProject(0);
       ensureImages();
       commit("Proyecto importado");
       refresh();
@@ -1123,6 +1401,15 @@ function bindCanvas() {
           };
         } else if (tool === "rotate") {
           interaction = { type: "rotate", target: chosen, startX: world.x, angle: sampled.angle || 0, moved: false };
+        } else if (tool === "scale") {
+          interaction = {
+            type: "scale",
+            target: chosen,
+            start: world,
+            scaleX: sampled.scaleX || 0,
+            scaleY: sampled.scaleY || 0,
+            moved: false
+          };
         }
       }
       refresh();
@@ -1146,8 +1433,8 @@ function bindCanvas() {
         world.x - interaction.start.x,
         world.y - interaction.start.y
       );
-      const current = exactKey(interaction.target) || { t: Math.round(time) };
-      upsertKey(interaction.target, {
+      const current = ensureDraftFrame(interaction.target);
+      setDraftFrame(interaction.target, {
         ...current,
         x: interaction.x + delta.x,
         y: interaction.y + delta.y
@@ -1157,24 +1444,31 @@ function bindCanvas() {
       renderInspector();
     } else if (interaction.type === "rotate") {
       const angle = Math.max(-360, Math.min(360, interaction.angle + (world.x - interaction.startX) * 0.45));
-      const current = exactKey(interaction.target) || { t: Math.round(time) };
-      upsertKey(interaction.target, { ...current, angle });
+      const current = ensureDraftFrame(interaction.target);
+      setDraftFrame(interaction.target, { ...current, angle });
+      interaction.moved = true;
+      draw();
+      renderInspector();
+    } else if (interaction.type === "scale") {
+      const amount = (world.x - interaction.start.x - (world.y - interaction.start.y)) * 0.0025;
+      const scaleX = Math.max(-0.9, Math.min(4, interaction.scaleX + amount));
+      const scaleY = Math.max(-0.9, Math.min(4, interaction.scaleY + amount));
+      const current = ensureDraftFrame(interaction.target);
+      setDraftFrame(interaction.target, { ...current, scaleX, scaleY });
       interaction.moved = true;
       draw();
       renderInspector();
     }
   };
   canvas.onpointerup = () => {
-    if (interaction?.moved) {
-      const message = interaction.type === "piece"
-        ? "Pieza desplazada"
-        : interaction.type === "translate"
-          ? "Posición animada actualizada"
-          : "Rotación actualizada";
-      commit(message);
-    }
+    const completed = interaction;
+    if (completed?.moved && completed.type === "piece") commit("Pieza desplazada");
     interaction = null;
     refresh();
+    if (completed?.moved && completed.type !== "piece") {
+      const action = completed.type === "translate" ? "Posición" : completed.type === "rotate" ? "Rotación" : "Escala";
+      status(`${action} actualizada en borrador; pulsa Guardar fotograma`);
+    }
   };
   canvas.onpointercancel = canvas.onpointerup;
 }
@@ -1193,6 +1487,9 @@ function bindKeyboard() {
     else if (event.key.toLowerCase() === "v") setTool("select");
     else if (event.key.toLowerCase() === "h") setTool("pan");
     else if (event.key.toLowerCase() === "r") setTool("rotate");
+    else if (event.key.toLowerCase() === "s") setTool("scale");
+    else if (event.shiftKey && event.key === "ArrowRight") { event.preventDefault(); goToAdjacentKey(1); }
+    else if (event.shiftKey && event.key === "ArrowLeft") { event.preventDefault(); goToAdjacentKey(-1); }
     else if (event.key === "ArrowRight") setTime(time + 1000 / fps(), true);
     else if (event.key === "ArrowLeft") setTime(time - 1000 / fps(), true);
   });
@@ -1212,6 +1509,7 @@ function initialize() {
   bindCanvas();
   bindKeyboard();
   window.addEventListener("resize", draw);
+  resetGhostFromProject(0);
   checkpoint();
   const requestedMode = location.hash.slice(1);
   setMode(["animador", "calibrador", "sprites", "exportar", "proyecto"].includes(requestedMode) ? requestedMode : "animador");

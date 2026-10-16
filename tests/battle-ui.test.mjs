@@ -70,6 +70,8 @@ assert.match(battle, /recoverPlayerPunch\(this, this\.hero\)/, "El brazo debe re
 assert.match(battle, /const strikeX = this\.foe\.body\.x - 105/, "Golpe veloz debe acercarse casi hasta la posición X del rival");
 assert.match(battle, /targets: this\.hero\.shadow, x: strikeX/, "La sombra debe acompañar al personaje durante Golpe veloz");
 assert.match(battle, /class MissionTravelScene extends Phaser\.Scene/, "Las misiones deben comenzar con una transición por el bosque");
+assert.match(battle, /async playEncounterTransition\(profile\)/, "Los encuentros consecutivos deben estar separados por una transición narrativa");
+assert.match(battle, /EL CABECILLA BLOQUEA EL CAMINO/, "La transición debe anunciar la llegada del minijefe");
 assert.match(battle, /startPlayerRunning\(this, runner\)/, "La transición debe animar al jugador corriendo");
 assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproducir la carrera en sentido inverso");
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, PauseScene\]/, "La transición debe ejecutarse antes del combate");
@@ -127,6 +129,8 @@ assert.match(battle, /function sharpenTextTree\(/, "El texto debe ajustarse recu
 assert.match(battle, /child\.setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
 assert.match(icons, /width: 128, height: 128/, "Los SVG deben rasterizarse con suficiente resolución antes de ampliarlos");
 assert.match(battle, /this\.playerTurnMarker = this\.add\.circle\(TIMELINE_START, trackY, 17/, "El marcador del jugador debe quedar centrado verticalmente en la barra");
+assert.match(battle, /this\.enemyTurnMarker = this\.add\.circle\(TIMELINE_START, trackY, 17/, "El marcador del rival debe comenzar a la izquierda de la barra");
+assert.match(battle, /this\.enemyTurnLetter = this\.add\.text\(TIMELINE_START, trackY, "R"/, "La etiqueta del rival debe comenzar junto a su marcador");
 assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben repartirse por toda la barra de velocidad");
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
