@@ -70,9 +70,17 @@ assert.match(icons, /export function createUiIcon/, "La integración debe expone
 assert.doesNotMatch(battle, /createUiIcon\(this, "health"/, "El marco debe contener la vida sin una etiqueta o icono exterior");
 assert.doesNotMatch(battle, /createUiIcon\(this, "chakra"/, "El marco debe contener el chakra sin una etiqueta o icono exterior");
 assert.match(battle, /createUiIcon\(this, "speed"/, "Velocidad debe usar el icono de Lucide");
-assert.match(battle, /load\.spritesheet\(FIRE_BREATH_VFX\.texture/, "Aliento de brasa debe cargar su spritesheet dedicado");
-assert.match(battle, /jutsu\.id === "fire_breath"\) await this\.playFireBreathEffect\(\)/, "Aliento de brasa debe ejecutar la animación antes de aplicar el impacto");
-assert.match(battle, /this\.foe\.body\.x, this\.foe\.shadow\.y \+ 8/, "La llama debe aparecer sobre la posición actual del enemigo");
+assert.match(battle, /const TECHNIQUE_VFX = Object\.freeze/, "Las técnicas elementales básicas deben compartir un catálogo de efectos animados");
+for (const id of ["fire_embers", "fire_breath", "water_bullet", "water_whip", "earth_fist", "earth_wall", "wind_palm", "wind_blade"]) {
+  assert.match(battle, new RegExp(`${id}: Object\\.freeze`), `${id} debe tener un spritesheet asignado`);
+}
+assert.match(battle, /fire_embers:[^\n]+width: 145, height: 300, frameRate: 13[\s\S]*fire_breath:[^\n]+width: 170, height: 390, frameRate: 11/, "Aliento de brasa debe sentirse más grande y pesado que Ascuas veloces");
+assert.match(battle, /water_bullet:[^\n]+width: 180, height: 270, frameRate: 13[\s\S]*water_whip:[^\n]+width: 220, height: 390, frameRate: 10/, "Látigo de corriente debe superar visualmente al Proyectil de agua");
+assert.match(battle, /earth_fist:[^\n]+width: 175, height: 330, frameRate: 12[\s\S]*earth_wall:[^\n]+width: 240, height: 410, frameRate: 10/, "Muralla pétrea debe superar visualmente al Puño de roca");
+assert.match(battle, /wind_palm:[^\n]+width: 180, height: 285, frameRate: 13[\s\S]*wind_blade:[^\n]+width: 220, height: 390, frameRate: 10/, "Filo de vendaval debe superar visualmente a Palma de vacío");
+assert.match(battle, /load\.spritesheet\(`technique-vfx-\$\{jutsuId\}`/, "Cada técnica equipada debe cargar su spritesheet dedicado");
+assert.match(battle, /if \(TECHNIQUE_VFX\[jutsu\.id\]\) await this\.playTechniqueEffect\(jutsu\.id\)/, "Las técnicas configuradas deben ejecutar su animación antes de aplicar el impacto");
+assert.match(battle, /this\.foe\.body\.x, this\.foe\.shadow\.y \+ 8/, "Cada efecto debe aparecer sobre la posición actual del enemigo");
 assert.match(ui, /createUiIcon\(scene, "lock"/, "Los espacios bloqueados deben usar el icono de Lucide");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
 assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRight/, "Solo Golpe veloz debe activar el puñetazo articulado");

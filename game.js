@@ -77,14 +77,17 @@ const BATTLE_ARENAS = Object.freeze([
   Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh.jpg?v=0.20.0" }),
   Object.freeze({ texture: "bg-moon", file: "assets/locations/battle-moon-shrine.jpg?v=0.20.0" })
 ]);
-const FIRE_BREATH_VFX = Object.freeze({
-  texture: "fire-breath-vfx",
-  animation: "fire-breath-eruption",
-  file: "assets/vfx/fire-breath-spritesheet.png?v=0.49.0",
-  frameWidth: 313,
-  frameHeight: 717,
-  frames: 7
+const TECHNIQUE_VFX = Object.freeze({
+  fire_embers: Object.freeze({ file: "fire-embers-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 145, height: 300, frameRate: 13 }),
+  fire_breath: Object.freeze({ file: "fire-breath-spritesheet.png", frameWidth: 313, frameHeight: 717, width: 170, height: 390, frameRate: 11 }),
+  water_bullet: Object.freeze({ file: "water-bullet-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 180, height: 270, frameRate: 13 }),
+  water_whip: Object.freeze({ file: "water-whip-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 220, height: 390, frameRate: 10 }),
+  earth_fist: Object.freeze({ file: "earth-fist-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 175, height: 330, frameRate: 12 }),
+  earth_wall: Object.freeze({ file: "earth-wall-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 240, height: 410, frameRate: 10 }),
+  wind_palm: Object.freeze({ file: "wind-palm-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 180, height: 285, frameRate: 13 }),
+  wind_blade: Object.freeze({ file: "wind-blade-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 220, height: 390, frameRate: 10 })
 });
+const TECHNIQUE_VFX_FRAMES = 7;
 let activeSave = loadSave();
 let activeMission = null;
 let game = null;
@@ -174,13 +177,14 @@ class BattleScene extends Phaser.Scene {
 
     const needsSealSheet = activeSave.loadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
-    if (activeSave.loadout.includes("fire_breath") && !this.textures.exists(FIRE_BREATH_VFX.texture)) {
-      this.load.spritesheet(FIRE_BREATH_VFX.texture, FIRE_BREATH_VFX.file, {
-        frameWidth: FIRE_BREATH_VFX.frameWidth,
-        frameHeight: FIRE_BREATH_VFX.frameHeight,
-        endFrame: FIRE_BREATH_VFX.frames - 1
+    Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
+      if (!activeSave.loadout.includes(jutsuId) || this.textures.exists(`technique-vfx-${jutsuId}`)) return;
+      this.load.spritesheet(`technique-vfx-${jutsuId}`, `assets/vfx/${effect.file}?v=0.50.0`, {
+        frameWidth: effect.frameWidth,
+        frameHeight: effect.frameHeight,
+        endFrame: TECHNIQUE_VFX_FRAMES - 1
       });
-    }
+    });
     if (activeMission?.id === "m11") {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
       const master = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
@@ -208,15 +212,18 @@ class BattleScene extends Phaser.Scene {
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
     this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     this.saveData = activeSave;
-    if (this.textures.exists(FIRE_BREATH_VFX.texture) && !this.anims.exists(FIRE_BREATH_VFX.animation)) {
+    Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
+      const texture = `technique-vfx-${jutsuId}`;
+      const animation = `${texture}-animation`;
+      if (!this.textures.exists(texture) || this.anims.exists(animation)) return;
       this.anims.create({
-        key: FIRE_BREATH_VFX.animation,
-        frames: this.anims.generateFrameNumbers(FIRE_BREATH_VFX.texture, { start: 0, end: FIRE_BREATH_VFX.frames - 1 }),
-        frameRate: 11,
+        key: animation,
+        frames: this.anims.generateFrameNumbers(texture, { start: 0, end: TECHNIQUE_VFX_FRAMES - 1 }),
+        frameRate: effect.frameRate,
         repeat: 0,
         hideOnComplete: true
       });
-    }
+    });
     this.mission = activeMission;
     this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
@@ -1198,7 +1205,7 @@ class BattleScene extends Phaser.Scene {
       return;
     }
 
-    if (jutsu.id === "fire_breath") await this.playFireBreathEffect();
+    if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
     else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
     this.tone(jutsu.cinematic ? 92 : 128, 0.12);
     this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
@@ -1223,18 +1230,21 @@ class BattleScene extends Phaser.Scene {
     this.hero.shadow.x = originShadowX;
   }
 
-  playFireBreathEffect() {
-    if (!this.textures.exists(FIRE_BREATH_VFX.texture) || !this.anims.exists(FIRE_BREATH_VFX.animation)) return Promise.resolve();
-    const flame = this.add.sprite(this.foe.body.x, this.foe.shadow.y + 8, FIRE_BREATH_VFX.texture, 0)
+  playTechniqueEffect(jutsuId) {
+    const effect = TECHNIQUE_VFX[jutsuId];
+    const texture = `technique-vfx-${jutsuId}`;
+    const animation = `${texture}-animation`;
+    if (!effect || !this.textures.exists(texture) || !this.anims.exists(animation)) return Promise.resolve();
+    const sprite = this.add.sprite(this.foe.body.x, this.foe.shadow.y + 8, texture, 0)
       .setOrigin(0.5, 1)
-      .setDisplaySize(170, 390)
+      .setDisplaySize(effect.width, effect.height)
       .setDepth(14);
     return new Promise((resolve) => {
-      flame.once("animationcomplete", () => {
-        flame.destroy();
+      sprite.once("animationcomplete", () => {
+        sprite.destroy();
         resolve();
       });
-      flame.play(FIRE_BREATH_VFX.animation);
+      sprite.play(animation);
     });
   }
 
