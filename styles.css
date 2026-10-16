@@ -506,6 +506,14 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .dialogue-overlay { position: fixed; z-index: 100; inset: 0; display: grid; place-items: end center; padding: 28px; background: rgba(3,5,9,0.72); backdrop-filter: blur(3px); }
 .dialogue-box { position: relative; width: min(820px, 100%); min-height: 170px; border: 1px solid #56647a; border-radius: 12px; padding: 24px; background: #101722; box-shadow: 0 25px 100px #000; }
 .dialogue-box.with-portrait { display: grid; grid-template-columns: 230px 1fr; gap: 12px; min-height: 290px; padding: 0 24px 0 0; overflow: hidden; background: radial-gradient(circle at 14% 35%, rgba(245,163,87,.16), transparent 35%), #101722; }
+.dialogue-story { place-items: center; background: rgba(3,5,9,.46); }
+.story-bubble { position: relative; display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 12px; width: min(760px, 92%); min-height: 210px; border: 2px solid rgba(245,186,119,.92); border-radius: 28px; padding: 0 26px 0 0; overflow: visible; background: rgba(247,239,221,.98); color: #1c1a1d; box-shadow: 0 22px 70px rgba(0,0,0,.62); animation: stage-bubble-in .24s ease both; }
+.story-bubble::after { content: ""; position: absolute; bottom: -27px; left: 24%; width: 48px; height: 34px; background: inherit; clip-path: polygon(0 0, 100% 0, 18% 100%); }
+.story-bubble .dialogue-portrait { min-height: 210px; }
+.story-bubble .dialogue-copy { padding: 25px 0 20px; }
+.story-bubble .dialogue-copy .eyebrow { color: #813e2c; }
+.story-bubble .dialogue-copy > p:not(.eyebrow) { color: #1c1a1d; }
+.story-bubble .dialogue-copy small { color: #716b67; }
 .dialogue-portrait { position: relative; align-self: stretch; min-height: 290px; overflow: hidden; }
 .dialogue-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)); }
 .dialogue-portrait span { position: absolute; right: 8px; bottom: 8px; left: 8px; padding: 5px 8px; border-radius: 5px; background: rgba(5,8,13,.82); color: #c4ccd8; font-size: .64rem; text-align: center; }

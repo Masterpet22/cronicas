@@ -46,6 +46,10 @@ assert.match(html, /Pergamino ancestral/, "El selector debe ofrecer Pergamino an
 assert.match(html, /Santuario lunar/, "El selector debe ofrecer Santuario lunar");
 assert.match(battle, /this\.turnReady/, "Las acciones deben depender de que el turno esté listo");
 assert.match(battle, /resetTurnTimeline\(\)/, "Los marcadores deben regresar al terminar una ronda");
+assert.match(battle, /class ResultsScene extends Phaser\.Scene/, "Toda misión debe terminar en una pantalla de resultados independiente");
+assert.match(battle, /resultPayload\(won \? "completed" : "failed"\)/, "Victoria y derrota deben abrir resultados");
+assert.match(battle, /resultPayload\("abandoned"\)/, "Abandonar también debe abrir resultados");
+assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
 assert.match(battle, /index < 6/, "La barra debe conservar siempre seis espacios de acción");
@@ -69,11 +73,10 @@ assert.match(battle, /recoverPlayerPunch\(this, this\.hero\)/, "El brazo debe re
 assert.match(battle, /const strikeX = this\.foe\.body\.x - 105/, "Golpe veloz debe acercarse casi hasta la posición X del rival");
 assert.match(battle, /targets: this\.hero\.shadow, x: strikeX/, "La sombra debe acompañar al personaje durante Golpe veloz");
 assert.match(battle, /class MissionTravelScene extends Phaser\.Scene/, "Las misiones deben comenzar con una transición por el bosque");
-assert.match(battle, /async playEncounterTransition\(profile\)/, "Los encuentros consecutivos deben estar separados por una transición narrativa");
-assert.match(battle, /EL CABECILLA BLOQUEA EL CAMINO/, "La transición debe anunciar la llegada del minijefe");
+assert.match(battle, /async playEncounterTransition\(profile\)[\s\S]*startPlayerRunning\(this, runner\)/, "Los encuentros consecutivos deben mostrar al personaje corriendo");
 assert.match(battle, /startPlayerRunning\(this, runner\)/, "La transición debe animar al jugador corriendo");
 assert.match(battle, /direction: "toVillage"/, "Volver a la aldea debe reproducir la carrera en sentido inverso");
-assert.match(battle, /scene: \[MissionTravelScene, BattleScene, PauseScene\]/, "La transición debe ejecutarse antes del combate");
+assert.match(battle, /scene: \[MissionTravelScene, BattleScene, ResultsScene, PauseScene\]/, "Viaje, combate, resultados y pausa deben formar el flujo de misión");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /loseHealth\(this\.player, this\.hero/, "Los impactos enemigos deben pasar por la reacción centralizada");
@@ -137,5 +140,7 @@ assert.match(html, /navigator\.serviceWorker\.getRegistrations\(\)/, "La página
 assert.match(html, /window\.stop\(\)/, "La migración debe detener las solicitudes iniciadas por el trabajador anterior");
 assert.doesNotMatch(metaUi, /scheduleLocationWarmup/, "La plaza no debe descargar ubicaciones que el jugador todavía no abrió");
 assert.match(metaUi, /loading="eager" fetchpriority="high"/, "Los personajes de la ubicación visible deben cargarse sin marcadores diferidos");
+assert.match(metaUi, /type === "story" \? "story-bubble" : "dialogue-box"/, "Los diálogos deben distinguir bocadillos de historia y recuadros informativos");
+assert.match(metaUi, /mission\.briefing[\s\S]*"COMENZAR MISIÓN", "story"/, "Los diálogos de historia de una misión deben usar bocadillos");
 
 console.log("Pruebas de interfaz de combate superadas.");

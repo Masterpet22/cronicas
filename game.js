@@ -192,6 +192,8 @@ class BattleScene extends Phaser.Scene {
     this.busy = true;
     this.turnReady = false;
     this.finished = false;
+    this.defeatedEncounters = 0;
+    this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
     this.audioContext = null;
     this.configureSealMode();
     this.configurePresentationOptions();
@@ -766,11 +768,18 @@ class BattleScene extends Phaser.Scene {
       this.saveData = writeSave(reward.save);
       activeSave = this.saveData;
       this.lastReward = reward;
+      this.defeatedEncounters += 1;
+      this.battleRewards.xp += reward.xp;
+      this.battleRewards.affinityXp += reward.affinityXp;
+      this.battleRewards.coins += reward.coins;
       if (this.enemyIndex === this.encounters.length - 1) {
         const completion = completeMission(this.saveData, this.mission.id);
         this.saveData = writeSave(completion.save);
         activeSave = this.saveData;
         this.missionReward = completion;
+        this.battleRewards.xp += completion.xp;
+        this.battleRewards.affinityXp += completion.affinityXp || 0;
+        this.battleRewards.coins += completion.coins;
         await this.finishBattle(true);
       } else {
         await this.advanceEncounter();
@@ -819,19 +828,24 @@ class BattleScene extends Phaser.Scene {
   }
 
   async playEncounterTransition(profile) {
-    const shade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02070d, 0)
-      .setOrigin(0).setDepth(70);
-    const chapter = this.add.text(WIDTH / 2, 236, `RASTRO ${this.enemyIndex + 1} DE ${this.encounters.length}`, this.textStyle(12, "#64d7ff", "800", true))
-      .setOrigin(0.5).setAlpha(0).setDepth(71);
-    const title = this.add.text(WIDTH / 2, 270, profile.boss ? "EL CABECILLA BLOQUEA EL CAMINO" : "LAS HUELLAS CONTINÚAN", this.textStyle(22, "#f7edd7", "800", true))
-      .setOrigin(0.5).setAlpha(0).setDepth(71);
-    await this.tween({ targets: shade, alpha: 0.94, duration: 260, ease: "Sine.out" });
-    await this.tween({ targets: [chapter, title], alpha: 1, y: "-=8", duration: 260, ease: "Cubic.out" });
-    await this.delay(620);
-    await this.tween({ targets: [shade, chapter, title], alpha: 0, duration: 300, ease: "Sine.in" });
-    shade.destroy();
-    chapter.destroy();
-    title.destroy();
+    const backdrop = this.add.image(WIDTH / 2, HEIGHT / 2, "travel-forest").setDisplaySize(WIDTH, HEIGHT).setDepth(70).setAlpha(0);
+    const shade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x06130d, 0.38).setOrigin(0).setDepth(71).setAlpha(0);
+    const ground = this.add.rectangle(0, 421, WIDTH, 119, 0x06100b, 0.88).setOrigin(0).setDepth(72).setAlpha(0);
+    const chapter = this.add.text(WIDTH / 2, 62, `RUMBO AL ENCUENTRO ${this.enemyIndex + 1} DE ${this.encounters.length}`, this.textStyle(18, "#f5edd8", "800", true)).setOrigin(0.5).setDepth(75).setAlpha(0);
+    const title = this.add.text(WIDTH / 2, 94, profile.boss ? "El cabecilla bloquea el camino" : "Las huellas continúan", this.textStyle(13, "#bcd4c1", "700")).setOrigin(0.5).setDepth(75).setAlpha(0);
+    const runner = createPlayerFighter(this, -90, 330, this.playerAppearance());
+    runner.targets.forEach((target) => target.setDepth(74).setAlpha(0));
+    runner.shadow.setDepth(73).setAlpha(0);
+    startPlayerRunning(this, runner);
+    await this.tween({ targets: [backdrop, shade, ground, chapter, title, ...runner.targets, runner.shadow], alpha: 1, duration: 240, ease: "Sine.out" });
+    await Promise.all([
+      this.tween({ targets: runner.body, x: WIDTH + 90, duration: 1900, ease: "Linear" }),
+      this.tween({ targets: runner.shadow, x: WIDTH + 90, duration: 1900, ease: "Linear" })
+    ]);
+    stopPlayerRunning(runner);
+    await this.tween({ targets: [backdrop, shade, ground, chapter, title], alpha: 0, duration: 240, ease: "Sine.in" });
+    destroyFighter(runner);
+    backdrop.destroy(); shade.destroy(); ground.destroy(); chapter.destroy(); title.destroy();
   }
 
   async triggerBossPhaseTwo() {
@@ -1311,12 +1325,20 @@ class BattleScene extends Phaser.Scene {
       duration: 900,
       ease: "Sine.inOut"
     });
-    const reset = this.add.text(WIDTH / 2, 392, "VOLVER A LA ALDEA", this.textStyle(16, "#0b1018", "800", true))
-      .setOrigin(0.5).setPadding(24, 12).setBackgroundColor("#f5a357").setDepth(50).setInteractive({ useHandCursor: true });
-    reset.once("pointerup", () => {
-      reset.disableInteractive().setText("REGRESANDO...");
-      this.scene.start("travel", { direction: "toVillage" });
-    });
+    await this.delay(950);
+    this.scene.start("results", this.resultPayload(won ? "completed" : "failed"));
+  }
+
+  resultPayload(outcome) {
+    return {
+      outcome,
+      missionTitle: this.mission.title,
+      playerHp: Math.max(0, this.player.hp),
+      maxHp: this.player.maxHp,
+      defeated: this.defeatedEncounters,
+      totalEncounters: this.encounters.length,
+      rewards: { ...this.battleRewards }
+    };
   }
 
   setButtonsEnabled(enabled) {
@@ -1442,6 +1464,72 @@ class BattleScene extends Phaser.Scene {
   }
 }
 
+class ResultsScene extends Phaser.Scene {
+  constructor() { super("results"); }
+
+  preload() {
+    queuePlayerFighterTextures(this, playerFighterAppearance(activeSave));
+  }
+
+  create(data = {}) {
+    this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
+    const outcome = data.outcome || "failed";
+    const completed = outcome === "completed";
+    const abandoned = outcome === "abandoned";
+    const accent = completed ? 0x62e6a5 : abandoned ? 0xf2b45f : 0xff6b70;
+    const title = completed ? "MISIÓN COMPLETADA" : abandoned ? "MISIÓN ABANDONADA" : "MISIÓN FALLIDA";
+    const subtitle = completed ? "El objetivo ha sido cumplido." : abandoned ? "Regresas a la aldea para reorganizarte." : "La misión termina, pero conservas lo aprendido.";
+
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x030912, 1).setOrigin(0);
+    const halo = this.add.circle(WIDTH / 2, 236, 210, accent, 0.08).setStrokeStyle(2, accent, 0.28);
+    this.tweens.add({ targets: halo, scale: 1.12, alpha: 0.16, duration: 1700, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    for (let index = 0; index < 18; index += 1) {
+      const mote = this.add.circle(90 + (index * 83) % 790, 540 + (index % 4) * 22, 1 + (index % 3), accent, 0.22 + (index % 4) * 0.08);
+      this.tweens.add({ targets: mote, y: -30, x: mote.x + ((index % 2) ? 35 : -35), duration: 2600 + index * 95, repeat: -1, delay: index * 80, ease: "Linear" });
+    }
+
+    const fighter = createPlayerFighter(this, 245, 385, playerFighterAppearance(activeSave));
+    fighter.targets.forEach((target) => target.setAlpha(0));
+    fighter.shadow.setAlpha(0);
+    this.tweens.add({ targets: [...fighter.targets, fighter.shadow], alpha: 1, x: "+=24", duration: 700, ease: "Cubic.out" });
+
+    this.add.text(590, 92, title, { fontFamily: '"Cinzel", Georgia, serif', fontSize: "30px", color: `#${accent.toString(16).padStart(6, "0")}`, fontStyle: "bold" }).setOrigin(0.5).setAlpha(0).setName("results-title");
+    this.add.text(590, 132, data.missionTitle || activeMission?.title || "Misión", { fontFamily: '"Cinzel", Georgia, serif', fontSize: "17px", color: "#f4ead7", fontStyle: "bold" }).setOrigin(0.5);
+    this.add.text(590, 158, subtitle, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "14px", color: "#aebfd0" }).setOrigin(0.5);
+
+    const panel = this.add.rectangle(590, 294, 440, 218, 0x091522, 0.96).setStrokeStyle(1.5, accent, 0.72);
+    const hpRatio = Phaser.Math.Clamp((data.playerHp || 0) / Math.max(1, data.maxHp || 1), 0, 1);
+    this.add.text(400, 214, "VIDA RESTANTE", { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#dce7ef", fontStyle: "bold" }).setOrigin(0, 0.5);
+    this.add.rectangle(400, 239, 380, 16, 0x172333, 1).setOrigin(0, 0.5);
+    const hpFill = this.add.rectangle(400, 239, 1, 12, hpRatio > 0.5 ? 0x38df87 : hpRatio > 0.25 ? 0xf1c84b : 0xef4755, 1).setOrigin(0, 0.5);
+    this.tweens.add({ targets: hpFill, displayWidth: 380 * hpRatio, duration: 900, delay: 300, ease: "Cubic.out" });
+    this.add.text(780, 214, `${data.playerHp || 0}/${data.maxHp || 0}`, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#f4ead7", fontStyle: "bold" }).setOrigin(1, 0.5);
+
+    const rows = [
+      ["Rivales derrotados", `${data.defeated || 0}/${data.totalEncounters || 0}`],
+      ["Experiencia obtenida", `+${data.rewards?.xp || 0} PX`],
+      ["Afinidad obtenida", `+${data.rewards?.affinityXp || 0} PX`],
+      ["Monedas obtenidas", `+${data.rewards?.coins || 0}`]
+    ];
+    rows.forEach(([label, value], index) => {
+      const y = 274 + index * 35;
+      this.add.text(410, y, label, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "14px", color: "#aebfd0" }).setOrigin(0, 0.5);
+      const amount = this.add.text(770, y, value, { fontFamily: '"Cinzel", Georgia, serif', fontSize: "14px", color: "#f4ead7", fontStyle: "bold" }).setOrigin(1, 0.5).setAlpha(0);
+      this.tweens.add({ targets: amount, alpha: 1, x: "-=10", duration: 350, delay: 520 + index * 120, ease: "Cubic.out" });
+    });
+
+    const button = this.add.text(590, 447, "VOLVER A LA ALDEA", { fontFamily: '"Cinzel", Georgia, serif', fontSize: "15px", color: "#071018", fontStyle: "bold" })
+      .setOrigin(0.5).setPadding(24, 12).setBackgroundColor(`#${accent.toString(16).padStart(6, "0")}`).setInteractive({ useHandCursor: true });
+    button.once("pointerup", () => {
+      button.disableInteractive().setText("REGRESANDO...");
+      this.scene.start("travel", { direction: "toVillage" });
+    });
+    this.tweens.add({ targets: this.children.getByName("results-title"), alpha: 1, y: "+=8", duration: 600, ease: "Cubic.out" });
+    this.cameras.main.fadeIn(350, 3, 9, 18);
+    sharpenTextTree(this.children.list);
+  }
+}
+
 class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
 
@@ -1485,7 +1573,9 @@ class PauseScene extends Phaser.Scene {
     this.makePauseAction(560, 465, "ABANDONAR", 0xef665f, () => {
       const button = this.children.getByName("pause-action-ABANDONAR");
       if (button) button.disableInteractive();
-      window.setTimeout(() => window.location.reload(), 80);
+      const payload = this.battle.resultPayload("abandoned");
+      this.scene.stop("battle");
+      this.scene.start("results", payload);
     }, 150);
 
     this.input.keyboard.once("keydown-ESC", () => {
@@ -1627,7 +1717,7 @@ mountMetaUI(metaRoot, activeSave, async (save, mission) => {
     width: renderSize.width,
     height: renderSize.height,
     backgroundColor: "#101622",
-    scene: [MissionTravelScene, BattleScene, PauseScene],
+    scene: [MissionTravelScene, BattleScene, ResultsScene, PauseScene],
     loader: { maxParallelDownloads: 6 },
     render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }

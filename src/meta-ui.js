@@ -107,7 +107,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       showDialogue(welcomeDialogue(save.character), () => {
         save.campaign.tutorialSeen = true;
         persist(save);
-      }, "VER SAGAS");
+      }, "VER SAGAS", "story");
     });
   };
 
@@ -197,16 +197,17 @@ export function mountMetaUI(root, initialSave, onStartMission) {
     });
   };
 
-  const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR") => {
+  const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR", type = "message") => {
     let index = 0;
     const overlay = document.createElement("div");
-    overlay.className = "dialogue-overlay";
+    overlay.className = `dialogue-overlay dialogue-${type}`;
     const draw = () => {
       const [speaker, dialogue] = lines[index];
       const last = index === lines.length - 1;
       const npc = npcByName(speaker);
       const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
-      overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
+      const surfaceClass = type === "story" ? "story-bubble" : "dialogue-box";
+      overlay.innerHTML = `<section class="${surfaceClass} ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       overlay.querySelector("button").addEventListener("click", () => {
         if (!last) { index += 1; draw(); return; }
         overlay.remove();
@@ -369,7 +370,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
         view = "headquarters";
         introducedViews.add("headquarters");
         persist(save);
-      }, "IR AL CUARTEL");
+      }, "IR AL CUARTEL", "story");
     }
   };
 
@@ -450,7 +451,7 @@ export function mountMetaUI(root, initialSave, onStartMission) {
 
     root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
-      showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN");
+      showDialogue(mission.briefing, () => onStartMission(save, mission), "COMENZAR MISIÓN", "story");
     }));
     bindLocationStage("headquarters");
   };
