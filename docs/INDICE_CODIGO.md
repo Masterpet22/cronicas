@@ -74,7 +74,8 @@ Escena `PauseScene`:
 - `initialLoadout` y `loadoutSlotsForLevel`: calculan técnicas y ranuras iniciales.
 - `affinityXpForElement`, `isTechniqueLearned`: resuelven progreso y desbloqueos elementales.
 - `createCharacter`: crea y normaliza el personaje inicial.
-- `normalizeSave`, `loadSave`, `writeSave`: migran, leen y escriben el guardado local.
+- `normalizeSave`, `loadSave`, `writeSave`: migran, leen y escriben la ranura activa.
+- `listSaveSlots`, `selectSaveSlot`, `deleteSaveSlot`: administran las tres partidas locales y migran el guardado único anterior a la primera ranura.
 - `xpForNextLevel`, `awardEncounter`, `completeMission`: calculan niveles y recompensas.
 - `spendAttribute`, `derivedStats`: aplican atributos y equipo a las estadísticas finales.
 

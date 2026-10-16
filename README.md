@@ -34,7 +34,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
 - En el dojo, equipa o desequipa un arma, un protector, un accesorio y un compañero desde ranuras de inventario.
 - La afinidad se fija al crear el personaje; cambiarla o añadir otra requerirá un futuro Catalizador elemental.
-- El dojo incluye un creador geométrico: combina cuerpo, rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
+- Cada una de las tres partidas fija el tipo de cuerpo al crear al personaje; el Dojo permite ajustar rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
 - Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
 - Selecciona una de las seis acciones con el ratón, la pantalla táctil o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
@@ -72,7 +72,7 @@ game.js                  Escena, combate, sellos y efectos
 ART_DIRECTION.md         Guía de identidad, paleta y escalas
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
 src/character.js         Definición visual compartida y vista previa SVG
-src/save.js              Guardado v5, apariencia, campaña, atributos y recompensas
+src/save.js              Guardado v8, tres ranuras, apariencia, campaña, atributos y recompensas
 src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
 src/npcs.js              Reparto, funciones y guías de cada ubicación
 src/rules.js             Precisión, afinidades y estados

@@ -1,7 +1,7 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.20.0";
 import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.22.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.22.0";
-import { affinityXpForElement, createCharacter, derivedStats, isTechniqueLearned, loadoutSlotsForLevel, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.22.0";
+import { activeSaveSlot, affinityXpForElement, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.23.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 
 const COMING_SOON_LOCATIONS = {
@@ -78,6 +78,9 @@ function escapeHtml(value) {
 export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondaryMission) {
   let save = initialSave;
   let view = "plaza";
+  let choosingSaveSlot = (() => {
+    try { return sessionStorage.getItem("cronicas-save-slot-selected") !== "1"; } catch (_) { return true; }
+  })();
   let activeDojoTab = "equipment";
   const introducedViews = new Set();
   const investigatedClues = new Set();
@@ -85,6 +88,45 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const persist = (next, shouldRender = true) => {
     save = writeSave(next);
     if (shouldRender) render();
+  };
+
+  const renderSaveSlots = () => {
+    const selectedSlot = activeSaveSlot();
+    const cards = listSaveSlots().map(({ slot, save: slotSave }) => {
+      if (!slotSave?.character) return `
+        <article class="save-slot empty">
+          <span class="save-slot-number">PARTIDA ${slot}</span>
+          <div class="save-slot-empty" aria-hidden="true">＋</div>
+          <h3>Nueva partida</h3>
+          <p>Crea un combatiente y comienza una historia independiente.</p>
+          <button class="primary-button" type="button" data-select-slot="${slot}">CREAR PARTIDA</button>
+        </article>`;
+      const completed = slotSave.campaign.completedMissions.length;
+      return `
+        <article class="save-slot ${slot === selectedSlot ? "active" : ""}">
+          <span class="save-slot-number">PARTIDA ${slot}${slot === selectedSlot ? " · ACTIVA" : ""}</span>
+          <span class="save-slot-avatar" style="--slot-color:${slotSave.character.appearance}">${escapeHtml(slotSave.character.name.slice(0, 1))}</span>
+          <h3>${escapeHtml(slotSave.character.name)}</h3>
+          <p>${escapeHtml(slotSave.campaign.rank)} · Nivel ${slotSave.progression.level} · ${completed} ${completed === 1 ? "misión" : "misiones"}</p>
+          <div class="save-slot-actions"><button class="primary-button" type="button" data-select-slot="${slot}">CONTINUAR</button><button class="save-slot-delete" type="button" data-delete-slot="${slot}" aria-label="Borrar partida ${slot}">BORRAR</button></div>
+        </article>`;
+    }).join("");
+    root.innerHTML = `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p><div class="save-slot-grid">${cards}</div></section>`;
+    root.querySelectorAll("[data-select-slot]").forEach((button) => button.addEventListener("click", () => {
+      save = selectSaveSlot(button.dataset.selectSlot);
+      choosingSaveSlot = false;
+      try { sessionStorage.setItem("cronicas-save-slot-selected", "1"); } catch (_) { /* La selección seguirá activa durante esta vista. */ }
+      view = save.character ? "plaza" : "headquarters";
+      render();
+    }));
+    root.querySelectorAll("[data-delete-slot]").forEach((button) => button.addEventListener("click", () => {
+      const slot = Number(button.dataset.deleteSlot);
+      const slotState = listSaveSlots().find((entry) => entry.slot === slot)?.save;
+      if (!slotState?.character || !window.confirm(`¿Borrar definitivamente la partida de ${slotState.character.name}?`)) return;
+      deleteSaveSlot(slot);
+      if (slot === activeSaveSlot()) save = selectSaveSlot(slot);
+      renderSaveSlots();
+    }));
   };
 
   const renderCreator = () => {
@@ -96,10 +138,10 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         <form id="character-form" class="creator-form">
           <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
           <fieldset class="affinity-picker"><legend>Afinidad inicial</legend>${affinityChoices}</fieldset>
-          <label>Cuerpo<select name="bodyType"><option value="male">Masculino</option><option value="female">Femenino</option></select></label>
+          <label>Tipo de cuerpo<select name="bodyType"><option value="male">Masculino</option><option value="female">Femenino</option></select><small>Esta elección queda fija para esta partida.</small></label>
           <label>Peinado<select name="hair"><option value="1">Corto</option><option value="2">Largo</option><option value="3">Puntiagudo</option><option value="4">Coleta</option><option value="5">Ninja</option></select></label>
           <label>Color principal y aura<input name="appearance" type="color" value="#68a8ff"></label>
-          <button class="primary-button" type="submit">CREAR PERSONAJE</button>
+          <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
         </form>
       </section>`;
     root.querySelector("#character-form").addEventListener("submit", (event) => {
@@ -112,6 +154,10 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         save.campaign.tutorialSeen = true;
         persist(save);
       }, "VER SAGAS", "story");
+    });
+    root.querySelector("[data-back-to-slots]")?.addEventListener("click", () => {
+      choosingSaveSlot = true;
+      render();
     });
   };
 
@@ -139,6 +185,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
           <button class="player-settings-trigger" type="button" aria-label="Abrir ajustes" aria-expanded="false">
             <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
           </button>
+          <button class="save-slots-trigger" type="button" aria-label="Cambiar de partida">PARTIDAS</button>
         </section>
         ${navigation}
         ${content}
@@ -180,6 +227,11 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       view = button.dataset.view;
       render();
     }));
+    root.querySelector(".save-slots-trigger")?.addEventListener("click", () => {
+      document.querySelector(".game-settings")?.removeAttribute("open");
+      choosingSaveSlot = true;
+      render();
+    });
     root.querySelector("[data-abandon-investigation]")?.addEventListener("click", () => {
       onFinishSecondaryMission(save, SECONDARY_MISSIONS[0], { outcome: "abandoned", clues: investigatedClues.size });
     });
@@ -655,7 +707,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
           <section class="skill-tree" aria-label="Árbol de habilidades por afinidad"><div class="skill-tree-heading"><div><h3>Árbol de habilidades</h3><p>Requieren nivel de personaje y experiencia de afinidad.</p></div><span class="tree-legend"><i></i> Aprendida <i></i> Bloqueada</span></div><div class="technique-slots">${techniqueSlotsMarkup()}</div><div class="skill-branches">${skillBranches}</div></section>
         </div>
         <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance">
-          <section class="appearance-panel"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3><p>Los cambios se reflejan también durante el combate.</p></div><span>Opcional</span></div><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Cuerpo<select data-cosmetic="bodyType"><option value="male" ${character.bodyType === "male" ? "selected" : ""}>Masculino</option><option value="female" ${character.bodyType === "female" ? "selected" : ""}>Femenino</option></select></label><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div></section>
+          <section class="appearance-panel"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3><p>Los cambios se reflejan también durante el combate. El tipo de cuerpo pertenece a la partida y no puede modificarse aquí.</p></div><span>Opcional</span></div><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div></section>
         </div>
         <p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
       </section>
@@ -786,7 +838,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     });
 
     root.querySelectorAll("[data-cosmetic]").forEach((select) => select.addEventListener("change", () => {
-      save.character[select.dataset.cosmetic] = select.dataset.cosmetic === "bodyType" ? select.value : Number(select.value);
+      save.character[select.dataset.cosmetic] = Number(select.value);
       persistDojo(save);
     }));
 
@@ -829,6 +881,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   };
 
   const render = () => {
+    if (choosingSaveSlot) return renderSaveSlots();
     if (!save.character) return renderCreator();
     if (view === "headquarters") return renderStoryMissions();
     if (view === "missions") return renderSecondaryMissions();

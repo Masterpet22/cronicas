@@ -2,7 +2,10 @@ import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.22.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 7;
+export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
+const SAVE_SLOTS_MIGRATED_KEY = `${SAVE_KEY}-slots-migrated`;
+export const MAX_SAVE_SLOTS = 3;
+export const SAVE_VERSION = 8;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm", companion: null };
 const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
@@ -161,9 +164,61 @@ export function normalizeSave(candidate) {
   };
 }
 
-export function loadSave(storage = globalThis.localStorage) {
+function validSaveSlot(slot) {
+  const parsed = Math.floor(Number(slot));
+  return parsed >= 1 && parsed <= MAX_SAVE_SLOTS ? parsed : 1;
+}
+
+export function saveSlotKey(slot) {
+  return `${SAVE_KEY}-slot-${validSaveSlot(slot)}`;
+}
+
+export function activeSaveSlot(storage = globalThis.localStorage) {
+  try { return validSaveSlot(storage?.getItem(ACTIVE_SAVE_SLOT_KEY)); } catch (_) { return 1; }
+}
+
+function migrateLegacySave(storage) {
   try {
-    const raw = storage?.getItem(SAVE_KEY);
+    if (storage?.getItem(SAVE_SLOTS_MIGRATED_KEY)) return;
+    const legacy = storage?.getItem(SAVE_KEY);
+    if (legacy && !storage?.getItem(saveSlotKey(1))) {
+      const migrated = normalizeSave(JSON.parse(legacy));
+      storage?.setItem(saveSlotKey(1), JSON.stringify(migrated));
+      storage?.setItem(ACTIVE_SAVE_SLOT_KEY, "1");
+    }
+    storage?.setItem(SAVE_SLOTS_MIGRATED_KEY, "1");
+  } catch (_) { /* Un guardado legado corrupto no impide crear una partida nueva. */ }
+}
+
+export function listSaveSlots(storage = globalThis.localStorage) {
+  migrateLegacySave(storage);
+  return Array.from({ length: MAX_SAVE_SLOTS }, (_, index) => {
+    const slot = index + 1;
+    try {
+      const raw = storage?.getItem(saveSlotKey(slot));
+      return { slot, save: raw ? normalizeSave(JSON.parse(raw)) : null };
+    } catch (_) {
+      return { slot, save: null };
+    }
+  });
+}
+
+export function selectSaveSlot(slot, storage = globalThis.localStorage) {
+  const selected = validSaveSlot(slot);
+  try { storage?.setItem(ACTIVE_SAVE_SLOT_KEY, String(selected)); } catch (_) { /* El juego continúa en memoria. */ }
+  return loadSave(storage, selected);
+}
+
+export function deleteSaveSlot(slot, storage = globalThis.localStorage) {
+  const selected = validSaveSlot(slot);
+  try { storage?.removeItem(saveSlotKey(selected)); } catch (_) { /* El selector seguirá disponible. */ }
+  return createDefaultSave();
+}
+
+export function loadSave(storage = globalThis.localStorage, slot = activeSaveSlot(storage)) {
+  migrateLegacySave(storage);
+  try {
+    const raw = storage?.getItem(saveSlotKey(slot));
     return normalizeSave(raw ? JSON.parse(raw) : null);
   } catch (_) {
     return createDefaultSave();
@@ -172,7 +227,7 @@ export function loadSave(storage = globalThis.localStorage) {
 
 export function writeSave(save, storage = globalThis.localStorage) {
   const normalized = normalizeSave(save);
-  try { storage?.setItem(SAVE_KEY, JSON.stringify(normalized)); } catch (_) { /* El juego continúa sin persistencia. */ }
+  try { storage?.setItem(saveSlotKey(activeSaveSlot(storage)), JSON.stringify(normalized)); } catch (_) { /* El juego continúa sin persistencia. */ }
   return normalized;
 }
 

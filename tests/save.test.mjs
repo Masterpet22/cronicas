@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
-import { affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, spendAttribute } from "../src/save.js";
+import { SAVE_KEY, affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, derivedStats, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, selectSaveSlot, spendAttribute, writeSave } from "../src/save.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 7, "Las decisiones y el desbloqueo de la Biblioteca deben usar la séptima versión del guardado");
+assert.equal(SAVE_VERSION, 8, "Las tres ranuras deben usar la octava versión del guardado");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
 assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
@@ -14,6 +14,24 @@ assert.equal(save.character.affinityXp.viento, 50, "La afinidad inicial debe com
 assert.equal(loadoutSlotsForLevel(1), 2, "El nivel 1 debe habilitar dos ranuras");
 assert.equal(loadoutSlotsForLevel(5), 3, "El nivel 5 debe habilitar la tercera ranura");
 assert.equal(loadoutSlotsForLevel(8), 4, "El nivel 8 debe habilitar la cuarta ranura");
+
+class MemoryStorage {
+  constructor(entries = []) { this.values = new Map(entries); }
+  getItem(key) { return this.values.has(key) ? this.values.get(key) : null; }
+  setItem(key, value) { this.values.set(key, String(value)); }
+  removeItem(key) { this.values.delete(key); }
+}
+const slotStorage = new MemoryStorage([[SAVE_KEY, JSON.stringify(save)]]);
+assert.equal(loadSave(slotStorage).character.name, "Kira", "La partida única anterior debe migrarse a la primera ranura");
+assert.equal(listSaveSlots(slotStorage).filter((entry) => entry.save?.character).length, 1, "La migración no debe duplicar la partida anterior");
+selectSaveSlot(2, slotStorage);
+const secondCharacter = createCharacter(createDefaultSave(), { name: "Renji", affinity: "fuego", bodyType: "male", hair: 2 });
+writeSave(secondCharacter, slotStorage);
+assert.deepEqual(listSaveSlots(slotStorage).map((entry) => entry.save?.character?.name || null), ["Kira", "Renji", null], "Las tres ranuras deben conservar progresos independientes");
+selectSaveSlot(1, slotStorage);
+assert.equal(loadSave(slotStorage).character.name, "Kira", "Cambiar de ranura debe recuperar la partida seleccionada");
+deleteSaveSlot(2, slotStorage);
+assert.equal(listSaveSlots(slotStorage)[1].save, null, "Una ranura borrada debe quedar disponible para una partida nueva");
 
 const initialStats = derivedStats(save);
 assert.equal(initialStats.damageBonus, 2, "El kunai inicial debe sumar daño");
