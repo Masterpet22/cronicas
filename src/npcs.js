@@ -138,6 +138,34 @@ export const NPCS = {
       "Nunca necesitarás participar en ellos para terminar la historia principal.",
       "Por ahora, considera la plaza un adelanto del contenido posterior."
     ]
+  },
+  iori: {
+    name: "Iori Kagemori",
+    title: "Anciano de Kagemori",
+    image: "assets/npcs/iori-kagemori.png",
+    intro: [
+      "Llegaste desde la Aldea del Horizonte... Soy Iori. Los bandidos atacaron al caer la noche y se llevaron cuanto pudieron cargar.",
+      "La plaza conserva sus huellas. Examina los lugares que tocaron antes de marcharse."
+    ],
+    guide: [
+      "La carreta pertenecía al molino. Mira qué dejaron entre las tablas.",
+      "Nami vio más que cualquiera de nosotros; habla con ella cuando hayas reunido las pistas.",
+      "El fuego comenzó en la casa comunal, pero los saqueadores ya tenían preparada su retirada."
+    ]
+  },
+  nami: {
+    name: "Nami Kurose",
+    title: "Exploradora de Kagemori",
+    image: "assets/npcs/nami-kurose.png",
+    intro: [
+      "Soy Nami. Intenté seguirlos desde el bosque, pero se separaron para ocultar el rastro.",
+      "Si reconstruimos por dónde cruzaron la aldea, podré decirte hacia qué paso se dirigieron."
+    ],
+    guide: [
+      "Las pisadas profundas son de quienes cargaban los cofres.",
+      "El barro del pozo no pertenece a este valle; viene de las canteras del norte.",
+      "La puerta norte conduce al Desfiladero del Cuervo, aunque el camino parece terminar en una cascada."
+    ]
   }
 };
 
@@ -150,7 +178,8 @@ export const LOCATION_CAST = {
   arena: ["goro"],
   inn: ["yuna"],
   missions: ["riku"],
-  event: ["nao"]
+  event: ["nao"],
+  kagemori: ["iori", "nami"]
 };
 
 export function locationDialogue(locationId, type = "intro") {

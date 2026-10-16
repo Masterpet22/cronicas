@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, spendAttribute } from "../src/save.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 5, "La experiencia de afinidad debe usar la quinta versión del guardado");
+assert.equal(SAVE_VERSION, 6, "Las banderas de historia deben usar la sexta versión del guardado");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
 assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
@@ -64,6 +64,9 @@ assert.deepEqual(
 const migrated = normalizeSave({ character: { name: "Legacy", affinity: "wind" }, progression: { level: 2 }, equipment: {}, campaign: { completedMissions: ["m07"] } });
 assert.deepEqual(migrated.character.affinities, ["viento"], "Los guardados anteriores deben migrar su afinidad básica");
 assert.equal(migrated.campaign.elementRank, 2, "El progreso anterior debe recuperar su rango elemental");
+assert.equal(migrated.campaign.secondaryBoardUnlocked, false, "Un guardado anterior debe iniciar el nuevo Tablón cerrado");
+const storyState = normalizeSave({ ...migrated, campaign: { ...migrated.campaign, sayoEncounterSeen: true, secondaryBoardUnlocked: true, kagemoriInvestigated: true, banditBossMissionUnlocked: true } });
+assert.equal(storyState.campaign.banditBossMissionUnlocked, true, "El hallazgo de la guarida debe persistir tras normalizar el guardado");
 
 const dualAffinity = normalizeSave({ ...campaignSave, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, loadout: ["lightning_spark"] });
 assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");

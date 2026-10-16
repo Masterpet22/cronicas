@@ -187,7 +187,26 @@ export const ENEMY_ROSTER = {
 export const ENEMIES = Object.values(ENEMY_ROSTER);
 
 export const STORY_SAGAS = [
-  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01"] }
+  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01", "m11"] }
+];
+
+export const SECONDARY_MISSIONS = [
+  {
+    id: "s01", number: 1, type: "investigation", title: "El silencio de Kagemori", location: "Aldea de Kagemori", duration: "5–7 min", rank: "D",
+    reward: { xp: 0, coins: 0 },
+    briefing: [
+      ["Sayo Kisaragi", "Perdí el rastro de los saqueadores en la Aldea de Kagemori. El ataque fue reciente y todavía deben quedar señales de su ruta."],
+      ["Sayo Kisaragi", "Habla con los supervivientes e investiga la carreta, la plaza y el pozo. No busques pelea: necesitamos saber adónde llevaron lo robado."]
+    ]
+  }
+];
+
+export const STORY_MISSION_PREVIEWS = [
+  {
+    id: "m11", number: 2, title: "Asalto al Desfiladero del Cuervo", location: "Guarida de los bandidos", duration: "Por definir", rank: "D", encounters: [],
+    reward: { xp: 0, coins: 0 }, comingSoon: true, unlockFlag: "banditBossMissionUnlocked",
+    briefing: [["Sayo Kisaragi", "Nami confirmó la ruta. El jefe de los bandidos se oculta en el Desfiladero del Cuervo."]]
+  }
 ];
 
 export const MISSIONS = [

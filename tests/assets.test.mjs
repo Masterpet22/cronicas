@@ -55,6 +55,10 @@ await Promise.all(locationIds.map(async (id) => {
   assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
   assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
 }));
+const kagemori = await readFile(new URL("../assets/locations/kagemori.png", import.meta.url));
+assert.equal(kagemori.subarray(1, 4).toString("ascii"), "PNG", "Kagemori debe usar un PNG válido");
+assert.ok(kagemori.readUInt32BE(16) >= 1500, "Kagemori necesita resolución panorámica suficiente");
+assert.ok(kagemori.readUInt32BE(20) >= 900, "Kagemori necesita altura suficiente");
 const hudThemeDimensions = { ancestral: [2172, 724], lunar: [866, 288] };
 for (const theme of ["ancestral", "lunar"]) {
   const png = await readFile(new URL(`../assets/ui/hud-themes/${theme}.png`, import.meta.url));

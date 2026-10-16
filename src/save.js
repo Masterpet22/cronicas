@@ -1,8 +1,8 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.20.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.21.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm", companion: null };
 const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
@@ -25,7 +25,11 @@ export function createDefaultSave() {
       rank: "Novicio",
       elementRank: 1,
       tutorialSeen: false,
-      companion: null
+      companion: null,
+      sayoEncounterSeen: false,
+      secondaryBoardUnlocked: false,
+      kagemoriInvestigated: false,
+      banditBossMissionUnlocked: false
     }
   };
 }
@@ -138,7 +142,11 @@ export function normalizeSave(candidate) {
       rank: candidate.campaign?.rank === "Guardián" ? "Guardián" : "Novicio",
       elementRank,
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
-      companion: candidate.campaign?.companion === "mika" ? "mika" : null
+      companion: candidate.campaign?.companion === "mika" ? "mika" : null,
+      sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),
+      secondaryBoardUnlocked: Boolean(candidate.campaign?.secondaryBoardUnlocked),
+      kagemoriInvestigated: Boolean(candidate.campaign?.kagemoriInvestigated),
+      banditBossMissionUnlocked: Boolean(candidate.campaign?.banditBossMissionUnlocked)
     }
   };
 }
