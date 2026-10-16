@@ -153,6 +153,7 @@ class BattleScene extends Phaser.Scene {
     loadUiIcons(this);
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
+    this.missionStartSave = JSON.parse(JSON.stringify(activeSave));
     this.mission = activeMission;
     BASE_ACTIONS.forEach((action) => {
       const key = `action-${action.id}`;
@@ -1341,6 +1342,13 @@ class BattleScene extends Phaser.Scene {
     };
   }
 
+  abandonPayload() {
+    this.saveData = writeSave(this.missionStartSave);
+    activeSave = this.saveData;
+    this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
+    return this.resultPayload("abandoned");
+  }
+
   setButtonsEnabled(enabled) {
     this.buttons.forEach((button) => {
       const { jutsu } = button;
@@ -1573,7 +1581,7 @@ class PauseScene extends Phaser.Scene {
     this.makePauseAction(560, 465, "ABANDONAR", 0xef665f, () => {
       const button = this.children.getByName("pause-action-ABANDONAR");
       if (button) button.disableInteractive();
-      const payload = this.battle.resultPayload("abandoned");
+      const payload = this.battle.abandonPayload();
       this.scene.stop("battle");
       this.scene.start("results", payload);
     }, 150);

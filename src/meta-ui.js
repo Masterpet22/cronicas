@@ -13,7 +13,7 @@ const COMING_SOON_LOCATIONS = {
   arena: { npcId: "goro", message: "La Arena de Combate todavía está en preparación. Próximamente podrás practicar, probar configuraciones y disputar combates sin afectar la campaña." }
 };
 const welcomeDialogue = (character) => {
-  const master = character.bodyType === "female" ? "Mei Hayate" : "Daichi Kazan";
+  const master = character.bodyType === "male" ? "Mei Hayate" : "Daichi Kazan";
   return [
     ["Ren Arashiro", `Enhorabuena, ${character.name}. Desde hoy formas parte de los combatientes de la Aldea del Horizonte.`],
     [master, character.bodyType === "female"
