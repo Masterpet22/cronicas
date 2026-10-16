@@ -74,13 +74,18 @@ assert.match(battle, /const TECHNIQUE_VFX = Object\.freeze/, "Las técnicas elem
 for (const id of ["fire_embers", "fire_breath", "water_bullet", "water_whip", "earth_fist", "earth_wall", "wind_palm", "wind_blade"]) {
   assert.match(battle, new RegExp(`${id}: Object\\.freeze`), `${id} debe tener un spritesheet asignado`);
 }
-assert.match(battle, /fire_embers:[^\n]+width: 145, height: 300, frameRate: 13[\s\S]*fire_breath:[^\n]+width: 170, height: 390, frameRate: 11/, "Aliento de brasa debe sentirse más grande y pesado que Ascuas veloces");
+assert.match(battle, /fire_embers:[^\n]+frameWidth: 550\.4, frameHeight: 280, sourceY: 620, width: 210, height: 112, frameRate: 10, frames: 5, projectile: true[\s\S]*fire_breath:[^\n]+width: 170, height: 390, frameRate: 11/, "Ascuas veloces debe usar cinco celdas iguales basadas en el cuadro de mayor tamaño");
 assert.match(battle, /water_bullet:[^\n]+width: 180, height: 270, frameRate: 13[\s\S]*water_whip:[^\n]+width: 220, height: 390, frameRate: 10/, "Látigo de corriente debe superar visualmente al Proyectil de agua");
 assert.match(battle, /earth_fist:[^\n]+width: 175, height: 330, frameRate: 12[\s\S]*earth_wall:[^\n]+width: 240, height: 410, frameRate: 10/, "Muralla pétrea debe superar visualmente al Puño de roca");
 assert.match(battle, /wind_palm:[^\n]+width: 180, height: 285, frameRate: 13[\s\S]*wind_blade:[^\n]+width: 220, height: 390, frameRate: 10/, "Filo de vendaval debe superar visualmente a Palma de vacío");
-assert.match(battle, /load\.spritesheet\(`technique-vfx-\$\{jutsuId\}`/, "Cada técnica equipada debe cargar su spritesheet dedicado");
-assert.match(battle, /if \(TECHNIQUE_VFX\[jutsu\.id\]\) await this\.playTechniqueEffect\(jutsu\.id\)/, "Las técnicas configuradas deben ejecutar su animación antes de aplicar el impacto");
+assert.match(battle, /else this\.load\.spritesheet\(texture, source/, "Las demás técnicas deben conservar su carga de spritesheet dedicada");
+assert.match(battle, /if \(Number\.isFinite\(effect\.sourceY\)\) this\.load\.image\(texture, source\)/, "El proyectil alineado debe cargarse completo antes de definir sus cuadros");
+assert.match(battle, /sheet\.add\(index, 0, index \* effect\.frameWidth, effect\.sourceY, effect\.frameWidth, effect\.frameHeight\)/, "Los cinco cuadros deben compartir exactamente el mismo tamaño y línea base");
+assert.match(battle, /if \(usesHandProjectile\) await this\.playFireEmbersProjectile\(false\);[\s\S]*else if \(TECHNIQUE_VFX\[jutsu\.id\]\) await this\.playTechniqueEffect\(jutsu\.id\)/, "Ascuas veloces debe usar su recorrido y las demás técnicas conservar el efecto sobre el objetivo");
 assert.match(battle, /this\.foe\.body\.x, this\.foe\.shadow\.y \+ 8/, "Cada efecto debe aparecer sobre la posición actual del enemigo");
+assert.match(battle, /playerProjectileOrigin\(\)[\s\S]*this\.hero\.joints\?\.wristRight/, "El proyectil debe calcular su origen desde la muñeca extendida del personaje");
+assert.match(battle, /playFireEmbersProjectile\(missed = false\)[\s\S]*targets: sprite, x: target\.x, y: target\.y, duration: 560/, "Ascuas veloces debe desplazarse desde la mano hasta el rival");
+assert.match(battle, /usesCastPose[\s\S]*preparePlayerPunch\(this, this\.hero\)[\s\S]*releasePlayerPunch\(this, this\.hero\)/, "El personaje debe extender el brazo antes de lanzar Ascuas veloces");
 assert.match(ui, /createUiIcon\(scene, "lock"/, "Los espacios bloqueados deben usar el icono de Lucide");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
 assert.match(battle, /jutsu\.id === "strike" && this\.hero\.joints\?\.shoulderRight/, "Solo Golpe veloz debe activar el puñetazo articulado");

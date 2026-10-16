@@ -78,7 +78,7 @@ const BATTLE_ARENAS = Object.freeze([
   Object.freeze({ texture: "bg-moon", file: "assets/locations/battle-moon-shrine.jpg?v=0.20.0" })
 ]);
 const TECHNIQUE_VFX = Object.freeze({
-  fire_embers: Object.freeze({ file: "fire-embers-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 145, height: 300, frameRate: 13 }),
+  fire_embers: Object.freeze({ file: "fire-embers-spritesheet.png", frameWidth: 550.4, frameHeight: 280, sourceY: 620, width: 210, height: 112, frameRate: 10, frames: 5, projectile: true }),
   fire_breath: Object.freeze({ file: "fire-breath-spritesheet.png", frameWidth: 313, frameHeight: 717, width: 170, height: 390, frameRate: 11 }),
   water_bullet: Object.freeze({ file: "water-bullet-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 180, height: 270, frameRate: 13 }),
   water_whip: Object.freeze({ file: "water-whip-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 220, height: 390, frameRate: 10 }),
@@ -179,11 +179,14 @@ class BattleScene extends Phaser.Scene {
     if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
       if (!activeSave.loadout.includes(jutsuId) || this.textures.exists(`technique-vfx-${jutsuId}`)) return;
-      this.load.spritesheet(`technique-vfx-${jutsuId}`, `assets/vfx/${effect.file}?v=0.50.0`, {
-        frameWidth: effect.frameWidth,
-        frameHeight: effect.frameHeight,
-        endFrame: TECHNIQUE_VFX_FRAMES - 1
-      });
+      const texture = `technique-vfx-${jutsuId}`;
+      const source = `assets/vfx/${effect.file}?v=0.52.0`;
+      if (Number.isFinite(effect.sourceY)) this.load.image(texture, source);
+      else this.load.spritesheet(texture, source, {
+          frameWidth: effect.frameWidth,
+          frameHeight: effect.frameHeight,
+          endFrame: (effect.frames || TECHNIQUE_VFX_FRAMES) - 1
+        });
     });
     if (activeMission?.id === "m11") {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
@@ -216,9 +219,15 @@ class BattleScene extends Phaser.Scene {
       const texture = `technique-vfx-${jutsuId}`;
       const animation = `${texture}-animation`;
       if (!this.textures.exists(texture) || this.anims.exists(animation)) return;
+      if (Number.isFinite(effect.sourceY)) {
+        const sheet = this.textures.get(texture);
+        Array.from({ length: effect.frames }, (_, index) => index).forEach((index) => {
+          if (!sheet.has(index)) sheet.add(index, 0, index * effect.frameWidth, effect.sourceY, effect.frameWidth, effect.frameHeight);
+        });
+      }
       this.anims.create({
         key: animation,
-        frames: this.anims.generateFrameNumbers(texture, { start: 0, end: TECHNIQUE_VFX_FRAMES - 1 }),
+        frames: this.anims.generateFrameNumbers(texture, { start: 0, end: (effect.frames || TECHNIQUE_VFX_FRAMES) - 1 }),
         frameRate: effect.frameRate,
         repeat: 0,
         hideOnComplete: true
@@ -1175,6 +1184,8 @@ class BattleScene extends Phaser.Scene {
     const originX = this.hero.body.x;
     const originShadowX = this.hero.shadow.x;
     const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
+    const usesHandProjectile = jutsu.id === "fire_embers";
+    const usesCastPose = usesHandProjectile && this.hero.animations?.supports("punch-release");
     if (usesPuppetPunch) {
       await preparePlayerPunch(this, this.hero);
       const strikeX = this.foe.body.x - 105;
@@ -1183,12 +1194,18 @@ class BattleScene extends Phaser.Scene {
         this.tween({ targets: this.hero.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
       ]);
       await releasePlayerPunch(this, this.hero);
+    } else if (usesHandProjectile) {
+      if (usesCastPose) {
+        await preparePlayerPunch(this, this.hero);
+        await releasePlayerPunch(this, this.hero);
+      } else await this.delay(125);
     } else {
       this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
       await this.delay(125);
     }
 
     if (!this.rollHit(chance)) {
+      if (usesHandProjectile) await this.playFireEmbersProjectile(true);
       this.tone(205, 0.08);
       this.floatLabel(this.foe.body.x, this.foe.body.y - 118, "FALLO", 0xd7dce5);
       this.setMessage(`${jutsu.name} falló (${chance} % de precisión).`, "#d7dce5");
@@ -1198,14 +1215,15 @@ class BattleScene extends Phaser.Scene {
           this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
           this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
         ]);
-      }
-      await this.delay(usesPuppetPunch ? 150 : 430);
+      } else if (usesCastPose) await recoverPlayerPunch(this, this.hero);
+      await this.delay(usesPuppetPunch || usesCastPose ? 150 : 430);
       this.hero.body.x = originX;
       this.hero.shadow.x = originShadowX;
       return;
     }
 
-    if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
+    if (usesHandProjectile) await this.playFireEmbersProjectile(false);
+    else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
     else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
     this.tone(jutsu.cinematic ? 92 : 128, 0.12);
     this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
@@ -1224,8 +1242,9 @@ class BattleScene extends Phaser.Scene {
         this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
         this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
       ]);
-    } else await reaction;
-    await this.delay(usesPuppetPunch ? 150 : 430);
+    } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, this.hero)]);
+    else await reaction;
+    await this.delay(usesPuppetPunch || usesCastPose ? 150 : 430);
     this.hero.body.x = originX;
     this.hero.shadow.x = originShadowX;
   }
@@ -1245,6 +1264,38 @@ class BattleScene extends Phaser.Scene {
         resolve();
       });
       sprite.play(animation);
+    });
+  }
+
+  playerProjectileOrigin() {
+    const wrist = this.hero.joints?.wristRight;
+    if (wrist?.getWorldTransformMatrix) {
+      const point = wrist.getWorldTransformMatrix().transformPoint(0, 0);
+      const direction = this.hero.body.scaleX < 0 ? -1 : 1;
+      return { x: point.x + 18 * direction, y: point.y };
+    }
+    return { x: this.hero.body.x + 62, y: this.hero.body.y - 12 };
+  }
+
+  playFireEmbersProjectile(missed = false) {
+    const effect = TECHNIQUE_VFX.fire_embers;
+    const texture = "technique-vfx-fire_embers";
+    const animation = `${texture}-animation`;
+    if (!this.textures.exists(texture) || !this.anims.exists(animation)) return Promise.resolve();
+    const origin = this.playerProjectileOrigin();
+    const target = { x: this.foe.body.x + (missed ? 90 : -8), y: this.foe.body.y - 18 };
+    const sprite = this.add.sprite(origin.x, origin.y, texture, 0)
+      .setOrigin(0.58, 0.5)
+      .setDisplaySize(effect.width, effect.height)
+      .setDepth(14);
+    const animationDone = new Promise((resolve) => sprite.once("animationcomplete", resolve));
+    sprite.play(animation);
+    return Promise.all([
+      animationDone,
+      this.tween({ targets: sprite, x: target.x, y: target.y, duration: 560, ease: "Cubic.in" })
+    ]).then(() => {
+      if (!missed) this.createImpact(target.x, target.y, 0xff8a38, 0.8);
+      sprite.destroy();
     });
   }
 
