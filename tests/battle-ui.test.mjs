@@ -8,6 +8,7 @@ const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.me
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
 const metaUi = readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8");
+const styles = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
 
 assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
 assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
@@ -50,6 +51,8 @@ assert.match(battle, /class ResultsScene extends Phaser\.Scene/, "Toda misión d
 assert.match(battle, /resultPayload\(won \? "completed" : "failed"\)/, "Victoria y derrota deben abrir resultados");
 assert.match(battle, /abandonPayload\(\)/, "Abandonar también debe abrir resultados");
 assert.match(battle, /this\.saveData = writeSave\(this\.missionStartSave\)/, "Abandonar debe restaurar el guardado previo y perder las recompensas de la misión");
+assert.doesNotMatch(battle, /writeSave\(reward\.save\)/, "Los encuentros intermedios no deben persistir recompensas antes de completar la misión");
+assert.match(battle, /outcome === "completed" \? \{ \.\.\.this\.battleRewards \} : \{ xp: 0, affinityXp: 0, coins: 0 \}/, "Derrota y abandono deben informar cero recompensas");
 assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
@@ -141,8 +144,14 @@ assert.match(html, /navigator\.serviceWorker\.getRegistrations\(\)/, "La página
 assert.match(html, /window\.stop\(\)/, "La migración debe detener las solicitudes iniciadas por el trabajador anterior");
 assert.doesNotMatch(metaUi, /scheduleLocationWarmup/, "La plaza no debe descargar ubicaciones que el jugador todavía no abrió");
 assert.match(metaUi, /loading="eager" fetchpriority="high"/, "Los personajes de la ubicación visible deben cargarse sin marcadores diferidos");
-assert.match(metaUi, /type === "story" \? "story-bubble" : "dialogue-box"/, "Los diálogos deben distinguir bocadillos de historia y recuadros informativos");
+assert.match(metaUi, /story-character[\s\S]*story-dialogue-panel/, "Historia debe separar al personaje del panel de diálogo");
+assert.doesNotMatch(styles, /story-bubble/, "El bocadillo crema anterior debe desaparecer por completo");
+assert.doesNotMatch(styles, /story-dialogue-panel::(?:before|after)/, "El panel de historia no debe tener cola ni pico");
+assert.match(styles, /@media \(max-width: 1050px\), \(max-height: 650px\)/, "El diálogo debe adaptarse a portátiles pequeños");
 assert.match(metaUi, /mission\.briefing[\s\S]*"COMENZAR MISIÓN", "story"/, "Los diálogos de historia de una misión deben usar bocadillos");
-assert.match(metaUi, /bodyType === "male" \? "Mei Hayate" : "Daichi Kazan"/, "Mei debe enseñar al avatar masculino y Daichi al femenino");
+assert.match(metaUi, /bodyType === "male" \? NPCS\.mei : NPCS\.daichi/, "Mei debe enseñar al avatar masculino y Daichi al femenino");
+assert.match(battle, /bodyType === "male" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el mismo maestro asignado");
+assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
+assert.doesNotMatch(battle, /const halo =|add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");
 
 console.log("Pruebas de interfaz de combate superadas.");

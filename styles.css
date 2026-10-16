@@ -455,6 +455,11 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .stage-speech > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 13px; }
 .stage-speech small { color: #716b67; font-weight: 750; }
 .stage-speech .primary-button { padding: 10px 14px; }
+.stage-speech { border: 1px solid rgba(94,205,255,.72); border-left: 4px solid #3fcaff; border-radius: 7px; background: rgba(3,18,32,.94); color: #eef7ff; box-shadow: 0 18px 55px rgba(0,0,0,.48); }
+.stage-speech::before { display: none; content: none; }
+.stage-speech .stage-speaker { border-bottom-color: rgba(132,196,224,.3); color: #83d8ff; }
+.stage-speech > p:not(.stage-speaker) { color: #f4f0e8; }
+.stage-speech small { color: #aac1d2; }
 .stage-speech.leaving, .stage-ambient.leaving { animation: stage-bubble-out .18s ease both; }
 .stage-ambient { top: auto; bottom: 24%; left: 3.2%; width: 29%; padding: 14px 16px; font-size: .82rem; line-height: 1.45; pointer-events: none; }
 .stage-ambient strong, .stage-ambient span { display: block; }
@@ -506,20 +511,22 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .dialogue-overlay { position: fixed; z-index: 100; inset: 0; display: grid; place-items: end center; padding: 28px; background: rgba(3,5,9,0.72); backdrop-filter: blur(3px); }
 .dialogue-box { position: relative; width: min(820px, 100%); min-height: 170px; border: 1px solid #56647a; border-radius: 12px; padding: 24px; background: #101722; box-shadow: 0 25px 100px #000; }
 .dialogue-box.with-portrait { display: grid; grid-template-columns: 230px 1fr; gap: 12px; min-height: 290px; padding: 0 24px 0 0; overflow: hidden; background: radial-gradient(circle at 14% 35%, rgba(245,163,87,.16), transparent 35%), #101722; }
-.dialogue-story { display: block; padding: 0; background: rgba(3,5,9,.18); backdrop-filter: none; overflow: hidden; }
-.story-bubble { position: absolute; top: 8%; right: 3%; z-index: 2; width: min(57%, 820px); min-height: 180px; border: 1px solid rgba(55,190,255,.72); border-left-width: 4px; border-radius: 12px; padding: 18px 22px; overflow: visible; background: rgba(3,18,32,.96); color: #eef7ff; box-shadow: 0 22px 70px rgba(0,0,0,.66); animation: stage-bubble-in .24s ease both; }
-.story-bubble::after { content: ""; position: absolute; top: 62%; left: -25px; width: 26px; height: 30px; background: inherit; clip-path: polygon(100% 0, 100% 100%, 0 52%); }
-.story-bubble .dialogue-portrait { position: fixed; z-index: 1; bottom: 0; left: 2%; width: 39%; height: 88%; min-height: 0; pointer-events: none; }
-.story-bubble .dialogue-portrait img { width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 16px 18px rgba(0,0,0,.65)); }
-.story-bubble .dialogue-portrait span { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); }
-.story-bubble .dialogue-copy { position: relative; z-index: 2; padding: 0; }
-.story-bubble .dialogue-copy .eyebrow { margin-bottom: 12px; border-bottom: 1px solid rgba(132,196,224,.3); padding-bottom: 10px; color: #83d8ff; }
-.story-bubble .dialogue-copy > p:not(.eyebrow) { min-height: 58px; color: #eef7ff; font-size: 1rem; font-weight: 700; line-height: 1.55; }
-.story-bubble .dialogue-copy small { color: #aac1d2; }
+.dialogue-story { display: block; padding: 0; background: transparent; backdrop-filter: none; overflow: hidden; }
+.story-character { position: absolute; z-index: 1; bottom: -2%; left: 1.5%; width: 34%; height: 88%; pointer-events: none; animation: stage-character-in .3s ease both; }
+.story-character img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 16px 18px rgba(0,0,0,.65)); }
+.story-character span { position: absolute; bottom: 1.5%; left: 50%; transform: translateX(-50%); border: 1px solid rgba(94,205,255,.8); border-radius: 999px; padding: 5px 14px; background: rgba(3,18,32,.94); color: #eaf7ff; font-size: .72rem; font-weight: 800; white-space: nowrap; }
+.story-dialogue-panel { position: absolute; top: 14%; right: 27%; z-index: 2; width: min(42%, 640px); min-height: 180px; border: 1px solid rgba(94,205,255,.72); border-left: 4px solid #3fcaff; border-radius: 7px; padding: 18px 22px; background: rgba(3,18,32,.94); color: #eef7ff; box-shadow: 0 18px 55px rgba(0,0,0,.48); animation: stage-bubble-in .24s ease both; }
+.story-dialogue-panel header { border-bottom: 1px solid rgba(132,196,224,.3); padding: 0 0 10px; color: #83d8ff; font-family: "Cinzel", Georgia, serif; font-size: .76rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.story-dialogue-panel > p { min-height: 62px; margin: 14px 0; color: #f4f0e8; font-size: 1rem; font-weight: 650; line-height: 1.55; }
+.story-dialogue-panel footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.story-dialogue-panel small { color: #aac1d2; font-weight: 750; }
+.story-dialogue-panel .primary-button { min-width: 126px; border: 1px solid #55c9ff; border-radius: 4px; padding: 11px 18px; background: linear-gradient(180deg, #164d70, #073653); color: #f4f8fb; box-shadow: none; }
 
-@media (max-width: 700px) {
-  .story-bubble { top: 5%; right: 4%; width: 72%; min-height: 160px; padding: 15px; }
-  .story-bubble .dialogue-portrait { left: -8%; width: 52%; height: 70%; opacity: .82; }
+@media (max-width: 1050px), (max-height: 650px) {
+  .story-character { left: 0; width: 38%; height: 82%; }
+  .story-dialogue-panel { top: 12%; right: 3%; width: 55%; min-height: 160px; padding: 15px 18px; }
+  .story-dialogue-panel > p { min-height: 48px; margin: 11px 0; font-size: .9rem; }
+  .story-dialogue-panel .primary-button { padding: 9px 15px; }
 }
 .dialogue-portrait { position: relative; align-self: stretch; min-height: 290px; overflow: hidden; }
 .dialogue-portrait img { display: block; width: 100%; height: 100%; object-fit: contain; object-position: center bottom; filter: drop-shadow(0 12px 18px rgba(0,0,0,.6)); }

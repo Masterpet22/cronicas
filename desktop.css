@@ -958,7 +958,7 @@
     backdrop-filter: blur(8px);
   }
 
-  .stage-speech::before,
+  .stage-speech::before { display: none; content: none; }
   .stage-ambient::before { background: #071426; }
   .stage-speaker,
   .stage-ambient strong {

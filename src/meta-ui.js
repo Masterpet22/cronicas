@@ -12,8 +12,10 @@ const COMING_SOON_LOCATIONS = {
   inn: { npcId: "yuna", message: "La Posada aún está preparando sus servicios. Próximamente podrás descansar, conversar con aliados y descubrir escenas entre misiones." },
   arena: { npcId: "goro", message: "La Arena de Combate todavía está en preparación. Próximamente podrás practicar, probar configuraciones y disputar combates sin afectar la campaña." }
 };
+const masterForCharacter = (character) => character.bodyType === "male" ? NPCS.mei : NPCS.daichi;
+
 const welcomeDialogue = (character) => {
-  const master = character.bodyType === "male" ? "Mei Hayate" : "Daichi Kazan";
+  const master = masterForCharacter(character).name;
   return [
     ["Ren Arashiro", `Enhorabuena, ${character.name}. Desde hoy formas parte de los combatientes de la Aldea del Horizonte.`],
     [master, character.bodyType === "female"
@@ -205,9 +207,14 @@ export function mountMetaUI(root, initialSave, onStartMission) {
       const [speaker, dialogue] = lines[index];
       const last = index === lines.length - 1;
       const npc = npcByName(speaker);
-      const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
-      const surfaceClass = type === "story" ? "story-bubble" : "dialogue-box";
-      overlay.innerHTML = `<section class="${surfaceClass} ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
+      if (type === "story") {
+        const role = npc?.title || "Historia";
+        const character = npc ? `<div class="story-character"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.name)}</span></div>` : "";
+        overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${escapeHtml(speaker)} · ${escapeHtml(role)}</header><p>${escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></footer></section>`;
+      } else {
+        const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
+        overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
+      }
       overlay.querySelector("button").addEventListener("click", () => {
         if (!last) { index += 1; draw(); return; }
         overlay.remove();
