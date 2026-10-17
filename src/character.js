@@ -15,6 +15,18 @@ export function playerFighterAppearance(save) {
   };
 }
 
+// Apariencia temporal: hasta que cada rival tenga sus piezas definitivas,
+// todos usan el mismo cuerpo modular articulado del protagonista.
+export function enemyFighterAppearance(profile, enemyId = "enemy") {
+  return {
+    bodyType: "male",
+    weapon: profile?.boss ? "sword" : "kunai",
+    clothColor: profile?.colors?.cloth ?? 0x53684b,
+    accentColor: profile?.colors?.accent ?? 0x1d2b20,
+    enemyId
+  };
+}
+
 function clampVariant(value, max) {
   return Math.min(max, Math.max(1, Math.floor(Number(value) || 1)));
 }
@@ -70,7 +82,7 @@ export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {})
   const shoeHeight = a.shoes === 2 ? 24 : 17;
   const collar = a.top === 3 ? `<path d="M-20 -31 L0 -13 L20 -31 L15 -44 L-15 -44 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="4"/>` : "";
   const vest = a.top === 2 ? `<path d="M-${torsoWidth / 2 + 8} -34 L-${torsoWidth / 2} -49 L-${torsoWidth / 2 - 5} -17 Z M${torsoWidth / 2 + 8} -34 L${torsoWidth / 2} -49 L${torsoWidth / 2 - 5} -17 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="4"/>` : "";
-  return `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"${size} xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Combatiente geométrico personalizado">
+  return `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"${size} xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista previa personalizada">
     ${shadow ? `<ellipse cx="0" cy="117" rx="68" ry="10" fill="#05070a" opacity=".35"/>` : ""}
     ${a.hair === 2 || a.hair === 4 ? hairSvg(a.hair, a.hairColor, a.ink) : ""}
     <path d="M-${legWidth + 5} 36 L-5 36 L-${legWidth - 2} 101 L-${legWidth + 20} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>

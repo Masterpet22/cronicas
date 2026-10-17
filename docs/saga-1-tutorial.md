@@ -39,7 +39,7 @@ Creación de partida, afinidad, maestro asignado, mapa de la aldea y acceso al C
 
 ### Misión 1 — Tras las huellas del gato
 
-Tutorial de vida, chakra, velocidad, sellos, guardia y técnicas elementales mediante tres duelos consecutivos. El encuentro posterior con Sayo desbloquea el Tablón.
+Tutorial guiado de vida, chakra, velocidad, sellos, guardia y técnicas elementales mediante tres duelos consecutivos. Antes del primer turno, el maestro explica el HUD y cada transición introduce el siguiente concepto. El encuentro posterior con Sayo desbloquea el Tablón.
 
 ### Secundaria 1 — El silencio de Kagemori
 
@@ -50,61 +50,61 @@ Tutorial de exploración. El jugador investiga tres lugares y habla con Iori y N
 1. Duelo contra un rastreador.
 2. Investigación junto al maestro.
 3. Duelo contra el teniente sin nombre.
-4. Decisión persistente: interrogar y perdonar, o eliminar.
+4. Decisión persistente con ventajas y costes:
+   - Interrogar y perdonar revela la entrada secreta y duplica las monedas del próximo encargo, pero permite que el teniente avise y refuerce a Akumori.
+   - Eliminar impide que Akumori reciba refuerzos, pero pierde la entrada secreta, la bonificación económica y la ayuda futura del teniente.
 5. Transición.
 6. Duelo contra Akumori.
 7. Akumori deja caer un **mapa cifrado**.
 
-Completar esta misión activa «El médico errante» y habilita la elección libre de maestro en Personalización. La Biblioteca todavía permanece bloqueada.
+Completar esta misión activa «El médico errante». La elección libre de maestro y la Biblioteca todavía permanecen bloqueadas.
 
 ### Secundaria 2 — El médico errante
 
-El jugador busca al doctor **Haru Takamine** para descifrar el mapa. La misión tiene tres fases y en cada una se elige una de tres rutas. Los tres tipos de evento son:
+El jugador busca al doctor **Haru Takamine** para descifrar el mapa. La misión tiene tres fases y en cada una se elige una de tres rutas. Las decisiones actualizan peligro, tiempo, pistas y recursos, pero convergen en el mismo encuentro narrativo:
 
-1. **Consejo:** un diálogo ofrece una recomendación útil para la búsqueda o para un tutorial posterior.
-2. **Peligro:** aparece un enemigo y se libra un único duelo uno contra uno.
-3. **Camino despejado:** el personaje avanza sin interrupción.
+1. **Camino elevado:** ruta segura y lenta. Sus diálogos enseñan a valorar la preparación por encima de la rapidez.
+2. **Sendero del río:** investigación breve para identificar el cruce correcto. Equivocarse aumenta tiempo y peligro sin bloquear la misión.
+3. **Bosque cerrado:** ruta de mayor riesgo y recursos. En la segunda fase activa un único duelo uno contra uno sin recompensa directa repetible. Reunir al menos dos recursos concede un suministro adicional para la misión 4.
 
 Al encontrar al doctor:
 
 - Haru descifra el mapa y localiza la guarida.
 - Entrega un libro para llevar a la Biblioteca.
 - El libro funciona como bestiario: comienza incompleto y añade información al enfrentarse a cada enemigo.
+- El regreso a la aldea es obligatorio y la Biblioteca se convierte en el siguiente objetivo.
 - Sayo recibe el libro, abre la Biblioteca y explica el registro de enemigos.
 - Se desbloquea la siguiente misión principal.
 
-### Decisión pendiente: rutas fijas o aleatorias
+### Regla implementada: consecuencias fijas y convergentes
 
-Todavía no se ha decidido cómo distribuir los tres eventos durante las tres fases.
-
-- **Fijas:** permiten diseñar mejor el ritmo y garantizar que el jugador vea los tres tutoriales.
-- **Aleatorias:** mejoran la repetición, pero pueden ocultar el combate o repetir demasiadas veces el mismo evento.
-- **Recomendación provisional:** primera partida con distribución fija —consejo, combate, avance— y repeticiones posteriores aleatorias sin repetir el mismo evento dos fases consecutivas.
-
-La implementación jugable de esta misión queda detenida en este punto hasta decidir la regla. Sus datos, desbloqueo y tarjeta del Tablón ya pueden existir sin escoger una modalidad.
+Cada ruta usa resultados fijos por fase. El jugador puede repetir una ruta o alternarlas y no se generan 27 historias distintas: el historial de elecciones y sus cuatro métricas conserva la variedad, mientras que todas las combinaciones conducen a Haru. Esta base permite añadir azar controlado en una repetición futura sin reescribir la misión.
 
 ### Misión 3 — El umbral de los cuervos
 
 El mapa conduce a dos accesos:
 
-- Entrada principal, protegida por enemigos que se enfrentan uno por uno.
-- Entrada secreta, revelada únicamente si el teniente fue interrogado y perdonado. Conduce al almacén que entrega la bonificación de monedas.
+- Entrada principal, protegida por tres enemigos que se enfrentan uno por uno.
+- Entrada secreta, revelada únicamente si el teniente fue interrogado y perdonado. Evita al guardia exterior, conserva dos duelos obligatorios y conduce al almacén que entrega 90 monedas adicionales al completar la misión.
+- Antes de entrar, Sayo consulta las fichas identificadas de la Biblioteca y recomienda afinidades favorables sin revelar los campos aún desconocidos.
 
 ### Misión 4 — El corazón de la guarida
 
-Tutorial de estados alterados, preparación mediante el bestiario y administración de vida y chakra entre duelos consecutivos.
+Tutorial de estados alterados, preparación mediante el bestiario y administración de vida y chakra entre tres duelos consecutivos. Entre duelos se elige entre descansar —consumiendo un suministro para recuperar vida, chakra y limpiar estados— o conservarlo y avanzar con una recuperación mínima. El maestro recuerda su ventaja pasiva y aconseja la decisión. Al final se elige entre liberar prisioneros o recuperar documentos; ambas rutas incluyen la revelación de que los Cuervos son una célula de una organización mayor y desbloquean al jefe, mientras los documentos amplían su ficha.
 
-### Misión 5 — El Señor de los Cuervos
+### Misión 5 — El jefe de los bandidos
 
-Duelo final contra Raizen Kurogane. Si el teniente fue perdonado, aparece antes del combate, hiere a Raizen y elimina parte de su ventaja inicial como agradecimiento. Si fue eliminado, Raizen comienza en plena fuerza. Ambas rutas deben seguir siendo completables.
+Duelo final contra Raizen Kurogane. Manipula la velocidad, anuncia sus golpes más peligrosos, aplica estados alterados y cambia de patrón al perder la mitad de su vida. Si el teniente fue perdonado, aparece antes del combate, resta un 15 % de la vida inicial de Raizen y elimina su reducción de daño como agradecimiento. Si fue eliminado, Raizen comienza con toda su vida y una reducción de 3 puntos por impacto. Ambas rutas siguen siendo completables.
 
 ## Biblioteca y bestiario
 
 El libro del doctor es el objeto que desbloquea la Biblioteca. Cada ficha progresa así:
 
-1. Primer encuentro: nombre y apariencia.
+1. Primer encuentro: nombre, apariencia y afiliación.
 2. Técnica observada: se registra el movimiento.
 3. Debilidad descubierta: se añade la afinidad vulnerable.
 4. Victoria: se completan estadísticas aproximadas y posibles recompensas.
+
+Los jefes mantienen sus estadísticas selladas después de la primera victoria. Se revelan tras un segundo encuentro o al encontrar un documento relacionado.
 
 Los datos incompletos deben mostrarse mediante campos desconocidos, no con información falsa.

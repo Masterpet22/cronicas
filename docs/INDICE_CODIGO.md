@@ -10,6 +10,7 @@ index.html
       ├─ src/meta-ui.js ── aldea, personaje, dojo y misiones
       ├─ src/data.js ───── catálogo de contenido
       ├─ src/save.js ───── guardado y progresión
+      ├─ src/doctor-mission.js ─ rutas convergentes de Haru
       ├─ src/rules.js ──── reglas puras de combate
       ├─ src/fighters.js ─ combatientes y animación
       ├─ src/ui.js ─────── barras, acciones y ayudas
@@ -77,7 +78,15 @@ Escena `PauseScene`:
 - `normalizeSave`, `loadSave`, `writeSave`: migran, leen y escriben la ranura activa.
 - `listSaveSlots`, `selectSaveSlot`, `deleteSaveSlot`: administran las tres partidas locales y migran el guardado único anterior a la primera ranura.
 - `xpForNextLevel`, `awardEncounter`, `completeMission`: calculan niveles y recompensas.
+- `startDoctorMission`, `chooseDoctorMissionRoute`, `resolveDoctorRiverPassage`, `resolveDoctorMissionCombat`, `completeDoctorMission`: persisten las tres fases de búsqueda y sus consecuencias.
+- `deliverBestiaryBook`, `recordBestiaryObservation`: activan la Biblioteca y completan fichas desde el combate.
 - `spendAttribute`, `derivedStats`: aplican atributos y equipo a las estadísticas finales.
+
+### `src/doctor-mission.js` — Rutas del médico errante
+
+- `DOCTOR_ROUTE_DEFINITIONS`: resultados fijos del camino elevado, río y bosque para cada fase.
+- `chooseDoctorRoute`, `resolveRiverPassage`, `resolveDoctorRouteCombat`: actualizan peligro, tiempo, pistas y recursos sin ramificar la historia final.
+- `createDoctorRouteState`, `normalizeDoctorRouteState`: crean y validan el progreso reanudable de la búsqueda.
 
 ### `src/rules.js` — Reglas puras de combate
 

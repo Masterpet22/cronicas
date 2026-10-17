@@ -7,16 +7,6 @@ export function hitChance(attacker, defender, action) {
   return Math.max(50, Math.min(100, attacker.accuracy + action.accuracyMod - defender.evasion - sealPenalty));
 }
 
-export function affinityMultiplier(action, target) {
-  if (!action.element || action.element === "none" || action.element === "physical") return action.element === target.resistance ? 0.9 : 1;
-  const legacy = { fire: "fuego", wind: "viento", lightning: "rayo" };
-  const weakness = legacy[target.weakness] || target.weakness;
-  const resistance = legacy[target.resistance] || target.resistance;
-  if (action.element === weakness) return 1.15;
-  if (action.element === resistance) return 0.9;
-  return 1;
-}
-
 export function affinityLabel(multiplier) {
   if (multiplier > 1) return "VENTAJA ELEMENTAL";
   if (multiplier < 1) return "RESISTIDO";

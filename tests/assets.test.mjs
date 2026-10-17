@@ -46,6 +46,11 @@ for (const asset of ["basic-strike.webp", "guard.webp"]) {
   assert.equal(image.alpha, true, `${asset} debe conservar un canal alfa`);
 }
 
+const substitutionLog = await readFile(new URL("../assets/vfx/substitution-log-runtime.png", import.meta.url));
+assert.equal(substitutionLog.subarray(1, 4).toString("ascii"), "PNG", "El tronco de Sustitución debe ser un PNG válido");
+assert.ok(substitutionLog.readUInt32BE(16) >= 768, "El tronco de Sustitución debe conservar resolución suficiente para la animación");
+assert.ok([3, 4, 6].includes(substitutionLog[25]), "El tronco de Sustitución debe conservar transparencia alfa");
+
 const village = webpDimensions(await readFile(new URL("../assets/village/aldea.webp", import.meta.url)), "aldea.webp");
 assert.equal(village.width, 1678, "El mapa debe conservar su ancho original");
 assert.equal(village.height, 937, "El mapa debe conservar su alto original");
@@ -55,10 +60,9 @@ await Promise.all(locationIds.map(async (id) => {
   assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
   assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
 }));
-const kagemori = await readFile(new URL("../assets/locations/kagemori.png", import.meta.url));
-assert.equal(kagemori.subarray(1, 4).toString("ascii"), "PNG", "Kagemori debe usar un PNG válido");
-assert.ok(kagemori.readUInt32BE(16) >= 1500, "Kagemori necesita resolución panorámica suficiente");
-assert.ok(kagemori.readUInt32BE(20) >= 900, "Kagemori necesita altura suficiente");
+const kagemori = webpDimensions(await readFile(new URL("../assets/locations/kagemori.webp", import.meta.url)), "kagemori.webp");
+assert.ok(kagemori.width >= 1500, "Kagemori necesita resolución panorámica suficiente");
+assert.ok(kagemori.height >= 900, "Kagemori necesita altura suficiente");
 const hudThemeDimensions = { ancestral: [2172, 724], lunar: [866, 288] };
 for (const theme of ["ancestral", "lunar"]) {
   const png = await readFile(new URL(`../assets/ui/hud-themes/${theme}.png`, import.meta.url));

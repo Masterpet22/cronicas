@@ -23,5 +23,6 @@ assert.match(desktopCss, /\.equipment-modal \{[\s\S]*rgba\(1, 5, 12, \.86\)/, "E
 assert.match(desktopCss, /\.notice-card \.notice-detail \{[\s\S]*overflow-wrap: anywhere/, "Los textos largos de los avisos deben ajustarse sin superponerse");
 assert.match(desktopCss, /\.village-topbar,\s*\.creator-card,[\s\S]*?background-image: linear-gradient/, "La barra superior debe conservar la interfaz compacta de alto contraste");
 assert.match(desktopCss, /\.village-topbar \{[\s\S]*border-left: 3px solid #65bce9/, "La barra superior debe conservar su acento azul nítido");
+assert.match(desktopCss, /\.village-map-card \.village-map > img \{[\s\S]*object-fit: fill/, "La imagen del mapa y sus zonas interactivas deben compartir exactamente la misma geometría");
 
 console.log("Pruebas del escenario de escritorio superadas.");

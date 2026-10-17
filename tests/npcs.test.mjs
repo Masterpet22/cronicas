@@ -26,8 +26,9 @@ await Promise.all(Object.entries(NPCS).map(async ([id, npc]) => {
     assert.equal(file[25], 6, `${id} debe conservar transparencia alfa`);
   } else {
     const image = webpDimensions(file, npc.image);
-    assert.equal(image.width, 1145, `${id} debe conservar el lienzo común`);
-    assert.ok([1373, 1374].includes(image.height), `${id} debe conservar la altura de retrato`);
+    const optimizedKagemoriPortrait = id === "iori" || id === "nami";
+    assert.equal(image.width, optimizedKagemoriPortrait ? 768 : 1145, `${id} debe conservar el ancho previsto`);
+    assert.ok(optimizedKagemoriPortrait ? image.height === 1152 : [1373, 1374].includes(image.height), `${id} debe conservar la altura prevista`);
     assert.equal(image.alpha, true, `${id} debe conservar transparencia alfa`);
   }
 }));

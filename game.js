@@ -1,11 +1,12 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.56.0";
-import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
-import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
-import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.56.0";
-import { awardEncounter, completeMission, derivedStats, loadSave, masterIdForCharacter, writeSave } from "./src/save.js?v=0.56.0";
-import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.61.0";
+import { applyStatus, affinityLabel, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
+import { AFFINITY_CONFIG, addSoak, applyAffinityStatModifiers, affinityCycleModifier, cappedEvasion, effectiveSpeed, finalAffinityDamage, furyDamageBonus, hurricaneEyeEvasionBonus, reprisalChance, reprisalDamage, tickSoak } from "./src/affinity-system.js?v=0.58.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.62.0";
+import { enemyFighterAppearance, playerFighterAppearance } from "./src/character.js?v=0.62.0";
+import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.64.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.64.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, loadSave, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "./src/save.js?v=0.62.0";
+import { elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 
 const Phaser = window.Phaser;
@@ -74,7 +75,7 @@ const HUD_THEMES = Object.freeze({
 });
 const BATTLE_ARENAS = Object.freeze([
   Object.freeze({ texture: "travel-forest", file: "assets/locations/battle-dusk-pass.jpg?v=0.20.0" }),
-  Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh.jpg?v=0.20.0" }),
+  Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh-water.png?v=0.63.0" }),
   Object.freeze({ texture: "bg-moon", file: "assets/locations/battle-moon-shrine.jpg?v=0.20.0" })
 ]);
 const TECHNIQUE_VFX = Object.freeze({
@@ -98,22 +99,14 @@ class MissionTravelScene extends Phaser.Scene {
 
   preload() {
     this.load.image(BATTLE_ARENAS[0].texture, BATTLE_ARENAS[0].file);
-    if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
-    if (!this.textures.exists("iori-kagemori")) this.load.image("iori-kagemori", "assets/npcs/iori-kagemori.png?v=0.22.0");
-    if (!this.textures.exists("nami-kurose")) this.load.image("nami-kurose", "assets/npcs/nami-kurose.png?v=0.22.0");
-    if (!this.textures.exists("sayo-kisaragi")) this.load.image("sayo-kisaragi", "assets/npcs/sayo-kisaragi.webp?v=0.22.0");
-    if (!this.textures.exists("archive-location")) this.load.image("archive-location", "assets/locations/archive.webp?v=0.22.0");
-    if (!this.textures.exists("village-map")) this.load.image("village-map", "assets/village/aldea.webp?v=0.22.0");
-    if (activeMission?.id === "m11") {
-      const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
-      if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.22.0`);
-    }
     queuePlayerFighterTextures(this, playerFighterAppearance(activeSave));
   }
 
   create(data = {}) {
     this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
-    const returning = data.direction === "toVillage";
+    const returningToVillage = data.direction === "toVillage";
+    const returningToRoute = data.direction === "toDoctorRoute";
+    const returning = returningToVillage || returningToRoute;
     this.add.image(WIDTH / 2, HEIGHT / 2, "travel-forest").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
     const forest = this.add.graphics().setDepth(1);
     forest.fillStyle(0x071711, 0.34).fillRect(0, 0, WIDTH, HEIGHT);
@@ -129,10 +122,10 @@ class MissionTravelScene extends Phaser.Scene {
     }
     forest.fillStyle(0x06100b, 0.82).fillRect(0, 421, WIDTH, 119);
 
-    this.add.text(WIDTH / 2, 62, returning ? "REGRESO A LA ALDEA" : "RUMBO A LA MISIÓN", {
+    this.add.text(WIDTH / 2, 62, returningToVillage ? "REGRESO A LA ALDEA" : returningToRoute ? "RETOMANDO LA BÚSQUEDA" : "RUMBO A LA MISIÓN", {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "24px", color: "#f5edd8", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(10);
-    this.add.text(WIDTH / 2, 94, returning ? "El sendero de vuelta atraviesa el bosque." : activeMission.title, {
+    this.add.text(WIDTH / 2, 94, returningToVillage ? "El sendero de vuelta atraviesa el bosque." : returningToRoute ? "El rastro de Haru continúa entre los caminos." : activeMission.title, {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "14px", color: "#bcd4c1"
     }).setOrigin(0.5).setDepth(10);
 
@@ -148,12 +141,21 @@ class MissionTravelScene extends Phaser.Scene {
     this.time.delayedCall(duration - 260, () => this.cameras.main.fadeOut(250, 4, 10, 7));
     this.time.delayedCall(duration, () => {
       stopPlayerRunning(runner);
-      if (returning) window.location.reload();
-      else if (activeMission?.type === "investigation") {
+      if (returningToVillage) window.location.reload();
+      else if (returningToRoute || activeMission?.type === "route-search") {
+        metaRoot.hidden = false;
+        gameRoot.hidden = true;
+        metaUi?.openLocation(activeSave, "doctor-route");
+        this.scene.stop();
+        game?.loop.sleep();
+      } else if (activeMission?.type === "investigation") {
         metaRoot.hidden = false;
         gameRoot.hidden = true;
         metaUi?.openLocation(activeSave, "kagemori");
-        this.scene.pause();
+        // La investigación usa HTML, no Phaser. Detener escena y bucle evita
+        // renderizar a 60 FPS un canvas oculto durante toda la exploración.
+        this.scene.stop();
+        game?.loop.sleep();
       } else this.scene.start("battle");
     });
     sharpenTextTree(this.children.list);
@@ -168,6 +170,7 @@ class BattleScene extends Phaser.Scene {
     const arena = BATTLE_ARENAS[arenaIndex];
     this.battleBackgroundKey = arena.texture;
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
+    if (!this.textures.exists("substitution-log")) this.load.image("substitution-log", "assets/vfx/substitution-log-runtime.png?v=0.64.0");
 
     // Ambos marcos optimizados pesan juntos menos de un tercio del PNG ancestral
     // anterior. Cargarlos aquí evita parpadeos al alternarlos desde la pausa.
@@ -188,16 +191,17 @@ class BattleScene extends Phaser.Scene {
           endFrame: (effect.frames || TECHNIQUE_VFX_FRAMES) - 1
         });
     });
-    if (activeMission?.id === "m11") {
-      if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
-      const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
-      if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.22.0`);
-    }
     loadUiIcons(this);
+    if (activeMission?.id === "m11") {
+      if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.webp?v=0.62.0");
+      const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
+      if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.62.0`);
+    }
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = activeSave;
     this.missionStartSave = JSON.parse(JSON.stringify(activeSave));
     this.mission = activeMission;
+    activeMission.encounters.forEach((enemyId) => queuePlayerFighterTextures(this, enemyFighterAppearance(ENEMY_ROSTER[enemyId], enemyId)));
     BASE_ACTIONS.forEach((action) => {
       const key = `action-${action.id}`;
       if (!this.textures.exists(key)) this.load.image(key, action.icon);
@@ -234,7 +238,10 @@ class BattleScene extends Phaser.Scene {
       });
     });
     this.mission = activeMission;
-    this.encounters = this.mission.encounters.map((id) => ENEMY_ROSTER[id]);
+    this.encounterIds = this.mission.id === "m12" && this.saveData.campaign.hideoutEntryChoice === "secret"
+      ? this.mission.encounters.slice(1)
+      : [...this.mission.encounters];
+    this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
     const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean)
@@ -249,6 +256,11 @@ class BattleScene extends Phaser.Scene {
     ];
     this.enemyIndex = 0;
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
+    if (this.mission.id === "m14" && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
+      this.enemy.hp = Math.max(1, Math.round(this.enemy.maxHp * 0.85));
+      this.enemy.damageReduction = 0;
+    }
+    this.recordEnemyObservation({ encounter: true });
     this.cooldowns = Object.fromEntries(this.actions.filter(Boolean).map((action) => [action.id, 0]));
     this.round = 1;
     this.busy = true;
@@ -256,6 +268,10 @@ class BattleScene extends Phaser.Scene {
     this.finished = false;
     this.defeatedEncounters = 0;
     this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
+    this.pendingEncounterRewards = [];
+    this.rewardPreviewSave = this.saveData;
+    this.fieldSupplies = this.mission.id === "m13" ? Math.max(1, this.saveData.campaign.hideoutSupplies || 1) : 0;
+    this.nextRecovery = null;
     this.audioContext = null;
     this.configureSealMode();
     this.configurePresentationOptions();
@@ -265,12 +281,37 @@ class BattleScene extends Phaser.Scene {
     this.drawArena();
     this.createHud();
     this.createFighters();
+    if (this.mission.id === "m14" && this.enemy.damageReduction > 0) {
+      this.raizenDefenseAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 74, 0x7f91b8, 0.08).setStrokeStyle(4, 0x9eb8e8, 0.6).setDepth(7);
+      this.tweens.add({ targets: this.raizenDefenseAura, scale: 1.08, alpha: 0.2, duration: 720, yoyo: true, repeat: -1 });
+    }
     this.createActionPanel();
     this.createTurnTimeline();
     this.createPauseButton();
     this.startMusic();
-    this.startTurnCharge();
+    if (this.mission.id === "m01" && !this.saveData.campaign.completedMissions.includes("m01")) {
+      this.time.delayedCall(120, async () => {
+        await this.playMissionOneTutorial();
+        this.startTurnCharge();
+      });
+    } else if (this.mission.id === "m12" && this.saveData.campaign.hideoutEntryChoice === "secret") {
+      this.time.delayedCall(120, async () => {
+        await this.playSecretWarehouse();
+        this.startTurnCharge();
+      });
+    } else if (this.mission.id === "m14" && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
+      this.time.delayedCall(120, async () => {
+        await this.playLieutenantIntervention();
+        this.startTurnCharge();
+      });
+    } else this.startTurnCharge();
     this.sharpenSceneText();
+  }
+
+  recordEnemyObservation(observation) {
+    const enemyId = this.encounterIds[this.enemyIndex];
+    this.saveData = writeSave(recordBestiaryObservation(this.saveData, enemyId, observation));
+    activeSave = this.saveData;
   }
 
   configureSealMode() {
@@ -347,20 +388,71 @@ class BattleScene extends Phaser.Scene {
   }
 
   createEnemyState(profile) {
-    const punishedBoss = this.mission?.id === "m11" && profile.boss && this.saveData.campaign.banditPrisonerChoice === "eliminate";
-    const maxHp = profile.hp + (punishedBoss ? 22 : 0);
+    const punishedBoss = this.mission?.id === "m11" && profile.boss && this.saveData.campaign.banditPrisonerChoice === "interrogate";
+    const baseStats = {
+      ...profile.stats,
+      health: profile.stats.health + (punishedBoss ? 22 : 0),
+      strength: profile.stats.strength + (punishedBoss ? 2 : 0),
+      speed: profile.stats.speed + (punishedBoss ? 2 : 0),
+      luck: profile.stats.luck + (punishedBoss ? 1 : 0)
+    };
+    const { stats, modifiers } = applyAffinityStatModifiers(baseStats, [profile.affinity]);
+    const derived = AFFINITY_CONFIG.derived;
     return {
-      hp: maxHp,
-      maxHp,
-      speed: profile.speed + (punishedBoss ? 2 : 0),
+      hp: stats.health,
+      maxHp: stats.health,
+      chakra: stats.chakra,
+      maxChakra: stats.chakra,
+      strength: stats.strength,
+      baseStrength: baseStats.strength,
+      strengthModifier: modifiers.strength,
+      speed: stats.speed,
+      baseSpeed: baseStats.speed,
+      speedModifier: modifiers.speed,
+      luck: stats.luck,
+      criticalChance: Math.min(derived.criticalChanceCap, derived.baseCriticalChance + Math.floor(stats.luck * derived.luckCriticalScale)),
       accuracy: profile.accuracy + (punishedBoss ? 4 : 0),
-      evasion: profile.evasion,
-      weakness: profile.weakness,
-      resistance: profile.resistance,
+      baseEvasion: derived.baseEvasion + stats.luck,
+      evasion: derived.baseEvasion + stats.luck,
+      primaryAffinity: profile.affinity,
+      boss: Boolean(profile.boss),
+      damageReduction: this.mission?.id === "m14" && this.saveData.campaign.banditPrisonerChoice !== "interrogate" ? 3 : 0,
+      soak: null,
       statuses: [],
       phase: 1,
       patternIndex: 0
     };
+  }
+
+  combatantSpeed(combatant) {
+    return effectiveSpeed(combatant.baseSpeed, combatant.speedModifier, combatant.soak);
+  }
+
+  combatantEvasion(combatant) {
+    const windBonus = combatant.primaryAffinity === "viento"
+      ? hurricaneEyeEvasionBonus(combatant.chakra, combatant.maxChakra)
+      : 0;
+    return cappedEvasion(combatant.baseEvasion, windBonus);
+  }
+
+  applyWaterPassive(attacker, defender) {
+    if (attacker.primaryAffinity !== "agua" || defender.hp <= 0) return null;
+    defender.soak = addSoak(defender.soak, defender.boss);
+    return defender.soak;
+  }
+
+  finishCombatantTurn(combatant) {
+    combatant.soak = tickSoak(combatant.soak);
+  }
+
+  async applyEarthReprisal(defender, attacker, attackerFighter, receivedDamage) {
+    if (defender.primaryAffinity !== "tierra" || defender.hp <= 0) return;
+    if (Math.random() >= reprisalChance(defender.hp, defender.maxHp)) return;
+    const damage = reprisalDamage(receivedDamage, attacker.maxHp);
+    if (!damage) return;
+    this.floatLabel(attackerFighter.body.x, attackerFighter.body.y - 156, "REPRESALIA", 0xd7a86e);
+    const { reaction } = this.loseHealth(attacker, attackerFighter, damage);
+    await reaction;
   }
 
   chooseEnemyAction() {
@@ -683,7 +775,7 @@ class BattleScene extends Phaser.Scene {
     this.turnReady = false;
     this.busy = true;
     this.setButtonsEnabled(false);
-    const enemyTarget = Phaser.Math.Clamp(TIMELINE_START + 330 + (this.enemy.speed - this.player.speed) * 6, TIMELINE_START + 250, TIMELINE_END - 80);
+    const enemyTarget = Phaser.Math.Clamp(TIMELINE_START + 330 + (this.combatantSpeed(this.enemy) - this.combatantSpeed(this.player)) * 6, TIMELINE_START + 250, TIMELINE_END - 80);
     this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: enemyTarget, duration: 950, ease: "Sine.out" });
     this.tweens.add({
       targets: [this.playerTurnMarker, this.playerTurnLetter], x: TIMELINE_END, duration: 1050, ease: "Sine.inOut",
@@ -707,7 +799,14 @@ class BattleScene extends Phaser.Scene {
   createFighters() {
     const fighterY = 372;
     this.hero = createPlayerFighter(this, 220, fighterY, this.playerAppearance());
-    this.foe = createPlayerFighter(this, 740, fighterY, this.playerAppearance(), true);
+    this.foe = createPlayerFighter(this, 740, fighterY, this.enemyAppearance(), true);
+    this.styleFighterGrounding(this.hero);
+    this.styleFighterGrounding(this.foe);
+  }
+
+  styleFighterGrounding(fighter) {
+    if (this.battleBackgroundKey !== "bg-marsh" || !fighter?.shadow) return;
+    fighter.shadow.setFillStyle(0x123e45, 0.22).setStrokeStyle(2, 0x75d9da, 0.38).setScale(1.14, 0.58);
   }
 
   createActionPanel() {
@@ -782,29 +881,38 @@ class BattleScene extends Phaser.Scene {
     if (jutsu.cooldown) this.cooldowns[jutsu.id] = jutsu.cooldown + 1;
     this.refreshHud();
     this.setButtonsEnabled(false);
-    this.setMessage(jutsu.seals.length ? `Preparando ${jutsu.name}...` : `Preparando ${jutsu.name}...`);
+    const elementalTechnique = !["physical", "none"].includes(jutsu.element);
+    this.setMessage(
+      elementalTechnique
+        ? `Preparando la técnica elemental ${jutsu.name}...`
+        : jutsu.type === "guard"
+          ? `Adoptando ${jutsu.name}...`
+          : `Ejecutando ${jutsu.name}...`,
+    );
 
     const casting = jutsu.seals.length ? await this.playSeals(jutsu) : { mistakes: 0, multiplier: 1 };
     const enemyAction = this.chooseEnemyAction();
-    const playerActionSpeed = this.player.speed + jutsu.speedMod;
-    const enemyActionSpeed = this.enemy.speed + enemyAction.speedMod - (hasStatus(this.enemy, "seal") ? 4 : 0);
-    const enemyFirst = enemyActionSpeed > playerActionSpeed && jutsu.type !== "guard";
-    this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_END - 20, duration: 260, ease: "Cubic.out" });
+    const enemyFirst = elementalTechnique;
 
     if (enemyFirst) {
-      this.setMessage(`${enemyAction.name} es más rápido (${enemyActionSpeed} > ${playerActionSpeed}).`);
-      await this.delay(480);
+      this.setMessage(`Preparando ${jutsu.name}: el rival puede actuar mientras completas la técnica elemental.`);
+      this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_END - 20, duration: 260, ease: "Cubic.out" });
+      await this.playTechniquePreparationNotice(jutsu.name);
       await this.executeEnemyAction(enemyAction);
       if (this.player.hp <= 0) return this.finishBattle(false);
+      if (this.enemy.hp <= 0 && await this.resolveEnemyOutcome()) return;
     }
 
     if (jutsu.type === "guard") await this.playerGuard();
     else await this.playerAttack(jutsu, casting);
+    this.finishCombatantTurn(this.player);
 
     if (await this.resolveEnemyOutcome()) return;
+    if (this.player.hp <= 0) return this.finishBattle(false);
 
     if (!enemyFirst) {
       await this.delay(420);
+      this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_END - 20, duration: 260, ease: "Cubic.out" });
       await this.executeEnemyAction(enemyAction);
       if (this.player.hp <= 0) return this.finishBattle(false);
     }
@@ -823,11 +931,47 @@ class BattleScene extends Phaser.Scene {
     this.startTurnCharge();
   }
 
+  async playTechniquePreparationNotice(techniqueName) {
+    const layer = [];
+    const add = (item) => { layer.push(item); return item; };
+    add(this.add.rectangle(WIDTH / 2, 246, 460, 92, 0x020914, 0.9)
+      .setStrokeStyle(2, 0xf0b85c, 0.9).setDepth(58).setAlpha(0).setScale(0.96));
+    add(this.add.rectangle(WIDTH / 2 - 220, 246, 5, 92, 0xf0b85c, 1)
+      .setDepth(59).setAlpha(0));
+    add(this.add.text(WIDTH / 2, 226, "PREPARANDO TÉCNICA ELEMENTAL", this.textStyle(15, "#f0c77c", "800", true))
+      .setOrigin(0.5).setDepth(60).setAlpha(0));
+    add(this.add.text(WIDTH / 2, 254, techniqueName, this.textStyle(13, "#f5f0e8", "800"))
+      .setOrigin(0.5).setDepth(60).setAlpha(0));
+    add(this.add.text(WIDTH / 2, 278, "El rival puede actuar mientras completas la preparación.", this.textStyle(10, "#b9c8d4", "700"))
+      .setOrigin(0.5).setDepth(60).setAlpha(0));
+    await this.tween({ targets: layer, alpha: 1, scaleX: 1, scaleY: 1, duration: 180, ease: "Back.out" });
+    await this.delay(620);
+    await this.tween({ targets: layer, alpha: 0, y: "-=8", duration: 170, ease: "Sine.in" });
+    layer.forEach((item) => item.destroy());
+  }
+
   async resolveEnemyOutcome() {
     const profile = this.encounters[this.enemyIndex];
     if (this.enemy.hp <= 0) {
-      const reward = awardEncounter(this.saveData, this.enemyIndex);
-      this.saveData = reward.save;
+      this.recordEnemyObservation({ defeated: true });
+      if (this.mission.type === "route-combat") {
+        this.defeatedEncounters += 1;
+        this.saveData = writeSave(resolveDoctorMissionCombat(this.saveData));
+        activeSave = this.saveData;
+        this.finished = true;
+        this.busy = false;
+        this.setMessage("El paso queda libre. La búsqueda de Haru continúa.", "#79e8b5");
+        this.stopFighterFlash(this.foe);
+        this.tweens.add({ targets: [...this.foe.targets, this.foe.shadow], alpha: 0, duration: 620 });
+        await this.delay(700);
+        this.scene.start("travel", { direction: "toDoctorRoute" });
+        return true;
+      }
+      // Las recompensas se calculan para informar al jugador, pero no se
+      // incorporan al guardado hasta completar toda la misión.
+      const reward = awardEncounter(this.rewardPreviewSave, this.enemyIndex);
+      this.rewardPreviewSave = reward.save;
+      this.pendingEncounterRewards.push(this.enemyIndex);
       this.lastReward = reward;
       this.defeatedEncounters += 1;
       this.battleRewards.xp += reward.xp;
@@ -835,6 +979,10 @@ class BattleScene extends Phaser.Scene {
       this.battleRewards.coins += reward.coins;
       if (this.enemyIndex === this.encounters.length - 1) {
         if (this.mission.id === "m11") await this.playRelicDrop();
+        if (this.mission.id === "m13") await this.playHideoutDiscoveryChoice();
+        this.pendingEncounterRewards.forEach((encounterIndex) => {
+          this.saveData = awardEncounter(this.saveData, encounterIndex).save;
+        });
         const completion = completeMission(this.saveData, this.mission.id);
         this.saveData = writeSave(completion.save);
         activeSave = this.saveData;
@@ -848,6 +996,8 @@ class BattleScene extends Phaser.Scene {
           ? () => this.playInvestigationPhase()
           : this.mission.id === "m11" && this.enemyIndex === 1
             ? () => this.playPrisonerChoice()
+            : this.mission.id === "m13"
+              ? () => this.playResourceChoice()
             : null;
         await this.advanceEncounter(interlude);
       }
@@ -875,95 +1025,189 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     await this.playEncounterTransition(profile);
     this.enemy = this.createEnemyState(profile);
+    this.recordEnemyObservation({ encounter: true });
     this.enemyName.setText(profile.name);
     this.enemyRankNumber.setText(String(this.enemyRankForProfile(profile)));
-    this.foe = createPlayerFighter(this, 810, 372, this.playerAppearance(), true);
+    this.foe = createPlayerFighter(this, 810, 372, this.enemyAppearance(), true);
+    this.styleFighterGrounding(this.foe);
     this.foe.targets.forEach((target) => target.setAlpha(0));
     this.foe.shadow.setAlpha(0);
     this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
     this.tweens.add({ targets: this.foe.shadow, x: "-=70", alpha: 0.4, duration: 520, ease: "Cubic.out" });
 
-    this.player.hp = Math.min(this.player.maxHp, this.player.hp + 35);
-    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 25);
-    this.player.statuses = [];
+    const recovery = this.nextRecovery || { hp: 35, chakra: 25, clearStatuses: true };
+    this.player.hp = Math.min(this.player.maxHp, this.player.hp + recovery.hp);
+    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + recovery.chakra);
+    if (recovery.clearStatuses) this.player.statuses = [];
+    this.nextRecovery = null;
     this.clearGuard();
     Object.keys(this.cooldowns).forEach((id) => { this.cooldowns[id] = 0; });
     this.round += 1;
     this.refreshHud();
     await this.delay(620);
     await this.resetTurnTimeline();
-    this.setMessage(`Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
+    const tutorialMessages = [
+      "Observa la barra de velocidad: ambos marcadores parten a la izquierda y avanzan al iniciar el turno.",
+      "Prueba Guardia para reducir el próximo impacto y recuperar chakra.",
+      "Combina lo aprendido: lee el ritmo, administra chakra y usa una técnica elemental."
+    ];
+    this.setMessage(this.mission.id === "m01" ? tutorialMessages[this.enemyIndex] : `Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
     this.startTurnCharge();
   }
 
-  async playInvestigationPhase() {
+  async playBattleChoice(title, description, choices) {
     const layer = [];
     const add = (item) => { layer.push(item); return item; };
-    const backdrop = add(this.add.image(WIDTH / 2, HEIGHT / 2, "kagemori-investigation").setDisplaySize(WIDTH, HEIGHT).setDepth(70));
-    add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.28).setOrigin(0).setDepth(71));
-    add(this.add.rectangle(WIDTH / 2, 62, 650, 86, 0x031220, 0.94).setStrokeStyle(1, 0x55c9ff, 0.85).setDepth(90));
-    add(this.add.text(WIDTH / 2, 45, "FASE 2 · INVESTIGACIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(91));
-    const clueText = add(this.add.text(WIDTH / 2, 78, "Examina los tres rastros antes de continuar.", this.textStyle(12, "#eaf4fb", "700")).setOrigin(0.5).setDepth(91));
-    const masterKey = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
-    add(this.add.image(890, 545, masterKey).setOrigin(0.5, 1).setDisplaySize(205, 246).setDepth(72));
-    const positions = [
-      {
-        x: 520, y: 463, labelX: 166, labelY: 424,
-        label: "CARRETA", clue: "Cuerdas con polvo de cantera",
-        points: [-260, -123, -120, -94, -108, -104, -98, -142, -88, -150, -70, -149, -64, -139, -64, -89, -75, -70, -68, -60, -28, -42, 0, -53, 24, -54, 41, -40, 50, -12, 71, 19, 117, 39, 160, 65, 260, 83, 241, 96, 214, 111, 161, 124, 105, 132, 66, 140, 3, 150, -44, 147, -49, 117, -75, 93, -124, 85, -153, 52, -256, 51, -258, 22, -260, -16, -260, -56]
-      },
-      {
-        x: 615, y: 228, labelX: 470, labelY: 363,
-        label: "CENIZAS", clue: "Un mapa rasgado del desfiladero",
-        points: [-109, -75, 84, -75, 92, -68, 96, -43, 105, -27, 126, -18, 176, -17, 174, -9, 152, 5, 146, 17, 146, 73, -167, 75, -167, 7, -176, 2, -176, -11, -164, -20, -148, -34, -134, -54, -119, -73]
-      },
-      {
-        x: 717, y: 540, labelX: 715, labelY: 456,
-        label: "HUELLAS", clue: "Carga pesada rumbo al norte",
-        points: [49, -86, 19, -75, 0, -62, -24, -47, -53, -29, -77, -15, -80, -5, -69, 14, -57, 27, -61, 44, -48, 62, -30, 86, 78, 86, 80, 72, 65, 54, 43, 42, 30, 29, 16, 10, 5, -12, 8, -26, 22, -45, 35, -61, 57, -78]
-      }
-    ];
-    const found = new Set();
-    const continueButton = add(this.add.rectangle(WIDTH / 2, 478, 190, 40, 0x0d4668, 0.4).setStrokeStyle(1, 0x55c9ff, 0.45).setDepth(90));
-    const continueLabel = add(this.add.text(WIDTH / 2, 478, "REÚNE 3 PISTAS", this.textStyle(11, "#8297a8", "800", true)).setOrigin(0.5).setDepth(91));
-
-    positions.forEach((entry, index) => {
-      const marker = add(this.add.polygon(entry.x, entry.y, entry.points, 0xff8e37, 0)
-        .setStrokeStyle(2, 0xffc073, 0)
-        .setInteractive(new Phaser.Geom.Polygon(entry.points), Phaser.Geom.Polygon.Contains)
-        .setDepth(74));
-      marker.input.cursor = "pointer";
-      const label = add(this.add.text(entry.labelX, entry.labelY, entry.label, this.textStyle(10, "#eaf4fb", "800", true))
-        .setOrigin(0.5)
-        .setPadding(8, 4)
-        .setBackgroundColor("rgba(3,18,32,.72)")
-        .setDepth(91));
-      marker.on("pointerover", () => {
-        if (!found.has(index)) marker.setFillStyle(0xff8e37, 0.2).setStrokeStyle(2, 0xffc073, 1);
-      });
-      marker.on("pointerout", () => {
-        if (!found.has(index)) marker.setFillStyle(0xff8e37, 0).setStrokeStyle(2, 0xffc073, 0);
-      });
-      marker.on("pointerup", () => {
-        if (found.has(index)) return;
-        found.add(index);
-        marker.disableInteractive().setFillStyle(0xff8e37, 0).setStrokeStyle(2, 0xffc073, 0);
-        label.setText(`✓ ${entry.label}`).setColor("#9ff0cf");
-        clueText.setText(`${entry.clue} · ${found.size}/3 pistas`);
-        if (found.size === positions.length) {
-          const masterName = masterIdForCharacter(activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
-          clueText.setText(`${masterName}: «El rastro converge en la vieja cantera. Sigamos.»`);
-          continueButton.setAlpha(1).setInteractive({ useHandCursor: true });
-          continueLabel.setText("SEGUIR EL RASTRO").setColor("#f4f8fb");
-        }
-      });
-    });
-
-    await new Promise((resolve) => continueButton.on("pointerup", () => {
-      if (found.size === positions.length) resolve();
+    add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.9).setOrigin(0).setDepth(80));
+    add(this.add.rectangle(WIDTH / 2, HEIGHT / 2, 690, 330, 0x031220, 0.98).setStrokeStyle(1.5, 0x55c9ff, 0.85).setDepth(81));
+    add(this.add.rectangle(135, 105, 5, 330, 0x3fcaff, 1).setOrigin(0, 0).setDepth(82));
+    add(this.add.text(WIDTH / 2, 135, title, this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(83));
+    add(this.add.text(WIDTH / 2, 185, description, { ...this.textStyle(14, "#e9f1f6", "700"), align: "center", wordWrap: { width: 570 }, lineSpacing: 5 }).setOrigin(0.5).setDepth(83));
+    const spacing = 250;
+    const startX = WIDTH / 2 - ((choices.length - 1) * spacing) / 2;
+    const value = await new Promise((resolve) => choices.forEach((choice, index) => {
+      const x = startX + index * spacing;
+      const button = add(this.add.rectangle(x, 340, 220, 92, choice.primary ? 0x174d65 : 0x0b2638, 1).setStrokeStyle(1.5, choice.primary ? 0xf0b85c : 0x55c9ff, 0.9).setInteractive({ useHandCursor: true }).setDepth(83));
+      add(this.add.text(x, 325, choice.label, this.textStyle(12, "#f4f0e8", "800", true)).setOrigin(0.5).setDepth(84));
+      add(this.add.text(x, 354, choice.detail, { ...this.textStyle(10, "#adc0cc", "700"), align: "center", wordWrap: { width: 185 } }).setOrigin(0.5).setDepth(84));
+      button.on("pointerover", () => button.setFillStyle(0x17638d, 1));
+      button.on("pointerout", () => button.setFillStyle(choice.primary ? 0x174d65 : 0x0b2638, 1));
+      button.once("pointerup", () => resolve(choice.value));
     }));
-    await this.tween({ targets: layer, alpha: 0, duration: 260, ease: "Sine.in" });
+    await this.tween({ targets: layer, alpha: 0, duration: 180 });
     layer.forEach((item) => item.destroy());
+    return value;
+  }
+
+  async playMissionOneTutorial() {
+    const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
+    await this.playBattleChoice("TUTORIAL DE COMBATE", `${masterName}: «La barra superior muestra tu VIDA y CHAKRA. La barra inferior representa VELOCIDAD: los marcadores solo avanzan cuando comienza el turno. Las técnicas consumen chakra y pueden requerir sellos; Guardia reduce el próximo impacto y recupera chakra.»`, [
+      { value: "continue", label: "COMENZAR ENTRENAMIENTO", detail: "Primer objetivo: elige Golpe veloz o una técnica elemental.", primary: true }
+    ]);
+    this.setMessage("Elige una acción. Mantén el cursor sobre ella para consultar coste, daño y velocidad.", "#83d8ff");
+  }
+
+  async playResourceChoice() {
+    const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
+    const choices = [{ value: "conserve", label: "CONSERVAR", detail: "Recuperación menor; guardas los suministros." }];
+    if (this.fieldSupplies > 0) choices.unshift({ value: "rest", label: "DESCANSAR", detail: `Recuperación amplia; consume 1 de ${this.fieldSupplies}.`, primary: true });
+    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", `${masterName}: «Mide lo que todavía queda por delante. Los estados no desaparecerán si avanzas sin descansar.»`, choices);
+    if (choice === "rest") {
+      this.fieldSupplies -= 1;
+      this.nextRecovery = { hp: 70, chakra: 55, clearStatuses: true };
+    } else this.nextRecovery = { hp: 10, chakra: 8, clearStatuses: false };
+    this.saveData.campaign.hideoutSupplies = this.fieldSupplies;
+    this.saveData = writeSave(this.saveData);
+    activeSave = this.saveData;
+  }
+
+  async playHideoutDiscoveryChoice() {
+    const choice = await this.playBattleChoice("EL CORAZÓN DE LA GUARIDA", "Tras el último duelo oyes prisioneros tras una compuerta y encuentras documentos marcados con un cuervo negro. Solo hay tiempo para asegurar uno primero.", [
+      { value: "prisoners", label: "LIBERAR PRISIONEROS", detail: "Rescatas a los cautivos y obtienes sus testimonios.", primary: true },
+      { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
+    ]);
+    this.saveData.campaign.hideoutDiscoveryChoice = choice;
+    this.saveData.campaign.prisonersRescued = choice === "prisoners";
+    this.saveData.campaign.organizationDocumentsRecovered = choice === "documents";
+    this.saveData.campaign.organizationRevealed = true;
+    this.saveData = recordBestiaryObservation(this.saveData, "boss_raizen", { document: choice === "documents", vulnerability: "agua" });
+    this.saveData = writeSave(this.saveData);
+    activeSave = this.saveData;
+    const revelation = choice === "documents"
+      ? "Los documentos llevan el sello de una organización desconocida. Raizen no dirige la red: administra esta guarida para alguien que opera fuera de la región."
+      : "Los prisioneros confirman que Raizen recibe órdenes y suministros de una organización externa. Los bandidos del Cuervo son solamente una célula de una red mayor.";
+    await this.playBattleChoice("UNA ORGANIZACIÓN MAYOR", revelation, [
+      { value: "continue", label: "REGISTRAR HALLAZGO", detail: "La información se añade al informe de la saga y desbloquea el enfrentamiento con Raizen.", primary: true }
+    ]);
+  }
+
+  async playLieutenantIntervention() {
+    await this.playBattleChoice("UNA DEUDA PENDIENTE", "TENIENTE: «Me perdonaste cuando pudiste acabar conmigo. Raizen no tendrá hoy toda su ventaja.»\n\nEl antiguo teniente hiere al jefe: −15 % de vida y mejora defensiva eliminada.", [
+      { value: "continue", label: "ENFRENTAR A RAIZEN", detail: "La decisión tomada en la cantera altera el combate final.", primary: true }
+    ]);
+    this.floatLabel(this.foe.body.x, this.foe.body.y - 150, "−15 % VIDA", 0xf0b85c);
+    this.refreshHud();
+  }
+
+  async playSecretWarehouse() {
+    await this.playBattleChoice("ALMACÉN DE LOS CUERVOS", "La información del teniente conduce a un acceso oculto. Evitas al guardia exterior y localizas las monedas robadas; se asegurarán al completar la misión.", [
+      { value: "continue", label: "ASEGURAR EL ALMACÉN", detail: `Bonificación de misión: +${this.mission.secretBonusCoins} monedas.`, primary: true }
+    ]);
+  }
+
+  async playInvestigationPhase() {
+    const masterName = masterIdForCharacter(activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
+    const masterFile = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate.webp" : "daichi-kazan.webp";
+    const regions = [
+      { id: "cart", label: "CARRETA", labelX: 21, labelY: 67, clue: "Cuerdas con polvo de cantera", real: true, path: "M0 360 L115 335 L232 370 L360 407 L472 468 L575 512 L690 621 L654 706 L559 751 L420 748 L310 713 L205 678 L80 666 L0 620 Z" },
+      { id: "house", label: "CASA INCENDIADA", labelX: 47, labelY: 38, clue: "Un mapa rasgado del desfiladero aparece entre las cenizas", real: true, path: "M420 273 L492 239 L554 154 L628 128 L784 133 L870 157 L927 194 L1041 220 L1083 268 L1035 302 L1024 438 L944 453 L849 439 L782 390 L721 349 L651 371 L610 329 L529 350 L469 320 Z" },
+      { id: "tracks", label: "HUELLAS", labelX: 61, labelY: 80, clue: "Carga pesada rumbo al norte", real: true, path: "M965 941 L900 884 L951 824 L923 770 L965 716 L991 648 L1072 620 L1120 670 L1081 731 L1107 786 L1056 840 L1088 908 L1058 941 Z" },
+      { id: "well", label: "POZO", labelX: 89, labelY: 64, clue: "El agua está limpia: nadie manipuló el pozo recientemente", real: false, path: "M1360 402 L1478 369 L1609 383 L1672 423 L1672 782 L1608 841 L1462 828 L1379 759 L1328 661 L1339 532 Z" },
+      { id: "gate", label: "PUERTA DEL FINAL", labelX: 75, labelY: 42, clue: "Las marcas de la puerta son antiguas y no pertenecen a los bandidos", real: false, path: "M1123 303 L1191 278 L1316 284 L1372 323 L1379 456 L1326 500 L1214 489 L1138 451 Z" }
+    ];
+    const realClueCount = regions.filter((entry) => entry.real).length;
+    const found = new Set();
+    const examined = new Set();
+    const overlay = document.createElement("section");
+    overlay.className = "mission-investigation-overlay";
+    overlay.setAttribute("aria-label", "Fase 2 de investigación");
+    overlay.innerHTML = `<img class="mission-investigation-background" src="assets/locations/kagemori.webp?v=0.63.0" alt="Aldea de Kagemori incendiada"><div class="mission-investigation-shade"></div><header class="mission-investigation-header"><p>FASE 2 · INVESTIGACIÓN</p><h2>Reconstruye la ruta de los bandidos</h2><strong data-mission-clue-count>0/${realClueCount} pistas reales</strong></header><p class="mission-investigation-log" data-mission-investigation-log>Examina la casa, la carreta, las huellas, el pozo y la puerta.</p><svg class="mission-investigation-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${regions.map((entry) => `<g class="mission-investigation-region" data-investigation-region="${entry.id}" role="button" tabindex="0" aria-label="Investigar ${entry.label}"><path d="${entry.path}"/></g>`).join("")}</svg>${regions.map((entry) => `<span class="mission-investigation-label" data-investigation-label="${entry.id}" style="--label-x:${entry.labelX}%;--label-y:${entry.labelY}%"><strong>${entry.label}</strong></span>`).join("")}<img class="mission-investigation-master" src="assets/npcs/${masterFile}" alt="${masterName}"><button class="mission-investigation-continue" type="button" disabled data-mission-investigation-continue>REÚNE ${realClueCount} PISTAS</button>`;
+    const canvas = gameRoot.querySelector("canvas");
+    const previousCanvasVisibility = canvas?.style.visibility || "";
+    gameRoot.append(overlay);
+    if (canvas) canvas.style.visibility = "hidden";
+    game?.loop.sleep();
+
+    try {
+      const clueText = overlay.querySelector("[data-mission-investigation-log]");
+      const clueCount = overlay.querySelector("[data-mission-clue-count]");
+      const continueButton = overlay.querySelector("[data-mission-investigation-continue]");
+      regions.forEach((entry) => {
+        const marker = overlay.querySelector(`[data-investigation-region="${entry.id}"]`);
+        const label = overlay.querySelector(`[data-investigation-label="${entry.id}"]`);
+        const showLabel = () => label?.classList.add("visible");
+        const hideLabel = () => { if (!examined.has(entry.id)) label?.classList.remove("visible"); };
+        const inspect = () => {
+          if (examined.has(entry.id)) return;
+          examined.add(entry.id);
+          label?.classList.add("visible");
+          marker?.classList.add(entry.real ? "found" : "discarded");
+        if (!entry.real) {
+            if (label) label.querySelector("strong").textContent = `${entry.label} · SIN PISTA`;
+            clueText.textContent = `${entry.clue} · Sigue investigando.`;
+          return;
+        }
+          found.add(entry.id);
+          if (label) label.querySelector("strong").textContent = `✓ ${entry.label}`;
+          clueCount.textContent = `${found.size}/${realClueCount} pistas reales`;
+          clueText.textContent = `${entry.clue} · ${found.size}/${realClueCount} pistas reales`;
+        if (found.size === realClueCount) {
+            clueText.textContent = `${masterName}: «El rastro converge en la vieja cantera. Sigamos.»`;
+            continueButton.disabled = false;
+            continueButton.textContent = "SEGUIR EL RASTRO";
+        }
+        };
+        marker?.addEventListener("mouseenter", showLabel);
+        marker?.addEventListener("mouseleave", hideLabel);
+        marker?.addEventListener("focus", showLabel);
+        marker?.addEventListener("blur", hideLabel);
+        marker?.addEventListener("click", inspect);
+        marker?.addEventListener("keydown", (event) => {
+          if (event.key !== "Enter" && event.key !== " ") return;
+          event.preventDefault();
+          inspect();
+        });
+      });
+      await new Promise((resolve) => continueButton.addEventListener("click", () => {
+        if (found.size === realClueCount) resolve();
+      }, { once: true }));
+      overlay.classList.add("leaving");
+      await new Promise((resolve) => window.setTimeout(resolve, 220));
+    } finally {
+      overlay.remove();
+      if (canvas) canvas.style.visibility = previousCanvasVisibility;
+      game?.loop.wake();
+    }
   }
 
   async playPrisonerChoice() {
@@ -974,8 +1218,8 @@ class BattleScene extends Phaser.Scene {
     add(this.add.rectangle(168, 105, 4, 330, 0x3fcaff, 1).setOrigin(0, 0).setDepth(72));
     add(this.add.text(WIDTH / 2, 132, "DECISIÓN DE MISIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(73));
     add(this.add.text(WIDTH / 2, 180, "El teniente está derrotado y conoce la ruta del campamento.\nTu decisión quedará registrada.", { ...this.textStyle(16, "#f4f0e8", "700"), align: "center", lineSpacing: 8 }).setOrigin(0.5).setDepth(73));
-    add(this.add.text(330, 250, "INTERROGAR Y PERDONAR\nRevela la entrada secreta\nMonedas del próximo encargo ×2", { ...this.textStyle(12, "#caffea", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
-    add(this.add.text(630, 250, "ELIMINAR\nPierdes la bonificación de monedas\nAkumori estará prevenido", { ...this.textStyle(12, "#ffb8ad", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
+    add(this.add.text(330, 250, "INTERROGAR Y PERDONAR\n+ Entrada secreta y monedas ×2\n− Escapa y refuerza a Akumori", { ...this.textStyle(12, "#caffea", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
+    add(this.add.text(630, 250, "ELIMINAR\n+ Akumori no recibe refuerzos\n− Sin entrada secreta ni aliado futuro", { ...this.textStyle(12, "#ffd0c8", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
     const makeChoice = (x, label, color, value) => {
       const bg = add(this.add.rectangle(x, 350, 220, 44, 0x0d2638, 1).setStrokeStyle(1.5, color, 1).setInteractive({ useHandCursor: true }).setDepth(73));
       add(this.add.text(x, 350, label, this.textStyle(12, "#f4f8fb", "800", true)).setOrigin(0.5).setDepth(74));
@@ -986,7 +1230,7 @@ class BattleScene extends Phaser.Scene {
     this.saveData.campaign.banditPrisonerChoice = choice;
     this.saveData.campaign.nextSideMissionGoldMultiplier = choice === "interrogate" ? 2 : 1;
     choices.forEach(({ bg }) => bg.disableInteractive());
-    const response = add(this.add.text(WIDTH / 2, 414, choice === "interrogate" ? "El prisionero revela una ruta segura y datos sobre un próximo cargamento." : "Sin información, Akumori detecta el retraso y refuerza su defensa.", this.textStyle(12, choice === "interrogate" ? "#79e8b5" : "#ff9d8d", "800")).setOrigin(0.5).setDepth(74));
+    const response = add(this.add.text(WIDTH / 2, 414, choice === "interrogate" ? "Obtienes la ruta y el cargamento, pero el prisionero huye: Akumori estará reforzado." : "Pierdes la información y un posible aliado, pero Akumori no recibirá refuerzos.", this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
     await this.delay(1100);
     await this.tween({ targets: layer, alpha: 0, duration: 260, ease: "Sine.in" });
     layer.forEach((item) => item.destroy());
@@ -1032,12 +1276,13 @@ class BattleScene extends Phaser.Scene {
     const profile = this.encounters[this.enemyIndex];
     this.enemy.phase = 2;
     this.enemy.patternIndex = 0;
-    this.enemy.speed += 3;
+    this.enemy.baseSpeed += 3;
+    this.enemy.speed = this.combatantSpeed(this.enemy);
     this.enemy.accuracy += 4;
-    this.enemy.evasion += 2;
-    this.enemy.weakness = "lightning";
+    this.enemy.baseEvasion += 2;
+    this.enemy.evasion = this.combatantEvasion(this.enemy);
     this.enemyName.setText(`${profile.name} · FASE II`);
-    this.setMessage("El Maestro rompe su sello: comienza la Fase II.", "#d6a5ff");
+    this.setMessage(this.mission.id === "m14" ? "Raizen altera el ritmo: aumenta su velocidad y cambia su patrón." : "El Maestro rompe su sello: comienza la Fase II.", "#d6a5ff");
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
@@ -1198,11 +1443,76 @@ class BattleScene extends Phaser.Scene {
     });
   }
 
+  createSubstitutionSmoke(x, y, spread = 1) {
+    const colors = [0xe2e7eb, 0xb9c2c9, 0x87939e];
+    const puffs = Array.from({ length: 14 }, (_, index) => {
+      const angle = (Math.PI * 2 * index) / 14;
+      const innerRadius = 18 + (index % 4) * 7;
+      const puff = this.add.circle(
+        x + Math.cos(angle) * innerRadius * 0.45,
+        y + Math.sin(angle) * innerRadius * 0.28,
+        11 + (index % 5) * 3,
+        colors[index % colors.length],
+        0.76
+      ).setDepth(19).setScale(0.18);
+      const distance = (42 + (index % 4) * 12) * spread;
+      this.tweens.add({
+        targets: puff,
+        x: puff.x + Math.cos(angle) * distance,
+        y: puff.y + Math.sin(angle) * distance * 0.58 - 12,
+        scale: 1.25 + (index % 3) * 0.22,
+        alpha: 0,
+        duration: 430 + (index % 4) * 45,
+        ease: "Cubic.out",
+        onComplete: () => puff.destroy()
+      });
+      return puff;
+    });
+    return puffs;
+  }
+
+  async playSubstitution(fighter) {
+    if (!fighter?.body || !fighter?.shadow || !this.textures.exists("substitution-log")) return;
+    const x = fighter.body.x;
+    const groundY = fighter.shadow.y + 8;
+    const bodyAlpha = fighter.body.alpha;
+    const shadowAlpha = fighter.shadow.alpha;
+    this.createSubstitutionSmoke(x, groundY - 48, 1.05);
+    fighter.body.setAlpha(0);
+    fighter.shadow.setAlpha(0);
+    const log = this.add.image(x, groundY, "substitution-log")
+      .setOrigin(0.5, 0.88)
+      .setDisplaySize(178, 119)
+      .setDepth(18)
+      .setAngle(-4);
+    const finalScaleX = log.scaleX;
+    const finalScaleY = log.scaleY;
+    log.setScale(finalScaleX * 0.04, finalScaleY * 0.04);
+    this.tone(155, 0.11);
+    this.floatLabel(x, groundY - 142, "SUSTITUCIÓN", 0xdde6ec);
+    await this.tween({ targets: log, scaleX: finalScaleX, scaleY: finalScaleY, angle: 0, duration: 230, ease: "Back.out" });
+    await this.delay(260);
+    this.createSubstitutionSmoke(x, groundY - 45, 0.78);
+    await this.tween({ targets: log, alpha: 0, scaleX: finalScaleX * 0.72, scaleY: finalScaleY * 0.72, y: groundY - 10, duration: 170, ease: "Cubic.in" });
+    log.destroy();
+    fighter.body.setAlpha(0);
+    fighter.shadow.setAlpha(0);
+    await Promise.all([
+      this.tween({ targets: fighter.body, alpha: bodyAlpha, duration: 130, ease: "Sine.out" }),
+      this.tween({ targets: fighter.shadow, alpha: shadowAlpha, duration: 130, ease: "Sine.out" })
+    ]);
+  }
+
   async playerAttack(jutsu, casting) {
-    const elementalMultiplier = affinityMultiplier(jutsu, this.enemy);
-    const affinityBonus = canAccessElement(jutsu.element, this.saveData.character.affinities, this.saveData.campaign.elementRank) ? 1.1 : 1;
-    const damage = Math.max(1, Math.round((jutsu.damage + this.player.damageBonus) * casting.multiplier * elementalMultiplier * affinityBonus));
-    const chance = hitChance(this.player, this.enemy, jutsu);
+    const cycleModifier = affinityCycleModifier(this.player.primaryAffinity, this.enemy.primaryAffinity);
+    const furyBonus = this.player.primaryAffinity === "fuego" ? furyDamageBonus(this.player.hp, this.player.maxHp) : 0;
+    const baseDamage = finalAffinityDamage({
+      baseDamage: (jutsu.damage + this.player.baseStrength) * casting.multiplier,
+      strengthModifier: this.player.strengthModifier,
+      cycleModifier,
+      furyBonus
+    });
+    const chance = hitChance(this.player, { ...this.enemy, evasion: this.combatantEvasion(this.enemy) }, jutsu);
     const originX = this.hero.body.x;
     const originShadowX = this.hero.shadow.x;
     const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
@@ -1229,34 +1539,43 @@ class BattleScene extends Phaser.Scene {
     if (!this.rollHit(chance)) {
       if (usesHandProjectile) await this.playFireEmbersProjectile(true);
       this.tone(205, 0.08);
-      this.floatLabel(this.foe.body.x, this.foe.body.y - 118, "FALLO", 0xd7dce5);
-      this.setMessage(`${jutsu.name} falló (${chance} % de precisión).`, "#d7dce5");
+      this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
+      const substitution = this.playSubstitution(this.foe);
       if (usesPuppetPunch) {
         await Promise.all([
+          substitution,
           recoverPlayerPunch(this, this.hero),
           this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
           this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
         ]);
-      } else if (usesCastPose) await recoverPlayerPunch(this, this.hero);
-      await this.delay(usesPuppetPunch || usesCastPose ? 150 : 430);
+      } else if (usesCastPose) await Promise.all([substitution, recoverPlayerPunch(this, this.hero)]);
+      else await substitution;
+      await this.delay(120);
       this.hero.body.x = originX;
       this.hero.shadow.x = originShadowX;
       return;
     }
 
+    const critical = this.rollHit(this.player.criticalChance);
+    const rolledDamage = critical ? Math.round(baseDamage * AFFINITY_CONFIG.damage.criticalMultiplier) : baseDamage;
+    const damage = Math.max(1, rolledDamage - (this.enemy.damageReduction || 0));
     if (usesHandProjectile) await this.playFireEmbersProjectile(false);
     else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
     else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
     this.tone(jutsu.cinematic ? 92 : 128, 0.12);
     this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
-    const { reaction } = this.loseHealth(this.enemy, this.foe, damage);
+    if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 156, "CRÍTICO", 0xf5c96b);
+    const { amount, reaction } = this.loseHealth(this.enemy, this.foe, damage);
+    const appliedSoak = this.applyWaterPassive(this.player, this.enemy);
+    if (appliedSoak) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, `EMPAPADO ×${appliedSoak.stacks}`, 0x63cfff);
     if (jutsu.status && this.enemy.hp > 0) {
       applyStatus(this.enemy, jutsu.status);
       this.refreshHud();
     }
     const statusNote = jutsu.status && this.enemy.hp > 0 ? ` · ${jutsu.status.label}` : "";
-    const elementNote = affinityLabel(elementalMultiplier);
-    this.setMessage(`${jutsu.name}: ${damage} de daño${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
+    const elementNote = affinityLabel(1 + cycleModifier);
+    if (cycleModifier > 0 && this.player.primaryAffinity) this.recordEnemyObservation({ vulnerability: this.player.primaryAffinity });
+    this.setMessage(`${jutsu.name}: ${damage} de daño${critical ? " · CRÍTICO" : ""}${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
     if (usesPuppetPunch) {
       await Promise.all([
         reaction,
@@ -1266,6 +1585,7 @@ class BattleScene extends Phaser.Scene {
       ]);
     } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, this.hero)]);
     else await reaction;
+    await this.applyEarthReprisal(this.enemy, this.player, this.hero, amount);
     await this.delay(usesPuppetPunch || usesCastPose ? 150 : 430);
     this.hero.body.x = originX;
     this.hero.shadow.x = originShadowX;
@@ -1354,6 +1674,7 @@ class BattleScene extends Phaser.Scene {
     const stun = this.enemy.statuses.find((status) => status.type === "stun");
     if (stun) {
       this.enemy.statuses = this.enemy.statuses.filter((status) => status !== stun);
+      this.finishCombatantTurn(this.enemy);
       this.refreshHud();
       this.setMessage("El rival está aturdido y pierde su acción.", "#8fc7ff");
       this.tone(180, 0.16);
@@ -1364,10 +1685,25 @@ class BattleScene extends Phaser.Scene {
   }
 
   async enemyTurn(action) {
-    const rawDamage = Phaser.Math.Between(action.damage[0], action.damage[1]);
-    const reducedDamage = Math.max(1, rawDamage - this.player.damageReduction);
+    if (this.mission.id === "m14" && ["heavy", "toxin"].includes(action.id)) {
+      this.floatLabel(this.foe.body.x, this.foe.body.y - 165, `ANUNCIA: ${action.name.toUpperCase()}`, 0xf0b85c);
+      this.setMessage(`Raizen anuncia ${action.name}. Memoriza el patrón para anticipar el siguiente ciclo.`, "#f0c77c");
+      await this.delay(650);
+    }
+    this.recordEnemyObservation({ technique: action.id });
+    const cycleModifier = affinityCycleModifier(this.enemy.primaryAffinity, this.player.primaryAffinity);
+    const furyBonus = this.enemy.primaryAffinity === "fuego" ? furyDamageBonus(this.enemy.hp, this.enemy.maxHp) : 0;
+    const rawDamage = finalAffinityDamage({
+      baseDamage: Phaser.Math.Between(action.damage[0], action.damage[1]) + this.enemy.baseStrength,
+      strengthModifier: this.enemy.strengthModifier,
+      cycleModifier,
+      furyBonus
+    });
+    const critical = this.rollHit(this.enemy.criticalChance);
+    const criticalDamage = critical ? Math.round(rawDamage * AFFINITY_CONFIG.damage.criticalMultiplier) : rawDamage;
+    const reducedDamage = Math.max(1, criticalDamage - this.player.damageReduction);
     const damage = this.player.guarding ? Math.ceil(reducedDamage * 0.5) : reducedDamage;
-    const chance = hitChance(this.enemy, this.player, action);
+    const chance = hitChance(this.enemy, { ...this.player, evasion: this.combatantEvasion(this.player) }, action);
     const originX = this.foe.body.x;
     const originShadowX = this.foe.shadow.x;
     const usesPuppetPunch = Boolean(this.foe.joints?.shoulderRight);
@@ -1387,30 +1723,36 @@ class BattleScene extends Phaser.Scene {
 
     if (!this.rollHit(chance)) {
       this.tone(205, 0.08);
-      this.floatLabel(this.hero.body.x, this.hero.body.y - 118, "ESQUIVA", 0x67e8c3);
-      this.setMessage(`Esquivaste ${action.name} (${chance} % de precisión enemiga).`, "#79e8b5");
+      this.setMessage(`Evitaste ${action.name} con una Sustitución.`, "#79e8b5");
+      const substitution = this.playSubstitution(this.hero);
       if (usesPuppetPunch) {
         await Promise.all([
+          substitution,
           recoverPlayerPunch(this, this.foe),
           this.tween({ targets: this.foe.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
           this.tween({ targets: this.foe.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
         ]);
-      }
-      await this.delay(520);
+      } else await substitution;
+      await this.delay(120);
       this.foe.body.x = originX;
       this.foe.shadow.x = originShadowX;
+      this.finishCombatantTurn(this.enemy);
       return;
     }
 
     this.createImpact(this.hero.body.x, this.hero.body.y - 10, action.color, 0.8);
     this.tone(110, 0.1);
     this.shake(120, 0.005);
-    const { reaction } = this.loseHealth(this.player, this.hero, damage, { guarded: this.player.guarding });
+    if (critical) this.floatLabel(this.hero.body.x, this.hero.body.y - 156, "CRÍTICO", 0xf5c96b);
+    const { amount, reaction } = this.loseHealth(this.player, this.hero, damage, { guarded: this.player.guarding });
+    const appliedSoak = this.applyWaterPassive(this.enemy, this.player);
+    if (appliedSoak) this.floatLabel(this.hero.body.x, this.hero.body.y - 178, `EMPAPADO ×${appliedSoak.stacks}`, 0x63cfff);
     if (action.status && !this.player.guarding && this.player.hp > 0) {
       applyStatus(this.player, action.status);
       this.refreshHud();
     }
     await reaction;
+    await this.applyEarthReprisal(this.player, this.enemy, this.foe, amount);
     if (usesPuppetPunch) {
       await Promise.all([
         recoverPlayerPunch(this, this.foe),
@@ -1420,6 +1762,7 @@ class BattleScene extends Phaser.Scene {
       this.foe.body.x = originX;
       this.foe.shadow.x = originShadowX;
     }
+    this.finishCombatantTurn(this.enemy);
     await this.delay(220);
   }
 
@@ -1560,6 +1903,15 @@ class BattleScene extends Phaser.Scene {
   }
 
   async finishBattle(won) {
+    const routeFailureStats = !won && this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
+    if (!won) {
+      this.missionStartSave.bestiary = this.saveData.bestiary;
+      this.saveData = this.mission.type === "route-combat"
+        ? cancelDoctorMission(this.missionStartSave)
+        : this.missionStartSave;
+      this.saveData = writeSave(this.saveData);
+      activeSave = this.saveData;
+    }
     this.finished = true;
     this.busy = false;
     const rewardText = won && this.missionReward?.firstClear ? ` +${this.missionReward.xp} PX, +${this.missionReward.affinityXp} PX de afinidad y +${this.missionReward.coins} monedas de misión.` : "";
@@ -1576,6 +1928,10 @@ class BattleScene extends Phaser.Scene {
     });
     await this.delay(950);
     const result = this.resultPayload(won ? "completed" : "failed");
+    if (routeFailureStats) {
+      this.scene.start("secondary-results", { ...result, missionId: "s02", missionTitle: "El médico errante", routeStats: routeFailureStats });
+      return;
+    }
     if (won && this.mission.id === "m01" && !activeSave.campaign.sayoEncounterSeen) {
       this.scene.start("epilogue", { result });
       return;
@@ -1599,10 +1955,14 @@ class BattleScene extends Phaser.Scene {
   }
 
   abandonPayload() {
+    const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
+    this.missionStartSave.bestiary = this.saveData.bestiary;
     this.saveData = writeSave(this.missionStartSave);
+    if (this.mission.type === "route-combat") this.saveData = writeSave(cancelDoctorMission(this.saveData));
     activeSave = this.saveData;
     this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
-    return this.resultPayload("abandoned");
+    const result = this.resultPayload("abandoned");
+    return routeStats ? { ...result, missionId: "s02", missionTitle: "El médico errante", routeStats } : result;
   }
 
   setButtonsEnabled(enabled) {
@@ -1671,6 +2031,11 @@ class BattleScene extends Phaser.Scene {
 
   playerAppearance() {
     return playerFighterAppearance(this.saveData);
+  }
+
+  enemyAppearance() {
+    const enemyId = this.encounterIds[this.enemyIndex];
+    return enemyFighterAppearance(this.encounters[this.enemyIndex], enemyId);
   }
 
   shake(duration, intensity) {
@@ -1805,11 +2170,16 @@ class SecondaryResultsScene extends Phaser.Scene {
   }
 
   preload() {
-    if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
+    if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.webp?v=0.59.0");
+    if (!this.textures.exists("travel-forest")) this.load.image("travel-forest", BATTLE_ARENAS[0].file);
   }
 
   create(data = {}) {
     this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
+    if (activeMission?.id === "s02" || data.missionId === "s02") {
+      this.createDoctorResults(data);
+      return;
+    }
     const completed = data.outcome === "completed";
     this.add.image(WIDTH / 2, HEIGHT / 2, "kagemori-investigation").setDisplaySize(WIDTH, HEIGHT);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.7).setOrigin(0);
@@ -1840,6 +2210,39 @@ class SecondaryResultsScene extends Phaser.Scene {
     this.cameras.main.fadeIn(320, 3, 9, 18);
     sharpenTextTree(this.children.list);
   }
+
+  createDoctorResults(data) {
+    const completed = data.outcome === "completed";
+    const stats = data.routeStats || {};
+    this.add.image(WIDTH / 2, HEIGHT / 2, "travel-forest").setDisplaySize(WIDTH, HEIGHT);
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.6).setOrigin(0);
+    this.add.rectangle(WIDTH / 2, HEIGHT / 2, 790, 438, 0x031220, 0.96).setStrokeStyle(1.5, 0x55c9ff, 0.82);
+    this.add.rectangle(85, 51, 5, 438, completed ? 0xf0b85c : 0x8ea3b2, 1).setOrigin(0, 0);
+    this.add.text(125, 80, completed ? "BÚSQUEDA COMPLETADA" : "BÚSQUEDA SUSPENDIDA", this.textStyle(24, completed ? "#f0b85c" : "#9eb1bf", "800", true));
+    this.add.text(125, 117, "EL MÉDICO ERRANTE", this.textStyle(12, "#83d8ff", "800", true));
+    this.add.text(125, 148, completed ? "Haru descifró el mapa y confió su libro a la Biblioteca." : "El rastro permanece abierto. No se entregan recompensas.", this.textStyle(14, "#d6e3eb", "700"));
+    const cards = [
+      ["PELIGRO", stats.danger || 0], ["TIEMPO", stats.time || 0], ["PISTAS", stats.clues || 0], ["RECURSOS", stats.resources || 0]
+    ];
+    cards.forEach(([label, value], index) => {
+      const x = 190 + index * 190;
+      const card = this.add.rectangle(x, 255, 160, 108, 0x0b1b2a, 1).setStrokeStyle(1, 0x55c9ff, 0.55).setScale(0.85).setAlpha(0);
+      const valueText = this.add.text(x, 238, String(value), this.textStyle(29, "#f4f0e8", "800", true)).setOrigin(0.5).setAlpha(0);
+      const labelText = this.add.text(x, 280, label, this.textStyle(10, "#83d8ff", "800", true)).setOrigin(0.5).setAlpha(0);
+      this.tweens.add({ targets: [card, valueText, labelText], alpha: 1, scale: 1, duration: 340, delay: 150 + index * 100, ease: "Back.out" });
+    });
+    const rewards = data.rewards || { xp: 0, affinityXp: 0, coins: 0 };
+    this.add.text(WIDTH / 2, 346, completed ? `LIBRO ANTIGUO · +${rewards.xp} PX · +${rewards.affinityXp} AFINIDAD · +${rewards.coins} MONEDAS` : "SIN RECOMPENSAS", this.textStyle(12, completed ? "#f0b85c" : "#9aaab6", "800", true)).setOrigin(0.5);
+    this.add.text(WIDTH / 2, 371, completed ? "Siguiente destino obligatorio: Biblioteca" : "Puedes reiniciar el encargo desde el Tablón.", this.textStyle(12, "#b9cad5", "700")).setOrigin(0.5);
+    if (completed && rewards.supplyBonus) this.add.text(WIDTH / 2, 396, "+1 SUMINISTRO PARA LA GUARIDA POR LOS RECURSOS RECUPERADOS", this.textStyle(10, "#79e8b5", "800", true)).setOrigin(0.5);
+    const button = this.add.rectangle(WIDTH / 2, 438, 250, 44, 0x0d4668, 1).setStrokeStyle(1.5, 0x55c9ff, 1).setInteractive({ useHandCursor: true });
+    this.add.text(WIDTH / 2, 438, "← REGRESAR A LA ALDEA", this.textStyle(12, "#f4f8fb", "800", true)).setOrigin(0.5);
+    button.on("pointerover", () => button.setFillStyle(0x17638d, 1));
+    button.on("pointerout", () => button.setFillStyle(0x0d4668, 1));
+    button.once("pointerup", () => this.scene.start("travel", { direction: "toVillage" }));
+    this.cameras.main.fadeIn(320, 3, 9, 18);
+    sharpenTextTree(this.children.list);
+  }
 }
 
 class ResultsScene extends Phaser.Scene {
@@ -1859,9 +2262,9 @@ class ResultsScene extends Phaser.Scene {
     const subtitle = completed ? "El objetivo ha sido cumplido." : abandoned ? "Regresas a la aldea para reorganizarte." : "La misión termina, pero conservas lo aprendido.";
     const masterName = masterIdForCharacter(activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
     const masterLine = data.decision === "interrogate"
-      ? `${masterName}: «La información que conservaste ayudará al próximo encargo.»`
+      ? `${masterName}: «Conservamos la información, pero Akumori recibió refuerzos. Toda ventaja tiene un coste.»`
       : data.decision === "eliminate"
-        ? `${masterName}: «Akumori estaba prevenido. Esta decisión quedará en el informe.»`
+        ? `${masterName}: «Akumori no recibió refuerzos, pero perdimos la entrada secreta y un posible aliado.»`
         : completed
           ? `${masterName}: «Buen trabajo. Recuerda qué decisión te permitió volver.»`
       : abandoned
@@ -1973,7 +2376,7 @@ class PauseScene extends Phaser.Scene {
       if (button) button.disableInteractive();
       const payload = this.battle.abandonPayload();
       this.scene.stop("battle");
-      this.scene.start("results", payload);
+      this.scene.start(this.battle.mission.type === "route-combat" ? "secondary-results" : "results", payload);
     }, 150);
 
     this.input.keyboard.once("keydown-ESC", () => {
@@ -2126,6 +2529,7 @@ metaUi = mountMetaUI(metaRoot, activeSave, async (save, mission) => {
   activeMission = mission;
   metaRoot.hidden = true;
   gameRoot.hidden = false;
+  game?.loop.wake();
   game?.scene.stop("travel");
   game?.scene.start("secondary-results", { ...result, missionTitle: mission.title });
 });

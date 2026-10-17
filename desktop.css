@@ -506,7 +506,7 @@
   }
 
   .village-map-card .village-map { position: absolute; inset: 0; height: 100%; }
-  .village-map-card .village-map > img { width: 100%; height: 100%; object-fit: cover; }
+  .village-map-card .village-map > img { width: 100%; height: 100%; object-fit: fill; }
   .creator-card { padding: 40px 48px; }
   .stage-options { width: 69%; max-height: calc(100% - 112px); margin-top: 88px; }
   .stage-panel,

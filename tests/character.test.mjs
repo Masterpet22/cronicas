@@ -9,7 +9,7 @@ assert.equal(appearance.cloth, "#68a8ff", "Los colores de Phaser y del dojo debe
 
 const preview = fighterPreviewSvg(appearance);
 assert.match(preview, /^<svg/);
-assert.match(preview, /Combatiente geométrico personalizado/);
+assert.match(preview, /Vista previa personalizada/);
 assert.match(preview, /#68a8ff/, "La vista previa debe conservar el color normalizado al reutilizar una apariencia resuelta");
 assert.doesNotMatch(preview, /<img|assets\/modular/, "La vista previa no debe depender de los atlas experimentales");
 
@@ -23,7 +23,7 @@ import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "..
 import { PuppetAnimationController } from "../src/animations/controller.js";
 import { validateAnimationCatalog } from "../src/animations/schema.js";
 import { animationClipDuration, sampleAnimationPose } from "../src/animations/runtime.js";
-import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, fighterTextureKey, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queueFighterTexture, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
+import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -35,19 +35,11 @@ assert.equal(playerApp.weapon, "sword", "El arma 'tanto' del equipo debe mapears
 assert.equal(playerFighterAppearance({ ...playerSave, equipment: { weapon: null } }).weapon, "none", "Desequipar el arma debe ocultarla en el combatiente");
 assert.equal(playerApp.clothColor, "#e64c3c");
 
-const key1 = fighterTextureKey(playerApp);
-const key2 = fighterTextureKey(playerApp);
-assert.equal(key1, key2, "La clave de textura debe ser determinista para la misma apariencia");
-
 const loaded = [];
 const mockScene = {
   textures: { exists: (k) => loaded.includes(k) },
   load: { image: (k, url) => loaded.push(k) }
 };
-queueFighterTexture(mockScene, playerApp);
-assert.equal(loaded[0], key1, "queueFighterTexture debe encolar la textura con la clave correspondiente");
-
-loaded.length = 0;
 assert.equal(queuePlayerFighterTextures(mockScene, playerApp), "modular", "El cuerpo masculino debe usar los sprites modulares");
 assert.equal(loaded.length, 14, "Deben cargarse las catorce partes del cuerpo masculino");
 assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
@@ -123,11 +115,11 @@ assert.equal(controller.state, null, "La reacción debe liberar el estado y rest
 controller.loop("guard-hold");
 assert.equal(controller.play("idle-natural"), false, "El reposo no debe interrumpir una guardia de mayor prioridad");
 controller.stop();
-const geometricFighter = {
+const simpleFighter = {
   body: controllerTarget(), sprite: controllerTarget(), shadow: controllerTarget(), joints: {}
 };
-geometricFighter.animations = new PuppetAnimationController(controllerScene, geometricFighter);
-assert.equal(await playFighterDamageReaction(controllerScene, geometricFighter, { heavy: true }), true, "Los combatientes no articulados también deben reaccionar al daño");
+simpleFighter.animations = new PuppetAnimationController(controllerScene, simpleFighter);
+assert.equal(await playFighterDamageReaction(controllerScene, simpleFighter, { heavy: true }), true, "Los combatientes no articulados también deben reaccionar al daño");
 assert.equal(controllerConfigs.at(-1).x, -27, "La reacción simplificada debe usar el clip declarativo de cuerpo completo");
 assert.equal(typeof preparePlayerPunch, "function");
 assert.equal(typeof releasePlayerPunch, "function");
@@ -135,4 +127,4 @@ assert.equal(typeof recoverPlayerPunch, "function");
 assert.equal(typeof startPlayerRunning, "function");
 assert.equal(typeof stopPlayerRunning, "function");
 
-console.log("Pruebas del personaje geométrico superadas.");
+console.log("Pruebas del personaje modular superadas.");

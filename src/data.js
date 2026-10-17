@@ -107,100 +107,102 @@ export const ENEMY_ACTIONS = {
   ember: { id: "ember", name: "Ascua errante", damage: [8, 12], speedMod: 0, accuracyMod: 2, color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 3 } }
 };
 
+const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ health, strength, speed, chakra, luck });
+
 export const ENEMY_ROSTER = {
   tutorial_bandit: {
-    name: "BANDIDO", hp: 54, speed: 9, accuracy: 84, evasion: 4,
-    weakness: "wind", resistance: "physical", pattern: ["quick", "quick", "heavy"],
+    name: "BANDIDO", affinity: "tierra", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
+    pattern: ["quick", "quick", "heavy"],
     colors: { cloth: 0x7b6a50, accent: 0x2c241d }
   },
   tutorial_bandit_second: {
-    name: "BANDIDO", hp: 62, speed: 10, accuracy: 87, evasion: 5,
-    weakness: "fire", resistance: "physical", pattern: ["quick", "heavy", "quick"],
+    name: "BANDIDO", affinity: "viento", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
+    pattern: ["quick", "heavy", "quick"],
     colors: { cloth: 0x596b4d, accent: 0x20291d }
   },
   boss_varek: {
-    name: "VAREK, EL RAPTAFELINOS", hp: 94, speed: 11, accuracy: 90, evasion: 7,
-    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "heavy"],
+    name: "VAREK, EL RAPTAFELINOS", affinity: "fuego", stats: enemyStats(94, 2, 11, 42, 4), accuracy: 90,
+    pattern: ["heavy", "quick", "heavy"],
     phase2Pattern: ["quick", "heavy", "quick", "ember"], boss: true,
     colors: { cloth: 0x8f5747, accent: 0x321b19 }
   },
   bandit_pathfinder: {
-    name: "RASTREADOR BANDIDO", hp: 72, speed: 12, accuracy: 89, evasion: 7,
-    weakness: "fire", resistance: "physical", pattern: ["quick", "toxin", "heavy"],
+    name: "RASTREADOR BANDIDO", affinity: "viento", stats: enemyStats(72, 1, 12, 34, 4), accuracy: 89,
+    pattern: ["quick", "toxin", "heavy"],
     colors: { cloth: 0x53684b, accent: 0x1d2b20 }
   },
   bandit_lieutenant: {
-    name: "TENIENTE DE LA CANTERA", hp: 86, speed: 11, accuracy: 92, evasion: 7,
-    weakness: "wind", resistance: "physical", pattern: ["heavy", "quick", "toxin"],
+    name: "TENIENTE DE LA CANTERA", affinity: "tierra", stats: enemyStats(86, 2, 11, 40, 4), accuracy: 92,
+    pattern: ["heavy", "quick", "toxin"],
     colors: { cloth: 0x755744, accent: 0x2d1e19 }
   },
   boss_akumori: {
-    name: "AKUMORI, CAPATAZ DEL CUERVO", hp: 118, speed: 12, accuracy: 94, evasion: 8,
-    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "toxin"],
+    name: "AKUMORI, CAPATAZ DEL CUERVO", affinity: "fuego", stats: enemyStats(118, 3, 12, 54, 5), accuracy: 94,
+    pattern: ["heavy", "quick", "toxin"],
     phase2Pattern: ["ember", "heavy", "quick", "toxin"], boss: true,
     colors: { cloth: 0x6d3e48, accent: 0x25131a }
   },
   boss_raizen: {
-    name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", hp: 168, speed: 13, accuracy: 96, evasion: 9,
-    weakness: "wind", resistance: "physical", pattern: ["heavy", "quick", "ember"],
+    name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", affinity: "fuego", stats: enemyStats(168, 5, 13, 80, 6), accuracy: 96,
+    pattern: ["heavy", "quick", "ember"],
     phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true, future: true,
     colors: { cloth: 0x4b3341, accent: 0x170d15 }
   },
   gate_guard: {
-    name: "GUARDIÁN DEL PASO", hp: 68, speed: 10, accuracy: 90, evasion: 5,
-    weakness: "wind", resistance: "physical", pattern: ["quick", "heavy", "quick"],
+    name: "GUARDIÁN DEL PASO", affinity: "tierra", stats: enemyStats(68, 1, 10, 32, 2), accuracy: 90,
+    pattern: ["quick", "heavy", "quick"],
     colors: { cloth: 0xe0a45a, accent: 0x3d2021 }
   },
   ash_adept: {
-    name: "ADEPTA DE CENIZA", hp: 76, speed: 9, accuracy: 92, evasion: 4,
-    weakness: "lightning", resistance: "fire", pattern: ["ember", "quick", "heavy", "ember"],
+    name: "ADEPTA DE CENIZA", affinity: "fuego", stats: enemyStats(76, 1, 9, 58, 1), accuracy: 92,
+    pattern: ["ember", "quick", "heavy", "ember"],
     colors: { cloth: 0xd87855, accent: 0x411b24 }
   },
   mist_scout: {
-    name: "EXPLORADOR DE NIEBLA", hp: 82, speed: 13, accuracy: 91, evasion: 9,
-    weakness: "fire", resistance: "wind", pattern: ["toxin", "quick", "toxin", "heavy"],
+    name: "EXPLORADOR DE NIEBLA", affinity: "agua", stats: enemyStats(82, 1, 13, 48, 6), accuracy: 91,
+    pattern: ["toxin", "quick", "toxin", "heavy"],
     colors: { cloth: 0x86b9c9, accent: 0x20394f }
   },
   reed_bandit: {
-    name: "BANDIDO DEL JUNCO", hp: 70, speed: 12, accuracy: 88, evasion: 7,
-    weakness: "fire", resistance: "physical", pattern: ["quick", "quick", "heavy"],
+    name: "BANDIDO DEL JUNCO", affinity: "viento", stats: enemyStats(70, 1, 12, 30, 4), accuracy: 88,
+    pattern: ["quick", "quick", "heavy"],
     colors: { cloth: 0x7ea063, accent: 0x253421 }
   },
   stone_hunter: {
-    name: "CAZADOR DE PIEDRA", hp: 92, speed: 8, accuracy: 93, evasion: 3,
-    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "heavy"],
+    name: "CAZADOR DE PIEDRA", affinity: "tierra", stats: enemyStats(92, 3, 8, 36, 0), accuracy: 93,
+    pattern: ["heavy", "quick", "heavy"],
     colors: { cloth: 0x9b8c7b, accent: 0x332d2a }
   },
   venom_medic: {
-    name: "MÉDICA DEL VENENO", hp: 78, speed: 11, accuracy: 94, evasion: 6,
-    weakness: "wind", resistance: "fire", pattern: ["toxin", "quick", "toxin", "ember"],
+    name: "MÉDICA DEL VENENO", affinity: "agua", stats: enemyStats(78, 1, 11, 64, 3), accuracy: 94,
+    pattern: ["toxin", "quick", "toxin", "ember"],
     colors: { cloth: 0x8e75b8, accent: 0x2e2145 }
   },
   dusk_tracker: {
-    name: "RASTREADOR DEL OCASO", hp: 88, speed: 14, accuracy: 92, evasion: 10,
-    weakness: "fire", resistance: "wind", pattern: ["quick", "toxin", "quick", "heavy"],
+    name: "RASTREADOR DEL OCASO", affinity: "viento", stats: enemyStats(88, 2, 14, 48, 7), accuracy: 92,
+    pattern: ["quick", "toxin", "quick", "heavy"],
     colors: { cloth: 0x52769b, accent: 0x18273b }
   },
   mirror_agent: {
-    name: "AGENTE DEL ESPEJO", hp: 96, speed: 12, accuracy: 96, evasion: 11,
-    weakness: "wind", resistance: "lightning", pattern: ["ember", "quick", "heavy", "toxin"],
+    name: "AGENTE DEL ESPEJO", affinity: "agua", stats: enemyStats(96, 2, 12, 70, 8), accuracy: 96,
+    pattern: ["ember", "quick", "heavy", "toxin"],
     colors: { cloth: 0xb7c0cb, accent: 0x303947 }
   },
   boss_riven: {
-    name: "RIVEN, SEÑOR DEL PUENTE", hp: 126, speed: 11, accuracy: 94, evasion: 7,
-    weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "ember"],
+    name: "RIVEN, SEÑOR DEL PUENTE", affinity: "tierra", stats: enemyStats(126, 4, 11, 62, 4), accuracy: 94,
+    pattern: ["heavy", "quick", "ember"],
     phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true,
     colors: { cloth: 0xa94d45, accent: 0x35161d }
   },
   boss_nerezza: {
-    name: "NEREZZA, JUEZA DEL SELLO", hp: 142, speed: 13, accuracy: 96, evasion: 9,
-    weakness: "fire", resistance: "wind", pattern: ["quick", "toxin", "heavy"],
+    name: "NEREZZA, JUEZA DEL SELLO", affinity: "agua", stats: enemyStats(142, 4, 13, 84, 6), accuracy: 96,
+    pattern: ["quick", "toxin", "heavy"],
     phase2Pattern: ["ember", "quick", "toxin", "heavy"], boss: true,
     colors: { cloth: 0x5579a8, accent: 0x172840 }
   },
   boss_eclipse: {
-    name: "MAESTRO DEL ECLIPSE", hp: 118, speed: 11, accuracy: 94, evasion: 7,
-    weakness: "wind", resistance: "arcane", pattern: ["quick", "ember", "heavy"],
+    name: "MAESTRO DEL ECLIPSE", affinity: "viento", stats: enemyStats(118, 4, 11, 90, 4), accuracy: 94,
+    pattern: ["quick", "ember", "heavy"],
     phase2Pattern: ["toxin", "heavy", "ember", "quick"], boss: true,
     colors: { cloth: 0x9a7bd1, accent: 0x21183f }
   }
@@ -209,7 +211,7 @@ export const ENEMY_ROSTER = {
 export const ENEMIES = Object.values(ENEMY_ROSTER);
 
 export const STORY_SAGAS = [
-  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01", "m11"] }
+  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01", "m11", "m12", "m13", "m14"] }
 ];
 
 export const SECONDARY_MISSIONS = [
@@ -223,12 +225,12 @@ export const SECONDARY_MISSIONS = [
   },
   {
     id: "s02", number: 2, type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
-    unlockFlag: "doctorMissionUnlocked", comingSoon: true, routeMode: "pending",
+    unlockFlag: "doctorMissionUnlocked", routeMode: "convergent",
     reward: { xp: 45, coins: 30 },
     routeEvents: [
-      { id: "counsel", label: "Consejo del camino", type: "dialogue", description: "Un viajero comparte una advertencia útil para el resto de la búsqueda." },
-      { id: "danger", label: "Rastro hostil", type: "combat", description: "Un enemigo bloquea el paso en un combate individual." },
-      { id: "clear", label: "Camino despejado", type: "advance", description: "La ruta permite avanzar sin interrupciones." }
+      { id: "elevated", label: "Camino elevado", type: "dialogue", description: "Una ruta segura y lenta donde los viajeros ofrecen consejos útiles." },
+      { id: "river", label: "Sendero del río", type: "investigation", description: "Exige interpretar señales y encontrar el paso correcto." },
+      { id: "forest", label: "Bosque cerrado", type: "combat", description: "Puede contener un duelo individual y ofrece mejores recursos." }
     ],
     briefing: [
       ["Sayo Kisaragi", "El mapa de Akumori está cifrado. Busca al doctor Haru Takamine; sus viajes le han enseñado a leer marcas de caminos olvidados."],
@@ -296,5 +298,23 @@ export const MISSIONS = [
     encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { xp: 95, coins: 80 },
     unlockFlag: "banditBossMissionUnlocked", scriptedPhases: true, relic: "Mapa cifrado",
     briefing: [["Ren Arashiro", "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera."]]
+  },
+  {
+    id: "m12", number: 3, title: "El umbral de los cuervos", location: "Accesos a la guarida", duration: "10–12 min", rank: "D",
+    encounters: ["gate_guard", "bandit_pathfinder", "stone_hunter"], reward: { xp: 105, coins: 85 },
+    unlockFlag: "hideoutMissionUnlocked", entranceChoice: true, secretBonusCoins: 90,
+    briefing: [["Ren Arashiro", "El mapa de Haru conduce a la guarida. Consulta el libro de la Biblioteca y decide por dónde entrar."]]
+  },
+  {
+    id: "m13", number: 4, title: "El corazón de la guarida", location: "Galerías interiores", duration: "12–15 min", rank: "D",
+    encounters: ["bandit_pathfinder", "venom_medic", "ash_adept"], reward: { xp: 125, coins: 105 },
+    unlockFlag: "heartMissionUnlocked", resourceChoices: true, discoveryChoice: true,
+    briefing: [["Ren Arashiro", "Avanza por las galerías, administra tus suministros y descubre quién dirige realmente a los bandidos."]]
+  },
+  {
+    id: "m14", number: 5, title: "El jefe de los bandidos", location: "Sala del Cuervo", duration: "10–13 min", rank: "D",
+    encounters: ["boss_raizen"], reward: { xp: 165, coins: 145 },
+    unlockFlag: "banditLeaderMissionUnlocked", sagaFinal: true,
+    briefing: [["Ren Arashiro", "Raizen Kurogane espera en la sala principal. Esta batalla pondrá a prueba todo lo que has aprendido."]]
   }
 ];

@@ -35,7 +35,8 @@ export function actionLines(action) {
   const accuracy = action.subtitle.match(/(?:^|·)\s*P(\d+)/)?.[1];
   const cooldown = action.subtitle.match(/(?:^|·)\s*CD(\d+)/)?.[1];
   const cost = action.cost > 0 ? `${action.cost} chakra` : "Sin coste";
-  const timing = cooldown ? `Recarga: ${cooldown}` : accuracy ? `Prec. ${accuracy}%` : speed ? `Vel. ${speed}` : "";
+  const elementalTechnique = !["physical", "none"].includes(action.element);
+  const timing = elementalTechnique ? "Preparación: rival primero" : cooldown ? `Recarga: ${cooldown}` : accuracy ? `Prec. ${accuracy}%` : speed ? `Vel. ${speed}` : "";
   return [cost, `${action.damage} de daño`, timing];
 }
 

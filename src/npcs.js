@@ -47,10 +47,10 @@ export const NPCS = {
     image: "assets/npcs/daichi-kazan.webp",
     intro: [
       "Daichi Kazan. No distribuyas atributos para corregir una derrota; hazlo para construir una estrategia.",
-      "Poder aumenta el daño, Agilidad mejora velocidad y evasión, y Enfoque refuerza chakra y precisión."
+      "Vida y Chakra aumentan tus reservas. Fuerza eleva el daño, Velocidad acelera tu turno y Suerte mejora la evasión y los golpes críticos."
     ],
     guide: [
-      "La velocidad de cada acción decide el orden del turno, no solamente la agilidad del personaje.",
+      "Tu Velocidad y la velocidad de cada acción deciden juntos el orden del turno.",
       "Guardia reduce el siguiente impacto a la mitad y recupera chakra.",
       "Una técnica poderosa que nunca acierta vale menos que un ataque preparado."
     ]
@@ -78,7 +78,7 @@ export const NPCS = {
       "La Arena servirá para practicar rotaciones, medir daño y probar equipos sin alterar tu historia."
     ],
     guide: [
-      "Observa debilidad y resistencia antes de gastar chakra.",
+      "Compara la afinidad principal de ambos combatientes antes de gastar chakra.",
       "Los enfriamientos impiden repetir la misma técnica continuamente: prepara una segunda opción.",
       "La práctica completa llegará en una fase posterior; el recinto ya está reservado."
     ]
@@ -142,7 +142,7 @@ export const NPCS = {
   iori: {
     name: "Iori Kagemori",
     title: "Anciano de Kagemori",
-    image: "assets/npcs/iori-kagemori.png",
+    image: "assets/npcs/iori-kagemori.webp",
     intro: [
       "Llegaste desde la Aldea del Horizonte... Soy Iori. Los bandidos atacaron al caer la noche y se llevaron cuanto pudieron cargar.",
       "La plaza conserva sus huellas. Examina los lugares que tocaron antes de marcharse."
@@ -156,7 +156,7 @@ export const NPCS = {
   nami: {
     name: "Nami Kurose",
     title: "Exploradora de Kagemori",
-    image: "assets/npcs/nami-kurose.png",
+    image: "assets/npcs/nami-kurose.webp",
     intro: [
       "Soy Nami. Intenté seguirlos desde el bosque, pero se separaron para ocultar el rastro.",
       "Si reconstruimos por dónde cruzaron la aldea, podré decirte hacia qué paso se dirigieron."
