@@ -1084,8 +1084,15 @@
   transition: opacity .32s ease;
 }
 
+/* Evita promover dos retratos grandes a capas filtradas en esta escena. */
+.location-stage.location-kagemori .stage-character img,
+.location-stage.location-kagemori .stage-character.active img {
+  filter: none;
+}
+
 .location-stage.location-kagemori.investigation-ready .stage-characters {
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
 }
 

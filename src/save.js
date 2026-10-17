@@ -1,4 +1,4 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.53.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.56.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
@@ -188,6 +188,60 @@ export function normalizeSave(candidate) {
       masterSelectionUnlocked: Boolean(candidate.campaign?.masterSelectionUnlocked) || completedMissions.includes("m11")
     }
   };
+}
+
+export const DEBUG_CHECKPOINTS = Object.freeze([
+  { id: "saga-start", label: "Inicio de la saga", description: "Cuartel disponible; ninguna misión completada." },
+  { id: "kagemori-ready", label: "Investigar Kagemori", description: "Misión 1 completada y Tablón desbloqueado." },
+  { id: "mission-2-ready", label: "Misión 2 disponible", description: "Kagemori resuelta y Desfiladero desbloqueado." },
+  { id: "doctor-ready", label: "Buscar al doctor", description: "Mapa cifrado obtenido y elección de maestro habilitada." },
+  { id: "library-ready", label: "Biblioteca desbloqueada", description: "Doctor encontrado, libro recibido y Biblioteca abierta." }
+]);
+
+export function applyDebugCheckpoint(save, checkpointId) {
+  const result = normalizeSave(save);
+  const baseCampaign = { ...createDefaultSave().campaign, tutorialSeen: true };
+  const checkpoints = {
+    "saga-start": {},
+    "kagemori-ready": {
+      completedMissions: ["m01"],
+      sayoEncounterSeen: true,
+      secondaryBoardUnlocked: true
+    },
+    "mission-2-ready": {
+      completedMissions: ["m01"],
+      sayoEncounterSeen: true,
+      secondaryBoardUnlocked: true,
+      kagemoriInvestigated: true,
+      banditBossMissionUnlocked: true
+    },
+    "doctor-ready": {
+      completedMissions: ["m01", "m11"],
+      sayoEncounterSeen: true,
+      secondaryBoardUnlocked: true,
+      kagemoriInvestigated: true,
+      banditBossMissionUnlocked: true,
+      cipherMapObtained: true,
+      doctorMissionUnlocked: true,
+      masterSelectionUnlocked: true
+    },
+    "library-ready": {
+      completedMissions: ["m01", "m11"],
+      sayoEncounterSeen: true,
+      secondaryBoardUnlocked: true,
+      kagemoriInvestigated: true,
+      banditBossMissionUnlocked: true,
+      cipherMapObtained: true,
+      doctorMissionUnlocked: true,
+      doctorMissionCompleted: true,
+      bestiaryBookObtained: true,
+      archiveUnlocked: true,
+      masterSelectionUnlocked: true
+    }
+  };
+  if (!Object.hasOwn(checkpoints, checkpointId)) return result;
+  result.campaign = { ...baseCampaign, ...checkpoints[checkpointId] };
+  return normalizeSave(result);
 }
 
 function validSaveSlot(slot) {

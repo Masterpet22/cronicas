@@ -1,7 +1,7 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.20.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.53.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.56.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.22.0";
-import { activeSaveSlot, affinityXpForElement, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, masterIdForCharacter, selectMaster, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.54.0";
+import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, masterIdForCharacter, normalizeSave, selectMaster, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.56.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 
 const COMING_SOON_LOCATIONS = {
@@ -129,6 +129,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     try { return sessionStorage.getItem("cronicas-save-slot-selected") !== "1"; } catch (_) { return true; }
   })();
   let activeDojoTab = "equipment";
+  let debugSnapshot = null;
   const introducedViews = new Set();
   const investigatedClues = new Set();
 
@@ -214,7 +215,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       const mission = MISSIONS.find((entry) => entry.id === id);
       return mission && (!mission.unlockFlag || Boolean(campaign[mission.unlockFlag]) || campaign.completedMissions.includes(id));
     });
-    const currentLocation = VILLAGE_LOCATIONS.find((location) => location.id === view) || (view === "kagemori" ? { name: "Aldea de Kagemori" } : null);
+    const currentLocation = VILLAGE_LOCATIONS.find((location) => location.id === view)
+      || (view === "kagemori" ? { name: "Aldea de Kagemori" } : view === "debug" ? { name: "Herramientas de pruebas" } : null);
     const navigation = view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button ${view === "kagemori" ? "data-abandon-investigation" : "data-view=\"plaza\""}>← ${view === "kagemori" ? "Abandonar investigación" : "Volver al mapa"}</button><span>${escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
     root.innerHTML = `
       <div class="village-shell">
@@ -233,6 +235,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
             <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
           </button>
           <button class="save-slots-trigger" type="button" aria-label="Cambiar de partida">PARTIDAS</button>
+          <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas">PRUEBAS</button>
         </section>
         ${navigation}
         ${content}
@@ -277,6 +280,12 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     root.querySelector(".save-slots-trigger")?.addEventListener("click", () => {
       document.querySelector(".game-settings")?.removeAttribute("open");
       choosingSaveSlot = true;
+      render();
+    });
+    root.querySelector(".debug-tools-trigger")?.addEventListener("click", () => {
+      document.querySelector(".game-settings")?.removeAttribute("open");
+      if (!debugSnapshot) debugSnapshot = JSON.stringify(save);
+      view = "debug";
       render();
     });
     root.querySelector("[data-abandon-investigation]")?.addEventListener("click", () => {
@@ -994,6 +1003,69 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     bindLocationStage("archive");
   };
 
+  const renderDebugTools = () => {
+    const campaign = save.campaign;
+    const checkpointCards = DEBUG_CHECKPOINTS.map((checkpoint) => `<button class="debug-checkpoint" type="button" data-debug-checkpoint="${checkpoint.id}"><strong>${escapeHtml(checkpoint.label)}</strong><small>${escapeHtml(checkpoint.description)}</small></button>`).join("");
+    const missionCards = MISSIONS.map((mission) => {
+      const completed = campaign.completedMissions.includes(mission.id);
+      return `<article class="debug-mission ${completed ? "completed" : ""}"><span>${String(mission.number).padStart(2, "0")}</span><div><strong>${escapeHtml(mission.title)}</strong><small>${escapeHtml(mission.location)} · ${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"}</small></div><button type="button" data-debug-mission="${mission.id}" ${mission.comingSoon ? "disabled" : ""}>${mission.comingSoon ? "NO DISPONIBLE" : "INICIAR DIRECTO"}</button></article>`;
+    }).join("");
+    const debugFlags = [
+      ["Tablón", campaign.secondaryBoardUnlocked],
+      ["Kagemori", campaign.kagemoriInvestigated],
+      ["Misión 2", campaign.banditBossMissionUnlocked],
+      ["Doctor", campaign.doctorMissionUnlocked],
+      ["Biblioteca", campaign.archiveUnlocked],
+      ["Elegir maestro", campaign.masterSelectionUnlocked]
+    ].map(([label, enabled]) => `<span class="debug-flag ${enabled ? "enabled" : ""}">${enabled ? "✓" : "·"} ${label}</span>`).join("");
+    const content = `<section class="debug-screen">
+      <header class="debug-heading"><div><p class="eyebrow">MODO DE DESARROLLO</p><h2>Herramientas de pruebas</h2><p>Estos controles modifican solamente la partida activa. No conceden PX, monedas ni recompensas.</p></div><button class="secondary-button" type="button" data-debug-restore ${debugSnapshot ? "" : "disabled"}>RESTAURAR ESTADO DE ENTRADA</button></header>
+      <div class="debug-status">${debugFlags}<span class="debug-choice">Teniente: ${escapeHtml(campaign.banditPrisonerChoice || "sin decisión")}</span></div>
+      <section class="debug-section"><div><p class="eyebrow">PROGRESO RÁPIDO</p><h3>Aplicar punto de control</h3></div><p>Prepara un estado coherente de la saga sin reproducir escenas ni entregar recompensas.</p><div class="debug-checkpoints">${checkpointCards}</div></section>
+      <section class="debug-section"><div><p class="eyebrow">ACCESO DIRECTO</p><h3>Saltar a una ubicación</h3></div><div class="debug-location-grid"><button type="button" data-debug-view="plaza">ALDEA</button><button type="button" data-debug-view="headquarters">CUARTEL</button><button type="button" data-debug-view="missions">TABLÓN</button><button type="button" data-debug-view="kagemori">KAGEMORI</button><button type="button" data-debug-view="dojo">DOJO</button><button type="button" data-debug-view="archive">BIBLIOTECA</button></div></section>
+      <section class="debug-section"><div><p class="eyebrow">DECISIÓN PERSISTENTE</p><h3>Destino del teniente</h3></div><div class="debug-decision-grid"><button type="button" data-debug-choice="interrogate">INTERROGADO Y PERDONADO</button><button type="button" data-debug-choice="eliminate">ELIMINADO</button><button type="button" data-debug-choice="clear">SIN DECISIÓN</button></div></section>
+      <section class="debug-section debug-missions-section"><div><p class="eyebrow">SIN BRIEFING</p><h3>Iniciar una misión directamente</h3></div><p>Ignora requisitos y diálogos del Cuartel, pero conserva las fases internas de la misión.</p><div class="debug-mission-list">${missionCards}</div></section>
+    </section>`;
+    shell(content);
+
+    root.querySelectorAll("[data-debug-checkpoint]").forEach((button) => button.addEventListener("click", () => {
+      save = writeSave(applyDebugCheckpoint(save, button.dataset.debugCheckpoint));
+      introducedViews.clear();
+      investigatedClues.clear();
+      renderDebugTools();
+    }));
+    root.querySelectorAll("[data-debug-view]").forEach((button) => button.addEventListener("click", () => {
+      view = button.dataset.debugView;
+      introducedViews.add(view);
+      render();
+    }));
+    root.querySelectorAll("[data-debug-choice]").forEach((button) => button.addEventListener("click", () => {
+      const choice = button.dataset.debugChoice;
+      save = writeSave(normalizeSave({
+        ...save,
+        campaign: {
+          ...save.campaign,
+          banditPrisonerChoice: choice === "clear" ? null : choice,
+          nextSideMissionGoldMultiplier: choice === "interrogate" ? 2 : 1
+        }
+      }));
+      renderDebugTools();
+    }));
+    root.querySelectorAll("[data-debug-mission]").forEach((button) => button.addEventListener("click", () => {
+      const mission = MISSIONS.find((entry) => entry.id === button.dataset.debugMission);
+      if (mission && !mission.comingSoon) onStartMission(save, mission);
+    }));
+    root.querySelector("[data-debug-restore]")?.addEventListener("click", () => {
+      if (!debugSnapshot) return;
+      save = writeSave(normalizeSave(JSON.parse(debugSnapshot)));
+      debugSnapshot = null;
+      introducedViews.clear();
+      investigatedClues.clear();
+      view = "plaza";
+      render();
+    });
+  };
+
   const render = () => {
     if (choosingSaveSlot) return renderSaveSlots();
     if (!save.character) return renderCreator();
@@ -1002,6 +1074,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     if (view === "kagemori") return renderKagemori();
     if (view === "dojo") return renderDojo();
     if (view === "archive") return renderArchive();
+    if (view === "debug") return renderDebugTools();
     if (VILLAGE_SERVICES[view]) return renderVillageService(view);
     return renderPlaza();
   };

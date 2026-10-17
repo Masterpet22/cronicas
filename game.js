@@ -1,10 +1,10 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.53.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.56.0";
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.55.0";
-import { awardEncounter, completeMission, derivedStats, loadSave, masterIdForCharacter, writeSave } from "./src/save.js?v=0.55.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.56.0";
+import { awardEncounter, completeMission, derivedStats, loadSave, masterIdForCharacter, writeSave } from "./src/save.js?v=0.56.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { SAVE_KEY, affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, derivedStats, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, selectMaster, selectSaveSlot, spendAttribute, writeSave } from "../src/save.js";
+import { DEBUG_CHECKPOINTS, SAVE_KEY, affinityXpForElement, applyDebugCheckpoint, awardEncounter, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, derivedStats, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, selectMaster, selectSaveSlot, spendAttribute, writeSave } from "../src/save.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
 assert.equal(SAVE_VERSION, 10, "Las tres ranuras deben guardar maestro, mapa, misión del doctor y avisos vistos");
@@ -100,6 +100,16 @@ assert.equal(canyonComplete.campaign.masterSelectionUnlocked, true, "Cerrar la p
 const meiStudent = selectMaster(canyonComplete, "mei");
 assert.equal(meiStudent.character.masterId, "mei", "La elección libre debe persistir después de la saga");
 assert.equal(derivedStats(meiStudent).damageReduction, 2, "Mei debe reducir el daño recibido");
+
+assert.equal(DEBUG_CHECKPOINTS.length, 5, "El depurador debe ofrecer puntos de control para todo el flujo tutorial disponible");
+const debugCoins = canyonComplete.progression.coins;
+const missionTwoReady = applyDebugCheckpoint(canyonComplete, "mission-2-ready");
+assert.deepEqual(missionTwoReady.campaign.completedMissions, ["m01"], "El punto de control de misión 2 debe dejar solamente la misión 1 completada");
+assert.equal(missionTwoReady.campaign.banditBossMissionUnlocked, true, "El punto de control debe desbloquear el Desfiladero");
+assert.equal(missionTwoReady.progression.coins, debugCoins, "Los puntos de control no deben entregar ni retirar monedas");
+const libraryReady = applyDebugCheckpoint(save, "library-ready");
+assert.equal(libraryReady.campaign.doctorMissionCompleted, true, "El último punto de control debe completar la búsqueda del doctor");
+assert.equal(libraryReady.campaign.archiveUnlocked, true, "El último punto de control debe abrir la Biblioteca");
 
 const dualAffinity = normalizeSave({ ...campaignSave, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, loadout: ["lightning_spark"] });
 assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");
