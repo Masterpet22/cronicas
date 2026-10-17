@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
-import { SAVE_KEY, affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, derivedStats, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, selectSaveSlot, spendAttribute, writeSave } from "../src/save.js";
+import { SAVE_KEY, affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, derivedStats, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, selectMaster, selectSaveSlot, spendAttribute, writeSave } from "../src/save.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 9, "Las tres ranuras deben usar la novena versión del guardado");
+assert.equal(SAVE_VERSION, 10, "Las tres ranuras deben guardar maestro, mapa, misión del doctor y avisos vistos");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
 assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
 assert.equal(save.character.bodyType, "female", "El cuerpo elegido debe guardarse");
+assert.equal(save.character.masterId, "daichi", "El avatar femenino debe comenzar con Daichi");
 assert.equal(save.character.hair, 4, "El peinado elegido debe guardarse");
 assert.equal(save.loadout.length, 2, "El personaje debe comenzar con dos técnicas");
 assert.equal(new Set(save.loadout).size, 2, "La selección inicial no debe duplicar técnicas");
@@ -34,7 +35,8 @@ deleteSaveSlot(2, slotStorage);
 assert.equal(listSaveSlots(slotStorage)[1].save, null, "Una ranura borrada debe quedar disponible para una partida nueva");
 
 const initialStats = derivedStats(save);
-assert.equal(initialStats.damageBonus, 2, "El kunai inicial debe sumar daño");
+assert.equal(initialStats.damageBonus, 5, "Daichi y el kunai inicial deben sumar fuerza");
+assert.equal(initialStats.damageReduction, 0, "Daichi no debe conceder la ventaja defensiva de Mei");
 assert.equal(initialStats.maxChakra, 90, "El amuleto inicial debe sumar chakra");
 
 save.progression.attributePoints = 1;
@@ -91,8 +93,13 @@ assert.equal(storyState.campaign.banditBossMissionUnlocked, true, "El hallazgo d
 const interrogated = normalizeSave({ ...storyState, campaign: { ...storyState.campaign, banditPrisonerChoice: "interrogate", nextSideMissionGoldMultiplier: 2 } });
 assert.equal(interrogated.campaign.nextSideMissionGoldMultiplier, 2, "Interrogar debe conservar el multiplicador de monedas");
 const canyonComplete = completeMission(interrogated, "m11").save;
-assert.equal(canyonComplete.campaign.archiveUnlocked, true, "Vencer a Akumori debe desbloquear la Biblioteca");
-assert.equal(canyonComplete.campaign.sayoRelicPending, true, "El medallón debe quedar pendiente de entrega a Sayo");
+assert.equal(canyonComplete.campaign.archiveUnlocked, false, "Vencer a Akumori todavía no debe desbloquear la Biblioteca");
+assert.equal(canyonComplete.campaign.cipherMapObtained, true, "Akumori debe dejar el mapa cifrado");
+assert.equal(canyonComplete.campaign.doctorMissionUnlocked, true, "El mapa debe activar la misión del doctor");
+assert.equal(canyonComplete.campaign.masterSelectionUnlocked, true, "Cerrar la primera saga debe permitir elegir maestro");
+const meiStudent = selectMaster(canyonComplete, "mei");
+assert.equal(meiStudent.character.masterId, "mei", "La elección libre debe persistir después de la saga");
+assert.equal(derivedStats(meiStudent).damageReduction, 2, "Mei debe reducir el daño recibido");
 
 const dualAffinity = normalizeSave({ ...campaignSave, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, loadout: ["lightning_spark"] });
 assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");

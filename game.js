@@ -1,10 +1,10 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.22.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.53.0";
 import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.48.7";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.24.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.55.0";
+import { awardEncounter, completeMission, derivedStats, loadSave, masterIdForCharacter, writeSave } from "./src/save.js?v=0.55.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 
@@ -105,7 +105,7 @@ class MissionTravelScene extends Phaser.Scene {
     if (!this.textures.exists("archive-location")) this.load.image("archive-location", "assets/locations/archive.webp?v=0.22.0");
     if (!this.textures.exists("village-map")) this.load.image("village-map", "assets/village/aldea.webp?v=0.22.0");
     if (activeMission?.id === "m11") {
-      const master = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
+      const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
       if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.22.0`);
     }
     queuePlayerFighterTextures(this, playerFighterAppearance(activeSave));
@@ -190,7 +190,7 @@ class BattleScene extends Phaser.Scene {
     });
     if (activeMission?.id === "m11") {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.png?v=0.22.0");
-      const master = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
+      const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
       if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.22.0`);
     }
     loadUiIcons(this);
@@ -801,8 +801,6 @@ class BattleScene extends Phaser.Scene {
     if (jutsu.type === "guard") await this.playerGuard();
     else await this.playerAttack(jutsu, casting);
 
-    if (this.enemy.hp > 0 && this.saveData.equipment.companion && this.round % 2 === 0) await this.companionAttack();
-
     if (await this.resolveEnemyOutcome()) return;
 
     if (!enemyFirst) {
@@ -906,7 +904,7 @@ class BattleScene extends Phaser.Scene {
     add(this.add.rectangle(WIDTH / 2, 62, 650, 86, 0x031220, 0.94).setStrokeStyle(1, 0x55c9ff, 0.85).setDepth(90));
     add(this.add.text(WIDTH / 2, 45, "FASE 2 · INVESTIGACIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(91));
     const clueText = add(this.add.text(WIDTH / 2, 78, "Examina los tres rastros antes de continuar.", this.textStyle(12, "#eaf4fb", "700")).setOrigin(0.5).setDepth(91));
-    const masterKey = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
+    const masterKey = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
     add(this.add.image(890, 545, masterKey).setOrigin(0.5, 1).setDisplaySize(205, 246).setDepth(72));
     const positions = [
       {
@@ -953,7 +951,7 @@ class BattleScene extends Phaser.Scene {
         label.setText(`✓ ${entry.label}`).setColor("#9ff0cf");
         clueText.setText(`${entry.clue} · ${found.size}/3 pistas`);
         if (found.size === positions.length) {
-          const masterName = activeSave.character.bodyType === "male" ? "Mei Hayate" : "Daichi Kazan";
+          const masterName = masterIdForCharacter(activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
           clueText.setText(`${masterName}: «El rastro converge en la vieja cantera. Sigamos.»`);
           continueButton.setAlpha(1).setInteractive({ useHandCursor: true });
           continueLabel.setText("SEGUIR EL RASTRO").setColor("#f4f8fb");
@@ -976,7 +974,7 @@ class BattleScene extends Phaser.Scene {
     add(this.add.rectangle(168, 105, 4, 330, 0x3fcaff, 1).setOrigin(0, 0).setDepth(72));
     add(this.add.text(WIDTH / 2, 132, "DECISIÓN DE MISIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(73));
     add(this.add.text(WIDTH / 2, 180, "El teniente está derrotado y conoce la ruta del campamento.\nTu decisión quedará registrada.", { ...this.textStyle(16, "#f4f0e8", "700"), align: "center", lineSpacing: 8 }).setOrigin(0.5).setDepth(73));
-    add(this.add.text(330, 250, "INTERROGAR\nConserva información para el Tablón\nMonedas del próximo encargo ×2", { ...this.textStyle(12, "#caffea", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
+    add(this.add.text(330, 250, "INTERROGAR Y PERDONAR\nRevela la entrada secreta\nMonedas del próximo encargo ×2", { ...this.textStyle(12, "#caffea", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
     add(this.add.text(630, 250, "ELIMINAR\nPierdes la bonificación de monedas\nAkumori estará prevenido", { ...this.textStyle(12, "#ffb8ad", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
     const makeChoice = (x, label, color, value) => {
       const bg = add(this.add.rectangle(x, 350, 220, 44, 0x0d2638, 1).setStrokeStyle(1.5, color, 1).setInteractive({ useHandCursor: true }).setDepth(73));
@@ -1000,7 +998,7 @@ class BattleScene extends Phaser.Scene {
     const relic = this.add.circle(WIDTH / 2, 245, 42, 0x17111f, 1).setStrokeStyle(4, 0xf0b85c, 0.95).setDepth(72).setScale(0.2);
     const mark = this.add.text(WIDTH / 2, 245, "◆", this.textStyle(30, "#f0b85c", "800", true)).setOrigin(0.5).setDepth(73).setAlpha(0);
     const title = this.add.text(WIDTH / 2, 320, "OBJETO OBTENIDO", this.textStyle(12, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(73).setAlpha(0);
-    const name = this.add.text(WIDTH / 2, 350, "MEDALLÓN DE OBSIDIANA", this.textStyle(19, "#f4f0e8", "800", true)).setOrigin(0.5).setDepth(73).setAlpha(0);
+    const name = this.add.text(WIDTH / 2, 350, String(this.mission.relic || "MAPA CIFRADO").toUpperCase(), this.textStyle(19, "#f4f0e8", "800", true)).setOrigin(0.5).setDepth(73).setAlpha(0);
     await this.tween({ targets: shade, alpha: 1, duration: 180 });
     await this.tween({ targets: relic, scale: 1, duration: 420, ease: "Back.out" });
     await this.tween({ targets: [mark, title, name], alpha: 1, duration: 280 });
@@ -1367,7 +1365,8 @@ class BattleScene extends Phaser.Scene {
 
   async enemyTurn(action) {
     const rawDamage = Phaser.Math.Between(action.damage[0], action.damage[1]);
-    const damage = this.player.guarding ? Math.ceil(rawDamage * 0.5) : rawDamage;
+    const reducedDamage = Math.max(1, rawDamage - this.player.damageReduction);
+    const damage = this.player.guarding ? Math.ceil(reducedDamage * 0.5) : reducedDamage;
     const chance = hitChance(this.enemy, this.player, action);
     const originX = this.foe.body.x;
     const originShadowX = this.foe.shadow.x;
@@ -1858,7 +1857,7 @@ class ResultsScene extends Phaser.Scene {
     const abandoned = outcome === "abandoned";
     const title = completed ? "MISIÓN COMPLETADA" : abandoned ? "MISIÓN ABANDONADA" : "MISIÓN FALLIDA";
     const subtitle = completed ? "El objetivo ha sido cumplido." : abandoned ? "Regresas a la aldea para reorganizarte." : "La misión termina, pero conservas lo aprendido.";
-    const masterName = activeSave.character.bodyType === "male" ? "Mei Hayate" : "Daichi Kazan";
+    const masterName = masterIdForCharacter(activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
     const masterLine = data.decision === "interrogate"
       ? `${masterName}: «La información que conservaste ayudará al próximo encargo.»`
       : data.decision === "eliminate"

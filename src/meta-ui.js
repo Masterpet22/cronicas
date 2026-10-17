@@ -1,7 +1,7 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.20.0";
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.22.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.53.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.22.0";
-import { activeSaveSlot, affinityXpForElement, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.24.0";
+import { activeSaveSlot, affinityXpForElement, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, masterIdForCharacter, selectMaster, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.54.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 
 const COMING_SOON_LOCATIONS = {
@@ -11,7 +11,7 @@ const COMING_SOON_LOCATIONS = {
   inn: { npcId: "yuna", message: "La Posada aún está preparando sus servicios. Próximamente podrás descansar, conversar con aliados y descubrir escenas entre misiones." },
   arena: { npcId: "goro", message: "La Arena de Combate todavía está en preparación. Próximamente podrás practicar, probar configuraciones y disputar combates sin afectar la campaña." }
 };
-const masterForCharacter = (character) => character.bodyType === "male" ? NPCS.mei : NPCS.daichi;
+const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
 
 const welcomeDialogue = (character) => {
   const master = masterForCharacter(character).name;
@@ -80,14 +80,14 @@ function activeMissionObjectives(save) {
   const completed = new Set(campaign.completedMissions);
   const objectives = [];
 
-  if (campaign.sayoRelicPending) {
+  if (campaign.doctorMissionUnlocked && !campaign.doctorMissionCompleted) {
     objectives.push({
-      id: "delivery:obsidian-medallion",
-      type: "ENTREGA",
-      title: "Medallón de obsidiana",
-      detail: "Lleva el medallón a Sayo en la Biblioteca.",
-      destination: "Biblioteca",
-      view: "archive"
+      id: "secondary:s02",
+      type: "BÚSQUEDA",
+      title: SECONDARY_MISSIONS[1].title,
+      detail: "Encuentra al doctor Haru Takamine para descifrar el mapa.",
+      destination: "Tablón de Misiones",
+      view: "missions"
     });
   }
 
@@ -452,8 +452,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const renderPlaza = () => {
     const boardReady = save.campaign.secondaryBoardUnlocked;
-    const nextObjective = save.campaign.sayoRelicPending
-      ? "archive"
+    const nextObjective = save.campaign.doctorMissionUnlocked && !save.campaign.doctorMissionCompleted
+      ? "missions"
       : boardReady && !save.campaign.kagemoriInvestigated
         ? "missions"
         : "headquarters";
@@ -674,13 +674,19 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       return;
     }
     const mission = SECONDARY_MISSIONS[0];
+    const doctorMission = SECONDARY_MISSIONS[1];
     const completed = save.campaign.kagemoriInvestigated;
+    const doctorAvailable = save.campaign.doctorMissionUnlocked && !save.campaign.doctorMissionCompleted;
     const choiceBonus = save.campaign.banditPrisonerChoice === "interrogate"
       ? `<div class="notice-card ally"><strong>Información aprovechada</strong><span>El próximo encargo del Tablón entregará monedas ×2.</span></div>`
       : save.campaign.banditPrisonerChoice === "eliminate"
         ? `<div class="notice-card"><strong>Sin información adicional</strong><span>La bonificación de monedas se perdió.</span></div>`
         : "";
-    const content = `<section class="stage-panel mission-board" data-comment="Sayo publicó este encargo después de seguir a los bandidos desde el Bosque del Este."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${completed ? "0" : "1"} disponible${completed ? "s" : ""}</strong></div><p class="lead">Los encargos opcionales revelan pistas y rutas que pueden abrir nuevas misiones de historia.</p>${choiceBonus}<div class="mission-list"><article class="mission-card ${completed ? "completed" : ""}"><div class="mission-number">01</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${mission.rank}</p><h3>${mission.title}</h3><p>${mission.location} · ${mission.duration} · Investigación sin combate</p></div><button type="button" data-investigation ${completed ? "disabled" : ""}>${completed ? "COMPLETADA" : "INVESTIGAR"}</button></article></div></section>`;
+    const availableCount = Number(!completed) + Number(doctorAvailable);
+    const doctorCard = save.campaign.doctorMissionUnlocked
+      ? `<article class="mission-card ${save.campaign.doctorMissionCompleted ? "completed" : ""}"><div class="mission-number">02</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${doctorMission.rank}</p><h3>${doctorMission.title}</h3><p>${doctorMission.location} · ${doctorMission.duration} · Tres fases de rutas</p></div><button type="button" disabled>${save.campaign.doctorMissionCompleted ? "COMPLETADA" : "RUTAS EN PREPARACIÓN"}</button></article>`
+      : "";
+    const content = `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Los encargos opcionales revelan pistas y rutas que pueden abrir nuevas misiones de historia.</p>${choiceBonus}<div class="mission-list"><article class="mission-card ${completed ? "completed" : ""}"><div class="mission-number">01</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${mission.rank}</p><h3>${mission.title}</h3><p>${mission.location} · ${mission.duration} · Investigación sin combate</p></div><button type="button" data-investigation ${completed ? "disabled" : ""}>${completed ? "COMPLETADA" : "INVESTIGAR"}</button></article>${doctorCard}</div></section>`;
     shell(locationStage("missions", content));
     root.querySelector("[data-investigation]")?.addEventListener("click", () => {
       showDialogue(mission.briefing, () => onStartMission(save, mission), "VIAJAR A KAGEMORI", "story");
@@ -720,7 +726,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       window.setTimeout(() => showDialogue([
         ["Iori Kagemori", "Las tres señales coinciden. No vinieron a saquear al azar: reunieron comida, herramientas y mapas para abastecer un campamento."],
         ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
-        ["Nami Kurose", "Hay una entrada oculta tras la cascada. Lleva esta información a Sayo; allí encontrarás la guarida y al jefe de los bandidos."]
+        ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Lleva esta información a Sayo; el rastro continúa en la vieja cantera."]
       ], () => {
         save.campaign.kagemoriInvestigated = true;
         save.campaign.banditBossMissionUnlocked = true;
@@ -748,6 +754,12 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     const { progression, character } = save;
     const elementRank = save.campaign.elementRank;
     const affinities = character.affinities;
+    const currentMasterId = masterIdForCharacter(character);
+    const masterSelectionUnlocked = save.campaign.masterSelectionUnlocked;
+    const masterCards = [
+      { id: "mei", npc: NPCS.mei, advantage: "Disciplina defensiva", detail: "Reduce en 2 el daño de cada impacto recibido." },
+      { id: "daichi", npc: NPCS.daichi, advantage: "Fuerza de la montaña", detail: "Añade 3 puntos al daño de todos tus ataques." }
+    ].map(({ id, npc, advantage, detail }) => `<button class="master-option ${currentMasterId === id ? "selected" : ""}" type="button" data-master="${id}" ${masterSelectionUnlocked ? "" : "disabled"}><img src="${npc.image}?v=${ASSET_VERSION}" alt="" width="1145" height="1374"><span><strong>${npc.name}</strong><small>${advantage}</small><em>${detail}</em></span><b>${currentMasterId === id ? "MAESTRO ACTUAL" : masterSelectionUnlocked ? "ELEGIR" : "BLOQUEADO"}</b></button>`).join("");
     const techniqueCapacity = loadoutSlotsForLevel(progression.level);
     const affinitySlots = Array.from({ length: 3 }, (_, index) => {
       const slotRank = index + 1;
@@ -816,6 +828,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         </div>
         <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance">
           <section class="appearance-panel"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3><p>Los cambios se reflejan también durante el combate. El tipo de cuerpo pertenece a la partida y no puede modificarse aquí.</p></div><span>Opcional</span></div><div class="customizer">${characterPreview(character)}<div class="cosmetic-grid"><label>Rostro<select data-cosmetic="face">${numberedOptions(3, character.face, "Rostro")}</select></label><label>Cabello<select data-cosmetic="hair">${numberedOptions(5, character.hair, "Peinado")}</select></label><label>Parte superior<select data-cosmetic="top">${numberedOptions(3, character.top, "Prenda")}</select></label><label>Parte inferior<select data-cosmetic="bottom">${numberedOptions(3, character.bottom, "Pantalón")}</select></label><label>Calzado<select data-cosmetic="shoes">${numberedOptions(2, character.shoes, "Calzado")}</select></label></div></div></section>
+          <section class="master-selection"><div class="dojo-section-heading"><div><h3>Maestro</h3><p>Tu maestro aporta una ventaja pasiva sin entrar al combate. Los duelos de esta saga siguen siendo uno contra uno.</p></div><span>${masterSelectionUnlocked ? "ELECCIÓN DISPONIBLE" : "SE DESBLOQUEA AL COMPLETAR LA SAGA 1"}</span></div><div class="master-options">${masterCards}</div></section>
         </div>
         <p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
       </section>
@@ -950,6 +963,12 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       persistDojo(save);
     }));
 
+    root.querySelectorAll("[data-master]").forEach((button) => button.addEventListener("click", () => {
+      if (!save.campaign.masterSelectionUnlocked) return;
+      save = writeSave(selectMaster(save, button.dataset.master));
+      renderDojo();
+    }));
+
     root.querySelectorAll("[data-jutsu]").forEach((input) => input.addEventListener("change", () => {
       const id = input.dataset.jutsu;
       const message = root.querySelector("#dojo-message");
@@ -968,24 +987,11 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const renderArchive = () => {
     const completed = new Set(save.campaign.completedMissions);
-    const deliveryPending = save.campaign.sayoRelicPending;
-    if (deliveryPending) introducedViews.add("archive");
     const records = MISSIONS.map((mission) => `<li class="${completed.has(mission.id) ? "done" : ""}"><span>${completed.has(mission.id) ? "✓" : "·"}</span><div><strong>${mission.title}</strong><small>${completed.has(mission.id) ? "Completada" : "Sin completar"}</small></div></li>`).join("");
     const ending = completed.has("m10") ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>El amanecer regresa</h2><p>El Eclipse fue roto. Tu nombre queda registrado entre los guardianes de la aldea.</p></div>` : "";
     const content = `<section class="stage-panel archive-card" data-comment="Los registros verdes ya están completos. La décima crónica revelará el desenlace de la campaña."><p class="eyebrow">ARCHIVO</p><h2>Crónica de ${escapeHtml(save.character.name)}</h2><p class="lead">Rango ${save.campaign.rank} · ${completed.size} misiones · Compañero: ${save.campaign.companion ? "Mika" : "ninguno"}</p><ol>${records}</ol>${ending}</section>`;
     shell(locationStage("archive", content));
     bindLocationStage("archive");
-    if (deliveryPending) {
-      window.setTimeout(() => showDialogue([
-        ["Sayo Kisaragi", `${save.character.name}, el medallón que recuperaste de Akumori lleva la marca de la red que saquea las aldeas vecinas.`],
-        ["Sayo Kisaragi", "Obsidiana tallada con un sello mayor. Lo registraré aquí; desde hoy tendrás acceso a la Biblioteca y a sus informes."],
-        ["Sayo Kisaragi", "Tu decisión con el teniente también queda asentada. Sus consecuencias aparecerán en los próximos encargos."]
-      ], () => {
-        save.campaign.sayoRelicPending = false;
-        save.campaign.sayoRelicDelivered = true;
-        persist(save);
-      }, "ENTREGAR MEDALLÓN", "story"), 0);
-    }
   };
 
   const render = () => {

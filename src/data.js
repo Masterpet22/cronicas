@@ -135,10 +135,16 @@ export const ENEMY_ROSTER = {
     colors: { cloth: 0x755744, accent: 0x2d1e19 }
   },
   boss_akumori: {
-    name: "AKUMORI, JEFE DEL DESFILADERO", hp: 118, speed: 12, accuracy: 94, evasion: 8,
+    name: "AKUMORI, CAPATAZ DEL CUERVO", hp: 118, speed: 12, accuracy: 94, evasion: 8,
     weakness: "lightning", resistance: "physical", pattern: ["heavy", "quick", "toxin"],
     phase2Pattern: ["ember", "heavy", "quick", "toxin"], boss: true,
     colors: { cloth: 0x6d3e48, accent: 0x25131a }
+  },
+  boss_raizen: {
+    name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", hp: 168, speed: 13, accuracy: 96, evasion: 9,
+    weakness: "wind", resistance: "physical", pattern: ["heavy", "quick", "ember"],
+    phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true, future: true,
+    colors: { cloth: 0x4b3341, accent: 0x170d15 }
   },
   gate_guard: {
     name: "GUARDIÁN DEL PASO", hp: 68, speed: 10, accuracy: 90, evasion: 5,
@@ -214,6 +220,20 @@ export const SECONDARY_MISSIONS = [
       ["Sayo Kisaragi", "Perdí el rastro de los saqueadores en la Aldea de Kagemori. El ataque fue reciente y todavía deben quedar señales de su ruta."],
       ["Sayo Kisaragi", "Habla con los supervivientes e investiga la carreta, la plaza y el pozo. No busques pelea: necesitamos saber adónde llevaron lo robado."]
     ]
+  },
+  {
+    id: "s02", number: 2, type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
+    unlockFlag: "doctorMissionUnlocked", comingSoon: true, routeMode: "pending",
+    reward: { xp: 45, coins: 30 },
+    routeEvents: [
+      { id: "counsel", label: "Consejo del camino", type: "dialogue", description: "Un viajero comparte una advertencia útil para el resto de la búsqueda." },
+      { id: "danger", label: "Rastro hostil", type: "combat", description: "Un enemigo bloquea el paso en un combate individual." },
+      { id: "clear", label: "Camino despejado", type: "advance", description: "La ruta permite avanzar sin interrupciones." }
+    ],
+    briefing: [
+      ["Sayo Kisaragi", "El mapa de Akumori está cifrado. Busca al doctor Haru Takamine; sus viajes le han enseñado a leer marcas de caminos olvidados."],
+      ["Sayo Kisaragi", "Tendrás que escoger una de tres rutas durante tres fases. No todas esconden peligro, pero todas te acercan al doctor."]
+    ]
   }
 ];
 
@@ -274,7 +294,7 @@ export const MISSIONS = [
   {
     id: "m11", number: 2, title: "Asalto al Desfiladero del Cuervo", location: "Ruta de la cantera", duration: "12–15 min", rank: "D",
     encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { xp: 95, coins: 80 },
-    unlockFlag: "banditBossMissionUnlocked", scriptedPhases: true, relic: "Medallón de obsidiana",
+    unlockFlag: "banditBossMissionUnlocked", scriptedPhases: true, relic: "Mapa cifrado",
     briefing: [["Ren Arashiro", "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera."]]
   }
 ];

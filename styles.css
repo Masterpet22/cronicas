@@ -300,6 +300,19 @@ input, select, button { font: inherit; }
 .appearance-panel summary::-webkit-details-marker { display: none; }
 .appearance-panel summary span { color: #65748a; font-size: .55rem; }
 .appearance-panel .customizer { padding: 0 12px 12px; }
+.appearance-panel > .dojo-section-heading { padding: 12px 12px 0; }
+.master-selection { margin-top: 12px; border: 1px solid rgba(72,88,112,.55); border-radius: 10px; padding: 12px; background: rgba(8,14,23,.68); }
+.master-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.master-option { position: relative; display: grid; grid-template-columns: 58px minmax(0, 1fr); align-items: center; gap: 10px; min-height: 92px; border: 1px solid #34455c; border-radius: 10px; padding: 9px; background: linear-gradient(145deg, rgba(22,33,48,.96), rgba(9,15,24,.98)); color: #e8edf4; text-align: left; cursor: pointer; }
+.master-option:hover:not(:disabled), .master-option:focus-visible { border-color: #f5a357; outline: none; }
+.master-option.selected { border-color: #67c8e8; box-shadow: inset 0 0 20px rgba(71,185,225,.12); }
+.master-option:disabled { cursor: not-allowed; filter: saturate(.55); opacity: .7; }
+.master-option img { width: 58px; height: 72px; object-fit: cover; object-position: top; border-radius: 7px; background: #111a27; }
+.master-option span { display: grid; min-width: 0; gap: 3px; }
+.master-option strong { font: 700 .72rem "Cinzel", Georgia, serif; }
+.master-option small { color: #83d8ff; font-size: .58rem; font-weight: 800; text-transform: uppercase; }
+.master-option em { color: #8e9daf; font-size: .57rem; font-style: normal; line-height: 1.35; }
+.master-option b { position: absolute; top: 7px; right: 8px; color: #f5b978; font-size: .47rem; letter-spacing: .06em; }
 
 .save-selector { width: min(1120px, calc(100% - 40px)); margin: 42px auto; padding: 34px; border: 1px solid rgba(85,201,255,.62); border-radius: 14px; background: linear-gradient(145deg, rgba(3,18,32,.98), rgba(5,12,23,.96)); box-shadow: 0 24px 70px rgba(0,0,0,.42); }
 .save-selector > h2 { margin: 4px 0 8px; color: #f4f0e8; font-family: "Cinzel", Georgia, serif; font-size: clamp(1.7rem, 3vw, 2.55rem); }
@@ -1741,6 +1754,7 @@ button:focus-visible {
   .game-settings-panel { padding: 26px 22px; }
   .saga-card { padding: 24px 28px; }
   .mission-card { padding: 18px 24px; }
+  .master-options { grid-template-columns: 1fr; }
 }
 
 .village-topbar .summary-item b,

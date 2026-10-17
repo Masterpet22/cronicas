@@ -1,14 +1,23 @@
-import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.22.0";
+import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS } from "./data.js?v=0.53.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 const SAVE_SLOTS_MIGRATED_KEY = `${SAVE_KEY}-slots-migrated`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 10;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm", companion: null };
 const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
+export const MASTER_IDS = Object.freeze(["mei", "daichi"]);
+
+export function assignedMasterId(bodyType) {
+  return bodyType === "female" ? "daichi" : "mei";
+}
+
+export function masterIdForCharacter(character) {
+  return MASTER_IDS.includes(character?.masterId) ? character.masterId : assignedMasterId(character?.bodyType);
+}
 
 export function createDefaultSave() {
   return {
@@ -38,7 +47,12 @@ export function createDefaultSave() {
       archiveUnlocked: false,
       sayoRelicPending: false,
       sayoRelicDelivered: false,
-      seenMissionNotices: []
+      seenMissionNotices: [],
+      cipherMapObtained: false,
+      doctorMissionUnlocked: false,
+      doctorMissionCompleted: false,
+      bestiaryBookObtained: false,
+      masterSelectionUnlocked: false
     }
   };
 }
@@ -72,7 +86,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
+    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     loadout: initialLoadout(cleanAffinity),
@@ -105,6 +119,8 @@ export function normalizeSave(candidate) {
     const stored = Number(candidate.character?.affinityXp?.[id]);
     return [id, Number.isFinite(stored) ? Math.max(0, Math.floor(stored)) : (id === affinity ? 50 : 0)];
   }));
+  const bodyType = candidate.character?.bodyType === "female" ? "female" : "male";
+  const masterId = MASTER_IDS.includes(candidate.character?.masterId) ? candidate.character.masterId : assignedMasterId(bodyType);
   const normalizedCharacter = { affinityXp };
   const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => isTechniqueLearned({ character: normalizedCharacter, progression: { level } }, jutsu) && canAccessElement(jutsu.element, affinities, elementRank)).map((jutsu) => jutsu.id));
   const requestedLoadout = Array.isArray(candidate.loadout) ? candidate.loadout : initialLoadout(affinity);
@@ -121,7 +137,8 @@ export function normalizeSave(candidate) {
       affinities,
       affinityXp,
       appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5",
-      bodyType: candidate.character.bodyType === "female" ? "female" : "male",
+      bodyType,
+      masterId,
       face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
       hair: Math.min(5, Math.max(1, Math.floor(Number(candidate.character.hair) || 1))),
       top: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.top) || 1))),
@@ -163,7 +180,12 @@ export function normalizeSave(candidate) {
       sayoRelicDelivered: Boolean(candidate.campaign?.sayoRelicDelivered),
       seenMissionNotices: [...new Set(Array.isArray(candidate.campaign?.seenMissionNotices) ? candidate.campaign.seenMissionNotices : [])]
         .filter((id) => typeof id === "string" && /^[a-z0-9:_-]+$/i.test(id))
-        .slice(-50)
+        .slice(-50),
+      cipherMapObtained: Boolean(candidate.campaign?.cipherMapObtained) || completedMissions.includes("m11"),
+      doctorMissionUnlocked: Boolean(candidate.campaign?.doctorMissionUnlocked) || completedMissions.includes("m11"),
+      doctorMissionCompleted: Boolean(candidate.campaign?.doctorMissionCompleted),
+      bestiaryBookObtained: Boolean(candidate.campaign?.bestiaryBookObtained),
+      masterSelectionUnlocked: Boolean(candidate.campaign?.masterSelectionUnlocked) || completedMissions.includes("m11")
     }
   };
 }
@@ -279,8 +301,9 @@ export function completeMission(save, missionId) {
   result.campaign.completedMissions.push(missionId);
   if (missionId === "m02") result.campaign.companion = "mika";
   if (missionId === "m11") {
-    result.campaign.archiveUnlocked = true;
-    result.campaign.sayoRelicPending = true;
+    result.campaign.cipherMapObtained = true;
+    result.campaign.doctorMissionUnlocked = true;
+    result.campaign.masterSelectionUnlocked = true;
   }
   if (mission.exam) result.campaign.rank = "Guardián";
   if (mission.exam) result.campaign.elementRank = Math.max(2, result.campaign.elementRank);
@@ -315,11 +338,21 @@ export function derivedStats(save) {
     evasion: 8 + agility,
     damageBonus: power,
     costReduction: 0,
-    xpBonus: 0
+    xpBonus: 0,
+    damageReduction: 0
   };
   Object.entries(normalized.equipment).forEach(([type, id]) => {
     const item = EQUIPMENT[type]?.find((entry) => entry.id === id);
     Object.entries(item?.bonuses || {}).forEach(([stat, value]) => { stats[stat] += value; });
   });
+  if (masterIdForCharacter(normalized.character) === "mei") stats.damageReduction += 2;
+  else stats.damageBonus += 3;
   return stats;
+}
+
+export function selectMaster(save, masterId) {
+  const result = normalizeSave(save);
+  if (!result.campaign.masterSelectionUnlocked || !MASTER_IDS.includes(masterId)) return result;
+  result.character.masterId = masterId;
+  return result;
 }

@@ -391,6 +391,7 @@
   .dojo-section,
   .skill-tree,
   .appearance-panel,
+  .master-selection,
   .affinity-selector {
     border-color: rgba(151, 109, 72, .5);
     background: rgba(35, 28, 23, .9);
