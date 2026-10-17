@@ -11,6 +11,7 @@ const metaUi = readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8
 assert.doesNotMatch(metaUi, /data-cosmetic="bodyType"/, "El Dojo no debe permitir cambiar el tipo de cuerpo de una partida");
 assert.match(metaUi, /listSaveSlots\(\)/, "La interfaz debe mostrar las tres ranuras de partida");
 const styles = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+const desktop = readFileSync(new URL("../desktop.css", import.meta.url), "utf8");
 
 assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
 assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
@@ -103,6 +104,9 @@ assert.match(battle, /Aldea de Kagemori/, "Sayo debe señalar Kagemori como el l
 assert.match(battle, /activeMission\?\.type === "investigation"/, "El viaje de investigación debe abrir la zona explorable en lugar de iniciar un combate");
 assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las investigaciones secundarias deben tener resultados propios");
 assert.match(battle, /playInvestigationPhase\(\)/, "La segunda misión principal debe incluir una fase de investigación");
+assert.match(battle, /label: "CARRETA"[\s\S]*points: \[-132, -82[\s\S]*label: "CENIZAS"[\s\S]*points: \[-137, -67[\s\S]*label: "HUELLAS"[\s\S]*points: \[-67, -104/, "Las pistas deben delimitar la carreta, las cenizas y las huellas con marcos adaptados a cada elemento");
+assert.match(battle, /this\.add\.polygon\(entry\.x, entry\.y, entry\.points, 0x3fcaff, 0\.015\)/, "Las pistas deben usar marcos poligonales transparentes en lugar de círculos");
+assert.match(battle, /marker\.on\("pointerover"[\s\S]*setFillStyle\(0x3fcaff, 0\.2\)[\s\S]*marker\.on\("pointerout"[\s\S]*setFillStyle\(0x3fcaff, 0\.015\)/, "Los marcos de pista deben volverse semitransparentes al pasar el cursor");
 assert.match(battle, /playPrisonerChoice\(\)/, "El teniente derrotado debe abrir una decisión persistente");
 assert.match(battle, /nextSideMissionGoldMultiplier = choice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
 assert.match(battle, /punishedBoss[\s\S]*profile\.hp \+ \(punishedBoss \? 22 : 0\)/, "Eliminar al teniente debe fortalecer a Akumori");
@@ -159,7 +163,7 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.48\.0/, "El selector de partidas debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.48\.4/, "El selector de partidas debe invalidar la caché anterior");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
 assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");
@@ -181,11 +185,41 @@ assert.match(styles, /@media \(max-width: 1050px\), \(max-height: 650px\)/, "El 
 assert.match(metaUi, /mission\.briefing[\s\S]*"COMENZAR MISIÓN", "story"/, "Los diálogos de historia de una misión deben usar bocadillos");
 assert.match(metaUi, /bodyType === "male" \? NPCS\.mei : NPCS\.daichi/, "Mei debe enseñar al avatar masculino y Daichi al femenino");
 assert.match(metaUi, /data-clue="\$\{clue\.id\}"/, "Kagemori debe ofrecer puntos de investigación interactivos");
+assert.match(metaUi, /class="clue-hotspots" viewBox="0 0 1672 941"[\s\S]*class="clue-shape" d="\$\{clue\.path\}"/, "Kagemori debe superponer áreas SVG ajustadas a los elementos de la escena");
+assert.doesNotMatch(metaUi, /class="clue-hotspot[^>]+<span[^>]*>[?✓]/, "Las pistas de Kagemori no deben conservar círculos ni signos de interrogación");
+assert.match(styles, /\.clue-shape \{ fill: rgba\(255,158,82,0\); stroke: rgba\(255,188,112,0\);/, "Las áreas de pista deben ser totalmente transparentes en reposo");
+assert.match(styles, /\.clue-hotspot:hover \.clue-shape \{[\s\S]*drop-shadow/, "Las áreas de pista solo deben iluminarse al pasar el cursor");
+assert.match(metaUi, /area\.addEventListener\("click", collectClue\)/, "La pista debe obtenerse al pulsar su área completa");
+assert.match(metaUi, /locationId === "kagemori" && introduced \? "investigation-ready"/, "Kagemori debe recordar que el diálogo terminó al volver a dibujar la escena");
+assert.match(metaUi, /locationId === "kagemori"\) stage\.classList\.add\("investigation-ready"\)/, "Los personajes deben retirarse al terminar el diálogo de investigación");
+assert.match(desktop, /location-kagemori\.has-cast \[data-stage-npc="nami"\]\.stage-character:nth-child\(2\) \{[\s\S]*right: 0;[\s\S]*left: auto;/, "Nami debe quedar anclada al borde derecho de Kagemori con prioridad sobre el reparto genérico");
+assert.match(desktop, /location-kagemori:not\(\.investigation-ready\) \.stage-character\.active \{[\s\S]*opacity: 1;/, "El personaje que habla debe mostrarse sin transparencia");
+assert.match(desktop, /location-kagemori:not\(\.investigation-ready\) \.stage-character \{[\s\S]*opacity: \.42;/, "El personaje que escucha debe aparecer parcialmente transparente");
+assert.match(desktop, /location-kagemori\.investigation-ready \.stage-characters \{[\s\S]*opacity: 0;/, "Los personajes deben desaparecer al habilitarse las pistas");
+assert.match(desktop, /location-stage\.location-kagemori \.stage-speech \{[\s\S]*left: 23%;[\s\S]*width: 54%;[\s\S]*max-width: 650px;/, "El diálogo de Kagemori debe quedar centrado entre ambos personajes");
 assert.match(metaUi, /banditBossMissionUnlocked = true/, "Reunir las pistas debe desbloquear la segunda misión principal");
 assert.match(metaUi, /filter\(\(mission\) => !mission\.unlockFlag/, "Las misiones bloqueadas no deben renderizarse antes de cumplir su requisito");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
 assert.match(battle, /bodyType === "male" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el mismo maestro asignado");
 assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
 assert.doesNotMatch(battle, /const halo =|add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");
+
+assert.match(battle, /hideOnComplete: !effect\.projectile/, "El proyectil debe conservar su ultimo cuadro hasta alcanzar el objetivo");
+assert.match(battle, /await Promise\.all\([\s\S]*duration: 560[\s\S]*if \(!missed\) this\.createImpact[\s\S]*alpha: 0,[\s\S]*duration: 160[\s\S]*sprite\.destroy\(\)/, "Ascuas veloces debe llegar al objetivo antes de desvanecerse");
+assert.match(metaUi, /function activeMissionObjectives\(save\)/, "El HUD debe reunir los objetivos activos en un solo diario");
+assert.match(metaUi, /class="mission-dock"[\s\S]*class="story-mission-current"[\s\S]*storyObjective\?\.title/, "La misión principal actual debe permanecer visible en la barra inferior");
+assert.match(metaUi, /secondaryObjectives = missionObjectives\.filter[\s\S]*class="secondary-mission-menu[^\n]+has-unseen/, "El desplegable debe contener solo objetivos secundarios y avisar cuando haya novedades");
+assert.match(metaUi, /class="mission-target-icon"[\s\S]*<circle cx="16" cy="16" r="11"/, "El acceso a misiones secundarias debe usar un icono de blanco de tiro");
+assert.doesNotMatch(metaUi, /<span>Secundarias<\/span>|<b>\$\{secondaryObjectives\.length\}<\/b>/, "El botón de misiones secundarias debe mostrar únicamente el blanco de tiro");
+assert.match(metaUi, /seenMissionNotices:[\s\S]*secondaryObjectives\.map/, "Abrir el menú debe guardar los objetivos secundarios revisados");
+assert.doesNotMatch(metaUi, /const storyNotice|class="notice-card story-objective"/, "La plaza no debe conservar el letrero independiente de misión nueva");
+assert.match(styles, /\.secondary-mission-menu\.has-unseen \.mission-target-icon \{[\s\S]*animation: mission-target-pulse/, "El blanco de tiro naranja debe parpadear mientras haya misiones secundarias nuevas");
+assert.match(styles, /\.mission-dock \{[\s\S]*min-height: 36px;[\s\S]*background: transparent/, "La barra inferior debe ser compacta y mayormente transparente");
+assert.match(styles, /\.story-mission-current \{[\s\S]*background: rgba\(3, 13, 25, \.68\)/, "El título principal debe conservar un fondo semitransparente legible");
+assert.match(metaUi, /destination: "Biblioteca"[\s\S]*destination: "Tablón de Misiones"[\s\S]*destination: "Cuartel General"/, "Cada misión debe indicar el lugar de la aldea al que debe dirigirse el jugador");
+assert.match(metaUi, /class="mission-destination">IR A:/, "Las misiones secundarias deben mostrar visualmente su destino");
+assert.match(styles, /\.story-mission-current span \{[\s\S]*color: #f09a3e;[\s\S]*font-size: \.57rem;/, "El destino de la misión principal debe verse en naranja y con una fuente menor");
+assert.match(styles, /\.secondary-mission-item \.mission-destination \{ color: #f09a3e; font-size: \.62rem;/, "Los destinos secundarios deben verse en naranja y con una fuente menor");
+assert.match(styles, /\.player-settings-trigger \+ \.save-slots-trigger \{ margin-left: 10px; \}/, "Ajustes y Partidas deben conservar una separación visual clara");
 
 console.log("Pruebas de interfaz de combate superadas.");

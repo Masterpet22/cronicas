@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { SAVE_KEY, affinityXpForElement, awardEncounter, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, derivedStats, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, SAVE_VERSION, selectSaveSlot, spendAttribute, writeSave } from "../src/save.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 8, "Las tres ranuras deben usar la octava versión del guardado");
+assert.equal(SAVE_VERSION, 9, "Las tres ranuras deben usar la novena versión del guardado");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
 assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
@@ -83,6 +83,9 @@ const migrated = normalizeSave({ character: { name: "Legacy", affinity: "wind" }
 assert.deepEqual(migrated.character.affinities, ["viento"], "Los guardados anteriores deben migrar su afinidad básica");
 assert.equal(migrated.campaign.elementRank, 2, "El progreso anterior debe recuperar su rango elemental");
 assert.equal(migrated.campaign.secondaryBoardUnlocked, false, "Un guardado anterior debe iniciar el nuevo Tablón cerrado");
+assert.deepEqual(migrated.campaign.seenMissionNotices, [], "Un guardado anterior debe iniciar sin avisos de misión vistos");
+const noticesSeen = normalizeSave({ ...migrated, campaign: { ...migrated.campaign, seenMissionNotices: ["story:m01", "valor no válido", "story:m01"] } });
+assert.deepEqual(noticesSeen.campaign.seenMissionNotices, ["story:m01"], "Los avisos vistos deben persistir sin duplicados ni claves inválidas");
 const storyState = normalizeSave({ ...migrated, campaign: { ...migrated.campaign, sayoEncounterSeen: true, secondaryBoardUnlocked: true, kagemoriInvestigated: true, banditBossMissionUnlocked: true } });
 assert.equal(storyState.campaign.banditBossMissionUnlocked, true, "El hallazgo de la guarida debe persistir tras normalizar el guardado");
 const interrogated = normalizeSave({ ...storyState, campaign: { ...storyState.campaign, banditPrisonerChoice: "interrogate", nextSideMissionGoldMultiplier: 2 } });

@@ -20,4 +20,6 @@ assert.match(desktopCss, /\.archive-card li \{[\s\S]*background: transparent/, "
 assert.match(desktopCss, /\.stage-speech,[\s\S]*rgba\(7, 20, 36, \.98\)/, "Los diálogos deben usar una superficie oscura de alto contraste");
 assert.match(desktopCss, /\.equipment-modal \{[\s\S]*rgba\(1, 5, 12, \.86\)/, "El modal debe usar un velo azul-negro en lugar de marrón");
 
+assert.match(desktopCss, /\.notice-card \.notice-detail \{[\s\S]*overflow-wrap: anywhere/, "Los textos largos de los avisos deben ajustarse sin superponerse");
+
 console.log("Pruebas del escenario de escritorio superadas.");

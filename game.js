@@ -3,8 +3,8 @@ import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } 
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.48.0";
-import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.23.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.48.5";
+import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.24.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 
@@ -230,7 +230,7 @@ class BattleScene extends Phaser.Scene {
         frames: this.anims.generateFrameNumbers(texture, { start: 0, end: (effect.frames || TECHNIQUE_VFX_FRAMES) - 1 }),
         frameRate: effect.frameRate,
         repeat: 0,
-        hideOnComplete: true
+        hideOnComplete: !effect.projectile
       });
     });
     this.mission = activeMission;
@@ -909,24 +909,47 @@ class BattleScene extends Phaser.Scene {
     const masterKey = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
     add(this.add.image(890, 545, masterKey).setOrigin(0.5, 1).setDisplaySize(205, 246).setDepth(72));
     const positions = [
-      { x: 170, y: 368, label: "CARRETA", clue: "Cuerdas con polvo de cantera" },
-      { x: 480, y: 260, label: "CENIZAS", clue: "Un mapa rasgado del desfiladero" },
-      { x: 790, y: 354, label: "HUELLAS", clue: "Carga pesada rumbo al norte" }
+      {
+        x: 166, y: 354, labelX: 166, labelY: 424,
+        label: "CARRETA", clue: "Cuerdas con polvo de cantera",
+        points: [-132, -82, -82, -116, -8, -104, 86, -62, 112, -8, 86, 62, 22, 92, -88, 76, -128, 24]
+      },
+      {
+        x: 470, y: 286, labelX: 470, labelY: 363,
+        label: "CENIZAS", clue: "Un mapa rasgado del desfiladero",
+        points: [-137, -67, -78, -105, 54, -94, 132, -48, 143, 14, 78, 64, -42, 70, -132, 34]
+      },
+      {
+        x: 631, y: 411, labelX: 715, labelY: 456,
+        label: "HUELLAS", clue: "Carga pesada rumbo al norte",
+        points: [-67, -104, -20, -112, 48, -53, 76, 28, 54, 96, 1, 111, -36, 61, -66, 8]
+      }
     ];
     const found = new Set();
     const continueButton = add(this.add.rectangle(WIDTH / 2, 478, 190, 40, 0x0d4668, 0.4).setStrokeStyle(1, 0x55c9ff, 0.45).setDepth(74));
     const continueLabel = add(this.add.text(WIDTH / 2, 478, "REÚNE 3 PISTAS", this.textStyle(11, "#8297a8", "800", true)).setOrigin(0.5).setDepth(75));
 
     positions.forEach((entry, index) => {
-      const marker = add(this.add.circle(entry.x, entry.y, 24, 0x031220, 0.92).setStrokeStyle(2, 0x55c9ff, 1).setInteractive({ useHandCursor: true }).setDepth(74));
-      const question = add(this.add.text(entry.x, entry.y, "?", this.textStyle(19, "#f4f8fb", "800", true)).setOrigin(0.5).setDepth(75));
-      const label = add(this.add.text(entry.x, entry.y + 38, entry.label, this.textStyle(10, "#eaf4fb", "800", true)).setOrigin(0.5).setPadding(8, 4).setBackgroundColor("rgba(3,18,32,.9)").setDepth(75));
+      const marker = add(this.add.polygon(entry.x, entry.y, entry.points, 0x3fcaff, 0.015)
+        .setStrokeStyle(1.5, 0x5ed0ff, 0.78)
+        .setInteractive({ useHandCursor: true })
+        .setDepth(74));
+      const label = add(this.add.text(entry.labelX, entry.labelY, entry.label, this.textStyle(10, "#eaf4fb", "800", true))
+        .setOrigin(0.5)
+        .setPadding(8, 4)
+        .setBackgroundColor("rgba(3,18,32,.72)")
+        .setDepth(75));
+      marker.on("pointerover", () => {
+        if (!found.has(index)) marker.setFillStyle(0x3fcaff, 0.2).setStrokeStyle(2, 0x83dcff, 1);
+      });
+      marker.on("pointerout", () => {
+        if (!found.has(index)) marker.setFillStyle(0x3fcaff, 0.015).setStrokeStyle(1.5, 0x5ed0ff, 0.78);
+      });
       marker.on("pointerup", () => {
         if (found.has(index)) return;
         found.add(index);
-        marker.disableInteractive().setFillStyle(0x0e4a3e, 0.95).setStrokeStyle(2, 0x79e8b5, 1);
-        question.setText("✓").setColor("#caffea");
-        label.setColor("#9ff0cf");
+        marker.disableInteractive().setFillStyle(0x0e4a3e, 0.24).setStrokeStyle(2, 0x79e8b5, 1);
+        label.setText(`✓ ${entry.label}`).setColor("#9ff0cf");
         clueText.setText(`${entry.clue} · ${found.size}/3 pistas`);
         if (found.size === positions.length) {
           const masterName = activeSave.character.bodyType === "male" ? "Mei Hayate" : "Daichi Kazan";
@@ -1277,7 +1300,7 @@ class BattleScene extends Phaser.Scene {
     return { x: this.hero.body.x + 62, y: this.hero.body.y - 12 };
   }
 
-  playFireEmbersProjectile(missed = false) {
+  async playFireEmbersProjectile(missed = false) {
     const effect = TECHNIQUE_VFX.fire_embers;
     const texture = "technique-vfx-fire_embers";
     const animation = `${texture}-animation`;
@@ -1290,13 +1313,20 @@ class BattleScene extends Phaser.Scene {
       .setDepth(14);
     const animationDone = new Promise((resolve) => sprite.once("animationcomplete", resolve));
     sprite.play(animation);
-    return Promise.all([
+    await Promise.all([
       animationDone,
       this.tween({ targets: sprite, x: target.x, y: target.y, duration: 560, ease: "Cubic.in" })
-    ]).then(() => {
-      if (!missed) this.createImpact(target.x, target.y, 0xff8a38, 0.8);
-      sprite.destroy();
+    ]);
+    if (!missed) this.createImpact(target.x, target.y, 0xff8a38, 0.8);
+    await this.tween({
+      targets: sprite,
+      alpha: 0,
+      scaleX: sprite.scaleX * 0.45,
+      scaleY: sprite.scaleY * 0.45,
+      duration: 160,
+      ease: "Quad.in"
     });
+    sprite.destroy();
   }
 
   async playerGuard() {

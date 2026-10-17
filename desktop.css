@@ -6,6 +6,21 @@
   font-weight: 600;
 }
 
+/* Mantiene legible el aviso de companero sobre el mapa. */
+@media (min-width: 651px) {
+  .village-map-card > .notice-card {
+    grid-template-columns: auto minmax(0, .95fr) minmax(0, 1fr) auto;
+    column-gap: clamp(10px, 1.5vw, 18px);
+  }
+
+  .village-map-card > .notice-card strong,
+  .village-map-card > .notice-card .notice-detail {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    line-height: 1.25;
+  }
+}
+
 @font-face {
   font-family: "Cinzel";
   src: url("assets/fonts/cinzel-latin-700.woff2") format("woff2");
@@ -1038,5 +1053,49 @@
   .equipment-modal-card::-webkit-scrollbar-thumb {
     border-color: #07111f;
     background: #4d8fb8;
+  }
+}
+
+/* Kagemori: el reparto acompaña el diálogo sin cubrir las pistas. */
+.location-stage.location-kagemori.has-cast [data-stage-npc="iori"].stage-character:first-child {
+  right: auto;
+  left: -5%;
+  width: 30%;
+}
+
+.location-stage.location-kagemori.has-cast [data-stage-npc="nami"].stage-character:nth-child(2) {
+  right: 0;
+  left: auto;
+  width: 31%;
+}
+
+.location-stage.location-kagemori:not(.investigation-ready) .stage-character {
+  opacity: .42;
+  pointer-events: none;
+}
+
+.location-stage.location-kagemori:not(.investigation-ready) .stage-character.active {
+  z-index: 3;
+  opacity: 1;
+}
+
+.location-stage.location-kagemori .stage-characters {
+  transition: opacity .32s ease;
+}
+
+.location-stage.location-kagemori.investigation-ready .stage-characters {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.location-stage.location-kagemori.investigation-ready .stage-character {
+  pointer-events: none;
+}
+
+@media (min-width: 651px) {
+  .location-stage.location-kagemori .stage-speech {
+    left: 23%;
+    width: 54%;
+    max-width: 650px;
   }
 }

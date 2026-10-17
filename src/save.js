@@ -5,7 +5,7 @@ export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 const SAVE_SLOTS_MIGRATED_KEY = `${SAVE_KEY}-slots-migrated`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 8;
+export const SAVE_VERSION = 9;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm", companion: null };
 const LEGACY_AFFINITIES = { fire: "fuego", wind: "viento", lightning: "viento" };
@@ -37,7 +37,8 @@ export function createDefaultSave() {
       nextSideMissionGoldMultiplier: 1,
       archiveUnlocked: false,
       sayoRelicPending: false,
-      sayoRelicDelivered: false
+      sayoRelicDelivered: false,
+      seenMissionNotices: []
     }
   };
 }
@@ -159,7 +160,10 @@ export function normalizeSave(candidate) {
       nextSideMissionGoldMultiplier: Number(candidate.campaign?.nextSideMissionGoldMultiplier) === 2 ? 2 : 1,
       archiveUnlocked: Boolean(candidate.campaign?.archiveUnlocked),
       sayoRelicPending: Boolean(candidate.campaign?.sayoRelicPending),
-      sayoRelicDelivered: Boolean(candidate.campaign?.sayoRelicDelivered)
+      sayoRelicDelivered: Boolean(candidate.campaign?.sayoRelicDelivered),
+      seenMissionNotices: [...new Set(Array.isArray(candidate.campaign?.seenMissionNotices) ? candidate.campaign.seenMissionNotices : [])]
+        .filter((id) => typeof id === "string" && /^[a-z0-9:_-]+$/i.test(id))
+        .slice(-50)
     }
   };
 }

@@ -1,7 +1,7 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.20.0";
 import { EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.22.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.22.0";
-import { activeSaveSlot, affinityXpForElement, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.23.0";
+import { activeSaveSlot, affinityXpForElement, createCharacter, deleteSaveSlot, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, selectSaveSlot, spendAttribute, writeSave, xpForNextLevel } from "./save.js?v=0.24.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 
 const COMING_SOON_LOCATIONS = {
@@ -73,6 +73,53 @@ const VILLAGE_SERVICES = {
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
+}
+
+function activeMissionObjectives(save) {
+  const campaign = save.campaign;
+  const completed = new Set(campaign.completedMissions);
+  const objectives = [];
+
+  if (campaign.sayoRelicPending) {
+    objectives.push({
+      id: "delivery:obsidian-medallion",
+      type: "ENTREGA",
+      title: "Medallón de obsidiana",
+      detail: "Lleva el medallón a Sayo en la Biblioteca.",
+      destination: "Biblioteca",
+      view: "archive"
+    });
+  }
+
+  if (campaign.secondaryBoardUnlocked && !campaign.kagemoriInvestigated) {
+    objectives.push({
+      id: "secondary:s01",
+      type: "ENCARGO DE SAYO",
+      title: SECONDARY_MISSIONS[0].title,
+      detail: "Investiga las pistas de la Aldea de Kagemori.",
+      destination: "Tablón de Misiones",
+      view: "missions"
+    });
+  }
+
+  const storyMission = STORY_SAGAS
+    .flatMap((saga) => saga.missionIds)
+    .map((id) => MISSIONS.find((mission) => mission.id === id))
+    .find((mission) => mission
+      && !completed.has(mission.id)
+      && (!mission.unlockFlag || Boolean(campaign[mission.unlockFlag])));
+  if (storyMission) {
+    objectives.push({
+      id: `story:${storyMission.id}`,
+      type: "MISIÓN PRINCIPAL",
+      title: storyMission.title,
+      detail: `${storyMission.location} · ${storyMission.duration}`,
+      destination: "Cuartel General",
+      view: "headquarters"
+    });
+  }
+
+  return objectives;
 }
 
 export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondaryMission) {
@@ -310,7 +357,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       const npc = NPCS[id];
       return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" loading="eager" fetchpriority="high" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
     }).join("");
-    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""}" data-location-stage="${locationId}" style="--location-bg:url('${background}?v=${ASSET_VERSION}')" aria-label="${escapeHtml(locationName)}">
+    const investigationReady = locationId === "kagemori" && introduced ? "investigation-ready" : "";
+    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""} ${investigationReady}" data-location-stage="${locationId}" style="--location-bg:url('${background}?v=${ASSET_VERSION}')" aria-label="${escapeHtml(locationName)}">
       <div class="stage-characters">${portraits}</div>
       <div class="stage-speech" data-stage-speech aria-live="polite" ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
       <div class="stage-ambient" data-stage-ambient role="status" aria-live="polite" hidden><strong data-ambient-speaker></strong><span data-ambient-text></span></div>
@@ -355,6 +403,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     const revealOptions = () => {
       introducedViews.add(locationId);
       speech.classList.add("leaving");
+      if (locationId === "kagemori") stage.classList.add("investigation-ready");
       window.setTimeout(() => {
         if (!stage.isConnected) return;
         speech.hidden = true;
@@ -407,16 +456,29 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       : boardReady && !save.campaign.kagemoriInvestigated
         ? "missions"
         : "headquarters";
-    const companion = save.campaign.companion
-      ? `<div class="notice-card ally"><span class="notice-icon" aria-hidden="true">◆</span><strong>Mika está disponible</strong><span class="notice-detail">Atacará automáticamente cada dos rondas.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`
-      : `<div class="notice-card"><span class="notice-icon" aria-hidden="true">▣</span><strong>Compañero bloqueado</strong><span class="notice-detail">Completa “Ecos entre los juncos”.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`;
-    const storyNotice = boardReady && !save.campaign.kagemoriInvestigated
-      ? `<div class="notice-card story-objective"><span class="notice-icon" aria-hidden="true">!</span><strong>Nuevo encargo de Sayo</strong><span class="notice-detail">Visita el Tablón de Misiones para investigar Kagemori.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`
-      : save.campaign.banditBossMissionUnlocked
-        ? save.campaign.sayoRelicPending
-          ? `<div class="notice-card story-objective"><span class="notice-icon" aria-hidden="true">!</span><strong>Entrega pendiente</strong><span class="notice-detail">Lleva el Medallón de obsidiana a Sayo en la Biblioteca.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`
-          : `<div class="notice-card story-objective"><span class="notice-icon" aria-hidden="true">!</span><strong>Nueva misión principal</strong><span class="notice-detail">La guarida de los bandidos ya figura en el Cuartel General.</span><span class="notice-arrow" aria-hidden="true">›</span></div>`
-        : "";
+    const missionObjectives = activeMissionObjectives(save);
+    const storyObjective = missionObjectives.find((objective) => objective.id.startsWith("story:"));
+    const secondaryObjectives = missionObjectives.filter((objective) => !objective.id.startsWith("story:"));
+    const seenMissionNotices = new Set(save.campaign.seenMissionNotices);
+    const unseenSecondaryObjectives = secondaryObjectives.filter((objective) => !seenMissionNotices.has(objective.id));
+    const secondaryMissionItems = secondaryObjectives.length
+      ? secondaryObjectives.map((objective) => `<button class="secondary-mission-item" type="button" data-view="${objective.view}"><span>${escapeHtml(objective.type)}</span><strong>${escapeHtml(objective.title)}</strong><small class="mission-destination">IR A: ${escapeHtml(objective.destination)}</small><small>${escapeHtml(objective.detail)}</small></button>`).join("")
+      : `<p class="secondary-mission-empty">No hay misiones secundarias pendientes.</p>`;
+    const missionDock = `<section class="mission-dock" aria-label="Misión actual">
+      <div class="story-mission-current" title="${escapeHtml(storyObjective?.detail || "La historia disponible ha sido completada.")}">
+        <strong>${escapeHtml(storyObjective?.title || "Sin misión principal activa")}</strong>
+        ${storyObjective ? `<span>IR A: ${escapeHtml(storyObjective.destination)}</span>` : ""}
+      </div>
+      <div class="secondary-mission-menu ${unseenSecondaryObjectives.length ? "has-unseen" : ""}">
+        <button class="secondary-mission-trigger" type="button" aria-expanded="false" aria-controls="secondary-mission-panel" aria-label="Misiones secundarias${unseenSecondaryObjectives.length ? `, ${unseenSecondaryObjectives.length} sin revisar` : ""}">
+          <span class="mission-target-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5"/><path d="M16 1v6M16 25v6M1 16h6M25 16h6"/><circle cx="16" cy="16" r="1.5"/></svg></span>
+        </button>
+        <section class="secondary-mission-panel" id="secondary-mission-panel" aria-label="Misiones secundarias" hidden>
+          <header><div><small>TABLÓN</small><strong>Misiones secundarias</strong></div><span>${secondaryObjectives.length}</span></header>
+          <div class="secondary-mission-list">${secondaryMissionItems}</div>
+        </section>
+      </div>
+    </section>`;
     const hotspots = VILLAGE_LOCATIONS.map((location) => {
       const comingSoon = Boolean(COMING_SOON_LOCATIONS[location.id]) || (location.id === "missions" && !boardReady) || (location.id === "archive" && !save.campaign.archiveUnlocked);
       return `<g class="village-hotspot hotspot-${location.id} ${comingSoon ? "coming-soon" : ""}" ${comingSoon ? `data-coming-soon="${location.id}"` : `data-go="${location.id}"`} role="button" tabindex="0" aria-label="${escapeHtml(location.name)}: ${escapeHtml(comingSoon ? "Próximamente" : location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
@@ -426,7 +488,37 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       const recommended = location.id === nextObjective;
       return `<span class="map-label ${comingSoon ? "coming-soon" : ""} ${recommended ? "recommended" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${escapeHtml(location.name)}</strong><small>${escapeHtml(recommended ? "OBJETIVO · " + location.description : comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
     }).join("");
-    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${ASSET_VERSION}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${storyNotice}${companion}</section>`);
+    shell(`<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${ASSET_VERSION}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${missionDock}</section>`);
+
+    const secondaryMissionMenu = root.querySelector(".secondary-mission-menu");
+    const secondaryMissionTrigger = root.querySelector(".secondary-mission-trigger");
+    const secondaryMissionPanel = root.querySelector(".secondary-mission-panel");
+    if (secondaryMissionMenu && secondaryMissionTrigger && secondaryMissionPanel) {
+      const closeSecondaryMissions = () => {
+        secondaryMissionPanel.hidden = true;
+        secondaryMissionTrigger.setAttribute("aria-expanded", "false");
+      };
+      secondaryMissionTrigger.addEventListener("click", () => {
+        const opening = secondaryMissionPanel.hidden;
+        secondaryMissionPanel.hidden = !opening;
+        secondaryMissionTrigger.setAttribute("aria-expanded", String(opening));
+        if (!opening || !unseenSecondaryObjectives.length) return;
+        save = writeSave({
+          ...save,
+          campaign: {
+            ...save.campaign,
+            seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...secondaryObjectives.map((objective) => objective.id)])]
+          }
+        });
+        secondaryMissionMenu.classList.remove("has-unseen");
+        secondaryMissionTrigger.setAttribute("aria-label", "Misiones secundarias");
+      });
+      secondaryMissionMenu.addEventListener("keydown", (event) => {
+        if (event.key !== "Escape") return;
+        closeSecondaryMissions();
+        secondaryMissionTrigger.focus();
+      });
+    }
 
     root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
       const locationId = hotspot.getAttribute("data-coming-soon");
@@ -597,25 +689,29 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const renderKagemori = () => {
     const clues = [
-      { id: "cart", label: "Carreta saqueada", x: 18, y: 70, text: "Las cajas fueron abiertas con herramientas, no con armas. Los bandidos buscaban provisiones concretas." },
-      { id: "hall", label: "Casa comunal", x: 48, y: 45, text: "Entre las cenizas aparece una cuerda cubierta de polvo gris, propio de una cantera." },
-      { id: "well", label: "Pozo y huellas", x: 82, y: 68, text: "Las pisadas cargadas cruzan el barro y salen por la puerta norte hacia las montañas." }
+      { id: "cart", label: "Carreta saqueada", labelX: 18, labelY: 70, path: "M0 330 L76 300 L169 339 L248 385 L346 414 L405 485 L520 538 L590 616 L560 690 L472 731 L337 744 L237 716 L147 674 L29 658 L0 620 Z", text: "Las cajas fueron abiertas con herramientas, no con armas. Los bandidos buscaban provisiones concretas." },
+      { id: "hall", label: "Casa comunal", labelX: 48, labelY: 45, path: "M420 273 L492 239 L554 154 L628 128 L784 133 L870 157 L927 194 L1041 220 L1083 268 L1035 302 L1024 438 L944 453 L849 439 L782 390 L721 349 L651 371 L610 329 L529 350 L469 320 Z", text: "Entre las cenizas aparece una cuerda cubierta de polvo gris, propio de una cantera." },
+      { id: "well", label: "Pozo y huellas", labelX: 72, labelY: 77, path: "M1158 550 L1236 601 L1194 651 L1128 704 L1080 758 L1123 818 L1060 881 L976 867 L923 811 L928 737 L982 681 L1055 622 Z", text: "Las pisadas cargadas cruzan el barro y salen por la puerta norte hacia las montañas." }
     ];
     const completed = save.campaign.kagemoriInvestigated;
     const content = completed
       ? `<section class="kagemori-complete"><p class="eyebrow">INVESTIGACIÓN COMPLETADA</p><h2>El rastro continúa</h2><p>Nami ubicó la guarida en el Desfiladero del Cuervo. La nueva misión principal ya figura en el Cuartel General.</p><button class="primary-button" type="button" data-view="plaza">VOLVER A LA ALDEA</button></section>`
-      : `<section class="kagemori-investigation"><header><div><p class="eyebrow">ALDEA DE KAGEMORI</p><h2>Reconstruye la ruta de los bandidos</h2></div><strong data-clue-count>${investigatedClues.size}/3 pistas</strong></header><p class="investigation-log" data-investigation-log>Selecciona los puntos marcados en la aldea.</p>${clues.map((clue) => `<button class="clue-hotspot ${investigatedClues.has(clue.id) ? "found" : ""}" type="button" data-clue="${clue.id}" style="--clue-x:${clue.x}%;--clue-y:${clue.y}%"><span aria-hidden="true">${investigatedClues.has(clue.id) ? "✓" : "?"}</span><strong>${clue.label}</strong></button>`).join("")}</section>`;
+      : `<section class="kagemori-investigation"><header><div><p class="eyebrow">ALDEA DE KAGEMORI</p><h2>Reconstruye la ruta de los bandidos</h2></div><strong data-clue-count>${investigatedClues.size}/3 pistas</strong></header><p class="investigation-log" data-investigation-log>Explora la escena y selecciona las áreas sospechosas.</p><svg class="clue-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${clues.map((clue) => `<g class="clue-hotspot ${investigatedClues.has(clue.id) ? "found" : ""}" data-clue="${clue.id}" role="button" tabindex="0" aria-label="Investigar ${escapeHtml(clue.label)}"><path class="clue-shape" d="${clue.path}"/></g>`).join("")}</svg>${clues.map((clue) => `<span class="clue-label" data-clue-label="${clue.id}" aria-hidden="true" style="--clue-label-x:${clue.labelX}%;--clue-label-y:${clue.labelY}%"><strong>${investigatedClues.has(clue.id) ? "✓ " : ""}${escapeHtml(clue.label)}</strong></span>`).join("")}</section>`;
     shell(locationStage("kagemori", content));
     bindLocationStage("kagemori");
     if (completed) return;
 
     let conclusionQueued = false;
-    root.querySelectorAll("[data-clue]").forEach((button) => button.addEventListener("click", () => {
-      const clue = clues.find((entry) => entry.id === button.dataset.clue);
+    root.querySelectorAll("[data-clue]").forEach((area) => {
+      const label = root.querySelector(`[data-clue-label="${area.dataset.clue}"]`);
+      const showLabel = () => label?.classList.add("visible");
+      const hideLabel = () => label?.classList.remove("visible");
+      const collectClue = () => {
+      const clue = clues.find((entry) => entry.id === area.dataset.clue);
       if (!clue || investigatedClues.has(clue.id)) return;
       investigatedClues.add(clue.id);
-      button.classList.add("found");
-      button.querySelector("span").textContent = "✓";
+      area.classList.add("found");
+      if (label) label.querySelector("strong").textContent = `✓ ${clue.label}`;
       root.querySelector("[data-clue-count]").textContent = `${investigatedClues.size}/3 pistas`;
       root.querySelector("[data-investigation-log]").textContent = clue.text;
       if (investigatedClues.size !== clues.length || conclusionQueued) return;
@@ -629,7 +725,18 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         save.campaign.banditBossMissionUnlocked = true;
         onFinishSecondaryMission(save, SECONDARY_MISSIONS[0], { outcome: "completed", clues: clues.length });
       }, "REGISTRAR HALLAZGO", "story"), 420);
-    }));
+      };
+      area.addEventListener("mouseenter", showLabel);
+      area.addEventListener("mouseleave", hideLabel);
+      area.addEventListener("focus", showLabel);
+      area.addEventListener("blur", hideLabel);
+      area.addEventListener("click", collectClue);
+      area.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        collectClue();
+      });
+    });
   };
 
   const numberedOptions = (count, current, prefix) => Array.from({ length: count }, (_, index) => `<option value="${index + 1}" ${Number(current) === index + 1 ? "selected" : ""}>${prefix} ${index + 1}</option>`).join("");
