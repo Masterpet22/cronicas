@@ -26,7 +26,7 @@ assert.match(battle, /registerHudThemeFrames\(\)/, "Los marcos de vida y chakra 
 assert.match(battle, /applyHudTheme\(themeId\)/, "El tema debe poder cambiarse durante el combate");
 assert.match(battle, /localStorage\.setItem\("hud-theme"/, "La elección del marco debe persistir");
 assert.match(html, /select id="hud-theme"/, "Opciones debe permitir elegir el marco de combate");
-assert.match(battle, /makeHudThemeControl\(480, 367\)/, "El menú de pausa debe permitir cambiar el marco durante el combate");
+assert.match(battle, /makeHudThemeControl\(480, 347\)/, "El menú de pausa debe permitir cambiar el marco durante el combate");
 assert.match(battle, /RANK_LEVELS/, "El rango del HUD debe representarse mediante un nivel numérico escalable");
 assert.match(battle, /displayWidth: 360/, "Los marcos de vida deben mantener una escala compacta");
 assert.match(battle, /const healthBarWidth = 326/, "La vida debe sobresalir levemente bajo el hueco transparente del marco");
@@ -59,6 +59,9 @@ assert.match(battle, /outcome === "completed" \? \{ \.\.\.this\.battleRewards \}
 assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
+assert.match(battle, /makePauseToggle\(480, 172 \+ index \* 33[\s\S]*makeHudThemeControl\(480, 347\)[\s\S]*makeVolumeControl\(480, 392\)[\s\S]*makePauseAction\(400, 454, "REANUDAR"/, "El menú de pausa debe separar ajustes, selectores y acciones en filas sin superposición");
+assert.match(battle, /const value = this\.add\.text\(x \+ 45, y, `\$\{input\.value\}%`[\s\S]*makePauseAction\(x - 32, y, "−"[\s\S]*makePauseAction\(x \+ 112, y, "\+"/, "El control de volumen debe reservar una columna independiente para su etiqueta");
+assert.match(battle, /const value = this\.add\.text\(x \+ 45, y, labels\[input\.value\][\s\S]*makePauseAction\(x - 32, y, "<"[\s\S]*makePauseAction\(x \+ 112, y, ">"/, "El selector del marco debe reservar una columna independiente para su etiqueta");
 assert.match(battle, /index < 6/, "La barra debe conservar siempre seis espacios de acción");
 assert.match(battle, /this\.actions\[index\] \|\| null/, "Los espacios sin técnica deben renderizarse vacíos");
 assert.match(battle, /Array\.from\(\{ length: 4 \}/, "La barra debe reservar cuatro ranuras configurables entre las acciones fijas");
@@ -104,9 +107,11 @@ assert.match(battle, /Aldea de Kagemori/, "Sayo debe señalar Kagemori como el l
 assert.match(battle, /activeMission\?\.type === "investigation"/, "El viaje de investigación debe abrir la zona explorable en lugar de iniciar un combate");
 assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las investigaciones secundarias deben tener resultados propios");
 assert.match(battle, /playInvestigationPhase\(\)/, "La segunda misión principal debe incluir una fase de investigación");
-assert.match(battle, /label: "CARRETA"[\s\S]*points: \[-132, -82[\s\S]*label: "CENIZAS"[\s\S]*points: \[-137, -67[\s\S]*label: "HUELLAS"[\s\S]*points: \[-67, -104/, "Las pistas deben delimitar la carreta, las cenizas y las huellas con marcos adaptados a cada elemento");
-assert.match(battle, /this\.add\.polygon\(entry\.x, entry\.y, entry\.points, 0x3fcaff, 0\.015\)/, "Las pistas deben usar marcos poligonales transparentes en lugar de círculos");
-assert.match(battle, /marker\.on\("pointerover"[\s\S]*setFillStyle\(0x3fcaff, 0\.2\)[\s\S]*marker\.on\("pointerout"[\s\S]*setFillStyle\(0x3fcaff, 0\.015\)/, "Los marcos de pista deben volverse semitransparentes al pasar el cursor");
+assert.match(battle, /x: 520, y: 463[\s\S]*label: "CARRETA"[\s\S]*points: \[-260, -123[\s\S]*x: 615, y: 228[\s\S]*label: "CENIZAS"[\s\S]*points: \[-109, -75[\s\S]*x: 717, y: 540[\s\S]*label: "HUELLAS"[\s\S]*points: \[49, -86/, "Las pistas deben seguir los contornos de referencia en su posición correcta, compensando el origen de Phaser");
+assert.match(battle, /this\.add\.polygon\(entry\.x, entry\.y, entry\.points, 0xff8e37, 0\)[\s\S]*setStrokeStyle\(2, 0xffc073, 0\)/, "Los marcos poligonales deben ser invisibles en reposo");
+assert.match(battle, /setInteractive\(new Phaser\.Geom\.Polygon\(entry\.points\), Phaser\.Geom\.Polygon\.Contains\)/, "La interacción debe respetar el contorno real del polígono y no su caja rectangular");
+assert.match(battle, /marker\.on\("pointerover"[\s\S]*setFillStyle\(0xff8e37, 0\.2\)[\s\S]*marker\.on\("pointerout"[\s\S]*setFillStyle\(0xff8e37, 0\)\.setStrokeStyle\(2, 0xffc073, 0\)/, "Los marcos solo deben aparecer al pasar el cursor");
+assert.match(battle, /FASE 2 · INVESTIGACIÓN[\s\S]*setDepth\(91\)[\s\S]*continueButton[\s\S]*setDepth\(90\)[\s\S]*continueLabel[\s\S]*setDepth\(91\)/, "La interfaz de investigación debe renderizarse por encima de los polígonos de pistas");
 assert.match(battle, /playPrisonerChoice\(\)/, "El teniente derrotado debe abrir una decisión persistente");
 assert.match(battle, /nextSideMissionGoldMultiplier = choice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
 assert.match(battle, /punishedBoss[\s\S]*profile\.hp \+ \(punishedBoss \? 22 : 0\)/, "Eliminar al teniente debe fortalecer a Akumori");
@@ -163,7 +168,7 @@ assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben re
 assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
-assert.match(html, /desktop\.css\?v=0\.48\.4/, "El selector de partidas debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.48\.8/, "La interfaz de escritorio debe invalidar la caché anterior");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
 assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");
@@ -180,7 +185,9 @@ assert.match(metaUi, /location\.classList\.remove\("story-dialogue-active"\)/, "
 assert.doesNotMatch(styles, /story-bubble/, "El bocadillo crema anterior debe desaparecer por completo");
 assert.doesNotMatch(styles, /story-dialogue-panel::(?:before|after)/, "El panel de historia no debe tener cola ni pico");
 assert.match(styles, /@keyframes story-enter-left[\s\S]*@keyframes story-enter-right/, "Los personajes deben poder entrar desde ambos lados");
-assert.match(styles, /story-character-right\.story-entering img[\s\S]*story-turn-left/, "Un personaje que entra por la derecha debe voltearse hacia el diálogo");
+assert.doesNotMatch(styles, /story-turn-(?:left|right)/, "Los personajes no deben girar al presentarse en los diálogos");
+assert.match(metaUi, /const mirrorClass = side === "right" \? "story-character-mirrored" : "";/, "El personaje de la derecha debe reflejarse antes de presentarse para mirar hacia el centro");
+assert.match(styles, /\.story-character img\.story-character-mirrored \{ transform: scaleX\(-1\); \}/, "Los personajes reflejados deben invertir su orientación horizontalmente");
 assert.match(styles, /@media \(max-width: 1050px\), \(max-height: 650px\)/, "El diálogo debe adaptarse a portátiles pequeños");
 assert.match(metaUi, /mission\.briefing[\s\S]*"COMENZAR MISIÓN", "story"/, "Los diálogos de historia de una misión deben usar bocadillos");
 assert.match(metaUi, /bodyType === "male" \? NPCS\.mei : NPCS\.daichi/, "Mei debe enseñar al avatar masculino y Daichi al femenino");

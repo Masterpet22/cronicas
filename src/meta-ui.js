@@ -328,9 +328,10 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         }
         const side = speakerSides.get(speaker);
         const entering = previousSpeaker !== speaker;
+        const mirrorClass = side === "right" ? "story-character-mirrored" : "";
         overlay.classList.toggle("story-speaker-left", side === "left");
         overlay.classList.toggle("story-speaker-right", side === "right");
-        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.name)}</span></div>` : "";
+        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.name)}</span></div>` : "";
         overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${escapeHtml(speaker)} · ${escapeHtml(role)}</header><p>${escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></footer></section>`;
         previousSpeaker = speaker;
       } else {

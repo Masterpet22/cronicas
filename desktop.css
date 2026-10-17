@@ -204,7 +204,7 @@
     line-height: 1.35;
   }
 
-  /* El HUD usa su recurso panorámico, sin deformar el panel vertical. */
+  /* El HUD conserva la interfaz compacta y nítida en escritorio. */
   .village-topbar {
     position: absolute;
     isolation: isolate;
@@ -550,6 +550,7 @@
     font-size: clamp(15px, 1.111vw, 16px);
   }
 
+  .village-topbar,
   .creator-card,
   .stage-panel,
   .equipment-modal-card,
@@ -889,7 +890,6 @@
     background-image: none;
   }
 
-  .village-topbar,
   .creator-card,
   .stage-panel,
   .equipment-modal-card,

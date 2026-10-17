@@ -3,7 +3,7 @@ import { applyStatus, affinityLabel, affinityMultiplier, hasStatus, hitChance } 
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.44.0";
 import { playerFighterAppearance } from "./src/character.js?v=0.20.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.44.7";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.48.5";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.48.7";
 import { awardEncounter, completeMission, derivedStats, loadSave, writeSave } from "./src/save.js?v=0.24.0";
 import { canAccessElement, elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
@@ -903,52 +903,53 @@ class BattleScene extends Phaser.Scene {
     const add = (item) => { layer.push(item); return item; };
     const backdrop = add(this.add.image(WIDTH / 2, HEIGHT / 2, "kagemori-investigation").setDisplaySize(WIDTH, HEIGHT).setDepth(70));
     add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.28).setOrigin(0).setDepth(71));
-    add(this.add.rectangle(WIDTH / 2, 62, 650, 86, 0x031220, 0.94).setStrokeStyle(1, 0x55c9ff, 0.85).setDepth(72));
-    add(this.add.text(WIDTH / 2, 45, "FASE 2 · INVESTIGACIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(73));
-    const clueText = add(this.add.text(WIDTH / 2, 78, "Examina los tres rastros antes de continuar.", this.textStyle(12, "#eaf4fb", "700")).setOrigin(0.5).setDepth(73));
+    add(this.add.rectangle(WIDTH / 2, 62, 650, 86, 0x031220, 0.94).setStrokeStyle(1, 0x55c9ff, 0.85).setDepth(90));
+    add(this.add.text(WIDTH / 2, 45, "FASE 2 · INVESTIGACIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(91));
+    const clueText = add(this.add.text(WIDTH / 2, 78, "Examina los tres rastros antes de continuar.", this.textStyle(12, "#eaf4fb", "700")).setOrigin(0.5).setDepth(91));
     const masterKey = activeSave.character.bodyType === "male" ? "mei-hayate" : "daichi-kazan";
     add(this.add.image(890, 545, masterKey).setOrigin(0.5, 1).setDisplaySize(205, 246).setDepth(72));
     const positions = [
       {
-        x: 166, y: 354, labelX: 166, labelY: 424,
+        x: 520, y: 463, labelX: 166, labelY: 424,
         label: "CARRETA", clue: "Cuerdas con polvo de cantera",
-        points: [-132, -82, -82, -116, -8, -104, 86, -62, 112, -8, 86, 62, 22, 92, -88, 76, -128, 24]
+        points: [-260, -123, -120, -94, -108, -104, -98, -142, -88, -150, -70, -149, -64, -139, -64, -89, -75, -70, -68, -60, -28, -42, 0, -53, 24, -54, 41, -40, 50, -12, 71, 19, 117, 39, 160, 65, 260, 83, 241, 96, 214, 111, 161, 124, 105, 132, 66, 140, 3, 150, -44, 147, -49, 117, -75, 93, -124, 85, -153, 52, -256, 51, -258, 22, -260, -16, -260, -56]
       },
       {
-        x: 470, y: 286, labelX: 470, labelY: 363,
+        x: 615, y: 228, labelX: 470, labelY: 363,
         label: "CENIZAS", clue: "Un mapa rasgado del desfiladero",
-        points: [-137, -67, -78, -105, 54, -94, 132, -48, 143, 14, 78, 64, -42, 70, -132, 34]
+        points: [-109, -75, 84, -75, 92, -68, 96, -43, 105, -27, 126, -18, 176, -17, 174, -9, 152, 5, 146, 17, 146, 73, -167, 75, -167, 7, -176, 2, -176, -11, -164, -20, -148, -34, -134, -54, -119, -73]
       },
       {
-        x: 631, y: 411, labelX: 715, labelY: 456,
+        x: 717, y: 540, labelX: 715, labelY: 456,
         label: "HUELLAS", clue: "Carga pesada rumbo al norte",
-        points: [-67, -104, -20, -112, 48, -53, 76, 28, 54, 96, 1, 111, -36, 61, -66, 8]
+        points: [49, -86, 19, -75, 0, -62, -24, -47, -53, -29, -77, -15, -80, -5, -69, 14, -57, 27, -61, 44, -48, 62, -30, 86, 78, 86, 80, 72, 65, 54, 43, 42, 30, 29, 16, 10, 5, -12, 8, -26, 22, -45, 35, -61, 57, -78]
       }
     ];
     const found = new Set();
-    const continueButton = add(this.add.rectangle(WIDTH / 2, 478, 190, 40, 0x0d4668, 0.4).setStrokeStyle(1, 0x55c9ff, 0.45).setDepth(74));
-    const continueLabel = add(this.add.text(WIDTH / 2, 478, "REÚNE 3 PISTAS", this.textStyle(11, "#8297a8", "800", true)).setOrigin(0.5).setDepth(75));
+    const continueButton = add(this.add.rectangle(WIDTH / 2, 478, 190, 40, 0x0d4668, 0.4).setStrokeStyle(1, 0x55c9ff, 0.45).setDepth(90));
+    const continueLabel = add(this.add.text(WIDTH / 2, 478, "REÚNE 3 PISTAS", this.textStyle(11, "#8297a8", "800", true)).setOrigin(0.5).setDepth(91));
 
     positions.forEach((entry, index) => {
-      const marker = add(this.add.polygon(entry.x, entry.y, entry.points, 0x3fcaff, 0.015)
-        .setStrokeStyle(1.5, 0x5ed0ff, 0.78)
-        .setInteractive({ useHandCursor: true })
+      const marker = add(this.add.polygon(entry.x, entry.y, entry.points, 0xff8e37, 0)
+        .setStrokeStyle(2, 0xffc073, 0)
+        .setInteractive(new Phaser.Geom.Polygon(entry.points), Phaser.Geom.Polygon.Contains)
         .setDepth(74));
+      marker.input.cursor = "pointer";
       const label = add(this.add.text(entry.labelX, entry.labelY, entry.label, this.textStyle(10, "#eaf4fb", "800", true))
         .setOrigin(0.5)
         .setPadding(8, 4)
         .setBackgroundColor("rgba(3,18,32,.72)")
-        .setDepth(75));
+        .setDepth(91));
       marker.on("pointerover", () => {
-        if (!found.has(index)) marker.setFillStyle(0x3fcaff, 0.2).setStrokeStyle(2, 0x83dcff, 1);
+        if (!found.has(index)) marker.setFillStyle(0xff8e37, 0.2).setStrokeStyle(2, 0xffc073, 1);
       });
       marker.on("pointerout", () => {
-        if (!found.has(index)) marker.setFillStyle(0x3fcaff, 0.015).setStrokeStyle(1.5, 0x5ed0ff, 0.78);
+        if (!found.has(index)) marker.setFillStyle(0xff8e37, 0).setStrokeStyle(2, 0xffc073, 0);
       });
       marker.on("pointerup", () => {
         if (found.has(index)) return;
         found.add(index);
-        marker.disableInteractive().setFillStyle(0x0e4a3e, 0.24).setStrokeStyle(2, 0x79e8b5, 1);
+        marker.disableInteractive().setFillStyle(0xff8e37, 0).setStrokeStyle(2, 0xffc073, 0);
         label.setText(`✓ ${entry.label}`).setColor("#9ff0cf");
         clueText.setText(`${entry.clue} · ${found.size}/3 pistas`);
         if (found.size === positions.length) {
@@ -1939,16 +1940,16 @@ class PauseScene extends Phaser.Scene {
     this.add.rectangle(WIDTH / 2, HEIGHT / 2, 560, 460, 0x061321, 0.99)
       .setStrokeStyle(1.5, 0x65bce9, 0.95).setDepth(101);
 
-    this.add.text(WIDTH / 2, 92, "MISIÓN EN PAUSA", {
+    this.add.text(WIDTH / 2, 86, "MISIÓN EN PAUSA", {
       fontFamily: "Cinzel, Georgia, serif", fontSize: "26px", color: "#f7fbff", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(102);
-    this.add.text(WIDTH / 2, 124, "Ajusta la partida o vuelve al combate.", {
+    this.add.text(WIDTH / 2, 118, "Ajusta la partida o vuelve al combate.", {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "13px", color: "#9fb0c6"
     }).setOrigin(0.5).setDepth(102);
 
-    this.add.text(320, 160, "AJUSTES", {
+    this.add.text(315, 145, "AJUSTES", {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#82d3f7", fontStyle: "bold"
-    }).setDepth(102);
+    }).setOrigin(0, 0.5).setDepth(102);
 
     const rows = [
       ["Sellos manuales", "manual-seals"],
@@ -1958,17 +1959,17 @@ class PauseScene extends Phaser.Scene {
       ["Modo ligero", "light-mode"]
     ];
 
-    rows.forEach(([label, id], index) => this.makePauseToggle(480, 184 + index * 34, label, id));
+    rows.forEach(([label, id], index) => this.makePauseToggle(480, 172 + index * 33, label, id));
 
-    this.makeHudThemeControl(480, 367);
-    this.makeVolumeControl(480, 410);
+    this.makeHudThemeControl(480, 347);
+    this.makeVolumeControl(480, 392);
 
-    this.makePauseAction(400, 465, "REANUDAR", 0x36b5e8, () => {
+    this.makePauseAction(400, 454, "REANUDAR", 0x36b5e8, () => {
       this.scene.resume("battle");
       this.scene.stop();
     }, 150);
 
-    this.makePauseAction(560, 465, "ABANDONAR", 0xef665f, () => {
+    this.makePauseAction(560, 454, "ABANDONAR", 0xef665f, () => {
       const button = this.children.getByName("pause-action-ABANDONAR");
       if (button) button.disableInteractive();
       const payload = this.battle.abandonPayload();
@@ -1985,7 +1986,7 @@ class PauseScene extends Phaser.Scene {
 
   makePauseToggle(x, y, label, inputId) {
     const input = document.getElementById(inputId);
-    const bg = this.add.rectangle(x, y, 330, 31, 0x101c2b, 1)
+    const bg = this.add.rectangle(x, y, 330, 29, 0x101c2b, 1)
       .setStrokeStyle(1, 0x41546d, 0.95).setDepth(102).setInteractive({ useHandCursor: true });
     this.add.text(x - 150, y, label, {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
@@ -2011,7 +2012,7 @@ class PauseScene extends Phaser.Scene {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
     }).setOrigin(0, 0.5).setDepth(103);
 
-    const value = this.add.text(x, y, `${input.value}%`, {
+    const value = this.add.text(x + 45, y, `${input.value}%`, {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#82d3f7", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(103);
 
@@ -2021,8 +2022,8 @@ class PauseScene extends Phaser.Scene {
       value.setText(`${input.value}%`);
     };
 
-    this.makePauseAction(x - 72, y, "−", 0x6f8fb7, () => adjust(-10), 42, false);
-    this.makePauseAction(x + 72, y, "+", 0x6f8fb7, () => adjust(10), 42, false);
+    this.makePauseAction(x - 32, y, "−", 0x6f8fb7, () => adjust(-10), 42, false);
+    this.makePauseAction(x + 112, y, "+", 0x6f8fb7, () => adjust(10), 42, false);
   }
 
   makeHudThemeControl(x, y) {
@@ -2033,7 +2034,7 @@ class PauseScene extends Phaser.Scene {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
     }).setOrigin(0, 0.5).setDepth(103);
 
-    const value = this.add.text(x, y, labels[input.value] || labels.ancestral, {
+    const value = this.add.text(x + 45, y, labels[input.value] || labels.ancestral, {
       fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "11px", color: "#f5c96b", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(103);
 
@@ -2044,8 +2045,8 @@ class PauseScene extends Phaser.Scene {
       value.setText(labels[input.value] || input.value.toUpperCase());
     };
 
-    this.makePauseAction(x - 92, y, "<", 0xb98545, () => selectTheme(-1), 38, false);
-    this.makePauseAction(x + 92, y, ">", 0xb98545, () => selectTheme(1), 38, false);
+    this.makePauseAction(x - 32, y, "<", 0xb98545, () => selectTheme(-1), 38, false);
+    this.makePauseAction(x + 112, y, ">", 0xb98545, () => selectTheme(1), 38, false);
   }
 
   makePauseAction(x, y, label, color, callback, width = 260, once = true) {
