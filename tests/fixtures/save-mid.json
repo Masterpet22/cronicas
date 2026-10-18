@@ -1,0 +1,104 @@
+{
+  "version": 16,
+  "character": {
+    "name": "Akio",
+    "affinity": "fuego",
+    "affinities": [
+      "fuego"
+    ],
+    "knownAffinities": [
+      "fuego"
+    ],
+    "affinityXp": {
+      "fuego": 50,
+      "agua": 0,
+      "tierra": 0,
+      "viento": 0
+    },
+    "appearance": "#68a8ff",
+    "bodyType": "male",
+    "masterId": "mei",
+    "face": 1,
+    "hair": 1,
+    "top": 1,
+    "bottom": 1,
+    "shoes": 1
+  },
+  "progression": {
+    "level": 1,
+    "xp": 0,
+    "coins": 0,
+    "attributePoints": 0,
+    "attributes": {
+      "health": 0,
+      "strength": 0,
+      "speed": 0,
+      "chakra": 0,
+      "luck": 0
+    }
+  },
+  "equipment": {
+    "weapon": "kunai",
+    "armor": "light_vest",
+    "accessory": "chakra_charm"
+  },
+  "loadout": [
+    "fire_embers",
+    "fire_breath"
+  ],
+  "campaign": {
+    "completedMissions": [
+      "m01"
+    ],
+    "completedSecondaryMissions": [
+      "s01"
+    ],
+    "rank": "Novicio",
+    "elementRank": 1,
+    "tutorialSeen": true,
+    "sayoEncounterSeen": true,
+    "secondaryBoardUnlocked": true,
+    "kagemoriInvestigated": true,
+    "banditBossMissionUnlocked": true,
+    "banditPrisonerChoice": null,
+    "nextSideMissionGoldMultiplier": 1,
+    "archiveUnlocked": false,
+    "sayoRelicPending": false,
+    "sayoRelicDelivered": false,
+    "seenMissionNotices": [],
+    "cipherMapObtained": false,
+    "doctorMissionUnlocked": false,
+    "doctorMissionCompleted": false,
+    "doctorSupplyBonus": 0,
+    "bestiaryBookObtained": false,
+    "doctorBookDeliveryPending": false,
+    "hideoutLocationRevealed": false,
+    "hideoutMissionUnlocked": false,
+    "secretEntranceKnown": false,
+    "hideoutEntryChoice": null,
+    "secretWarehouseLooted": false,
+    "heartMissionUnlocked": false,
+    "hideoutSupplies": 0,
+    "hideoutDiscoveryChoice": null,
+    "prisonersRescued": false,
+    "organizationDocumentsRecovered": false,
+    "organizationRevealed": false,
+    "banditLeaderMissionUnlocked": false,
+    "firstSagaCompleted": false,
+    "doctorRoute": {
+      "active": false,
+      "phase": 0,
+      "danger": 0,
+      "time": 0,
+      "clues": 0,
+      "resources": 0,
+      "choices": [],
+      "pendingEvent": null,
+      "lastEvent": ""
+    },
+    "masterSelectionUnlocked": false
+  },
+  "bestiary": {
+    "entries": {}
+  }
+}
