@@ -184,7 +184,7 @@ class BattleScene extends Phaser.Scene {
         });
     });
     loadUiIcons(this);
-    if (missionHasStep(activeMission, "choice", "lieutenant-fate")) {
+    if (missionStep(activeMission, "choice")?.relicDecision) {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.webp?v=0.62.0");
       const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
       if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.62.0`);
@@ -932,7 +932,7 @@ class BattleScene extends Phaser.Scene {
       this.battleRewards.affinityXp += reward.affinityXp;
       this.battleRewards.coins += reward.coins;
       if (this.enemyIndex === this.encounters.length - 1) {
-        if (missionHasStep(this.mission, "choice", "lieutenant-fate")) await this.playRelicDrop();
+        if (this.combatFeatures.relicDecision) await this.playRelicDrop();
         if (missionStep(this.mission, "choice", "hideout-discovery")?.afterCombat) await this.playHideoutDiscoveryChoice();
         this.pendingEncounterRewards.forEach((encounterIndex) => {
           this.saveData = awardEncounter(this.saveData, encounterIndex).save;
@@ -946,9 +946,9 @@ class BattleScene extends Phaser.Scene {
         this.battleRewards.coins += completion.coins;
         await this.finishBattle(true);
       } else {
-        const investigationStep = missionStep(this.mission, "investigation", "canyon-traces");
-        const choiceStep = missionStep(this.mission, "choice", "lieutenant-fate");
-        const resourceStep = missionStep(this.mission, "resource", "hideout-supplies");
+        const investigationStep = missionStep(this.mission, "investigation");
+        const choiceStep = missionStep(this.mission, "choice");
+        const resourceStep = missionStep(this.mission, "resource");
         const interlude = investigationStep?.afterEncounter === this.enemyIndex
           ? () => this.playInvestigationPhase()
           : choiceStep?.afterEncounter === this.enemyIndex
@@ -1902,8 +1902,8 @@ class BattleScene extends Phaser.Scene {
       missionId: this.mission.parentMissionId || this.mission.id,
       missionType: this.mission.parentType || this.mission.type,
       rewards,
-      item: outcome === "completed" && missionHasStep(this.mission, "choice", "lieutenant-fate") ? this.mission.relic : null,
-      decision: outcome === "completed" && missionHasStep(this.mission, "choice", "lieutenant-fate") ? this.saveData.campaign.banditPrisonerChoice : null
+      item: outcome === "completed" && this.combatFeatures.relicDecision ? this.mission.relic : null,
+      decision: outcome === "completed" && this.combatFeatures.relicDecision ? this.saveData.campaign.banditPrisonerChoice : null
     };
   }
   abandonPayload() {

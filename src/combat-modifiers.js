@@ -34,7 +34,7 @@ export function fieldSuppliesForBattle(mission, campaign = {}) {
 
 export function combatFeatures(mission, campaign = {}) {
   const tutorial = Boolean(missionStep(mission, "combat", "forest-bandits")?.tutorial);
-  const relicDecision = missionHasStep(mission, "choice", "lieutenant-fate");
+  const relicDecision = Boolean(missionStep(mission, "choice")?.relicDecision);
   const secretEntry = missionHasStep(mission, "choice", "hideout-entry") && campaign.hideoutEntryChoice === "secret";
   const opening = activeCombatModifiers(mission, campaign, "enemy-opening")[0];
   const defense = activeCombatModifiers(mission, campaign, "enemy-defense")[0];
@@ -56,23 +56,20 @@ export function bossPhaseMessage(mission) {
 }
 
 export function interludePlan(mission) {
-  return [
-    missionStep(mission, "investigation", "canyon-traces"),
-    missionStep(mission, "choice", "lieutenant-fate"),
-    missionStep(mission, "resource", "hideout-supplies")
-  ].filter(Boolean).map(({ type, afterEncounter }) => ({ type, afterEncounter }));
+  return (mission?.flow || [])
+    .filter((step) => ["investigation", "choice", "resource"].includes(step.type) && step.afterEncounter !== undefined)
+    .map(({ type, afterEncounter }) => ({ type, afterEncounter }));
 }
 
 export function createEnemyState(profile, mission, campaign = {}) {
-  const punishedBoss = missionHasStep(mission, "choice", "lieutenant-fate")
-    && profile.boss
-    && campaign.banditPrisonerChoice === "interrogate";
+  const statModifiers = activeCombatModifiers(mission, campaign, "enemy-stats").filter((modifier) => targetsProfile(modifier, profile));
+  const statBonus = statModifiers.reduce((total, modifier) => {
+    Object.entries(modifier.stats || {}).forEach(([stat, value]) => { total[stat] = (total[stat] || 0) + value; });
+    return total;
+  }, {});
   const baseStats = {
     ...profile.stats,
-    health: profile.stats.health + (punishedBoss ? 22 : 0),
-    strength: profile.stats.strength + (punishedBoss ? 2 : 0),
-    speed: profile.stats.speed + (punishedBoss ? 2 : 0),
-    luck: profile.stats.luck + (punishedBoss ? 1 : 0)
+    ...Object.fromEntries(Object.entries(profile.stats).map(([stat, value]) => [stat, value + (statBonus[stat] || 0)]))
   };
   const { stats, modifiers } = applyAffinityStatModifiers(baseStats, [profile.affinity]);
   const derived = AFFINITY_CONFIG.derived;
@@ -92,7 +89,7 @@ export function createEnemyState(profile, mission, campaign = {}) {
     speedModifier: modifiers.speed,
     luck: stats.luck,
     criticalChance: Math.min(derived.criticalChanceCap, derived.baseCriticalChance + Math.floor(stats.luck * derived.luckCriticalScale)),
-    accuracy: profile.accuracy + (punishedBoss ? 4 : 0),
+    accuracy: profile.accuracy + statModifiers.reduce((total, modifier) => total + (Number(modifier.accuracy) || 0), 0),
     baseEvasion: derived.baseEvasion + stats.luck,
     evasion: derived.baseEvasion + stats.luck,
     primaryAffinity: profile.affinity,
