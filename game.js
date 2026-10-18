@@ -276,7 +276,7 @@ class BattleScene extends Phaser.Scene {
     this.createTurnTimeline();
     this.createPauseButton();
     this.startMusic();
-    if (missionStep(this.mission, "combat", "forest-bandits")?.tutorial && !this.saveData.campaign.completedMissions.includes(this.mission.id)) {
+    if (this.combatFeatures.tutorial && !this.saveData.campaign.completedMissions.includes(this.mission.id)) {
       this.time.delayedCall(120, async () => {
         await this.playMissionOneTutorial();
         this.startTurnCharge();
@@ -1008,7 +1008,7 @@ class BattleScene extends Phaser.Scene {
       "Prueba Guardia para reducir el próximo impacto y recuperar chakra.",
       "Combina lo aprendido: lee el ritmo, administra chakra y usa una técnica elemental."
     ];
-    this.setMessage(missionStep(this.mission, "combat", "forest-bandits")?.tutorial ? tutorialMessages[this.enemyIndex] : `Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
+    this.setMessage(this.combatFeatures.tutorial ? tutorialMessages[this.enemyIndex] : `Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
     this.startTurnCharge();
   }
 
@@ -1884,7 +1884,7 @@ class BattleScene extends Phaser.Scene {
       this.scene.start("secondary-results", { ...result, routeStats: routeFailureStats });
       return;
     }
-    if (won && missionStep(this.mission, "combat", "forest-bandits")?.tutorial && !activeSave.campaign.sayoEncounterSeen) {
+    if (won && this.combatFeatures.tutorial && !activeSave.campaign.sayoEncounterSeen) {
       this.scene.start("epilogue", { result });
       return;
     }

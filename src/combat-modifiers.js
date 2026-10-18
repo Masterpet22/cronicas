@@ -33,7 +33,7 @@ export function fieldSuppliesForBattle(mission, campaign = {}) {
 }
 
 export function combatFeatures(mission, campaign = {}) {
-  const tutorial = Boolean(missionStep(mission, "combat", "forest-bandits")?.tutorial);
+  const tutorial = Boolean(missionStep(mission, "combat")?.tutorial);
   const relicDecision = Boolean(missionStep(mission, "choice")?.relicDecision);
   const route = activeCombatModifiers(mission, campaign, "encounter-route")[0];
   const secretEntry = route?.openingEvent === "secret-warehouse";
