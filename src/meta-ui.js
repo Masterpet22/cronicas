@@ -10,6 +10,7 @@ import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=
 import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./doctor-mission.js?v=0.60.0";
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.66.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.67.0";
+import { createArchiveView } from "./ui/meta/views/archive.js?v=0.67.0";
 const COMING_SOON_LOCATIONS = {
   tower: { npcId: "kureha", message: "La Torre de Desafíos permanece cerrada mientras terminamos sus pruebas y reglas especiales. Próximamente podrás poner a prueba tu equipo piso por piso." },
   shop: { npcId: "hana", message: "La Tienda de Objetos aún está preparando su inventario. Próximamente podrás comprar consumibles, herramientas y mejoras con las monedas que consigas." },
@@ -220,6 +221,20 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       investigatedClues.clear();
       view = "plaza";
       render();
+    }
+  });
+  const sagaMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
+  const archiveView = createArchiveView({
+    missions: sagaMissions,
+    enemyRoster: ENEMY_ROSTER,
+    enemyActions: ENEMY_ACTIONS,
+    elementName,
+    escapeHtml,
+    showDialogue: (...args) => showDialogue(...args),
+    onDeliverBook() {
+      save = writeSave(deliverBestiaryBook(save));
+      introducedViews.add("archive");
+      renderArchive();
     }
   });
 
@@ -1197,42 +1212,9 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   };
 
   const renderArchive = () => {
-    if (save.campaign.doctorBookDeliveryPending) {
-      const secretMarked = save.campaign.banditPrisonerChoice === "interrogate";
-      const content = `<section class="stage-panel book-delivery"><p class="eyebrow">ENTREGA PENDIENTE</p><h2>El libro de Haru Takamine</h2><p class="lead">Sayo debe registrar el volumen antes de que sus páginas puedan actualizarse con tus encuentros.</p><div class="entrance-preview"><article><span>ENTRADA PRINCIPAL</span><strong>Defendida por enemigos</strong><p>El mapa de Haru confirma una ruta frontal hacia la guarida.</p></article><article class="${secretMarked ? "secret-known" : "secret-locked"}"><span>ENTRADA SECRETA</span><strong>${secretMarked ? "Almacén de monedas localizado" : "Ruta sin marcar"}</strong><p>${secretMarked ? "La información del teniente permite reconocer el acceso oculto." : "Sin el testimonio del teniente, esta sección del mapa permanece incompleta."}</p></article></div><button class="primary-button" type="button" data-deliver-book>ENTREGAR EL LIBRO A SAYO</button></section>`;
-      shell(locationStage("archive", content));
-      bindLocationStage("archive");
-      root.querySelector("[data-deliver-book]")?.addEventListener("click", () => showDialogue([
-        ["Sayo Kisaragi", "Haru tenía razón: este libro no es una enciclopedia terminada. Es un registro de campo que aprenderá de cada enfrentamiento."],
-        ["Sayo Kisaragi", "El primer encuentro anotará nombre, apariencia y afiliación. Presenciar una técnica, hallar una debilidad y derrotar al rival completará el resto."],
-        ["Sayo Kisaragi", secretMarked ? "El testimonio del teniente confirma dos entradas. La secreta termina junto al almacén de monedas; la principal está protegida." : "El mapa confirma la entrada principal, pero el acceso oculto no puede localizarse sin el testimonio del teniente."]
-      ], () => {
-        save = writeSave(deliverBestiaryBook(save));
-        introducedViews.add("archive");
-        renderArchive();
-      }, "ACTIVAR REGISTRO", "story"));
-      return;
-    }
-    const completed = new Set(save.campaign.completedMissions);
-    const crowBandits = new Set(STORY_SAGAS[0].missionIds.flatMap((missionId) => MISSIONS.find((mission) => mission.id === missionId)?.encounters || []));
-    const affiliationFor = (id) => crowBandits.has(id) ? "Bandidos del Cuervo" : "Combatiente hostil";
-    const bestiaryEntries = Object.entries(save.bestiary.entries).map(([id, entry]) => {
-      const enemy = ENEMY_ROSTER[id];
-      const bossDataHidden = enemy.boss && entry.encounters < 2 && entry.documents < 1;
-      const techniques = entry.techniques.length ? entry.techniques.map((actionId) => ENEMY_ACTIONS[actionId]?.name).filter(Boolean).join(", ") : "Ninguna observada";
-      const weakness = entry.vulnerabilities.length ? entry.vulnerabilities.map(elementName).join(", ") : "Sin descubrir";
-      const stats = entry.defeated && !bossDataHidden ? `VID ~${enemy.stats.health} · FUE ~${enemy.stats.strength} · VEL ~${enemy.stats.speed} · CH ~${enemy.stats.chakra} · SUE ~${enemy.stats.luck}` : bossDataHidden && entry.defeated ? "Datos sellados: requiere otro encuentro o un documento" : "Derrota al rival para estimarlas";
-      const recordLabel = entry.defeated ? "REGISTRO DE DERROTA" : entry.encounters ? "PRIMER ENCUENTRO" : "INFORMACIÓN RECUPERADA";
-      return `<article class="bestiary-entry ${enemy.boss ? "boss" : ""}" style="--enemy-cloth:#${enemy.colors.cloth.toString(16).padStart(6, "0")};--enemy-accent:#${enemy.colors.accent.toString(16).padStart(6, "0")}"><header><div class="bestiary-identity"><span class="bestiary-appearance" aria-label="Modelo provisional de ${escapeHtml(enemy.name)}"><img src="assets/modular/man_sprites/runtime/cabeza.png?v=0.62.0" alt="" loading="lazy"></span><div><span>${recordLabel}</span><h3>${escapeHtml(enemy.name)}</h3></div></div><strong>×${entry.encounters}</strong></header><p>${affiliationFor(id)} · Afinidad ${elementName(enemy.affinity)}</p><dl><div><dt>Técnicas</dt><dd>${escapeHtml(techniques)}</dd></div><div><dt>Debilidad observada</dt><dd>${escapeHtml(weakness)}</dd></div><div><dt>Estadísticas aproximadas</dt><dd>${escapeHtml(stats)}</dd></div><div><dt>Posibles recompensas</dt><dd>${entry.defeated && !bossDataHidden ? "PX, afinidad y monedas" : "Información incompleta"}</dd></div></dl></article>`;
-    }).join("") || `<div class="bestiary-empty"><strong>Las páginas aún están vacías.</strong><p>Enfréntate a un rival para crear el primer registro.</p></div>`;
-    const sagaMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
-    const records = sagaMissions.map((mission) => `<li class="${completed.has(mission.id) ? "done" : ""}"><span>${completed.has(mission.id) ? "✓" : "·"}</span><div><strong>${mission.title}</strong><small>${completed.has(mission.id) ? "Completada" : "Sin completar"}</small></div></li>`).join("");
-    const sagaCompleted = sagaMissions.length > 0 && sagaMissions.every((mission) => completed.has(mission.id));
-    const ending = sagaCompleted ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>Futuro prometedor</h2><p>Raizen fue derrotado. Tu primera gran victoria queda registrada en la aldea.</p></div>` : "";
-    const routeIntel = save.campaign.hideoutLocationRevealed ? `<section class="hideout-intel"><p class="eyebrow">MAPA DESCIFRADO</p><h3>Guarida de los bandidos</h3><p>Entrada principal: protegida por enemigos.</p><p class="${save.campaign.secretEntranceKnown ? "known" : "locked"}">Entrada secreta: ${save.campaign.secretEntranceKnown ? "marcada junto al almacén de monedas" : "ubicación desconocida"}.</p></section>` : "";
-    const content = `<section class="stage-panel archive-card" data-comment="El libro se completa al observar y derrotar enemigos."><p class="eyebrow">BIBLIOTECA</p><h2>Libro de criaturas y combatientes</h2><p class="lead">Cada encuentro añade información. Algunos jefes requieren varios duelos o documentos.</p>${routeIntel}<div class="bestiary-grid">${bestiaryEntries}</div><details class="chronicle-details"><summary>Crónica de ${escapeHtml(save.character.name)} · ${completed.size} misiones</summary><ol>${records}</ol>${ending}</details></section>`;
-    shell(locationStage("archive", content));
+    shell(locationStage("archive", archiveView.render({ save })));
     bindLocationStage("archive");
+    archiveView.mount(root, viewScope);
   };
 
   const renderDebugTools = () => {
