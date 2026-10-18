@@ -1,6 +1,6 @@
 # Archivo experimental de personajes modulares
 
-Este directorio conserva los atlas y capas ilustradas experimentales. Ya no se cargan directamente en Phaser: sus proporciones y anclajes visuales no son suficientemente consistentes para un personalizador de producción. Se mantienen como referencia para el futuro diseño definitivo.
+Este directorio conserva los atlas y capas ilustradas experimentales. Las variantes de personalización no se cargan directamente en Phaser porque sus proporciones y anclajes todavía no son suficientemente consistentes para producción. La única excepción es `man_sprites/runtime/`, que contiene las piezas raster de la marioneta provisional utilizada actualmente en viajes y combates.
 
 ## Orden de renderizado
 
@@ -23,4 +23,4 @@ Desde la raíz del proyecto:
 powershell -ExecutionPolicy Bypass -File scripts/generate_modular_assets.ps1
 ```
 
-El script recorta, limpia y alinea los atlas de `source/` para producir los dos cuerpos, tres rostros, cinco peinados, tres prendas superiores, tres inferiores, dos calzados y cuatro armas. Phaser puede teñir las prendas para ampliar las combinaciones sin duplicar recursos.
+El script recorta, limpia y alinea los atlas de `source/` para producir dos cuerpos, tres rostros, cinco peinados, tres prendas superiores, tres inferiores, dos calzados y cuatro armas experimentales. Su integración y teñido en Phaser quedan pendientes hasta aprobar una plantilla artística común.

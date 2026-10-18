@@ -6,13 +6,15 @@ Crear un RPG 2D por turnos que conserve la sensación de formar un combatiente, 
 
 La identidad visual se apoyará en poses reutilizables, sellos encadenados, efectos elementales, sonido y movimiento de cámara. No se producirá animación cuadro por cuadro para cada ataque.
 
-## Estado actual: prototipo de combate
+## Estado actual: primera saga jugable
 
-- [x] Escena de combate adaptable al tamaño de la ventana.
+El alcance vigente se resume en [`docs/ESTADO_ACTUAL.md`](docs/ESTADO_ACTUAL.md). Las cronologías anteriores se conservan como banco de ideas y no describen la campaña conectada al juego.
+
+- [x] Escena de combate de escritorio con marco lógico `16:9`.
 - [x] Vida, chakra y turnos.
 - [x] Seis acciones con costes, velocidad, precisión y funciones diferentes.
 - [x] Secuencias de sellos configuradas por datos.
-- [x] Ejecución interactiva mediante `QWER / ASDF / ZXCV` y controles táctiles.
+- [x] Ejecución interactiva mediante `QWER / ASDF / ZXCV` y ratón.
 - [x] Calidad de ejecución con bonificación por secuencia perfecta.
 - [x] Modo automático opcional y preferencia persistente.
 - [x] Presentación superior para jutsus normales.
@@ -30,7 +32,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Separar los sistemas de combate, interfaz, personajes y datos en módulos.
 - [x] Incorporar Guardia, velocidad por acción y enfriamientos visibles.
 - [x] Añadir quemadura, aturdimiento, herida y veneno.
-- [x] Incorporar precisión, evasión y un efecto de sello inhibidor.
+- [x] Incorporar precisión, evasión y el estado Sellado con penalización de precisión.
 - [x] Evitar residuos de opacidad cuando coinciden varios impactos.
 - [x] Incorporar afinidades elementales moderadas: 15 % de ventaja y 10 % de resistencia.
 - [x] Crear tres enemigos con estadísticas, afinidades y patrones distintos.
@@ -46,7 +48,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 - [x] Creación de nombre, aspecto y afinidad inicial.
 - [x] Experiencia, niveles y atributos.
-- [x] Biblioteca de 12 jutsus: cuatro por cada una de tres afinidades.
+- [x] Biblioteca de 37 técnicas distribuida entre afinidades básicas y combinadas.
 - [x] Equipamiento sencillo: arma, protector y accesorio.
 - [x] Pantalla para preparar cuatro técnicas antes de combatir.
 - [x] Guardado local versionado.
@@ -59,17 +61,18 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 ## Fase 3 — Demo jugable
 
 - [x] Una aldea ilustrada con nueve edificios interactivos, resaltado por hover y navegación por teclado.
-- [x] Diez misiones, ocho enemigos y tres jefes.
+- [x] Primera saga con cinco misiones principales consecutivas: `m01`, `m02`, `m03`, `m04` y `m05`.
+- [x] Catálogo declarativo separado para misiones principales y secundarias, con requisitos, actividades y efectos.
+- [x] Catálogo de diálogo traducible y ciclo exclusivo de montaje/desmontaje de vistas.
+- [x] Dos misiones secundarias integradas en la progresión: Kagemori y el médico errante.
+- [ ] Expandir la campaña con nuevas sagas y misiones después de estabilizar el contenido actual.
 - [x] Diálogos y tutorial breve.
 - [x] Reparto visual por ubicación con conversaciones y guías contextuales.
-- [x] Examen de ascenso de rango.
-- [x] Compañero controlado por inteligencia artificial.
 - [x] Música, efectos y mezcla de audio.
-- [x] Diseño adaptable y modo ligero verificados en viewport móvil.
 
-**Estado: implementación jugable completada.**
+**Estado: primera saga jugable; expansión planificada.**
 
-**Criterio de salida parcialmente cumplido:** la campaña ofrece aproximadamente 65 a 85 minutos y funciona localmente. La publicación web abierta queda aplazada hasta sustituir los sellos provisionales por arte original en la Fase 4.
+**Criterio de salida parcialmente cumplido:** las cinco misiones principales y las dos secundarias forman el contenido vigente. Antes de ampliar la campaña se deben estabilizar sus rutas, decisiones, recompensas y continuidad de guardado.
 
 ## Fase 4 — Identidad visual propia
 
@@ -84,7 +87,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 **Estado: pausada mientras se valida el diseño definitivo.**
 
-**Criterio de salida pendiente:** el juego usa un renderer geométrico estable y los atlas generados quedan archivados como experimentos. La fase solo se considerará terminada cuando todas las combinaciones ilustradas compartan anatomía y anclajes verificables. También se debe confirmar la autoría o licencia de la hoja de símbolos proporcionada.
+**Criterio de salida pendiente:** el juego usa una marioneta raster provisional y los atlas de personalización permanecen archivados como experimentos. La fase solo se considerará terminada cuando la apariencia del Dojo se represente también en combate y todas las combinaciones ilustradas compartan anatomía y anclajes verificables. También se debe confirmar la autoría o licencia de la hoja de símbolos proporcionada.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 
@@ -108,4 +111,8 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Pulir arquitectura, combate, balance e interfaz sobre el renderer geométrico; en paralelo, producir y validar una plantilla artística real antes de reactivar la sustitución visual.
+Pulir arquitectura, combate, balance e interfaz sobre la marioneta provisional; en paralelo, producir y validar una plantilla artística real antes de integrar la apariencia personalizable en combate.
+
+## Bloqueador obligatorio antes de 1.0
+
+- [ ] Eliminar el botón **PRUEBAS**, la pantalla `renderDebugTools`, sus estilos y las pruebas que exigen su presencia. Estas herramientas alteran la partida y solo deben existir durante el desarrollo.

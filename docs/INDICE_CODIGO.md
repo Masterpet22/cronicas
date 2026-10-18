@@ -1,6 +1,9 @@
 # Índice del código de Crónicas del Sello
 
-Este documento asigna un nombre funcional en español a cada archivo importante y explica sus responsabilidades. Los nombres físicos se conservan para no romper imports ES Modules, URLs, caché, pruebas ni ramas de trabajo existentes.
+Este documento asigna un nombre funcional en español a cada archivo importante y explica sus responsabilidades. Los nombres físicos se conservan para no romper imports ES Modules, URLs, pruebas ni ramas de trabajo existentes.
+
+El alcance funcional vigente y la lista canónica de misiones están en [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md).
+El contrato de extensión de misiones, pasos y diálogos está en [`SISTEMA_MISIONES_DIALOGOS.md`](SISTEMA_MISIONES_DIALOGOS.md).
 
 ## Flujo general
 
@@ -9,23 +12,26 @@ index.html
   └─ game.js
       ├─ src/meta-ui.js ── aldea, personaje, dojo y misiones
       ├─ src/data.js ───── catálogo de contenido
+      ├─ src/mission-system.js ─ requisitos y flujo de misiones
+      ├─ src/dialogues.js ─ catálogo traducible de diálogos
+      ├─ src/view-runtime.js ─ ciclo de vida exclusivo de pantallas
       ├─ src/save.js ───── guardado y progresión
       ├─ src/doctor-mission.js ─ rutas convergentes de Haru
+      ├─ src/affinity-system.js ─ afinidades y modificadores de combate
       ├─ src/rules.js ──── reglas puras de combate
       ├─ src/fighters.js ─ combatientes y animación
       ├─ src/ui.js ─────── barras, acciones y ayudas
-      └─ src/animations/* ─ rig, clips, muestreo y Studio
+      └─ src/animations/* ─ rig, clips, controlador, muestreo y validación
 ```
 
 ## Archivos de entrada y presentación
 
 | Archivo | Nombre funcional en español | Responsabilidad |
 | --- | --- | --- |
-| `index.html` | Entrada principal | Carga fuentes, estilos, Phaser, ajustes globales y el módulo del juego. |
+| `index.html` | Entrada principal | Carga fuentes y estilos, decide si habilita la experiencia y, cuando corresponde, inicia Phaser y el módulo del juego. |
 | `game.js` | Orquestador del juego | Configura Phaser y contiene las escenas de viaje, combate y pausa. |
-| `styles.css` | Estilos generales | Presentación de creación de personaje, aldea, ubicaciones, dojo, diálogos y misiones. |
+| `styles.css` | Estilos generales | Presentación de acceso, creación de personaje, aldea, ubicaciones, dojo, diálogos, misiones y herramientas internas. |
 | `desktop.css` | Diseño de escritorio | Adapta la interfaz al escenario lógico de escritorio y sus resoluciones. |
-| `sw.js` | Caché sin conexión | Instala, actualiza y sirve los recursos estáticos versionados. |
 | `package.json` / `package-lock.json` | Configuración del proyecto | Versión, dependencia fija de iconos y comando de pruebas. |
 
 ## Orquestador de escenas: `game.js`
@@ -47,7 +53,7 @@ Escena `BattleScene`:
 - Preparación: `preload`, `create`, `configureSealMode`, `configurePresentationOptions`, `createEnemyState`, `chooseEnemyAction` y `makeSealFrames`.
 - Escenario: `drawArena`, `drawDuskPass`, `drawMistMarsh` y `drawMoonShrine`.
 - HUD: `createHud`, `registerHudThemeFrames`, `applyHudTheme`, `moveHudBar`, `createTurnTimeline` y `createPauseButton`.
-- Combatientes y acciones: `createFighters`, `createActionPanel`, `startTurnCharge`, `resetTurnTimeline`, `useJutsu`, `playerAttack`, `playerGuard`, `companionAttack`, `executeEnemyAction` y `enemyTurn`.
+- Combatientes y acciones: `createFighters`, `createActionPanel`, `startTurnCharge`, `resetTurnTimeline`, `useJutsu`, `playerAttack`, `playerGuard`, `executeEnemyAction` y `enemyTurn`.
 - Sellos: `playSeals` y `waitForSealInput`.
 - Resolución del combate: `resolveEnemyOutcome`, `advanceEncounter`, `triggerBossPhaseTwo`, `rollHit`, `resolveEndRoundStatuses`, `advanceCooldowns`, `clearGuard`, `loseHealth` y `finishBattle`.
 - Efectos: `createImpact`, `flashFighter`, `stopFighterFlash`, `floatHealthLoss`, `healthLossPulse`, `floatLabel`, `shake`, `screenFlash`, `tone` y `startMusic`.
@@ -65,12 +71,34 @@ Escena `PauseScene`:
 - `SEALS`: doce sellos y sus teclas.
 - `BASE_ACTIONS`: golpe y guardia.
 - `JUTSU_LIBRARY`: técnicas aprendibles.
-- `EQUIPMENT`: armas, armaduras, accesorios y compañeros.
+- `EQUIPMENT`: armas, armaduras y accesorios.
 - `ENEMY_ACTIONS`, `ENEMY_ROSTER` y `ENEMIES`: acciones, perfiles y lista de rivales.
-- `STORY_SAGAS` y `MISSIONS`: estructura completa de la campaña.
+- `STORY_SAGAS`: única lista de misiones principales conectadas a la campaña accesible.
+- `SECONDARY_MISSIONS`: Kagemori y la búsqueda del médico errante.
+- `MISSIONS`: catálogo exacto de las cinco misiones principales de la primera saga.
+
+### `src/mission-system.js` — Reglas de misiones
+
+- `requirementMet`, `unmetRequirements` y `missionState`: evalúan requisitos declarativos y progreso sin depender de una pantalla.
+- `missionsForBoard` y `nextAvailableMission`: separan tableros y seleccionan contenido disponible.
+- `missionHasStep` y `missionStep`: consultan mecánicas por significado en vez de por número de misión.
+- `applyMissionEffects`: aplica consecuencias persistentes declaradas en los datos.
+- `validateMissionCatalog`: rechaza IDs discontinuos, referencias rotas y tipos no registrados.
+
+### `src/dialogues.js` — Catálogo traducible
+
+- `DIALOGUE_CATALOGS`: líneas localizadas por clave estable.
+- `DIALOGUE_PLACEMENTS`: superficie y propietario autorizados para cada conversación.
+- `getDialogue`: resuelve idioma, variables, condiciones y ubicación.
+- `validateDialogueReferences`: comprueba las referencias de todas las misiones.
+
+### `src/view-runtime.js` — Ciclo de vistas
+
+- `createViewRuntime`: mantiene una única revisión activa, aborta listeners y desmonta overlays al navegar.
 
 ### `src/save.js` — Guardado y progresión
 
+- `SAVE_VERSION`: versión `16` del esquema persistido; migra la numeración principal y separa el progreso de secundarias.
 - `createDefaultSave`: genera una partida vacía compatible con la versión actual.
 - `initialLoadout` y `loadoutSlotsForLevel`: calculan técnicas y ranuras iniciales.
 - `affinityXpForElement`, `isTechniqueLearned`: resuelven progreso y desbloqueos elementales.
@@ -92,9 +120,18 @@ Escena `PauseScene`:
 
 - `hasStatus`: consulta estados activos.
 - `hitChance`: calcula precisión contra evasión.
-- `affinityMultiplier` y `affinityLabel`: resuelven debilidades y resistencias.
+- `affinityLabel`: traduce el modificador elemental a su etiqueta visible.
 - `applyStatus`: añade o renueva un estado.
 - `formatStatuses`: genera su presentación textual.
+
+### `src/affinity-system.js` — Afinidades y modificadores
+
+- `AFFINITY_CONFIG`: estadísticas y ventajas especiales de fuego, agua, tierra y viento.
+- `normalizeAffinityOrder`, `availableAffinitySlots`: validan el orden y los espacios disponibles.
+- `affinityStatModifiers`, `applyAffinityStatModifiers`: incorporan las afinidades a las estadísticas derivadas.
+- `affinityCycleModifier`, `finalAffinityDamage`: resuelven el ciclo de ventaja elemental y el daño final.
+- `addSoak`, `tickSoak`, `soakReduction`: gestionan la acumulación defensiva de agua.
+- `furyDamageBonus`, `reprisalChance`, `reprisalDamage`, `hurricaneEyeEvasionBonus`: aplican las reglas especiales restantes.
 
 ### `src/elements.js` — Sistema elemental
 
@@ -112,8 +149,9 @@ Escena `PauseScene`:
 
 ### `src/fighters.js` — Combatientes modulares
 
-- `fighterTextureKey`, `queueFighterTexture`, `queuePlayerFighterTextures`: identifican y precargan texturas.
-- `createGeometricFighter`, `createPlayerFighter`, `destroyFighter`: construyen y liberan combatientes.
+- `MAN_SPRITE_LAYERS`, `MAN_SPRITE_JOINTS`: definen piezas y articulaciones del combatiente raster provisional.
+- `queuePlayerFighterTextures`: precarga las piezas compartidas del combatiente.
+- `createPlayerFighter`, `destroyFighter`: construyen y liberan combatientes.
 - `startPlayerBreathing`, `stopPlayerBreathing`: reposo animado.
 - `startPlayerGuard`, `stopPlayerGuard`: postura defensiva.
 - `startPlayerRunning`, `stopPlayerRunning`: transición de carrera.
@@ -133,6 +171,7 @@ Escena `PauseScene`:
 - `warmImage`, `warmLocationAssets`: anticipan únicamente los fondos y retratos de la ubicación señalada o enfocada; no descargan secciones que el jugador todavía no abrió.
 - `escapeHtml`: protege el texto que se inserta en plantillas HTML.
 - `VILLAGE_LOCATIONS`: geometría, nombres y descripciones de los destinos del mapa.
+- `renderDebugTools`: herramienta interna para checkpoints y accesos directos; debe retirarse antes de 1.0 junto con su botón y estilos.
 
 ### `src/npcs.js` — Habitantes y diálogos
 
@@ -166,6 +205,7 @@ Escena `PauseScene`:
 
 | Archivo | Cobertura |
 | --- | --- |
+| `tests/affinity-system.test.mjs` | Afinidades del personaje, modificadores y reglas especiales de combate. |
 | `tests/rules.test.mjs` | Precisión, afinidades y estados. |
 | `tests/save.test.mjs` | Guardado, migración, progresión, equipo y recompensas. |
 | `tests/character.test.mjs` | Apariencia y composición del personaje. |
@@ -173,7 +213,8 @@ Escena `PauseScene`:
 | `tests/npcs.test.mjs` | Reparto y diálogos. |
 | `tests/assets.test.mjs` | Dimensiones, transparencia y presencia de recursos. |
 | `tests/elements.test.mjs` | Afinidades y combinaciones elementales. |
-| `tests/battle-ui.test.mjs` | HUD, acciones, escenas y comportamiento visual del combate. |
+| `tests/battle-ui.test.mjs` | Contratos estáticos del HUD, escenas, acceso por resolución, documentación y herramientas internas. |
+| `tests/content-systems.test.mjs` | IDs consecutivos, catálogos, requisitos cruzados, ubicación de diálogos y desmontaje de vistas. |
 | `tests/desktop-layout.test.mjs` | Escenario lógico y adaptación de escritorio. |
 | `tests/webp.mjs` | Lector mínimo de dimensiones y canal alfa para pruebas. |
 
@@ -194,4 +235,4 @@ El comando `npm test` ejecuta toda la batería en el orden definido por `package
 
 ## Criterio para futuros nombres
 
-Los nombres físicos actuales permanecen en inglés porque forman parte de rutas públicas y contratos de importación. Si se decide traducirlos, conviene hacerlo en una rama exclusiva y actualizar simultáneamente imports, HTML, service worker, pruebas, documentación y rutas sensibles a mayúsculas de GitHub Pages.
+Los nombres físicos actuales permanecen en inglés porque forman parte de rutas públicas y contratos de importación. Si se decide traducirlos, conviene hacerlo en una rama exclusiva y actualizar simultáneamente imports, HTML, pruebas, documentación y rutas sensibles a mayúsculas de GitHub Pages.

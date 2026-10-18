@@ -1,6 +1,6 @@
 # Crónicas del Sello — Prototipo jugable
 
-RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, diez misiones narrativas, progresión persistente, compañero controlado por IA, examen de rango y once rivales únicos.
+RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, una primera saga de cinco misiones principales, dos misiones secundarias y progresión persistente. Nuevas sagas y misiones se incorporarán en futuras etapas del desarrollo.
 
 **Demo pública:** https://masterpet22.github.io/cronicas/
 
@@ -8,10 +8,14 @@ La arquitectura y el flujo de aprobación de la marioneta están documentados en
 [`docs/ANIMATION_SYSTEM.md`](docs/ANIMATION_SYSTEM.md).
 El mapa completo de archivos, módulos y funciones está en
 [`docs/INDICE_CODIGO.md`](docs/INDICE_CODIGO.md).
+El alcance jugable vigente, las misiones conectadas y la distinción entre contenido actual e ideas futuras están en
+[`docs/ESTADO_ACTUAL.md`](docs/ESTADO_ACTUAL.md).
+El contrato para añadir misiones, mecánicas y traducciones sin acoplarlas a una pantalla está en
+[`docs/SISTEMA_MISIONES_DIALOGOS.md`](docs/SISTEMA_MISIONES_DIALOGOS.md).
 
 ## Ejecutar
 
-Phaser está incluido en el proyecto y los recursos esenciales se guardan en caché tras la primera visita. Para servir el juego localmente:
+Phaser está incluido en el proyecto. Para servir el juego localmente:
 
 Desde esta carpeta ejecuta:
 
@@ -31,14 +35,16 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Los habitantes explican controles al explorar las opciones, hacen comentarios ocasionales y pueden recibir un clic para repetir consejos.
 - Los bocadillos identifican siempre al hablante y su función; cuando hay varios personajes, el activo se ilumina mientras los demás quedan atenuados.
 - El perfil, el regreso al mapa y los ajustes funcionan como HUD flotante; ya no ocupan una cabecera separada del escenario.
-- Completa diez misiones en orden; su duración estimada conjunta es de 65 a 85 minutos.
-- En el dojo, equipa o desequipa un arma, un protector, un accesorio y un compañero desde ranuras de inventario.
-- La afinidad se fija al crear el personaje; cambiarla o añadir otra requerirá un futuro Catalizador elemental.
+- La campaña disponible contiene cinco misiones principales: **Tras las huellas del gato**, **Asalto al Desfiladero del Cuervo**, **El umbral de los cuervos**, **El corazón de la guarida** y **El jefe de los bandidos**.
+- Las misiones secundarias disponibles son **El silencio de Kagemori** y **El médico errante**. Sus decisiones y descubrimientos abren el progreso de la saga principal.
+- Este contenido forma la primera saga; el plan es ampliarlo con nuevas sagas y misiones más adelante.
+- En el dojo, equipa o desequipa un arma, un protector y un accesorio.
+- La afinidad principal se elige al crear el personaje. La historia permite conocer otras y el nivel y rango elemental abren hasta tres espacios ponderados.
 - Cada una de las tres partidas fija el tipo de cuerpo al crear al personaje; el Dojo permite ajustar rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
 - Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
-- Selecciona una de las seis acciones con el ratón, la pantalla táctil o las teclas `1–6` indicadas en cada acción.
+- Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
-- También puedes pulsar el sello iluminado con ratón o pantalla táctil.
+- También puedes pulsar el sello iluminado con el ratón.
 - Una secuencia perfecta aumenta el daño un 10 %; demasiados errores lo reducen.
 - Desactiva **Sellos manuales** sobre el juego para ejecutar las secuencias automáticamente; la preferencia queda guardada en el navegador.
 - El modo manual no tiene límite de tiempo. Las técnicas ya vistas reproducen sus sellos más rápidamente.
@@ -49,13 +55,11 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Los jutsus tienen enfriamientos visibles y no pueden repetirse continuamente.
 - Fuego causa quemadura, viento abre una herida y relámpago aturde; el enemigo puede aplicar veneno.
 - Cada ataque compara su precisión con la evasión del objetivo y puede fallar.
-- **Sello inhibidor** reduce durante dos rondas la velocidad enemiga en 4 y su precisión en 15 puntos.
+- El estado **Sellado** reduce en 15 puntos la precisión mientras permanece activo.
 - Cada enemigo tiene debilidad, resistencia y patrón de acciones propios.
 - Al derrotar un enemigo se recuperan 35 PV y 25 CH antes del siguiente encuentro.
 - La técnica especial utiliza una presentación cinematográfica oscura.
 - Cada enemigo concede experiencia y monedas; las recompensas y decisiones quedan guardadas localmente.
-- A partir de la tercera misión, Mika ataca automáticamente cada dos rondas.
-- La séptima misión es el examen de ascenso al rango Guardián.
 - Al finalizar aparece un botón para volver a la aldea y ajustar la estrategia.
 - **Modo ligero** desactiva sacudidas y destellos de combatientes para equipos modestos.
 - La música ambiental sintetizada puede desactivarse independientemente de los demás efectos.
@@ -72,18 +76,24 @@ game.js                  Escena, combate, sellos y efectos
 ART_DIRECTION.md         Guía de identidad, paleta y escalas
 src/data.js              Jutsus, equipo, sellos, enemigos y patrones
 src/character.js         Definición visual compartida y vista previa SVG
-src/save.js              Guardado v8, tres ranuras, apariencia, campaña, atributos y recompensas
+src/save.js              Guardado v16, migraciones, tres ranuras, campaña y recompensas
+src/mission-system.js    Requisitos, estados, efectos y validación del catálogo de misiones
+src/dialogues.js         Catálogo de diálogos traducibles por clave e idioma
+src/view-runtime.js      Montaje exclusivo y desmontaje de vistas y overlays
 src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
 src/npcs.js              Reparto, funciones y guías de cada ubicación
 src/rules.js             Precisión, afinidades y estados
 src/fighters.js          Composición y animación de capas de personaje
 src/ui.js                Barras y botones de combate
 docs/INDICE_CODIGO.md    Índice en español de archivos, módulos y funciones
+docs/ESTADO_ACTUAL.md    Alcance vigente y campaña realmente conectada
+docs/SISTEMA_MISIONES_DIALOGOS.md  Contrato extensible de misiones, diálogos y vistas
+docs/saga-1-tutorial.md  Diseño de la primera saga y sus dos secundarias
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.webp      Hoja WebP optimizada de doce símbolos
 assets/village/aldea.webp          Mapa WebP interactivo de la Aldea del Horizonte
-assets/npcs/             Diez retratos WebP transparentes del reparto de la aldea
+assets/npcs/             Doce retratos WebP transparentes del reparto y Kagemori
 assets/locations/        Nueve fondos WebP panorámicos para las escenas de cada destino
 assets/elements/         Sistema de 22 iconos elementales en cuatro niveles
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
@@ -100,8 +110,8 @@ npm test
 
 ## Escenario de escritorio
 
-Todas las vistas de la versión para PC comparten un escenario lógico de `1440 × 810` píxeles (`16:9`). El marco se centra y escala de forma proporcional para resoluciones menores, mientras que en monitores grandes conserva su tamaño máximo. La adaptación específica para móviles se abordará por separado.
+Todas las vistas comparten un escenario lógico de `1440 × 810` píxeles (`16:9`). El marco se centra y escala de forma proporcional en pantallas de escritorio, mientras que en monitores grandes conserva su tamaño máximo.
 
 ## Nota sobre el arte
 
-El juego utiliza temporalmente figuras geométricas avanzadas para los combatientes con el fin de mantener consistencia y continuar con jugabilidad, animación e interfaz. Los atlas ilustrados se conservan como referencia experimental, pero no se cargan en combate. El mapa de la aldea, la hoja de símbolos, el fondo de la Biblioteca y los retratos originales de Ren y Kureha fueron proporcionados por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio. Los otros ocho NPC fueron generados específicamente para este prototipo. La procedencia está documentada en `assets/npcs/README.md` y `assets/locations/README.md`.
+El combate utiliza temporalmente una marioneta raster articulada construida con las piezas de `assets/modular/man_sprites/runtime/`. La vista previa personalizable del Dojo todavía no está integrada en esa marioneta; los atlas de personalización ilustrada se conservan como referencia experimental. El mapa de la aldea, la hoja de símbolos, el fondo de la Biblioteca y los retratos originales de Ren y Kureha fueron proporcionados por el usuario; se debe conservar evidencia de su autoría o licencia antes de una publicación comercial o de hacer público el repositorio. Los otros diez NPC fueron generados específicamente para este prototipo. La procedencia está documentada en `assets/npcs/README.md` y `assets/locations/README.md`.

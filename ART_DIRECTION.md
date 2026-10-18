@@ -10,7 +10,7 @@ La identidad combina tinta seca, siluetas nítidas y color elemental contenido. 
 - Interfaz y recompensas: ámbar `#f5a357`.
 - Vida: jade `#54d69a`; chakra: azul `#58a7ff`.
 - Fuego: coral `#ff783d`; viento: menta `#67e8c3`; rayo: azul eléctrico `#68a8ff`.
-- Eclipse: ciruela `#612348` y violeta `#9a55df`.
+- Bandidos del Cuervo: ciruela oscura `#4b3341` y granate `#6d3e48`.
 
 ## Sistema modular de personajes
 
@@ -22,9 +22,9 @@ La hoja `assets/reference/modular-character-system-v1.png` define la plantilla d
 - Capas para cabello trasero, cuerpo, rostro, ropa superior e inferior, manos, cabello delantero, accesorio, arma y efectos.
 - Anclajes `HEAD`, `NECK`, `SHOULDER_L/R`, `HAND_L/R`, `WAIST`, `FOOT_L/R` y `WEAPON_HAND`.
 
-El renderer activo utiliza figuras geométricas avanzadas definidas en `src/character.js` y construidas en Phaser por `src/fighters.js`. El dojo y el combate parten de la misma apariencia: cuerpo, rostro, peinado, ropa, calzado, color y arma. Esto permite pulir sistemas y animaciones sin depender todavía del arte definitivo.
+El renderer activo de combate utiliza una marioneta raster articulada construida por `src/fighters.js` con las piezas de `assets/modular/man_sprites/runtime/`. Por ahora todos los combatientes comparten ese cuerpo provisional. La vista previa SVG del Dojo, definida en `src/character.js`, sí representa cuerpo, rostro, peinado, ropa, calzado, color y arma, pero esa apariencia todavía no se traslada a la marioneta de combate. Integrar ambas representaciones es trabajo pendiente para la identidad visual definitiva.
 
-Los recursos de `assets/modular/` son experimentos archivados y no se cargan en runtime. No deben considerarse arte modular terminado: las piezas generadas no comparten todavía una anatomía suficientemente estricta. Solo se reactivarán cuando exista una plantilla maestra editable y todas las combinaciones superen una revisión visual.
+Los atlas de personalización de `assets/modular/` son experimentos archivados y no se cargan durante el juego. La excepción es `assets/modular/man_sprites/runtime/`, que contiene la marioneta provisional actual. Ninguno debe considerarse arte modular terminado: las variantes generadas no comparten todavía una anatomía suficientemente estricta. Solo se integrarán cuando exista una plantilla maestra editable y todas las combinaciones superen una revisión visual.
 
 ## Vocabulario de sellos
 

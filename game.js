@@ -1,13 +1,15 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.61.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, addSoak, applyAffinityStatModifiers, affinityCycleModifier, cappedEvasion, effectiveSpeed, finalAffinityDamage, furyDamageBonus, hurricaneEyeEvasionBonus, reprisalChance, reprisalDamage, tickSoak } from "./src/affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.62.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "./src/character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.64.0";
-import { mountMetaUI } from "./src/meta-ui.js?v=0.64.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, loadSave, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "./src/save.js?v=0.62.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.66.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, loadSave, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "./src/save.js?v=0.66.0";
 import { elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
+import { missionHasStep, missionStep } from "./src/mission-system.js?v=0.66.0";
+import { getMissionSceneDialogue } from "./src/dialogues.js?v=0.66.0";
 
 const Phaser = window.Phaser;
 
@@ -93,6 +95,7 @@ let activeSave = loadSave();
 let activeMission = null;
 let game = null;
 let metaUi = null;
+let pendingSecondaryResults = null;
 
 class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
@@ -141,22 +144,10 @@ class MissionTravelScene extends Phaser.Scene {
     this.time.delayedCall(duration - 260, () => this.cameras.main.fadeOut(250, 4, 10, 7));
     this.time.delayedCall(duration, () => {
       stopPlayerRunning(runner);
-      if (returningToVillage) window.location.reload();
-      else if (returningToRoute || activeMission?.type === "route-search") {
-        metaRoot.hidden = false;
-        gameRoot.hidden = true;
-        metaUi?.openLocation(activeSave, "doctor-route");
-        this.scene.stop();
-        game?.loop.sleep();
-      } else if (activeMission?.type === "investigation") {
-        metaRoot.hidden = false;
-        gameRoot.hidden = true;
-        metaUi?.openLocation(activeSave, "kagemori");
-        // La investigación usa HTML, no Phaser. Detener escena y bucle evita
-        // renderizar a 60 FPS un canvas oculto durante toda la exploración.
-        this.scene.stop();
-        game?.loop.sleep();
-      } else this.scene.start("battle");
+      if (returningToVillage) releaseGameToMeta("plaza");
+      else if (returningToRoute || activeMission?.type === "route-search") releaseGameToMeta("doctor-route");
+      else if (activeMission?.type === "investigation") releaseGameToMeta("kagemori");
+      else this.scene.start("battle");
     });
     sharpenTextTree(this.children.list);
   }
@@ -192,7 +183,7 @@ class BattleScene extends Phaser.Scene {
         });
     });
     loadUiIcons(this);
-    if (activeMission?.id === "m11") {
+    if (missionHasStep(activeMission, "choice", "lieutenant-fate")) {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.webp?v=0.62.0");
       const master = masterIdForCharacter(activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
       if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.62.0`);
@@ -238,7 +229,7 @@ class BattleScene extends Phaser.Scene {
       });
     });
     this.mission = activeMission;
-    this.encounterIds = this.mission.id === "m12" && this.saveData.campaign.hideoutEntryChoice === "secret"
+    this.encounterIds = missionHasStep(this.mission, "choice", "hideout-entry") && this.saveData.campaign.hideoutEntryChoice === "secret"
       ? this.mission.encounters.slice(1)
       : [...this.mission.encounters];
     this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);
@@ -256,7 +247,7 @@ class BattleScene extends Phaser.Scene {
     ];
     this.enemyIndex = 0;
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
-    if (this.mission.id === "m14" && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
+    if (missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
       this.enemy.hp = Math.max(1, Math.round(this.enemy.maxHp * 0.85));
       this.enemy.damageReduction = 0;
     }
@@ -270,7 +261,7 @@ class BattleScene extends Phaser.Scene {
     this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
     this.pendingEncounterRewards = [];
     this.rewardPreviewSave = this.saveData;
-    this.fieldSupplies = this.mission.id === "m13" ? Math.max(1, this.saveData.campaign.hideoutSupplies || 1) : 0;
+    this.fieldSupplies = missionHasStep(this.mission, "resource", "hideout-supplies") ? Math.max(1, this.saveData.campaign.hideoutSupplies || 1) : 0;
     this.nextRecovery = null;
     this.audioContext = null;
     this.configureSealMode();
@@ -281,7 +272,7 @@ class BattleScene extends Phaser.Scene {
     this.drawArena();
     this.createHud();
     this.createFighters();
-    if (this.mission.id === "m14" && this.enemy.damageReduction > 0) {
+    if (missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.enemy.damageReduction > 0) {
       this.raizenDefenseAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 74, 0x7f91b8, 0.08).setStrokeStyle(4, 0x9eb8e8, 0.6).setDepth(7);
       this.tweens.add({ targets: this.raizenDefenseAura, scale: 1.08, alpha: 0.2, duration: 720, yoyo: true, repeat: -1 });
     }
@@ -289,17 +280,17 @@ class BattleScene extends Phaser.Scene {
     this.createTurnTimeline();
     this.createPauseButton();
     this.startMusic();
-    if (this.mission.id === "m01" && !this.saveData.campaign.completedMissions.includes("m01")) {
+    if (missionStep(this.mission, "combat", "forest-bandits")?.tutorial && !this.saveData.campaign.completedMissions.includes(this.mission.id)) {
       this.time.delayedCall(120, async () => {
         await this.playMissionOneTutorial();
         this.startTurnCharge();
       });
-    } else if (this.mission.id === "m12" && this.saveData.campaign.hideoutEntryChoice === "secret") {
+    } else if (missionHasStep(this.mission, "choice", "hideout-entry") && this.saveData.campaign.hideoutEntryChoice === "secret") {
       this.time.delayedCall(120, async () => {
         await this.playSecretWarehouse();
         this.startTurnCharge();
       });
-    } else if (this.mission.id === "m14" && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
+    } else if (missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
       this.time.delayedCall(120, async () => {
         await this.playLieutenantIntervention();
         this.startTurnCharge();
@@ -388,7 +379,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   createEnemyState(profile) {
-    const punishedBoss = this.mission?.id === "m11" && profile.boss && this.saveData.campaign.banditPrisonerChoice === "interrogate";
+    const punishedBoss = missionHasStep(this.mission, "choice", "lieutenant-fate") && profile.boss && this.saveData.campaign.banditPrisonerChoice === "interrogate";
     const baseStats = {
       ...profile.stats,
       health: profile.stats.health + (punishedBoss ? 22 : 0),
@@ -416,7 +407,7 @@ class BattleScene extends Phaser.Scene {
       evasion: derived.baseEvasion + stats.luck,
       primaryAffinity: profile.affinity,
       boss: Boolean(profile.boss),
-      damageReduction: this.mission?.id === "m14" && this.saveData.campaign.banditPrisonerChoice !== "interrogate" ? 3 : 0,
+      damageReduction: missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.saveData.campaign.banditPrisonerChoice !== "interrogate" ? 3 : 0,
       soak: null,
       statuses: [],
       phase: 1,
@@ -978,8 +969,8 @@ class BattleScene extends Phaser.Scene {
       this.battleRewards.affinityXp += reward.affinityXp;
       this.battleRewards.coins += reward.coins;
       if (this.enemyIndex === this.encounters.length - 1) {
-        if (this.mission.id === "m11") await this.playRelicDrop();
-        if (this.mission.id === "m13") await this.playHideoutDiscoveryChoice();
+        if (missionHasStep(this.mission, "choice", "lieutenant-fate")) await this.playRelicDrop();
+        if (missionStep(this.mission, "choice", "hideout-discovery")?.afterCombat) await this.playHideoutDiscoveryChoice();
         this.pendingEncounterRewards.forEach((encounterIndex) => {
           this.saveData = awardEncounter(this.saveData, encounterIndex).save;
         });
@@ -992,13 +983,16 @@ class BattleScene extends Phaser.Scene {
         this.battleRewards.coins += completion.coins;
         await this.finishBattle(true);
       } else {
-        const interlude = this.mission.id === "m11" && this.enemyIndex === 0
+        const investigationStep = missionStep(this.mission, "investigation", "canyon-traces");
+        const choiceStep = missionStep(this.mission, "choice", "lieutenant-fate");
+        const resourceStep = missionStep(this.mission, "resource", "hideout-supplies");
+        const interlude = investigationStep?.afterEncounter === this.enemyIndex
           ? () => this.playInvestigationPhase()
-          : this.mission.id === "m11" && this.enemyIndex === 1
+          : choiceStep?.afterEncounter === this.enemyIndex
             ? () => this.playPrisonerChoice()
-            : this.mission.id === "m13"
+            : resourceStep?.afterEncounter === "each"
               ? () => this.playResourceChoice()
-            : null;
+              : null;
         await this.advanceEncounter(interlude);
       }
       return true;
@@ -1051,7 +1045,7 @@ class BattleScene extends Phaser.Scene {
       "Prueba Guardia para reducir el próximo impacto y recuperar chakra.",
       "Combina lo aprendido: lee el ritmo, administra chakra y usa una técnica elemental."
     ];
-    this.setMessage(this.mission.id === "m01" ? tutorialMessages[this.enemyIndex] : `Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
+    this.setMessage(missionStep(this.mission, "combat", "forest-bandits")?.tutorial ? tutorialMessages[this.enemyIndex] : `Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
     this.startTurnCharge();
   }
 
@@ -1079,9 +1073,15 @@ class BattleScene extends Phaser.Scene {
     return value;
   }
 
+  missionSceneText(sceneId, variables = {}) {
+    return getMissionSceneDialogue(this.mission.id, sceneId, { save: this.saveData, variables })
+      .map((line) => line.text)
+      .join("\n\n");
+  }
+
   async playMissionOneTutorial() {
     const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
-    await this.playBattleChoice("TUTORIAL DE COMBATE", `${masterName}: «La barra superior muestra tu VIDA y CHAKRA. La barra inferior representa VELOCIDAD: los marcadores solo avanzan cuando comienza el turno. Las técnicas consumen chakra y pueden requerir sellos; Guardia reduce el próximo impacto y recupera chakra.»`, [
+    await this.playBattleChoice("TUTORIAL DE COMBATE", this.missionSceneText("combat-tutorial", { master: masterName }), [
       { value: "continue", label: "COMENZAR ENTRENAMIENTO", detail: "Primer objetivo: elige Golpe veloz o una técnica elemental.", primary: true }
     ]);
     this.setMessage("Elige una acción. Mantén el cursor sobre ella para consultar coste, daño y velocidad.", "#83d8ff");
@@ -1091,7 +1091,7 @@ class BattleScene extends Phaser.Scene {
     const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
     const choices = [{ value: "conserve", label: "CONSERVAR", detail: "Recuperación menor; guardas los suministros." }];
     if (this.fieldSupplies > 0) choices.unshift({ value: "rest", label: "DESCANSAR", detail: `Recuperación amplia; consume 1 de ${this.fieldSupplies}.`, primary: true });
-    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", `${masterName}: «Mide lo que todavía queda por delante. Los estados no desaparecerán si avanzas sin descansar.»`, choices);
+    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", this.missionSceneText("resource-choice", { master: masterName }), choices);
     if (choice === "rest") {
       this.fieldSupplies -= 1;
       this.nextRecovery = { hp: 70, chakra: 55, clearStatuses: true };
@@ -1102,7 +1102,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   async playHideoutDiscoveryChoice() {
-    const choice = await this.playBattleChoice("EL CORAZÓN DE LA GUARIDA", "Tras el último duelo oyes prisioneros tras una compuerta y encuentras documentos marcados con un cuervo negro. Solo hay tiempo para asegurar uno primero.", [
+    const choice = await this.playBattleChoice("EL CORAZÓN DE LA GUARIDA", this.missionSceneText("hideout-discovery"), [
       { value: "prisoners", label: "LIBERAR PRISIONEROS", detail: "Rescatas a los cautivos y obtienes sus testimonios.", primary: true },
       { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
     ]);
@@ -1113,16 +1113,14 @@ class BattleScene extends Phaser.Scene {
     this.saveData = recordBestiaryObservation(this.saveData, "boss_raizen", { document: choice === "documents", vulnerability: "agua" });
     this.saveData = writeSave(this.saveData);
     activeSave = this.saveData;
-    const revelation = choice === "documents"
-      ? "Los documentos llevan el sello de una organización desconocida. Raizen no dirige la red: administra esta guarida para alguien que opera fuera de la región."
-      : "Los prisioneros confirman que Raizen recibe órdenes y suministros de una organización externa. Los bandidos del Cuervo son solamente una célula de una red mayor.";
+    const revelation = this.missionSceneText(choice === "documents" ? "revelation-documents" : "revelation-prisoners");
     await this.playBattleChoice("UNA ORGANIZACIÓN MAYOR", revelation, [
       { value: "continue", label: "REGISTRAR HALLAZGO", detail: "La información se añade al informe de la saga y desbloquea el enfrentamiento con Raizen.", primary: true }
     ]);
   }
 
   async playLieutenantIntervention() {
-    await this.playBattleChoice("UNA DEUDA PENDIENTE", "TENIENTE: «Me perdonaste cuando pudiste acabar conmigo. Raizen no tendrá hoy toda su ventaja.»\n\nEl antiguo teniente hiere al jefe: −15 % de vida y mejora defensiva eliminada.", [
+    await this.playBattleChoice("UNA DEUDA PENDIENTE", this.missionSceneText("lieutenant-intervention"), [
       { value: "continue", label: "ENFRENTAR A RAIZEN", detail: "La decisión tomada en la cantera altera el combate final.", primary: true }
     ]);
     this.floatLabel(this.foe.body.x, this.foe.body.y - 150, "−15 % VIDA", 0xf0b85c);
@@ -1130,7 +1128,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   async playSecretWarehouse() {
-    await this.playBattleChoice("ALMACÉN DE LOS CUERVOS", "La información del teniente conduce a un acceso oculto. Evitas al guardia exterior y localizas las monedas robadas; se asegurarán al completar la misión.", [
+    await this.playBattleChoice("ALMACÉN DE LOS CUERVOS", this.missionSceneText("secret-warehouse"), [
       { value: "continue", label: "ASEGURAR EL ALMACÉN", detail: `Bonificación de misión: +${this.mission.secretBonusCoins} monedas.`, primary: true }
     ]);
   }
@@ -1182,7 +1180,7 @@ class BattleScene extends Phaser.Scene {
           clueCount.textContent = `${found.size}/${realClueCount} pistas reales`;
           clueText.textContent = `${entry.clue} · ${found.size}/${realClueCount} pistas reales`;
         if (found.size === realClueCount) {
-            clueText.textContent = `${masterName}: «El rastro converge en la vieja cantera. Sigamos.»`;
+            clueText.textContent = this.missionSceneText("investigation-complete", { master: masterName });
             continueButton.disabled = false;
             continueButton.textContent = "SEGUIR EL RASTRO";
         }
@@ -1217,7 +1215,7 @@ class BattleScene extends Phaser.Scene {
     add(this.add.rectangle(WIDTH / 2, HEIGHT / 2, 620, 330, 0x031220, 0.98).setStrokeStyle(1.5, 0x55c9ff, 0.85).setDepth(71));
     add(this.add.rectangle(168, 105, 4, 330, 0x3fcaff, 1).setOrigin(0, 0).setDepth(72));
     add(this.add.text(WIDTH / 2, 132, "DECISIÓN DE MISIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(73));
-    add(this.add.text(WIDTH / 2, 180, "El teniente está derrotado y conoce la ruta del campamento.\nTu decisión quedará registrada.", { ...this.textStyle(16, "#f4f0e8", "700"), align: "center", lineSpacing: 8 }).setOrigin(0.5).setDepth(73));
+    add(this.add.text(WIDTH / 2, 180, this.missionSceneText("prisoner-choice"), { ...this.textStyle(16, "#f4f0e8", "700"), align: "center", lineSpacing: 8 }).setOrigin(0.5).setDepth(73));
     add(this.add.text(330, 250, "INTERROGAR Y PERDONAR\n+ Entrada secreta y monedas ×2\n− Escapa y refuerza a Akumori", { ...this.textStyle(12, "#caffea", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
     add(this.add.text(630, 250, "ELIMINAR\n+ Akumori no recibe refuerzos\n− Sin entrada secreta ni aliado futuro", { ...this.textStyle(12, "#ffd0c8", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
     const makeChoice = (x, label, color, value) => {
@@ -1230,7 +1228,7 @@ class BattleScene extends Phaser.Scene {
     this.saveData.campaign.banditPrisonerChoice = choice;
     this.saveData.campaign.nextSideMissionGoldMultiplier = choice === "interrogate" ? 2 : 1;
     choices.forEach(({ bg }) => bg.disableInteractive());
-    const response = add(this.add.text(WIDTH / 2, 414, choice === "interrogate" ? "Obtienes la ruta y el cargamento, pero el prisionero huye: Akumori estará reforzado." : "Pierdes la información y un posible aliado, pero Akumori no recibirá refuerzos.", this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
+    const response = add(this.add.text(WIDTH / 2, 414, this.missionSceneText(choice === "interrogate" ? "prisoner-interrogate" : "prisoner-eliminate"), this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
     await this.delay(1100);
     await this.tween({ targets: layer, alpha: 0, duration: 260, ease: "Sine.in" });
     layer.forEach((item) => item.destroy());
@@ -1282,7 +1280,7 @@ class BattleScene extends Phaser.Scene {
     this.enemy.baseEvasion += 2;
     this.enemy.evasion = this.combatantEvasion(this.enemy);
     this.enemyName.setText(`${profile.name} · FASE II`);
-    this.setMessage(this.mission.id === "m14" ? "Raizen altera el ritmo: aumenta su velocidad y cambia su patrón." : "El Maestro rompe su sello: comienza la Fase II.", "#d6a5ff");
+    this.setMessage(missionHasStep(this.mission, "combat", "raizen-duel") ? "Raizen altera el ritmo: aumenta su velocidad y cambia su patrón." : "El Maestro rompe su sello: comienza la Fase II.", "#d6a5ff");
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
@@ -1661,15 +1659,6 @@ class BattleScene extends Phaser.Scene {
     await this.delay(420);
   }
 
-  async companionAttack() {
-    const damage = 6 + this.saveData.progression.level * 2;
-    this.setMessage("Mika encuentra una apertura y lanza su kunai.", "#79e8d1");
-    this.createImpact(this.foe.body.x - 18, this.foe.body.y - 30, 0x67e8c3, 0.62);
-    this.tone(330, 0.09);
-    const { reaction } = this.loseHealth(this.enemy, this.foe, damage, { yOffset: -145 });
-    await Promise.all([reaction, this.delay(420)]);
-  }
-
   async executeEnemyAction(action) {
     const stun = this.enemy.statuses.find((status) => status.type === "stun");
     if (stun) {
@@ -1685,7 +1674,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   async enemyTurn(action) {
-    if (this.mission.id === "m14" && ["heavy", "toxin"].includes(action.id)) {
+    if (missionHasStep(this.mission, "combat", "raizen-duel") && ["heavy", "toxin"].includes(action.id)) {
       this.floatLabel(this.foe.body.x, this.foe.body.y - 165, `ANUNCIA: ${action.name.toUpperCase()}`, 0xf0b85c);
       this.setMessage(`Raizen anuncia ${action.name}. Memoriza el patrón para anticipar el siguiente ciclo.`, "#f0c77c");
       await this.delay(650);
@@ -1932,7 +1921,7 @@ class BattleScene extends Phaser.Scene {
       this.scene.start("secondary-results", { ...result, missionId: "s02", missionTitle: "El médico errante", routeStats: routeFailureStats });
       return;
     }
-    if (won && this.mission.id === "m01" && !activeSave.campaign.sayoEncounterSeen) {
+    if (won && missionStep(this.mission, "combat", "forest-bandits")?.tutorial && !activeSave.campaign.sayoEncounterSeen) {
       this.scene.start("epilogue", { result });
       return;
     }
@@ -1949,8 +1938,8 @@ class BattleScene extends Phaser.Scene {
       defeated: this.defeatedEncounters,
       totalEncounters: this.encounters.length,
       rewards,
-      item: outcome === "completed" && this.mission.id === "m11" ? this.mission.relic : null,
-      decision: outcome === "completed" && this.mission.id === "m11" ? this.saveData.campaign.banditPrisonerChoice : null
+      item: outcome === "completed" && missionHasStep(this.mission, "choice", "lieutenant-fate") ? this.mission.relic : null,
+      decision: outcome === "completed" && missionHasStep(this.mission, "choice", "lieutenant-fate") ? this.saveData.campaign.banditPrisonerChoice : null
     };
   }
 
@@ -2175,6 +2164,10 @@ class SecondaryResultsScene extends Phaser.Scene {
   }
 
   create(data = {}) {
+    if (pendingSecondaryResults && Object.keys(data).length === 0) {
+      data = pendingSecondaryResults;
+      pendingSecondaryResults = null;
+    }
     this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     if (activeMission?.id === "s02" || data.missionId === "s02") {
       this.createDoctorResults(data);
@@ -2465,6 +2458,26 @@ class PauseScene extends Phaser.Scene {
 
 const metaRoot = document.getElementById("meta");
 const gameRoot = document.getElementById("game");
+let gameLaunchRevision = 0;
+
+function destroyGameInstance(instance = game) {
+  if (!instance) return;
+  if (game === instance) game = null;
+  try { instance.destroy(true); } catch (_) { /* La vista HTML debe recuperarse aunque Phaser ya se haya cerrado. */ }
+  gameRoot.replaceChildren();
+  gameRoot.removeAttribute("aria-busy");
+}
+
+function releaseGameToMeta(locationId = "plaza") {
+  gameLaunchRevision += 1;
+  const instance = game;
+  instance?.loop.sleep();
+  metaRoot.hidden = false;
+  gameRoot.hidden = true;
+  if (locationId === "plaza") metaUi?.refresh(activeSave);
+  else metaUi?.openLocation(activeSave, locationId);
+  queueMicrotask(() => destroyGameInstance(instance));
+}
 
 function bindGlobalOptions() {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -2500,17 +2513,19 @@ function bindGlobalOptions() {
 bindGlobalOptions();
 
 metaUi = mountMetaUI(metaRoot, activeSave, async (save, mission) => {
+  const launchRevision = ++gameLaunchRevision;
   activeSave = writeSave(save);
   activeMission = mission;
   document.querySelector(".game-settings")?.removeAttribute("open");
   metaRoot.hidden = true;
   gameRoot.hidden = false;
+  destroyGameInstance();
   gameRoot.setAttribute("aria-busy", "true");
-  if (game) game.destroy(true);
   await Promise.all([
     document.fonts.load('700 16px "Cinzel"'),
     document.fonts.load('700 16px "Alegreya Sans"')
   ]);
+  if (launchRevision !== gameLaunchRevision) return;
   const renderSize = configureRenderResolution(gameRoot);
   game = new Phaser.Game({
     type: Phaser.AUTO,
@@ -2525,11 +2540,23 @@ metaUi = mountMetaUI(metaRoot, activeSave, async (save, mission) => {
   });
   gameRoot.removeAttribute("aria-busy");
 }, (save, mission, result) => {
+  gameLaunchRevision += 1;
   activeSave = writeSave(save);
   activeMission = mission;
+  destroyGameInstance();
   metaRoot.hidden = true;
   gameRoot.hidden = false;
-  game?.loop.wake();
-  game?.scene.stop("travel");
-  game?.scene.start("secondary-results", { ...result, missionTitle: mission.title });
+  pendingSecondaryResults = { ...result, missionTitle: mission.title, missionId: mission.id };
+  const renderSize = configureRenderResolution(gameRoot);
+  game = new Phaser.Game({
+    type: Phaser.AUTO,
+    parent: "game",
+    width: renderSize.width,
+    height: renderSize.height,
+    backgroundColor: "#101622",
+    scene: [SecondaryResultsScene, MissionTravelScene],
+    loader: { maxParallelDownloads: 4 },
+    render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
+  });
 });

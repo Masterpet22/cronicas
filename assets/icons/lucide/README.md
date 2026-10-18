@@ -2,7 +2,7 @@
 
 Runtime subset copied from `lucide-static@1.55.0` for the Phaser canvas UI.
 The package remains pinned in `package.json`; add future icons to `src/icons.js`
-and copy the matching SVG here so the game keeps working offline.
+and copy the matching SVG here so the game does not depend on an external icon service at runtime.
 
 The vendored SVG strokes are normalized to white so Phaser can recolor them
 with `setTint`. See `LICENSE.txt` for the ISC license.

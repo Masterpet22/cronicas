@@ -145,7 +145,7 @@ export const ENEMY_ROSTER = {
   boss_raizen: {
     name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", affinity: "fuego", stats: enemyStats(168, 5, 13, 80, 6), accuracy: 96,
     pattern: ["heavy", "quick", "ember"],
-    phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true, future: true,
+    phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true,
     colors: { cloth: 0x4b3341, accent: 0x170d15 }
   },
   gate_guard: {
@@ -157,11 +157,6 @@ export const ENEMY_ROSTER = {
     name: "ADEPTA DE CENIZA", affinity: "fuego", stats: enemyStats(76, 1, 9, 58, 1), accuracy: 92,
     pattern: ["ember", "quick", "heavy", "ember"],
     colors: { cloth: 0xd87855, accent: 0x411b24 }
-  },
-  mist_scout: {
-    name: "EXPLORADOR DE NIEBLA", affinity: "agua", stats: enemyStats(82, 1, 13, 48, 6), accuracy: 91,
-    pattern: ["toxin", "quick", "toxin", "heavy"],
-    colors: { cloth: 0x86b9c9, accent: 0x20394f }
   },
   reed_bandit: {
     name: "BANDIDO DEL JUNCO", affinity: "viento", stats: enemyStats(70, 1, 12, 30, 4), accuracy: 88,
@@ -177,144 +172,76 @@ export const ENEMY_ROSTER = {
     name: "MÉDICA DEL VENENO", affinity: "agua", stats: enemyStats(78, 1, 11, 64, 3), accuracy: 94,
     pattern: ["toxin", "quick", "toxin", "ember"],
     colors: { cloth: 0x8e75b8, accent: 0x2e2145 }
-  },
-  dusk_tracker: {
-    name: "RASTREADOR DEL OCASO", affinity: "viento", stats: enemyStats(88, 2, 14, 48, 7), accuracy: 92,
-    pattern: ["quick", "toxin", "quick", "heavy"],
-    colors: { cloth: 0x52769b, accent: 0x18273b }
-  },
-  mirror_agent: {
-    name: "AGENTE DEL ESPEJO", affinity: "agua", stats: enemyStats(96, 2, 12, 70, 8), accuracy: 96,
-    pattern: ["ember", "quick", "heavy", "toxin"],
-    colors: { cloth: 0xb7c0cb, accent: 0x303947 }
-  },
-  boss_riven: {
-    name: "RIVEN, SEÑOR DEL PUENTE", affinity: "tierra", stats: enemyStats(126, 4, 11, 62, 4), accuracy: 94,
-    pattern: ["heavy", "quick", "ember"],
-    phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true,
-    colors: { cloth: 0xa94d45, accent: 0x35161d }
-  },
-  boss_nerezza: {
-    name: "NEREZZA, JUEZA DEL SELLO", affinity: "agua", stats: enemyStats(142, 4, 13, 84, 6), accuracy: 96,
-    pattern: ["quick", "toxin", "heavy"],
-    phase2Pattern: ["ember", "quick", "toxin", "heavy"], boss: true,
-    colors: { cloth: 0x5579a8, accent: 0x172840 }
-  },
-  boss_eclipse: {
-    name: "MAESTRO DEL ECLIPSE", affinity: "viento", stats: enemyStats(118, 4, 11, 90, 4), accuracy: 94,
-    pattern: ["quick", "ember", "heavy"],
-    phase2Pattern: ["toxin", "heavy", "ember", "quick"], boss: true,
-    colors: { cloth: 0x9a7bd1, accent: 0x21183f }
   }
 };
 
 export const ENEMIES = Object.values(ENEMY_ROSTER);
 
 export const STORY_SAGAS = [
-  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01", "m11", "m12", "m13", "m14"] }
+  { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Tu primera misión como combatiente de la aldea", missionIds: ["m01", "m02", "m03", "m04", "m05"] }
 ];
 
 export const SECONDARY_MISSIONS = [
   {
-    id: "s01", number: 1, type: "investigation", title: "El silencio de Kagemori", location: "Aldea de Kagemori", duration: "5–7 min", rank: "D",
+    id: "s01", number: 1, category: "secondary", board: "missions", type: "investigation", title: "El silencio de Kagemori", location: "Aldea de Kagemori", duration: "5–7 min", rank: "D",
     reward: { xp: 0, coins: 0 },
-    briefing: [
-      ["Sayo Kisaragi", "Perdí el rastro de los saqueadores en la Aldea de Kagemori. El ataque fue reciente y todavía deben quedar señales de su ruta."],
-      ["Sayo Kisaragi", "Habla con los supervivientes e investiga la carreta, la plaza y el pozo. No busques pelea: necesitamos saber adónde llevaron lo robado."]
-    ]
+    requirements: [{ type: "main-completed", id: "m01" }, { type: "flag", id: "secondaryBoardUnlocked" }],
+    dialogueId: "mission.s01.briefing",
+    flow: [{ type: "dialogue" }, { type: "investigation", id: "kagemori-clues" }]
   },
   {
-    id: "s02", number: 2, type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
-    unlockFlag: "doctorMissionUnlocked", routeMode: "convergent",
+    id: "s02", number: 2, category: "secondary", board: "missions", type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
+    requirements: [{ type: "main-completed", id: "m02" }, { type: "flag", id: "doctorMissionUnlocked" }],
+    dialogueId: "mission.s02.briefing", routeMode: "convergent",
+    flow: [{ type: "dialogue" }, { type: "route", id: "doctor-search" }],
     reward: { xp: 45, coins: 30 },
     routeEvents: [
       { id: "elevated", label: "Camino elevado", type: "dialogue", description: "Una ruta segura y lenta donde los viajeros ofrecen consejos útiles." },
       { id: "river", label: "Sendero del río", type: "investigation", description: "Exige interpretar señales y encontrar el paso correcto." },
       { id: "forest", label: "Bosque cerrado", type: "combat", description: "Puede contener un duelo individual y ofrece mejores recursos." }
-    ],
-    briefing: [
-      ["Sayo Kisaragi", "El mapa de Akumori está cifrado. Busca al doctor Haru Takamine; sus viajes le han enseñado a leer marcas de caminos olvidados."],
-      ["Sayo Kisaragi", "Tendrás que escoger una de tres rutas durante tres fases. No todas esconden peligro, pero todas te acercan al doctor."]
     ]
   }
 ];
 
 export const MISSIONS = [
   {
-    id: "m01", number: 1, title: "Tras las huellas del gato", location: "Bosque del Este", duration: "8–10 min", rank: "D", encounters: ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"],
+    id: "m01", number: 1, category: "main", board: "headquarters", title: "Tras las huellas del gato", location: "Bosque del Este", duration: "8–10 min", rank: "D", encounters: ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"],
     reward: { xp: 55, coins: 40 },
-    briefing: [
-      ["Ren Arashiro", "Tenemos una misión de clase D. Un grupo de ladrones robó el gato de una familia de la aldea y huyó hacia el Bosque del Este."],
-      ["Ren Arashiro", "Sigue sus huellas, derrota a los bandidos y trae al gato de vuelta. Parece sencillo, pero no subestimes a quien dirige el grupo."]
-    ]
+    requirements: [], dialogueId: "mission.m01.briefing",
+    flow: [{ type: "dialogue" }, { type: "combat", id: "forest-bandits", tutorial: true }]
   },
   {
-    id: "m02", number: 2, title: "Ecos entre los juncos", location: "Marisma Este", duration: "6–8 min", encounters: ["reed_bandit", "stone_hunter"],
-    reward: { xp: 55, coins: 40 },
-    briefing: [["Maestra Aya", "Dos desertores controlan el sendero. Vuelve con información y sin perseguirlos más allá de la marisma."]]
-  },
-  {
-    id: "m03", number: 3, title: "Niebla en el canal", location: "Canal Antiguo", duration: "6–8 min", encounters: ["mist_scout", "venom_medic"],
-    reward: { xp: 65, coins: 48 },
-    briefing: [["Mika", "Esta vez voy contigo. Atacaré cuando encuentre una apertura; tú decides el ritmo del combate."]]
-  },
-  {
-    id: "m04", number: 4, title: "Ceniza sobre el mercado", location: "Distrito Mercante", duration: "6–8 min", encounters: ["ash_adept", "dusk_tracker"],
-    reward: { xp: 72, coins: 55 },
-    briefing: [["Mercader Toma", "Robaron sellos del archivo y dejaron brasas violetas. Encuentra al responsable antes del anochecer."]]
-  },
-  {
-    id: "m05", number: 5, title: "El puente quebrado", location: "Puente de Basalto", duration: "7–9 min", encounters: ["mirror_agent", "boss_riven"],
-    reward: { xp: 95, coins: 78 },
-    briefing: [["Maestra Aya", "Riven dirige a los ladrones. Su segunda postura cambia el ritmo de sus ataques: guarda chakra para ella."]]
-  },
-  {
-    id: "m06", number: 6, title: "Rastro de veneno", location: "Bosque de Piedra", duration: "6–8 min", encounters: ["stone_hunter", "venom_medic", "dusk_tracker"],
-    reward: { xp: 88, coins: 70 },
-    briefing: [["Mika", "Las huellas regresan hacia la aldea. Alguien está probando nuestras defensas."]]
-  },
-  {
-    id: "m07", number: 7, title: "Examen de ascenso", location: "Arena del Consejo", duration: "8–10 min", encounters: ["gate_guard", "mirror_agent", "boss_nerezza"], exam: true,
-    reward: { xp: 120, coins: 100 },
-    briefing: [["Nerezza", "No busco una victoria perfecta. Quiero ver si puedes adaptarte, proteger a tu compañero y terminar lo que empiezas."]]
-  },
-  {
-    id: "m08", number: 8, title: "Sombras en el archivo", location: "Archivo Subterráneo", duration: "6–8 min", encounters: ["ash_adept", "mirror_agent", "venom_medic"],
-    reward: { xp: 105, coins: 88 },
-    briefing: [["Maestra Aya", "Ya eres guardián. Entra al archivo y averigua quién enseñó nuestros sellos al enemigo."]]
-  },
-  {
-    id: "m09", number: 9, title: "La noche sin luna", location: "Muralla Exterior", duration: "7–9 min", encounters: ["reed_bandit", "dusk_tracker", "boss_riven"],
-    reward: { xp: 125, coins: 105 },
-    briefing: [["Mika", "Riven sobrevivió al puente. Esta vez no está huyendo: está abriendo el camino para su maestro."]]
-  },
-  {
-    id: "m10", number: 10, title: "Crónicas del Eclipse", location: "Santuario del Horizonte", duration: "9–11 min", encounters: ["mist_scout", "boss_nerezza", "boss_eclipse"],
-    reward: { xp: 180, coins: 160 }, finale: true,
-    briefing: [["Maestra Aya", "Todo lo aprendido te trajo aquí. Rompe el sello del Eclipse y regresa para escribir tu propio capítulo."]]
-  },
-  {
-    id: "m11", number: 2, title: "Asalto al Desfiladero del Cuervo", location: "Ruta de la cantera", duration: "12–15 min", rank: "D",
+    id: "m02", number: 2, category: "main", board: "headquarters", title: "Asalto al Desfiladero del Cuervo", location: "Ruta de la cantera", duration: "12–15 min", rank: "D",
     encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { xp: 95, coins: 80 },
-    unlockFlag: "banditBossMissionUnlocked", scriptedPhases: true, relic: "Mapa cifrado",
-    briefing: [["Ren Arashiro", "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera."]]
+    requirements: [{ type: "secondary-completed", id: "s01" }, { type: "flag", id: "banditBossMissionUnlocked" }],
+    dialogueId: "mission.m02.briefing", relic: "Mapa cifrado",
+    flow: [{ type: "dialogue" }, { type: "combat", id: "canyon-assault" }, { type: "investigation", id: "canyon-traces", afterEncounter: 0 }, { type: "choice", id: "lieutenant-fate", afterEncounter: 1 }],
+    completionEffects: [{ type: "set-flag", id: "cipherMapObtained", value: true }, { type: "set-flag", id: "doctorMissionUnlocked", value: true }]
   },
   {
-    id: "m12", number: 3, title: "El umbral de los cuervos", location: "Accesos a la guarida", duration: "10–12 min", rank: "D",
+    id: "m03", number: 3, category: "main", board: "headquarters", title: "El umbral de los cuervos", location: "Accesos a la guarida", duration: "10–12 min", rank: "D",
     encounters: ["gate_guard", "bandit_pathfinder", "stone_hunter"], reward: { xp: 105, coins: 85 },
-    unlockFlag: "hideoutMissionUnlocked", entranceChoice: true, secretBonusCoins: 90,
-    briefing: [["Ren Arashiro", "El mapa de Haru conduce a la guarida. Consulta el libro de la Biblioteca y decide por dónde entrar."]]
+    requirements: [{ type: "secondary-completed", id: "s02" }, { type: "flag", id: "hideoutMissionUnlocked" }],
+    dialogueId: "mission.m03.briefing", secretBonusCoins: 90, tacticalBriefing: true,
+    flow: [{ type: "dialogue" }, { type: "choice", id: "hideout-entry" }, { type: "combat", id: "hideout-threshold" }],
+    completionEffects: [{ type: "context-flag", id: "secretWarehouseLooted", context: "secretBonusAwarded" }, { type: "sum-flags", id: "hideoutSupplies", base: 1, sources: ["doctorSupplyBonus"] }, { type: "set-flag", id: "heartMissionUnlocked", value: true }]
   },
   {
-    id: "m13", number: 4, title: "El corazón de la guarida", location: "Galerías interiores", duration: "12–15 min", rank: "D",
+    id: "m04", number: 4, category: "main", board: "headquarters", title: "El corazón de la guarida", location: "Galerías interiores", duration: "12–15 min", rank: "D",
     encounters: ["bandit_pathfinder", "venom_medic", "ash_adept"], reward: { xp: 125, coins: 105 },
-    unlockFlag: "heartMissionUnlocked", resourceChoices: true, discoveryChoice: true,
-    briefing: [["Ren Arashiro", "Avanza por las galerías, administra tus suministros y descubre quién dirige realmente a los bandidos."]]
+    requirements: [{ type: "main-completed", id: "m03" }, { type: "flag", id: "heartMissionUnlocked" }],
+    dialogueId: "mission.m04.briefing", tacticalBriefing: true,
+    flow: [{ type: "dialogue" }, { type: "resource", id: "hideout-supplies", afterEncounter: "each" }, { type: "combat", id: "inner-galleries" }, { type: "choice", id: "hideout-discovery", afterCombat: true }],
+    completionEffects: [{ type: "set-flag", id: "organizationRevealed", value: true }, { type: "set-flag", id: "banditLeaderMissionUnlocked", value: true }]
   },
   {
-    id: "m14", number: 5, title: "El jefe de los bandidos", location: "Sala del Cuervo", duration: "10–13 min", rank: "D",
+    id: "m05", number: 5, category: "main", board: "headquarters", title: "El jefe de los bandidos", location: "Sala del Cuervo", duration: "10–13 min", rank: "D",
     encounters: ["boss_raizen"], reward: { xp: 165, coins: 145 },
-    unlockFlag: "banditLeaderMissionUnlocked", sagaFinal: true,
-    briefing: [["Ren Arashiro", "Raizen Kurogane espera en la sala principal. Esta batalla pondrá a prueba todo lo que has aprendido."]]
+    requirements: [{ type: "main-completed", id: "m04" }, { type: "flag", id: "banditLeaderMissionUnlocked" }],
+    dialogueId: "mission.m05.briefing", sagaFinal: true, tacticalBriefing: true,
+    flow: [{ type: "dialogue" }, { type: "consequence", id: "prisoner-intelligence" }, { type: "combat", id: "raizen-duel" }],
+    completionEffects: [{ type: "set-flag", id: "firstSagaCompleted", value: true }, { type: "set-flag", id: "masterSelectionUnlocked", value: true }]
   }
 ];
+
+export const ALL_MISSIONS = Object.freeze([...MISSIONS, ...SECONDARY_MISSIONS]);

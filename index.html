@@ -6,6 +6,12 @@
   <meta name="description" content="Demo de RPG ninja 2D por turnos con campaña y progresión.">
   <title>Crónicas del Sello · Demo</title>
   <script>
+    (() => {
+      const mobileViewport = window.matchMedia("(max-width: 720px), (max-width: 960px) and (max-height: 500px)");
+      document.documentElement.classList.toggle("mobile-viewport", mobileViewport.matches);
+    })();
+  </script>
+  <script>
     // Retira la caché de aplicación anterior antes de solicitar imágenes o módulos.
     (() => {
       if (!("serviceWorker" in navigator)) return;
@@ -35,10 +41,23 @@
   <link rel="preload" href="assets/fonts/cinzel-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/alegreya-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/village/aldea.webp?v=0.20.0" as="image" type="image/webp" fetchpriority="high">
-  <link rel="stylesheet" href="styles.css?v=0.63.0">
+  <link rel="stylesheet" href="styles.css?v=0.65.1">
   <link rel="stylesheet" href="desktop.css?v=0.58.0">
 </head>
 <body>
+  <section class="mobile-gate" aria-labelledby="mobile-gate-title">
+    <div class="mobile-gate-glow" aria-hidden="true"></div>
+    <article class="mobile-gate-card">
+      <div class="mobile-gate-emblem" aria-hidden="true">
+        <img src="assets/favicon.png?v=0.20.0" alt="" width="96" height="96">
+      </div>
+      <p class="mobile-gate-kicker">CRÓNICAS DEL SELLO</p>
+      <h1 id="mobile-gate-title">La aventura llegará<br><span>próximamente</span></h1>
+      <p>Estamos preparando una experiencia creada especialmente para teléfonos. Por ahora, continúa tu crónica desde una pantalla más grande.</p>
+      <div class="mobile-gate-divider" aria-hidden="true"><span></span><b>◆</b><span></span></div>
+      <small>EL SELLO AÚN SE ESTÁ FORJANDO</small>
+    </article>
+  </section>
   <main>
     <header class="game-heading" aria-label="Controles generales">
       <div class="game-brand">
@@ -67,7 +86,20 @@
     <section id="game" aria-label="Juego de combate por turnos" hidden></section>
     <noscript>Este prototipo necesita JavaScript activado.</noscript>
   </main>
-  <script defer src="assets/vendor/phaser-3.90.0.min.js"></script>
-  <script type="module" src="game.js?v=0.64.0"></script>
+  <script type="module">
+    const mobileViewport = window.matchMedia("(max-width: 720px), (max-width: 960px) and (max-height: 500px)");
+    mobileViewport.addEventListener("change", () => window.location.reload());
+
+    if (!mobileViewport.matches) {
+      await new Promise((resolve, reject) => {
+        const phaser = document.createElement("script");
+        phaser.src = "assets/vendor/phaser-3.90.0.min.js";
+        phaser.onload = resolve;
+        phaser.onerror = reject;
+        document.body.append(phaser);
+      });
+      await import("./game.js?v=0.66.0");
+    }
+  </script>
 </body>
 </html>

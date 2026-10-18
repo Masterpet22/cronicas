@@ -1,6 +1,8 @@
 # Saga 1 — Futuro prometedor
 
-Documento de diseño narrativo y tutorial. Esta especificación sustituye las ideas anteriores que otorgaban el acceso inmediato a la Biblioteca al terminar la misión 2.
+**Estado: diseño vigente de la campaña jugable.**
+
+Documento de diseño narrativo y tutorial para las misiones principales `m01`, `m02`, `m03`, `m04` y `m05`, además de las secundarias `s01` y `s02`. Esta es la campaña completa disponible hoy. Consulta también [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md).
 
 ## Reglas de la saga
 

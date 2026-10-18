@@ -1,7 +1,10 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.62.0";
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.61.0";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName } from "./npcs.js?v=0.23.0";
-import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, masterIdForCharacter, normalizeSave, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.62.0";
+import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.66.0";
+import { getDialogue } from "./dialogues.js?v=0.66.0";
+import { missionHasStep, missionState, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.66.0";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";
+import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.66.0";
+import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.58.0";
 import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./doctor-mission.js?v=0.60.0";
@@ -115,14 +118,17 @@ function statRadarMarkup(stats, attributes, points) {
 
 function activeMissionObjectives(save) {
   const campaign = save.campaign;
-  const completed = new Set(campaign.completedMissions);
   const objectives = [];
+  const kagemori = SECONDARY_MISSIONS.find((mission) => mission.id === "s01");
+  const doctor = SECONDARY_MISSIONS.find((mission) => mission.id === "s02");
+  const kagemoriState = missionState(kagemori, save);
+  const doctorState = missionState(doctor, save);
 
-  if (campaign.doctorMissionUnlocked && !campaign.doctorMissionCompleted) {
+  if (doctorState.unlocked && !doctorState.completed) {
     objectives.push({
       id: "secondary:s02",
       type: "BÚSQUEDA",
-      title: SECONDARY_MISSIONS[1].title,
+      title: doctor.title,
       detail: "Encuentra al doctor Haru Takamine para descifrar el mapa.",
       destination: "Tablón de Misiones",
       view: "missions"
@@ -140,23 +146,18 @@ function activeMissionObjectives(save) {
     });
   }
 
-  if (campaign.secondaryBoardUnlocked && !campaign.kagemoriInvestigated) {
+  if (kagemoriState.unlocked && !kagemoriState.completed) {
     objectives.push({
       id: "secondary:s01",
       type: "ENCARGO DE SAYO",
-      title: SECONDARY_MISSIONS[0].title,
+      title: kagemori.title,
       detail: "Investiga las pistas de la Aldea de Kagemori.",
       destination: "Tablón de Misiones",
       view: "missions"
     });
   }
 
-  const storyMission = STORY_SAGAS
-    .flatMap((saga) => saga.missionIds)
-    .map((id) => MISSIONS.find((mission) => mission.id === id))
-    .find((mission) => mission
-      && !completed.has(mission.id)
-      && (!mission.unlockFlag || Boolean(campaign[mission.unlockFlag])));
+  const storyMission = nextAvailableMission(MISSIONS, "main", save);
   if (storyMission) {
     objectives.push({
       id: `story:${storyMission.id}`,
@@ -174,6 +175,8 @@ function activeMissionObjectives(save) {
 export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondaryMission) {
   let save = initialSave;
   let view = "plaza";
+  const viewRuntime = createViewRuntime(root);
+  let viewScope = null;
   let choosingSaveSlot = (() => {
     try { return sessionStorage.getItem("cronicas-save-slot-selected") !== "1"; } catch (_) { return true; }
   })();
@@ -208,7 +211,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
           <div class="save-slot-actions"><button class="primary-button" type="button" data-select-slot="${slot}">CONTINUAR</button><button class="save-slot-delete" type="button" data-delete-slot="${slot}" aria-label="Borrar partida ${slot}">BORRAR</button></div>
         </article>`;
     }).join("");
-    root.innerHTML = `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p><div class="save-slot-grid">${cards}</div></section>`;
+    viewScope = viewRuntime.replace("save-slots", `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p><div class="save-slot-grid">${cards}</div></section>`);
     root.querySelectorAll("[data-select-slot]").forEach((button) => button.addEventListener("click", () => {
       save = selectSaveSlot(button.dataset.selectSlot);
       choosingSaveSlot = false;
@@ -228,7 +231,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const renderCreator = () => {
     const affinityChoices = BASIC_ELEMENT_IDS.map((id, index) => `<label class="affinity-choice"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>Afinidad básica</small></span></label>`).join("");
-    root.innerHTML = `
+    viewScope = viewRuntime.replace("character-creator", `
       <section class="dojo-card creator-card">
         <p class="eyebrow">PRIMER PASO</p><h2>Crea tu combatiente</h2>
         <p class="lead">Comienzas con una afinidad básica. Los rangos 2 y 3 abrirán nuevos espacios y combinaciones.</p>
@@ -240,7 +243,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
           <label>Color principal y aura<input name="appearance" type="color" value="#68a8ff"></label>
           <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
         </form>
-      </section>`;
+      </section>`);
     root.querySelector("#character-form").addEventListener("submit", (event) => {
       event.preventDefault();
       save = writeSave(createCharacter(save, Object.fromEntries(new FormData(event.currentTarget))));
@@ -260,15 +263,12 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const shell = (content) => {
     const { character, progression, campaign } = save;
-    const visibleStoryMissionIds = STORY_SAGAS.flatMap((saga) => saga.missionIds).filter((id) => {
-      const mission = MISSIONS.find((entry) => entry.id === id);
-      return mission && (!mission.unlockFlag || Boolean(campaign[mission.unlockFlag]) || campaign.completedMissions.includes(id));
-    });
+    const visibleStoryMissionIds = STORY_SAGAS.flatMap((saga) => saga.missionIds);
     const currentLocation = VILLAGE_LOCATIONS.find((location) => location.id === view)
       || (view === "kagemori" ? { name: "Aldea de Kagemori" } : view === "doctor-route" ? { name: "Caminos del Norte" } : view === "debug" ? { name: "Herramientas de pruebas" } : null);
     const isSecondaryField = view === "kagemori" || view === "doctor-route";
     const navigation = view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button ${isSecondaryField ? "data-abandon-secondary" : "data-view=\"plaza\""}>← ${isSecondaryField ? "Abandonar misión" : "Volver al mapa"}</button><span>${escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
-    root.innerHTML = `
+    viewScope = viewRuntime.replace(view, `
       <div class="village-shell">
         <section class="village-topbar">
           <div class="profile-heading">
@@ -285,11 +285,12 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
             <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
           </button>
           <button class="save-slots-trigger" type="button" aria-label="Cambiar de partida">PARTIDAS</button>
+          <!-- RELEASE-BLOCKER 1.0: eliminar este acceso y todo renderDebugTools antes de publicar la versión final. -->
           <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas">PRUEBAS</button>
         </section>
         ${navigation}
         ${content}
-      </div>`;
+      </div>`);
     const settingsDetails = document.querySelector(".game-settings");
     const settingsTrigger = root.querySelector(".player-settings-trigger");
     if (settingsTrigger && settingsDetails) {
@@ -319,7 +320,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       });
       settingsDetails.addEventListener("toggle", () => {
         if (settingsTrigger.isConnected) settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
-      });
+      }, { signal: viewScope.signal });
+      viewScope.onCleanup(() => window.clearTimeout(closeSettingsTimer));
     }
 
     root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => {
@@ -370,6 +372,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   };
 
   const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR", type = "message") => {
+    if (!lines.length) { onComplete(); return; }
     let index = 0;
     let previousSpeaker = null;
     let nextSpeakerSide = "left";
@@ -377,6 +380,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     const location = type === "story" ? root.querySelector("[data-location-stage]") : null;
     const overlay = document.createElement("div");
     overlay.className = `dialogue-overlay dialogue-${type}`;
+    const mounted = viewRuntime.mountOverlay(overlay);
     if (location) location.classList.add("story-dialogue-active");
     const draw = () => {
       const [speaker, dialogue] = lines[index];
@@ -401,26 +405,27 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       }
       overlay.querySelector("button").addEventListener("click", () => {
+        if (!mounted.isCurrent()) return;
         if (!last) { index += 1; draw(); return; }
         if (location) location.classList.remove("story-dialogue-active");
-        overlay.remove();
+        mounted.remove();
         onComplete();
       });
     };
     draw();
-    root.append(overlay);
   };
 
   const showMissionDecision = ({ eyebrow, title, text, options }, onChoice) => {
     const overlay = document.createElement("div");
     overlay.className = "mission-decision-overlay";
+    const mounted = viewRuntime.mountOverlay(overlay);
     overlay.innerHTML = `<section class="mission-decision-panel"><p class="eyebrow">${escapeHtml(eyebrow)}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${escapeHtml(option.label)}</strong><small>${escapeHtml(option.description)}</small></button>`).join("")}</div></section>`;
     overlay.querySelectorAll("[data-decision]").forEach((button) => button.addEventListener("click", () => {
+      if (!mounted.isCurrent()) return;
       const value = button.dataset.decision;
-      overlay.remove();
+      mounted.remove();
       onChoice(value);
     }));
-    root.append(overlay);
   };
 
   const locationStage = (locationId, content) => {
@@ -659,18 +664,15 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     const sagaById = new Map(STORY_SAGAS.map((saga) => [saga.id, saga]));
     const activeSaga = selectedSagaId ? sagaById.get(selectedSagaId) : null;
 
-    const missionUnlocked = (mission) => {
-      if (mission.unlockFlag) return Boolean(save.campaign[mission.unlockFlag]);
-      const index = MISSIONS.findIndex((entry) => entry.id === mission.id);
-      return index === 0 || completed.has(MISSIONS[index - 1].id);
-    };
+    const missionUnlocked = (mission) => missionState(mission, save).unlocked;
     const visibleSagaMissions = (saga) => saga.missionIds
       .map((id) => MISSIONS.find((mission) => mission.id === id))
-      .filter(Boolean)
-      .filter((mission) => !mission.unlockFlag || Boolean(save.campaign[mission.unlockFlag]) || completed.has(mission.id));
+      .filter(Boolean);
     const briefingForMission = (mission) => {
-      if (["m12", "m13", "m14"].includes(mission.id)) {
-        const master = masterForCharacter(save.character);
+      const master = masterForCharacter(save.character);
+      const localized = getDialogue(mission.dialogueId, { save, variables: { master: master.name }, placement: { surface: "mission-briefing", owner: mission.id } })
+        .map((line) => [line.speaker === "master" ? master.name : npcName(line.speaker), line.text]);
+      if (mission.tacticalBriefing) {
         const counterAffinity = { fuego: "agua", viento: "fuego", tierra: "viento", agua: "tierra" };
         const identifiedEnemies = mission.encounters.filter((enemyId) => {
           const entry = save.bestiary.entries[enemyId];
@@ -686,20 +688,9 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
             : recommendedAffinities.length
               ? `Las fichas identificadas recomiendan técnicas de ${[...new Set(recommendedAffinities)].join(" y ")}. Los demás datos siguen incompletos.`
               : "El libro todavía tiene huecos sobre estos enemigos. Observa sus técnicas para completar el registro.";
-        const introductions = {
-          m12: ["Ren Arashiro", "Haru ubicó dos accesos a la guarida. La entrada que elijas decidirá cuántos guardianes encontrarás y qué recursos podrás recuperar."],
-          m13: ["Ren Arashiro", "Las galerías interiores están llenas de combatientes especializados. Administra vida, chakra y suministros entre cada duelo."],
-          m14: ["Ren Arashiro", "Raizen Kurogane dirige a los bandidos. Sus cambios de ritmo, ataques anunciados y estados alterados serán tu examen final."]
-        };
-        return [introductions[mission.id], ["Sayo Kisaragi", libraryAdvice], [master.name, mission.id === "m13" ? "Yo te aconsejaré entre duelos. Descansar ayuda ahora; conservar suministros puede ayudarte después." : "Mi ventaja pasiva seguirá contigo. Lee el ritmo del rival y no gastes chakra sin un propósito."]];
+        return [...localized, ["Sayo Kisaragi", libraryAdvice], [master.name, missionHasStep(mission, "resource", "hideout-supplies") ? "Yo te aconsejaré entre duelos. Descansar ayuda ahora; conservar suministros puede ayudarte después." : "Mi ventaja pasiva seguirá contigo. Lee el ritmo del rival y no gastes chakra sin un propósito."]];
       }
-      if (mission.id !== "m11") return mission.briefing;
-      const master = masterForCharacter(save.character);
-      return [
-        ["Ren Arashiro", "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera."],
-        ["Ren Arashiro", `${master.name} irá contigo. Primero asegura el sendero; después averigüen dónde ocultan al resto del grupo.`],
-        [master.name, "No buscamos una pelea innecesaria. Observa el terreno y recuerda que la información puede valer más que una victoria rápida."]
-      ];
+      return localized;
     };
 
     const sagaUnlocked = (saga, sagaIndex) => {
@@ -745,9 +736,11 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     const cards = sagaMissions.map((mission) => {
       const unlocked = missionUnlocked(mission);
       const done = completed.has(mission.id);
-      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? "REPETIR" : unlocked ? (mission.exam ? "PRESENTAR EXAMEN" : "INICIAR HISTORIA") : "BLOQUEADA";
-      const details = mission.comingSoon ? "Objetivo localizado · Combate en desarrollo" : `${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas`;
-      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.exam ? "EXAMEN DE RANGO" : `MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}`}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon ? "" : "disabled"}>${label}</button></article>`;
+      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? "REPETIR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
+      const mechanics = { combat: "combate", investigation: "investigación", route: "rutas", choice: "decisiones", resource: "recursos", consequence: "consecuencias" };
+      const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
+      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas`;
+      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
 
     const completedInSaga = sagaMissions.filter((mission) => completed.has(mission.id)).length;
@@ -764,7 +757,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
       if (!mission || mission.comingSoon) return;
       const launch = () => onStartMission(save, mission);
-      const afterBriefing = mission.id === "m12" ? () => {
+      const hasEntryChoice = missionHasStep(mission, "choice", "hideout-entry");
+      const afterBriefing = hasEntryChoice ? () => {
         const options = save.campaign.secretEntranceKnown
           ? [
               { id: "secret", label: "Entrada secreta", description: "Evita un guardia y permite saquear el almacén de monedas.", primary: true },
@@ -776,7 +770,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
           launch();
         });
       } : launch;
-      showDialogue(briefingForMission(mission), afterBriefing, mission.id === "m12" ? "ELEGIR ENTRADA" : "COMENZAR MISIÓN", "story");
+      showDialogue(briefingForMission(mission), afterBriefing, hasEntryChoice ? "ELEGIR ENTRADA" : "COMENZAR MISIÓN", "story");
     }));
     bindLocationStage("headquarters");
   };
@@ -788,25 +782,28 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       bindLocationStage("missions");
       return;
     }
-    const mission = SECONDARY_MISSIONS[0];
-    const doctorMission = SECONDARY_MISSIONS[1];
-    const completed = save.campaign.kagemoriInvestigated;
-    const doctorAvailable = save.campaign.doctorMissionUnlocked && !save.campaign.doctorMissionCompleted;
+    const boardMissions = missionsForBoard(SECONDARY_MISSIONS, "missions", save);
+    const mission = boardMissions.find(({ mission: entry }) => entry.id === "s01").mission;
+    const doctorMission = boardMissions.find(({ mission: entry }) => entry.id === "s02").mission;
+    const completed = missionState(mission, save).completed;
+    const doctorState = missionState(doctorMission, save);
+    const doctorAvailable = doctorState.unlocked && !doctorState.completed;
     const choiceBonus = save.campaign.banditPrisonerChoice === "interrogate"
       ? `<div class="notice-card ally"><strong>Información con un coste</strong><span>Entrada secreta y monedas ×2; Akumori recibió refuerzos.</span></div>`
       : save.campaign.banditPrisonerChoice === "eliminate"
         ? `<div class="notice-card"><strong>Ventaja táctica</strong><span>Akumori no recibió refuerzos; se perdieron la entrada secreta y el aliado futuro.</span></div>`
         : "";
     const availableCount = Number(!completed) + Number(doctorAvailable);
-    const doctorCard = save.campaign.doctorMissionUnlocked
-      ? `<article class="mission-card ${save.campaign.doctorMissionCompleted ? "completed" : ""}"><div class="mission-number">02</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${doctorMission.rank}</p><h3>${doctorMission.title}</h3><p>${doctorMission.location} · ${doctorMission.duration} · Tres fases de rutas</p></div><button type="button" data-doctor-mission ${save.campaign.doctorMissionCompleted ? "disabled" : ""}>${save.campaign.doctorMissionCompleted ? "COMPLETADA" : save.campaign.doctorRoute.active ? "CONTINUAR" : "BUSCAR A HARU"}</button></article>`
+    const doctorCard = doctorState.unlocked || doctorState.completed
+      ? `<article class="mission-card ${doctorState.completed ? "completed" : ""}"><div class="mission-number">02</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${doctorMission.rank}</p><h3>${doctorMission.title}</h3><p>${doctorMission.location} · ${doctorMission.duration} · Tres fases de rutas</p></div><button type="button" data-doctor-mission ${doctorState.completed ? "disabled" : ""}>${doctorState.completed ? "COMPLETADA" : save.campaign.doctorRoute.active ? "CONTINUAR" : "BUSCAR A HARU"}</button></article>`
       : "";
     const content = `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Los encargos opcionales revelan pistas y rutas que pueden abrir nuevas misiones de historia.</p>${choiceBonus}<div class="mission-list"><article class="mission-card ${completed ? "completed" : ""}"><div class="mission-number">01</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${mission.rank}</p><h3>${mission.title}</h3><p>${mission.location} · ${mission.duration} · Investigación sin combate</p></div><button type="button" data-investigation ${completed ? "disabled" : ""}>${completed ? "COMPLETADA" : "INVESTIGAR"}</button></article>${doctorCard}</div></section>`;
     shell(locationStage("missions", content));
     root.querySelector("[data-investigation]")?.addEventListener("click", () => {
       // Empieza a decodificar la escena durante el briefing y el viaje.
       warmLocationAssets("kagemori");
-      showDialogue(mission.briefing, () => onStartMission(save, mission), "VIAJAR A KAGEMORI", "story");
+      const lines = getDialogue(mission.dialogueId, { save, placement: { surface: "mission-briefing", owner: mission.id } }).map((line) => [npcName(line.speaker), line.text]);
+      showDialogue(lines, () => onStartMission(save, mission), "VIAJAR A KAGEMORI", "story");
     });
     root.querySelector("[data-doctor-mission]")?.addEventListener("click", () => {
       const launch = () => {
@@ -814,7 +811,10 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         onStartMission(save, doctorMission);
       };
       if (save.campaign.doctorRoute.active) launch();
-      else showDialogue(doctorMission.briefing, launch, "INICIAR BÚSQUEDA", "story");
+      else {
+        const lines = getDialogue(doctorMission.dialogueId, { save, placement: { surface: "mission-briefing", owner: doctorMission.id } }).map((line) => [npcName(line.speaker), line.text]);
+        showDialogue(lines, launch, "INICIAR BÚSQUEDA", "story");
+      }
     });
     bindLocationStage("missions");
   };
@@ -853,8 +853,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
         ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Lleva esta información a Sayo; el rastro continúa en la vieja cantera."]
       ], () => {
-        save.campaign.kagemoriInvestigated = true;
-        save.campaign.banditBossMissionUnlocked = true;
+        save = markSecondaryMissionCompleted(save, "s01");
         onFinishSecondaryMission(save, SECONDARY_MISSIONS[0], { outcome: "completed", clues: clues.length });
       }, "REGISTRAR HALLAZGO", "story"), 420);
       };
@@ -962,21 +961,20 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       }).join("");
       return `<section class="skill-branch tier-${element.tier}" style="--branch-color:#${element.color.toString(16).padStart(6, "0")}"><header><img src="${element.icon}" alt="" width="512" height="512"><span><strong>${element.name}</strong><small>${element.tier === 1 ? `${elementXp} PX` : `${requirements} · ${elementXp} PX`}</small></span></header><div class="skill-path">${nodes}</div></section>`;
     }).join("");
-    const gearIcons = { weapon: "⚔", armor: "◈", accessory: "◇", companion: "♟" };
-    const gearTitles = { weapon: "Arma", armor: "Protector", accessory: "Accesorio", companion: "Compañero" };
+    const gearIcons = { weapon: "⚔", armor: "◈", accessory: "◇" };
+    const gearTitles = { weapon: "Arma", armor: "Protector", accessory: "Accesorio" };
     const gearSlotState = (type) => {
       const id = save.equipment[type];
-      const item = type === "companion" ? (id === "mika" ? { name: "Mika", description: "Compañera activa" } : null) : EQUIPMENT[type].find((entry) => entry.id === id);
-      const unavailable = type === "companion" && !save.campaign.companion;
-      return { id, item, unavailable };
+      const item = EQUIPMENT[type].find((entry) => entry.id === id);
+      return { id, item };
     };
     const gearSlotContents = (type) => {
-      const { item, unavailable } = gearSlotState(type);
-      return `<span class="gear-icon" aria-hidden="true">${gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${unavailable ? "Aún no disponible" : item?.description || "Pulsa para equipar"}</em></span><span class="gear-action" aria-hidden="true">${unavailable ? "⌾" : "+"}</span>`;
+      const { item } = gearSlotState(type);
+      return `<span class="gear-icon" aria-hidden="true">${gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${item?.description || "Pulsa para equipar"}</em></span><span class="gear-action" aria-hidden="true">+</span>`;
     };
     const equipmentSlot = (type) => {
-      const { id, item, unavailable } = gearSlotState(type);
-      return `<button class="gear-slot ${id ? "equipped" : "empty"} ${unavailable ? "locked" : ""}" type="button" data-gear-slot="${type}" aria-label="${gearTitles[type]}: ${item?.name || "nada equipado"}" ${unavailable ? "disabled" : ""}>${gearSlotContents(type)}</button>`;
+      const { id, item } = gearSlotState(type);
+      return `<button class="gear-slot ${id ? "equipped" : "empty"}" type="button" data-gear-slot="${type}" aria-label="${gearTitles[type]}: ${item?.name || "nada equipado"}">${gearSlotContents(type)}</button>`;
     };
     const techniqueSlotsMarkup = () => Array.from({ length: 4 }, (_, index) => {
       const requiredLevel = index < 2 ? 1 : index === 2 ? 5 : 8;
@@ -999,7 +997,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         </nav>
         <div id="dojo-panel-equipment" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="equipment">
           <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>La historia permite conocerlas; nivel y rango abren cada ranura.</p></div><span>Rango ${elementRank}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ El orden define el peso: principal 100 %, secundaria 50 % y tercera 25 %. Por ahora no se puede reordenar.</p></section>
-          <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Pulsa una ranura para elegir o desequipar.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("armor")}${equipmentSlot("accessory")}${equipmentSlot("companion")}</div></section>
+          <section class="dojo-section"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Pulsa una ranura para elegir o desequipar.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("armor")}${equipmentSlot("accessory")}</div></section>
         </div>
         <div id="dojo-panel-techniques" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="techniques">
           <section class="skill-tree" aria-label="Árbol de habilidades por afinidad"><div class="skill-tree-heading"><div><h3>Árbol de habilidades</h3><p>Requieren nivel de personaje y experiencia de afinidad.</p></div><span class="tree-legend"><i></i> Aprendida <i></i> Bloqueada</span></div><div class="technique-slots">${techniqueSlotsMarkup()}</div><div class="skill-branches">${skillBranches}</div></section>
@@ -1110,9 +1108,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       equipmentReturnScroll = stageOptions?.scrollTop || 0;
       activeGearType = type;
       const title = gearTitles[type];
-      const items = type === "companion"
-        ? (save.campaign.companion === "mika" ? [{ id: "mika", name: "Mika", description: "Compañera de campaña" }] : [])
-        : EQUIPMENT[type];
+      const items = EQUIPMENT[type];
       const options = [{ id: "", name: "Nada", description: "Dejar esta ranura vacía" }, ...items];
       equipmentModalTitle.textContent = `Equipar ${title.toLowerCase()}`;
       equipmentModalOptions.innerHTML = options.map((item) => `<button type="button" class="equipment-option ${save.equipment[type] === (item.id || null) ? "selected" : ""}" data-equipment-type="${type}" data-equipment-id="${item.id}"><span class="gear-icon" aria-hidden="true">${item.id ? gearIcons[type] : "∅"}</span><span><strong>${item.name}</strong><small>${item.description}</small></span>${save.equipment[type] === (item.id || null) ? "<em>Equipado</em>" : ""}</button>`).join("");
@@ -1190,7 +1186,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     }).join("") || `<div class="bestiary-empty"><strong>Las páginas aún están vacías.</strong><p>Enfréntate a un rival para crear el primer registro.</p></div>`;
     const sagaMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
     const records = sagaMissions.map((mission) => `<li class="${completed.has(mission.id) ? "done" : ""}"><span>${completed.has(mission.id) ? "✓" : "·"}</span><div><strong>${mission.title}</strong><small>${completed.has(mission.id) ? "Completada" : "Sin completar"}</small></div></li>`).join("");
-    const ending = completed.has("m10") ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>El amanecer regresa</h2><p>El Eclipse fue roto. Tu nombre queda registrado entre los guardianes de la aldea.</p></div>` : "";
+    const sagaCompleted = sagaMissions.length > 0 && sagaMissions.every((mission) => completed.has(mission.id));
+    const ending = sagaCompleted ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>Futuro prometedor</h2><p>Raizen fue derrotado. Tu primera gran victoria queda registrada en la aldea.</p></div>` : "";
     const routeIntel = save.campaign.hideoutLocationRevealed ? `<section class="hideout-intel"><p class="eyebrow">MAPA DESCIFRADO</p><h3>Guarida de los bandidos</h3><p>Entrada principal: protegida por enemigos.</p><p class="${save.campaign.secretEntranceKnown ? "known" : "locked"}">Entrada secreta: ${save.campaign.secretEntranceKnown ? "marcada junto al almacén de monedas" : "ubicación desconocida"}.</p></section>` : "";
     const content = `<section class="stage-panel archive-card" data-comment="El libro se completa al observar y derrotar enemigos."><p class="eyebrow">BIBLIOTECA</p><h2>Libro de criaturas y combatientes</h2><p class="lead">Cada encuentro añade información. Algunos jefes requieren varios duelos o documentos.</p>${routeIntel}<div class="bestiary-grid">${bestiaryEntries}</div><details class="chronicle-details"><summary>Crónica de ${escapeHtml(save.character.name)} · ${completed.size} misiones</summary><ol>${records}</ol>${ending}</details></section>`;
     shell(locationStage("archive", content));
@@ -1198,6 +1195,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   };
 
   const renderDebugTools = () => {
+    // RELEASE-BLOCKER 1.0: esta herramienta modifica el progreso y no debe incluirse en producción.
     const campaign = save.campaign;
     const checkpointCards = DEBUG_CHECKPOINTS.map((checkpoint) => `<button class="debug-checkpoint" type="button" data-debug-checkpoint="${checkpoint.id}"><strong>${escapeHtml(checkpoint.label)}</strong><small>${escapeHtml(checkpoint.description)}</small></button>`).join("");
     const debugMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
@@ -1215,6 +1213,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     ].map(([label, enabled]) => `<span class="debug-flag ${enabled ? "enabled" : ""}">${enabled ? "✓" : "·"} ${label}</span>`).join("");
     const content = `<section class="debug-screen">
       <header class="debug-heading"><div><p class="eyebrow">MODO DE DESARROLLO</p><h2>Herramientas de pruebas</h2><p>Estos controles modifican solamente la partida activa. No conceden PX, monedas ni recompensas.</p></div><button class="secondary-button" type="button" data-debug-restore ${debugSnapshot ? "" : "disabled"}>RESTAURAR ESTADO DE ENTRADA</button></header>
+      <aside class="debug-release-warning" role="note"><strong>RETIRAR ANTES DE 1.0</strong><span>Esta pantalla y el botón PRUEBAS son herramientas internas; no deben formar parte de la publicación final.</span></aside>
       <div class="debug-status">${debugFlags}<span class="debug-choice">Teniente: ${escapeHtml(campaign.banditPrisonerChoice || "sin decisión")}</span></div>
       <section class="debug-section"><div><p class="eyebrow">PROGRESO RÁPIDO</p><h3>Aplicar punto de control</h3></div><p>Prepara un estado coherente de la saga sin reproducir escenas ni entregar recompensas.</p><div class="debug-checkpoints">${checkpointCards}</div></section>
       <section class="debug-section"><div><p class="eyebrow">ACCESO DIRECTO</p><h3>Saltar a una ubicación</h3></div><div class="debug-location-grid"><button type="button" data-debug-view="plaza">ALDEA</button><button type="button" data-debug-view="headquarters">CUARTEL</button><button type="button" data-debug-view="missions">TABLÓN</button><button type="button" data-debug-view="kagemori">KAGEMORI</button><button type="button" data-debug-view="dojo">DOJO</button><button type="button" data-debug-view="archive">BIBLIOTECA</button></div></section>

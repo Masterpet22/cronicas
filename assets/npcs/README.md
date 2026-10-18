@@ -1,6 +1,6 @@
 # Reparto de la Aldea del Horizonte
 
-Todos los retratos usan un lienzo común de 1145×1374 px aproximadamente y fondo transparente.
+Los diez retratos de la aldea usan un lienzo común de 1145×1374 px aproximadamente. Iori y Nami emplean un lienzo de 768×1152 px. Todos tienen fondo transparente.
 
 | Archivo | Personaje | Función | Origen |
 | --- | --- | --- | --- |
@@ -14,5 +14,7 @@ Todos los retratos usan un lienzo común de 1145×1374 px aproximadamente y fond
 | `yuna-ametsuki.webp` | Yuna Ametsuki | Anfitriona de la Posada | Generado para el proyecto |
 | `riku-senda.webp` | Riku Senda | Coordinador de misiones | Generado para el proyecto |
 | `nao-matsuri.webp` | Nao Matsuri | Maestre de festivales | Generado para el proyecto |
+| `iori-kagemori.webp` | Iori Takeda | Superviviente de Kagemori | Generado para el proyecto; fuente PNG conservada |
+| `nami-kurose.webp` | Nami Kurose | Superviviente de Kagemori | Generado para el proyecto; fuente PNG conservada |
 
-Los ocho personajes nuevos se generaron como retratos completos independientes, con estética anime-fantasía pictórica guiada por las dos referencias del usuario. Las restricciones comunes fueron: un solo personaje, cuerpo completo, fondo realmente transparente, sin escenario, texto, logotipos ni marcas de agua.
+Los diez personajes nuevos se generaron como retratos completos independientes, con estética anime-fantasía pictórica guiada por las dos referencias del usuario. Las restricciones comunes fueron: un solo personaje, cuerpo completo, fondo realmente transparente, sin escenario, texto, logotipos ni marcas de agua.
