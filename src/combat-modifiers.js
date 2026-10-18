@@ -21,9 +21,8 @@ function targetsProfile(modifier, profile) {
 }
 
 export function resolveEncounterIds(mission, campaign = {}) {
-  return missionHasStep(mission, "choice", "hideout-entry") && campaign.hideoutEntryChoice === "secret"
-    ? mission.encounters.slice(1)
-    : [...mission.encounters];
+  const route = activeCombatModifiers(mission, campaign, "encounter-route")[0];
+  return route ? mission.encounters.slice(Math.max(0, Number(route.skip) || 0)) : [...mission.encounters];
 }
 
 export function fieldSuppliesForBattle(mission, campaign = {}) {
@@ -35,7 +34,8 @@ export function fieldSuppliesForBattle(mission, campaign = {}) {
 export function combatFeatures(mission, campaign = {}) {
   const tutorial = Boolean(missionStep(mission, "combat", "forest-bandits")?.tutorial);
   const relicDecision = Boolean(missionStep(mission, "choice")?.relicDecision);
-  const secretEntry = missionHasStep(mission, "choice", "hideout-entry") && campaign.hideoutEntryChoice === "secret";
+  const route = activeCombatModifiers(mission, campaign, "encounter-route")[0];
+  const secretEntry = route?.openingEvent === "secret-warehouse";
   const opening = activeCombatModifiers(mission, campaign, "enemy-opening")[0];
   const defense = activeCombatModifiers(mission, campaign, "enemy-defense")[0];
   const combatStep = missionStep(mission, "combat");

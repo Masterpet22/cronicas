@@ -1,5 +1,5 @@
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS } from "./data.js?v=0.66.0";
-import { applyMissionEffects, missionHasStep, missionState } from "./mission-system.js?v=0.66.0";
+import { applyMissionEffects, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.58.0";
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.60.0";
@@ -434,8 +434,9 @@ export function completeMission(save, missionId) {
 
   const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
   result.progression.xp += gainedXp;
-  const secretBonus = missionHasStep(mission, "choice", "hideout-entry") && result.campaign.hideoutEntryChoice === "secret" && result.campaign.secretEntranceKnown
-    ? mission.secretBonusCoins || 0
+  const completionBonus = missionStep(mission, "choice")?.completionBonus;
+  const secretBonus = completionBonus?.requirements?.every((requirement) => requirementMet(requirement, result))
+    ? completionBonus.coins || 0
     : 0;
   const gainedCoins = mission.reward.coins + secretBonus;
   result.progression.coins += gainedCoins;

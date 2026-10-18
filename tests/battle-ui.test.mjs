@@ -256,7 +256,7 @@ assert.match(battle, /criticalDamage - this\.player\.damageReduction/, "La venta
 assert.doesNotMatch(battle, /companionAttack|Mika/, "El combate no debe conservar el acompañante de la campaña retirada");
 assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
 assert.doesNotMatch(battle, /const halo =|add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");
-assert.match(battle, /hideoutEntryChoice === "secret"[\s\S]*await this\.playSecretWarehouse\(\);[\s\S]*this\.startTurnCharge\(\);/, "La entrada secreta debe mostrar el almacén antes de iniciar los turnos");
+assert.match(battle, /this\.combatFeatures\.secretEntry[\s\S]*await this\.playSecretWarehouse\(\);[\s\S]*this\.startTurnCharge\(\);/, "La entrada secreta debe mostrar el almacén antes de iniciar los turnos");
 assert.equal((battle.match(/await this\.playSecretWarehouse\(\)/g) || []).length, 1, "El evento del almacén debe programarse una sola vez");
 
 assert.match(battle, /hideOnComplete: !effect\.projectile/, "El proyectil debe conservar su ultimo cuadro hasta alcanzar el objetivo");

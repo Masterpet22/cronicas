@@ -281,7 +281,7 @@ class BattleScene extends Phaser.Scene {
         await this.playMissionOneTutorial();
         this.startTurnCharge();
       });
-    } else if (missionHasStep(this.mission, "choice", "hideout-entry") && this.saveData.campaign.hideoutEntryChoice === "secret") {
+    } else if (this.combatFeatures.secretEntry) {
       this.time.delayedCall(120, async () => {
         await this.playSecretWarehouse();
         this.startTurnCharge();

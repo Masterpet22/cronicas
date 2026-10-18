@@ -1,7 +1,7 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.62.0";
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.66.0";
 import { getDialogue } from "./dialogues.js?v=0.66.0";
-import { missionHasStep, missionState, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.66.0";
+import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.67.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";
 import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.66.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
@@ -756,7 +756,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
       if (!mission || mission.comingSoon) return;
       const launch = () => onStartMission(save, mission);
-      const hasEntryChoice = missionHasStep(mission, "choice", "hideout-entry");
+      const hasEntryChoice = Boolean(missionStep(mission, "choice")?.beforeCombat);
       const afterBriefing = hasEntryChoice ? () => {
         const options = save.campaign.secretEntranceKnown
           ? [
