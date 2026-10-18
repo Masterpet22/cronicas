@@ -11,6 +11,8 @@ export const SAVE_VERSION = 16;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
 export const MASTER_IDS = Object.freeze(["mei", "daichi"]);
+const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
+const SECONDARY_MISSION_IDS = Object.freeze(SECONDARY_MISSIONS.map((mission) => mission.id));
 
 export function assignedMasterId(bodyType) {
   return bodyType === "female" ? "daichi" : "mei";
@@ -126,16 +128,16 @@ export function normalizeSave(candidate) {
   const sourceVersion = Math.max(0, Math.floor(Number(candidate.version) || 0));
   const migratedMissionIds = sourceVersion < 16
     ? (candidate.campaign?.completedMissions || []).flatMap((id) => {
-        const migrated = { m11: "m02", m12: "m03", m13: "m04", m14: "m05" }[id];
-        return migrated ? [migrated] : id === "m01" ? [id] : [];
+        const migrated = { m11: MAIN_MISSION_IDS[1], m12: MAIN_MISSION_IDS[2], m13: MAIN_MISSION_IDS[3], m14: MAIN_MISSION_IDS[4] }[id];
+        return migrated ? [migrated] : id === MAIN_MISSION_IDS[0] ? [id] : [];
       })
     : (candidate.campaign?.completedMissions || []);
   const completedMissions = [...new Set(Array.isArray(migratedMissionIds) ? migratedMissionIds : [])]
     .filter((id) => MISSIONS.some((mission) => mission.id === id));
   const completedSecondaryMissions = [...new Set([
     ...(Array.isArray(candidate.campaign?.completedSecondaryMissions) ? candidate.campaign.completedSecondaryMissions : []),
-    ...(candidate.campaign?.kagemoriInvestigated ? ["s01"] : []),
-    ...(candidate.campaign?.doctorMissionCompleted ? ["s02"] : [])
+    ...(candidate.campaign?.kagemoriInvestigated ? [SECONDARY_MISSION_IDS[0]] : []),
+    ...(candidate.campaign?.doctorMissionCompleted ? [SECONDARY_MISSION_IDS[1]] : [])
   ])].filter((id) => SECONDARY_MISSIONS.some((mission) => mission.id === id));
   const elementRank = Math.min(3, Math.max(1, Math.floor(Number(candidate.campaign?.elementRank) || 1)));
   const requestedAffinities = Array.isArray(candidate.character?.affinities) ? candidate.character.affinities : [candidate.character?.affinity];
@@ -201,8 +203,8 @@ export function normalizeSave(candidate) {
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
       sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),
       secondaryBoardUnlocked: Boolean(candidate.campaign?.secondaryBoardUnlocked),
-      kagemoriInvestigated: Boolean(candidate.campaign?.kagemoriInvestigated) || completedSecondaryMissions.includes("s01"),
-      banditBossMissionUnlocked: Boolean(candidate.campaign?.banditBossMissionUnlocked) || completedSecondaryMissions.includes("s01"),
+      kagemoriInvestigated: Boolean(candidate.campaign?.kagemoriInvestigated) || completedSecondaryMissions.includes(SECONDARY_MISSION_IDS[0]),
+      banditBossMissionUnlocked: Boolean(candidate.campaign?.banditBossMissionUnlocked) || completedSecondaryMissions.includes(SECONDARY_MISSION_IDS[0]),
       banditPrisonerChoice: ["interrogate", "eliminate"].includes(candidate.campaign?.banditPrisonerChoice) ? candidate.campaign.banditPrisonerChoice : null,
       nextSideMissionGoldMultiplier: Number(candidate.campaign?.nextSideMissionGoldMultiplier) === 2 ? 2 : 1,
       archiveUnlocked: Boolean(candidate.campaign?.archiveUnlocked),
@@ -211,9 +213,9 @@ export function normalizeSave(candidate) {
       seenMissionNotices: [...new Set(Array.isArray(candidate.campaign?.seenMissionNotices) ? candidate.campaign.seenMissionNotices : [])]
         .filter((id) => typeof id === "string" && /^[a-z0-9:_-]+$/i.test(id))
         .slice(-50),
-      cipherMapObtained: Boolean(candidate.campaign?.cipherMapObtained) || completedMissions.includes("m02"),
-      doctorMissionUnlocked: Boolean(candidate.campaign?.doctorMissionUnlocked) || completedMissions.includes("m02"),
-      doctorMissionCompleted: Boolean(candidate.campaign?.doctorMissionCompleted) || completedSecondaryMissions.includes("s02"),
+      cipherMapObtained: Boolean(candidate.campaign?.cipherMapObtained) || completedMissions.includes(MAIN_MISSION_IDS[1]),
+      doctorMissionUnlocked: Boolean(candidate.campaign?.doctorMissionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[1]),
+      doctorMissionCompleted: Boolean(candidate.campaign?.doctorMissionCompleted) || completedSecondaryMissions.includes(SECONDARY_MISSION_IDS[1]),
       doctorSupplyBonus: Math.min(1, Math.max(0, Math.floor(Number(candidate.campaign?.doctorSupplyBonus) || 0))),
       bestiaryBookObtained: Boolean(candidate.campaign?.bestiaryBookObtained),
       doctorBookDeliveryPending: Boolean(candidate.campaign?.doctorBookDeliveryPending),
@@ -222,16 +224,16 @@ export function normalizeSave(candidate) {
       secretEntranceKnown: Boolean(candidate.campaign?.secretEntranceKnown),
       hideoutEntryChoice: ["main", "secret"].includes(candidate.campaign?.hideoutEntryChoice) ? candidate.campaign.hideoutEntryChoice : null,
       secretWarehouseLooted: Boolean(candidate.campaign?.secretWarehouseLooted),
-      heartMissionUnlocked: Boolean(candidate.campaign?.heartMissionUnlocked) || completedMissions.includes("m03"),
+      heartMissionUnlocked: Boolean(candidate.campaign?.heartMissionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[2]),
       hideoutSupplies: Math.max(0, Math.floor(Number(candidate.campaign?.hideoutSupplies) || 0)),
       hideoutDiscoveryChoice: ["prisoners", "documents"].includes(candidate.campaign?.hideoutDiscoveryChoice) ? candidate.campaign.hideoutDiscoveryChoice : null,
       prisonersRescued: Boolean(candidate.campaign?.prisonersRescued),
       organizationDocumentsRecovered: Boolean(candidate.campaign?.organizationDocumentsRecovered),
-      organizationRevealed: Boolean(candidate.campaign?.organizationRevealed) || completedMissions.includes("m04"),
-      banditLeaderMissionUnlocked: Boolean(candidate.campaign?.banditLeaderMissionUnlocked) || completedMissions.includes("m04"),
-      firstSagaCompleted: Boolean(candidate.campaign?.firstSagaCompleted) || completedMissions.includes("m05"),
+      organizationRevealed: Boolean(candidate.campaign?.organizationRevealed) || completedMissions.includes(MAIN_MISSION_IDS[3]),
+      banditLeaderMissionUnlocked: Boolean(candidate.campaign?.banditLeaderMissionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[3]),
+      firstSagaCompleted: Boolean(candidate.campaign?.firstSagaCompleted) || completedMissions.includes(MAIN_MISSION_IDS[4]),
       doctorRoute: normalizeDoctorRouteState(candidate.campaign?.doctorRoute),
-      masterSelectionUnlocked: Boolean(candidate.campaign?.masterSelectionUnlocked) || completedMissions.includes("m05")
+      masterSelectionUnlocked: Boolean(candidate.campaign?.masterSelectionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[4])
     },
     bestiary: {
       entries: Object.fromEntries(Object.entries(candidate.bestiary?.entries || {})
@@ -264,21 +266,21 @@ export function applyDebugCheckpoint(save, checkpointId) {
   const checkpoints = {
     "saga-start": {},
     "kagemori-ready": {
-      completedMissions: ["m01"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 1),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true
     },
     "mission-2-ready": {
-      completedMissions: ["m01"],
-      completedSecondaryMissions: ["s01"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 1),
+      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 1),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
       kagemoriInvestigated: true,
       banditBossMissionUnlocked: true
     },
     "doctor-ready": {
-      completedMissions: ["m01", "m02"],
-      completedSecondaryMissions: ["s01"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
+      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 1),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
       kagemoriInvestigated: true,
@@ -287,8 +289,8 @@ export function applyDebugCheckpoint(save, checkpointId) {
       doctorMissionUnlocked: true
     },
     "library-ready": {
-      completedMissions: ["m01", "m02"],
-      completedSecondaryMissions: ["s01", "s02"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
+      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
       kagemoriInvestigated: true,
@@ -302,8 +304,8 @@ export function applyDebugCheckpoint(save, checkpointId) {
       hideoutMissionUnlocked: true
     },
     "mission-3-ready": {
-      completedMissions: ["m01", "m02"],
-      completedSecondaryMissions: ["s01", "s02"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
+      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       banditPrisonerChoice: "interrogate",
       cipherMapObtained: true,
       doctorMissionUnlocked: true,
@@ -315,8 +317,8 @@ export function applyDebugCheckpoint(save, checkpointId) {
       secretEntranceKnown: true
     },
     "mission-4-ready": {
-      completedMissions: ["m01", "m02", "m03"],
-      completedSecondaryMissions: ["s01", "s02"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 3),
+      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       banditPrisonerChoice: "interrogate",
       bestiaryBookObtained: true,
       archiveUnlocked: true,
@@ -327,8 +329,8 @@ export function applyDebugCheckpoint(save, checkpointId) {
       hideoutSupplies: 2
     },
     "mission-5-ready": {
-      completedMissions: ["m01", "m02", "m03", "m04"],
-      completedSecondaryMissions: ["s01", "s02"],
+      completedMissions: MAIN_MISSION_IDS.slice(0, 4),
+      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       banditPrisonerChoice: "interrogate",
       bestiaryBookObtained: true,
       archiveUnlocked: true,

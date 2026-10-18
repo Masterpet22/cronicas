@@ -8,7 +8,7 @@ import { mountMetaUI } from "./src/meta-ui.js?v=0.66.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, loadSave, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "./src/save.js?v=0.66.0";
 import { elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
-import { missionHasStep, missionStep } from "./src/mission-system.js?v=0.66.0";
+import { missionStep } from "./src/mission-system.js?v=0.67.0";
 import { getMissionSceneDialogue } from "./src/dialogues.js?v=0.66.0";
 import { bossPhaseMessage, combatFeatures, createEnemyState, fieldSuppliesForBattle, resolveEncounterIds } from "./src/combat-modifiers.js?v=0.67.0";
 
@@ -1065,7 +1065,8 @@ class BattleScene extends Phaser.Scene {
   }
 
   async playHideoutDiscoveryChoice() {
-    const choice = await this.playBattleChoice("EL CORAZÓN DE LA GUARIDA", this.missionSceneText("hideout-discovery"), [
+    const choiceStep = missionStep(this.mission, "choice");
+    const choice = await this.playBattleChoice("EL CORAZÓN DE LA GUARIDA", this.missionSceneText(choiceStep?.sceneId || choiceStep?.id), [
       { value: "prisoners", label: "LIBERAR PRISIONEROS", detail: "Rescatas a los cautivos y obtienes sus testimonios.", primary: true },
       { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
     ]);
