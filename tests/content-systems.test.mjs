@@ -27,6 +27,9 @@ const flagRequirements = ALL_MISSIONS.flatMap((mission) => (mission.requirements
 assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["secondaryBoardUnlocked"], "Solo el evento narrativo del Tablón puede seguir siendo un requisito guardado; los demás desbloqueos se derivan del historial");
 assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "interrogate" } }), true, "Los modificadores deben poder comparar valores de campaña sin convertirlos a booleanos");
 assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "eliminate" } }), false, "Una comparación declarativa debe rechazar otro valor de campaña");
+const invalidModifierCatalog = structuredClone(MISSIONS);
+invalidModifierCatalog[4].flow.find((step) => step.type === "consequence").modifiers.push({ type: "enemy-opening", hpMultiplier: 0 });
+assert.ok(validateMissionCatalog(invalidModifierCatalog, STORY_SAGAS).some((error) => error.includes("hpMultiplier positivo")), "El catálogo debe rechazar modificadores de combate incompletos");
 
 const fakeInvestigation = {
   id: "s99", number: 99, category: "secondary", board: "missions", type: "investigation",

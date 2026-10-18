@@ -88,6 +88,9 @@ export function validateMissionCatalog(missions, sagas = []) {
       (requirement.requirements || []).forEach((entry) => validateRequirement(entry, missionId));
       return;
     }
+    if (["flag", "main-completed", "secondary-completed"].includes(requirement.type) && !requirement.id) {
+      errors.push(`${missionId}: requisito ${requirement.type} sin ID`);
+    }
     if (requirement.type === "level" && !Number.isFinite(requirement.minimum)) errors.push(`${missionId}: requisito de nivel inválido`);
     if (requirement.type === "main-completed" && !missions.some((entry) => entry.id === requirement.id && entry.category === MISSION_CATEGORIES.MAIN)) {
       errors.push(`${missionId}: requisito principal inexistente ${requirement.id}`);
@@ -109,7 +112,32 @@ export function validateMissionCatalog(missions, sagas = []) {
         if (!supportedModifiers.has(modifier.type)) errors.push(`${mission.id}: modificador desconocido ${modifier.type}`);
         if (modifier.when) validateRequirement(modifier.when, mission.id);
         if (modifier.unless) validateRequirement(modifier.unless, mission.id);
+        if (modifier.target && !["all", "boss"].includes(modifier.target)) errors.push(`${mission.id}: objetivo de modificador desconocido ${modifier.target}`);
+        if (modifier.type === "enemy-stats") {
+          const values = [...Object.values(modifier.stats || {}), ...(Object.hasOwn(modifier, "accuracy") ? [modifier.accuracy] : [])];
+          if (!values.length || values.some((value) => !Number.isFinite(value))) errors.push(`${mission.id}: enemy-stats necesita ajustes numéricos`);
+        }
+        if (modifier.type === "enemy-opening" && (!Number.isFinite(modifier.hpMultiplier) || modifier.hpMultiplier <= 0)) {
+          errors.push(`${mission.id}: enemy-opening necesita hpMultiplier positivo`);
+        }
+        if (modifier.type === "enemy-defense" && (!Number.isFinite(modifier.damageReduction) || modifier.damageReduction < 0)) {
+          errors.push(`${mission.id}: enemy-defense necesita damageReduction no negativo`);
+        }
+        if (modifier.type === "encounter-route" && (!Number.isInteger(modifier.skip) || modifier.skip < 0)) {
+          errors.push(`${mission.id}: encounter-route necesita skip entero no negativo`);
+        }
+        if (modifier.type === "field-supplies" && (!modifier.sourceFlag || !Number.isFinite(modifier.minimum) || modifier.minimum < 0)) {
+          errors.push(`${mission.id}: field-supplies necesita sourceFlag y mínimo no negativo`);
+        }
       });
+      if (step.announcedActionIds && (!Array.isArray(step.announcedActionIds) || step.announcedActionIds.some((id) => typeof id !== "string" || !id))) {
+        errors.push(`${mission.id}: announcedActionIds debe contener IDs no vacíos`);
+      }
+      if (step.completionBonus) {
+        if (!Number.isFinite(step.completionBonus.coins) || step.completionBonus.coins < 0) errors.push(`${mission.id}: bonificación de monedas inválida`);
+        if (!Array.isArray(step.completionBonus.requirements) || !step.completionBonus.requirements.length) errors.push(`${mission.id}: bonificación sin requisitos`);
+        (step.completionBonus.requirements || []).forEach((requirement) => validateRequirement(requirement, mission.id));
+      }
     });
     (mission.requirements || []).forEach((requirement) => validateRequirement(requirement, mission.id));
     (mission.completionEffects || []).forEach((effect) => {
