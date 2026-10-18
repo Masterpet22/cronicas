@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/data.js";
 import { getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
-import { missionHasStep, missionState, validateMissionCatalog } from "../src/mission-system.js";
+import { missionHasStep, missionState, missionsForBoard, validateMissionCatalog } from "../src/mission-system.js";
+import { secondaryMissionCardModel } from "../src/secondary-missions.js";
+import { completeSecondaryMission, createDefaultSave } from "../src/save.js";
 import { createViewRuntime } from "../src/view-runtime.js";
 
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "m02", "m03", "m04", "m05"], "Las misiones principales deben tener IDs continuos");
@@ -21,6 +23,21 @@ const afterFirst = { progression: { level: 1 }, campaign: { completedMissions: [
 assert.equal(missionState(SECONDARY_MISSIONS[0], afterFirst).unlocked, true, "La principal debe poder desbloquear una secundaria en otro tablero");
 const afterInvestigation = { progression: { level: 1 }, campaign: { ...afterFirst.campaign, completedSecondaryMissions: ["s01"], banditBossMissionUnlocked: true } };
 assert.equal(missionState(MISSIONS[1], afterInvestigation).unlocked, true, "La secundaria completada debe desbloquear la siguiente principal");
+const flagRequirements = ALL_MISSIONS.flatMap((mission) => (mission.requirements || []).filter((requirement) => requirement.type === "flag"));
+assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["secondaryBoardUnlocked"], "Solo el evento narrativo del Tablón puede seguir siendo un requisito guardado; los demás desbloqueos se derivan del historial");
+
+const fakeInvestigation = {
+  id: "s99", number: 99, category: "secondary", board: "missions", type: "investigation",
+  title: "Investigación de prueba", location: "Zona aislada", duration: "1 min", rank: "D",
+  requirements: [], reward: { xp: 0, coins: 0 }, flow: [{ type: "investigation", id: "test-clues" }]
+};
+const extensibleSave = createDefaultSave();
+const extensibleBoard = missionsForBoard([...SECONDARY_MISSIONS, fakeInvestigation], "missions", extensibleSave);
+assert.ok(extensibleBoard.some(({ mission }) => mission.id === fakeInvestigation.id), "Una investigación nueva debe aparecer en el Tablón a partir del catálogo recibido");
+assert.equal(secondaryMissionCardModel(fakeInvestigation, extensibleSave).actionLabel, "INVESTIGAR", "El Tablón debe presentar una investigación nueva por tipo, sin conocer su ID");
+const fakeCompletion = completeSecondaryMission(extensibleSave, fakeInvestigation);
+assert.equal(fakeCompletion.firstClear, true, "Una investigación nueva debe usar el completador registrado para su tipo");
+assert.ok(fakeCompletion.save.campaign.completedSecondaryMissions.includes(fakeInvestigation.id), "Completar una investigación nueva debe registrar su ID sin modificar save.js");
 
 const localized = getDialogue("mission.m02.briefing", { variables: { master: "Mei Hayate" }, placement: { surface: "mission-briefing", owner: "m02" } });
 assert.equal(localized.length, 3, "El briefing traducible debe conservar todas sus líneas");

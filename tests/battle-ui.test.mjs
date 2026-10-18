@@ -247,7 +247,7 @@ assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kuro
 assert.match(travelScene, /releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => destroyGameInstance\(instance\)\)/, "Al volver a HTML, Phaser debe destruirse en vez de quedar oculto consumiendo recursos");
 assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[SecondaryResultsScene, MissionTravelScene\]/, "Los resultados secundarios deben crear una instancia limpia y aislada");
-assert.match(metaUi, /markSecondaryMissionCompleted\(save, "s01"\)/, "Reunir las pistas debe registrar la secundaria mediante el sistema de misiones");
+assert.match(metaUi, /markSecondaryMissionCompleted\(save, mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
 assert.match(metaUi, /missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
 assert.match(battle, /masterIdForCharacter\(activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
@@ -270,7 +270,8 @@ assert.doesNotMatch(metaUi, /const storyNotice|class="notice-card story-objectiv
 assert.match(styles, /\.secondary-mission-menu\.has-unseen \.mission-target-icon \{[\s\S]*animation: mission-target-pulse/, "El blanco de tiro naranja debe parpadear mientras haya misiones secundarias nuevas");
 assert.match(styles, /\.mission-dock \{[\s\S]*min-height: 36px;[\s\S]*background: transparent/, "La barra inferior debe ser compacta y mayormente transparente");
 assert.match(styles, /\.story-mission-current \{[\s\S]*background: rgba\(3, 13, 25, \.68\)/, "El título principal debe conservar un fondo semitransparente legible");
-assert.match(metaUi, /id: "secondary:s02"[\s\S]*destination: "Tablón de Misiones"[\s\S]*id: "secondary:s01"[\s\S]*destination: "Tablón de Misiones"[\s\S]*destination: "Cuartel General"/, "Cada misión activa debe indicar el lugar de la aldea al que debe dirigirse el jugador");
+assert.match(metaUi, /id: `secondary:\$\{routeSearchMission\.id\}`[\s\S]*destination: "Tablón de Misiones"/, "La búsqueda de ruta debe indicar el Tablón sin depender de su ID");
+assert.match(metaUi, /id: `secondary:\$\{investigationMission\.id\}`[\s\S]*destination: "Tablón de Misiones"[\s\S]*destination: "Cuartel General"/, "La investigación y la historia deben indicar su destino sin IDs secundarios fijos");
 assert.match(metaUi, /class="mission-destination">IR A:/, "Las misiones secundarias deben mostrar visualmente su destino");
 assert.match(styles, /\.story-mission-current span \{[\s\S]*color: #f09a3e;[\s\S]*font-size: \.57rem;/, "El destino de la misión principal debe verse en naranja y con una fuente menor");
 assert.match(styles, /\.secondary-mission-item \.mission-destination \{ color: #f09a3e; font-size: \.62rem;/, "Los destinos secundarios deben verse en naranja y con una fuente menor");
