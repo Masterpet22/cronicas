@@ -9,6 +9,7 @@ import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, ca
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.58.0";
 import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./doctor-mission.js?v=0.60.0";
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.66.0";
+import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.67.0";
 const COMING_SOON_LOCATIONS = {
   tower: { npcId: "kureha", message: "La Torre de Desafíos permanece cerrada mientras terminamos sus pruebas y reglas especiales. Próximamente podrás poner a prueba tu equipo piso por piso." },
   shop: { npcId: "hana", message: "La Tienda de Objetos aún está preparando su inventario. Próximamente podrás comprar consumibles, herramientas y mejoras con las monedas que consigas." },
@@ -181,6 +182,46 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   let debugSnapshot = null;
   const introducedViews = new Set();
   const investigatedClues = new Set();
+  const debugToolsView = createDebugToolsView({
+    checkpoints: DEBUG_CHECKPOINTS,
+    missions: STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean)),
+    escapeHtml,
+    onCheckpoint(checkpointId) {
+      save = writeSave(applyDebugCheckpoint(save, checkpointId));
+      introducedViews.clear();
+      investigatedClues.clear();
+      renderDebugTools();
+    },
+    onNavigate(nextView) {
+      view = nextView;
+      introducedViews.add(view);
+      render();
+    },
+    onChoice(choice) {
+      save = writeSave(normalizeSave({
+        ...save,
+        campaign: {
+          ...save.campaign,
+          banditPrisonerChoice: choice === "clear" ? null : choice,
+          nextSideMissionGoldMultiplier: choice === "interrogate" ? 2 : 1
+        }
+      }));
+      renderDebugTools();
+    },
+    onMission(missionId) {
+      const mission = MISSIONS.find((entry) => entry.id === missionId);
+      if (mission && !mission.comingSoon) onStartMission(save, mission);
+    },
+    onRestore() {
+      if (!debugSnapshot) return;
+      save = writeSave(normalizeSave(JSON.parse(debugSnapshot)));
+      debugSnapshot = null;
+      introducedViews.clear();
+      investigatedClues.clear();
+      view = "plaza";
+      render();
+    }
+  });
 
   const persist = (next, shouldRender = true) => {
     save = writeSave(next);
@@ -1196,68 +1237,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const renderDebugTools = () => {
     // RELEASE-BLOCKER 1.0: esta herramienta modifica el progreso y no debe incluirse en producción.
-    const campaign = save.campaign;
-    const checkpointCards = DEBUG_CHECKPOINTS.map((checkpoint) => `<button class="debug-checkpoint" type="button" data-debug-checkpoint="${checkpoint.id}"><strong>${escapeHtml(checkpoint.label)}</strong><small>${escapeHtml(checkpoint.description)}</small></button>`).join("");
-    const debugMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
-    const missionCards = debugMissions.map((mission) => {
-      const completed = campaign.completedMissions.includes(mission.id);
-      return `<article class="debug-mission ${completed ? "completed" : ""}"><span>${String(mission.number).padStart(2, "0")}</span><div><strong>${escapeHtml(mission.title)}</strong><small>${escapeHtml(mission.location)} · ${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"}</small></div><button type="button" data-debug-mission="${mission.id}" ${mission.comingSoon ? "disabled" : ""}>${mission.comingSoon ? "NO DISPONIBLE" : "INICIAR DIRECTO"}</button></article>`;
-    }).join("");
-    const debugFlags = [
-      ["Tablón", campaign.secondaryBoardUnlocked],
-      ["Kagemori", campaign.kagemoriInvestigated],
-      ["Misión 2", campaign.banditBossMissionUnlocked],
-      ["Doctor", campaign.doctorMissionUnlocked],
-      ["Biblioteca", campaign.archiveUnlocked],
-      ["Elegir maestro", campaign.masterSelectionUnlocked]
-    ].map(([label, enabled]) => `<span class="debug-flag ${enabled ? "enabled" : ""}">${enabled ? "✓" : "·"} ${label}</span>`).join("");
-    const content = `<section class="debug-screen">
-      <header class="debug-heading"><div><p class="eyebrow">MODO DE DESARROLLO</p><h2>Herramientas de pruebas</h2><p>Estos controles modifican solamente la partida activa. No conceden PX, monedas ni recompensas.</p></div><button class="secondary-button" type="button" data-debug-restore ${debugSnapshot ? "" : "disabled"}>RESTAURAR ESTADO DE ENTRADA</button></header>
-      <aside class="debug-release-warning" role="note"><strong>RETIRAR ANTES DE 1.0</strong><span>Esta pantalla y el botón PRUEBAS son herramientas internas; no deben formar parte de la publicación final.</span></aside>
-      <div class="debug-status">${debugFlags}<span class="debug-choice">Teniente: ${escapeHtml(campaign.banditPrisonerChoice || "sin decisión")}</span></div>
-      <section class="debug-section"><div><p class="eyebrow">PROGRESO RÁPIDO</p><h3>Aplicar punto de control</h3></div><p>Prepara un estado coherente de la saga sin reproducir escenas ni entregar recompensas.</p><div class="debug-checkpoints">${checkpointCards}</div></section>
-      <section class="debug-section"><div><p class="eyebrow">ACCESO DIRECTO</p><h3>Saltar a una ubicación</h3></div><div class="debug-location-grid"><button type="button" data-debug-view="plaza">ALDEA</button><button type="button" data-debug-view="headquarters">CUARTEL</button><button type="button" data-debug-view="missions">TABLÓN</button><button type="button" data-debug-view="kagemori">KAGEMORI</button><button type="button" data-debug-view="dojo">DOJO</button><button type="button" data-debug-view="archive">BIBLIOTECA</button></div></section>
-      <section class="debug-section"><div><p class="eyebrow">DECISIÓN PERSISTENTE</p><h3>Destino del teniente</h3></div><div class="debug-decision-grid"><button type="button" data-debug-choice="interrogate">INTERROGADO Y PERDONADO</button><button type="button" data-debug-choice="eliminate">ELIMINADO</button><button type="button" data-debug-choice="clear">SIN DECISIÓN</button></div></section>
-      <section class="debug-section debug-missions-section"><div><p class="eyebrow">SIN BRIEFING</p><h3>Iniciar una misión directamente</h3></div><p>Ignora requisitos y diálogos del Cuartel, pero conserva las fases internas de la misión.</p><div class="debug-mission-list">${missionCards}</div></section>
-    </section>`;
-    shell(content);
-
-    root.querySelectorAll("[data-debug-checkpoint]").forEach((button) => button.addEventListener("click", () => {
-      save = writeSave(applyDebugCheckpoint(save, button.dataset.debugCheckpoint));
-      introducedViews.clear();
-      investigatedClues.clear();
-      renderDebugTools();
-    }));
-    root.querySelectorAll("[data-debug-view]").forEach((button) => button.addEventListener("click", () => {
-      view = button.dataset.debugView;
-      introducedViews.add(view);
-      render();
-    }));
-    root.querySelectorAll("[data-debug-choice]").forEach((button) => button.addEventListener("click", () => {
-      const choice = button.dataset.debugChoice;
-      save = writeSave(normalizeSave({
-        ...save,
-        campaign: {
-          ...save.campaign,
-          banditPrisonerChoice: choice === "clear" ? null : choice,
-          nextSideMissionGoldMultiplier: choice === "interrogate" ? 2 : 1
-        }
-      }));
-      renderDebugTools();
-    }));
-    root.querySelectorAll("[data-debug-mission]").forEach((button) => button.addEventListener("click", () => {
-      const mission = MISSIONS.find((entry) => entry.id === button.dataset.debugMission);
-      if (mission && !mission.comingSoon) onStartMission(save, mission);
-    }));
-    root.querySelector("[data-debug-restore]")?.addEventListener("click", () => {
-      if (!debugSnapshot) return;
-      save = writeSave(normalizeSave(JSON.parse(debugSnapshot)));
-      debugSnapshot = null;
-      introducedViews.clear();
-      investigatedClues.clear();
-      view = "plaza";
-      render();
-    });
+    shell(debugToolsView.render({ save, debugSnapshot }));
+    debugToolsView.mount(root, viewScope);
   };
 
   const render = () => {

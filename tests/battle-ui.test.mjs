@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const missionData = readFileSync(new URL("../src/data.js", import.meta.url), "utf8");
@@ -8,7 +10,13 @@ const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
-const metaUi = readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8");
+const metaRoot = fileURLToPath(new URL("../src/ui/meta", import.meta.url));
+const readJavaScriptTree = (directory) => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+  const entryPath = path.join(directory, entry.name);
+  if (entry.isDirectory()) return readJavaScriptTree(entryPath);
+  return entry.name.endsWith(".js") ? [readFileSync(entryPath, "utf8")] : [];
+});
+const metaUi = [readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8"), ...readJavaScriptTree(metaRoot)].join("\n");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const roadmap = readFileSync(new URL("../ROADMAP.md", import.meta.url), "utf8");
 const currentStatus = readFileSync(new URL("../docs/ESTADO_ACTUAL.md", import.meta.url), "utf8");
