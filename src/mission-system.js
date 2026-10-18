@@ -2,6 +2,7 @@ export const MISSION_CATEGORIES = Object.freeze({ MAIN: "main", SECONDARY: "seco
 export const MISSION_STEP_TYPES = Object.freeze(["dialogue", "combat", "investigation", "route", "choice", "resource", "consequence"]);
 export const MISSION_REQUIREMENT_TYPES = Object.freeze(["main-completed", "secondary-completed", "flag", "level", "all", "any"]);
 export const MISSION_EFFECT_TYPES = Object.freeze(["set-flag", "sum-flags", "context-flag"]);
+export const MISSION_MODIFIER_TYPES = Object.freeze(["enemy-stats", "enemy-opening", "enemy-defense", "encounter-route", "field-supplies"]);
 
 const campaignOf = (save) => save?.campaign || {};
 const completedMain = (save) => new Set(campaignOf(save).completedMissions || []);
@@ -13,7 +14,10 @@ export function requirementMet(requirement, save) {
   switch (requirement.type) {
     case "main-completed": return completedMain(save).has(requirement.id);
     case "secondary-completed": return completedSecondary(save).has(requirement.id);
-    case "flag": return Boolean(campaign[requirement.id]) === (requirement.value ?? true);
+    case "flag": {
+      if (Object.hasOwn(requirement, "equals")) return campaign[requirement.id] === requirement.equals;
+      return Boolean(campaign[requirement.id]) === (requirement.value ?? true);
+    }
     case "level": return (Number(save?.progression?.level) || 1) >= requirement.minimum;
     case "all": return requirement.requirements.every((entry) => requirementMet(entry, save));
     case "any": return requirement.requirements.some((entry) => requirementMet(entry, save));
@@ -73,6 +77,7 @@ export function validateMissionCatalog(missions, sagas = []) {
   const supportedSteps = new Set(MISSION_STEP_TYPES);
   const supportedRequirements = new Set(MISSION_REQUIREMENT_TYPES);
   const supportedEffects = new Set(MISSION_EFFECT_TYPES);
+  const supportedModifiers = new Set(MISSION_MODIFIER_TYPES);
   const validateRequirement = (requirement, missionId) => {
     if (!requirement || !supportedRequirements.has(requirement.type)) {
       errors.push(`${missionId}: requisito desconocido ${requirement?.type || "(vacío)"}`);
@@ -100,6 +105,11 @@ export function validateMissionCatalog(missions, sagas = []) {
     (mission.flow || []).forEach((step) => {
       if (!supportedSteps.has(step.type)) errors.push(`${mission.id}: mecánica desconocida ${step.type}`);
       if (step.type !== "dialogue" && !step.id) errors.push(`${mission.id}: paso ${step.type} sin ID semántico`);
+      (step.modifiers || []).forEach((modifier) => {
+        if (!supportedModifiers.has(modifier.type)) errors.push(`${mission.id}: modificador desconocido ${modifier.type}`);
+        if (modifier.when) validateRequirement(modifier.when, mission.id);
+        if (modifier.unless) validateRequirement(modifier.unless, mission.id);
+      });
     });
     (mission.requirements || []).forEach((requirement) => validateRequirement(requirement, mission.id));
     (mission.completionEffects || []).forEach((effect) => {

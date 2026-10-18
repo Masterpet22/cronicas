@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/data.js";
 import { getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
-import { missionHasStep, missionState, missionsForBoard, validateMissionCatalog } from "../src/mission-system.js";
+import { missionHasStep, missionState, missionsForBoard, requirementMet, validateMissionCatalog } from "../src/mission-system.js";
 import { secondaryMissionCardModel } from "../src/secondary-missions.js";
 import { completeSecondaryMission, createDefaultSave } from "../src/save.js";
 import { createViewRuntime } from "../src/view-runtime.js";
@@ -25,6 +25,8 @@ const afterInvestigation = { progression: { level: 1 }, campaign: { ...afterFirs
 assert.equal(missionState(MISSIONS[1], afterInvestigation).unlocked, true, "La secundaria completada debe desbloquear la siguiente principal");
 const flagRequirements = ALL_MISSIONS.flatMap((mission) => (mission.requirements || []).filter((requirement) => requirement.type === "flag"));
 assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["secondaryBoardUnlocked"], "Solo el evento narrativo del Tablón puede seguir siendo un requisito guardado; los demás desbloqueos se derivan del historial");
+assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "interrogate" } }), true, "Los modificadores deben poder comparar valores de campaña sin convertirlos a booleanos");
+assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "eliminate" } }), false, "Una comparación declarativa debe rechazar otro valor de campaña");
 
 const fakeInvestigation = {
   id: "s99", number: 99, category: "secondary", board: "missions", type: "investigation",

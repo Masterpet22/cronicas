@@ -1,5 +1,24 @@
 import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "./affinity-system.js?v=0.58.0";
-import { missionHasStep, missionStep } from "./mission-system.js?v=0.66.0";
+import { missionHasStep, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
+
+export function missionCombatModifiers(mission, type = null) {
+  return (mission?.flow || [])
+    .flatMap((step) => step.modifiers || [])
+    .filter((modifier) => type === null || modifier.type === type);
+}
+
+export function activeCombatModifiers(mission, campaign = {}, type = null) {
+  const save = { campaign };
+  return missionCombatModifiers(mission, type).filter((modifier) => {
+    const matches = !modifier.when || requirementMet(modifier.when, save);
+    const excluded = modifier.unless && requirementMet(modifier.unless, save);
+    return matches && !excluded;
+  });
+}
+
+function targetsProfile(modifier, profile) {
+  return !modifier.target || modifier.target === "all" || (modifier.target === "boss" && profile.boss);
+}
 
 export function resolveEncounterIds(mission, campaign = {}) {
   return missionHasStep(mission, "choice", "hideout-entry") && campaign.hideoutEntryChoice === "secret"
