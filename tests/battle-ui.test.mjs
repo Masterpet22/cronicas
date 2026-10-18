@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
+const combatModifiers = readFileSync(new URL("../src/combat-modifiers.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
 const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -130,10 +131,10 @@ assert.match(battle, /playResourceChoice\(\)/, "La cuarta misión debe permitir 
 assert.match(battle, /playHideoutDiscoveryChoice\(\)/, "La cuarta misión debe registrar prisioneros o documentos");
 assert.match(battle, /UNA ORGANIZACIÓN MAYOR/, "La cuarta misión debe explicar narrativamente que los bandidos obedecen a una organización mayor");
 assert.match(battle, /playLieutenantIntervention\(\)/, "Perdonar al teniente debe modificar el duelo contra Raizen");
-assert.match(battle, /Math\.round\(this\.enemy\.maxHp \* 0\.85\)/, "La intervención del teniente debe quitar aproximadamente 15 % de vida a Raizen");
+assert.match(combatModifiers, /Math\.round\(maxHp \* 0\.85\)/, "La intervención del teniente debe quitar aproximadamente 15 % de vida a Raizen");
 assert.match(battle, /ANUNCIA: \$\{action\.name\.toUpperCase\(\)\}/, "Raizen debe anunciar sus ataques peligrosos");
 assert.match(battle, /nextSideMissionGoldMultiplier = choice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
-assert.match(battle, /banditPrisonerChoice === "interrogate"[\s\S]*profile\.stats\.health \+ \(punishedBoss \? 22 : 0\)[\s\S]*profile\.stats\.strength \+ \(punishedBoss \? 2 : 0\)/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
+assert.match(combatModifiers, /banditPrisonerChoice === "interrogate"[\s\S]*profile\.stats\.health \+ \(punishedBoss \? 22 : 0\)[\s\S]*profile\.stats\.strength \+ \(punishedBoss \? 2 : 0\)/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "Viaje, combate, epílogos y ambos resultados deben formar el flujo de misión");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");

@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, addSoak, applyAffinityStatModifiers, affinityCycleModifier, cappedEvasion, effectiveSpeed, finalAffinityDamage, furyDamageBonus, hurricaneEyeEvasionBonus, reprisalChance, reprisalDamage, tickSoak } from "./src/affinity-system.js?v=0.58.0";
+import { AFFINITY_CONFIG, addSoak, affinityCycleModifier, cappedEvasion, effectiveSpeed, finalAffinityDamage, furyDamageBonus, hurricaneEyeEvasionBonus, reprisalChance, reprisalDamage, tickSoak } from "./src/affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.62.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "./src/character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.64.0";
@@ -10,6 +10,7 @@ import { elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 import { missionHasStep, missionStep } from "./src/mission-system.js?v=0.66.0";
 import { getMissionSceneDialogue } from "./src/dialogues.js?v=0.66.0";
+import { createEnemyState, fieldSuppliesForBattle, resolveEncounterIds } from "./src/combat-modifiers.js?v=0.67.0";
 
 const Phaser = window.Phaser;
 
@@ -229,9 +230,7 @@ class BattleScene extends Phaser.Scene {
       });
     });
     this.mission = activeMission;
-    this.encounterIds = missionHasStep(this.mission, "choice", "hideout-entry") && this.saveData.campaign.hideoutEntryChoice === "secret"
-      ? this.mission.encounters.slice(1)
-      : [...this.mission.encounters];
+    this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
     this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
@@ -247,10 +246,6 @@ class BattleScene extends Phaser.Scene {
     ];
     this.enemyIndex = 0;
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
-    if (missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
-      this.enemy.hp = Math.max(1, Math.round(this.enemy.maxHp * 0.85));
-      this.enemy.damageReduction = 0;
-    }
     this.recordEnemyObservation({ encounter: true });
     this.cooldowns = Object.fromEntries(this.actions.filter(Boolean).map((action) => [action.id, 0]));
     this.round = 1;
@@ -261,7 +256,7 @@ class BattleScene extends Phaser.Scene {
     this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
     this.pendingEncounterRewards = [];
     this.rewardPreviewSave = this.saveData;
-    this.fieldSupplies = missionHasStep(this.mission, "resource", "hideout-supplies") ? Math.max(1, this.saveData.campaign.hideoutSupplies || 1) : 0;
+    this.fieldSupplies = fieldSuppliesForBattle(this.mission, this.saveData.campaign);
     this.nextRecovery = null;
     this.audioContext = null;
     this.configureSealMode();
@@ -379,40 +374,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   createEnemyState(profile) {
-    const punishedBoss = missionHasStep(this.mission, "choice", "lieutenant-fate") && profile.boss && this.saveData.campaign.banditPrisonerChoice === "interrogate";
-    const baseStats = {
-      ...profile.stats,
-      health: profile.stats.health + (punishedBoss ? 22 : 0),
-      strength: profile.stats.strength + (punishedBoss ? 2 : 0),
-      speed: profile.stats.speed + (punishedBoss ? 2 : 0),
-      luck: profile.stats.luck + (punishedBoss ? 1 : 0)
-    };
-    const { stats, modifiers } = applyAffinityStatModifiers(baseStats, [profile.affinity]);
-    const derived = AFFINITY_CONFIG.derived;
-    return {
-      hp: stats.health,
-      maxHp: stats.health,
-      chakra: stats.chakra,
-      maxChakra: stats.chakra,
-      strength: stats.strength,
-      baseStrength: baseStats.strength,
-      strengthModifier: modifiers.strength,
-      speed: stats.speed,
-      baseSpeed: baseStats.speed,
-      speedModifier: modifiers.speed,
-      luck: stats.luck,
-      criticalChance: Math.min(derived.criticalChanceCap, derived.baseCriticalChance + Math.floor(stats.luck * derived.luckCriticalScale)),
-      accuracy: profile.accuracy + (punishedBoss ? 4 : 0),
-      baseEvasion: derived.baseEvasion + stats.luck,
-      evasion: derived.baseEvasion + stats.luck,
-      primaryAffinity: profile.affinity,
-      boss: Boolean(profile.boss),
-      damageReduction: missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.saveData.campaign.banditPrisonerChoice !== "interrogate" ? 3 : 0,
-      soak: null,
-      statuses: [],
-      phase: 1,
-      patternIndex: 0
-    };
+    return createEnemyState(profile, this.mission, this.saveData.campaign);
   }
 
   combatantSpeed(combatant) {
