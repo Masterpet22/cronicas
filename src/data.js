@@ -240,7 +240,27 @@ export const MISSIONS = [
     encounters: ["boss_raizen"], reward: { xp: 165, coins: 145 },
     requirements: [{ type: "main-completed", id: "m04" }],
     dialogueId: "mission.m05.briefing", sagaFinal: true, tacticalBriefing: true,
-    flow: [{ type: "dialogue" }, { type: "consequence", id: "prisoner-intelligence" }, { type: "combat", id: "raizen-duel" }],
+    flow: [
+      { type: "dialogue" },
+      {
+        type: "consequence", id: "prisoner-intelligence",
+        modifiers: [
+          {
+            type: "enemy-opening", target: "boss", hpMultiplier: 0.85, openingEvent: "lieutenant-intervention",
+            when: { type: "flag", id: "banditPrisonerChoice", equals: "interrogate" }
+          },
+          {
+            type: "enemy-defense", target: "boss", damageReduction: 3, presentation: "defense-aura",
+            unless: { type: "flag", id: "banditPrisonerChoice", equals: "interrogate" }
+          }
+        ]
+      },
+      {
+        type: "combat", id: "raizen-duel", phaseMessageKey: "raizen",
+        phaseMessage: "Raizen altera el ritmo: aumenta su velocidad y cambia su patrón.",
+        announcedActionIds: ["heavy", "toxin"]
+      }
+    ],
     completionEffects: [{ type: "set-flag", id: "firstSagaCompleted", value: true }, { type: "set-flag", id: "masterSelectionUnlocked", value: true }]
   }
 ];

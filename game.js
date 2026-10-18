@@ -10,7 +10,7 @@ import { elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 import { missionHasStep, missionStep } from "./src/mission-system.js?v=0.66.0";
 import { getMissionSceneDialogue } from "./src/dialogues.js?v=0.66.0";
-import { createEnemyState, fieldSuppliesForBattle, resolveEncounterIds } from "./src/combat-modifiers.js?v=0.67.0";
+import { bossPhaseMessage, combatFeatures, createEnemyState, fieldSuppliesForBattle, resolveEncounterIds } from "./src/combat-modifiers.js?v=0.67.0";
 
 const Phaser = window.Phaser;
 
@@ -193,6 +193,7 @@ class BattleScene extends Phaser.Scene {
     this.saveData = activeSave;
     this.missionStartSave = JSON.parse(JSON.stringify(activeSave));
     this.mission = activeMission;
+    this.combatFeatures = combatFeatures(this.mission, this.saveData.campaign);
     activeMission.encounters.forEach((enemyId) => queuePlayerFighterTextures(this, enemyFighterAppearance(ENEMY_ROSTER[enemyId], enemyId)));
     BASE_ACTIONS.forEach((action) => {
       const key = `action-${action.id}`;
@@ -267,7 +268,7 @@ class BattleScene extends Phaser.Scene {
     this.drawArena();
     this.createHud();
     this.createFighters();
-    if (missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.enemy.damageReduction > 0) {
+    if (this.combatFeatures.defenseAura && this.enemy.damageReduction > 0) {
       this.raizenDefenseAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 74, 0x7f91b8, 0.08).setStrokeStyle(4, 0x9eb8e8, 0.6).setDepth(7);
       this.tweens.add({ targets: this.raizenDefenseAura, scale: 1.08, alpha: 0.2, duration: 720, yoyo: true, repeat: -1 });
     }
@@ -285,7 +286,7 @@ class BattleScene extends Phaser.Scene {
         await this.playSecretWarehouse();
         this.startTurnCharge();
       });
-    } else if (missionHasStep(this.mission, "consequence", "prisoner-intelligence") && this.saveData.campaign.banditPrisonerChoice === "interrogate") {
+    } else if (this.combatFeatures.lieutenantIntervention) {
       this.time.delayedCall(120, async () => {
         await this.playLieutenantIntervention();
         this.startTurnCharge();
@@ -1242,7 +1243,7 @@ class BattleScene extends Phaser.Scene {
     this.enemy.baseEvasion += 2;
     this.enemy.evasion = this.combatantEvasion(this.enemy);
     this.enemyName.setText(`${profile.name} · FASE II`);
-    this.setMessage(missionHasStep(this.mission, "combat", "raizen-duel") ? "Raizen altera el ritmo: aumenta su velocidad y cambia su patrón." : "El Maestro rompe su sello: comienza la Fase II.", "#d6a5ff");
+    this.setMessage(bossPhaseMessage(this.mission), "#d6a5ff");
     this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
       .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
     this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
@@ -1636,7 +1637,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   async enemyTurn(action) {
-    if (missionHasStep(this.mission, "combat", "raizen-duel") && ["heavy", "toxin"].includes(action.id)) {
+    if (this.combatFeatures.announcedActionIds.includes(action.id)) {
       this.floatLabel(this.foe.body.x, this.foe.body.y - 165, `ANUNCIA: ${action.name.toUpperCase()}`, 0xf0b85c);
       this.setMessage(`Raizen anuncia ${action.name}. Memoriza el patrón para anticipar el siguiente ciclo.`, "#f0c77c");
       await this.delay(650);

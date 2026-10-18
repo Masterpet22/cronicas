@@ -36,17 +36,23 @@ export function combatFeatures(mission, campaign = {}) {
   const tutorial = Boolean(missionStep(mission, "combat", "forest-bandits")?.tutorial);
   const relicDecision = missionHasStep(mission, "choice", "lieutenant-fate");
   const secretEntry = missionHasStep(mission, "choice", "hideout-entry") && campaign.hideoutEntryChoice === "secret";
-  const prisonerConsequence = missionHasStep(mission, "consequence", "prisoner-intelligence");
+  const opening = activeCombatModifiers(mission, campaign, "enemy-opening")[0];
+  const defense = activeCombatModifiers(mission, campaign, "enemy-defense")[0];
+  const combatStep = missionStep(mission, "combat");
   return {
     tutorial,
     secretEntry,
-    lieutenantIntervention: prisonerConsequence && campaign.banditPrisonerChoice === "interrogate",
-    defenseAura: prisonerConsequence && campaign.banditPrisonerChoice !== "interrogate",
+    lieutenantIntervention: opening?.openingEvent === "lieutenant-intervention",
+    defenseAura: defense?.presentation === "defense-aura",
     relicDecision,
     postCombatChoice: Boolean(missionStep(mission, "choice", "hideout-discovery")?.afterCombat),
-    phaseMessage: missionHasStep(mission, "combat", "raizen-duel") ? "raizen" : "generic",
-    announcedActionIds: missionHasStep(mission, "combat", "raizen-duel") ? ["heavy", "toxin"] : []
+    phaseMessage: combatStep?.phaseMessageKey || "generic",
+    announcedActionIds: combatStep?.announcedActionIds || []
   };
+}
+
+export function bossPhaseMessage(mission) {
+  return missionStep(mission, "combat")?.phaseMessage || "El Maestro rompe su sello: comienza la Fase II.";
 }
 
 export function interludePlan(mission) {
@@ -70,11 +76,11 @@ export function createEnemyState(profile, mission, campaign = {}) {
   };
   const { stats, modifiers } = applyAffinityStatModifiers(baseStats, [profile.affinity]);
   const derived = AFFINITY_CONFIG.derived;
-  const weakenedBoss = missionHasStep(mission, "consequence", "prisoner-intelligence")
-    && campaign.banditPrisonerChoice === "interrogate";
+  const openingModifier = activeCombatModifiers(mission, campaign, "enemy-opening").find((modifier) => targetsProfile(modifier, profile));
+  const defenseModifiers = activeCombatModifiers(mission, campaign, "enemy-defense").filter((modifier) => targetsProfile(modifier, profile));
   const maxHp = stats.health;
   return {
-    hp: weakenedBoss ? Math.max(1, Math.round(maxHp * 0.85)) : maxHp,
+    hp: openingModifier?.hpMultiplier ? Math.max(1, Math.round(maxHp * openingModifier.hpMultiplier)) : maxHp,
     maxHp,
     chakra: stats.chakra,
     maxChakra: stats.chakra,
@@ -91,7 +97,7 @@ export function createEnemyState(profile, mission, campaign = {}) {
     evasion: derived.baseEvasion + stats.luck,
     primaryAffinity: profile.affinity,
     boss: Boolean(profile.boss),
-    damageReduction: missionHasStep(mission, "consequence", "prisoner-intelligence") && !weakenedBoss ? 3 : 0,
+    damageReduction: defenseModifiers.reduce((total, modifier) => total + (Number(modifier.damageReduction) || 0), 0),
     soak: null,
     statuses: [],
     phase: 1,
