@@ -1,5 +1,5 @@
 import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "./affinity-system.js?v=0.58.0";
-import { missionHasStep, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
+import { missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
 
 export function missionCombatModifiers(mission, type = null) {
   return (mission?.flow || [])
@@ -26,9 +26,10 @@ export function resolveEncounterIds(mission, campaign = {}) {
 }
 
 export function fieldSuppliesForBattle(mission, campaign = {}) {
-  return missionHasStep(mission, "resource", "hideout-supplies")
-    ? Math.max(1, campaign.hideoutSupplies || 1)
-    : 0;
+  const modifier = activeCombatModifiers(mission, campaign, "field-supplies")[0];
+  if (!modifier) return 0;
+  const minimum = Math.max(0, Number(modifier.minimum) || 0);
+  return Math.max(minimum, Number(campaign[modifier.sourceFlag]) || minimum);
 }
 
 export function combatFeatures(mission, campaign = {}) {
@@ -45,7 +46,7 @@ export function combatFeatures(mission, campaign = {}) {
     lieutenantIntervention: opening?.openingEvent === "lieutenant-intervention",
     defenseAura: defense?.presentation === "defense-aura",
     relicDecision,
-    postCombatChoice: Boolean(missionStep(mission, "choice", "hideout-discovery")?.afterCombat),
+    postCombatChoice: Boolean(missionStep(mission, "choice")?.afterCombat),
     phaseMessage: combatStep?.phaseMessageKey || "generic",
     announcedActionIds: combatStep?.announcedActionIds || []
   };

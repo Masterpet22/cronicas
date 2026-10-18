@@ -260,7 +260,15 @@ export const MISSIONS = [
     encounters: ["bandit_pathfinder", "venom_medic", "ash_adept"], reward: { xp: 125, coins: 105 },
     requirements: [{ type: "main-completed", id: "m03" }],
     dialogueId: "mission.m04.briefing", tacticalBriefing: true,
-    flow: [{ type: "dialogue" }, { type: "resource", id: "hideout-supplies", afterEncounter: "each" }, { type: "combat", id: "inner-galleries" }, { type: "choice", id: "hideout-discovery", afterCombat: true }],
+    flow: [
+      { type: "dialogue" },
+      {
+        type: "resource", id: "hideout-supplies", afterEncounter: "each",
+        modifiers: [{ type: "field-supplies", sourceFlag: "hideoutSupplies", minimum: 1 }]
+      },
+      { type: "combat", id: "inner-galleries" },
+      { type: "choice", id: "hideout-discovery", afterCombat: true }
+    ],
     completionEffects: [{ type: "set-flag", id: "organizationRevealed", value: true }, { type: "set-flag", id: "banditLeaderMissionUnlocked", value: true }]
   },
   {

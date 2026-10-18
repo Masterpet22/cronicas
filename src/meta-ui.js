@@ -687,7 +687,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
             : recommendedAffinities.length
               ? `Las fichas identificadas recomiendan técnicas de ${[...new Set(recommendedAffinities)].join(" y ")}. Los demás datos siguen incompletos.`
               : "El libro todavía tiene huecos sobre estos enemigos. Observa sus técnicas para completar el registro.";
-        return [...localized, ["Sayo Kisaragi", libraryAdvice], [master.name, missionHasStep(mission, "resource", "hideout-supplies") ? "Yo te aconsejaré entre duelos. Descansar ayuda ahora; conservar suministros puede ayudarte después." : "Mi ventaja pasiva seguirá contigo. Lee el ritmo del rival y no gastes chakra sin un propósito."]];
+        return [...localized, ["Sayo Kisaragi", libraryAdvice], [master.name, missionHasStep(mission, "resource") ? "Yo te aconsejaré entre duelos. Descansar ayuda ahora; conservar suministros puede ayudarte después." : "Mi ventaja pasiva seguirá contigo. Lee el ritmo del rival y no gastes chakra sin un propósito."]];
       }
       return localized;
     };

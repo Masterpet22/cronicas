@@ -933,7 +933,7 @@ class BattleScene extends Phaser.Scene {
       this.battleRewards.coins += reward.coins;
       if (this.enemyIndex === this.encounters.length - 1) {
         if (this.combatFeatures.relicDecision) await this.playRelicDrop();
-        if (missionStep(this.mission, "choice", "hideout-discovery")?.afterCombat) await this.playHideoutDiscoveryChoice();
+        if (this.combatFeatures.postCombatChoice) await this.playHideoutDiscoveryChoice();
         this.pendingEncounterRewards.forEach((encounterIndex) => {
           this.saveData = awardEncounter(this.saveData, encounterIndex).save;
         });
