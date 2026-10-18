@@ -3,7 +3,7 @@ import { applyMissionEffects, missionHasStep, missionState } from "./mission-sys
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.58.0";
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.60.0";
-
+import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
@@ -452,17 +452,44 @@ export function completeMission(save, missionId) {
   }
   return { save: result, xp: gainedXp, affinityXp, coins: gainedCoins, bonusCoins: secretBonus, levelsGained, firstClear: true };
 }
-
-export function markSecondaryMissionCompleted(save, missionId) {
-  const result = normalizeSave(save);
-  const mission = SECONDARY_MISSIONS.find((entry) => entry.id === missionId);
-  if (!mission || !missionState(mission, result).unlocked) return result;
-  result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, missionId])];
-  if (missionId === "s01") {
-    result.campaign.kagemoriInvestigated = true;
-    result.campaign.banditBossMissionUnlocked = true;
+function completeRouteSearchMission(result, mission) {
+  if (missionState(mission, result).completed || result.campaign.doctorRoute.phase < 3) return emptySecondaryCompletion(result);
+  const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
+  const gainedCoins = mission.reward.coins * result.campaign.nextSideMissionGoldMultiplier;
+  const affinityXp = Math.max(8, Math.round(gainedXp * 0.35));
+  const supplyBonus = result.campaign.doctorRoute.resources >= 2 ? 1 : 0;
+  result.progression.xp += gainedXp;
+  result.progression.coins += gainedCoins;
+  result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
+  result.campaign.doctorMissionCompleted = true;
+  result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, mission.id])];
+  result.campaign.doctorSupplyBonus = supplyBonus;
+  result.campaign.bestiaryBookObtained = true;
+  result.campaign.doctorBookDeliveryPending = true;
+  result.campaign.hideoutLocationRevealed = true;
+  result.campaign.nextSideMissionGoldMultiplier = 1;
+  result.campaign.doctorRoute.active = false;
+  applyMissionEffects(result, mission.completionEffects);
+  let levelsGained = 0;
+  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
+    result.progression.xp -= xpForNextLevel(result.progression.level);
+    result.progression.level += 1;
+    result.progression.attributePoints += 2;
+    levelsGained += 1;
   }
-  return normalizeSave(result);
+  return { save: normalizeSave(result), xp: gainedXp, affinityXp, coins: gainedCoins, supplyBonus, levelsGained, firstClear: true };
+}
+const SECONDARY_COMPLETION_HANDLERS = Object.freeze({
+  investigation: completeInvestigationMission,
+  "route-search": completeRouteSearchMission
+});
+
+export function completeSecondaryMission(save, missionOrId) {
+  return completeSecondaryByType(normalizeSave(save), missionOrId, SECONDARY_MISSIONS, SECONDARY_COMPLETION_HANDLERS);
+}
+
+export function markSecondaryMissionCompleted(save, missionOrId) {
+  return completeSecondaryMission(save, missionOrId).save;
 }
 
 export function chooseHideoutEntrance(save, entrance) {
@@ -471,9 +498,9 @@ export function chooseHideoutEntrance(save, entrance) {
   return normalizeSave(result);
 }
 
-export function startDoctorMission(save) {
+export function startDoctorMission(save, mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS)) {
   const result = normalizeSave(save);
-  if (!result.campaign.doctorMissionUnlocked || result.campaign.doctorMissionCompleted) return result;
+  if (!mission || !missionState(mission, result).unlocked || missionState(mission, result).completed) return result;
   result.campaign.doctorRoute = { ...createDoctorRouteState(), active: true };
   return normalizeSave(result);
 }
@@ -502,35 +529,8 @@ export function cancelDoctorMission(save) {
   return normalizeSave(result);
 }
 
-export function completeDoctorMission(save) {
-  const result = normalizeSave(save);
-  const mission = SECONDARY_MISSIONS.find((entry) => entry.id === "s02");
-  if (!mission || result.campaign.doctorMissionCompleted || result.campaign.doctorRoute.phase < 3) {
-    return { save: result, xp: 0, affinityXp: 0, coins: 0, levelsGained: 0, firstClear: false };
-  }
-  const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
-  const gainedCoins = mission.reward.coins * result.campaign.nextSideMissionGoldMultiplier;
-  const affinityXp = Math.max(8, Math.round(gainedXp * 0.35));
-  const supplyBonus = result.campaign.doctorRoute.resources >= 2 ? 1 : 0;
-  result.progression.xp += gainedXp;
-  result.progression.coins += gainedCoins;
-  result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
-  result.campaign.doctorMissionCompleted = true;
-  result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, "s02"])];
-  result.campaign.doctorSupplyBonus = supplyBonus;
-  result.campaign.bestiaryBookObtained = true;
-  result.campaign.doctorBookDeliveryPending = true;
-  result.campaign.hideoutLocationRevealed = true;
-  result.campaign.nextSideMissionGoldMultiplier = 1;
-  result.campaign.doctorRoute.active = false;
-  let levelsGained = 0;
-  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
-    result.progression.xp -= xpForNextLevel(result.progression.level);
-    result.progression.level += 1;
-    result.progression.attributePoints += 2;
-    levelsGained += 1;
-  }
-  return { save: normalizeSave(result), xp: gainedXp, affinityXp, coins: gainedCoins, supplyBonus, levelsGained, firstClear: true };
+export function completeDoctorMission(save, mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS)) {
+  return completeSecondaryMission(save, mission);
 }
 
 export function deliverBestiaryBook(save) {

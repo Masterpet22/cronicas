@@ -187,11 +187,12 @@ export const SECONDARY_MISSIONS = [
     reward: { xp: 0, coins: 0 },
     requirements: [{ type: "main-completed", id: "m01" }, { type: "flag", id: "secondaryBoardUnlocked" }],
     dialogueId: "mission.s01.briefing",
-    flow: [{ type: "dialogue" }, { type: "investigation", id: "kagemori-clues" }]
+    flow: [{ type: "dialogue" }, { type: "investigation", id: "kagemori-clues" }],
+    completionEffects: [{ type: "set-flag", id: "kagemoriInvestigated", value: true }, { type: "set-flag", id: "banditBossMissionUnlocked", value: true }]
   },
   {
     id: "s02", number: 2, category: "secondary", board: "missions", type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
-    requirements: [{ type: "main-completed", id: "m02" }, { type: "flag", id: "doctorMissionUnlocked" }],
+    requirements: [{ type: "main-completed", id: "m02" }],
     dialogueId: "mission.s02.briefing", routeMode: "convergent",
     flow: [{ type: "dialogue" }, { type: "route", id: "doctor-search" }],
     reward: { xp: 45, coins: 30 },
@@ -213,7 +214,7 @@ export const MISSIONS = [
   {
     id: "m02", number: 2, category: "main", board: "headquarters", title: "Asalto al Desfiladero del Cuervo", location: "Ruta de la cantera", duration: "12–15 min", rank: "D",
     encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { xp: 95, coins: 80 },
-    requirements: [{ type: "secondary-completed", id: "s01" }, { type: "flag", id: "banditBossMissionUnlocked" }],
+    requirements: [{ type: "secondary-completed", id: "s01" }],
     dialogueId: "mission.m02.briefing", relic: "Mapa cifrado",
     flow: [{ type: "dialogue" }, { type: "combat", id: "canyon-assault" }, { type: "investigation", id: "canyon-traces", afterEncounter: 0 }, { type: "choice", id: "lieutenant-fate", afterEncounter: 1 }],
     completionEffects: [{ type: "set-flag", id: "cipherMapObtained", value: true }, { type: "set-flag", id: "doctorMissionUnlocked", value: true }]
@@ -221,7 +222,7 @@ export const MISSIONS = [
   {
     id: "m03", number: 3, category: "main", board: "headquarters", title: "El umbral de los cuervos", location: "Accesos a la guarida", duration: "10–12 min", rank: "D",
     encounters: ["gate_guard", "bandit_pathfinder", "stone_hunter"], reward: { xp: 105, coins: 85 },
-    requirements: [{ type: "secondary-completed", id: "s02" }, { type: "flag", id: "hideoutMissionUnlocked" }],
+    requirements: [{ type: "secondary-completed", id: "s02" }],
     dialogueId: "mission.m03.briefing", secretBonusCoins: 90, tacticalBriefing: true,
     flow: [{ type: "dialogue" }, { type: "choice", id: "hideout-entry" }, { type: "combat", id: "hideout-threshold" }],
     completionEffects: [{ type: "context-flag", id: "secretWarehouseLooted", context: "secretBonusAwarded" }, { type: "sum-flags", id: "hideoutSupplies", base: 1, sources: ["doctorSupplyBonus"] }, { type: "set-flag", id: "heartMissionUnlocked", value: true }]
@@ -229,7 +230,7 @@ export const MISSIONS = [
   {
     id: "m04", number: 4, category: "main", board: "headquarters", title: "El corazón de la guarida", location: "Galerías interiores", duration: "12–15 min", rank: "D",
     encounters: ["bandit_pathfinder", "venom_medic", "ash_adept"], reward: { xp: 125, coins: 105 },
-    requirements: [{ type: "main-completed", id: "m03" }, { type: "flag", id: "heartMissionUnlocked" }],
+    requirements: [{ type: "main-completed", id: "m03" }],
     dialogueId: "mission.m04.briefing", tacticalBriefing: true,
     flow: [{ type: "dialogue" }, { type: "resource", id: "hideout-supplies", afterEncounter: "each" }, { type: "combat", id: "inner-galleries" }, { type: "choice", id: "hideout-discovery", afterCombat: true }],
     completionEffects: [{ type: "set-flag", id: "organizationRevealed", value: true }, { type: "set-flag", id: "banditLeaderMissionUnlocked", value: true }]
@@ -237,7 +238,7 @@ export const MISSIONS = [
   {
     id: "m05", number: 5, category: "main", board: "headquarters", title: "El jefe de los bandidos", location: "Sala del Cuervo", duration: "10–13 min", rank: "D",
     encounters: ["boss_raizen"], reward: { xp: 165, coins: 145 },
-    requirements: [{ type: "main-completed", id: "m04" }, { type: "flag", id: "banditLeaderMissionUnlocked" }],
+    requirements: [{ type: "main-completed", id: "m04" }],
     dialogueId: "mission.m05.briefing", sagaFinal: true, tacticalBriefing: true,
     flow: [{ type: "dialogue" }, { type: "consequence", id: "prisoner-intelligence" }, { type: "combat", id: "raizen-duel" }],
     completionEffects: [{ type: "set-flag", id: "firstSagaCompleted", value: true }, { type: "set-flag", id: "masterSelectionUnlocked", value: true }]

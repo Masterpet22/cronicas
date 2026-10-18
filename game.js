@@ -1918,7 +1918,7 @@ class BattleScene extends Phaser.Scene {
     await this.delay(950);
     const result = this.resultPayload(won ? "completed" : "failed");
     if (routeFailureStats) {
-      this.scene.start("secondary-results", { ...result, missionId: "s02", missionTitle: "El médico errante", routeStats: routeFailureStats });
+      this.scene.start("secondary-results", { ...result, routeStats: routeFailureStats });
       return;
     }
     if (won && missionStep(this.mission, "combat", "forest-bandits")?.tutorial && !activeSave.campaign.sayoEncounterSeen) {
@@ -1927,7 +1927,6 @@ class BattleScene extends Phaser.Scene {
     }
     this.scene.start("results", result);
   }
-
   resultPayload(outcome) {
     const rewards = outcome === "completed" ? { ...this.battleRewards } : { xp: 0, affinityXp: 0, coins: 0 };
     return {
@@ -1937,12 +1936,13 @@ class BattleScene extends Phaser.Scene {
       maxHp: this.player.maxHp,
       defeated: this.defeatedEncounters,
       totalEncounters: this.encounters.length,
+      missionId: this.mission.parentMissionId || this.mission.id,
+      missionType: this.mission.parentType || this.mission.type,
       rewards,
       item: outcome === "completed" && missionHasStep(this.mission, "choice", "lieutenant-fate") ? this.mission.relic : null,
       decision: outcome === "completed" && missionHasStep(this.mission, "choice", "lieutenant-fate") ? this.saveData.campaign.banditPrisonerChoice : null
     };
   }
-
   abandonPayload() {
     const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     this.missionStartSave.bestiary = this.saveData.bestiary;
@@ -1951,7 +1951,7 @@ class BattleScene extends Phaser.Scene {
     activeSave = this.saveData;
     this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
     const result = this.resultPayload("abandoned");
-    return routeStats ? { ...result, missionId: "s02", missionTitle: "El médico errante", routeStats } : result;
+    return routeStats ? { ...result, routeStats } : result;
   }
 
   setButtonsEnabled(enabled) {
@@ -2169,7 +2169,7 @@ class SecondaryResultsScene extends Phaser.Scene {
       pendingSecondaryResults = null;
     }
     this.cameras.main.setZoom(renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
-    if (activeMission?.id === "s02" || data.missionId === "s02") {
+    if (activeMission?.type === "route-search" || data.missionType === "route-search") {
       this.createDoctorResults(data);
       return;
     }
@@ -2546,7 +2546,7 @@ metaUi = mountMetaUI(metaRoot, activeSave, async (save, mission) => {
   destroyGameInstance();
   metaRoot.hidden = true;
   gameRoot.hidden = false;
-  pendingSecondaryResults = { ...result, missionTitle: mission.title, missionId: mission.id };
+  pendingSecondaryResults = { ...result, missionTitle: mission.title, missionId: mission.id, missionType: mission.type };
   const renderSize = configureRenderResolution(gameRoot);
   game = new Phaser.Game({
     type: Phaser.AUTO,
