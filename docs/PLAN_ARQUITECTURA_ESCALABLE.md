@@ -1,10 +1,10 @@
-# Plan integral de arquitectura escalable
+# Plan integral de arquitectura escalable — histórico / reemplazado
 
 ## Estado del documento
 
 - **Proyecto:** Crónicas del Sello.
 - **Propósito:** definir la arquitectura final antes de volver a modificar el sistema de misiones, diálogos, guardado o navegación.
-- **Estado:** propuesta pendiente de aprobación e implementación.
+- **Estado:** histórico; reemplazado por el plan de fases aplicado al proyecto (`PLAN_REFACTOR_FASES.md`).
 - **Alcance:** arquitectura, organización física, contratos, migración, límites de tamaño, pruebas y criterios de aceptación.
 - **Regla principal:** durante la migración no pueden coexistir dos fuentes editables de verdad para una misma misión, diálogo o personaje.
 

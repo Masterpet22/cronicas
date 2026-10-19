@@ -7,7 +7,7 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Versión del paquete: `0.45.1`.
 - Estado: prototipo jugable con la primera saga disponible y expansión futura planificada.
 - Plataforma de juego habilitada: navegador en pantalla de escritorio.
-- Guardado: tres partidas locales, esquema `SAVE_VERSION = 16` y migración automática desde la numeración anterior.
+- Guardado: tres partidas locales, esquema `SAVE_VERSION = 17`, progreso por paso y migración automática desde v16.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
 
 ## Contenido jugable vigente
@@ -31,8 +31,11 @@ Las principales se consultan únicamente en el **Cuartel General** y las secunda
 
 ## Sistemas de contenido
 
-- `src/mission-system.js` evalúa requisitos, estados, tableros, actividades y efectos declarativos.
-- `src/dialogues.js` guarda el texto por claves estables y locales; las misiones y NPC solo conservan referencias.
+- `src/content/sagas/futuro-prometedor/` contiene cada misión, sus diálogos y datos particulares; `saga.js` define el orden y `content/index.js` registra catálogos.
+- `src/mission-system.js` evalúa requisitos, estados, tableros, actividades y efectos declarativos, además de calcular los valores derivados del historial.
+- `src/dialogues.js` conserva diálogos de NPC y resuelve las claves de misión agregadas desde `src/content/`.
+- `src/save/save-migrations.js` migra versiones puramente; `campaign-state.js`, `character-state.js` y `slot-repository.js` dividen las responsabilidades del guardado.
+- `src/battle/` contiene las escenas Phaser, el estado serializable de combate y los módulos puros de daño, turnos, enemigos y recompensas.
 - `src/view-runtime.js` desmonta la vista anterior, aborta sus listeners y elimina overlays antes de montar otra.
 - Al abandonar Phaser para una ubicación HTML, la instancia se destruye; no permanece un canvas oculto ejecutándose en segundo plano.
 - [`SISTEMA_MISIONES_DIALOGOS.md`](SISTEMA_MISIONES_DIALOGOS.md) es el contrato para añadir requisitos, mecánicas, efectos y traducciones sin condicionales por ID.

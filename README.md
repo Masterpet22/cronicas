@@ -72,15 +72,19 @@ Este resumen conserva los nombres físicos necesarios para los imports. Consulta
 ```text
 index.html               Entrada del juego
 styles.css               Presentación de la página
-game.js                  Escena, combate, sellos y efectos
+game.js                  Entry point y bootstrap de Phaser (121 líneas)
 ART_DIRECTION.md         Guía de identidad, paleta y escalas
-src/data.js              Jutsus, equipo, sellos, enemigos y patrones
+src/data.js              Jutsus, equipo, sellos, enemigos y patrones (sin misiones)
+src/content/              Sagas, misiones, diálogos y datos específicos
+src/battle/               Runtime, lógica pura, BattleState y escenas Phaser
 src/character.js         Definición visual compartida y vista previa SVG
-src/save.js              Guardado v16, migraciones, tres ranuras, campaña y recompensas
+src/save.js              Fachada del guardado v17 y API de progresión
+src/save/                 Migraciones, estado de campaña/personaje y ranuras
 src/mission-system.js    Requisitos, estados, efectos y validación del catálogo de misiones
-src/dialogues.js         Catálogo de diálogos traducibles por clave e idioma
+src/dialogues.js         Catálogo de diálogos de NPC y resolución de claves de misión
 src/view-runtime.js      Montaje exclusivo y desmontaje de vistas y overlays
-src/meta-ui.js           Creación, aldea, diálogos, misiones y dojo
+src/meta-ui.js           Orquestación del metajuego (298 líneas)
+src/ui/meta/views/        Vistas aisladas de aldea, misiones, dojo y archivo
 src/npcs.js              Reparto, funciones y guías de cada ubicación
 src/rules.js             Precisión, afinidades y estados
 src/fighters.js          Composición y animación de capas de personaje
@@ -88,6 +92,7 @@ src/ui.js                Barras y botones de combate
 docs/INDICE_CODIGO.md    Índice en español de archivos, módulos y funciones
 docs/ESTADO_ACTUAL.md    Alcance vigente y campaña realmente conectada
 docs/SISTEMA_MISIONES_DIALOGOS.md  Contrato extensible de misiones, diálogos y vistas
+docs/METRICAS.md          Línea base final de arquitectura y calidad
 docs/saga-1-tutorial.md  Diseño de la primera saga y sus dos secundarias
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
@@ -106,6 +111,8 @@ ROADMAP.md               Plan de desarrollo
 
 ```powershell
 npm test
+npm run smoke
+npm run metrics
 ```
 
 ## Escenario de escritorio

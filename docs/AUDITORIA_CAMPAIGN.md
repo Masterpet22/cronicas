@@ -1,6 +1,6 @@
-# Auditoría de `campaign`
+# Auditoría de `campaign` — historial y estado v17
 
-Auditoría realizada en la Fase 1 sobre la versión de guardado 16. `createDefaultSave()` contiene 36 campos (el plan previo estimaba 43).
+La tabla siguiente conserva la auditoría original realizada en Fase 1 sobre v16. En esa versión `createDefaultSave()` contenía 36 campos (el plan previo estimaba 43). La sección final documenta el esquema resultante tras la migración v17.
 
 ## Criterio
 
@@ -51,4 +51,10 @@ Auditoría realizada en la Fase 1 sobre la versión de guardado 16. `createDefau
 
 Se retiraron de los requisitos declarativos los flags derivados `doctorMissionUnlocked`, `banditBossMissionUnlocked`, `hideoutMissionUnlocked`, `heartMissionUnlocked` y `banditLeaderMissionUnlocked`. El único requisito `flag` restante es `secondaryBoardUnlocked`, porque representa el final efectivo del epílogo de Sayo y no solo la recompensa de `m01`.
 
-Los campos derivados siguen escribiéndose y normalizándose para mantener compatibilidad con partidas v16. Su eliminación corresponde a la migración v17 de la Fase 6.
+## Estado tras la migración v17
+
+`createDefaultSave()` contiene 20 campos de campaña y `campaign.missionProgress`. Las partidas v16 se migran sin perder historial, decisiones, entregas pendientes ni recursos.
+
+Estos 17 campos derivados ya no se guardan: `kagemoriInvestigated`, `banditBossMissionUnlocked`, `nextSideMissionGoldMultiplier`, `cipherMapObtained`, `doctorMissionUnlocked`, `doctorMissionCompleted`, `bestiaryBookObtained`, `hideoutLocationRevealed`, `hideoutMissionUnlocked`, `secretEntranceKnown`, `heartMissionUnlocked`, `prisonersRescued`, `organizationDocumentsRecovered`, `organizationRevealed`, `banditLeaderMissionUnlocked`, `firstSagaCompleted` y `masterSelectionUnlocked`.
+
+La función `campaignFlag` obtiene sus valores desde `completedMissions`, `completedSecondaryMissions`, `banditPrisonerChoice`, `hideoutDiscoveryChoice` y `archiveUnlocked`. `secondaryBoardUnlocked` sigue siendo un hecho guardado porque puede existir un intervalo entre la recompensa de `m01` y el final del epílogo de Sayo. Las decisiones narrativas, objetos pendientes y recursos consumibles permanecen persistentes.
