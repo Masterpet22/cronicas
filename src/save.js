@@ -459,6 +459,15 @@ export function spendAttribute(save, attribute) {
   return result;
 }
 
+export function resetAttributes(save) {
+  const result = normalizeSave(save);
+  const keys = Object.keys(result.progression.attributes);
+  const refunded = keys.reduce((sum, key) => sum + result.progression.attributes[key], 0);
+  result.progression.attributes = Object.fromEntries(keys.map((key) => [key, 0]));
+  result.progression.attributePoints += refunded;
+  return result;
+}
+
 export function learnAffinity(save, affinityId) {
   const result = normalizeSave(save);
   if (!BASIC_ELEMENT_IDS.includes(affinityId)) return result;

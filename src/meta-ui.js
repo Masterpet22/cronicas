@@ -3,7 +3,7 @@ import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js
 import { getDialogue } from "./dialogues.js?v=0.66.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.67.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";
-import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.66.0";
+import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.66.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.58.0";
@@ -60,7 +60,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   let choosingSaveSlot = (() => {
     try { return sessionStorage.getItem("cronicas-save-slot-selected") !== "1"; } catch (_) { return true; }
   })();
-  let activeDojoTab = "equipment";
+  let activeDojoTab = "techniques";
   let debugSnapshot = null;
   let selectedSagaId = null;
   const introducedViews = new Set();
@@ -183,7 +183,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     equipment: EQUIPMENT, jutsus: JUTSU_LIBRARY, npcs: NPCS,
     affinityXpForElement, availableAffinitySlots, basicRequirements, canAccessElement, derivedStats,
     elementIcon, elementName, fighterPreviewSvg, isTechniqueLearned, loadoutSlotsForLevel,
-    masterIdForCharacter, playerFighterAppearance, selectMaster, selectNextAffinity, spendAttribute, xpForNextLevel,
+    masterIdForCharacter, playerFighterAppearance, resetAttributes, selectMaster, selectNextAffinity, spendAttribute, xpForNextLevel,
     onPersist(next) { save = writeSave(next); return save; },
     onTabSelected(tabId) { activeDojoTab = tabId; },
     onRerender: () => renderDojo()

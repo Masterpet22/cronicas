@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { DEBUG_CHECKPOINTS, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
+import { DEBUG_CHECKPOINTS, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resetAttributes, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
 import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
@@ -57,6 +57,9 @@ assert.equal(trainedStats.speed, 11, "Velocidad debe acelerar el avance desde la
 assert.equal(trainedStats.maxChakra, 150, "Chakra debe aumentar la reserva antes del bono de Viento");
 assert.equal(trainedStats.evasion, 18, "Suerte base, entrenamiento y chaleco deben modificar la evasión");
 assert.equal(trainedStats.criticalChance, 21, "Suerte base y entrenamiento deben aumentar la probabilidad de crítico");
+const resetTraining = resetAttributes(save);
+assert.deepEqual(resetTraining.progression.attributes, { health: 0, strength: 0, speed: 0, chakra: 0, luck: 0 }, "Reiniciar atributos debe devolver la distribución a cero");
+assert.equal(resetTraining.progression.attributePoints, 5, "Reiniciar atributos debe reembolsar todos los puntos invertidos");
 
 const reward = awardEncounter(save, 3);
 assert.equal(reward.coins, 70, "El jefe debe entregar su recompensa");

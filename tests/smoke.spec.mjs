@@ -156,6 +156,15 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await visitFromDebug("missions", ".mission-board");
   await visitFromDebug("kagemori", ".kagemori-investigation, .kagemori-complete");
   await visitFromDebug("dojo", ".dojo-layout");
+  await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator(".technique-art-placeholder")).toBeVisible();
+  await expect(page.locator(".attribute-card")).toHaveCount(5);
+  await page.locator("[data-skill-select='fire_breath']").click();
+  await expect(page.locator(".technique-detail h3")).toHaveText("Aliento de brasa");
+  await page.locator("[data-technique-toggle='fire_breath']").click();
+  await expect(page.locator("[data-equipped-count]")).toHaveText("1/2 TÉCNICAS");
+  await page.locator("[data-technique-toggle='fire_breath']").click();
+  await expect(page.locator("[data-equipped-count]")).toHaveText("2/2 TÉCNICAS");
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-view="archive"]').click();
   await expect(page.locator(".archive-card")).toBeVisible();

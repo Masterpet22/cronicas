@@ -2459,3 +2459,139 @@ button:focus-visible {
   .attribute-list.radar-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .attribute-list.radar-controls button:last-child { grid-column: 1 / -1; }
 }
+
+/* Dojo: vista de configuración con técnicas, detalle y puntos siempre visibles. */
+.location-dojo .stage-character,
+.location-dojo .stage-speech,
+.location-dojo .stage-ambient { display: none !important; }
+.location-dojo .stage-options {
+  width: min(calc(100% - 36px), 1280px);
+  max-height: calc(100% - 28px);
+  margin: 14px auto;
+  border: 1px solid rgba(95, 162, 197, .48);
+  border-radius: 12px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(3, 16, 30, .97), rgba(4, 12, 23, .96));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, .58), inset 0 0 32px rgba(37, 119, 164, .08);
+}
+.dojo-layout.dojo-rework { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.dojo-topbar { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 18px; }
+.dojo-title { display: flex; min-width: 0; align-items: center; gap: 13px; }
+.dojo-title-mark { display: grid; width: 48px; height: 48px; place-items: center; border: 1px solid rgba(240, 184, 92, .58); border-radius: 50%; color: #f0b85c; font-size: 1.8rem; text-shadow: 0 0 14px rgba(240, 184, 92, .6); }
+.dojo-title .eyebrow { margin: 0 0 3px; color: #f0d6a3; font: 700 clamp(1rem, 2.1vw, 1.65rem) "Cinzel", Georgia, serif; letter-spacing: .025em; }
+.dojo-title h2 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.dojo-title small { color: #92a8ba; font-size: .72rem; }
+.dojo-level { display: grid; min-width: 110px; gap: 4px; color: #f1c476; font-size: .65rem; text-align: right; }
+.dojo-level span { color: #9db1c2; }
+.dojo-level i { height: 5px; overflow: hidden; border-radius: 99px; background: #142337; }
+.dojo-level i b { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #43cce8, #f0b85c); }
+.dojo-tabs { display: flex; align-self: stretch; gap: 4px; border-bottom: 1px solid rgba(89, 139, 166, .32); }
+.dojo-tabs [role="tab"] { display: inline-flex; min-width: 104px; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0; padding: 9px 13px; background: transparent; color: #9db0c2; font-size: .76rem; font-weight: 800; cursor: pointer; }
+.dojo-tabs [role="tab"][aria-selected="true"] { border-color: rgba(65, 202, 231, .52); background: linear-gradient(180deg, rgba(22, 103, 131, .24), rgba(7, 29, 47, .22)); color: #d8f9ff; box-shadow: 0 0 15px rgba(43, 197, 230, .14), inset 0 -2px #39c5e1; }
+.dojo-main-panel { min-width: 0; min-height: 340px; border: 1px solid rgba(73, 130, 162, .38); border-radius: 9px; padding: 13px; background: rgba(3, 13, 24, .64); }
+.dojo-tab-panel[hidden] { display: none; }
+.dojo-technique-layout { display: grid; grid-template-columns: minmax(240px, .76fr) minmax(0, 1.42fr); gap: 13px; }
+.technique-detail { display: grid; align-content: start; gap: 9px; min-height: 318px; border: 1px solid color-mix(in srgb, var(--technique-color, #55c9ff) 42%, #27394b); border-radius: 10px; padding: 13px; background: linear-gradient(150deg, rgba(14, 27, 40, .96), rgba(5, 12, 21, .96)); }
+.technique-detail .eyebrow { margin: 0; color: var(--technique-color, #83d8ff); font-size: .57rem; letter-spacing: .12em; }
+.technique-detail h3 { margin: 0; color: #f2e7d2; font: 700 1.12rem "Cinzel", Georgia, serif; text-transform: uppercase; }
+.technique-affinity { display: flex; gap: 7px; }
+.technique-affinity span { border: 1px solid color-mix(in srgb, var(--technique-color, #55c9ff) 44%, transparent); border-radius: 5px; padding: 3px 7px; background: color-mix(in srgb, var(--technique-color, #55c9ff) 12%, transparent); color: #d8e5ec; font-size: .57rem; font-weight: 800; }
+.technique-art-placeholder { display: grid; min-height: 100px; place-items: center; align-content: center; gap: 4px; border: 1px solid color-mix(in srgb, var(--technique-color, #55c9ff) 54%, #293746); border-radius: 7px; background: linear-gradient(135deg, color-mix(in srgb, var(--technique-color, #55c9ff) 43%, #07101b), color-mix(in srgb, var(--technique-color, #55c9ff) 14%, #101725)); color: #fff; }
+.technique-art-placeholder span { font: 700 2.1rem "Cinzel", Georgia, serif; text-shadow: 0 2px 12px #000; }
+.technique-art-placeholder small { color: rgba(255, 255, 255, .75); font-size: .48rem; font-weight: 900; letter-spacing: .12em; }
+.technique-description { margin: 0; color: #aebdca; font-size: .66rem; line-height: 1.4; }
+.technique-description strong { color: #d9eaf2; }
+.technique-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.technique-metrics div { display: grid; gap: 2px; border: 1px solid rgba(83, 126, 154, .32); border-radius: 6px; padding: 7px; background: rgba(9, 23, 36, .72); }
+.technique-metrics strong { color: #e9f3f6; font-size: .78rem; }
+.technique-metrics small { color: #8ca2b2; font-size: .49rem; font-weight: 850; letter-spacing: .08em; }
+.technique-accuracy { margin: 0; color: #91a9bb; font-size: .57rem; }
+.technique-equip-button, .technique-upgrade-button { display: grid; width: 100%; gap: 3px; border: 1px solid rgba(240, 184, 92, .5); border-radius: 6px; padding: 9px; background: linear-gradient(120deg, rgba(143, 85, 28, .35), rgba(56, 39, 26, .42)); color: #f7d496; font-size: .62rem; font-weight: 900; letter-spacing: .04em; cursor: pointer; }
+.technique-equip-button:disabled, .technique-upgrade-button:disabled { border-color: rgba(102, 123, 143, .28); background: rgba(19, 29, 40, .72); color: #718296; cursor: not-allowed; }
+.technique-upgrade-button { border-color: rgba(102, 123, 143, .28); background: rgba(11, 21, 32, .65); color: #8695a6; }
+.technique-upgrade-button small { font-size: .49rem; font-weight: 600; text-transform: none; }
+.skill-tree { min-width: 0; margin: 0; border-color: rgba(70, 120, 150, .4); padding: 12px; }
+.skill-tree-heading { align-items: center; }
+.skill-tree-heading h3 { color: #e7d5b7; font: 700 .9rem "Cinzel", Georgia, serif; letter-spacing: .04em; }
+.tree-status { display: grid; justify-items: end; gap: 5px; }
+.dojo-equipped-count { color: #f0c476; font-size: .59rem; white-space: nowrap; }
+.tree-legend { font-size: .52rem; }
+.tree-legend i:nth-of-type(2) { background: #f39b58; }
+.tree-legend i:nth-of-type(3) { background: #4a5668; }
+.skill-branches { gap: 12px; }
+.skill-branch { grid-template-columns: 92px minmax(0, 1fr); gap: 7px; }
+.skill-branch > header { display: grid; justify-items: center; align-content: center; text-align: center; }
+.skill-branch > header img { width: 29px; height: 29px; }
+.skill-branch > header strong { font-size: .57rem; }
+.skill-path { grid-auto-columns: minmax(102px, 1fr); gap: 9px; align-items: center; }
+.skill-node { grid-template-columns: 23px minmax(0, 1fr); min-width: 102px; min-height: 70px; color: #e3ebf0; text-align: left; }
+.skill-node:hover:not(.locked), .skill-node:focus-visible { outline: none; border-color: color-mix(in srgb, var(--branch-color) 75%, white); }
+.skill-node.focused { border-color: var(--branch-color); box-shadow: 0 0 14px color-mix(in srgb, var(--branch-color) 28%, transparent); }
+.skill-node.equipped .skill-step { background: color-mix(in srgb, var(--branch-color) 24%, #0b1420); color: #e9faff; }
+.skill-node.locked { opacity: .52; }
+.dojo-attributes { border: 1px solid rgba(73, 130, 162, .38); border-radius: 9px; padding: 11px 13px; background: rgba(3, 13, 24, .78); }
+.dojo-attributes > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
+.dojo-attributes .eyebrow { margin: 0 0 3px; color: #f0c476; font: 700 .77rem "Cinzel", Georgia, serif; }
+.dojo-attributes > header small { color: #8da1b4; font-size: .58rem; }
+.dojo-attributes > header > strong { border: 1px solid rgba(240, 184, 92, .44); border-radius: 6px; padding: 7px 10px; color: #f3c476; font-size: .6rem; white-space: nowrap; }
+.dojo-attributes > header > strong b { font-size: .95rem; }
+.attribute-distribution { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+.attribute-card { --attribute-color: #56cce7; display: grid; min-width: 0; gap: 7px; border: 1px solid color-mix(in srgb, var(--attribute-color) 30%, #25364a); border-radius: 7px; padding: 8px; background: linear-gradient(145deg, rgba(10, 25, 39, .9), rgba(5, 14, 24, .9)); }
+.attribute-card.strength { --attribute-color: #ff9654; }
+.attribute-card.speed { --attribute-color: #57cce4; }
+.attribute-card.chakra { --attribute-color: #b77aea; }
+.attribute-card.luck { --attribute-color: #65dc9a; }
+.attribute-card header { display: grid; grid-template-columns: 25px minmax(0, 1fr) auto; align-items: center; gap: 6px; }
+.attribute-icon { color: var(--attribute-color); font-size: 1rem; text-align: center; }
+.attribute-card header > span:nth-child(2) { display: grid; min-width: 0; gap: 2px; }
+.attribute-card header strong { color: #dce8ef; font-size: .61rem; text-transform: uppercase; }
+.attribute-card header small { overflow: hidden; color: #8a9daf; font-size: .47rem; text-overflow: ellipsis; white-space: nowrap; }
+.attribute-card.positive header small { color: #7ce0b2; }
+.attribute-card.negative header small { color: #ff9d8d; }
+.attribute-card header > b { color: #f2f4f5; font-size: .95rem; }
+.attribute-meter { height: 9px; overflow: hidden; border: 1px solid rgba(129, 164, 187, .2); border-radius: 4px; background: repeating-linear-gradient(90deg, #142538 0 12px, #0b1725 12px 15px); }
+.attribute-meter span { display: block; width: var(--attribute-fill); height: 100%; background: linear-gradient(90deg, color-mix(in srgb, var(--attribute-color) 68%, #164b6b), var(--attribute-color)); box-shadow: 0 0 9px color-mix(in srgb, var(--attribute-color) 35%, transparent); }
+.attribute-card footer { display: flex; min-width: 0; align-items: center; justify-content: space-between; gap: 4px; }
+.attribute-card footer small { overflow: hidden; color: #8295a8; font-size: .46rem; text-overflow: ellipsis; white-space: nowrap; }
+.attribute-card footer button { display: grid; flex: 0 0 24px; width: 24px; height: 24px; place-items: center; border: 1px solid color-mix(in srgb, var(--attribute-color) 45%, #2b3b4e); border-radius: 5px; background: rgba(11, 27, 41, .9); color: var(--attribute-color); font-size: .9rem; cursor: pointer; }
+.attribute-card footer button:disabled { opacity: .4; cursor: not-allowed; }
+.attribute-reset { display: block; margin: 7px 0 0 auto; border: 1px solid rgba(118, 147, 169, .28); border-radius: 5px; padding: 5px 8px; background: rgba(11, 21, 32, .7); color: #9db1c1; font-size: .52rem; cursor: pointer; }
+.attribute-reset:disabled { opacity: .42; cursor: not-allowed; }
+.dojo-message { margin: 6px 0 0; }
+@media (max-width: 980px) {
+  .location-dojo .stage-options { width: calc(100% - 22px); max-height: calc(100% - 18px); margin: 9px auto; padding: 12px; }
+  .dojo-topbar { grid-template-columns: minmax(0, 1fr) auto; }
+  .dojo-level { display: none; }
+  .dojo-tabs [role="tab"] { min-width: 82px; padding-inline: 8px; }
+  .dojo-technique-layout { grid-template-columns: minmax(210px, .75fr) minmax(0, 1.25fr); }
+  .skill-branch { grid-template-columns: 72px minmax(0, 1fr); }
+  .skill-path { grid-auto-columns: 112px; }
+  .attribute-distribution { grid-template-columns: repeat(5, minmax(115px, 1fr)); overflow-x: auto; padding-bottom: 3px; }
+}
+@media (max-width: 680px) {
+  .location-dojo .stage-options { width: calc(100% - 12px); max-height: calc(100% - 10px); margin: 5px auto; padding: 9px; }
+  .dojo-layout.dojo-rework { gap: 8px; }
+  .dojo-topbar { grid-template-columns: 1fr; gap: 7px; }
+  .dojo-title-mark { width: 36px; height: 36px; font-size: 1.3rem; }
+  .dojo-title .eyebrow { font-size: 1rem; }
+  .dojo-title small { font-size: .61rem; }
+  .dojo-tabs { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .dojo-tabs [role="tab"] { min-width: 0; padding: 8px 4px; font-size: .66rem; }
+  .dojo-main-panel { min-height: 0; padding: 8px; }
+  .dojo-technique-layout { grid-template-columns: 1fr; }
+  .technique-detail { min-height: auto; }
+  .technique-art-placeholder { min-height: 78px; }
+  .skill-tree { padding: 8px; }
+  .skill-tree-heading { align-items: start; flex-direction: column; }
+  .tree-status { justify-items: start; }
+  .skill-branch { grid-template-columns: 1fr; }
+  .skill-branch > header { display: flex; justify-items: initial; text-align: left; }
+  .skill-path { grid-auto-columns: 130px; }
+  .dojo-attributes { padding: 9px; }
+  .dojo-attributes > header { align-items: flex-start; }
+  .dojo-attributes > header > strong { padding: 6px; font-size: .5rem; }
+  .attribute-distribution { grid-template-columns: 1fr; overflow: visible; }
+  .attribute-card { grid-template-columns: 1fr; }
+  .attribute-card header { grid-template-columns: 28px minmax(0, 1fr) auto; }
+  .attribute-card footer small { font-size: .56rem; }
+}
