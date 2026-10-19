@@ -212,7 +212,7 @@ assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe serv
 assert.match(html, /class="mobile-gate"/, "Las resoluciones de teléfono deben recibir una pantalla de próximamente");
 assert.match(html, /if \(!mobileViewport\.matches\)/, "El juego no debe cargar Phaser ni sus módulos en resoluciones de teléfono");
 assert.match(styles, /html\.mobile-viewport body > main \{ display: none; \}/, "El contenido del juego debe permanecer oculto detrás del aviso");
-assert.match(html, /desktop\.css\?v=0\.58\.0/, "El sistema de afinidades debe invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=0\.67\.3/, "El rediseño del dojo debe invalidar la caché anterior");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
 assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");

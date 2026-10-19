@@ -1107,3 +1107,89 @@
     max-width: 650px;
   }
 }
+
+/* Dojo rework: estas reglas deben quedar después de la piel de escritorio.
+   La maqueta anterior dividía .dojo-layout en dos columnas y comprimía el
+   encabezado, el árbol y los atributos del panel nuevo. */
+@media (min-width: 651px) {
+  .location-dojo .stage-options {
+    width: min(calc(100% - 48px), 1280px);
+    max-height: calc(100% - 122px);
+    margin: 98px auto 24px;
+    border: 1px solid rgba(95, 162, 197, .48);
+    border-radius: 12px;
+    padding: 14px;
+    background: linear-gradient(145deg, rgba(3, 16, 30, .97), rgba(4, 12, 23, .96));
+    box-shadow: 0 22px 70px rgba(0, 0, 0, .58), inset 0 0 32px rgba(37, 119, 164, .08);
+  }
+
+  .location-dojo .stage-options .dojo-layout.dojo-rework {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .location-dojo .dojo-topbar {
+    grid-template-columns: minmax(300px, 1fr) auto auto;
+    gap: 16px;
+  }
+
+  .location-dojo .dojo-tabs {
+    display: flex;
+    grid-template-columns: none;
+    gap: 4px;
+    margin: 0;
+  }
+
+  .location-dojo .dojo-tabs [role="tab"] {
+    min-width: 104px;
+    min-height: 0;
+    border: 1px solid transparent;
+    border-bottom: 0;
+    padding: 9px 13px;
+  }
+
+  .location-dojo .dojo-tabs [role="tab"][aria-selected="true"] {
+    border-color: rgba(65, 202, 231, .52);
+    border-bottom-color: transparent;
+  }
+
+  .location-dojo .technique-detail {
+    min-height: 0;
+    gap: 7px;
+    padding: 10px;
+  }
+
+  .location-dojo .technique-art-placeholder { min-height: 78px; }
+  .location-dojo .technique-metrics div { padding: 6px; }
+  .location-dojo .technique-equip-button,
+  .location-dojo .technique-upgrade-button { padding: 7px; }
+  .location-dojo .skill-path {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-flow: row;
+    gap: 9px 12px;
+    overflow: visible;
+    padding: 1px 2px;
+  }
+  .location-dojo .skill-node { min-width: 0; min-height: 66px; }
+  .location-dojo .attribute-card { gap: 5px; padding: 6px; }
+  .location-dojo .attribute-meter { height: 7px; }
+  .location-dojo .attribute-card footer button { width: 22px; height: 22px; flex-basis: 22px; }
+}
+
+@media (min-width: 651px) and (max-width: 1100px) {
+  .location-dojo .stage-options {
+    width: calc(100% - 28px);
+    max-height: calc(100% - 104px);
+    margin: 84px auto 20px;
+    padding: 12px;
+  }
+
+  .location-dojo .dojo-topbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 9px;
+  }
+
+  .location-dojo .dojo-level { display: none; }
+  .location-dojo .dojo-tabs { grid-column: 1 / -1; }
+  .location-dojo .skill-path { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

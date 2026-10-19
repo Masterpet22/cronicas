@@ -3,7 +3,11 @@ export function createLocationStage(deps) {
     id: "location-stage",
     render(locationId, content) {
       const cast = deps.locationCast[locationId] || [];
-      const introduced = deps.introducedViews.has(locationId);
+      // El dojo rediseñado no usa la presentación con retratos: su CSS oculta
+      // deliberadamente ese diálogo para dedicar todo el escenario al panel.
+      // Tratarlo como una ubicación ya presentada evita dejar el panel oculto
+      // e inaccesible durante la primera visita.
+      const introduced = locationId === "dojo" || deps.introducedViews.has(locationId);
       const locationName = deps.locations.find((location) => location.id === locationId)?.name || (locationId === "kagemori" ? "Aldea de Kagemori" : locationId);
       const background = deps.locationBackgrounds[locationId] || `assets/locations/${locationId}.webp`;
       const portraits = (locationId === "kagemori" && introduced ? [] : cast).map((id) => {

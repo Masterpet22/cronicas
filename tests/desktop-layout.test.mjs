@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const desktopCss = await readFile(new URL("../desktop.css", import.meta.url), "utf8");
+const locationStageSource = await readFile(new URL("../src/ui/meta/location-stage.js", import.meta.url), "utf8");
 
 assert.match(css, /@media \(min-width: 981px\)/, "El escenario unificado debe limitarse a la versión de escritorio");
 assert.match(css, /width: min\(1440px, 100vw, calc\(100dvh \* 1\.7777778\)\)/, "El escenario debe usar 1440 px como ancho lógico máximo");
@@ -15,6 +16,8 @@ assert.match(desktopCss, /font-family: "Alegreya Sans"/, "El texto debe conserva
 assert.match(desktopCss, /\.stage-panel::before,[\s\S]*display: none/, "Los paneles funcionales no deben conservar marcos marrones ilustrados");
 assert.match(desktopCss, /\.saga-card\.locked,[\s\S]*opacity: 1/, "Los estados bloqueados no deben perder contraste por opacidad global");
 assert.match(desktopCss, /\.dojo-tabs/, "El Dojo debe dividir la configuración mediante pestañas");
+assert.match(locationStageSource, /locationId === ["']dojo["'] \|\| deps\.introducedViews\.has\(locationId\)/, "El Dojo debe mostrar su configuración también en la primera visita");
+assert.match(desktopCss, /\.location-dojo \.skill-path \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)[\s\S]*overflow: visible/, "El árbol del Dojo debe distribuir técnicas en filas sin desplazamiento horizontal");
 assert.match(desktopCss, /font-size: max\(\.75rem, 12px\)/, "La información útil debe conservar un suelo de 12 px");
 assert.match(desktopCss, /\.archive-card li \{[\s\S]*background: transparent/, "El archivo debe usar filas y divisores en lugar de cajas marrones");
 assert.match(desktopCss, /\.stage-speech,[\s\S]*rgba\(7, 20, 36, \.98\)/, "Los diálogos deben usar una superficie oscura de alto contraste");

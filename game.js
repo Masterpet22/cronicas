@@ -1,4 +1,4 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.66.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.67.2";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.66.0";
 import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.68.0";
 import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.68.0";

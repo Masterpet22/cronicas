@@ -489,9 +489,9 @@ input, select, button { font: inherit; }
 .skill-branch > header span { display: grid; min-width: 0; }
 .skill-branch > header strong { font-size: .66rem; }
 .skill-branch > header small { overflow: hidden; color: #8492a6; font-size: .48rem; text-overflow: ellipsis; white-space: nowrap; }
-.skill-path { display: grid; grid-auto-columns: minmax(112px, 1fr); grid-auto-flow: column; gap: 13px; overflow-x: auto; padding: 1px 2px 5px; }
+.skill-path { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px 13px; overflow: visible; padding: 1px 2px 5px; }
 .skill-node { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; gap: 6px; min-width: 112px; border: 1px solid #39485c; border-radius: 9px; padding: 7px; background: linear-gradient(145deg, rgba(22,33,48,.96), rgba(9,15,24,.98)); cursor: pointer; }
-.skill-node + .skill-node::before { content: ""; position: absolute; top: 50%; right: 100%; width: 14px; height: 2px; background: #3d526c; }
+.skill-node + .skill-node::before { content: ""; position: absolute; top: -7px; left: 50%; width: 2px; height: 7px; background: #3d526c; }
 .skill-node.available { border-color: color-mix(in srgb, var(--branch-color) 55%, #33445b); }
 .skill-node.available .skill-step { border-color: var(--branch-color); color: var(--branch-color); }
 .skill-node.selected { border-color: #f5a357; box-shadow: inset 0 0 16px rgba(245,163,87,.1); }
@@ -2533,8 +2533,9 @@ button:focus-visible {
 .dojo-attributes > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 9px; }
 .dojo-attributes .eyebrow { margin: 0 0 3px; color: #f0c476; font: 700 .77rem "Cinzel", Georgia, serif; }
 .dojo-attributes > header small { color: #8da1b4; font-size: .58rem; }
-.dojo-attributes > header > strong { border: 1px solid rgba(240, 184, 92, .44); border-radius: 6px; padding: 7px 10px; color: #f3c476; font-size: .6rem; white-space: nowrap; }
-.dojo-attributes > header > strong b { font-size: .95rem; }
+.dojo-attribute-actions { display: flex; align-items: center; gap: 8px; }
+.dojo-attribute-actions > strong { border: 1px solid rgba(240, 184, 92, .44); border-radius: 6px; padding: 7px 10px; color: #f3c476; font-size: .6rem; white-space: nowrap; }
+.dojo-attribute-actions > strong b { font-size: .95rem; }
 .attribute-distribution { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
 .attribute-card { --attribute-color: #56cce7; display: grid; min-width: 0; gap: 7px; border: 1px solid color-mix(in srgb, var(--attribute-color) 30%, #25364a); border-radius: 7px; padding: 8px; background: linear-gradient(145deg, rgba(10, 25, 39, .9), rgba(5, 14, 24, .9)); }
 .attribute-card.strength { --attribute-color: #ff9654; }
@@ -2555,7 +2556,7 @@ button:focus-visible {
 .attribute-card footer small { overflow: hidden; color: #8295a8; font-size: .46rem; text-overflow: ellipsis; white-space: nowrap; }
 .attribute-card footer button { display: grid; flex: 0 0 24px; width: 24px; height: 24px; place-items: center; border: 1px solid color-mix(in srgb, var(--attribute-color) 45%, #2b3b4e); border-radius: 5px; background: rgba(11, 27, 41, .9); color: var(--attribute-color); font-size: .9rem; cursor: pointer; }
 .attribute-card footer button:disabled { opacity: .4; cursor: not-allowed; }
-.attribute-reset { display: block; margin: 7px 0 0 auto; border: 1px solid rgba(118, 147, 169, .28); border-radius: 5px; padding: 5px 8px; background: rgba(11, 21, 32, .7); color: #9db1c1; font-size: .52rem; cursor: pointer; }
+.attribute-reset { display: block; margin: 0; border: 1px solid rgba(118, 147, 169, .28); border-radius: 5px; padding: 7px 8px; background: rgba(11, 21, 32, .7); color: #9db1c1; font-size: .52rem; cursor: pointer; }
 .attribute-reset:disabled { opacity: .42; cursor: not-allowed; }
 .dojo-message { margin: 6px 0 0; }
 @media (max-width: 980px) {
@@ -2565,7 +2566,7 @@ button:focus-visible {
   .dojo-tabs [role="tab"] { min-width: 82px; padding-inline: 8px; }
   .dojo-technique-layout { grid-template-columns: minmax(210px, .75fr) minmax(0, 1.25fr); }
   .skill-branch { grid-template-columns: 72px minmax(0, 1fr); }
-  .skill-path { grid-auto-columns: 112px; }
+  .skill-path { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .attribute-distribution { grid-template-columns: repeat(5, minmax(115px, 1fr)); overflow-x: auto; padding-bottom: 3px; }
 }
 @media (max-width: 680px) {
@@ -2586,10 +2587,11 @@ button:focus-visible {
   .tree-status { justify-items: start; }
   .skill-branch { grid-template-columns: 1fr; }
   .skill-branch > header { display: flex; justify-items: initial; text-align: left; }
-  .skill-path { grid-auto-columns: 130px; }
+  .skill-path { grid-template-columns: 1fr; }
   .dojo-attributes { padding: 9px; }
   .dojo-attributes > header { align-items: flex-start; }
-  .dojo-attributes > header > strong { padding: 6px; font-size: .5rem; }
+  .dojo-attribute-actions { align-items: stretch; flex-direction: column; gap: 4px; }
+  .dojo-attribute-actions > strong { padding: 6px; font-size: .5rem; }
   .attribute-distribution { grid-template-columns: 1fr; overflow: visible; }
   .attribute-card { grid-template-columns: 1fr; }
   .attribute-card header { grid-template-columns: 28px minmax(0, 1fr) auto; }

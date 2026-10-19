@@ -177,6 +177,23 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   expect(browserErrors, "No debe haber errores al recorrer las vistas meta").toEqual([]);
 });
 
+test("la primera visita al dojo muestra la configuración sin quedar bloqueada", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem("music-enabled", "off");
+  });
+
+  await createFreshCharacter(page, "Dojo inicial");
+  await page.getByRole("button", { name: /Volver al mapa/i }).click();
+  await page.locator('[data-go="dojo"]').click();
+
+  await expect(page.locator('[data-location-stage="dojo"] [data-stage-options]')).toBeVisible();
+  await expect(page.locator(".dojo-layout")).toBeVisible();
+  await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
+  await expect(page.locator("[data-reset-attributes]")).toBeDisabled();
+});
+
 for (const mission of [
   { checkpoint: "saga-start", missionId: "m01" },
   { checkpoint: "mission-2-ready", missionId: "m02" },
