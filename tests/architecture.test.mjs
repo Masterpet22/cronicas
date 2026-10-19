@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ALL_MISSIONS } from "../src/data.js";
+import { ALL_MISSIONS } from "../src/content/index.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataPath = path.join(projectRoot, "src", "data.js");
@@ -20,7 +20,7 @@ function javascriptFiles(directory) {
 }
 
 const protectedFiles = [path.join(projectRoot, "game.js"), ...javascriptFiles(path.join(projectRoot, "src"))]
-  .filter((file) => file !== dataPath);
+  .filter((file) => file !== dataPath && !file.includes(`${path.sep}content${path.sep}`) && !file.includes(`${path.sep}save${path.sep}migrations${path.sep}`));
 const catalogIds = [...new Set(ALL_MISSIONS.flatMap((mission) => [
   mission.id,
   ...(mission.flow || []).map((step) => step.id).filter(Boolean)
@@ -51,7 +51,7 @@ protectedFiles.forEach((file) => {
   });
 });
 
-assert.deepEqual(violations, [], `Los IDs de misión y paso solo pueden decidir comportamiento en data.js:\n${violations.join("\n")}`);
+assert.deepEqual(violations, [], `Los IDs literales de misión y paso solo pueden vivir en contenido, migraciones y pruebas:\n${violations.join("\n")}`);
 
 const directStepQueries = protectedFiles.flatMap((file) => {
   const relativeFile = path.relative(projectRoot, file).replaceAll("\\", "/");

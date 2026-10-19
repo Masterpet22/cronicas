@@ -1,67 +1,9 @@
 import { requirementMet } from "./mission-system.js?v=0.66.0";
+import { MISSION_DIALOGUES } from "./content/index.js";
 
 export const DEFAULT_LOCALE = "es";
 
 const es = {
-  "mission.m01.briefing": [
-    { speaker: "ren", text: "Tenemos una misión de clase D. Un grupo de ladrones robó el gato de una familia de la aldea y huyó hacia el Bosque del Este." },
-    { speaker: "ren", text: "Sigue sus huellas, derrota a los bandidos y trae al gato de vuelta. Parece sencillo, pero no subestimes a quien dirige el grupo." }
-  ],
-  "mission.m02.briefing": [
-    { speaker: "ren", text: "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera." },
-    { speaker: "ren", text: "{master} irá contigo. Primero asegura el sendero; después averigüen dónde ocultan al resto del grupo." },
-    { speaker: "master", text: "No buscamos una pelea innecesaria. Observa el terreno y recuerda que la información puede valer más que una victoria rápida." }
-  ],
-  "mission.m03.briefing": [
-    { speaker: "ren", text: "Haru ubicó dos accesos a la guarida. La entrada que elijas decidirá cuántos guardianes encontrarás y qué recursos podrás recuperar." }
-  ],
-  "mission.m04.briefing": [
-    { speaker: "ren", text: "Las galerías interiores están llenas de combatientes especializados. Administra vida, chakra y suministros entre cada duelo." }
-  ],
-  "mission.m05.briefing": [
-    { speaker: "ren", text: "Raizen Kurogane dirige a los bandidos. Sus cambios de ritmo, ataques anunciados y estados alterados serán tu duelo final." }
-  ],
-  "mission.m01.combat-tutorial": [
-    { speaker: "master", text: "{master}: «La barra superior muestra tu VIDA y CHAKRA. La barra inferior representa VELOCIDAD: los marcadores solo avanzan cuando comienza el turno. Las técnicas consumen chakra y pueden requerir sellos; Guardia reduce el próximo impacto y recupera chakra.»" }
-  ],
-  "mission.m02.prisoner-choice": [
-    { speaker: "narrator", text: "El teniente está derrotado y conoce la ruta del campamento. Tu decisión quedará registrada." }
-  ],
-  "mission.m02.prisoner-interrogate": [
-    { speaker: "narrator", text: "Obtienes la ruta y el cargamento, pero el prisionero huye: Akumori estará reforzado." }
-  ],
-  "mission.m02.prisoner-eliminate": [
-    { speaker: "narrator", text: "Pierdes la información y un posible aliado, pero Akumori no recibirá refuerzos." }
-  ],
-  "mission.m02.investigation-complete": [
-    { speaker: "master", text: "{master}: «El rastro converge en la vieja cantera. Sigamos.»" }
-  ],
-  "mission.m03.secret-warehouse": [
-    { speaker: "narrator", text: "La información del teniente conduce a un acceso oculto. Evitas al guardia exterior y localizas las monedas robadas; se asegurarán al completar la misión." }
-  ],
-  "mission.m04.resource-choice": [
-    { speaker: "master", text: "{master}: «Mide lo que todavía queda por delante. Los estados no desaparecerán si avanzas sin descansar.»" }
-  ],
-  "mission.m04.hideout-discovery": [
-    { speaker: "narrator", text: "Tras el último duelo oyes prisioneros tras una compuerta y encuentras documentos marcados con un cuervo negro. Solo hay tiempo para asegurar uno primero." }
-  ],
-  "mission.m04.revelation-documents": [
-    { speaker: "narrator", text: "Los documentos llevan el sello de una organización desconocida. Raizen no dirige la red: administra esta guarida para alguien que opera fuera de la región." }
-  ],
-  "mission.m04.revelation-prisoners": [
-    { speaker: "narrator", text: "Los prisioneros confirman que Raizen recibe órdenes y suministros de una organización externa. Los bandidos del Cuervo son solamente una célula de una red mayor." }
-  ],
-  "mission.m05.lieutenant-intervention": [
-    { speaker: "lieutenant", text: "TENIENTE: «Me perdonaste cuando pudiste acabar conmigo. Raizen no tendrá hoy toda su ventaja.»\n\nEl antiguo teniente hiere al jefe: −15 % de vida y mejora defensiva eliminada." }
-  ],
-  "mission.s01.briefing": [
-    { speaker: "sayo", text: "Perdí el rastro de los saqueadores en la Aldea de Kagemori. El ataque fue reciente y todavía deben quedar señales de su ruta." },
-    { speaker: "sayo", text: "Habla con los supervivientes e investiga la carreta, la plaza y el pozo. No busques pelea: necesitamos saber adónde llevaron lo robado." }
-  ],
-  "mission.s02.briefing": [
-    { speaker: "sayo", text: "El mapa de Akumori está cifrado. Busca al doctor Haru Takamine; sus viajes le han enseñado a leer marcas de caminos olvidados." },
-    { speaker: "sayo", text: "Tendrás que escoger una de tres rutas durante tres fases. No todas esconden peligro, pero todas te acercan al doctor." }
-  ],
   "npc.ren.intro": [
     { speaker: "ren", text: "Soy Ren Arashiro. Mientras portes el sello de esta aldea, ninguna misión será solamente tuya." },
     { speaker: "ren", text: "El Cuartel registra tu rango, tus victorias y las amenazas que todavía permanecen abiertas." }
@@ -172,8 +114,8 @@ const es = {
   ]
 };
 
-export const DIALOGUE_CATALOGS = Object.freeze({ es: Object.freeze(es) });
-export const DIALOGUE_PLACEMENTS = Object.freeze(Object.fromEntries(Object.keys(es).map((id) => {
+export const DIALOGUE_CATALOGS = Object.freeze({ es: Object.freeze({ ...es, ...MISSION_DIALOGUES }) });
+export const DIALOGUE_PLACEMENTS = Object.freeze(Object.fromEntries(Object.keys({ ...es, ...MISSION_DIALOGUES }).map((id) => {
   const [domain, owner, context] = id.split(".");
   return [id, Object.freeze({
     surface: domain === "mission" ? (context === "briefing" ? "mission-briefing" : "mission-scene") : `location-${context}`,

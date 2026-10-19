@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { JUTSU_LIBRARY, ENEMIES, MISSIONS, SECONDARY_MISSIONS, SEALS } from "../src/data.js";
+import { JUTSU_LIBRARY, ENEMIES, SEALS } from "../src/data.js";
+import { MISSIONS, SECONDARY_MISSIONS } from "../src/content/index.js";
 import { applyStatus, hitChance } from "../src/rules.js";
 
 const fire = JUTSU_LIBRARY.find((action) => action.id === "fire_embers");

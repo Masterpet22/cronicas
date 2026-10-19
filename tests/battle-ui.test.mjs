@@ -3,7 +3,6 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const missionData = readFileSync(new URL("../src/data.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
 const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
@@ -15,6 +14,7 @@ const readJavaScriptTree = (directory) => readdirSync(directory, { withFileTypes
   if (entry.isDirectory()) return readJavaScriptTree(entryPath);
   return entry.name.endsWith(".js") ? [readFileSync(entryPath, "utf8")] : [];
 });
+const missionData = readJavaScriptTree(fileURLToPath(new URL("../src/content", import.meta.url))).join("\n");
 const battle = [readFileSync(new URL("../game.js", import.meta.url), "utf8"), ...readJavaScriptTree(fileURLToPath(new URL("../src/battle", import.meta.url)))].join("\n");
 const travelScene = readFileSync(new URL("../src/battle/scenes/mission-travel-scene.js", import.meta.url), "utf8");
 const metaUi = [readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8"), ...readJavaScriptTree(metaRoot)].join("\n");

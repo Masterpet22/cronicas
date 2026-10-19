@@ -3,7 +3,8 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ENEMY_ROSTER, MISSIONS } from "../src/data.js";
+import { ENEMY_ROSTER } from "../src/data.js";
+import { MISSIONS } from "../src/content/index.js";
 import { combatFeatures, fieldSuppliesForBattle, interludePlan, resolveEncounterIds } from "../src/combat-modifiers.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
 

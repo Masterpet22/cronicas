@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { DEBUG_CHECKPOINTS, affinityXpForElement, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave } from "../src/save.js";
-import { MISSIONS, STORY_SAGAS } from "../src/data.js";
+import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
 assert.equal(SAVE_VERSION, 16, "La versión debe identificar la numeración secuencial y el progreso secundario separado");

@@ -1,8 +1,4 @@
-const KAGEMORI_CLUES = Object.freeze([
-  { id: "cart", label: "Carreta saqueada", labelX: 18, labelY: 70, path: "M0 330 L76 300 L169 339 L248 385 L346 414 L405 485 L520 538 L590 616 L560 690 L472 731 L337 744 L237 716 L147 674 L29 658 L0 620 Z", text: "Las cajas fueron abiertas con herramientas, no con armas. Los bandidos buscaban provisiones concretas." },
-  { id: "hall", label: "Casa comunal", labelX: 48, labelY: 45, path: "M420 273 L492 239 L554 154 L628 128 L784 133 L870 157 L927 194 L1041 220 L1083 268 L1035 302 L1024 438 L944 453 L849 439 L782 390 L721 349 L651 371 L610 329 L529 350 L469 320 Z", text: "Entre las cenizas aparece una cuerda cubierta de polvo gris, propio de una cantera." },
-  { id: "well", label: "Pozo y huellas", labelX: 72, labelY: 77, path: "M1158 550 L1236 601 L1194 651 L1128 704 L1080 758 L1123 818 L1060 881 L976 867 L923 811 L928 737 L982 681 L1055 622 Z", text: "Las pisadas cargadas cruzan el barro y salen por la puerta norte hacia las montañas." }
-]);
+import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
 
 export function createMissionBoardsView(deps) {
   let currentState = null;

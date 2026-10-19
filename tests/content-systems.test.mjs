@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
-import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/data.js";
-import { getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
+import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/content/index.js";
+import { DIALOGUE_CATALOGS, getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
 import { missionHasStep, missionState, missionsForBoard, requirementMet, validateMissionCatalog } from "../src/mission-system.js";
 import { secondaryMissionCardModel } from "../src/secondary-missions.js";
 import { completeSecondaryMission, createDefaultSave } from "../src/save.js";
@@ -10,6 +10,20 @@ assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "m02", "m03", "m
 assert.ok(MISSIONS.every((mission) => mission.category === "main" && mission.board === "headquarters"), "Las principales deben pertenecer exclusivamente al Cuartel");
 assert.ok(SECONDARY_MISSIONS.every((mission) => mission.category === "secondary" && mission.board === "missions"), "Las secundarias deben pertenecer exclusivamente al Tablón");
 assert.deepEqual(validateMissionCatalog(ALL_MISSIONS, STORY_SAGAS), [], "El catálogo no debe tener IDs, requisitos o mecánicas inválidas");
+assert.deepEqual(validateDialogueReferences(ALL_MISSIONS), [], "Los briefings deben existir y estar asignados a su misión");
+const missionKeys = Object.keys(DIALOGUE_CATALOGS.es).filter((key) => key.startsWith("mission."));
+const missionIds = new Set(ALL_MISSIONS.map((mission) => mission.id));
+const validSpeakers = new Set(["ren", "master", "narrator", "lieutenant", "sayo"]);
+for (const key of missionKeys) {
+  const [, missionId, sceneId] = key.split(".");
+  assert.ok(missionIds.has(missionId), `${key} debe pertenecer a una misión existente`);
+  const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
+  assert.ok(sceneId === "briefing" ? mission.dialogueId === key : mission.flow.some((step) => step.id === sceneId) || missionId === "m01" && sceneId === "combat-tutorial" || missionId === "m02" && (sceneId.startsWith("prisoner-") || sceneId === "investigation-complete") || missionId === "m03" && sceneId === "secret-warehouse" || missionId === "m04" && ["resource-choice", "hideout-discovery", "revelation-documents", "revelation-prisoners"].includes(sceneId) || missionId === "m05" && sceneId === "lieutenant-intervention", `${key} debe tener un punto de uso en el flujo de la misión`);
+  for (const line of DIALOGUE_CATALOGS.es[key]) {
+    assert.ok(validSpeakers.has(line.speaker), `${key} usa un speaker existente`);
+    for (const [, variable] of line.text.matchAll(/\{([a-z0-9_]+)\}/gi)) assert.equal(variable, "master", `${key} usa una variable soportada`);
+  }
+}
 assert.deepEqual(validateDialogueReferences(ALL_MISSIONS), [], "Cada misión debe apuntar a un diálogo traducible existente");
 assert.ok(ALL_MISSIONS.every((mission) => !Object.hasOwn(mission, "briefing")), "El texto no debe quedar incrustado en las definiciones de misión");
 assert.ok(missionHasStep(MISSIONS[2], "choice", "hideout-entry"), "Una misión debe poder declarar decisiones sin cambiar el renderizador del Tablón");

@@ -1,4 +1,5 @@
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS } from "./data.js?v=0.66.0";
+import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.66.0";
+import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
 import { applyMissionEffects, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.58.0";

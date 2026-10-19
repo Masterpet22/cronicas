@@ -1,5 +1,5 @@
 import { fighterPreviewSvg, playerFighterAppearance } from "./character.js?v=0.62.0";
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./data.js?v=0.66.0";
+import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.66.0"; import { MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./content/index.js";
 import { getDialogue } from "./dialogues.js?v=0.66.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.67.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";

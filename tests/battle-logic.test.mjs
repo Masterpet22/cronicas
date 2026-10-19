@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { AFFINITY_CONFIG } from "../src/affinity-system.js";
-import { ENEMY_ROSTER, MISSIONS } from "../src/data.js";
+import { ENEMY_ROSTER } from "../src/data.js";
+import { MISSIONS } from "../src/content/index.js";
 import { resolveDamage } from "../src/battle/damage.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../src/battle/rewards.js";
