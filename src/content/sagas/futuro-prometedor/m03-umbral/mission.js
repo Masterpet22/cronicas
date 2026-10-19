@@ -21,5 +21,5 @@ export const M03 = {
       },
       { type: "combat", id: "hideout-threshold" }
     ],
-    completionEffects: [{ type: "context-flag", id: "secretWarehouseLooted", context: "secretBonusAwarded" }, { type: "sum-flags", id: "hideoutSupplies", base: 1, sources: ["doctorSupplyBonus"] }, { type: "set-flag", id: "heartMissionUnlocked", value: true }]
+    completionEffects: [{ type: "context-flag", id: "secretWarehouseLooted", context: "secretBonusAwarded" }, { type: "sum-flags", id: "hideoutSupplies", base: 1, sources: ["doctorSupplyBonus"] }]
   };

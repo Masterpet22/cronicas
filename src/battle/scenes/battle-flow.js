@@ -271,9 +271,6 @@ export class BattleFlowMethods {
       { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
     ]);
     this.saveData.campaign.hideoutDiscoveryChoice = choice;
-    this.saveData.campaign.prisonersRescued = choice === "prisoners";
-    this.saveData.campaign.organizationDocumentsRecovered = choice === "documents";
-    this.saveData.campaign.organizationRevealed = true;
     this.saveData = recordBestiaryObservation(this.saveData, "boss_raizen", { document: choice === "documents", vulnerability: "agua" });
     this.saveData = writeSave(this.saveData);
     battleRuntime.activeSave = this.saveData;
@@ -390,7 +387,6 @@ export class BattleFlowMethods {
     const choices = [makeChoice(330, "INTERROGAR", 0x79e8b5, "interrogate"), makeChoice(630, "ELIMINAR", 0xef6b72, "eliminate")];
     const choice = await new Promise((resolve) => choices.forEach(({ bg, value }) => bg.once("pointerup", () => resolve(value))));
     this.saveData.campaign.banditPrisonerChoice = choice;
-    this.saveData.campaign.nextSideMissionGoldMultiplier = choice === "interrogate" ? 2 : 1;
     choices.forEach(({ bg }) => bg.disableInteractive());
     const response = add(this.add.text(WIDTH / 2, 414, this.missionSceneText(choice === "interrogate" ? "prisoner-interrogate" : "prisoner-eliminate"), this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
     await this.delay(1100);

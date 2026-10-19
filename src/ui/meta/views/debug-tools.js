@@ -15,11 +15,11 @@ export function createDebugToolsView(deps) {
       }).join("");
       const debugFlags = [
         ["Tablón", campaign.secondaryBoardUnlocked],
-        ["Kagemori", campaign.kagemoriInvestigated],
-        ["Misión 2", campaign.banditBossMissionUnlocked],
-        ["Doctor", campaign.doctorMissionUnlocked],
+        ["Kagemori", campaignFlag(save, "kagemoriInvestigated")],
+        ["Misión 2", campaignFlag(save, "banditBossMissionUnlocked")],
+        ["Doctor", campaignFlag(save, "doctorMissionUnlocked")],
         ["Biblioteca", campaign.archiveUnlocked],
-        ["Elegir maestro", campaign.masterSelectionUnlocked]
+        ["Elegir maestro", campaignFlag(save, "masterSelectionUnlocked")]
       ].map(([label, enabled]) => `<span class="debug-flag ${enabled ? "enabled" : ""}">${enabled ? "✓" : "·"} ${label}</span>`).join("");
       return `<section class="debug-screen">
         <header class="debug-heading"><div><p class="eyebrow">MODO DE DESARROLLO</p><h2>Herramientas de pruebas</h2><p>Estos controles modifican solamente la partida activa. No conceden PX, monedas ni recompensas.</p></div><button class="secondary-button" type="button" data-debug-restore ${debugSnapshot ? "" : "disabled"}>RESTAURAR ESTADO DE ENTRADA</button></header>
@@ -44,3 +44,5 @@ export function createDebugToolsView(deps) {
     dispose() { currentState = null; }
   };
 }
+import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
+

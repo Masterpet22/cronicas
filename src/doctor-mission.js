@@ -1,5 +1,4 @@
 import { DOCTOR_ROUTE_DEFINITIONS } from "./content/sagas/futuro-prometedor/s02-medico/routes.js";
-export { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro-prometedor/s02-medico/routes.js";
 
 export function createDoctorRouteState() {
   return { active: false, phase: 0, danger: 0, time: 0, clues: 0, resources: 0, choices: [], pendingEvent: null, lastEvent: "" };

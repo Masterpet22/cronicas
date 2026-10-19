@@ -1,4 +1,5 @@
 import { applyMissionEffects, missionState } from "./mission-system.js?v=0.66.0";
+import { createCompletedMissionProgress } from "./save/save-migrations.js";
 
 export function secondaryMissionByType(type, missions) {
   return missions.find((mission) => mission.type === type) || null;
@@ -38,6 +39,7 @@ export function completeInvestigationMission(result, mission) {
   if (state.completed || !state.unlocked) return emptySecondaryCompletion(result, { blocked: !state.unlocked });
   result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, mission.id])];
   applyMissionEffects(result, mission.completionEffects);
+  result.campaign.missionProgress[mission.id] = createCompletedMissionProgress(mission);
   return { ...emptySecondaryCompletion(result), firstClear: true };
 }
 

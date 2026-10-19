@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
+const save = readFileSync(new URL("../src/save.js", import.meta.url), "utf8");
 const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
@@ -142,7 +143,7 @@ assert.match(battle, /UNA ORGANIZACIÓN MAYOR/, "La cuarta misión debe explicar
 assert.match(battle, /playLieutenantIntervention\(\)/, "Perdonar al teniente debe modificar el duelo contra Raizen");
 assert.match(missionData, /hpMultiplier: 0\.85/, "La intervención del teniente debe quitar aproximadamente 15 % de vida a Raizen");
 assert.match(battle, /ANUNCIA: \$\{action\.name\.toUpperCase\(\)\}/, "Raizen debe anunciar sus ataques peligrosos");
-assert.match(battle, /nextSideMissionGoldMultiplier = choice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
+assert.match(save, /banditPrisonerChoice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
 assert.match(missionData, /type: "enemy-stats"[\s\S]*stats: \{ health: 22, strength: 2, speed: 2, luck: 1 \}[\s\S]*equals: "interrogate"/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "Viaje, combate, epílogos y ambos resultados deben formar el flujo de misión");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");

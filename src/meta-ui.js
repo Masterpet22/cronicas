@@ -7,7 +7,7 @@ import { DEBUG_CHECKPOINTS, activeSaveSlot, affinityXpForElement, applyDebugChec
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.58.0";
-import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./doctor-mission.js?v=0.60.0";
+import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro-prometedor/s02-medico/routes.js";
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.66.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.67.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.67.0";
@@ -148,7 +148,6 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
         campaign: {
           ...save.campaign,
           banditPrisonerChoice: choice === "clear" ? null : choice,
-          nextSideMissionGoldMultiplier: choice === "interrogate" ? 2 : 1
         }
       }));
       renderDebugTools();

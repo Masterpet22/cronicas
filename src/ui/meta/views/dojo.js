@@ -51,7 +51,7 @@ export function createDojoView(deps) {
       const affinities = character.affinities;
       const activeAffinitySlots = deps.availableAffinitySlots(progression.level, elementRank);
       const currentMasterId = deps.masterIdForCharacter(character);
-      const masterSelectionUnlocked = save.campaign.masterSelectionUnlocked;
+      const masterSelectionUnlocked = campaignFlag(save, "masterSelectionUnlocked");
       const masterCards = [
         { id: "mei", npc: deps.npcs.mei, advantage: "Disciplina defensiva", detail: "Reduce en 2 el daño de cada impacto recibido." },
         { id: "daichi", npc: deps.npcs.daichi, advantage: "Fuerza de la montaña", detail: "Añade 3 puntos al daño de todos tus ataques." }
@@ -219,7 +219,7 @@ export function createDojoView(deps) {
         persistDojo(getSave());
       }));
       root.querySelectorAll("[data-master]").forEach((button) => scope.listen(button, "click", () => {
-        if (!getSave().campaign.masterSelectionUnlocked) return;
+        if (!campaignFlag(getSave(), "masterSelectionUnlocked")) return;
         currentState.save = deps.onPersist(deps.selectMaster(getSave(), button.dataset.master));
         deps.onRerender();
       }));
@@ -241,3 +241,5 @@ export function createDojoView(deps) {
     dispose() { currentState = null; renderModel = null; }
   };
 }
+import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
+

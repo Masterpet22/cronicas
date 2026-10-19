@@ -1,3 +1,5 @@
+import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
+
 export const MISSION_CATEGORIES = Object.freeze({ MAIN: "main", SECONDARY: "secondary" });
 export const MISSION_STEP_TYPES = Object.freeze(["dialogue", "combat", "investigation", "route", "choice", "resource", "consequence"]);
 export const MISSION_REQUIREMENT_TYPES = Object.freeze(["main-completed", "secondary-completed", "flag", "level", "all", "any"]);
@@ -8,6 +10,31 @@ const campaignOf = (save) => save?.campaign || {};
 const completedMain = (save) => new Set(campaignOf(save).completedMissions || []);
 const completedSecondary = (save) => new Set(campaignOf(save).completedSecondaryMissions || []);
 
+const mainIds = MISSIONS.map((mission) => mission.id);
+const secondaryIdsByType = Object.fromEntries(SECONDARY_MISSIONS.map((mission) => [mission.type, mission.id]));
+const DERIVED_CAMPAIGN_VALUES = Object.freeze({
+  kagemoriInvestigated: (save) => completedSecondary(save).has(secondaryIdsByType.investigation),
+  banditBossMissionUnlocked: (save) => completedSecondary(save).has(secondaryIdsByType.investigation),
+  doctorMissionUnlocked: (save) => completedMain(save).has(mainIds[1]),
+  doctorMissionCompleted: (save) => completedSecondary(save).has(secondaryIdsByType["route-search"]),
+  cipherMapObtained: (save) => completedMain(save).has(mainIds[1]),
+  bestiaryBookObtained: (save) => completedSecondary(save).has(secondaryIdsByType["route-search"]),
+  hideoutLocationRevealed: (save) => completedSecondary(save).has(secondaryIdsByType["route-search"]),
+  hideoutMissionUnlocked: (save) => Boolean(campaignOf(save).archiveUnlocked),
+  secretEntranceKnown: (save) => campaignOf(save).banditPrisonerChoice === "interrogate" && Boolean(campaignOf(save).archiveUnlocked),
+  heartMissionUnlocked: (save) => completedMain(save).has(mainIds[2]),
+  prisonersRescued: (save) => campaignOf(save).hideoutDiscoveryChoice === "prisoners",
+  organizationDocumentsRecovered: (save) => campaignOf(save).hideoutDiscoveryChoice === "documents",
+  organizationRevealed: (save) => Boolean(campaignOf(save).hideoutDiscoveryChoice) || completedMain(save).has(mainIds[3]),
+  banditLeaderMissionUnlocked: (save) => completedMain(save).has(mainIds[3]),
+  firstSagaCompleted: (save) => completedMain(save).has(mainIds[4]),
+  masterSelectionUnlocked: (save) => completedMain(save).has(mainIds[4])
+});
+
+export function campaignFlag(save, id) {
+  return DERIVED_CAMPAIGN_VALUES[id] ? DERIVED_CAMPAIGN_VALUES[id](save) : campaignOf(save)[id] ?? false;
+}
+
 export function requirementMet(requirement, save) {
   if (!requirement) return true;
   const campaign = campaignOf(save);
@@ -15,8 +42,8 @@ export function requirementMet(requirement, save) {
     case "main-completed": return completedMain(save).has(requirement.id);
     case "secondary-completed": return completedSecondary(save).has(requirement.id);
     case "flag": {
-      if (Object.hasOwn(requirement, "equals")) return campaign[requirement.id] === requirement.equals;
-      return Boolean(campaign[requirement.id]) === (requirement.value ?? true);
+      if (Object.hasOwn(requirement, "equals")) return campaignFlag(save, requirement.id) === requirement.equals;
+      return campaignFlag(save, requirement.id) === (requirement.value ?? true);
     }
     case "level": return (Number(save?.progression?.level) || 1) >= requirement.minimum;
     case "all": return requirement.requirements.every((entry) => requirementMet(entry, save));
@@ -159,3 +186,4 @@ export function validateMissionCatalog(missions, sagas = []) {
   }));
   return errors;
 }
+

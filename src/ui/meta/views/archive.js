@@ -27,7 +27,9 @@ export function createArchiveView(deps) {
       const records = deps.missions.map((mission) => `<li class="${completed.has(mission.id) ? "done" : ""}"><span>${completed.has(mission.id) ? "✓" : "·"}</span><div><strong>${mission.title}</strong><small>${completed.has(mission.id) ? "Completada" : "Sin completar"}</small></div></li>`).join("");
       const sagaCompleted = deps.missions.length > 0 && deps.missions.every((mission) => completed.has(mission.id));
       const ending = sagaCompleted ? `<div class="ending-card"><p class="eyebrow">CRÓNICA COMPLETADA</p><h2>Futuro prometedor</h2><p>Raizen fue derrotado. Tu primera gran victoria queda registrada en la aldea.</p></div>` : "";
-      const routeIntel = save.campaign.hideoutLocationRevealed ? `<section class="hideout-intel"><p class="eyebrow">MAPA DESCIFRADO</p><h3>Guarida de los bandidos</h3><p>Entrada principal: protegida por enemigos.</p><p class="${save.campaign.secretEntranceKnown ? "known" : "locked"}">Entrada secreta: ${save.campaign.secretEntranceKnown ? "marcada junto al almacén de monedas" : "ubicación desconocida"}.</p></section>` : "";
+      const hideoutRevealed = campaignFlag(save, "hideoutLocationRevealed");
+      const secretEntranceKnown = campaignFlag(save, "secretEntranceKnown");
+      const routeIntel = hideoutRevealed ? `<section class="hideout-intel"><p class="eyebrow">MAPA DESCIFRADO</p><h3>Guarida de los bandidos</h3><p>Entrada principal: protegida por enemigos.</p><p class="${secretEntranceKnown ? "known" : "locked"}">Entrada secreta: ${secretEntranceKnown ? "marcada junto al almacén de monedas" : "ubicación desconocida"}.</p></section>` : "";
       return `<section class="stage-panel archive-card" data-comment="El libro se completa al observar y derrotar enemigos."><p class="eyebrow">BIBLIOTECA</p><h2>Libro de criaturas y combatientes</h2><p class="lead">Cada encuentro añade información. Algunos jefes requieren varios duelos o documentos.</p>${routeIntel}<div class="bestiary-grid">${bestiaryEntries}</div><details class="chronicle-details"><summary>Crónica de ${deps.escapeHtml(save.character.name)} · ${completed.size} misiones</summary><ol>${records}</ol>${ending}</details></section>`;
     },
 
@@ -46,3 +48,5 @@ export function createArchiveView(deps) {
     dispose() { currentState = null; }
   };
 }
+import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
+

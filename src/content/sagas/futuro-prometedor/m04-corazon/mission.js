@@ -12,5 +12,5 @@ export const M04 = {
       { type: "combat", id: "inner-galleries" },
       { type: "choice", id: "hideout-discovery", afterCombat: true }
     ],
-    completionEffects: [{ type: "set-flag", id: "organizationRevealed", value: true }, { type: "set-flag", id: "banditLeaderMissionUnlocked", value: true }]
+    completionEffects: []
   };

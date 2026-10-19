@@ -1,27 +1,24 @@
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.66.0";
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
-import { applyMissionEffects, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
+import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.58.0";
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.60.0";
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
+import { createCompletedMissionProgress, migrateSaveToV17 } from "./save/save-migrations.js";
+import { createSlotRepository } from "./save/slot-repository.js";
+import { advanceMissionProgress as advanceCampaignMission, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
+import { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
+export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 16;
+export const SAVE_VERSION = 17;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
-export const MASTER_IDS = Object.freeze(["mei", "daichi"]);
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
 const SECONDARY_MISSION_IDS = Object.freeze(SECONDARY_MISSIONS.map((mission) => mission.id));
-
-export function assignedMasterId(bodyType) {
-  return bodyType === "female" ? "daichi" : "mei";
-}
-
-export function masterIdForCharacter(character) {
-  return MASTER_IDS.includes(character?.masterId) ? character.masterId : assignedMasterId(character?.bodyType);
-}
+const ALL_MISSIONS = [...MISSIONS, ...SECONDARY_MISSIONS];
 
 export function createDefaultSave() {
   return {
@@ -39,40 +36,24 @@ export function createDefaultSave() {
     campaign: {
       completedMissions: [],
       completedSecondaryMissions: [],
+      missionProgress: {},
       rank: "Novicio",
       elementRank: 1,
       tutorialSeen: false,
       sayoEncounterSeen: false,
       secondaryBoardUnlocked: false,
-      kagemoriInvestigated: false,
-      banditBossMissionUnlocked: false,
       banditPrisonerChoice: null,
-      nextSideMissionGoldMultiplier: 1,
       archiveUnlocked: false,
       sayoRelicPending: false,
       sayoRelicDelivered: false,
       seenMissionNotices: [],
-      cipherMapObtained: false,
-      doctorMissionUnlocked: false,
-      doctorMissionCompleted: false,
       doctorSupplyBonus: 0,
-      bestiaryBookObtained: false,
       doctorBookDeliveryPending: false,
-      hideoutLocationRevealed: false,
-      hideoutMissionUnlocked: false,
-      secretEntranceKnown: false,
       hideoutEntryChoice: null,
       secretWarehouseLooted: false,
-      heartMissionUnlocked: false,
       hideoutSupplies: 0,
       hideoutDiscoveryChoice: null,
-      prisonersRescued: false,
-      organizationDocumentsRecovered: false,
-      organizationRevealed: false,
-      banditLeaderMissionUnlocked: false,
-      firstSagaCompleted: false,
       doctorRoute: createDoctorRouteState(),
-      masterSelectionUnlocked: false
     },
     bestiary: { entries: {} }
   };
@@ -121,25 +102,16 @@ function validEquipment(type, id) {
 }
 
 export function normalizeSave(candidate) {
+  candidate = migrateSaveToV17(candidate, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
   const defaults = createDefaultSave();
   if (!candidate || typeof candidate !== "object") return defaults;
   const progression = candidate.progression || {};
   const attributes = progression.attributes || {};
   const level = Math.max(1, Math.floor(Number(progression.level) || 1));
-  const sourceVersion = Math.max(0, Math.floor(Number(candidate.version) || 0));
-  const migratedMissionIds = sourceVersion < 16
-    ? (candidate.campaign?.completedMissions || []).flatMap((id) => {
-        const migrated = { m11: MAIN_MISSION_IDS[1], m12: MAIN_MISSION_IDS[2], m13: MAIN_MISSION_IDS[3], m14: MAIN_MISSION_IDS[4] }[id];
-        return migrated ? [migrated] : id === MAIN_MISSION_IDS[0] ? [id] : [];
-      })
-    : (candidate.campaign?.completedMissions || []);
-  const completedMissions = [...new Set(Array.isArray(migratedMissionIds) ? migratedMissionIds : [])]
+  const completedMissions = [...new Set(Array.isArray(candidate.campaign?.completedMissions) ? candidate.campaign.completedMissions : [])]
     .filter((id) => MISSIONS.some((mission) => mission.id === id));
-  const completedSecondaryMissions = [...new Set([
-    ...(Array.isArray(candidate.campaign?.completedSecondaryMissions) ? candidate.campaign.completedSecondaryMissions : []),
-    ...(candidate.campaign?.kagemoriInvestigated ? [SECONDARY_MISSION_IDS[0]] : []),
-    ...(candidate.campaign?.doctorMissionCompleted ? [SECONDARY_MISSION_IDS[1]] : [])
-  ])].filter((id) => SECONDARY_MISSIONS.some((mission) => mission.id === id));
+  const completedSecondaryMissions = [...new Set(Array.isArray(candidate.campaign?.completedSecondaryMissions) ? candidate.campaign.completedSecondaryMissions : [])]
+    .filter((id) => SECONDARY_MISSIONS.some((mission) => mission.id === id));
   const elementRank = Math.min(3, Math.max(1, Math.floor(Number(candidate.campaign?.elementRank) || 1)));
   const requestedAffinities = Array.isArray(candidate.character?.affinities) ? candidate.character.affinities : [candidate.character?.affinity];
   const affinities = normalizeAffinityOrder(requestedAffinities).slice(0, availableAffinitySlots(level, elementRank));
@@ -199,42 +171,26 @@ export function normalizeSave(candidate) {
     campaign: {
       completedMissions,
       completedSecondaryMissions,
+      missionProgress: normalizeMissionProgress(candidate.campaign?.missionProgress, completedMissions, completedSecondaryMissions),
       rank: candidate.campaign?.rank === "Guardián" ? "Guardián" : "Novicio",
       elementRank,
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
       sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),
       secondaryBoardUnlocked: Boolean(candidate.campaign?.secondaryBoardUnlocked),
-      kagemoriInvestigated: Boolean(candidate.campaign?.kagemoriInvestigated) || completedSecondaryMissions.includes(SECONDARY_MISSION_IDS[0]),
-      banditBossMissionUnlocked: Boolean(candidate.campaign?.banditBossMissionUnlocked) || completedSecondaryMissions.includes(SECONDARY_MISSION_IDS[0]),
       banditPrisonerChoice: ["interrogate", "eliminate"].includes(candidate.campaign?.banditPrisonerChoice) ? candidate.campaign.banditPrisonerChoice : null,
-      nextSideMissionGoldMultiplier: Number(candidate.campaign?.nextSideMissionGoldMultiplier) === 2 ? 2 : 1,
       archiveUnlocked: Boolean(candidate.campaign?.archiveUnlocked),
       sayoRelicPending: Boolean(candidate.campaign?.sayoRelicPending),
       sayoRelicDelivered: Boolean(candidate.campaign?.sayoRelicDelivered),
       seenMissionNotices: [...new Set(Array.isArray(candidate.campaign?.seenMissionNotices) ? candidate.campaign.seenMissionNotices : [])]
         .filter((id) => typeof id === "string" && /^[a-z0-9:_-]+$/i.test(id))
         .slice(-50),
-      cipherMapObtained: Boolean(candidate.campaign?.cipherMapObtained) || completedMissions.includes(MAIN_MISSION_IDS[1]),
-      doctorMissionUnlocked: Boolean(candidate.campaign?.doctorMissionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[1]),
-      doctorMissionCompleted: Boolean(candidate.campaign?.doctorMissionCompleted) || completedSecondaryMissions.includes(SECONDARY_MISSION_IDS[1]),
       doctorSupplyBonus: Math.min(1, Math.max(0, Math.floor(Number(candidate.campaign?.doctorSupplyBonus) || 0))),
-      bestiaryBookObtained: Boolean(candidate.campaign?.bestiaryBookObtained),
       doctorBookDeliveryPending: Boolean(candidate.campaign?.doctorBookDeliveryPending),
-      hideoutLocationRevealed: Boolean(candidate.campaign?.hideoutLocationRevealed),
-      hideoutMissionUnlocked: Boolean(candidate.campaign?.hideoutMissionUnlocked),
-      secretEntranceKnown: Boolean(candidate.campaign?.secretEntranceKnown),
       hideoutEntryChoice: ["main", "secret"].includes(candidate.campaign?.hideoutEntryChoice) ? candidate.campaign.hideoutEntryChoice : null,
       secretWarehouseLooted: Boolean(candidate.campaign?.secretWarehouseLooted),
-      heartMissionUnlocked: Boolean(candidate.campaign?.heartMissionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[2]),
       hideoutSupplies: Math.max(0, Math.floor(Number(candidate.campaign?.hideoutSupplies) || 0)),
       hideoutDiscoveryChoice: ["prisoners", "documents"].includes(candidate.campaign?.hideoutDiscoveryChoice) ? candidate.campaign.hideoutDiscoveryChoice : null,
-      prisonersRescued: Boolean(candidate.campaign?.prisonersRescued),
-      organizationDocumentsRecovered: Boolean(candidate.campaign?.organizationDocumentsRecovered),
-      organizationRevealed: Boolean(candidate.campaign?.organizationRevealed) || completedMissions.includes(MAIN_MISSION_IDS[3]),
-      banditLeaderMissionUnlocked: Boolean(candidate.campaign?.banditLeaderMissionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[3]),
-      firstSagaCompleted: Boolean(candidate.campaign?.firstSagaCompleted) || completedMissions.includes(MAIN_MISSION_IDS[4]),
       doctorRoute: normalizeDoctorRouteState(candidate.campaign?.doctorRoute),
-      masterSelectionUnlocked: Boolean(candidate.campaign?.masterSelectionUnlocked) || completedMissions.includes(MAIN_MISSION_IDS[4])
     },
     bestiary: {
       entries: Object.fromEntries(Object.entries(candidate.bestiary?.entries || {})
@@ -248,6 +204,20 @@ export function normalizeSave(candidate) {
         }]))
     }
   };
+}
+
+const slotRepository = createSlotRepository({
+  saveKey: SAVE_KEY, activeSlotKey: ACTIVE_SAVE_SLOT_KEY, maxSlots: MAX_SAVE_SLOTS,
+  normalize: normalizeSave, createDefault: createDefaultSave
+});
+export const { saveSlotKey, activeSaveSlot, listSaveSlots, selectSaveSlot, deleteSaveSlot, loadSave, writeSave } = slotRepository;
+
+export function startMissionProgress(save, missionId) {
+  return markMissionStarted(normalizeSave(save), missionId);
+}
+
+export function advanceMissionProgress(save, missionId, completedStepId, context = {}) {
+  return advanceCampaignMission(normalizeSave(save), missionId, completedStepId, context);
 }
 
 export const DEBUG_CHECKPOINTS = Object.freeze([
@@ -276,126 +246,44 @@ export function applyDebugCheckpoint(save, checkpointId) {
       completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 1),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
-      kagemoriInvestigated: true,
-      banditBossMissionUnlocked: true
     },
     "doctor-ready": {
       completedMissions: MAIN_MISSION_IDS.slice(0, 2),
       completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 1),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
-      kagemoriInvestigated: true,
-      banditBossMissionUnlocked: true,
-      cipherMapObtained: true,
-      doctorMissionUnlocked: true
     },
     "library-ready": {
       completedMissions: MAIN_MISSION_IDS.slice(0, 2),
       completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
-      kagemoriInvestigated: true,
-      banditBossMissionUnlocked: true,
-      cipherMapObtained: true,
-      doctorMissionUnlocked: true,
-      doctorMissionCompleted: true,
-      bestiaryBookObtained: true,
       archiveUnlocked: true,
-      hideoutLocationRevealed: true,
-      hideoutMissionUnlocked: true
     },
     "mission-3-ready": {
       completedMissions: MAIN_MISSION_IDS.slice(0, 2),
       completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       banditPrisonerChoice: "interrogate",
-      cipherMapObtained: true,
-      doctorMissionUnlocked: true,
-      doctorMissionCompleted: true,
-      bestiaryBookObtained: true,
       archiveUnlocked: true,
-      hideoutLocationRevealed: true,
-      hideoutMissionUnlocked: true,
-      secretEntranceKnown: true
     },
     "mission-4-ready": {
       completedMissions: MAIN_MISSION_IDS.slice(0, 3),
       completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       banditPrisonerChoice: "interrogate",
-      bestiaryBookObtained: true,
       archiveUnlocked: true,
-      hideoutMissionUnlocked: true,
-      secretEntranceKnown: true,
       secretWarehouseLooted: true,
-      heartMissionUnlocked: true,
       hideoutSupplies: 2
     },
     "mission-5-ready": {
       completedMissions: MAIN_MISSION_IDS.slice(0, 4),
       completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
       banditPrisonerChoice: "interrogate",
-      bestiaryBookObtained: true,
       archiveUnlocked: true,
-      hideoutMissionUnlocked: true,
-      heartMissionUnlocked: true,
-      organizationRevealed: true,
-      banditLeaderMissionUnlocked: true
     }
   };
   if (!Object.hasOwn(checkpoints, checkpointId)) return result;
   result.campaign = { ...baseCampaign, ...checkpoints[checkpointId] };
   return normalizeSave(result);
-}
-
-function validSaveSlot(slot) {
-  const parsed = Math.floor(Number(slot));
-  return parsed >= 1 && parsed <= MAX_SAVE_SLOTS ? parsed : 1;
-}
-
-export function saveSlotKey(slot) {
-  return `${SAVE_KEY}-slot-${validSaveSlot(slot)}`;
-}
-
-export function activeSaveSlot(storage = globalThis.localStorage) {
-  try { return validSaveSlot(storage?.getItem(ACTIVE_SAVE_SLOT_KEY)); } catch (_) { return 1; }
-}
-
-export function listSaveSlots(storage = globalThis.localStorage) {
-  return Array.from({ length: MAX_SAVE_SLOTS }, (_, index) => {
-    const slot = index + 1;
-    try {
-      const raw = storage?.getItem(saveSlotKey(slot));
-      return { slot, save: raw ? normalizeSave(JSON.parse(raw)) : null };
-    } catch (_) {
-      return { slot, save: null };
-    }
-  });
-}
-
-export function selectSaveSlot(slot, storage = globalThis.localStorage) {
-  const selected = validSaveSlot(slot);
-  try { storage?.setItem(ACTIVE_SAVE_SLOT_KEY, String(selected)); } catch (_) { /* El juego continúa en memoria. */ }
-  return loadSave(storage, selected);
-}
-
-export function deleteSaveSlot(slot, storage = globalThis.localStorage) {
-  const selected = validSaveSlot(slot);
-  try { storage?.removeItem(saveSlotKey(selected)); } catch (_) { /* El selector seguirá disponible. */ }
-  return createDefaultSave();
-}
-
-export function loadSave(storage = globalThis.localStorage, slot = activeSaveSlot(storage)) {
-  try {
-    const raw = storage?.getItem(saveSlotKey(slot));
-    return normalizeSave(raw ? JSON.parse(raw) : null);
-  } catch (_) {
-    return createDefaultSave();
-  }
-}
-
-export function writeSave(save, storage = globalThis.localStorage) {
-  const normalized = normalizeSave(save);
-  try { storage?.setItem(saveSlotKey(activeSaveSlot(storage)), JSON.stringify(normalized)); } catch (_) { /* El juego continúa sin persistencia. */ }
-  return normalized;
 }
 
 export function xpForNextLevel(level) {
@@ -447,6 +335,7 @@ export function completeMission(save, missionId) {
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
   result.campaign.completedMissions.push(missionId);
   applyMissionEffects(result, mission.completionEffects, { secretBonusAwarded: secretBonus > 0 });
+  result.campaign.missionProgress[missionId] = createCompletedMissionProgress(mission);
   let levelsGained = 0;
   while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
     result.progression.xp -= xpForNextLevel(result.progression.level);
@@ -459,21 +348,18 @@ export function completeMission(save, missionId) {
 function completeRouteSearchMission(result, mission) {
   if (missionState(mission, result).completed || result.campaign.doctorRoute.phase < 3) return emptySecondaryCompletion(result);
   const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
-  const gainedCoins = mission.reward.coins * result.campaign.nextSideMissionGoldMultiplier;
+  const gainedCoins = mission.reward.coins * (result.campaign.banditPrisonerChoice === "interrogate" ? 2 : 1);
   const affinityXp = Math.max(8, Math.round(gainedXp * 0.35));
   const supplyBonus = result.campaign.doctorRoute.resources >= 2 ? 1 : 0;
   result.progression.xp += gainedXp;
   result.progression.coins += gainedCoins;
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
-  result.campaign.doctorMissionCompleted = true;
   result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, mission.id])];
   result.campaign.doctorSupplyBonus = supplyBonus;
-  result.campaign.bestiaryBookObtained = true;
   result.campaign.doctorBookDeliveryPending = true;
-  result.campaign.hideoutLocationRevealed = true;
-  result.campaign.nextSideMissionGoldMultiplier = 1;
   result.campaign.doctorRoute.active = false;
   applyMissionEffects(result, mission.completionEffects);
+  result.campaign.missionProgress[mission.id] = createCompletedMissionProgress(mission);
   let levelsGained = 0;
   while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
     result.progression.xp -= xpForNextLevel(result.progression.level);
@@ -498,7 +384,7 @@ export function markSecondaryMissionCompleted(save, missionOrId) {
 
 export function chooseHideoutEntrance(save, entrance) {
   const result = normalizeSave(save);
-  result.campaign.hideoutEntryChoice = entrance === "secret" && result.campaign.secretEntranceKnown ? "secret" : "main";
+  result.campaign.hideoutEntryChoice = entrance === "secret" && campaignFlag(result, "secretEntranceKnown") ? "secret" : "main";
   return normalizeSave(result);
 }
 
@@ -542,8 +428,6 @@ export function deliverBestiaryBook(save) {
   if (!result.campaign.doctorBookDeliveryPending) return result;
   result.campaign.doctorBookDeliveryPending = false;
   result.campaign.archiveUnlocked = true;
-  result.campaign.hideoutMissionUnlocked = true;
-  result.campaign.secretEntranceKnown = result.campaign.banditPrisonerChoice === "interrogate";
   // Sayo transcribe los informes de la misión anterior al recibir el libro.
   // La primera consulta ya sirve para preparar la guarida, mientras técnicas
   // y debilidades permanecen todavía sin revelar.
@@ -556,7 +440,7 @@ export function deliverBestiaryBook(save) {
 
 export function recordBestiaryObservation(save, enemyId, observation = {}) {
   const result = normalizeSave(save);
-  if (!result.campaign.bestiaryBookObtained || !Object.hasOwn(ENEMY_ROSTER, enemyId)) return result;
+  if (!campaignFlag(result, "bestiaryBookObtained") || !Object.hasOwn(ENEMY_ROSTER, enemyId)) return result;
   const current = result.bestiary.entries[enemyId] || { encounters: 0, defeated: 0, techniques: [], vulnerabilities: [], documents: 0 };
   if (observation.encounter) current.encounters += 1;
   if (observation.defeated) current.defeated += 1;
@@ -649,7 +533,7 @@ export function derivedStats(save) {
 
 export function selectMaster(save, masterId) {
   const result = normalizeSave(save);
-  if (!result.campaign.masterSelectionUnlocked || !MASTER_IDS.includes(masterId)) return result;
+  if (!campaignFlag(result, "masterSelectionUnlocked") || !MASTER_IDS.includes(masterId)) return result;
   result.character.masterId = masterId;
   return result;
 }

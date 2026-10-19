@@ -24,5 +24,5 @@ export const M05 = {
         announcedActionIds: ["heavy", "toxin"]
       }
     ],
-    completionEffects: [{ type: "set-flag", id: "firstSagaCompleted", value: true }, { type: "set-flag", id: "masterSelectionUnlocked", value: true }]
+    completionEffects: []
   };

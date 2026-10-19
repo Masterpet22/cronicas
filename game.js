@@ -1,5 +1,5 @@
 import { mountMetaUI } from "./src/meta-ui.js?v=0.66.0";
-import { loadSave, writeSave } from "./src/save.js?v=0.66.0";
+import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.66.0";
 import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.68.0";
 import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.68.0";
 import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.68.0";
@@ -71,7 +71,7 @@ bindGlobalOptions();
 
 metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) => {
   const launchRevision = ++gameLaunchRevision;
-  battleRuntime.activeSave = writeSave(save);
+  battleRuntime.activeSave = writeSave(startMissionProgress(save, mission.id));
   battleRuntime.activeMission = mission;
   document.querySelector(".game-settings")?.removeAttribute("open");
   metaRoot.hidden = true;

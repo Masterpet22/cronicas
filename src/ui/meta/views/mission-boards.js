@@ -1,4 +1,5 @@
 import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
+import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
 
 export function createMissionBoardsView(deps) {
   let currentState = null;
@@ -129,7 +130,7 @@ export function createMissionBoardsView(deps) {
           const launch = () => deps.onStartMission(getSave(), mission);
           const hasEntryChoice = Boolean(deps.missionStep(mission, "choice")?.beforeCombat);
           const afterBriefing = hasEntryChoice ? () => {
-            const options = getSave().campaign.secretEntranceKnown
+            const options = campaignFlag(getSave(), "secretEntranceKnown")
               ? [{ id: "secret", label: "Entrada secreta", description: "Evita un guardia y permite saquear el almacén de monedas.", primary: true }, { id: "main", label: "Entrada principal", description: "Tres duelos consecutivos, sin bonificación de almacén." }]
               : [{ id: "main", label: "Entrada principal", description: "La entrada secreta no fue revelada. Deberás atravesar a los tres guardianes.", primary: true }];
             deps.showMissionDecision({ eyebrow: "PREPARACIÓN DE MISIÓN", title: "Elige una entrada", text: "Esta decisión altera la ruta, pero todos los enfrentamientos siguen siendo uno contra uno.", options }, (choice) => {

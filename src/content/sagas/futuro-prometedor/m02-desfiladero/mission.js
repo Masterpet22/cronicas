@@ -15,5 +15,5 @@ export const M02 = {
         }]
       }
     ],
-    completionEffects: [{ type: "set-flag", id: "cipherMapObtained", value: true }, { type: "set-flag", id: "doctorMissionUnlocked", value: true }]
+    completionEffects: []
   };
