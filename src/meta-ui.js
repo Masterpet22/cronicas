@@ -12,6 +12,7 @@ import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-m
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.67.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.67.0";
 import { createDojoView } from "./ui/meta/views/dojo.js?v=0.67.0";
+import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.67.0";
 const COMING_SOON_LOCATIONS = {
   tower: { npcId: "kureha", message: "La Torre de Desafíos permanece cerrada mientras terminamos sus pruebas y reglas especiales. Próximamente podrás poner a prueba tu equipo piso por piso." },
   shop: { npcId: "hana", message: "La Tienda de Objetos aún está preparando su inventario. Próximamente podrás comprar consumibles, herramientas y mejoras con las monedas que consigas." },
@@ -182,6 +183,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   })();
   let activeDojoTab = "equipment";
   let debugSnapshot = null;
+  let selectedSagaId = null;
   const introducedViews = new Set();
   const investigatedClues = new Set();
   const debugToolsView = createDebugToolsView({
@@ -265,6 +267,46 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     onPersist(next) { save = writeSave(next); return save; },
     onTabSelected(tabId) { activeDojoTab = tabId; },
     onRerender: () => renderDojo()
+  });
+  const missionBoardsView = createMissionBoardsView({
+    mainMissions: MISSIONS,
+    secondaryMissions: SECONDARY_MISSIONS,
+    sagas: STORY_SAGAS,
+    enemyActions: ENEMY_ACTIONS,
+    enemyRoster: ENEMY_ROSTER,
+    doctorRouteDefinitions: DOCTOR_ROUTE_DEFINITIONS,
+    riverPassages: RIVER_PASSAGES,
+    elementName,
+    escapeHtml,
+    getDialogue,
+    masterForCharacter,
+    missionHasStep,
+    missionState,
+    missionStep,
+    missionsForBoard,
+    npcName,
+    secondaryMissionByType,
+    secondaryMissionCardModel,
+    warmLocationAssets,
+    showDialogue: (...args) => showDialogue(...args),
+    showMissionDecision: (...args) => showMissionDecision(...args),
+    onSagaSelected(sagaId) { selectedSagaId = sagaId; renderStoryMissions(); },
+    onStartMission,
+    onChooseHideoutEntrance(currentSave, choice) { save = writeSave(chooseHideoutEntrance(currentSave, choice)); return save; },
+    onStartDoctorMission(currentSave, mission) { save = writeSave(startDoctorMission(currentSave, mission)); return save; },
+    onCompleteInvestigation(currentSave, mission, clues) {
+      save = markSecondaryMissionCompleted(currentSave, mission);
+      onFinishSecondaryMission(save, mission, { outcome: "completed", clues });
+    },
+    onCompleteDoctor(currentSave, mission) {
+      const routeStats = { ...currentSave.campaign.doctorRoute };
+      const completion = completeDoctorMission(currentSave, mission);
+      save = writeSave(completion.save);
+      onFinishSecondaryMission(save, mission, { outcome: "completed", routeStats, rewards: { xp: completion.xp, affinityXp: completion.affinityXp, coins: completion.coins, supplyBonus: completion.supplyBonus } });
+    },
+    onChooseDoctorRoute(currentSave, routeId) { save = writeSave(chooseDoctorMissionRoute(currentSave, routeId)); return save; },
+    onResolveRiverPassage(currentSave, passageId) { save = writeSave(resolveDoctorRiverPassage(currentSave, passageId)); return save; },
+    onRerender: () => renderDoctorRoute()
   });
 
   const persist = (next, shouldRender = true) => {
@@ -741,268 +783,21 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     bindLocationStage(serviceId);
   };
 
-  let selectedSagaId = null;
-
-  const renderStoryMissions = () => {
-    const completed = new Set(save.campaign.completedMissions);
-    const sagaById = new Map(STORY_SAGAS.map((saga) => [saga.id, saga]));
-    const activeSaga = selectedSagaId ? sagaById.get(selectedSagaId) : null;
-
-    const missionUnlocked = (mission) => missionState(mission, save).unlocked;
-    const visibleSagaMissions = (saga) => saga.missionIds
-      .map((id) => MISSIONS.find((mission) => mission.id === id))
-      .filter(Boolean);
-    const briefingForMission = (mission) => {
-      const master = masterForCharacter(save.character);
-      const localized = getDialogue(mission.dialogueId, { save, variables: { master: master.name }, placement: { surface: "mission-briefing", owner: mission.id } })
-        .map((line) => [line.speaker === "master" ? master.name : npcName(line.speaker), line.text]);
-      if (mission.tacticalBriefing) {
-        const counterAffinity = { fuego: "agua", viento: "fuego", tierra: "viento", agua: "tierra" };
-        const identifiedEnemies = mission.encounters.filter((enemyId) => {
-          const entry = save.bestiary.entries[enemyId];
-          return entry && (entry.encounters > 0 || entry.documents > 0);
-        });
-        const knownTechniques = mission.encounters.flatMap((enemyId) => save.bestiary.entries[enemyId]?.techniques || []).map((id) => ENEMY_ACTIONS[id]?.name).filter(Boolean);
-        const knownWeaknesses = mission.encounters.flatMap((enemyId) => save.bestiary.entries[enemyId]?.vulnerabilities || []).map(elementName);
-        const recommendedAffinities = identifiedEnemies.map((enemyId) => counterAffinity[ENEMY_ROSTER[enemyId]?.affinity]).filter(Boolean).map(elementName);
-        const libraryAdvice = knownWeaknesses.length
-          ? `El libro señala vulnerabilidad a ${[...new Set(knownWeaknesses)].join(" y ")}. Prepara una técnica compatible.`
-          : knownTechniques.length
-            ? `El libro ya registró ${[...new Set(knownTechniques)].slice(0, 2).join(" y ")}. Reserva chakra para responder.`
-            : recommendedAffinities.length
-              ? `Las fichas identificadas recomiendan técnicas de ${[...new Set(recommendedAffinities)].join(" y ")}. Los demás datos siguen incompletos.`
-              : "El libro todavía tiene huecos sobre estos enemigos. Observa sus técnicas para completar el registro.";
-        return [...localized, ["Sayo Kisaragi", libraryAdvice], [master.name, missionHasStep(mission, "resource") ? "Yo te aconsejaré entre duelos. Descansar ayuda ahora; conservar suministros puede ayudarte después." : "Mi ventaja pasiva seguirá contigo. Lee el ritmo del rival y no gastes chakra sin un propósito."]];
-      }
-      return localized;
-    };
-
-    const sagaUnlocked = (saga, sagaIndex) => {
-      if (sagaIndex === 0) return true;
-      const previousSaga = STORY_SAGAS[sagaIndex - 1];
-      return previousSaga.missionIds.every((id) => completed.has(id));
-    };
-
-    if (!activeSaga) {
-      const sagaCards = STORY_SAGAS.map((saga, sagaIndex) => {
-        const unlocked = sagaUnlocked(saga, sagaIndex);
-        const sagaMissions = visibleSagaMissions(saga);
-        const completedCount = sagaMissions.filter((mission) => completed.has(mission.id)).length;
-        const totalRewards = sagaMissions.reduce((totals, mission) => ({
-          xp: totals.xp + mission.reward.xp,
-          coins: totals.coins + mission.reward.coins
-        }), { xp: 0, coins: 0 });
-        return `<button class="saga-card ${unlocked ? "" : "locked"} ${completedCount === sagaMissions.length ? "completed" : ""}" type="button" data-saga="${saga.id}" ${unlocked ? "" : "disabled"}>
-          <span class="saga-number">SAGA ${String(saga.number).padStart(2, "0")}</span>
-          <strong>${escapeHtml(saga.title)}</strong>
-          <small>${escapeHtml(saga.subtitle)}</small>
-          <div class="saga-progress"><span>${completedCount}/${sagaMissions.length} misiones</span><span>${totalRewards.xp} PX · ${totalRewards.coins} monedas</span></div>
-          <span class="saga-action">${unlocked ? "VER MISIONES →" : "BLOQUEADA"}</span>
-        </button>`;
-      }).join("");
-
-      const storyMissionIds = STORY_SAGAS.flatMap((saga) => visibleSagaMissions(saga).map((mission) => mission.id));
-      const completedStory = storyMissionIds.filter((id) => completed.has(id)).length;
-      const content = `<section class="stage-panel mission-board saga-selector" data-comment="La campaña está dividida en sagas. Completa una saga para desbloquear la siguiente."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Selecciona una saga</h2></div><strong>${completedStory}/${storyMissionIds.length} completadas</strong></div><p class="lead">Cada saga agrupa un arco de la historia principal. Entra en una para ver sus misiones.</p><div class="saga-grid">${sagaCards}</div></section>`;
-      shell(locationStage("headquarters", content));
-
-      root.querySelectorAll("[data-saga]").forEach((button) => button.addEventListener("click", () => {
-        if (button.disabled) return;
-        selectedSagaId = button.dataset.saga;
-        renderStoryMissions();
-      }));
-      bindLocationStage("headquarters");
-      return;
+  const renderMissionBoardView = () => {
+    if (view === "doctor-route") {
+      const mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS);
+      if (!save.campaign.doctorRoute.active && !missionState(mission, save).completed) save = writeSave(startDoctorMission(save, mission));
     }
-
-    const sagaIndex = STORY_SAGAS.findIndex((saga) => saga.id === activeSaga.id);
-    const sagaMissions = visibleSagaMissions(activeSaga);
-    const cards = sagaMissions.map((mission) => {
-      const unlocked = missionUnlocked(mission);
-      const done = completed.has(mission.id);
-      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? "REPETIR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
-      const mechanics = { combat: "combate", investigation: "investigación", route: "rutas", choice: "decisiones", resource: "recursos", consequence: "consecuencias" };
-      const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
-      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas`;
-      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon ? "" : "disabled"}>${label}</button></article>`;
-    }).join("");
-
-    const completedInSaga = sagaMissions.filter((mission) => completed.has(mission.id)).length;
-    const content = `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${escapeHtml(activeSaga.title)}</h2><p>${escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${sagaMissions.length}</strong></div><div class="mission-list">${cards}</div>${sagaIndex < STORY_SAGAS.length - 1 ? `<p class="saga-next-note">Completa esta saga para desbloquear <strong>${escapeHtml(STORY_SAGAS[sagaIndex + 1].title)}</strong>.</p>` : ""}</section>`;
-
-    shell(locationStage("headquarters", content));
-
-    root.querySelector("[data-back-sagas]")?.addEventListener("click", () => {
-      selectedSagaId = null;
-      renderStoryMissions();
-    });
-
-    root.querySelectorAll("[data-mission]").forEach((button) => button.addEventListener("click", () => {
-      const mission = MISSIONS.find((entry) => entry.id === button.dataset.mission);
-      if (!mission || mission.comingSoon) return;
-      const launch = () => onStartMission(save, mission);
-      const hasEntryChoice = Boolean(missionStep(mission, "choice")?.beforeCombat);
-      const afterBriefing = hasEntryChoice ? () => {
-        const options = save.campaign.secretEntranceKnown
-          ? [
-              { id: "secret", label: "Entrada secreta", description: "Evita un guardia y permite saquear el almacén de monedas.", primary: true },
-              { id: "main", label: "Entrada principal", description: "Tres duelos consecutivos, sin bonificación de almacén." }
-            ]
-          : [{ id: "main", label: "Entrada principal", description: "La entrada secreta no fue revelada. Deberás atravesar a los tres guardianes.", primary: true }];
-        showMissionDecision({ eyebrow: "PREPARACIÓN DE MISIÓN", title: "Elige una entrada", text: "Esta decisión altera la ruta, pero todos los enfrentamientos siguen siendo uno contra uno.", options }, (choice) => {
-          save = writeSave(chooseHideoutEntrance(save, choice));
-          launch();
-        });
-      } : launch;
-      showDialogue(briefingForMission(mission), afterBriefing, hasEntryChoice ? "ELEGIR ENTRADA" : "COMENZAR MISIÓN", "story");
-    }));
-    bindLocationStage("headquarters");
+    const content = missionBoardsView.render({ save, view, selectedSagaId, investigatedClues });
+    const { locationId } = missionBoardsView.getLayout();
+    shell(locationId ? locationStage(locationId, content) : content);
+    if (locationId) bindLocationStage(locationId);
+    missionBoardsView.mount(root, viewScope);
   };
-
-  const renderSecondaryMissions = () => {
-    if (!save.campaign.secondaryBoardUnlocked) {
-      const content = `<section class="stage-panel mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>0 disponibles</strong></div><div class="development-note"><strong>Sin encargos publicados.</strong><br>Sayo avisará cuando exista una pista que investigar.</div></section>`;
-      shell(locationStage("missions", content));
-      bindLocationStage("missions");
-      return;
-    }
-    const boardMissions = missionsForBoard(SECONDARY_MISSIONS, "missions", save);
-    const cardModels = boardMissions.map(({ mission }) => secondaryMissionCardModel(mission, save)).filter((model) => model?.visible);
-    const choiceBonus = save.campaign.banditPrisonerChoice === "interrogate"
-      ? `<div class="notice-card ally"><strong>Información con un coste</strong><span>Entrada secreta y monedas ×2; Akumori recibió refuerzos.</span></div>`
-      : save.campaign.banditPrisonerChoice === "eliminate"
-        ? `<div class="notice-card"><strong>Ventaja táctica</strong><span>Akumori no recibió refuerzos; se perdieron la entrada secreta y el aliado futuro.</span></div>`
-        : "";
-    const availableCount = cardModels.filter(({ state }) => state.unlocked && !state.completed).length;
-    const cards = cardModels.map(({ mission, state, disabled, detail, actionLabel }) => `<article class="mission-card ${state.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${mission.rank}</p><h3>${escapeHtml(mission.title)}</h3><p>${escapeHtml(detail)}</p></div><button type="button" data-secondary-mission="${escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button></article>`).join("");
-    const content = `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Los encargos opcionales revelan pistas y rutas que pueden abrir nuevas misiones de historia.</p>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
-    shell(locationStage("missions", content));
-    const launchers = {
-      investigation(mission) {
-        // Empieza a decodificar la escena durante el briefing y el viaje.
-        warmLocationAssets("kagemori");
-        const lines = getDialogue(mission.dialogueId, { save, placement: { surface: "mission-briefing", owner: mission.id } }).map((line) => [npcName(line.speaker), line.text]);
-        showDialogue(lines, () => onStartMission(save, mission), "VIAJAR A KAGEMORI", "story");
-      },
-      "route-search"(mission) {
-        const launch = () => {
-          if (!save.campaign.doctorRoute.active) save = writeSave(startDoctorMission(save, mission));
-          onStartMission(save, mission);
-        };
-        if (save.campaign.doctorRoute.active) launch();
-        else {
-          const lines = getDialogue(mission.dialogueId, { save, placement: { surface: "mission-briefing", owner: mission.id } }).map((line) => [npcName(line.speaker), line.text]);
-          showDialogue(lines, launch, "INICIAR BÚSQUEDA", "story");
-        }
-      }
-    };
-    root.querySelectorAll("[data-secondary-mission]").forEach((button) => button.addEventListener("click", () => {
-      const mission = boardMissions.find(({ mission: entry }) => entry.id === button.dataset.secondaryMission)?.mission;
-      launchers[mission?.type]?.(mission);
-    }));
-    bindLocationStage("missions");
-  };
-
-  const renderKagemori = () => {
-    const mission = secondaryMissionByType("investigation", SECONDARY_MISSIONS);
-    const clues = [
-      { id: "cart", label: "Carreta saqueada", labelX: 18, labelY: 70, path: "M0 330 L76 300 L169 339 L248 385 L346 414 L405 485 L520 538 L590 616 L560 690 L472 731 L337 744 L237 716 L147 674 L29 658 L0 620 Z", text: "Las cajas fueron abiertas con herramientas, no con armas. Los bandidos buscaban provisiones concretas." },
-      { id: "hall", label: "Casa comunal", labelX: 48, labelY: 45, path: "M420 273 L492 239 L554 154 L628 128 L784 133 L870 157 L927 194 L1041 220 L1083 268 L1035 302 L1024 438 L944 453 L849 439 L782 390 L721 349 L651 371 L610 329 L529 350 L469 320 Z", text: "Entre las cenizas aparece una cuerda cubierta de polvo gris, propio de una cantera." },
-      { id: "well", label: "Pozo y huellas", labelX: 72, labelY: 77, path: "M1158 550 L1236 601 L1194 651 L1128 704 L1080 758 L1123 818 L1060 881 L976 867 L923 811 L928 737 L982 681 L1055 622 Z", text: "Las pisadas cargadas cruzan el barro y salen por la puerta norte hacia las montañas." }
-    ];
-    const completed = missionState(mission, save).completed;
-    const content = completed
-      ? `<section class="kagemori-complete"><p class="eyebrow">INVESTIGACIÓN COMPLETADA</p><h2>El rastro continúa</h2><p>Nami ubicó la guarida en el Desfiladero del Cuervo. La nueva misión principal ya figura en el Cuartel General.</p><button class="primary-button" type="button" data-view="plaza">VOLVER A LA ALDEA</button></section>`
-      : `<section class="kagemori-investigation"><header><div><p class="eyebrow">ALDEA DE KAGEMORI</p><h2>Reconstruye la ruta de los bandidos</h2></div><strong data-clue-count>${investigatedClues.size}/3 pistas</strong></header><p class="investigation-log" data-investigation-log>Explora la escena y selecciona las áreas sospechosas.</p><svg class="clue-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${clues.map((clue) => `<g class="clue-hotspot ${investigatedClues.has(clue.id) ? "found" : ""}" data-clue="${clue.id}" role="button" tabindex="0" aria-label="Investigar ${escapeHtml(clue.label)}"><path class="clue-shape" d="${clue.path}"/></g>`).join("")}</svg>${clues.map((clue) => `<span class="clue-label" data-clue-label="${clue.id}" aria-hidden="true" style="--clue-label-x:${clue.labelX}%;--clue-label-y:${clue.labelY}%"><strong>${investigatedClues.has(clue.id) ? "✓ " : ""}${escapeHtml(clue.label)}</strong></span>`).join("")}</section>`;
-    shell(locationStage("kagemori", content));
-    bindLocationStage("kagemori");
-    if (completed) return;
-
-    let conclusionQueued = false;
-    root.querySelectorAll("[data-clue]").forEach((area) => {
-      const label = root.querySelector(`[data-clue-label="${area.dataset.clue}"]`);
-      const showLabel = () => label?.classList.add("visible");
-      const hideLabel = () => label?.classList.remove("visible");
-      const collectClue = () => {
-      const clue = clues.find((entry) => entry.id === area.dataset.clue);
-      if (!clue || investigatedClues.has(clue.id)) return;
-      investigatedClues.add(clue.id);
-      area.classList.add("found");
-      if (label) label.querySelector("strong").textContent = `✓ ${clue.label}`;
-      root.querySelector("[data-clue-count]").textContent = `${investigatedClues.size}/3 pistas`;
-      root.querySelector("[data-investigation-log]").textContent = clue.text;
-      if (investigatedClues.size !== clues.length || conclusionQueued) return;
-      conclusionQueued = true;
-      window.setTimeout(() => showDialogue([
-        ["Iori Kagemori", "Las tres señales coinciden. No vinieron a saquear al azar: reunieron comida, herramientas y mapas para abastecer un campamento."],
-        ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
-        ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Lleva esta información a Sayo; el rastro continúa en la vieja cantera."]
-      ], () => {
-        save = markSecondaryMissionCompleted(save, mission);
-        onFinishSecondaryMission(save, mission, { outcome: "completed", clues: clues.length });
-      }, "REGISTRAR HALLAZGO", "story"), 420);
-      };
-      area.addEventListener("mouseenter", showLabel);
-      area.addEventListener("mouseleave", hideLabel);
-      area.addEventListener("focus", showLabel);
-      area.addEventListener("blur", hideLabel);
-      area.addEventListener("click", collectClue);
-      area.addEventListener("keydown", (event) => {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        event.preventDefault();
-        collectClue();
-      });
-    });
-  };
-
-  const renderDoctorRoute = () => {
-    const mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS);
-    const route = save.campaign.doctorRoute;
-    if (!route.active && !missionState(mission, save).completed) save = writeSave(startDoctorMission(save, mission));
-    const current = save.campaign.doctorRoute;
-    const metrics = `<div class="route-metrics"><span><small>PELIGRO</small><strong>${current.danger}</strong></span><span><small>TIEMPO</small><strong>${current.time}</strong></span><span><small>PISTAS</small><strong>${current.clues}</strong></span><span><small>RECURSOS</small><strong>${current.resources}</strong></span></div>`;
-    if (current.phase >= 3) {
-      const content = `<section class="doctor-encounter"><div class="doctor-mark" aria-hidden="true">医</div><div><p class="eyebrow">OBJETIVO LOCALIZADO</p><h2>Haru Takamine</h2><p>«Estas marcas pertenecen a una red de caminos anterior a la aldea. El mapa conduce a la guarida de los bandidos.»</p><p>«Lleva este libro a Sayo. Registra criaturas, técnicas y debilidades, pero sus páginas se completarán con tus propios encuentros.»</p>${metrics}<button class="primary-button" type="button" data-complete-doctor>RECIBIR EL LIBRO Y REGRESAR</button></div></section>`;
-      shell(`<section class="doctor-route-screen"><header><p class="eyebrow">FASE 3/3 COMPLETADA</p><h2>El médico errante</h2></header>${content}</section>`);
-      root.querySelector("[data-complete-doctor]")?.addEventListener("click", () => {
-        const routeStats = { ...save.campaign.doctorRoute };
-        const completion = completeDoctorMission(save, mission);
-        save = writeSave(completion.save);
-        onFinishSecondaryMission(save, mission, { outcome: "completed", routeStats, rewards: { xp: completion.xp, affinityXp: completion.affinityXp, coins: completion.coins, supplyBonus: completion.supplyBonus } });
-      });
-      return;
-    }
-
-    const pendingRiver = current.pendingEvent?.type === "river";
-    const pendingCombat = current.pendingEvent?.type === "combat";
-    const startRouteCombat = () => onStartMission(save, { id: `${mission.id}-route-combat`, parentMissionId: mission.id, parentType: mission.type, number: mission.number, type: "route-combat", title: "Emboscada en el bosque", location: "Bosque cerrado", encounters: ["reed_bandit"], reward: { xp: 0, coins: 0 } });
-    const routeDefinitions = Object.values(DOCTOR_ROUTE_DEFINITIONS);
-    const routeRows = [2, 1, 0].map((phase) => `<div class="route-map-row" data-map-phase="${phase}">${routeDefinitions.map((definition) => {
-      const chosen = current.choices[phase] === definition.id;
-      const available = phase === current.phase && !current.pendingEvent;
-      const state = chosen ? "chosen" : phase < current.phase ? "passed" : available ? "available" : "locked";
-      const icon = definition.id === "elevated" ? "▲" : definition.id === "river" ? "≈" : "♣";
-      return `<button class="route-node route-${definition.id} ${state}" type="button" data-route="${definition.id}" ${available ? "" : "disabled"} aria-label="${escapeHtml(definition.title)}: ${escapeHtml(definition.description)}"><i aria-hidden="true">${icon}</i><span>${escapeHtml(definition.title)}</span><small>${escapeHtml(definition.subtitle)}</small></button>`;
-    }).join("")}</div>`).join("");
-    const routeMap = `<section class="route-map" aria-label="Mapa de rutas hacia Haru"><div class="route-destination"><span>医</span><strong>HARU</strong></div><div class="route-map-links" aria-hidden="true"></div>${routeRows}<div class="route-map-start"><span>◆</span><strong>INICIO</strong></div><p class="route-map-help">Selecciona uno de los tres nodos verdes del tramo ${current.phase + 1}.</p></section>`;
-    const riverPanel = pendingRiver ? `<section class="river-investigation"><p class="eyebrow">LEE LA CORRIENTE</p><h3>Encuentra el paso correcto</h3><p>${escapeHtml(current.lastEvent)}</p><div>${RIVER_PASSAGES.map((passage) => `<button type="button" data-passage="${passage.id}">${passage.label}</button>`).join("")}</div></section>` : "";
-    const combatPanel = pendingCombat ? `<section class="river-investigation combat-route-prompt"><p class="eyebrow">PELIGRO EN EL SENDERO</p><h3>Un saqueador bloquea el bosque</h3><p>${escapeHtml(current.lastEvent)}</p><div><button type="button" data-resume-route-combat>INICIAR DUELO 1 CONTRA 1</button></div></section>` : "";
-    const content = `<section class="doctor-route-screen"><header><div><p class="eyebrow">EL MÉDICO ERRANTE · FASE ${current.phase + 1}/3</p><h2>Traza tu camino hasta Haru</h2><p>Elige un nodo conectado en cada tramo. Cada camino altera peligro, tiempo, pistas y recursos.</p></div>${metrics}</header>${current.lastEvent && !pendingRiver && !pendingCombat ? `<p class="route-log">${escapeHtml(current.lastEvent)}</p>` : ""}${routeMap}${riverPanel}${combatPanel}</section>`;
-    shell(content);
-    root.querySelectorAll("[data-route]").forEach((button) => button.addEventListener("click", () => {
-      save = writeSave(chooseDoctorMissionRoute(save, button.dataset.route));
-      if (save.campaign.doctorRoute.pendingEvent?.type === "combat") {
-        startRouteCombat();
-        return;
-      }
-      renderDoctorRoute();
-    }));
-    root.querySelectorAll("[data-passage]").forEach((button) => button.addEventListener("click", () => {
-      save = writeSave(resolveDoctorRiverPassage(save, button.dataset.passage));
-      renderDoctorRoute();
-    }));
-    root.querySelector("[data-resume-route-combat]")?.addEventListener("click", startRouteCombat);
-  };
+  const renderStoryMissions = renderMissionBoardView;
+  const renderSecondaryMissions = renderMissionBoardView;
+  const renderKagemori = renderMissionBoardView;
+  const renderDoctorRoute = renderMissionBoardView;
 
   const renderDojo = () => {
     shell(locationStage("dojo", dojoView.render({ save, activeDojoTab })));

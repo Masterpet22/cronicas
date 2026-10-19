@@ -230,7 +230,7 @@ assert.doesNotMatch(styles, /story-turn-(?:left|right)/, "Los personajes no debe
 assert.match(metaUi, /const mirrorClass = side === "right" \? "story-character-mirrored" : "";/, "El personaje de la derecha debe reflejarse antes de presentarse para mirar hacia el centro");
 assert.match(styles, /\.story-character img\.story-character-mirrored \{ transform: scaleX\(-1\); \}/, "Los personajes reflejados deben invertir su orientación horizontalmente");
 assert.match(styles, /@media \(max-width: 1050px\), \(max-height: 650px\)/, "El diálogo debe adaptarse a portátiles pequeños");
-assert.match(metaUi, /getDialogue\(mission\.dialogueId[\s\S]*showDialogue\(briefingForMission\(mission\)/, "Los diálogos de historia deben resolverse por clave traducible y mostrarse en bocadillos");
+assert.match(metaUi, /(?:deps\.)?getDialogue\(mission\.dialogueId[\s\S]*(?:deps\.)?showDialogue\(briefingForMission\(mission/, "Los diálogos de historia deben resolverse por clave traducible y mostrarse en bocadillos");
 assert.match(metaUi, /NPCS\[masterIdForCharacter\(character\)\]/, "La interfaz debe respetar el maestro persistido de la partida");
 assert.match(metaUi, /data-master="\$\{id\}"/, "Personalización debe mostrar la elección de maestro");
 assert.match(metaUi, /SE DESBLOQUEA AL COMPLETAR LA SAGA 1/, "La elección de maestro debe mostrarse bloqueada durante la primera saga");
@@ -240,7 +240,7 @@ assert.doesNotMatch(metaUi, /class="clue-hotspot[^>]+<span[^>]*>[?✓]/, "Las pi
 assert.match(styles, /\.clue-shape \{ fill: rgba\(255,158,82,0\); stroke: rgba\(255,188,112,0\);/, "Las áreas de pista deben ser totalmente transparentes en reposo");
 assert.match(styles, /\.clue-hotspot:hover \.clue-shape \{[^}]*stroke-width: 5;/, "Las áreas de pista deben resaltarse con un trazo ligero al pasar el cursor");
 assert.doesNotMatch(styles, /\.clue-hotspot[^}]*\.clue-shape[^}]*\{[^}]*filter:\s*drop-shadow/, "Las pistas grandes no deben usar filtros que saturen la GPU");
-assert.match(metaUi, /area\.addEventListener\("click", collectClue\)/, "La pista debe obtenerse al pulsar su área completa");
+assert.match(metaUi, /scope\.listen\(area, "click", collectClue\)/, "La pista debe obtenerse al pulsar su área completa con un listener cancelable");
 assert.match(metaUi, /locationId === "kagemori" && introduced \? "investigation-ready"/, "Kagemori debe recordar que el diálogo terminó al volver a dibujar la escena");
 assert.match(metaUi, /locationId === "kagemori"\) stage\.classList\.add\("investigation-ready"\)/, "Los personajes deben retirarse al terminar el diálogo de investigación");
 assert.match(metaUi, /stage\.querySelector\("\.stage-characters"\)\?\.remove\(\)/, "Kagemori debe retirar del DOM los retratos al comenzar la investigación");
@@ -256,8 +256,8 @@ assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kuro
 assert.match(travelScene, /releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => destroyGameInstance\(instance\)\)/, "Al volver a HTML, Phaser debe destruirse en vez de quedar oculto consumiendo recursos");
 assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[SecondaryResultsScene, MissionTravelScene\]/, "Los resultados secundarios deben crear una instancia limpia y aislada");
-assert.match(metaUi, /markSecondaryMissionCompleted\(save, mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
-assert.match(metaUi, /missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
+assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
+assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
 assert.match(battle, /masterIdForCharacter\(activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
 assert.match(battle, /criticalDamage - this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
