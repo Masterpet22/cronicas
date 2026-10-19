@@ -8,6 +8,8 @@ const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "
 const dataPath = path.join(projectRoot, "src", "data.js");
 const metaUiPath = path.join(projectRoot, "src", "meta-ui.js");
 const metaViewsPath = path.join(projectRoot, "src", "ui", "meta", "views");
+const gameEntryPath = path.join(projectRoot, "game.js");
+const battleScenePath = path.join(projectRoot, "src", "battle", "scenes", "battle-scene.js");
 
 function javascriptFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -63,6 +65,8 @@ assert.deepEqual(directStepQueries, [], `No se permiten consultas de pasos media
 
 const lineCount = (file) => readFileSync(file, "utf8").split(/\r?\n/).length;
 assert.ok(lineCount(metaUiPath) <= 300, `meta-ui.js debe ser un orquestador de hasta 300 líneas; tiene ${lineCount(metaUiPath)}`);
+assert.ok(lineCount(gameEntryPath) <= 150, `game.js debe ser un entry point de hasta 150 líneas; tiene ${lineCount(gameEntryPath)}`);
+assert.ok(lineCount(battleScenePath) <= 800, `BattleScene debe quedar por debajo de 800 líneas; tiene ${lineCount(battleScenePath)}`);
 javascriptFiles(metaViewsPath).forEach((file) => {
   const source = readFileSync(file, "utf8");
   assert.ok(lineCount(file) <= 400, `${path.basename(file)} supera el límite de 400 líneas`);
