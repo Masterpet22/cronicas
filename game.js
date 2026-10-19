@@ -15,6 +15,7 @@ import { resolveDamage } from "./src/battle/damage.js?v=0.68.0";
 import { createEnemyState } from "./src/battle/enemy-state.js?v=0.68.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "./src/battle/turn.js?v=0.68.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "./src/battle/rewards.js?v=0.68.0";
+import { bindBattleState, createBattleState } from "./src/battle/battle-state.js?v=0.68.0";
 
 const Phaser = window.Phaser;
 
@@ -159,7 +160,10 @@ class MissionTravelScene extends Phaser.Scene {
 }
 
 class BattleScene extends Phaser.Scene {
-  constructor() { super("battle"); }
+  constructor() {
+    super("battle");
+    bindBattleState(this, createBattleState());
+  }
 
   preload() {
     const arenaIndex = ((activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
