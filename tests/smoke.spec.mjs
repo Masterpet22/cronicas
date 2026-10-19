@@ -64,3 +64,45 @@ test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ pag
   await expect(canvas).toHaveCount(0);
   expect(browserErrors, "No debe haber errores de consola ni excepciones de página").toEqual([]);
 });
+
+test("recorrer todas las vistas meta no deja errores de navegador", async ({ page }) => {
+  const browserErrors = [];
+  page.on("console", (message) => {
+    if (message.type() === "error") browserErrors.push(`console: ${message.text()}`);
+  });
+  page.on("pageerror", (error) => browserErrors.push(`pageerror: ${error.message}`));
+  await page.addInitScript(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem("music-enabled", "off");
+  });
+  await page.goto("/");
+  await page.locator('[data-select-slot="1"]').click();
+  await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
+  await advanceDialogue(page);
+
+  const visitFromDebug = async (view, assertion) => {
+    await page.locator(".debug-tools-trigger").click();
+    await page.locator(`[data-debug-view="${view}"]`).click();
+    await expect(page.locator(assertion)).toBeVisible();
+  };
+
+  await page.locator(".debug-tools-trigger").click();
+  await expect(page.locator(".debug-screen")).toBeVisible();
+  await page.locator('[data-debug-checkpoint="library-ready"]').click();
+  await visitFromDebug("plaza", ".village-map");
+  await visitFromDebug("headquarters", ".saga-selector");
+  await visitFromDebug("missions", ".mission-board");
+  await visitFromDebug("kagemori", ".kagemori-investigation, .kagemori-complete");
+  await visitFromDebug("dojo", ".dojo-layout");
+  await page.locator(".debug-tools-trigger").click();
+  await page.locator('[data-debug-view="archive"]').click();
+  await expect(page.locator(".archive-card")).toBeVisible();
+  await page.locator(".debug-tools-trigger").click();
+  await page.locator('[data-debug-checkpoint="doctor-ready"]').click();
+  await page.locator('[data-debug-view="missions"]').click();
+  await page.locator("[data-secondary-mission]:not([disabled])").last().click();
+  await advanceDialogue(page);
+  await expect(page.locator(".doctor-route-screen")).toBeVisible();
+  expect(browserErrors, "No debe haber errores al recorrer las vistas meta").toEqual([]);
+});

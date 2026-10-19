@@ -115,10 +115,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       return save;
     },
     showDialogue: (...args) => showDialogue(...args),
-    onTutorialComplete() {
-      save = writeSave({ ...save, campaign: { ...save.campaign, tutorialSeen: true } });
-      render();
-    },
+    onTutorialComplete() { save = writeSave({ ...save, campaign: { ...save.campaign, tutorialSeen: true } }); render(); },
     onBackToSlots() { choosingSaveSlot = true; render(); }
   });
   const villageView = createVillageView({
@@ -127,16 +124,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     assetVersion: ASSET_VERSION,
     npcs: NPCS, locationCast: LOCATION_CAST, warmImage,
     showDialogue: (...args) => showDialogue(...args),
-    onMissionNoticesSeen(ids) {
-      save = writeSave({ ...save, campaign: { ...save.campaign, seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...ids])] } });
-      return save;
-    },
-    onTutorialComplete() {
-      save = writeSave({ ...save, campaign: { ...save.campaign, tutorialSeen: true } });
-      view = "headquarters";
-      introducedViews.add("headquarters");
-      render();
-    }
+    onMissionNoticesSeen(ids) { save = writeSave({ ...save, campaign: { ...save.campaign, seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...ids])] } }); return save; },
+    onTutorialComplete() { save = writeSave({ ...save, campaign: { ...save.campaign, tutorialSeen: true } }); view = "headquarters"; introducedViews.add("headquarters"); render(); }
   });
   const debugToolsView = createDebugToolsView({
     checkpoints: DEBUG_CHECKPOINTS,
@@ -211,6 +200,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     showMissionDecision: (...args) => showMissionDecision(...args),
     onSagaSelected(sagaId) { selectedSagaId = sagaId; renderStoryMissions(); },
     onStartMission,
+    onStartDoctorRoute(currentSave) { save = currentSave; view = "doctor-route"; renderDoctorRoute(); },
     onChooseHideoutEntrance(currentSave, choice) { save = writeSave(chooseHideoutEntrance(currentSave, choice)); return save; },
     onStartDoctorMission(currentSave, mission) { save = writeSave(startDoctorMission(currentSave, mission)); return save; },
     onCompleteInvestigation(currentSave, mission, clues) {

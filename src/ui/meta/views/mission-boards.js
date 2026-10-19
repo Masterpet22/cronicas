@@ -154,7 +154,7 @@ export function createMissionBoardsView(deps) {
           "route-search"(mission) {
             const launch = () => {
               if (!getSave().campaign.doctorRoute.active) state.save = deps.onStartDoctorMission(getSave(), mission);
-              deps.onStartMission(getSave(), mission);
+              deps.onStartDoctorRoute(getSave(), mission);
             };
             if (getSave().campaign.doctorRoute.active) launch();
             else {

@@ -6,6 +6,8 @@ import { ALL_MISSIONS } from "../src/data.js";
 
 const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dataPath = path.join(projectRoot, "src", "data.js");
+const metaUiPath = path.join(projectRoot, "src", "meta-ui.js");
+const metaViewsPath = path.join(projectRoot, "src", "ui", "meta", "views");
 
 function javascriptFiles(directory) {
   return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
@@ -58,5 +60,16 @@ const directStepQueries = protectedFiles.flatMap((file) => {
   ));
 });
 assert.deepEqual(directStepQueries, [], `No se permiten consultas de pasos mediante un ID literal:\n${directStepQueries.join("\n")}`);
+
+const lineCount = (file) => readFileSync(file, "utf8").split(/\r?\n/).length;
+assert.ok(lineCount(metaUiPath) <= 300, `meta-ui.js debe ser un orquestador de hasta 300 líneas; tiene ${lineCount(metaUiPath)}`);
+javascriptFiles(metaViewsPath).forEach((file) => {
+  const source = readFileSync(file, "utf8");
+  assert.ok(lineCount(file) <= 400, `${path.basename(file)} supera el límite de 400 líneas`);
+  assert.match(source, /export function create\w+View\(deps\)/, `${path.basename(file)} debe exponer una fábrica de vista con dependencias explícitas`);
+  assert.match(source, /\brender\s*\(/, `${path.basename(file)} debe implementar render`);
+  assert.match(source, /\bmount\s*\(/, `${path.basename(file)} debe implementar mount`);
+  assert.match(source, /\bdispose\s*\(/, `${path.basename(file)} debe implementar dispose`);
+});
 
 console.log("Pruebas de arquitectura superadas.");
