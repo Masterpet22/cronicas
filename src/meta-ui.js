@@ -14,6 +14,7 @@ import { createArchiveView } from "./ui/meta/views/archive.js?v=0.67.0";
 import { createDojoView } from "./ui/meta/views/dojo.js?v=0.67.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.67.0";
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.67.0";
+import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.67.0";
 export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
 
@@ -62,6 +63,41 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   let selectedSagaId = null;
   const introducedViews = new Set();
   const investigatedClues = new Set();
+  const saveCreatorView = createSaveCreatorView({
+    basicElementIds: BASIC_ELEMENT_IDS,
+    activeSaveSlot,
+    listSaveSlots,
+    elementIcon,
+    elementName,
+    escapeHtml,
+    masterForCharacter,
+    confirmDelete: (name) => window.confirm(`¿Borrar definitivamente la partida de ${name}?`),
+    onSelectSlot(slot) {
+      save = selectSaveSlot(slot);
+      choosingSaveSlot = false;
+      try { sessionStorage.setItem("cronicas-save-slot-selected", "1"); } catch (_) { /* La selección seguirá activa durante esta vista. */ }
+      view = save.character ? "plaza" : "headquarters";
+      render();
+    },
+    onDeleteSlot(slot) {
+      deleteSaveSlot(slot);
+      if (slot === activeSaveSlot()) save = selectSaveSlot(slot);
+      renderSaveSlots();
+    },
+    onCreateCharacter(formData) {
+      save = writeSave(createCharacter(save, formData));
+      view = "headquarters";
+      introducedViews.add("headquarters");
+      render();
+      return save;
+    },
+    showDialogue: (...args) => showDialogue(...args),
+    onTutorialComplete() {
+      save = writeSave({ ...save, campaign: { ...save.campaign, tutorialSeen: true } });
+      render();
+    },
+    onBackToSlots() { choosingSaveSlot = true; render(); }
+  });
   const villageView = createVillageView({
     mainMissions: MISSIONS,
     secondaryMissions: SECONDARY_MISSIONS,
@@ -209,81 +245,13 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     onRerender: () => renderDoctorRoute()
   });
 
-  const persist = (next, shouldRender = true) => {
-    save = writeSave(next);
-    if (shouldRender) render();
+  const renderSaveCreator = (mode) => {
+    const content = saveCreatorView.render({ mode, save });
+    viewScope = viewRuntime.replace(saveCreatorView.getId(), content);
+    saveCreatorView.mount(root, viewScope);
   };
-
-  const renderSaveSlots = () => {
-    const selectedSlot = activeSaveSlot();
-    const cards = listSaveSlots().map(({ slot, save: slotSave }) => {
-      if (!slotSave?.character) return `
-        <article class="save-slot empty">
-          <span class="save-slot-number">PARTIDA ${slot}</span>
-          <div class="save-slot-empty" aria-hidden="true">＋</div>
-          <h3>Nueva partida</h3>
-          <p>Crea un combatiente y comienza una historia independiente.</p>
-          <button class="primary-button" type="button" data-select-slot="${slot}">CREAR PARTIDA</button>
-        </article>`;
-      const completed = slotSave.campaign.completedMissions.length;
-      return `
-        <article class="save-slot ${slot === selectedSlot ? "active" : ""}">
-          <span class="save-slot-number">PARTIDA ${slot}${slot === selectedSlot ? " · ACTIVA" : ""}</span>
-          <span class="save-slot-avatar" style="--slot-color:${slotSave.character.appearance}">${escapeHtml(slotSave.character.name.slice(0, 1))}</span>
-          <h3>${escapeHtml(slotSave.character.name)}</h3>
-          <p>${escapeHtml(slotSave.campaign.rank)} · Nivel ${slotSave.progression.level} · ${completed} ${completed === 1 ? "misión" : "misiones"}</p>
-          <div class="save-slot-actions"><button class="primary-button" type="button" data-select-slot="${slot}">CONTINUAR</button><button class="save-slot-delete" type="button" data-delete-slot="${slot}" aria-label="Borrar partida ${slot}">BORRAR</button></div>
-        </article>`;
-    }).join("");
-    viewScope = viewRuntime.replace("save-slots", `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p><div class="save-slot-grid">${cards}</div></section>`);
-    root.querySelectorAll("[data-select-slot]").forEach((button) => button.addEventListener("click", () => {
-      save = selectSaveSlot(button.dataset.selectSlot);
-      choosingSaveSlot = false;
-      try { sessionStorage.setItem("cronicas-save-slot-selected", "1"); } catch (_) { /* La selección seguirá activa durante esta vista. */ }
-      view = save.character ? "plaza" : "headquarters";
-      render();
-    }));
-    root.querySelectorAll("[data-delete-slot]").forEach((button) => button.addEventListener("click", () => {
-      const slot = Number(button.dataset.deleteSlot);
-      const slotState = listSaveSlots().find((entry) => entry.slot === slot)?.save;
-      if (!slotState?.character || !window.confirm(`¿Borrar definitivamente la partida de ${slotState.character.name}?`)) return;
-      deleteSaveSlot(slot);
-      if (slot === activeSaveSlot()) save = selectSaveSlot(slot);
-      renderSaveSlots();
-    }));
-  };
-
-  const renderCreator = () => {
-    const affinityChoices = BASIC_ELEMENT_IDS.map((id, index) => `<label class="affinity-choice"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${elementIcon(id)}" alt="" width="512" height="512"><span><strong>${elementName(id)}</strong><small>Afinidad básica</small></span></label>`).join("");
-    viewScope = viewRuntime.replace("character-creator", `
-      <section class="dojo-card creator-card">
-        <p class="eyebrow">PRIMER PASO</p><h2>Crea tu combatiente</h2>
-        <p class="lead">Comienzas con una afinidad básica. Los rangos 2 y 3 abrirán nuevos espacios y combinaciones.</p>
-        <form id="character-form" class="creator-form">
-          <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
-          <fieldset class="affinity-picker"><legend>Afinidad inicial</legend>${affinityChoices}</fieldset>
-          <label>Tipo de cuerpo<select name="bodyType"><option value="male">Masculino</option><option value="female">Femenino</option></select><small>Esta elección queda fija para esta partida.</small></label>
-          <label>Peinado<select name="hair"><option value="1">Corto</option><option value="2">Largo</option><option value="3">Puntiagudo</option><option value="4">Coleta</option><option value="5">Ninja</option></select></label>
-          <label>Color principal y aura<input name="appearance" type="color" value="#68a8ff"></label>
-          <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
-        </form>
-      </section>`);
-    root.querySelector("#character-form").addEventListener("submit", (event) => {
-      event.preventDefault();
-      save = writeSave(createCharacter(save, Object.fromEntries(new FormData(event.currentTarget))));
-      view = "headquarters";
-      introducedViews.add("headquarters");
-      render();
-      showDialogue(welcomeDialogue(save.character), () => {
-        save.campaign.tutorialSeen = true;
-        persist(save);
-      }, "VER SAGAS", "story");
-    });
-    root.querySelector("[data-back-to-slots]")?.addEventListener("click", () => {
-      choosingSaveSlot = true;
-      render();
-    });
-  };
+  const renderSaveSlots = () => renderSaveCreator("slots");
+  const renderCreator = () => renderSaveCreator("creator");
 
   const shell = (content) => {
     const { character, progression, campaign } = save;
