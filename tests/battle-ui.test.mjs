@@ -16,6 +16,7 @@ const readJavaScriptTree = (directory) => readdirSync(directory, { withFileTypes
   return entry.name.endsWith(".js") ? [readFileSync(entryPath, "utf8")] : [];
 });
 const battle = [readFileSync(new URL("../game.js", import.meta.url), "utf8"), ...readJavaScriptTree(fileURLToPath(new URL("../src/battle", import.meta.url)))].join("\n");
+const travelScene = readFileSync(new URL("../src/battle/scenes/mission-travel-scene.js", import.meta.url), "utf8");
 const metaUi = [readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8"), ...readJavaScriptTree(metaRoot)].join("\n");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const roadmap = readFileSync(new URL("../ROADMAP.md", import.meta.url), "utf8");
@@ -194,7 +195,7 @@ assert.match(battle, /const fighterY = 372/, "Los combatientes deben quedar más
 assert.doesNotMatch(battle, /heroAura/, "El aura decorativa permanente del jugador debe eliminarse");
 assert.match(battle, /cssScale \* pixelRatio/, "El lienzo debe combinar la escala visible con el DPR del dispositivo");
 assert.match(battle, /width: renderSize\.width/, "El framebuffer debe usar el tamaño físico medido del escenario");
-assert.match(battle, /setZoom\(renderResolution\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
+assert.match(battle, /setZoom\((?:battleRuntime\.)?renderResolution\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
 assert.doesNotMatch(battle, /battle-hud-overlay-v1\.png/, "El combate no debe cargar el overlay con tarjetas gigantes");
 assert.match(battle, /function sharpenTextTree\(/, "El texto debe ajustarse recursivamente incluso dentro de contenedores");
 assert.match(battle, /child\.setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
@@ -251,15 +252,14 @@ assert.match(desktop, /location-kagemori\.investigation-ready \.stage-characters
 assert.match(desktop, /location-kagemori \.stage-character\.active img \{[\s\S]*filter: none;/, "Kagemori no debe mantener filtros costosos sobre los retratos");
 assert.match(desktop, /location-kagemori\.investigation-ready \.stage-characters \{[\s\S]*visibility: hidden;/, "Los retratos ocultos deben salir de composición durante la investigación");
 assert.match(desktop, /location-stage\.location-kagemori \.stage-speech \{[\s\S]*left: 23%;[\s\S]*width: 54%;[\s\S]*max-width: 650px;/, "El diálogo de Kagemori debe quedar centrado entre ambos personajes");
-const travelScene = battle.match(/class MissionTravelScene extends Phaser\.Scene[\s\S]*?(?=class BattleScene extends Phaser\.Scene)/)?.[0] || "";
 assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kurose/, "La transición no debe duplicar en Phaser los recursos de la investigación HTML");
-assert.match(travelScene, /releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
+assert.match(travelScene, /(?:battleRuntime\.)?releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => destroyGameInstance\(instance\)\)/, "Al volver a HTML, Phaser debe destruirse en vez de quedar oculto consumiendo recursos");
 assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[SecondaryResultsScene, MissionTravelScene\]/, "Los resultados secundarios deben crear una instancia limpia y aislada");
 assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
 assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
-assert.match(battle, /masterIdForCharacter\(activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
+assert.match(battle, /masterIdForCharacter\((?:battleRuntime\.)?activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
 assert.match(battle, /criticalMultiplier: AFFINITY_CONFIG\.damage\.criticalMultiplier,[\s\S]*damageReduction: this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
 assert.doesNotMatch(battle, /companionAttack|Mika/, "El combate no debe conservar el acompañante de la campaña retirada");
 assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
