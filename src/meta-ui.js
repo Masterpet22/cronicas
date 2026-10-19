@@ -16,6 +16,8 @@ import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.6
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.67.0";
 import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.67.0";
 import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
+import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.67.0";
+import { createLocationStage } from "./ui/meta/location-stage.js?v=0.67.0";
 export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
 
@@ -66,14 +68,32 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const overlayView = createOverlayView({ root, viewRuntime, npcByName, escapeHtml, assetVersion: ASSET_VERSION });
   const showDialogue = (...args) => overlayView.showDialogue(...args);
   const showMissionDecision = (...args) => overlayView.showMissionDecision(...args);
+  const shellView = createMetaShell({
+    sagas: STORY_SAGAS, locations: VILLAGE_LOCATIONS,
+    escapeHtml, xpForNextLevel, warmLocationAssets,
+    onNavigate(nextView) { view = nextView; render(); },
+    onSaveSlots() { choosingSaveSlot = true; render(); },
+    onDebug() {
+      if (!debugSnapshot) debugSnapshot = JSON.stringify(save);
+      view = "debug";
+      render();
+    },
+    onAbandonSecondary(currentView, currentSave) {
+      const type = currentView === "doctor-route" ? "route-search" : "investigation";
+      const mission = secondaryMissionByType(type, SECONDARY_MISSIONS);
+      const routeStats = { ...currentSave.campaign.doctorRoute };
+      if (currentView === "doctor-route") save = writeSave(cancelDoctorMission(currentSave));
+      onFinishSecondaryMission(save, mission, { outcome: "abandoned", clues: investigatedClues.size, routeStats });
+    }
+  });
+  const stageView = createLocationStage({
+    locations: VILLAGE_LOCATIONS, locationCast: LOCATION_CAST, locationBackgrounds: LOCATION_BACKGROUNDS,
+    locationDialogue, npcs: NPCS, npcByName, escapeHtml, introducedViews,
+    assetVersion: ASSET_VERSION
+  });
   const saveCreatorView = createSaveCreatorView({
     basicElementIds: BASIC_ELEMENT_IDS,
-    activeSaveSlot,
-    listSaveSlots,
-    elementIcon,
-    elementName,
-    escapeHtml,
-    masterForCharacter,
+    activeSaveSlot, listSaveSlots, elementIcon, elementName, escapeHtml, masterForCharacter,
     confirmDelete: (name) => window.confirm(`¿Borrar definitivamente la partida de ${name}?`),
     onSelectSlot(slot) {
       save = selectSaveSlot(slot);
@@ -102,17 +122,10 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     onBackToSlots() { choosingSaveSlot = true; render(); }
   });
   const villageView = createVillageView({
-    mainMissions: MISSIONS,
-    secondaryMissions: SECONDARY_MISSIONS,
-    missionState,
-    nextAvailableMission,
-    secondaryMissionByType,
-    masterForCharacter,
-    escapeHtml,
+    mainMissions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS,
+    missionState, nextAvailableMission, secondaryMissionByType, masterForCharacter, escapeHtml,
     assetVersion: ASSET_VERSION,
-    npcs: NPCS,
-    locationCast: LOCATION_CAST,
-    warmImage,
+    npcs: NPCS, locationCast: LOCATION_CAST, warmImage,
     showDialogue: (...args) => showDialogue(...args),
     onMissionNoticesSeen(ids) {
       save = writeSave({ ...save, campaign: { ...save.campaign, seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...ids])] } });
@@ -167,11 +180,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   });
   const sagaMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
   const archiveView = createArchiveView({
-    missions: sagaMissions,
-    enemyRoster: ENEMY_ROSTER,
-    enemyActions: ENEMY_ACTIONS,
-    elementName,
-    escapeHtml,
+    missions: sagaMissions, enemyRoster: ENEMY_ROSTER, enemyActions: ENEMY_ACTIONS,
+    elementName, escapeHtml,
     showDialogue: (...args) => showDialogue(...args),
     onDeliverBook() {
       save = writeSave(deliverBestiaryBook(save));
@@ -181,52 +191,22 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   });
   const dojoView = createDojoView({
     assetVersion: ASSET_VERSION,
-    affinityConfig: AFFINITY_CONFIG,
-    elements: ELEMENTS,
-    elementRankLabels: ELEMENT_RANK_LABELS,
-    equipment: EQUIPMENT,
-    jutsus: JUTSU_LIBRARY,
-    npcs: NPCS,
-    affinityXpForElement,
-    availableAffinitySlots,
-    basicRequirements,
-    canAccessElement,
-    derivedStats,
-    elementIcon,
-    elementName,
-    fighterPreviewSvg,
-    isTechniqueLearned,
-    loadoutSlotsForLevel,
-    masterIdForCharacter,
-    playerFighterAppearance,
-    selectMaster,
-    selectNextAffinity,
-    spendAttribute,
-    xpForNextLevel,
+    affinityConfig: AFFINITY_CONFIG, elements: ELEMENTS, elementRankLabels: ELEMENT_RANK_LABELS,
+    equipment: EQUIPMENT, jutsus: JUTSU_LIBRARY, npcs: NPCS,
+    affinityXpForElement, availableAffinitySlots, basicRequirements, canAccessElement, derivedStats,
+    elementIcon, elementName, fighterPreviewSvg, isTechniqueLearned, loadoutSlotsForLevel,
+    masterIdForCharacter, playerFighterAppearance, selectMaster, selectNextAffinity, spendAttribute, xpForNextLevel,
     onPersist(next) { save = writeSave(next); return save; },
     onTabSelected(tabId) { activeDojoTab = tabId; },
     onRerender: () => renderDojo()
   });
   const missionBoardsView = createMissionBoardsView({
-    mainMissions: MISSIONS,
-    secondaryMissions: SECONDARY_MISSIONS,
-    sagas: STORY_SAGAS,
-    enemyActions: ENEMY_ACTIONS,
-    enemyRoster: ENEMY_ROSTER,
-    doctorRouteDefinitions: DOCTOR_ROUTE_DEFINITIONS,
-    riverPassages: RIVER_PASSAGES,
-    elementName,
-    escapeHtml,
-    getDialogue,
-    masterForCharacter,
-    missionHasStep,
-    missionState,
-    missionStep,
-    missionsForBoard,
-    npcName,
-    secondaryMissionByType,
-    secondaryMissionCardModel,
-    warmLocationAssets,
+    mainMissions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS, sagas: STORY_SAGAS,
+    enemyActions: ENEMY_ACTIONS, enemyRoster: ENEMY_ROSTER,
+    doctorRouteDefinitions: DOCTOR_ROUTE_DEFINITIONS, riverPassages: RIVER_PASSAGES,
+    elementName, escapeHtml, getDialogue, masterForCharacter, npcName,
+    missionHasStep, missionState, missionStep, missionsForBoard,
+    secondaryMissionByType, secondaryMissionCardModel, warmLocationAssets,
     showDialogue: (...args) => showDialogue(...args),
     showMissionDecision: (...args) => showMissionDecision(...args),
     onSagaSelected(sagaId) { selectedSagaId = sagaId; renderStoryMissions(); },
@@ -257,217 +237,11 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const renderCreator = () => renderSaveCreator("creator");
 
   const shell = (content) => {
-    const { character, progression, campaign } = save;
-    const visibleStoryMissionIds = STORY_SAGAS.flatMap((saga) => saga.missionIds);
-    const currentLocation = VILLAGE_LOCATIONS.find((location) => location.id === view)
-      || (view === "kagemori" ? { name: "Aldea de Kagemori" } : view === "doctor-route" ? { name: "Caminos del Norte" } : view === "debug" ? { name: "Herramientas de pruebas" } : null);
-    const isSecondaryField = view === "kagemori" || view === "doctor-route";
-    const navigation = view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button ${isSecondaryField ? "data-abandon-secondary" : "data-view=\"plaza\""}>← ${isSecondaryField ? "Abandonar misión" : "Volver al mapa"}</button><span>${escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
-    viewScope = viewRuntime.replace(view, `
-      <div class="village-shell">
-        <section class="village-topbar">
-          <div class="profile-heading">
-            <span class="avatar-swatch" style="--avatar:${character.appearance}"></span>
-            <div class="profile-copy"><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${escapeHtml(character.name)}</h2></div>
-            <strong class="level-chip">Nivel ${progression.level}</strong>
-          </div>
-          <div class="campaign-summary">
-            <span class="summary-item"><b aria-hidden="true">★</b><strong>${progression.xp}/${xpForNextLevel(progression.level)}</strong><small>PX</small></span>
-            <span class="summary-item"><b aria-hidden="true">▣</b><strong>${progression.coins}</strong><small>monedas</small></span>
-            <span class="summary-item"><b aria-hidden="true">♛</b><strong>${campaign.completedMissions.filter((id) => visibleStoryMissionIds.includes(id)).length}/${visibleStoryMissionIds.length}</strong><small>misiones</small></span>
-          </div>
-          <button class="player-settings-trigger" type="button" aria-label="Abrir ajustes" aria-expanded="false">
-            <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
-          </button>
-          <button class="save-slots-trigger" type="button" aria-label="Cambiar de partida">PARTIDAS</button>
-          <!-- RELEASE-BLOCKER 1.0: eliminar este acceso y todo renderDebugTools antes de publicar la versión final. -->
-          <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas">PRUEBAS</button>
-        </section>
-        ${navigation}
-        ${content}
-      </div>`);
-    const settingsDetails = document.querySelector(".game-settings");
-    const settingsTrigger = root.querySelector(".player-settings-trigger");
-    if (settingsTrigger && settingsDetails) {
-      let closeSettingsTimer = 0;
-
-      const openSettings = () => {
-        window.clearTimeout(closeSettingsTimer);
-        settingsDetails.classList.remove("is-closing");
-        settingsDetails.open = true;
-        settingsTrigger.setAttribute("aria-expanded", "true");
-      };
-
-      const closeSettings = () => {
-        if (!settingsDetails.open) return;
-        settingsDetails.classList.add("is-closing");
-        settingsTrigger.setAttribute("aria-expanded", "false");
-        closeSettingsTimer = window.setTimeout(() => {
-          settingsDetails.open = false;
-          settingsDetails.classList.remove("is-closing");
-        }, 280);
-      };
-
-      settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
-      settingsTrigger.addEventListener("click", () => {
-        if (settingsDetails.open && !settingsDetails.classList.contains("is-closing")) closeSettings();
-        else openSettings();
-      });
-      settingsDetails.addEventListener("toggle", () => {
-        if (settingsTrigger.isConnected) settingsTrigger.setAttribute("aria-expanded", settingsDetails.open ? "true" : "false");
-      }, { signal: viewScope.signal });
-      viewScope.onCleanup(() => window.clearTimeout(closeSettingsTimer));
-    }
-
-    root.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => {
-      document.querySelector(".game-settings")?.removeAttribute("open");
-      view = button.dataset.view;
-      render();
-    }));
-    root.querySelector(".save-slots-trigger")?.addEventListener("click", () => {
-      document.querySelector(".game-settings")?.removeAttribute("open");
-      choosingSaveSlot = true;
-      render();
-    });
-    root.querySelector(".debug-tools-trigger")?.addEventListener("click", () => {
-      document.querySelector(".game-settings")?.removeAttribute("open");
-      if (!debugSnapshot) debugSnapshot = JSON.stringify(save);
-      view = "debug";
-      render();
-    });
-    root.querySelector("[data-abandon-secondary]")?.addEventListener("click", () => {
-      const mission = view === "doctor-route" ? SECONDARY_MISSIONS[1] : SECONDARY_MISSIONS[0];
-      const routeStats = { ...save.campaign.doctorRoute };
-      if (view === "doctor-route") save = writeSave(cancelDoctorMission(save));
-      onFinishSecondaryMission(save, mission, { outcome: "abandoned", clues: investigatedClues.size, routeStats });
-    });
-    root.querySelectorAll("[data-go]").forEach((button) => {
-      const openLocation = () => {
-        view = button.dataset.go;
-        render();
-      };
-      button.addEventListener("click", openLocation);
-      if (button.classList.contains("village-hotspot")) {
-        button.addEventListener("mouseenter", () => warmLocationAssets(button.dataset.go), { once: true });
-        button.addEventListener("focus", () => warmLocationAssets(button.dataset.go), { once: true });
-        const label = root.querySelector(`[data-map-label="${button.dataset.go}"]`);
-        const showLabel = () => label?.classList.add("visible");
-        const hideLabel = () => label?.classList.remove("visible");
-        button.addEventListener("mouseenter", showLabel);
-        button.addEventListener("mouseleave", hideLabel);
-        button.addEventListener("focus", showLabel);
-        button.addEventListener("blur", hideLabel);
-        button.addEventListener("keydown", (event) => {
-          if (event.key !== "Enter" && event.key !== " ") return;
-          event.preventDefault();
-          openLocation();
-        });
-      }
-    });
+    viewScope = viewRuntime.replace(view, shellView.render({ save, view }, content));
+    shellView.mount(root, viewScope, { save, view });
   };
-
-  const locationStage = (locationId, content) => {
-    const cast = LOCATION_CAST[locationId] || [];
-    const introduced = introducedViews.has(locationId);
-    const locationName = VILLAGE_LOCATIONS.find((location) => location.id === locationId)?.name || (locationId === "kagemori" ? "Aldea de Kagemori" : locationId);
-    const background = LOCATION_BACKGROUNDS[locationId] || `assets/locations/${locationId}.webp`;
-    const portraits = (locationId === "kagemori" && introduced ? [] : cast).map((id) => {
-      const npc = NPCS[id];
-      const kagemoriPortrait = locationId === "kagemori";
-      return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${escapeHtml(npc.name)}"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="${kagemoriPortrait ? 768 : 1145}" height="${kagemoriPortrait ? 1152 : 1374}" loading="eager" fetchpriority="high" decoding="async"><span>${escapeHtml(npc.name)}</span></button>`;
-    }).join("");
-    const investigationReady = locationId === "kagemori" && introduced ? "investigation-ready" : "";
-    return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""} ${investigationReady}" data-location-stage="${locationId}" style="--location-bg:url('${background}?v=${ASSET_VERSION}')" aria-label="${escapeHtml(locationName)}">
-      <div class="stage-characters">${portraits}</div>
-      <div class="stage-speech" data-stage-speech aria-live="polite" ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
-      <div class="stage-ambient" data-stage-ambient role="status" aria-live="polite" hidden><strong data-ambient-speaker></strong><span data-ambient-text></span></div>
-      <div class="stage-options ${introduced ? "ready" : ""}" data-stage-options ${introduced ? "" : "hidden"}>${content}</div>
-    </section>`;
-  };
-
-  const bindLocationStage = (locationId) => {
-    const stage = root.querySelector(`[data-location-stage="${locationId}"]`);
-    if (!stage) return;
-    const cast = LOCATION_CAST[locationId] || [];
-    const lines = locationDialogue(locationId, "intro");
-    const speech = stage.querySelector("[data-stage-speech]");
-    const options = stage.querySelector("[data-stage-options]");
-    const ambient = stage.querySelector("[data-stage-ambient]");
-    let lineIndex = 0;
-    let tipTimer = 0;
-    let commentHoverReadyAt = performance.now() + 650;
-
-    const activateSpeaker = (speaker) => {
-      const activeIndex = cast.findIndex((id) => NPCS[id]?.name === speaker);
-      const speakerOnRight = locationId === "dojo" ? activeIndex === 0 : activeIndex > 0;
-      stage.classList.toggle("speaker-left", !speakerOnRight);
-      stage.classList.toggle("speaker-right", speakerOnRight);
-      stage.querySelectorAll("[data-stage-npc]").forEach((button) => button.classList.toggle("active", NPCS[button.dataset.stageNpc]?.name === speaker));
-    };
-    const showTip = (text, npcId = cast[0]) => {
-      const npc = NPCS[npcId] || NPCS[cast[0]];
-      if (!npc || !ambient || !stage.isConnected) return;
-      clearTimeout(tipTimer);
-      ambient.querySelector("[data-ambient-speaker]").textContent = `${npc.name} · ${npc.title}`;
-      ambient.querySelector("[data-ambient-text]").textContent = text;
-      ambient.hidden = false;
-      ambient.classList.remove("leaving");
-      activateSpeaker(npc.name);
-      tipTimer = window.setTimeout(() => {
-        if (!ambient.isConnected) return;
-        ambient.classList.add("leaving");
-        window.setTimeout(() => { if (ambient.isConnected) ambient.hidden = true; }, 180);
-      }, 5200);
-    };
-    const revealOptions = () => {
-      introducedViews.add(locationId);
-      speech.classList.add("leaving");
-      if (locationId === "kagemori") stage.classList.add("investigation-ready");
-      window.setTimeout(() => {
-        if (!stage.isConnected) return;
-        speech.hidden = true;
-        options.hidden = false;
-        commentHoverReadyAt = performance.now() + 650;
-        requestAnimationFrame(() => options.classList.add("ready"));
-        if (locationId === "kagemori") stage.querySelector(".stage-characters")?.remove();
-      }, 180);
-    };
-    const drawLine = () => {
-      const [speaker, text] = lines[lineIndex];
-      const npc = npcByName(speaker);
-      speech.querySelector("[data-stage-speaker]").textContent = npc ? `${npc.name} · ${npc.title}` : speaker;
-      speech.querySelector("[data-stage-text]").textContent = text;
-      speech.querySelector("[data-stage-count]").textContent = `${lineIndex + 1}/${lines.length}`;
-      speech.querySelector("[data-stage-next]").textContent = lineIndex === lines.length - 1 ? "VER OPCIONES" : "SIGUIENTE";
-      activateSpeaker(speaker);
-    };
-    if (!introducedViews.has(locationId) && lines.length) {
-      drawLine();
-      speech.querySelector("[data-stage-next]").addEventListener("click", () => {
-        if (lineIndex < lines.length - 1) { lineIndex += 1; drawLine(); return; }
-        revealOptions();
-      });
-    } else {
-      stage.querySelector("[data-stage-npc]")?.classList.add("active");
-    }
-    stage.querySelectorAll("[data-stage-npc]").forEach((button) => button.addEventListener("click", () => {
-      if (!options.hidden) {
-        const guide = NPCS[button.dataset.stageNpc]?.guide || [];
-        showTip(guide[Math.floor(Math.random() * guide.length)], button.dataset.stageNpc);
-      }
-    }));
-    stage.querySelectorAll("[data-comment]").forEach((control) => {
-      let shown = false;
-      const explain = (event) => {
-        if (event.type === "mouseenter" && performance.now() < commentHoverReadyAt) return;
-        if (shown || options.hidden) return;
-        shown = true;
-        showTip(control.dataset.comment, control.dataset.commentNpc || cast[0]);
-      };
-      control.addEventListener("mouseenter", explain);
-      control.addEventListener("focusin", explain);
-    });
-  };
+  const locationStage = (locationId, content) => stageView.render(locationId, content);
+  const bindLocationStage = (locationId) => stageView.mount(root, viewScope, locationId);
 
   const renderVillageView = () => {
     const content = villageView.render({ save, view });
@@ -523,7 +297,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     if (view === "dojo") return renderDojo();
     if (view === "archive") return renderArchive();
     if (view === "debug") return renderDebugTools();
-    if (VILLAGE_SERVICES[view]) return renderVillageService(view);
+    if (["shop", "tower", "arena", "inn", "event"].includes(view)) return renderVillageService(view);
     return renderPlaza();
   };
   render();
