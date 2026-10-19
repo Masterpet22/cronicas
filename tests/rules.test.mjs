@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { JUTSU_LIBRARY, ENEMIES, MISSIONS, SECONDARY_MISSIONS, SEALS } from "../src/data.js";
+import { JUTSU_LIBRARY, ENEMIES, SEALS } from "../src/data.js";
+import { MISSIONS, SECONDARY_MISSIONS } from "../src/content/index.js";
 import { applyStatus, hitChance } from "../src/rules.js";
 
 const fire = JUTSU_LIBRARY.find((action) => action.id === "fire_embers");
@@ -25,7 +26,7 @@ assert.deepEqual(MISSIONS[0].encounters, ["tutorial_bandit", "tutorial_bandit_se
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m02").encounters, ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], "La segunda misión de la saga debe cerrar con Akumori");
 assert.equal(MISSIONS.find((mission) => mission.id === "m02").relic, "Mapa cifrado", "Akumori debe dejar el mapa que activa la búsqueda del doctor");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m03").encounters, ["gate_guard", "bandit_pathfinder", "stone_hunter"], "La entrada principal debe conservar tres duelos individuales");
-assert.equal(MISSIONS.find((mission) => mission.id === "m03").secretBonusCoins, 90, "La entrada secreta debe conceder oro adicional");
+assert.equal(MISSIONS.find((mission) => mission.id === "m03").flow.find((step) => step.type === "choice")?.completionBonus?.coins, 90, "La entrada secreta debe conceder oro adicional");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m04").encounters, ["bandit_pathfinder", "venom_medic", "ash_adept"], "El corazón de la guarida debe reutilizar una ficha conocida y enseñar estados en duelos consecutivos");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m05").encounters, ["boss_raizen"], "El duelo final debe ser un único combate contra Raizen");
 const doctorMission = SECONDARY_MISSIONS.find((mission) => mission.id === "s02");

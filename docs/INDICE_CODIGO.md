@@ -11,11 +11,14 @@ El contrato de extensión de misiones, pasos y diálogos está en [`SISTEMA_MISI
 index.html
   └─ game.js
       ├─ src/meta-ui.js ── aldea, personaje, dojo y misiones
-      ├─ src/data.js ───── catálogo de contenido
+      ├─ src/content/ ──── saga, misiones, diálogos y datos específicos
+      ├─ src/data.js ──── técnicas, equipo, sellos y enemigos
       ├─ src/mission-system.js ─ requisitos y flujo de misiones
-      ├─ src/dialogues.js ─ catálogo traducible de diálogos
+      ├─ src/dialogues.js ─ resolución de claves y diálogos de NPC
       ├─ src/view-runtime.js ─ ciclo de vida exclusivo de pantallas
-      ├─ src/save.js ───── guardado y progresión
+      ├─ src/save.js ───── API fachada del guardado v17
+      ├─ src/save/ ─────── esquema, migraciones, progreso y ranuras
+      ├─ src/battle/ ──── escenas Phaser, estado y lógica pura
       ├─ src/doctor-mission.js ─ rutas convergentes de Haru
       ├─ src/affinity-system.js ─ afinidades y modificadores de combate
       ├─ src/rules.js ──── reglas puras de combate
@@ -29,53 +32,35 @@ index.html
 | Archivo | Nombre funcional en español | Responsabilidad |
 | --- | --- | --- |
 | `index.html` | Entrada principal | Carga fuentes y estilos, decide si habilita la experiencia y, cuando corresponde, inicia Phaser y el módulo del juego. |
-| `game.js` | Orquestador del juego | Configura Phaser y contiene las escenas de viaje, combate y pausa. |
+| `game.js` | Punto de entrada | Bootstrap de Phaser y del metajuego; 121 líneas. Las escenas están bajo `src/battle/scenes/`. |
 | `styles.css` | Estilos generales | Presentación de acceso, creación de personaje, aldea, ubicaciones, dojo, diálogos, misiones y herramientas internas. |
 | `desktop.css` | Diseño de escritorio | Adapta la interfaz al escenario lógico de escritorio y sus resoluciones. |
 | `package.json` / `package-lock.json` | Configuración del proyecto | Versión, dependencia fija de iconos y comando de pruebas. |
 
-## Orquestador de escenas: `game.js`
+## Combate: `src/battle`
 
-Funciones generales:
-
-- `configureRenderResolution`: calcula el framebuffer físico sin cambiar el lienzo lógico de 960 × 540.
-- `sharpenTextTree`: aumenta la resolución interna de los textos de Phaser.
-- `drawCubicBezier`: dibuja curvas cúbicas usadas por la guía lateral de acciones.
-- `bindGlobalOptions`: restaura y persiste las preferencias globales del juego.
-
-Escena `MissionTravelScene`:
-
-- `preload`: carga el fondo y las texturas del combatiente.
-- `create`: representa la transición de ida o regreso entre la aldea y una misión.
-
-Escena `BattleScene`:
-
-- Preparación: `preload`, `create`, `configureSealMode`, `configurePresentationOptions`, `createEnemyState`, `chooseEnemyAction` y `makeSealFrames`.
-- Escenario: `drawArena`, `drawDuskPass`, `drawMistMarsh` y `drawMoonShrine`.
-- HUD: `createHud`, `registerHudThemeFrames`, `applyHudTheme`, `moveHudBar`, `createTurnTimeline` y `createPauseButton`.
-- Combatientes y acciones: `createFighters`, `createActionPanel`, `startTurnCharge`, `resetTurnTimeline`, `useJutsu`, `playerAttack`, `playerGuard`, `executeEnemyAction` y `enemyTurn`.
-- Sellos: `playSeals` y `waitForSealInput`.
-- Resolución del combate: `resolveEnemyOutcome`, `advanceEncounter`, `triggerBossPhaseTwo`, `rollHit`, `resolveEndRoundStatuses`, `advanceCooldowns`, `clearGuard`, `loseHealth` y `finishBattle`.
-- Efectos: `createImpact`, `flashFighter`, `stopFighterFlash`, `floatHealthLoss`, `healthLossPulse`, `floatLabel`, `shake`, `screenFlash`, `tone` y `startMusic`.
-- Actualización: `setButtonsEnabled`, `refreshHud`, `updateHealthBar`, `setMessage`, `setSealPrompt`, `actionCost`, `playerAppearance`, `textStyle`, `sharpenSceneText`, `tween` y `delay`.
-
-Escena `PauseScene`:
-
-- `create`: compone el menú de pausa.
-- `makePauseToggle`, `makeVolumeControl`, `makeHudThemeControl` y `makePauseAction`: crean los controles reutilizables del menú.
+- `scenes/`: viaje, `BattleScene`, acciones, flujo, presentación, feedback, epílogos, pausa y resultados.
+- `runtime.js`: instancia Phaser y recursos compartidos.
+- `battle-state.js`: contrato serializable del estado de escena.
+- `damage.js`, `turn.js`, `enemy-state.js`, `rewards.js`: reglas puras separadas de Phaser.
+- `install-battle-methods.js`: compone los métodos de `BattleScene` por área de responsabilidad.
 
 ## Módulos de `src`
 
-### `src/data.js` — Catálogo de contenido
+### `src/data.js` — Datos de combate
 
 - `SEALS`: doce sellos y sus teclas.
 - `BASE_ACTIONS`: golpe y guardia.
 - `JUTSU_LIBRARY`: técnicas aprendibles.
 - `EQUIPMENT`: armas, armaduras y accesorios.
 - `ENEMY_ACTIONS`, `ENEMY_ROSTER` y `ENEMIES`: acciones, perfiles y lista de rivales.
-- `STORY_SAGAS`: única lista de misiones principales conectadas a la campaña accesible.
-- `SECONDARY_MISSIONS`: Kagemori y la búsqueda del médico errante.
-- `MISSIONS`: catálogo exacto de las cinco misiones principales de la primera saga.
+
+### `src/content` — Registro y contenido de campaña
+
+- `sagas/futuro-prometedor/saga.js`: orden canónico y listas de misiones principales/secundarias.
+- Cada carpeta `m01-gato`, `s01-kagemori`, `m02-desfiladero`, `s02-medico`, `m03-umbral`, `m04-corazon` y `m05-raizen` contiene `mission.js` y `dialogues.js`.
+- `s01-kagemori/clues.js` y `s02-medico/routes.js`: datos visuales/de ruta junto al contenido que los usa.
+- `content/index.js`: agregación sin lógica.
 
 ### `src/mission-system.js` — Reglas de misiones
 
@@ -98,7 +83,7 @@ Escena `PauseScene`:
 
 ### `src/save.js` — Guardado y progresión
 
-- `SAVE_VERSION`: versión `16` del esquema persistido; migra la numeración principal y separa el progreso de secundarias.
+- `SAVE_VERSION`: versión `17`; añade progreso por paso y elimina valores derivados del esquema.
 - `createDefaultSave`: genera una partida vacía compatible con la versión actual.
 - `initialLoadout` y `loadoutSlotsForLevel`: calculan técnicas y ranuras iniciales.
 - `affinityXpForElement`, `isTechniqueLearned`: resuelven progreso y desbloqueos elementales.
@@ -110,9 +95,16 @@ Escena `PauseScene`:
 - `deliverBestiaryBook`, `recordBestiaryObservation`: activan la Biblioteca y completan fichas desde el combate.
 - `spendAttribute`, `derivedStats`: aplican atributos y equipo a las estadísticas finales.
 
+### `src/save` — Módulos internos de persistencia
+
+- `save-migrations.js`: migración pura de v16 a v17 e importación de progreso histórico.
+- `campaign-state.js`: normalización, inicio, avance y recuperación del cursor de misión.
+- `character-state.js`: asignación estable del maestro a partir del personaje.
+- `slot-repository.js`: lectura/escritura de las tres ranuras con manejo de almacenamiento no disponible.
+
 ### `src/doctor-mission.js` — Rutas del médico errante
 
-- `DOCTOR_ROUTE_DEFINITIONS`: resultados fijos del camino elevado, río y bosque para cada fase.
+- Implementa las rutas declaradas junto a `s02` en `src/content/sagas/futuro-prometedor/s02-medico/routes.js`.
 - `chooseDoctorRoute`, `resolveRiverPassage`, `resolveDoctorRouteCombat`: actualizan peligro, tiempo, pistas y recursos sin ramificar la historia final.
 - `createDoctorRouteState`, `normalizeDoctorRouteState`: crean y validan el progreso reanudable de la búsqueda.
 
@@ -208,6 +200,7 @@ Escena `PauseScene`:
 | `tests/affinity-system.test.mjs` | Afinidades del personaje, modificadores y reglas especiales de combate. |
 | `tests/rules.test.mjs` | Precisión, afinidades y estados. |
 | `tests/save.test.mjs` | Guardado, migración, progresión, equipo y recompensas. |
+| `tests/save-migrations.test.mjs` | Migraciones puras y conservación de estado en v17. |
 | `tests/character.test.mjs` | Apariencia y composición del personaje. |
 | `tests/village-map.test.mjs` | Mapa y destinos de la aldea. |
 | `tests/npcs.test.mjs` | Reparto y diálogos. |

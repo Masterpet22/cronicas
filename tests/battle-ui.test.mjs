@@ -1,13 +1,24 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 
-const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
+const save = readFileSync(new URL("../src/save.js", import.meta.url), "utf8");
 const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
 const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const serviceWorker = readFileSync(new URL("../sw.js", import.meta.url), "utf8");
-const metaUi = readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8");
+const metaRoot = fileURLToPath(new URL("../src/ui/meta", import.meta.url));
+const readJavaScriptTree = (directory) => readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+  const entryPath = path.join(directory, entry.name);
+  if (entry.isDirectory()) return readJavaScriptTree(entryPath);
+  return entry.name.endsWith(".js") ? [readFileSync(entryPath, "utf8")] : [];
+});
+const missionData = readJavaScriptTree(fileURLToPath(new URL("../src/content", import.meta.url))).join("\n");
+const battle = [readFileSync(new URL("../game.js", import.meta.url), "utf8"), ...readJavaScriptTree(fileURLToPath(new URL("../src/battle", import.meta.url)))].join("\n");
+const travelScene = readFileSync(new URL("../src/battle/scenes/mission-travel-scene.js", import.meta.url), "utf8");
+const metaUi = [readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8"), ...readJavaScriptTree(metaRoot)].join("\n");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const roadmap = readFileSync(new URL("../ROADMAP.md", import.meta.url), "utf8");
 const currentStatus = readFileSync(new URL("../docs/ESTADO_ACTUAL.md", import.meta.url), "utf8");
@@ -62,7 +73,7 @@ assert.match(battle, /this\.saveData = writeSave\(this\.missionStartSave\)/, "Ab
 assert.doesNotMatch(battle, /writeSave\(reward\.save\)/, "Los encuentros intermedios no deben persistir recompensas antes de completar la misión");
 assert.match(battle, /this\.pendingEncounterRewards\.push\(this\.enemyIndex\)/, "Las recompensas de encuentros deben permanecer pendientes hasta completar la misión");
 assert.match(battle, /if \(!won\)[\s\S]*this\.missionStartSave\.bestiary = this\.saveData\.bestiary[\s\S]*writeSave\(this\.saveData\)/, "Perder debe restaurar el progreso inicial y conservar solamente las observaciones del bestiario");
-assert.match(battle, /outcome === "completed" \? \{ \.\.\.this\.battleRewards \} : \{ xp: 0, affinityXp: 0, coins: 0 \}/, "Derrota y abandono deben informar cero recompensas");
+assert.match(battle, /outcome === "completed" \? \{ \.\.\.battleRewards \} : \{ xp: 0, affinityXp: 0, coins: 0 \}/, "Derrota y abandono deben informar cero recompensas");
 assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
@@ -120,7 +131,8 @@ assert.match(missionInvestigation, /label: "CARRETA"[\s\S]*label: "CASA INCENDIA
 assert.match(missionInvestigation, /document\.createElement\("section"\)[\s\S]*assets\/locations\/kagemori\.webp/, "La fase 2 debe conservar el escenario ilustrado de Kagemori fuera del lienzo de combate");
 assert.match(missionInvestigation, /mission-investigation-hotspots[\s\S]*viewBox="0 0 1672 941"/, "Las zonas deben usar las coordenadas completas de la ilustración");
 assert.match(missionInvestigation, /realClueCount = regions\.filter/, "Solo tres de las cinco zonas deben contar como pistas reales");
-assert.match(missionInvestigation, /game\?\.loop\.sleep\(\)[\s\S]*game\?\.loop\.wake\(\)/, "La investigación debe dormir el render de combate y reactivarlo al terminar");
+assert.match(missionInvestigation, /this\.game\.canvas\.parentElement[\s\S]*this\.game\.loop\.sleep\(\)[\s\S]*this\.game\.loop\.wake\(\)/, "La escena debe acceder a su contenedor y ciclo Phaser sin globals del entrypoint");
+assert.doesNotMatch(missionInvestigation, /gameRoot|(?<!this\.)game\?\./, "La investigación no debe usar referencias globales fuera del alcance de la escena");
 assert.doesNotMatch(missionInvestigation, /this\.add\.(?:image|polygon|rectangle|text)/, "La investigación no debe seguir renderizándose dentro de la escena de combate");
 assert.match(battle, /const elementalTechnique = !\["physical", "none"\]\.includes\(jutsu\.element\);[\s\S]*const enemyFirst = elementalTechnique;/, "Solo las técnicas elementales deben permitir que el rival actúe durante la preparación");
 assert.match(battle, /playTechniquePreparationNotice\(jutsu\.name\)[\s\S]*PREPARANDO TÉCNICA ELEMENTAL[\s\S]*El rival puede actuar mientras completas la preparación/, "La preparación elemental debe explicarse sin una iniciativa enemiga oculta");
@@ -130,10 +142,10 @@ assert.match(battle, /playResourceChoice\(\)/, "La cuarta misión debe permitir 
 assert.match(battle, /playHideoutDiscoveryChoice\(\)/, "La cuarta misión debe registrar prisioneros o documentos");
 assert.match(battle, /UNA ORGANIZACIÓN MAYOR/, "La cuarta misión debe explicar narrativamente que los bandidos obedecen a una organización mayor");
 assert.match(battle, /playLieutenantIntervention\(\)/, "Perdonar al teniente debe modificar el duelo contra Raizen");
-assert.match(battle, /Math\.round\(this\.enemy\.maxHp \* 0\.85\)/, "La intervención del teniente debe quitar aproximadamente 15 % de vida a Raizen");
+assert.match(missionData, /hpMultiplier: 0\.85/, "La intervención del teniente debe quitar aproximadamente 15 % de vida a Raizen");
 assert.match(battle, /ANUNCIA: \$\{action\.name\.toUpperCase\(\)\}/, "Raizen debe anunciar sus ataques peligrosos");
-assert.match(battle, /nextSideMissionGoldMultiplier = choice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
-assert.match(battle, /banditPrisonerChoice === "interrogate"[\s\S]*profile\.stats\.health \+ \(punishedBoss \? 22 : 0\)[\s\S]*profile\.stats\.strength \+ \(punishedBoss \? 2 : 0\)/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
+assert.match(save, /banditPrisonerChoice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
+assert.match(missionData, /type: "enemy-stats"[\s\S]*stats: \{ health: 22, strength: 2, speed: 2, luck: 1 \}[\s\S]*equals: "interrogate"/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
 assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "Viaje, combate, epílogos y ambos resultados deben formar el flujo de misión");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
@@ -185,7 +197,7 @@ assert.match(battle, /const fighterY = 372/, "Los combatientes deben quedar más
 assert.doesNotMatch(battle, /heroAura/, "El aura decorativa permanente del jugador debe eliminarse");
 assert.match(battle, /cssScale \* pixelRatio/, "El lienzo debe combinar la escala visible con el DPR del dispositivo");
 assert.match(battle, /width: renderSize\.width/, "El framebuffer debe usar el tamaño físico medido del escenario");
-assert.match(battle, /setZoom\(renderResolution\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
+assert.match(battle, /setZoom\((?:battleRuntime\.)?renderResolution\)/, "La cámara debe preservar las coordenadas lógicas al aumentar la resolución");
 assert.doesNotMatch(battle, /battle-hud-overlay-v1\.png/, "El combate no debe cargar el overlay con tarjetas gigantes");
 assert.match(battle, /function sharpenTextTree\(/, "El texto debe ajustarse recursivamente incluso dentro de contenedores");
 assert.match(battle, /child\.setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
@@ -221,7 +233,7 @@ assert.doesNotMatch(styles, /story-turn-(?:left|right)/, "Los personajes no debe
 assert.match(metaUi, /const mirrorClass = side === "right" \? "story-character-mirrored" : "";/, "El personaje de la derecha debe reflejarse antes de presentarse para mirar hacia el centro");
 assert.match(styles, /\.story-character img\.story-character-mirrored \{ transform: scaleX\(-1\); \}/, "Los personajes reflejados deben invertir su orientación horizontalmente");
 assert.match(styles, /@media \(max-width: 1050px\), \(max-height: 650px\)/, "El diálogo debe adaptarse a portátiles pequeños");
-assert.match(metaUi, /getDialogue\(mission\.dialogueId[\s\S]*showDialogue\(briefingForMission\(mission\)/, "Los diálogos de historia deben resolverse por clave traducible y mostrarse en bocadillos");
+assert.match(metaUi, /(?:deps\.)?getDialogue\(mission\.dialogueId[\s\S]*(?:deps\.)?showDialogue\(briefingForMission\(mission/, "Los diálogos de historia deben resolverse por clave traducible y mostrarse en bocadillos");
 assert.match(metaUi, /NPCS\[masterIdForCharacter\(character\)\]/, "La interfaz debe respetar el maestro persistido de la partida");
 assert.match(metaUi, /data-master="\$\{id\}"/, "Personalización debe mostrar la elección de maestro");
 assert.match(metaUi, /SE DESBLOQUEA AL COMPLETAR LA SAGA 1/, "La elección de maestro debe mostrarse bloqueada durante la primera saga");
@@ -231,7 +243,7 @@ assert.doesNotMatch(metaUi, /class="clue-hotspot[^>]+<span[^>]*>[?✓]/, "Las pi
 assert.match(styles, /\.clue-shape \{ fill: rgba\(255,158,82,0\); stroke: rgba\(255,188,112,0\);/, "Las áreas de pista deben ser totalmente transparentes en reposo");
 assert.match(styles, /\.clue-hotspot:hover \.clue-shape \{[^}]*stroke-width: 5;/, "Las áreas de pista deben resaltarse con un trazo ligero al pasar el cursor");
 assert.doesNotMatch(styles, /\.clue-hotspot[^}]*\.clue-shape[^}]*\{[^}]*filter:\s*drop-shadow/, "Las pistas grandes no deben usar filtros que saturen la GPU");
-assert.match(metaUi, /area\.addEventListener\("click", collectClue\)/, "La pista debe obtenerse al pulsar su área completa");
+assert.match(metaUi, /scope\.listen\(area, "click", collectClue\)/, "La pista debe obtenerse al pulsar su área completa con un listener cancelable");
 assert.match(metaUi, /locationId === "kagemori" && introduced \? "investigation-ready"/, "Kagemori debe recordar que el diálogo terminó al volver a dibujar la escena");
 assert.match(metaUi, /locationId === "kagemori"\) stage\.classList\.add\("investigation-ready"\)/, "Los personajes deben retirarse al terminar el diálogo de investigación");
 assert.match(metaUi, /stage\.querySelector\("\.stage-characters"\)\?\.remove\(\)/, "Kagemori debe retirar del DOM los retratos al comenzar la investigación");
@@ -242,20 +254,19 @@ assert.match(desktop, /location-kagemori\.investigation-ready \.stage-characters
 assert.match(desktop, /location-kagemori \.stage-character\.active img \{[\s\S]*filter: none;/, "Kagemori no debe mantener filtros costosos sobre los retratos");
 assert.match(desktop, /location-kagemori\.investigation-ready \.stage-characters \{[\s\S]*visibility: hidden;/, "Los retratos ocultos deben salir de composición durante la investigación");
 assert.match(desktop, /location-stage\.location-kagemori \.stage-speech \{[\s\S]*left: 23%;[\s\S]*width: 54%;[\s\S]*max-width: 650px;/, "El diálogo de Kagemori debe quedar centrado entre ambos personajes");
-const travelScene = battle.match(/class MissionTravelScene extends Phaser\.Scene[\s\S]*?(?=class BattleScene extends Phaser\.Scene)/)?.[0] || "";
 assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kurose/, "La transición no debe duplicar en Phaser los recursos de la investigación HTML");
-assert.match(travelScene, /releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
+assert.match(travelScene, /(?:battleRuntime\.)?releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => destroyGameInstance\(instance\)\)/, "Al volver a HTML, Phaser debe destruirse en vez de quedar oculto consumiendo recursos");
 assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[SecondaryResultsScene, MissionTravelScene\]/, "Los resultados secundarios deben crear una instancia limpia y aislada");
-assert.match(metaUi, /markSecondaryMissionCompleted\(save, "s01"\)/, "Reunir las pistas debe registrar la secundaria mediante el sistema de misiones");
-assert.match(metaUi, /missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
+assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
+assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
-assert.match(battle, /masterIdForCharacter\(activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
-assert.match(battle, /criticalDamage - this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
+assert.match(battle, /masterIdForCharacter\((?:battleRuntime\.)?activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
+assert.match(battle, /criticalMultiplier: AFFINITY_CONFIG\.damage\.criticalMultiplier,[\s\S]*damageReduction: this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
 assert.doesNotMatch(battle, /companionAttack|Mika/, "El combate no debe conservar el acompañante de la campaña retirada");
 assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
 assert.doesNotMatch(battle, /const halo =|add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");
-assert.match(battle, /hideoutEntryChoice === "secret"[\s\S]*await this\.playSecretWarehouse\(\);[\s\S]*this\.startTurnCharge\(\);/, "La entrada secreta debe mostrar el almacén antes de iniciar los turnos");
+assert.match(battle, /this\.combatFeatures\.secretEntry[\s\S]*await this\.playSecretWarehouse\(\);[\s\S]*this\.startTurnCharge\(\);/, "La entrada secreta debe mostrar el almacén antes de iniciar los turnos");
 assert.equal((battle.match(/await this\.playSecretWarehouse\(\)/g) || []).length, 1, "El evento del almacén debe programarse una sola vez");
 
 assert.match(battle, /hideOnComplete: !effect\.projectile/, "El proyectil debe conservar su ultimo cuadro hasta alcanzar el objetivo");
@@ -270,7 +281,8 @@ assert.doesNotMatch(metaUi, /const storyNotice|class="notice-card story-objectiv
 assert.match(styles, /\.secondary-mission-menu\.has-unseen \.mission-target-icon \{[\s\S]*animation: mission-target-pulse/, "El blanco de tiro naranja debe parpadear mientras haya misiones secundarias nuevas");
 assert.match(styles, /\.mission-dock \{[\s\S]*min-height: 36px;[\s\S]*background: transparent/, "La barra inferior debe ser compacta y mayormente transparente");
 assert.match(styles, /\.story-mission-current \{[\s\S]*background: rgba\(3, 13, 25, \.68\)/, "El título principal debe conservar un fondo semitransparente legible");
-assert.match(metaUi, /id: "secondary:s02"[\s\S]*destination: "Tablón de Misiones"[\s\S]*id: "secondary:s01"[\s\S]*destination: "Tablón de Misiones"[\s\S]*destination: "Cuartel General"/, "Cada misión activa debe indicar el lugar de la aldea al que debe dirigirse el jugador");
+assert.match(metaUi, /id: `secondary:\$\{routeSearchMission\.id\}`[\s\S]*destination: "Tablón de Misiones"/, "La búsqueda de ruta debe indicar el Tablón sin depender de su ID");
+assert.match(metaUi, /id: `secondary:\$\{investigationMission\.id\}`[\s\S]*destination: "Tablón de Misiones"[\s\S]*destination: "Cuartel General"/, "La investigación y la historia deben indicar su destino sin IDs secundarios fijos");
 assert.match(metaUi, /class="mission-destination">IR A:/, "Las misiones secundarias deben mostrar visualmente su destino");
 assert.match(styles, /\.story-mission-current span \{[\s\S]*color: #f09a3e;[\s\S]*font-size: \.57rem;/, "El destino de la misión principal debe verse en naranja y con una fuente menor");
 assert.match(styles, /\.secondary-mission-item \.mission-destination \{ color: #f09a3e; font-size: \.62rem;/, "Los destinos secundarios deben verse en naranja y con una fuente menor");

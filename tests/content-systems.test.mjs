@@ -1,13 +1,29 @@
 import assert from "node:assert/strict";
-import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/data.js";
-import { getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
-import { missionHasStep, missionState, validateMissionCatalog } from "../src/mission-system.js";
+import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/content/index.js";
+import { DIALOGUE_CATALOGS, getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
+import { missionHasStep, missionState, missionsForBoard, requirementMet, validateMissionCatalog } from "../src/mission-system.js";
+import { secondaryMissionCardModel } from "../src/secondary-missions.js";
+import { completeSecondaryMission, createDefaultSave } from "../src/save.js";
 import { createViewRuntime } from "../src/view-runtime.js";
 
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "m02", "m03", "m04", "m05"], "Las misiones principales deben tener IDs continuos");
 assert.ok(MISSIONS.every((mission) => mission.category === "main" && mission.board === "headquarters"), "Las principales deben pertenecer exclusivamente al Cuartel");
 assert.ok(SECONDARY_MISSIONS.every((mission) => mission.category === "secondary" && mission.board === "missions"), "Las secundarias deben pertenecer exclusivamente al Tablón");
 assert.deepEqual(validateMissionCatalog(ALL_MISSIONS, STORY_SAGAS), [], "El catálogo no debe tener IDs, requisitos o mecánicas inválidas");
+assert.deepEqual(validateDialogueReferences(ALL_MISSIONS), [], "Los briefings deben existir y estar asignados a su misión");
+const missionKeys = Object.keys(DIALOGUE_CATALOGS.es).filter((key) => key.startsWith("mission."));
+const missionIds = new Set(ALL_MISSIONS.map((mission) => mission.id));
+const validSpeakers = new Set(["ren", "master", "narrator", "lieutenant", "sayo"]);
+for (const key of missionKeys) {
+  const [, missionId, sceneId] = key.split(".");
+  assert.ok(missionIds.has(missionId), `${key} debe pertenecer a una misión existente`);
+  const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
+  assert.ok(sceneId === "briefing" ? mission.dialogueId === key : mission.flow.some((step) => step.id === sceneId) || missionId === "m01" && sceneId === "combat-tutorial" || missionId === "m02" && (sceneId.startsWith("prisoner-") || sceneId === "investigation-complete") || missionId === "m03" && sceneId === "secret-warehouse" || missionId === "m04" && ["resource-choice", "hideout-discovery", "revelation-documents", "revelation-prisoners"].includes(sceneId) || missionId === "m05" && sceneId === "lieutenant-intervention", `${key} debe tener un punto de uso en el flujo de la misión`);
+  for (const line of DIALOGUE_CATALOGS.es[key]) {
+    assert.ok(validSpeakers.has(line.speaker), `${key} usa un speaker existente`);
+    for (const [, variable] of line.text.matchAll(/\{([a-z0-9_]+)\}/gi)) assert.equal(variable, "master", `${key} usa una variable soportada`);
+  }
+}
 assert.deepEqual(validateDialogueReferences(ALL_MISSIONS), [], "Cada misión debe apuntar a un diálogo traducible existente");
 assert.ok(ALL_MISSIONS.every((mission) => !Object.hasOwn(mission, "briefing")), "El texto no debe quedar incrustado en las definiciones de misión");
 assert.ok(missionHasStep(MISSIONS[2], "choice", "hideout-entry"), "Una misión debe poder declarar decisiones sin cambiar el renderizador del Tablón");
@@ -21,6 +37,26 @@ const afterFirst = { progression: { level: 1 }, campaign: { completedMissions: [
 assert.equal(missionState(SECONDARY_MISSIONS[0], afterFirst).unlocked, true, "La principal debe poder desbloquear una secundaria en otro tablero");
 const afterInvestigation = { progression: { level: 1 }, campaign: { ...afterFirst.campaign, completedSecondaryMissions: ["s01"], banditBossMissionUnlocked: true } };
 assert.equal(missionState(MISSIONS[1], afterInvestigation).unlocked, true, "La secundaria completada debe desbloquear la siguiente principal");
+const flagRequirements = ALL_MISSIONS.flatMap((mission) => (mission.requirements || []).filter((requirement) => requirement.type === "flag"));
+assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["secondaryBoardUnlocked"], "Solo el evento narrativo del Tablón puede seguir siendo un requisito guardado; los demás desbloqueos se derivan del historial");
+assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "interrogate" } }), true, "Los modificadores deben poder comparar valores de campaña sin convertirlos a booleanos");
+assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "eliminate" } }), false, "Una comparación declarativa debe rechazar otro valor de campaña");
+const invalidModifierCatalog = structuredClone(MISSIONS);
+invalidModifierCatalog[4].flow.find((step) => step.type === "consequence").modifiers.push({ type: "enemy-opening", hpMultiplier: 0 });
+assert.ok(validateMissionCatalog(invalidModifierCatalog, STORY_SAGAS).some((error) => error.includes("hpMultiplier positivo")), "El catálogo debe rechazar modificadores de combate incompletos");
+
+const fakeInvestigation = {
+  id: "s99", number: 99, category: "secondary", board: "missions", type: "investigation",
+  title: "Investigación de prueba", location: "Zona aislada", duration: "1 min", rank: "D",
+  requirements: [], reward: { xp: 0, coins: 0 }, flow: [{ type: "investigation", id: "test-clues" }]
+};
+const extensibleSave = createDefaultSave();
+const extensibleBoard = missionsForBoard([...SECONDARY_MISSIONS, fakeInvestigation], "missions", extensibleSave);
+assert.ok(extensibleBoard.some(({ mission }) => mission.id === fakeInvestigation.id), "Una investigación nueva debe aparecer en el Tablón a partir del catálogo recibido");
+assert.equal(secondaryMissionCardModel(fakeInvestigation, extensibleSave).actionLabel, "INVESTIGAR", "El Tablón debe presentar una investigación nueva por tipo, sin conocer su ID");
+const fakeCompletion = completeSecondaryMission(extensibleSave, fakeInvestigation);
+assert.equal(fakeCompletion.firstClear, true, "Una investigación nueva debe usar el completador registrado para su tipo");
+assert.ok(fakeCompletion.save.campaign.completedSecondaryMissions.includes(fakeInvestigation.id), "Completar una investigación nueva debe registrar su ID sin modificar save.js");
 
 const localized = getDialogue("mission.m02.briefing", { variables: { master: "Mei Hayate" }, placement: { surface: "mission-briefing", owner: "m02" } });
 assert.equal(localized.length, 3, "El briefing traducible debe conservar todas sus líneas");

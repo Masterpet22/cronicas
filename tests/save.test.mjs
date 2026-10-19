@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { DEBUG_CHECKPOINTS, affinityXpForElement, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave } from "../src/save.js";
-import { MISSIONS, STORY_SAGAS } from "../src/data.js";
+import { DEBUG_CHECKPOINTS, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
+import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
+import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 16, "La versión debe identificar la numeración secuencial y el progreso secundario separado");
+assert.equal(SAVE_VERSION, 17, "La versión debe incluir el progreso idempotente por misión");
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "m02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
 assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
@@ -68,6 +69,23 @@ assert.equal(routeSave.progression.level, 2, "Completar la ruta debe subir al pe
 assert.equal(routeSave.progression.attributePoints, 2, "Subir de nivel debe entregar dos puntos de atributo");
 
 let campaignSave = save;
+const startedMission = startMissionProgress(campaignSave, "m01");
+assert.equal(startedMission.campaign.missionProgress.m01.status, "in-progress", "Iniciar una misión debe crear su estado recuperable");
+const missionCursor = startedMission.campaign.missionProgress.m01.currentStepId;
+const resumedMission = startMissionProgress(startedMission, "m01");
+assert.equal(resumedMission.campaign.missionProgress.m01.currentStepId, missionCursor, "Reanudar debe conservar el primer paso pendiente");
+assert.equal(resumedMission.campaign.missionProgress.m01.attempts, 2, "Reanudar debe contar el intento sin borrar contexto ni cursor");
+let secondMissionProgress = startMissionProgress(applyDebugCheckpoint(save, "mission-2-ready"), "m02");
+secondMissionProgress = advanceMissionProgress(secondMissionProgress, "m02", "canyon-assault", { encountersDefeated: 1 });
+assert.equal(secondMissionProgress.campaign.missionProgress.m02.currentStepId, "canyon-traces", "Avanzar una fase debe dejar el cursor en el próximo paso semántico");
+assert.equal(startMissionProgress(secondMissionProgress, "m02").campaign.missionProgress.m02.currentStepId, "canyon-traces", "Reanudar debe recuperar el paso pendiente guardado");
+const beforeCombat = startMissionProgress(applyDebugCheckpoint(save, "mission-3-ready"), "m03");
+assert.equal(beforeCombat.campaign.missionProgress.m03.currentStepId, "hideout-entry", "La decisión previa al combate debe ser el primer paso de m03");
+const knownHideout = normalizeSave({ ...beforeCombat, campaign: { ...beforeCombat.campaign, hideoutEntryChoice: "main" } });
+assert.equal(startMissionProgress(knownHideout, "m03").campaign.missionProgress.m03.currentStepId, "hideout-threshold", "Una decisión persistida debe ceder el cursor al combate de m03");
+const finalMissionStart = startMissionProgress(applyDebugCheckpoint(save, "mission-5-ready"), "m05");
+assert.equal(finalMissionStart.campaign.missionProgress.m05.currentStepId, "raizen-duel", "La consecuencia ya decidida debe reanudar en el duelo de m05");
+assert.equal(secondMissionProgress.campaign.missionProgress.m02.context.encountersDefeated, 1, "El contexto de misión debe persistir al avanzar");
 campaignSave = completeMission(campaignSave, "m01").save;
 const repeated = completeMission(campaignSave, "m01");
 assert.equal(repeated.firstClear, false, "Repetir una misión no debe duplicar su recompensa principal");
@@ -77,7 +95,8 @@ assert.deepEqual(unknownMission.save.campaign.completedMissions, ["m01"], "Una m
 
 let fullCampaign = completeMission(applyDebugCheckpoint(save, "mission-5-ready"), "m05").save;
 assert.deepEqual(fullCampaign.campaign.completedMissions, ["m01", "m02", "m03", "m04", "m05"], "La campaña completa debe registrar exactamente las cinco misiones vigentes");
-assert.equal(fullCampaign.campaign.firstSagaCompleted, true, "La última misión vigente debe cerrar la primera saga");
+assert.equal(campaignFlag(fullCampaign, "firstSagaCompleted"), true, "La última misión vigente debe cerrar la primera saga");
+assert.equal(fullCampaign.campaign.missionProgress.m05.status, "completed", "El progreso debe cerrar la misión en el historial por pasos");
 
 const corrupt = normalizeSave({ character: { name: "", affinity: "water" }, progression: { level: -4 }, equipment: {}, loadout: ["invalid"] });
 assert.equal(corrupt.progression.level, 1, "Los niveles inválidos deben repararse");
@@ -92,6 +111,8 @@ assert.deepEqual(
 const migrated = normalizeSave({ version: 15, character: { name: "Prueba", affinity: "viento", affinities: ["viento"] }, progression: { level: 2 }, equipment: {}, campaign: { completedMissions: ["m01", "m11", "m12", "m07"], elementRank: 2, kagemoriInvestigated: true, doctorMissionCompleted: true } });
 assert.deepEqual(migrated.campaign.completedMissions, ["m01", "m02", "m03"], "La migración debe conservar el progreso usando la numeración nueva");
 assert.deepEqual(migrated.campaign.completedSecondaryMissions, ["s01", "s02"], "La migración debe separar el progreso de encargos secundarios");
+assert.equal(migrated.campaign.missionProgress.m01.status, "completed", "La migración debe reconstruir el progreso completo por misión");
+assert.equal(Object.hasOwn(migrated.campaign, "doctorMissionUnlocked"), false, "El v17 elimina indicadores reconstruibles");
 assert.equal(Object.hasOwn(migrated.campaign, "companion"), false, "La migración debe retirar el estado de acompañante de la campaña anterior");
 const normalized = normalizeSave({ version: 16, character: { name: "Prueba", affinity: "viento", affinities: ["viento"] }, progression: { level: 2 }, equipment: {}, campaign: { completedMissions: ["m01"], elementRank: 2 } });
 assert.deepEqual(normalized.character.affinities, ["viento"], "La afinidad principal válida debe conservarse");
@@ -100,15 +121,14 @@ assert.equal(normalized.campaign.secondaryBoardUnlocked, false, "Un estado parci
 assert.deepEqual(normalized.campaign.seenMissionNotices, [], "Un estado parcial debe iniciar sin avisos vistos");
 const noticesSeen = normalizeSave({ ...normalized, campaign: { ...normalized.campaign, seenMissionNotices: ["story:m01", "valor no válido", "story:m01"] } });
 assert.deepEqual(noticesSeen.campaign.seenMissionNotices, ["story:m01"], "Los avisos vistos deben persistir sin duplicados ni claves inválidas");
-const storyState = normalizeSave({ ...normalized, campaign: { ...normalized.campaign, sayoEncounterSeen: true, secondaryBoardUnlocked: true, kagemoriInvestigated: true, banditBossMissionUnlocked: true } });
-assert.equal(storyState.campaign.banditBossMissionUnlocked, true, "El hallazgo de la guarida debe persistir tras normalizar el guardado");
-const interrogated = normalizeSave({ ...storyState, campaign: { ...storyState.campaign, banditPrisonerChoice: "interrogate", nextSideMissionGoldMultiplier: 2 } });
-assert.equal(interrogated.campaign.nextSideMissionGoldMultiplier, 2, "Interrogar debe conservar el multiplicador de monedas");
+const storyState = normalizeSave({ ...normalized, campaign: { ...normalized.campaign, sayoEncounterSeen: true, secondaryBoardUnlocked: true, completedSecondaryMissions: ["s01"] } });
+assert.equal(campaignFlag(storyState, "banditBossMissionUnlocked"), true, "El hallazgo de la guarida se reconstruye desde la misión secundaria completada");
+const interrogated = normalizeSave({ ...storyState, campaign: { ...storyState.campaign, banditPrisonerChoice: "interrogate" } });
 const canyonComplete = completeMission(interrogated, "m02").save;
 assert.equal(canyonComplete.campaign.archiveUnlocked, false, "Vencer a Akumori todavía no debe desbloquear la Biblioteca");
-assert.equal(canyonComplete.campaign.cipherMapObtained, true, "Akumori debe dejar el mapa cifrado");
-assert.equal(canyonComplete.campaign.doctorMissionUnlocked, true, "El mapa debe activar la misión del doctor");
-assert.equal(canyonComplete.campaign.masterSelectionUnlocked, false, "La misión 2 todavía no debe liberar la elección de maestro");
+assert.equal(campaignFlag(canyonComplete, "cipherMapObtained"), true, "Akumori debe dejar el mapa cifrado");
+assert.equal(campaignFlag(canyonComplete, "doctorMissionUnlocked"), true, "El mapa debe activar la misión del doctor");
+assert.equal(campaignFlag(canyonComplete, "masterSelectionUnlocked"), false, "La misión 2 todavía no debe liberar la elección de maestro");
 
 let doctorRoute = startDoctorMission(canyonComplete);
 doctorRoute = chooseDoctorMissionRoute(doctorRoute, "elevated");
@@ -135,21 +155,21 @@ assert.equal(doctorCompletion.supplyBonus, 1, "Los recursos reunidos durante las
 assert.equal(completeDoctorMission(doctorCompletion.save).firstClear, false, "El encargo no debe poder cobrarse dos veces");
 const deliveredBook = deliverBestiaryBook(doctorCompletion.save);
 assert.equal(deliveredBook.campaign.archiveUnlocked, true, "Sayo debe abrir la Biblioteca al recibir el libro");
-assert.equal(deliveredBook.campaign.secretEntranceKnown, true, "Interrogar y perdonar al teniente debe marcar la entrada secreta");
+assert.equal(campaignFlag(deliveredBook, "secretEntranceKnown"), true, "Interrogar y perdonar al teniente debe marcar la entrada secreta");
 assert.equal(deliveredBook.bestiary.entries.bandit_pathfinder.encounters, 1, "Sayo debe transcribir al libro los informes de los enemigos ya enfrentados");
 assert.deepEqual(deliveredBook.bestiary.entries.bandit_pathfinder.techniques, [], "El informe previo no debe inventar técnicas que el libro no observó");
 const secretEntry = chooseHideoutEntrance(deliveredBook, "secret");
 const thresholdComplete = completeMission(secretEntry, "m03");
 assert.equal(thresholdComplete.coins, 175, "El almacén secreto debe sumar 90 monedas a la recompensa de la misión 3");
 assert.equal(thresholdComplete.save.campaign.secretWarehouseLooted, true, "La partida debe recordar que se saqueó el almacén");
-assert.equal(thresholdComplete.save.campaign.heartMissionUnlocked, true, "Superar el umbral debe desbloquear el corazón de la guarida");
+assert.equal(campaignFlag(thresholdComplete.save, "heartMissionUnlocked"), true, "Superar el umbral debe desbloquear el corazón de la guarida");
 assert.equal(thresholdComplete.save.campaign.hideoutSupplies, 2, "La misión 4 debe recibir el suministro base y el recuperado durante la búsqueda de Haru");
 const heartComplete = completeMission(thresholdComplete.save, "m04");
-assert.equal(heartComplete.save.campaign.organizationRevealed, true, "La misión 4 debe revelar la organización superior");
-assert.equal(heartComplete.save.campaign.banditLeaderMissionUnlocked, true, "La misión 4 debe desbloquear el duelo con Raizen");
+assert.equal(campaignFlag(heartComplete.save, "organizationRevealed"), true, "La misión 4 debe revelar la organización superior");
+assert.equal(campaignFlag(heartComplete.save, "banditLeaderMissionUnlocked"), true, "La misión 4 debe desbloquear el duelo con Raizen");
 const sagaComplete = completeMission(heartComplete.save, "m05");
-assert.equal(sagaComplete.save.campaign.firstSagaCompleted, true, "Derrotar a Raizen debe completar la primera saga");
-assert.equal(sagaComplete.save.campaign.masterSelectionUnlocked, true, "Completar toda la saga debe liberar la elección de maestro");
+assert.equal(campaignFlag(sagaComplete.save, "firstSagaCompleted"), true, "Derrotar a Raizen debe completar la primera saga");
+assert.equal(campaignFlag(sagaComplete.save, "masterSelectionUnlocked"), true, "Completar toda la saga debe liberar la elección de maestro");
 let fieldGuide = recordBestiaryObservation(deliveredBook, "reed_bandit", { encounter: true });
 fieldGuide = recordBestiaryObservation(fieldGuide, "reed_bandit", { technique: "quick", vulnerability: "fuego", defeated: true });
 assert.equal(fieldGuide.bestiary.entries.reed_bandit.encounters, 1, "El primer encuentro debe abrir una ficha del bestiario");
@@ -157,10 +177,10 @@ assert.deepEqual(fieldGuide.bestiary.entries.reed_bandit.techniques, ["quick"], 
 assert.deepEqual(fieldGuide.bestiary.entries.reed_bandit.vulnerabilities, ["fuego"], "Descubrir una debilidad debe conservarla");
 const eliminatedRoute = normalizeSave({ ...doctorCompletion.save, campaign: { ...doctorCompletion.save.campaign, banditPrisonerChoice: "eliminate", doctorBookDeliveryPending: true, archiveUnlocked: false, secretEntranceKnown: false } });
 const eliminatedBook = deliverBestiaryBook(eliminatedRoute);
-assert.equal(eliminatedBook.campaign.secretEntranceKnown, false, "Eliminar al teniente debe mantener oculta la entrada secreta");
+assert.equal(campaignFlag(eliminatedBook, "secretEntranceKnown"), false, "Eliminar al teniente debe mantener oculta la entrada secreta");
 assert.equal(chooseHideoutEntrance(eliminatedBook, "secret").campaign.hideoutEntryChoice, "main", "Sin la pista del teniente no debe poder forzarse la entrada secreta");
 assert.equal(completeMission(chooseHideoutEntrance(eliminatedBook, "main"), "m03").coins, 85, "La entrada principal no debe conceder el oro del almacén");
-const meiStudent = selectMaster(canyonComplete, "mei");
+const meiStudent = selectMaster(sagaComplete.save, "mei");
 assert.equal(meiStudent.character.masterId, "mei", "La elección libre debe persistir después de la saga");
 assert.equal(derivedStats(meiStudent).damageReduction, 2, "Mei debe reducir el daño recibido");
 
@@ -168,13 +188,13 @@ assert.equal(DEBUG_CHECKPOINTS.length, 8, "El depurador debe ofrecer puntos de c
 const debugCoins = canyonComplete.progression.coins;
 const missionTwoReady = applyDebugCheckpoint(canyonComplete, "mission-2-ready");
 assert.deepEqual(missionTwoReady.campaign.completedMissions, ["m01"], "El punto de control de misión 2 debe dejar solamente la misión 1 completada");
-assert.equal(missionTwoReady.campaign.banditBossMissionUnlocked, true, "El punto de control debe desbloquear el Desfiladero");
+assert.equal(campaignFlag(missionTwoReady, "banditBossMissionUnlocked"), true, "El punto de control debe desbloquear el Desfiladero");
 assert.equal(missionTwoReady.progression.coins, debugCoins, "Los puntos de control no deben entregar ni retirar monedas");
 const libraryReady = applyDebugCheckpoint(save, "library-ready");
-assert.equal(libraryReady.campaign.doctorMissionCompleted, true, "El último punto de control debe completar la búsqueda del doctor");
+assert.equal(campaignFlag(libraryReady, "doctorMissionCompleted"), true, "El último punto de control debe completar la búsqueda del doctor");
 assert.equal(libraryReady.campaign.archiveUnlocked, true, "El último punto de control debe abrir la Biblioteca");
-assert.equal(applyDebugCheckpoint(save, "mission-4-ready").campaign.heartMissionUnlocked, true, "El depurador debe poder saltar directamente a la misión 4");
-assert.equal(applyDebugCheckpoint(save, "mission-5-ready").campaign.banditLeaderMissionUnlocked, true, "El depurador debe poder saltar directamente a la misión 5");
+assert.equal(campaignFlag(applyDebugCheckpoint(save, "mission-4-ready"), "heartMissionUnlocked"), true, "El depurador debe poder saltar directamente a la misión 4");
+assert.equal(campaignFlag(applyDebugCheckpoint(save, "mission-5-ready"), "banditLeaderMissionUnlocked"), true, "El depurador debe poder saltar directamente a la misión 5");
 
 const dualAffinity = normalizeSave({ ...campaignSave, progression: { ...campaignSave.progression, level: 15 }, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, campaign: { ...campaignSave.campaign, elementRank: 2 }, loadout: ["lightning_spark"] });
 assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");

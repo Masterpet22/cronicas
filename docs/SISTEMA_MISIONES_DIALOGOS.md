@@ -6,11 +6,11 @@ Este documento define el contrato vigente para ampliar la campaña sin volver a 
 
 | Capa | Archivo | Responsabilidad |
 | --- | --- | --- |
-| Contenido | `src/data.js` | Define misión, categoría, tablero, requisitos, flujo y efectos. No renderiza. |
+| Contenido | `src/content/sagas/<saga>/<misión>/` | Define cada misión, sus diálogos y datos específicos. `saga.js` declara el orden y `content/index.js` registra. No renderiza. |
 | Reglas | `src/mission-system.js` | Evalúa requisitos, estado, pasos y efectos; valida el catálogo. No conoce pantallas. |
-| Texto | `src/dialogues.js` | Guarda líneas por clave, idioma, condiciones y ubicación permitida. |
+| Texto | `src/content/sagas/<saga>/<misión>/dialogues.js` y `src/dialogues.js` | Las misiones guardan sus líneas junto al contenido; `src/dialogues.js` resuelve NPC, claves, condiciones y ubicación. |
 | Presentación | `src/meta-ui.js` y `game.js` | Ejecuta pasos semánticos y muestra el resultado. No decide desbloqueos por número de misión. |
-| Persistencia | `src/save.js` | Guarda progreso y aplica efectos declarados. No contiene una cronología paralela. |
+| Persistencia | `src/save.js` y `src/save/` | La fachada aplica esquema v17, historial por pasos, migraciones puras y repositorio de ranuras. No mantiene desbloqueos derivados. |
 | Ciclo de vistas | `src/view-runtime.js` | Garantiza una única vista HTML activa y desmonta listeners y overlays anteriores. |
 
 Las principales usan `category: "main"` y `board: "headquarters"`. Las secundarias usan `category: "secondary"` y `board: "missions"`. Un requisito puede cruzar categorías, pero una misión nunca cambia de tablero por ello.
@@ -67,7 +67,7 @@ Los efectos se aplican solamente al completar la misión. Si aparece una nueva c
 
 ## Diálogos y traducción
 
-Las misiones y NPC guardan claves, no texto incrustado. El catálogo español vive en `src/dialogues.js`; un idioma futuro debe repetir las mismas claves en otro catálogo.
+Las misiones y NPC guardan claves, no texto incrustado. Los diálogos de misión viven junto a cada misión en `src/content/sagas/futuro-prometedor/<misión>/dialogues.js`; el registro los agrega conservando las claves actuales. Las líneas de NPC permanecen en `src/dialogues.js`. Un idioma futuro debe repetir las mismas claves en otro catálogo.
 
 ```js
 "mission.m06.briefing": [
@@ -83,13 +83,17 @@ Las misiones y NPC guardan claves, no texto incrustado. El catálogo español vi
 - `save` para evaluar la condición opcional `when` de cada línea.
 - `placement` para comprobar superficie y propietario. Un briefing de `m06` solo puede aparecer como `mission-briefing` de `m06`; la introducción de un NPC solo en la introducción de ese NPC.
 
-`getMissionSceneDialogue` aplica el mismo control a tutoriales, decisiones y consecuencias dentro de combate. `validateDialogueReferences` comprueba que cada misión tenga una clave existente y asignada a su propietario. Las nuevas escenas deben adoptar el mismo patrón: claves estables y texto fuera de la lógica.
+`getMissionSceneDialogue` aplica el mismo control a tutoriales, decisiones y consecuencias dentro de combate. `validateDialogueReferences` comprueba que cada misión tenga una clave existente y asignada a su propietario. Las pruebas también revisan propietarios, speakers, variables admitidas y que cada escena tenga un punto de uso. Las nuevas escenas deben adoptar el mismo patrón: claves estables y texto fuera de la lógica.
 
 ## Regla de ciclo de vida de pantallas
 
 Toda vista HTML se monta mediante `viewRuntime.replace`. El cambio de vista aborta los listeners registrados con el `signal` de su ámbito, ejecuta limpiezas, elimina overlays transitorios y sustituye el árbol anterior. Los diálogos y decisiones se montan con `mountOverlay`.
 
 Al salir de Phaser hacia una vista HTML, `releaseGameToMeta` oculta el canvas, monta la ubicación solicitada y destruye la instancia de Phaser en la siguiente microtarea. Una misión secundaria que vuelva a necesitar Phaser crea una instancia aislada nueva. No se permite conservar escenas dormidas detrás de otras pantallas.
+
+## Guardado y reanudación
+
+El guardado v17 conserva `campaign.missionProgress[missionId]` con estado, paso actual, pasos completados, contexto, efectos aplicados e intentos. Reanudar una misión pendiente mantiene el cursor; un combate interrumpido vuelve a iniciar desde el comienzo de su paso. Los indicadores reconstruibles se consultan desde los historiales, decisiones y hechos canónicos y no se serializan.
 
 ## Lista de comprobación para añadir contenido
 
