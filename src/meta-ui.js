@@ -15,6 +15,7 @@ import { createDojoView } from "./ui/meta/views/dojo.js?v=0.67.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.67.0";
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.67.0";
 import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.67.0";
+import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
 export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
 
@@ -37,7 +38,6 @@ function warmImage(src) {
   warmedImages.set(src, request);
   return request;
 }
-
 function warmLocationAssets(locationId) {
   const background = LOCATION_BACKGROUNDS[locationId] || `assets/locations/${locationId}.webp`;
   return Promise.all([
@@ -63,6 +63,9 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   let selectedSagaId = null;
   const introducedViews = new Set();
   const investigatedClues = new Set();
+  const overlayView = createOverlayView({ root, viewRuntime, npcByName, escapeHtml, assetVersion: ASSET_VERSION });
+  const showDialogue = (...args) => overlayView.showDialogue(...args);
+  const showMissionDecision = (...args) => overlayView.showMissionDecision(...args);
   const saveCreatorView = createSaveCreatorView({
     basicElementIds: BASIC_ELEMENT_IDS,
     activeSaveSlot,
@@ -363,63 +366,6 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     });
   };
 
-  const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR", type = "message") => {
-    if (!lines.length) { onComplete(); return; }
-    let index = 0;
-    let previousSpeaker = null;
-    let nextSpeakerSide = "left";
-    const speakerSides = new Map();
-    const location = type === "story" ? root.querySelector("[data-location-stage]") : null;
-    const overlay = document.createElement("div");
-    overlay.className = `dialogue-overlay dialogue-${type}`;
-    const mounted = viewRuntime.mountOverlay(overlay);
-    if (location) location.classList.add("story-dialogue-active");
-    const draw = () => {
-      const [speaker, dialogue] = lines[index];
-      const last = index === lines.length - 1;
-      const npc = npcByName(speaker);
-      if (type === "story") {
-        const role = npc?.title || "Historia";
-        if (!speakerSides.has(speaker)) {
-          speakerSides.set(speaker, nextSpeakerSide);
-          nextSpeakerSide = nextSpeakerSide === "left" ? "right" : "left";
-        }
-        const side = speakerSides.get(speaker);
-        const entering = previousSpeaker !== speaker;
-        const mirrorClass = side === "right" ? "story-character-mirrored" : "";
-        overlay.classList.toggle("story-speaker-left", side === "left");
-        overlay.classList.toggle("story-speaker-right", side === "right");
-        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.name)}</span></div>` : "";
-        overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${escapeHtml(speaker)} · ${escapeHtml(role)}</header><p>${escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></footer></section>`;
-        previousSpeaker = speaker;
-      } else {
-        const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${ASSET_VERSION}" alt="${escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${escapeHtml(npc.title)}</span></div>` : "";
-        overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${escapeHtml(speaker)}</p><p>${escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
-      }
-      overlay.querySelector("button").addEventListener("click", () => {
-        if (!mounted.isCurrent()) return;
-        if (!last) { index += 1; draw(); return; }
-        if (location) location.classList.remove("story-dialogue-active");
-        mounted.remove();
-        onComplete();
-      });
-    };
-    draw();
-  };
-
-  const showMissionDecision = ({ eyebrow, title, text, options }, onChoice) => {
-    const overlay = document.createElement("div");
-    overlay.className = "mission-decision-overlay";
-    const mounted = viewRuntime.mountOverlay(overlay);
-    overlay.innerHTML = `<section class="mission-decision-panel"><p class="eyebrow">${escapeHtml(eyebrow)}</p><h2>${escapeHtml(title)}</h2><p>${escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${escapeHtml(option.label)}</strong><small>${escapeHtml(option.description)}</small></button>`).join("")}</div></section>`;
-    overlay.querySelectorAll("[data-decision]").forEach((button) => button.addEventListener("click", () => {
-      if (!mounted.isCurrent()) return;
-      const value = button.dataset.decision;
-      mounted.remove();
-      onChoice(value);
-    }));
-  };
-
   const locationStage = (locationId, content) => {
     const cast = LOCATION_CAST[locationId] || [];
     const introduced = introducedViews.has(locationId);
@@ -586,3 +532,4 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     openLocation(nextSave, locationId) { save = nextSave; view = locationId; render(); }
   };
 }
+
