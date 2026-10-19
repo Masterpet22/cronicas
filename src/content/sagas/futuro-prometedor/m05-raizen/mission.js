@@ -6,7 +6,7 @@ export const M05 = {
     flow: [
       { type: "dialogue" },
       {
-        type: "consequence", id: "prisoner-intelligence",
+        type: "consequence", id: "prisoner-intelligence", beforeCombat: true, progressKey: "banditPrisonerChoice",
         modifiers: [
           {
             type: "enemy-opening", target: "boss", hpMultiplier: 0.85, openingEvent: "lieutenant-intervention",

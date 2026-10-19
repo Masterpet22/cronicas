@@ -56,7 +56,8 @@ export function createMissionBoardsView(deps) {
     const cards = missions.map((mission) => {
       const unlocked = deps.missionState(mission, save).unlocked;
       const done = completed.has(mission.id);
-      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? "REPETIR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
+      const inProgress = save.campaign.missionProgress[mission.id]?.status === "in-progress";
+      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? "REPETIR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
       const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
       const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas`;
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon ? "" : "disabled"}>${label}</button></article>`;
@@ -127,6 +128,11 @@ export function createMissionBoardsView(deps) {
         root.querySelectorAll("[data-mission]").forEach((button) => scope.listen(button, "click", () => {
           const mission = missionById(button.dataset.mission);
           if (!mission || mission.comingSoon) return;
+          const inProgress = getSave().campaign.missionProgress[mission.id]?.status === "in-progress";
+          if (inProgress) {
+            deps.onStartMission(getSave(), mission);
+            return;
+          }
           const launch = () => deps.onStartMission(getSave(), mission);
           const hasEntryChoice = Boolean(deps.missionStep(mission, "choice")?.beforeCombat);
           const afterBriefing = hasEntryChoice ? () => {

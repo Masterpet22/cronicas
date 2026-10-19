@@ -30,9 +30,17 @@ export function startMissionProgress(save, missionId) {
   const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
   if (!mission || missionState(mission, save).completed || !missionState(mission, save).unlocked) return save;
   const progress = save.campaign.missionProgress[missionId];
+  const configuredCompleted = (mission.flow || []).filter((step) => step.progressKey && save.campaign[step.progressKey])
+    .map((step) => step.id);
+  const completedSteps = [...new Set([...(progress?.completedSteps || []), ...configuredCompleted])];
+  const pendingStep = mission.flow.find((step) => step.id && step.beforeCombat && !completedSteps.includes(step.id))
+    || mission.flow.find((step) => step.id && !completedSteps.includes(step.id)
+    && ["combat", "route", "investigation"].includes(step.type))
+    || mission.flow.find((step) => step.id && !completedSteps.includes(step.id));
+  const cursor = progress?.currentStepId && !completedSteps.includes(progress.currentStepId) ? progress.currentStepId : pendingStep?.id || null;
   save.campaign.missionProgress[missionId] = progress
-    ? { ...progress, status: "in-progress", attempts: progress.attempts + 1 }
-    : { status: "in-progress", currentStepId: mission.flow.find((step) => step.id)?.id || null, completedSteps: [], context: {}, appliedEffects: [], attempts: 1 };
+    ? { ...progress, status: "in-progress", currentStepId: cursor, completedSteps, attempts: progress.attempts + 1 }
+    : { status: "in-progress", currentStepId: cursor, completedSteps, context: {}, appliedEffects: [], attempts: 1 };
   return save;
 }
 

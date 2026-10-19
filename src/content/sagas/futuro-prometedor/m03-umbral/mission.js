@@ -6,7 +6,7 @@ export const M03 = {
     flow: [
       { type: "dialogue" },
       {
-        type: "choice", id: "hideout-entry", beforeCombat: true,
+        type: "choice", id: "hideout-entry", beforeCombat: true, progressKey: "hideoutEntryChoice",
         completionBonus: {
           coins: 90,
           requirements: [

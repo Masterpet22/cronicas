@@ -79,6 +79,12 @@ let secondMissionProgress = startMissionProgress(applyDebugCheckpoint(save, "mis
 secondMissionProgress = advanceMissionProgress(secondMissionProgress, "m02", "canyon-assault", { encountersDefeated: 1 });
 assert.equal(secondMissionProgress.campaign.missionProgress.m02.currentStepId, "canyon-traces", "Avanzar una fase debe dejar el cursor en el próximo paso semántico");
 assert.equal(startMissionProgress(secondMissionProgress, "m02").campaign.missionProgress.m02.currentStepId, "canyon-traces", "Reanudar debe recuperar el paso pendiente guardado");
+const beforeCombat = startMissionProgress(applyDebugCheckpoint(save, "mission-3-ready"), "m03");
+assert.equal(beforeCombat.campaign.missionProgress.m03.currentStepId, "hideout-entry", "La decisión previa al combate debe ser el primer paso de m03");
+const knownHideout = normalizeSave({ ...beforeCombat, campaign: { ...beforeCombat.campaign, hideoutEntryChoice: "main" } });
+assert.equal(startMissionProgress(knownHideout, "m03").campaign.missionProgress.m03.currentStepId, "hideout-threshold", "Una decisión persistida debe ceder el cursor al combate de m03");
+const finalMissionStart = startMissionProgress(applyDebugCheckpoint(save, "mission-5-ready"), "m05");
+assert.equal(finalMissionStart.campaign.missionProgress.m05.currentStepId, "raizen-duel", "La consecuencia ya decidida debe reanudar en el duelo de m05");
 assert.equal(secondMissionProgress.campaign.missionProgress.m02.context.encountersDefeated, 1, "El contexto de misión debe persistir al avanzar");
 campaignSave = completeMission(campaignSave, "m01").save;
 const repeated = completeMission(campaignSave, "m01");
