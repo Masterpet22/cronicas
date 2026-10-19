@@ -170,6 +170,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
 
 for (const mission of [
   { checkpoint: "saga-start", missionId: "m01" },
+  { checkpoint: "mission-2-ready", missionId: "m02" },
   { checkpoint: "mission-5-ready", missionId: "m05" }
 ]) {
   test(`completar ${mission.missionId} registra el progreso sin errores visibles`, async ({ page }) => {

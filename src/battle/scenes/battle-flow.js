@@ -311,11 +311,12 @@ export class BattleFlowMethods {
     overlay.className = "mission-investigation-overlay";
     overlay.setAttribute("aria-label", "Fase 2 de investigación");
     overlay.innerHTML = `<img class="mission-investigation-background" src="assets/locations/kagemori.webp?v=0.63.0" alt="Aldea de Kagemori incendiada"><div class="mission-investigation-shade"></div><header class="mission-investigation-header"><p>FASE 2 · INVESTIGACIÓN</p><h2>Reconstruye la ruta de los bandidos</h2><strong data-mission-clue-count>0/${realClueCount} pistas reales</strong></header><p class="mission-investigation-log" data-mission-investigation-log>Examina la casa, la carreta, las huellas, el pozo y la puerta.</p><svg class="mission-investigation-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${regions.map((entry) => `<g class="mission-investigation-region" data-investigation-region="${entry.id}" role="button" tabindex="0" aria-label="Investigar ${entry.label}"><path d="${entry.path}"/></g>`).join("")}</svg>${regions.map((entry) => `<span class="mission-investigation-label" data-investigation-label="${entry.id}" style="--label-x:${entry.labelX}%;--label-y:${entry.labelY}%"><strong>${entry.label}</strong></span>`).join("")}<img class="mission-investigation-master" src="assets/npcs/${masterFile}" alt="${masterName}"><button class="mission-investigation-continue" type="button" disabled data-mission-investigation-continue>REÚNE ${realClueCount} PISTAS</button>`;
-    const canvas = gameRoot.querySelector("canvas");
+    const container = this.game.canvas.parentElement;
+    const canvas = this.game.canvas;
     const previousCanvasVisibility = canvas?.style.visibility || "";
-    gameRoot.append(overlay);
+    container.append(overlay);
     if (canvas) canvas.style.visibility = "hidden";
-    game?.loop.sleep();
+    this.game.loop.sleep();
 
     try {
       const clueText = overlay.querySelector("[data-mission-investigation-log]");
@@ -365,7 +366,7 @@ export class BattleFlowMethods {
     } finally {
       overlay.remove();
       if (canvas) canvas.style.visibility = previousCanvasVisibility;
-      game?.loop.wake();
+      this.game.loop.wake();
     }
   }
 

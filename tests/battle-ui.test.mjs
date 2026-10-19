@@ -131,7 +131,8 @@ assert.match(missionInvestigation, /label: "CARRETA"[\s\S]*label: "CASA INCENDIA
 assert.match(missionInvestigation, /document\.createElement\("section"\)[\s\S]*assets\/locations\/kagemori\.webp/, "La fase 2 debe conservar el escenario ilustrado de Kagemori fuera del lienzo de combate");
 assert.match(missionInvestigation, /mission-investigation-hotspots[\s\S]*viewBox="0 0 1672 941"/, "Las zonas deben usar las coordenadas completas de la ilustración");
 assert.match(missionInvestigation, /realClueCount = regions\.filter/, "Solo tres de las cinco zonas deben contar como pistas reales");
-assert.match(missionInvestigation, /game\?\.loop\.sleep\(\)[\s\S]*game\?\.loop\.wake\(\)/, "La investigación debe dormir el render de combate y reactivarlo al terminar");
+assert.match(missionInvestigation, /this\.game\.canvas\.parentElement[\s\S]*this\.game\.loop\.sleep\(\)[\s\S]*this\.game\.loop\.wake\(\)/, "La escena debe acceder a su contenedor y ciclo Phaser sin globals del entrypoint");
+assert.doesNotMatch(missionInvestigation, /gameRoot|(?<!this\.)game\?\./, "La investigación no debe usar referencias globales fuera del alcance de la escena");
 assert.doesNotMatch(missionInvestigation, /this\.add\.(?:image|polygon|rectangle|text)/, "La investigación no debe seguir renderizándose dentro de la escena de combate");
 assert.match(battle, /const elementalTechnique = !\["physical", "none"\]\.includes\(jutsu\.element\);[\s\S]*const enemyFirst = elementalTechnique;/, "Solo las técnicas elementales deben permitir que el rival actúe durante la preparación");
 assert.match(battle, /playTechniquePreparationNotice\(jutsu\.name\)[\s\S]*PREPARANDO TÉCNICA ELEMENTAL[\s\S]*El rival puede actuar mientras completas la preparación/, "La preparación elemental debe explicarse sin una iniciativa enemiga oculta");
