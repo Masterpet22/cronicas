@@ -4,7 +4,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ENEMY_ROSTER, MISSIONS } from "../src/data.js";
-import { combatFeatures, createEnemyState, fieldSuppliesForBattle, interludePlan, resolveEncounterIds } from "../src/combat-modifiers.js";
+import { combatFeatures, fieldSuppliesForBattle, interludePlan, resolveEncounterIds } from "../src/combat-modifiers.js";
+import { createEnemyState } from "../src/battle/enemy-state.js";
 
 const testDir = path.dirname(fileURLToPath(import.meta.url));
 const snapshotPath = path.join(testDir, "snapshots", "combat-behavior.json");

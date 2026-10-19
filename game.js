@@ -1,6 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "./src/data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "./src/rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, addSoak, affinityCycleModifier, cappedEvasion, effectiveSpeed, finalAffinityDamage, furyDamageBonus, hurricaneEyeEvasionBonus, reprisalChance, reprisalDamage, tickSoak } from "./src/affinity-system.js?v=0.58.0";
+import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "./src/affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "./src/fighters.js?v=0.62.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "./src/character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "./src/ui.js?v=0.64.0";
@@ -10,7 +10,11 @@ import { elementIcon } from "./src/elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "./src/icons.js?v=0.44.0";
 import { missionStep } from "./src/mission-system.js?v=0.67.0";
 import { getMissionSceneDialogue } from "./src/dialogues.js?v=0.66.0";
-import { bossPhaseMessage, combatFeatures, createEnemyState, fieldSuppliesForBattle, resolveEncounterIds } from "./src/combat-modifiers.js?v=0.67.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "./src/combat-modifiers.js?v=0.67.0";
+import { resolveDamage } from "./src/battle/damage.js?v=0.68.0";
+import { createEnemyState } from "./src/battle/enemy-state.js?v=0.68.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "./src/battle/turn.js?v=0.68.0";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "./src/battle/rewards.js?v=0.68.0";
 
 const Phaser = window.Phaser;
 
@@ -254,7 +258,7 @@ class BattleScene extends Phaser.Scene {
     this.turnReady = false;
     this.finished = false;
     this.defeatedEncounters = 0;
-    this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
+    this.battleRewards = emptyBattleRewards();
     this.pendingEncounterRewards = [];
     this.rewardPreviewSave = this.saveData;
     this.fieldSupplies = fieldSuppliesForBattle(this.mission, this.saveData.campaign);
@@ -296,8 +300,8 @@ class BattleScene extends Phaser.Scene {
   }
 
   recordEnemyObservation(observation) {
-    const enemyId = this.encounterIds[this.enemyIndex];
-    this.saveData = writeSave(recordBestiaryObservation(this.saveData, enemyId, observation));
+    const entry = bestiaryObservation(this.encounterIds, this.enemyIndex, observation);
+    this.saveData = writeSave(recordBestiaryObservation(this.saveData, entry.enemyId, entry.observation));
     activeSave = this.saveData;
   }
 
@@ -379,24 +383,22 @@ class BattleScene extends Phaser.Scene {
   }
 
   combatantSpeed(combatant) {
-    return effectiveSpeed(combatant.baseSpeed, combatant.speedModifier, combatant.soak);
+    return combatantSpeed(combatant);
   }
 
   combatantEvasion(combatant) {
-    const windBonus = combatant.primaryAffinity === "viento"
-      ? hurricaneEyeEvasionBonus(combatant.chakra, combatant.maxChakra)
-      : 0;
-    return cappedEvasion(combatant.baseEvasion, windBonus);
+    return combatantEvasion(combatant);
   }
 
   applyWaterPassive(attacker, defender) {
-    if (attacker.primaryAffinity !== "agua" || defender.hp <= 0) return null;
-    defender.soak = addSoak(defender.soak, defender.boss);
+    const previous = defender.soak;
+    defender.soak = waterSoakAfterAttack(attacker, defender);
+    if (defender.soak === previous) return null;
     return defender.soak;
   }
 
   finishCombatantTurn(combatant) {
-    combatant.soak = tickSoak(combatant.soak);
+    combatant.soak = soakAfterTurn(combatant);
   }
 
   async applyEarthReprisal(defender, attacker, attackerFighter, receivedDamage) {
@@ -411,10 +413,9 @@ class BattleScene extends Phaser.Scene {
 
   chooseEnemyAction() {
     const profile = this.encounters[this.enemyIndex];
-    const pattern = profile.boss && this.enemy.phase === 2 ? profile.phase2Pattern : profile.pattern;
-    const actionId = pattern[this.enemy.patternIndex % pattern.length];
-    this.enemy.patternIndex += 1;
-    return ENEMY_ACTIONS[actionId];
+    const next = nextEnemyAction(profile, this.enemy);
+    this.enemy.patternIndex = next.patternIndex;
+    return ENEMY_ACTIONS[next.actionId];
   }
 
   makeSealFrames() {
@@ -928,9 +929,7 @@ class BattleScene extends Phaser.Scene {
       this.pendingEncounterRewards.push(this.enemyIndex);
       this.lastReward = reward;
       this.defeatedEncounters += 1;
-      this.battleRewards.xp += reward.xp;
-      this.battleRewards.affinityXp += reward.affinityXp;
-      this.battleRewards.coins += reward.coins;
+      this.battleRewards = addBattleReward(this.battleRewards, reward);
       if (this.enemyIndex === this.encounters.length - 1) {
         if (this.combatFeatures.relicDecision) await this.playRelicDrop();
         if (this.combatFeatures.postCombatChoice) await this.playHideoutDiscoveryChoice();
@@ -941,9 +940,7 @@ class BattleScene extends Phaser.Scene {
         this.saveData = writeSave(completion.save);
         activeSave = this.saveData;
         this.missionReward = completion;
-        this.battleRewards.xp += completion.xp;
-        this.battleRewards.affinityXp += completion.affinityXp || 0;
-        this.battleRewards.coins += completion.coins;
+        this.battleRewards = addBattleReward(this.battleRewards, completion);
         await this.finishBattle(true);
       } else {
         const investigationStep = missionStep(this.mission, "investigation");
@@ -1468,12 +1465,7 @@ class BattleScene extends Phaser.Scene {
   async playerAttack(jutsu, casting) {
     const cycleModifier = affinityCycleModifier(this.player.primaryAffinity, this.enemy.primaryAffinity);
     const furyBonus = this.player.primaryAffinity === "fuego" ? furyDamageBonus(this.player.hp, this.player.maxHp) : 0;
-    const baseDamage = finalAffinityDamage({
-      baseDamage: (jutsu.damage + this.player.baseStrength) * casting.multiplier,
-      strengthModifier: this.player.strengthModifier,
-      cycleModifier,
-      furyBonus
-    });
+    const baseDamageInput = (jutsu.damage + this.player.baseStrength) * casting.multiplier;
     const chance = hitChance(this.player, { ...this.enemy, evasion: this.combatantEvasion(this.enemy) }, jutsu);
     const originX = this.hero.body.x;
     const originShadowX = this.hero.shadow.x;
@@ -1519,8 +1511,15 @@ class BattleScene extends Phaser.Scene {
     }
 
     const critical = this.rollHit(this.player.criticalChance);
-    const rolledDamage = critical ? Math.round(baseDamage * AFFINITY_CONFIG.damage.criticalMultiplier) : baseDamage;
-    const damage = Math.max(1, rolledDamage - (this.enemy.damageReduction || 0));
+    const { damage } = resolveDamage({
+      baseDamage: baseDamageInput,
+      strengthModifier: this.player.strengthModifier,
+      cycleModifier,
+      furyBonus,
+      critical,
+      criticalMultiplier: AFFINITY_CONFIG.damage.criticalMultiplier,
+      damageReduction: this.enemy.damageReduction || 0
+    });
     if (usesHandProjectile) await this.playFireEmbersProjectile(false);
     else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
     else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
@@ -1646,16 +1645,18 @@ class BattleScene extends Phaser.Scene {
     this.recordEnemyObservation({ technique: action.id });
     const cycleModifier = affinityCycleModifier(this.enemy.primaryAffinity, this.player.primaryAffinity);
     const furyBonus = this.enemy.primaryAffinity === "fuego" ? furyDamageBonus(this.enemy.hp, this.enemy.maxHp) : 0;
-    const rawDamage = finalAffinityDamage({
-      baseDamage: Phaser.Math.Between(action.damage[0], action.damage[1]) + this.enemy.baseStrength,
+    const baseDamageInput = Phaser.Math.Between(action.damage[0], action.damage[1]) + this.enemy.baseStrength;
+    const critical = this.rollHit(this.enemy.criticalChance);
+    const { damage } = resolveDamage({
+      baseDamage: baseDamageInput,
       strengthModifier: this.enemy.strengthModifier,
       cycleModifier,
-      furyBonus
+      furyBonus,
+      critical,
+      criticalMultiplier: AFFINITY_CONFIG.damage.criticalMultiplier,
+      damageReduction: this.player.damageReduction,
+      guarding: this.player.guarding
     });
-    const critical = this.rollHit(this.enemy.criticalChance);
-    const criticalDamage = critical ? Math.round(rawDamage * AFFINITY_CONFIG.damage.criticalMultiplier) : rawDamage;
-    const reducedDamage = Math.max(1, criticalDamage - this.player.damageReduction);
-    const damage = this.player.guarding ? Math.ceil(reducedDamage * 0.5) : reducedDamage;
     const chance = hitChance(this.enemy, { ...this.player, evasion: this.combatantEvasion(this.player) }, action);
     const originX = this.foe.body.x;
     const originShadowX = this.foe.shadow.x;
@@ -1731,8 +1732,8 @@ class BattleScene extends Phaser.Scene {
     let triggered = false;
 
     for (const target of targets) {
-      for (const status of target.data.statuses) {
-        if (status.power <= 0) continue;
+      const tick = resolveStatusTick(target.data.statuses);
+      for (const status of tick.damage) {
         triggered = true;
         const { amount, reaction } = this.loseHealth(target.data, target.fighter, status.power, { yOffset: -118 });
         this.setMessage(`${status.label}: ${amount} de daño.`);
@@ -1741,10 +1742,7 @@ class BattleScene extends Phaser.Scene {
           this.delay(330)
         ]);
       }
-      target.data.statuses.forEach((status) => {
-        if (status.type !== "stun") status.duration -= 1;
-      });
-      target.data.statuses = target.data.statuses.filter((status) => status.duration > 0);
+      target.data.statuses = tick.statuses;
     }
 
     if (triggered) {
@@ -1754,9 +1752,7 @@ class BattleScene extends Phaser.Scene {
   }
 
   advanceCooldowns() {
-    Object.keys(this.cooldowns).forEach((id) => {
-      this.cooldowns[id] = Math.max(0, this.cooldowns[id] - 1);
-    });
+    this.cooldowns = advanceCooldowns(this.cooldowns);
   }
 
   clearGuard() {
@@ -1892,20 +1888,16 @@ class BattleScene extends Phaser.Scene {
     this.scene.start("results", result);
   }
   resultPayload(outcome) {
-    const rewards = outcome === "completed" ? { ...this.battleRewards } : { xp: 0, affinityXp: 0, coins: 0 };
-    return {
+    return createBattleResult({
       outcome,
-      missionTitle: this.mission.title,
-      playerHp: Math.max(0, this.player.hp),
-      maxHp: this.player.maxHp,
-      defeated: this.defeatedEncounters,
-      totalEncounters: this.encounters.length,
-      missionId: this.mission.parentMissionId || this.mission.id,
-      missionType: this.mission.parentType || this.mission.type,
-      rewards,
-      item: outcome === "completed" && this.combatFeatures.relicDecision ? this.mission.relic : null,
-      decision: outcome === "completed" && this.combatFeatures.relicDecision ? this.saveData.campaign.banditPrisonerChoice : null
-    };
+      mission: this.mission,
+      player: this.player,
+      defeatedEncounters: this.defeatedEncounters,
+      encounterCount: this.encounters.length,
+      battleRewards: this.battleRewards,
+      combatFeatures: this.combatFeatures,
+      campaign: this.saveData.campaign
+    });
   }
   abandonPayload() {
     const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
@@ -1913,7 +1905,7 @@ class BattleScene extends Phaser.Scene {
     this.saveData = writeSave(this.missionStartSave);
     if (this.mission.type === "route-combat") this.saveData = writeSave(cancelDoctorMission(this.saveData));
     activeSave = this.saveData;
-    this.battleRewards = { xp: 0, affinityXp: 0, coins: 0 };
+    this.battleRewards = emptyBattleRewards();
     const result = this.resultPayload("abandoned");
     return routeStats ? { ...result, routeStats } : result;
   }

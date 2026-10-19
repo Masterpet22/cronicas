@@ -3,7 +3,6 @@ import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const battle = readFileSync(new URL("../game.js", import.meta.url), "utf8");
 const missionData = readFileSync(new URL("../src/data.js", import.meta.url), "utf8");
 const ui = readFileSync(new URL("../src/ui.js", import.meta.url), "utf8");
 const icons = readFileSync(new URL("../src/icons.js", import.meta.url), "utf8");
@@ -16,6 +15,7 @@ const readJavaScriptTree = (directory) => readdirSync(directory, { withFileTypes
   if (entry.isDirectory()) return readJavaScriptTree(entryPath);
   return entry.name.endsWith(".js") ? [readFileSync(entryPath, "utf8")] : [];
 });
+const battle = [readFileSync(new URL("../game.js", import.meta.url), "utf8"), ...readJavaScriptTree(fileURLToPath(new URL("../src/battle", import.meta.url)))].join("\n");
 const metaUi = [readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8"), ...readJavaScriptTree(metaRoot)].join("\n");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
 const roadmap = readFileSync(new URL("../ROADMAP.md", import.meta.url), "utf8");
@@ -71,7 +71,7 @@ assert.match(battle, /this\.saveData = writeSave\(this\.missionStartSave\)/, "Ab
 assert.doesNotMatch(battle, /writeSave\(reward\.save\)/, "Los encuentros intermedios no deben persistir recompensas antes de completar la misión");
 assert.match(battle, /this\.pendingEncounterRewards\.push\(this\.enemyIndex\)/, "Las recompensas de encuentros deben permanecer pendientes hasta completar la misión");
 assert.match(battle, /if \(!won\)[\s\S]*this\.missionStartSave\.bestiary = this\.saveData\.bestiary[\s\S]*writeSave\(this\.saveData\)/, "Perder debe restaurar el progreso inicial y conservar solamente las observaciones del bestiario");
-assert.match(battle, /outcome === "completed" \? \{ \.\.\.this\.battleRewards \} : \{ xp: 0, affinityXp: 0, coins: 0 \}/, "Derrota y abandono deben informar cero recompensas");
+assert.match(battle, /outcome === "completed" \? \{ \.\.\.battleRewards \} : \{ xp: 0, affinityXp: 0, coins: 0 \}/, "Derrota y abandono deben informar cero recompensas");
 assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
@@ -260,7 +260,7 @@ assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), missi
 assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
 assert.match(battle, /masterIdForCharacter\(activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
-assert.match(battle, /criticalDamage - this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
+assert.match(battle, /criticalMultiplier: AFFINITY_CONFIG\.damage\.criticalMultiplier,[\s\S]*damageReduction: this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
 assert.doesNotMatch(battle, /companionAttack|Mika/, "El combate no debe conservar el acompañante de la campaña retirada");
 assert.match(battle, /results-headquarters/, "Resultados debe reutilizar un fondo del juego");
 assert.doesNotMatch(battle, /const halo =|add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");
