@@ -102,9 +102,9 @@ export const EQUIPMENT = {
 
 export const ENEMY_ACTIONS = {
   quick: { id: "quick", name: "Golpe rápido", damage: [9, 13], speedMod: 2, accuracyMod: 5, color: 0xff6b55 },
-  heavy: { id: "heavy", name: "Golpe pesado", damage: [15, 19], speedMod: -4, accuracyMod: -10, color: 0xff935c },
-  toxin: { id: "toxin", name: "Aguja tóxica", damage: [7, 10], speedMod: 5, accuracyMod: 0, color: 0xb58cff, status: { type: "poison", label: "VENENO", duration: 3, power: 3 } },
-  ember: { id: "ember", name: "Ascua errante", damage: [8, 12], speedMod: 0, accuracyMod: 2, color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 3 } }
+  heavy: { id: "heavy", name: "Golpe pesado", damage: [15, 19], speedMod: -4, accuracyMod: -10, preparation: true, color: 0xff935c },
+  toxin: { id: "toxin", name: "Aguja tóxica", damage: [7, 10], speedMod: 5, accuracyMod: 0, preparation: true, color: 0xb58cff, status: { type: "poison", label: "VENENO", duration: 3, power: 3 } },
+  ember: { id: "ember", name: "Ascua errante", damage: [8, 12], speedMod: 0, accuracyMod: 2, preparation: true, color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 3 } }
 };
 
 const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ health, strength, speed, chakra, luck });

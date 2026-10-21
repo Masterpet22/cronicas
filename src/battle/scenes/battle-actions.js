@@ -493,31 +493,29 @@ export class BattleActionMethods {
     return Math.random() * 100 < chance;
   }
 
-  async resolveEndRoundStatuses() {
-    const targets = [
-      { data: this.player, fighter: this.hero },
-      { data: this.enemy, fighter: this.foe }
-    ];
+  async resolveCombatantStatusTick(data, fighter) {
     let triggered = false;
-
-    for (const target of targets) {
-      const tick = resolveStatusTick(target.data.statuses);
-      for (const status of tick.damage) {
-        triggered = true;
-        const { amount, reaction } = this.loseHealth(target.data, target.fighter, status.power, { yOffset: -118 });
-        this.setMessage(`${status.label}: ${amount} de daño.`);
-        await Promise.all([
-          reaction,
-          this.delay(330)
-        ]);
-      }
-      target.data.statuses = tick.statuses;
+    const tick = resolveStatusTick(data.statuses);
+    for (const status of tick.damage) {
+      triggered = true;
+      const { amount, reaction } = this.loseHealth(data, fighter, status.power, { yOffset: -118 });
+      this.setMessage(`${status.label}: ${amount} de daño.`);
+      await Promise.all([
+        reaction,
+        this.delay(330)
+      ]);
     }
+    data.statuses = tick.statuses;
 
     if (triggered) {
       this.refreshHud();
       await this.delay(220);
     }
+  }
+
+  async resolveEndRoundStatuses() {
+    await this.resolveCombatantStatusTick(this.player, this.hero);
+    await this.resolveCombatantStatusTick(this.enemy, this.foe);
   }
 
   advanceCooldowns() {

@@ -1193,3 +1193,83 @@
   .location-dojo .dojo-tabs { grid-column: 1 / -1; }
   .location-dojo .skill-path { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+
+/* v0.68 · Escala tipográfica accesible para escritorio y tablet horizontal. */
+@media (min-width: 651px) {
+  :root {
+    --text-caption: max(.8125rem, 13px);
+    --text-control: max(.875rem, 14px);
+    --text-body: max(1rem, 16px);
+    font-size: clamp(16px, 1.25vw, 18px);
+  }
+
+  body { font-size: var(--text-body); }
+
+  main small,
+  main .eyebrow,
+  main .hint,
+  main .compact,
+  main .summary-item small,
+  main .campaign-summary > *,
+  main .map-label-box small,
+  main .saga-number,
+  main .saga-progress,
+  main .saga-next-note,
+  main .mission-card p,
+  main .archive-card small,
+  main .tree-legend,
+  main .skill-tree-heading p,
+  main .dojo-level,
+  main .dojo-equipped-count,
+  main .technique-affinity span,
+  main .technique-description,
+  main .technique-accuracy,
+  main .skill-branch > header strong,
+  main .skill-state,
+  main .attribute-reset,
+  main .stat-readout em,
+  main .mission-menu-item span,
+  main .secondary-mission-item span,
+  main .secondary-mission-item .mission-destination {
+    font-size: var(--text-caption) !important;
+    line-height: 1.35;
+  }
+
+  main button,
+  main input,
+  main select,
+  main textarea,
+  main label,
+  main .level-chip,
+  main .summary-item strong,
+  main .map-label-box strong,
+  main .stage-speaker,
+  main .stage-ambient strong,
+  main .saga-action,
+  main .dojo-tabs [role="tab"],
+  main .technique-metrics strong,
+  main .skill-step,
+  main .skill-copy strong,
+  main .dojo-attribute-actions > strong,
+  main .attribute-card header strong,
+  main .attribute-list.radar-controls strong,
+  main .mission-menu-item strong,
+  main .secondary-mission-item strong {
+    font-size: var(--text-control) !important;
+    line-height: 1.3;
+  }
+
+  .village-topbar {
+    width: min(720px, calc(100% - 210px));
+  }
+
+  .location-dojo .stage-options {
+    overflow-y: auto;
+  }
+
+  .location-dojo .technique-detail,
+  .location-dojo .skill-node,
+  .location-dojo .attribute-card {
+    overflow-wrap: anywhere;
+  }
+}

@@ -1563,7 +1563,7 @@ body:has(#game:not([hidden])) .game-heading {
   }
 }
 
-/* Unified desktop stage: every game screen shares the same 1440 × 810 frame. */
+/* Unified desktop stage: every game screen fills the viewport while preserving 16:9. */
 @media (min-width: 981px) {
   body {
     display: grid;
@@ -1574,7 +1574,7 @@ body:has(#game:not([hidden])) .game-heading {
 
   main,
   body:has(#meta:not([hidden])) main {
-    width: min(1440px, 100vw, calc(100dvh * 1.7777778));
+    width: min(100vw, calc(100dvh * 1.7777778));
     height: auto;
     max-height: 100dvh;
     aspect-ratio: 16 / 9;

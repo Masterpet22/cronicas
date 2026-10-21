@@ -30,7 +30,8 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 **Estado: completada.**
 
 - [x] Separar los sistemas de combate, interfaz, personajes y datos en módulos.
-- [x] Incorporar Guardia, velocidad por acción y enfriamientos visibles.
+- [x] Incorporar Guardia, enfriamientos visibles y una línea temporal real gobernada por la velocidad de cada combatiente.
+- [x] Reservar el 80–100 % de la línea temporal para preparar técnicas, con hitos visuales cada 20 % y reglas idénticas para jugador y enemigo.
 - [x] Añadir quemadura, aturdimiento, herida y veneno.
 - [x] Incorporar precisión, evasión y el estado Sellado con penalización de precisión.
 - [x] Evitar residuos de opacidad cuando coinciden varios impactos.

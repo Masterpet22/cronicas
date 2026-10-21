@@ -134,8 +134,9 @@ assert.match(missionInvestigation, /realClueCount = regions\.filter/, "Solo tres
 assert.match(missionInvestigation, /this\.game\.canvas\.parentElement[\s\S]*this\.game\.loop\.sleep\(\)[\s\S]*this\.game\.loop\.wake\(\)/, "La escena debe acceder a su contenedor y ciclo Phaser sin globals del entrypoint");
 assert.doesNotMatch(missionInvestigation, /gameRoot|(?<!this\.)game\?\./, "La investigación no debe usar referencias globales fuera del alcance de la escena");
 assert.doesNotMatch(missionInvestigation, /this\.add\.(?:image|polygon|rectangle|text)/, "La investigación no debe seguir renderizándose dentro de la escena de combate");
-assert.match(battle, /const elementalTechnique = !\["physical", "none"\]\.includes\(jutsu\.element\);[\s\S]*const enemyFirst = elementalTechnique;/, "Solo las técnicas elementales deben permitir que el rival actúe durante la preparación");
-assert.match(battle, /playTechniquePreparationNotice\(jutsu\.name\)[\s\S]*PREPARANDO TÉCNICA ELEMENTAL[\s\S]*El rival puede actuar mientras completas la preparación/, "La preparación elemental debe explicarse sin una iniciativa enemiga oculta");
+assert.match(battle, /this\.pendingActions\.player = jutsu;[\s\S]*actionNeedsPreparation\(jutsu\)/, "Las técnicas preparadas deben comprometerse en la línea temporal");
+assert.match(battle, /millisecondsToTimelineThreshold\(this\.timelineProgress\[actor\], speed, action\)/, "Cada combatiente debe calcular su siguiente llegada con su velocidad real");
+assert.match(battle, /this\.timelineProgress = \{ player: 0, enemy: 0 \}/, "La línea temporal debe mantener progreso independiente para ambos combatientes");
 assert.doesNotMatch(battle, /INICIATIVA ENEMIGA|playInitiativeNotice/, "El combate no debe recuperar el aviso impredecible de iniciativa enemiga");
 assert.match(battle, /playPrisonerChoice\(\)/, "El teniente derrotado debe abrir una decisión persistente");
 assert.match(battle, /playResourceChoice\(\)/, "La cuarta misión debe permitir descansar o conservar suministros");
@@ -185,7 +186,7 @@ assert.match(ui, /setOrigin\(0\.5\)/, "Los valores deben centrarse sobre ambos e
 assert.match(ui, /setDepth\(40\)/, "La zona interactiva de las acciones debe quedar por encima del escenario");
 assert.match(ui, /Adopta una postura defensiva/, "La guardia debe explicar su efecto dentro del tooltip");
 assert.match(ui, /Prec\./, "Las estadísticas de acción deben tener etiquetas comprensibles");
-assert.match(ui, /Preparación: rival primero/, "El tooltip debe anticipar que una técnica elemental deja actuar primero al rival");
+assert.match(ui, /Preparación: 80–100 %/, "El tooltip debe explicar el tramo real de preparación");
 assert.match(battle, /"VELOCIDAD"/, "La línea temporal inferior debe identificarse como velocidad");
 assert.match(battle, /button\.tooltip\.layer\.setVisible\(true\)/, "Los detalles deben aparecer al pasar el cursor");
 assert.match(battle, /this\.time\.delayedCall\(3200/, "Los detalles deben desaparecer aunque el cursor permanezca sobre la técnica");
@@ -205,8 +206,9 @@ assert.match(icons, /width: 128, height: 128/, "Los SVG deben rasterizarse con s
 assert.match(battle, /this\.playerTurnMarker = this\.add\.circle\(TIMELINE_START, trackY, 17/, "El marcador del jugador debe quedar centrado verticalmente en la barra");
 assert.match(battle, /this\.enemyTurnMarker = this\.add\.circle\(TIMELINE_START, trackY, 17/, "El marcador del rival debe comenzar a la izquierda de la barra");
 assert.match(battle, /this\.enemyTurnLetter = this\.add\.text\(TIMELINE_START, trackY, "R"/, "La etiqueta del rival debe comenzar junto a su marcador");
-assert.match(battle, /\[375, 475, 575, 675, 775, 875\]/, "Los chevrones deben repartirse por toda la barra de velocidad");
-assert.match(battle, /targets: \[this\.playerTurnMarker, this\.playerTurnLetter\], x: TIMELINE_END/, "El marcador del jugador debe recorrer la línea temporal");
+assert.match(battle, /timelineMilestones\(TIMELINE_START, TIMELINE_END\)\.forEach/, "Los chevrones deben marcar cada 20 % de la barra de velocidad");
+assert.match(battle, /const preparationStart = timelineMarkerPosition\(0\.8, TIMELINE_START, TIMELINE_END\)/, "El tramo final debe comenzar exactamente en el 80 %");
+assert.match(battle, /advanceTimelineProgress\(from\[actor\], speed, duration, action\)/, "Ambos marcadores deben avanzar con las mismas reglas de velocidad");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
 assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
 assert.match(html, /class="mobile-gate"/, "Las resoluciones de teléfono deben recibir una pantalla de próximamente");

@@ -3,7 +3,7 @@ import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.64.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.69.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -15,6 +15,7 @@ import { createEnemyState } from "../enemy-state.js?v=0.68.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
+import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
@@ -239,15 +240,20 @@ export class BattlePresentationMethods {
   createTurnTimeline() {
     this.timelineLayer = this.add.container(0, 0).setDepth(30);
     const trackY = 505;
+    const preparationStart = timelineMarkerPosition(0.8, TIMELINE_START, TIMELINE_END);
     const chrome = this.add.graphics();
     chrome.fillStyle(0x020914, 0.92);
     chrome.fillRoundedRect(184, 487, 752, 36, 12);
+    chrome.fillStyle(0xf0b85c, 0.1);
+    chrome.fillRect(preparationStart, 489, TIMELINE_END - preparationStart, 32);
     chrome.lineStyle(1.5, 0x4abce9, 0.72);
     chrome.strokeRoundedRect(184, 487, 752, 36, 12);
     chrome.lineStyle(2, 0x8bdcff, 0.46);
     chrome.lineBetween(TIMELINE_START, trackY, TIMELINE_END, trackY);
     chrome.lineStyle(1, 0xa9c8d9, 0.38);
-    [TIMELINE_START, 425, 540, 655, 770, TIMELINE_END].forEach((x) => chrome.lineBetween(x, trackY - 3, x, trackY + 3));
+    timelineMilestones(TIMELINE_START, TIMELINE_END).forEach((x) => chrome.lineBetween(x, trackY - 5, x, trackY + 5));
+    chrome.lineStyle(2, 0xf0b85c, 0.9);
+    chrome.lineBetween(preparationStart, trackY - 14, preparationStart, trackY + 14);
     const speedIcon = createUiIcon(this, "speed", 204, trackY, { size: 18, tint: 0x38caff, depth: 31 });
 
     const title = this.add.text(221, trackY, "VELOCIDAD", {
@@ -258,7 +264,7 @@ export class BattlePresentationMethods {
     }).setOrigin(0, 0.5);
     const chevrons = this.add.graphics();
     chevrons.lineStyle(2, 0x29c9ff, 0.62);
-    [375, 475, 575, 675, 775, 875].forEach((x) => {
+    timelineMilestones(TIMELINE_START, TIMELINE_END).forEach((x) => {
       [0, 7].forEach((offset) => {
         chevrons.beginPath();
         chevrons.moveTo(x + offset - 4, trackY - 4);
@@ -267,6 +273,12 @@ export class BattlePresentationMethods {
         chevrons.strokePath();
       });
     });
+    const preparationLabel = this.add.text((preparationStart + TIMELINE_END) / 2, trackY - 18, "PREPARACIÓN", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
+      fontSize: "9px",
+      color: "#f0c77c",
+      fontStyle: "bold"
+    }).setOrigin(0.5);
 
     this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x0c2b45, 1)
       .setStrokeStyle(3, 0x50d7ff, 1);
@@ -287,9 +299,16 @@ export class BattlePresentationMethods {
 
     this.timelineLayer.add([
       chrome, speedIcon, title, chevrons,
+      preparationLabel,
       this.playerTurnMarker, this.enemyTurnMarker,
       this.playerTurnLetter, this.enemyTurnLetter
     ]);
+    this.timelineProgress ||= { player: 0, enemy: 0 };
+    this.pendingActions ||= { player: null, enemy: null };
+    this.timelineRunToken = 0;
+    this.timelinePaused = true;
+    this.timelineTween = null;
+    this.updateTimelineMarkers();
   }
 
   createPauseButton() {
@@ -317,28 +336,128 @@ export class BattlePresentationMethods {
 
   startTurnCharge() {
     if (this.finished) return;
+    this.timelinePaused = false;
     this.turnReady = false;
-    this.busy = true;
+    this.busy = false;
     this.setButtonsEnabled(false);
-    const enemyTarget = Phaser.Math.Clamp(TIMELINE_START + 330 + (this.combatantSpeed(this.enemy) - this.combatantSpeed(this.player)) * 6, TIMELINE_START + 250, TIMELINE_END - 80);
-    this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: enemyTarget, duration: 950, ease: "Sine.out" });
-    this.tweens.add({
-      targets: [this.playerTurnMarker, this.playerTurnLetter], x: TIMELINE_END, duration: 1050, ease: "Sine.inOut",
+    this.runTurnTimeline();
+  }
+
+  async resetTurnTimeline() {
+    this.stopTurnTimeline();
+    this.timelinePaused = true;
+    this.turnReady = false;
+    this.setButtonsEnabled(false);
+    this.timelineProgress = { player: 0, enemy: 0 };
+    this.pendingActions = { player: null, enemy: null };
+    await new Promise((resolve) => this.tweens.add({
+      targets: [this.playerTurnMarker, this.playerTurnLetter, this.enemyTurnMarker, this.enemyTurnLetter],
+      x: TIMELINE_START,
+      duration: 330,
+      ease: "Cubic.inOut",
+      onComplete: resolve
+    }));
+  }
+
+  stopTurnTimeline() {
+    this.timelineRunToken = (this.timelineRunToken || 0) + 1;
+    if (this.timelineTween) {
+      this.timelineTween.remove();
+      this.timelineTween = null;
+    }
+  }
+
+  updateTimelineMarkers(progress = this.timelineProgress) {
+    if (!progress || !this.playerTurnMarker || !this.enemyTurnMarker) return;
+    const playerX = timelineMarkerPosition(progress.player, TIMELINE_START, TIMELINE_END);
+    const enemyX = timelineMarkerPosition(progress.enemy, TIMELINE_START, TIMELINE_END);
+    this.playerTurnMarker.setX(playerX);
+    this.playerTurnLetter.setX(playerX);
+    this.enemyTurnMarker.setX(enemyX);
+    this.enemyTurnLetter.setX(enemyX);
+  }
+
+  runTurnTimeline() {
+    if (this.finished || this.timelinePaused || this.busy || this.timelineTween) return;
+    const actors = ["player", "enemy"];
+    const timings = actors.map((actor) => {
+      const action = this.pendingActions[actor];
+      const speed = this.combatantSpeed(this[actor]);
+      return {
+        actor,
+        action,
+        speed,
+        duration: millisecondsToTimelineThreshold(this.timelineProgress[actor], speed, action)
+      };
+    });
+    const duration = Math.min(...timings.map((entry) => entry.duration));
+    const arrivals = timings.filter((entry) => Math.abs(entry.duration - duration) < 0.5);
+    if (duration <= 0) {
+      this.time.delayedCall(0, () => this.handleTimelineArrivals(arrivals));
+      return;
+    }
+
+    const from = { ...this.timelineProgress };
+    const to = Object.fromEntries(timings.map(({ actor, action, speed }) => [
+      actor,
+      advanceTimelineProgress(from[actor], speed, duration, action)
+    ]));
+    const clock = { value: 0 };
+    const token = ++this.timelineRunToken;
+    this.timelineTween = this.tweens.add({
+      targets: clock,
+      value: 1,
+      duration,
+      ease: "Linear",
+      onUpdate: () => this.updateTimelineMarkers({
+        player: Phaser.Math.Linear(from.player, to.player, clock.value),
+        enemy: Phaser.Math.Linear(from.enemy, to.enemy, clock.value)
+      }),
       onComplete: () => {
-        if (this.finished) return;
-        this.turnReady = true;
-        this.busy = false;
-        this.setButtonsEnabled(true);
-        this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter], scale: 1.22, duration: 170, yoyo: true, repeat: 1 });
+        if (token !== this.timelineRunToken || this.finished) return;
+        this.timelineTween = null;
+        this.timelineProgress = to;
+        this.updateTimelineMarkers();
+        this.handleTimelineArrivals(arrivals);
       }
     });
   }
 
-  async resetTurnTimeline() {
-    this.turnReady = false;
-    this.setButtonsEnabled(false);
-    this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter, this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_START, duration: 330, ease: "Cubic.inOut" });
-    await this.delay(360);
+  async handleTimelineArrivals(arrivals) {
+    if (this.finished || this.timelinePaused || this.busy) return;
+    const ordered = [...arrivals].sort((left, right) => {
+      const leftComplete = left.action ? 0 : left.actor === "enemy" ? 1 : 2;
+      const rightComplete = right.action ? 0 : right.actor === "enemy" ? 1 : 2;
+      if (leftComplete !== rightComplete) return leftComplete - rightComplete;
+      return left.actor === "player" ? -1 : 1;
+    });
+    const arrival = ordered[0];
+    if (!arrival) return;
+
+    if (arrival.action) {
+      await this.executeTimelineAction(arrival.actor, arrival.action);
+      return;
+    }
+
+    if (arrival.actor === "player") {
+      this.timelinePaused = true;
+      this.turnReady = true;
+      this.busy = false;
+      this.setButtonsEnabled(true);
+      this.setMessage("Tu iniciativa está lista. Elige una acción.", "#83d8ff");
+      this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter], scale: 1.22, duration: 170, yoyo: true, repeat: 1 });
+      return;
+    }
+
+    const action = this.chooseEnemyAction();
+    if (actionNeedsPreparation(action)) {
+      this.pendingActions.enemy = action;
+      this.setMessage(`${this.encounters[this.enemyIndex].name} prepara ${action.name}.`, "#f0c77c");
+      this.floatLabel(this.foe.body.x, this.foe.body.y - 165, `PREPARA: ${action.name.toUpperCase()}`, 0xf0b85c);
+      this.runTurnTimeline();
+      return;
+    }
+    await this.executeTimelineAction("enemy", action);
   }
 
   createFighters() {

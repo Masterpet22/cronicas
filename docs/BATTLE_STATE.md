@@ -1,13 +1,15 @@
 # Estado de BattleScene
 
-Fecha del inventario: 2026-10-19. La escena contenía 169 nombres accedidos mediante `this.*`; 68 de ellos reciben asignaciones directas. El resto son métodos propios o servicios que Phaser inyecta (`add`, `anims`, `cameras`, `children`, `events`, `input`, `load`, `scene`, `textures`, `time`, `tweens`).
+Fecha de actualización: 2026-10-21. El contrato separa los datos reanudables de las referencias y temporizadores propios de Phaser.
 
 ## Estado serializable
 
 `BattleState` es propiedad de la escena y contiene dos grupos planos:
 
 - Combatientes: `player`, `enemy`.
-- Sesión: `saveData`, `missionStartSave`, `mission`, `combatFeatures`, `encounterIds`, `encounters`, `enemyIndex`, `actions`, `cooldowns`, `round`, `defeatedEncounters`, `battleRewards`, `pendingEncounterRewards`, `rewardPreviewSave`, `fieldSupplies`, `nextRecovery`, `lastReward`, `missionReward`.
+- Sesión: `saveData`, `missionStartSave`, `mission`, `combatFeatures`, `encounterIds`, `encounters`, `enemyIndex`, `actions`, `cooldowns`, `round`, `timelineProgress`, `pendingActions`, `defeatedEncounters`, `battleRewards`, `pendingEncounterRewards`, `rewardPreviewSave`, `fieldSupplies`, `nextRecovery`, `lastReward`, `missionReward`.
+
+`timelineProgress` conserva por separado el avance normalizado de jugador y enemigo. `pendingActions` conserva la técnica elegida durante su recorrido de preparación entre 80 % y 100 %.
 
 Los accesores instalados por `bindBattleState` conservan temporalmente la API `this.player` / `this.mission` mientras los módulos de presentación se extraen. No duplican valores: leen y escriben directamente el objeto de estado.
 
@@ -23,7 +25,7 @@ No forman parte del estado serializable porque son objetos Phaser o nodos visual
 
 Permanecen en la escena porque describen una ejecución activa, no una partida reanudable:
 
-- Turno: `busy`, `finished`, `turnReady`.
+- Línea temporal: `busy`, `finished`, `turnReady`, `timelinePaused`, `timelineRunToken`, `timelineTween`.
 - Entrada: `manualSeals`, `onActionShortcut`, `onSealModeChange`, `seenJutsus`.
 - Presentación: `battleBackgroundKey`, `cameraEffects`, `flashEffects`, `hudTheme`, `lightMode`, `loadingHudTheme`, `musicEnabled`, `volume`, `audioContext`, `lastBattleMessage`.
 

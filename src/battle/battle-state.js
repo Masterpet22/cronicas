@@ -1,6 +1,7 @@
 export const SESSION_FIELDS = Object.freeze([
   "saveData", "missionStartSave", "mission", "combatFeatures",
   "encounterIds", "encounters", "enemyIndex", "actions", "cooldowns", "round",
+  "timelineProgress", "pendingActions",
   "defeatedEncounters", "battleRewards", "pendingEncounterRewards", "rewardPreviewSave",
   "fieldSupplies", "nextRecovery", "lastReward", "missionReward"
 ]);

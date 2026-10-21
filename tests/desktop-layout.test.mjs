@@ -6,7 +6,7 @@ const desktopCss = await readFile(new URL("../desktop.css", import.meta.url), "u
 const locationStageSource = await readFile(new URL("../src/ui/meta/location-stage.js", import.meta.url), "utf8");
 
 assert.match(css, /@media \(min-width: 981px\)/, "El escenario unificado debe limitarse a la versión de escritorio");
-assert.match(css, /width: min\(1440px, 100vw, calc\(100dvh \* 1\.7777778\)\)/, "El escenario debe usar 1440 px como ancho lógico máximo");
+assert.match(css, /width: min\(100vw, calc\(100dvh \* 1\.7777778\)\)/, "El escenario debe aprovechar todo el viewport sin abandonar la proporción 16:9");
 assert.match(css, /aspect-ratio: 16 \/ 9/, "Todas las vistas deben conservar la proporción 16:9");
 assert.match(css, /\.village-shell,[\s\S]*\.location-stage \{[\s\S]*height: 100%/, "Las vistas de aldea deben llenar el escenario común");
 assert.match(css, /#game canvas \{[\s\S]*height: 100% !important/, "El combate debe llenar el mismo escenario");
@@ -19,6 +19,9 @@ assert.match(desktopCss, /\.dojo-tabs/, "El Dojo debe dividir la configuración 
 assert.match(locationStageSource, /locationId === ["']dojo["'] \|\| deps\.introducedViews\.has\(locationId\)/, "El Dojo debe mostrar su configuración también en la primera visita");
 assert.match(desktopCss, /\.location-dojo \.skill-path \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)[\s\S]*overflow: visible/, "El árbol del Dojo debe distribuir técnicas en filas sin desplazamiento horizontal");
 assert.match(desktopCss, /font-size: max\(\.75rem, 12px\)/, "La información útil debe conservar un suelo de 12 px");
+assert.match(desktopCss, /--text-caption: max\(\.8125rem, 13px\)/, "El texto auxiliar visible debe conservar un suelo accesible de 13 px");
+assert.match(desktopCss, /--text-control: max\(\.875rem, 14px\)/, "Los controles deben conservar un suelo legible de 14 px");
+assert.match(desktopCss, /font-size: clamp\(16px, 1\.25vw, 18px\)/, "La escala base debe adaptarse entre 16 y 18 px");
 assert.match(desktopCss, /\.archive-card li \{[\s\S]*background: transparent/, "El archivo debe usar filas y divisores en lugar de cajas marrones");
 assert.match(desktopCss, /\.stage-speech,[\s\S]*rgba\(7, 20, 36, \.98\)/, "Los diálogos deben usar una superficie oscura de alto contraste");
 assert.match(desktopCss, /\.equipment-modal \{[\s\S]*rgba\(1, 5, 12, \.86\)/, "El modal debe usar un velo azul-negro en lugar de marrón");

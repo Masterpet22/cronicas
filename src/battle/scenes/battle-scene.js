@@ -1,4 +1,4 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
@@ -19,10 +19,10 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.68.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.68.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.68.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.68.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.69.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.69.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.69.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.69.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 
 export class BattleScene extends Phaser.Scene {
@@ -126,6 +126,8 @@ export class BattleScene extends Phaser.Scene {
     this.round = 1;
     this.busy = true;
     this.turnReady = false;
+    this.timelineProgress = { player: 0, enemy: 0 };
+    this.pendingActions = { player: null, enemy: null };
     this.finished = false;
     this.defeatedEncounters = 0;
     this.battleRewards = emptyBattleRewards();
@@ -148,6 +150,7 @@ export class BattleScene extends Phaser.Scene {
     }
     this.createActionPanel();
     this.createTurnTimeline();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.stopTurnTimeline?.());
     this.createPauseButton();
     this.startMusic();
     if (this.combatFeatures.tutorial && !this.saveData.campaign.completedMissions.includes(this.mission.id)) {

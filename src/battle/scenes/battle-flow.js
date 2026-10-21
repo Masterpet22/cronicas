@@ -1,4 +1,4 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
@@ -15,6 +15,7 @@ import { createEnemyState } from "../enemy-state.js?v=0.68.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
+import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
@@ -22,6 +23,10 @@ import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, 
 export class BattleFlowMethods {
   async useJutsu(jutsu) {
     if (this.busy || this.finished || !this.turnReady) return;
+    if (jutsu.type === "guard" && this.player.guarding) {
+      this.setMessage("La Guardia ya está preparada.", "#f0c77c");
+      return;
+    }
     if (this.cooldowns[jutsu.id] > 0) {
       this.setMessage(`${jutsu.name} sigue en enfriamiento.`, "#ff9d8d");
       return;
@@ -35,77 +40,64 @@ export class BattleFlowMethods {
 
     this.busy = true;
     this.turnReady = false;
+    this.timelinePaused = true;
     this.player.chakra -= cost;
     if (jutsu.cooldown) this.cooldowns[jutsu.id] = jutsu.cooldown + 1;
+    this.pendingActions.player = jutsu;
     this.refreshHud();
     this.setButtonsEnabled(false);
-    const elementalTechnique = !["physical", "none"].includes(jutsu.element);
-    this.setMessage(
-      elementalTechnique
-        ? `Preparando la técnica elemental ${jutsu.name}...`
-        : jutsu.type === "guard"
-          ? `Adoptando ${jutsu.name}...`
-          : `Ejecutando ${jutsu.name}...`,
-    );
-
-    const casting = jutsu.seals.length ? await this.playSeals(jutsu) : { mistakes: 0, multiplier: 1 };
-    const enemyAction = this.chooseEnemyAction();
-    const enemyFirst = elementalTechnique;
-
-    if (enemyFirst) {
-      this.setMessage(`Preparando ${jutsu.name}: el rival puede actuar mientras completas la técnica elemental.`);
-      this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_END - 20, duration: 260, ease: "Cubic.out" });
-      await this.playTechniquePreparationNotice(jutsu.name);
-      await this.executeEnemyAction(enemyAction);
-      if (this.player.hp <= 0) return this.finishBattle(false);
-      if (this.enemy.hp <= 0 && await this.resolveEnemyOutcome()) return;
+    if (actionNeedsPreparation(jutsu)) {
+      this.setMessage(`Preparando ${jutsu.name}: debe recorrer el tramo final de la barra.`, "#f0c77c");
+      this.busy = false;
+      this.timelinePaused = false;
+      this.startTurnCharge();
+      return;
     }
-
-    if (jutsu.type === "guard") await this.playerGuard();
-    else await this.playerAttack(jutsu, casting);
-    this.finishCombatantTurn(this.player);
-
-    if (await this.resolveEnemyOutcome()) return;
-    if (this.player.hp <= 0) return this.finishBattle(false);
-
-    if (!enemyFirst) {
-      await this.delay(420);
-      this.tweens.add({ targets: [this.enemyTurnMarker, this.enemyTurnLetter], x: TIMELINE_END - 20, duration: 260, ease: "Cubic.out" });
-      await this.executeEnemyAction(enemyAction);
-      if (this.player.hp <= 0) return this.finishBattle(false);
-    }
-
-    await this.resolveEndRoundStatuses();
-    if (await this.resolveEnemyOutcome()) return;
-    if (this.player.hp <= 0) return this.finishBattle(false);
-
-    this.clearGuard();
-    this.advanceCooldowns();
-    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 8);
-    this.round += 1;
-    this.refreshHud();
-
-    await this.resetTurnTimeline();
-    this.startTurnCharge();
+    await this.executeTimelineAction("player", jutsu);
   }
 
-  async playTechniquePreparationNotice(techniqueName) {
-    const layer = [];
-    const add = (item) => { layer.push(item); return item; };
-    add(this.add.rectangle(WIDTH / 2, 246, 460, 92, 0x020914, 0.9)
-      .setStrokeStyle(2, 0xf0b85c, 0.9).setDepth(58).setAlpha(0).setScale(0.96));
-    add(this.add.rectangle(WIDTH / 2 - 220, 246, 5, 92, 0xf0b85c, 1)
-      .setDepth(59).setAlpha(0));
-    add(this.add.text(WIDTH / 2, 226, "PREPARANDO TÉCNICA ELEMENTAL", this.textStyle(15, "#f0c77c", "800", true))
-      .setOrigin(0.5).setDepth(60).setAlpha(0));
-    add(this.add.text(WIDTH / 2, 254, techniqueName, this.textStyle(13, "#f5f0e8", "800"))
-      .setOrigin(0.5).setDepth(60).setAlpha(0));
-    add(this.add.text(WIDTH / 2, 278, "El rival puede actuar mientras completas la preparación.", this.textStyle(10, "#b9c8d4", "700"))
-      .setOrigin(0.5).setDepth(60).setAlpha(0));
-    await this.tween({ targets: layer, alpha: 1, scaleX: 1, scaleY: 1, duration: 180, ease: "Back.out" });
-    await this.delay(620);
-    await this.tween({ targets: layer, alpha: 0, y: "-=8", duration: 170, ease: "Sine.in" });
-    layer.forEach((item) => item.destroy());
+  async executeTimelineAction(actor, action) {
+    if (this.finished) return;
+    this.stopTurnTimeline();
+    this.timelinePaused = true;
+    this.busy = true;
+    this.turnReady = false;
+    this.setButtonsEnabled(false);
+
+    if (actor === "player") {
+      const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
+      if (action.type === "guard") await this.playerGuard();
+      else await this.playerAttack(action, casting);
+      this.finishCombatantTurn(this.player);
+      this.pendingActions.player = null;
+      this.timelineProgress.player = 0;
+      this.updateTimelineMarkers();
+
+      if (await this.resolveEnemyOutcome()) return;
+      await this.resolveCombatantStatusTick(this.player, this.hero);
+      if (this.player.hp <= 0) return this.finishBattle(false);
+      if (await this.resolveEnemyOutcome()) return;
+
+      this.advanceCooldowns();
+      this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 8);
+      this.round += 1;
+    } else {
+      await this.executeEnemyAction(action);
+      if (this.player.guarding) this.clearGuard();
+      this.pendingActions.enemy = null;
+      this.timelineProgress.enemy = 0;
+      this.updateTimelineMarkers();
+
+      if (this.player.hp <= 0) return this.finishBattle(false);
+      await this.resolveCombatantStatusTick(this.enemy, this.foe);
+      if (await this.resolveEnemyOutcome()) return;
+    }
+
+    this.refreshHud();
+    if (this.finished) return;
+    this.busy = false;
+    this.timelinePaused = false;
+    this.startTurnCharge();
   }
 
   async resolveEnemyOutcome() {
@@ -204,7 +196,7 @@ export class BattleFlowMethods {
     await this.delay(620);
     await this.resetTurnTimeline();
     const tutorialMessages = [
-      "Observa la barra de velocidad: ambos marcadores parten a la izquierda y avanzan al iniciar el turno.",
+      "Observa la barra de velocidad: cada marcador avanza según la velocidad del combatiente; al 80 % se puede elegir una acción.",
       "Prueba Guardia para reducir el próximo impacto y recuperar chakra.",
       "Combina lo aprendido: lee el ritmo, administra chakra y usa una técnica elemental."
     ];
@@ -247,7 +239,7 @@ export class BattleFlowMethods {
     await this.playBattleChoice("TUTORIAL DE COMBATE", this.missionSceneText("combat-tutorial", { master: masterName }), [
       { value: "continue", label: "COMENZAR ENTRENAMIENTO", detail: "Primer objetivo: elige Golpe veloz o una técnica elemental.", primary: true }
     ]);
-    this.setMessage("Elige una acción. Mantén el cursor sobre ella para consultar coste, daño y velocidad.", "#83d8ff");
+    this.setMessage("Espera a alcanzar el 80 % y elige una acción. Las técnicas recorren el tramo final de preparación.", "#83d8ff");
   }
 
   async playResourceChoice() {

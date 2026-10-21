@@ -49,8 +49,10 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Desactiva **Sellos manuales** sobre el juego para ejecutar las secuencias automáticamente; la preferencia queda guardada en el navegador.
 - El modo manual no tiene límite de tiempo. Las técnicas ya vistas reproducen sus sellos más rápidamente.
 - Puedes regular el volumen y desactivar el movimiento de cámara o los destellos.
-- Los jutsus consumen chakra; el personaje recupera 8 puntos al terminar cada ronda.
-- La velocidad de la acción decide quién actúa primero en cada ronda.
+- Los jutsus consumen chakra; el personaje recupera 8 puntos al completar una acción propia.
+- Jugador y enemigo avanzan de forma independiente por una línea temporal según su velocidad efectiva.
+- Al llegar al 80 % se habilita la acción; las técnicas con preparación recorren el tramo 80–100 % mientras el rival sigue avanzando.
+- La elección del jugador usa modo de espera: la línea temporal se pausa en el 80 % y vuelve a correr al confirmar la acción.
 - **Guardia** recupera 12 puntos de chakra y reduce el siguiente impacto un 50 %.
 - Los jutsus tienen enfriamientos visibles y no pueden repetirse continuamente.
 - Fuego causa quemadura, viento abre una herida y relámpago aturde; el enemigo puede aplicar veneno.

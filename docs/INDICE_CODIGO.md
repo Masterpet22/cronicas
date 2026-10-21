@@ -43,6 +43,7 @@ index.html
 - `runtime.js`: instancia Phaser y recursos compartidos.
 - `battle-state.js`: contrato serializable del estado de escena.
 - `damage.js`, `turn.js`, `enemy-state.js`, `rewards.js`: reglas puras separadas de Phaser.
+- `timeline.js`: avance normalizado, umbrales 80/100, velocidad efectiva, hitos y posición de marcadores.
 - `install-battle-methods.js`: compone los métodos de `BattleScene` por área de responsabilidad.
 
 ## Módulos de `src`

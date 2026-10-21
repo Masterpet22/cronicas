@@ -3,7 +3,7 @@ import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.64.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.69.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -107,6 +107,8 @@ export class BattleFeedbackMethods {
   }
 
   async finishBattle(won) {
+    this.stopTurnTimeline?.();
+    this.timelinePaused = true;
     const routeFailureStats = !won && this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     if (!won) {
       this.missionStartSave.bestiary = this.saveData.bestiary;
@@ -170,9 +172,10 @@ export class BattleFeedbackMethods {
       const { jutsu } = button;
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
-      const available = enabled && this.turnReady && affordable && cooldown === 0;
+      const guardAvailable = jutsu.type !== "guard" || !this.player.guarding;
+      const available = enabled && this.turnReady && affordable && cooldown === 0 && guardAvailable;
       button.available = available;
-      const visualAlpha = available ? 1 : affordable && cooldown === 0 ? 0.76 : 0.42;
+      const visualAlpha = available ? 1 : affordable && cooldown === 0 && guardAvailable ? 0.76 : 0.42;
       button.visualParts.forEach((part) => part.setAlpha(visualAlpha));
 
       const [baseCost, damage, timing] = actionLines(jutsu);

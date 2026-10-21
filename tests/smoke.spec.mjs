@@ -178,6 +178,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
 });
 
 test("la primera visita al dojo muestra la configuración sin quedar bloqueada", async ({ page }) => {
+  await page.setViewportSize({ width: 1360, height: 748 });
   await page.addInitScript(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -192,6 +193,25 @@ test("la primera visita al dojo muestra la configuración sin quedar bloqueada",
   await expect(page.locator(".dojo-layout")).toBeVisible();
   await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
   await expect(page.locator("[data-reset-attributes]")).toBeDisabled();
+
+  const undersizedText = await page.locator("#meta").evaluate((root) => [...root.querySelectorAll("*")]
+    .filter((element) => {
+      const style = getComputedStyle(element);
+      const box = element.getBoundingClientRect();
+      const hasOwnText = [...element.childNodes].some((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+      return hasOwnText
+        && style.visibility !== "hidden"
+        && style.display !== "none"
+        && box.width > 1
+        && box.height > 1
+        && Number.parseFloat(style.fontSize) < 13;
+    })
+    .map((element) => ({
+      element: `${element.tagName.toLowerCase()}.${element.className}`,
+      fontSize: getComputedStyle(element).fontSize,
+      text: element.textContent.trim().slice(0, 60)
+    })));
+  expect(undersizedText, "El HUD y el Dojo no deben mostrar texto menor de 13 px").toEqual([]);
 });
 
 for (const mission of [

@@ -1,6 +1,6 @@
 import { mountMetaUI } from "./src/meta-ui.js?v=0.67.2";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.66.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.68.0";
+import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.69.0";
 import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.68.0";
 import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.68.0";
 import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.68.0";
