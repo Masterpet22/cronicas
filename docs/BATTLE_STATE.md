@@ -19,7 +19,7 @@ No forman parte del estado serializable porque son objetos Phaser o nodos visual
 
 - Combatientes renderizados: `hero`, `foe`.
 - HUD: `arenaLabel`, `buttons`, `chakraBar`, `enemyChakraBar`, `enemyChakraLock`, `enemyHpBar`, `enemyName`, `enemyRankNumber`, `enemyRankStar`, `enemyTurnLetter`, `enemyTurnMarker`, `hudBarCenters`, `hudFrames`, `pauseButton`, `playerHpBar`, `playerName`, `playerRankNumber`, `playerRankStar`, `playerTurnLetter`, `playerTurnMarker`, `sealLayer`, `sealPrompt`, `timelineLayer`.
-- Efectos: `bossAura`, `epilogueBackground`, `guardAura`, `raizenDefenseAura`, `musicEvent`.
+- Efectos: `bossPhaseSilhouette`, `epilogueBackground`, `guardAura`, `preparationFeedback`, `raizenDefenseAura`, `musicEvent`. `bossPhaseSilhouette` y `preparationFeedback` solo contienen referencias visuales y emisores activos; nunca alteran las reglas ni se serializan.
 
 ## Temporizadores, opciones y banderas de ejecución
 

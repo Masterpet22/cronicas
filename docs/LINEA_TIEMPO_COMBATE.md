@@ -47,6 +47,14 @@ Durante 80–100 %, la preparación usa `velocidad_efectiva + speedMod` de la ac
 - Guardia permanece activa hasta consumir el siguiente ataque enemigo. Mientras siga activa no puede prepararse otra Guardia.
 - `round` se mantiene como contador interno de acciones del jugador para compatibilidad e informes; ya no gobierna la iniciativa.
 
+## Lenguaje visual
+
+- Cada combatiente se representa mediante una cresta ilustrada, no con círculos ni partículas geométricas. El color distingue jugador y rival; dorado indica que alcanzó el 80 %.
+- Al llegar al 80 % aparece una sola pincelada breve detrás del marcador. No deja estela ni mantiene objetos animados sobre la barra.
+- Durante 80–100 %, una técnica preparada cambia la postura de la marioneta, eleva el brazo que cruza el torso al plano frontal y muestra cintas caligráficas acompañadas por emisores reales de motas alrededor de ambas manos. Todo desaparece al ejecutar o cancelar la acción.
+- La fase II del jefe se comunica mediante una silueta violeta que copia en cada fotograma las piezas y articulaciones del rival. No existe un modo furia visual independiente ni se dibuja un círculo alrededor del cuerpo.
+- El modo ligero conserva la postura, la profundidad anatómica y el estado de los marcadores, pero omite pinceladas, cintas y partículas de preparación.
+
 ## Implementación
 
-Las fórmulas puras viven en `src/battle/timeline.js`. La presentación y el planificador viven en `src/battle/scenes/battle-presentation.js`; el compromiso y la resolución de acciones, en `src/battle/scenes/battle-flow.js`.
+Las fórmulas puras viven en `src/battle/timeline.js`. La presentación y el planificador viven en `src/battle/scenes/battle-presentation.js`; el compromiso y la resolución de acciones, en `src/battle/scenes/battle-flow.js`. Los PNG transparentes del lenguaje visual viven en `assets/vfx/feedback/` y su procedencia está documentada en el README de esa carpeta.

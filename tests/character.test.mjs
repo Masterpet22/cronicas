@@ -23,7 +23,7 @@ import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "..
 import { PuppetAnimationController } from "../src/animations/controller.js";
 import { validateAnimationCatalog } from "../src/animations/schema.js";
 import { animationClipDuration, sampleAnimationPose } from "../src/animations/runtime.js";
-import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerRunning } from "../src/fighters.js";
+import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -83,6 +83,7 @@ assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold"
 assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy", "hit-light-simple", "hit-heavy-simple"]);
 assert.deepEqual(animationClipList("locomoción").map(({ id }) => id), ["run-cycle", "run-simple"]);
 assert.deepEqual(animationClipList("ataque").map(({ id }) => id), ["punch-prepare", "punch-release", "punch-recover"]);
+assert.deepEqual(animationClipList("acción").map(({ id }) => id), ["prepare-technique"], "La preparación temporal debe usar una pose declarativa propia");
 assert.equal(PUPPET_ANIMATION_CLIPS["punch-prepare"].restore, false, "La preparación debe conservar su pose hasta la fase de impacto");
 assert.equal(PUPPET_ANIMATION_CLIPS["punch-release"].restore, false, "El impacto debe conservar su pose hasta la recuperación");
 assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ status }) => status === "integrated"), "Los clips ofrecidos como listos deben estar integrados");
@@ -95,8 +96,41 @@ assert.ok(PUPPET_ANIMATION_CLIPS["guard-hold"].tracks.some(({ target }) => targe
 assert.ok(PUPPET_ANIMATION_CLIPS["guard-hold"].tracks.every(({ target }) => !target.endsWith("Left")), "La guardia debe usar solo el brazo delantero derecho");
 assert.equal(typeof startPlayerGuard, "function");
 assert.equal(typeof stopPlayerGuard, "function");
+assert.equal(typeof startPlayerPreparing, "function");
+assert.equal(typeof stopPlayerPreparing, "function");
 assert.equal(typeof playPlayerDamageReaction, "function");
 assert.equal(playPlayerDamageReaction, playFighterDamageReaction, "El alias anterior debe conservar compatibilidad con llamadas existentes");
+
+const rearArmBranch = {};
+const rearLegBranch = {};
+const preparationTorso = {};
+const preparationRig = {
+  children: [rearArmBranch, rearLegBranch, preparationTorso],
+  getIndex(child) { return this.children.indexOf(child); },
+  moveTo(child, index) {
+    this.children.splice(this.children.indexOf(child), 1);
+    this.children.splice(index, 0, child);
+  }
+};
+const preparationAnimations = {
+  state: "idle",
+  clipId: DEFAULT_IDLE_CLIP,
+  tweens: [],
+  supports() { return true; },
+  stop() { this.state = null; this.clipId = null; },
+  loop(id) { this.clipId = id; this.state = id.startsWith("idle") ? "idle" : "action"; return true; }
+};
+const preparationFighter = {
+  rig: preparationRig,
+  sprite: preparationTorso,
+  joints: { shoulderLeft: rearArmBranch },
+  animations: preparationAnimations,
+  breathingTweens: []
+};
+startPlayerPreparing({}, preparationFighter);
+assert.ok(preparationRig.getIndex(rearArmBranch) > preparationRig.getIndex(preparationTorso), "La mano trasera debe pasar al frente mientras cruza el torso");
+stopPlayerPreparing({}, preparationFighter);
+assert.equal(preparationRig.getIndex(rearArmBranch), 0, "La jerarquía anatómica original debe restaurarse al terminar la preparación");
 
 const controllerTarget = () => ({ x: 0, y: 0, angle: 0, scaleX: 1, scaleY: 1, alpha: 1 });
 const controllerConfigs = [];

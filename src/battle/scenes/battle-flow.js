@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.71.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.64.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -47,6 +47,7 @@ export class BattleFlowMethods {
     this.refreshHud();
     this.setButtonsEnabled(false);
     if (actionNeedsPreparation(jutsu)) {
+      this.showPreparationFeedback("player", jutsu);
       this.setMessage(`Preparando ${jutsu.name}: debe recorrer el tramo final de la barra.`, "#f0c77c");
       this.busy = false;
       this.timelinePaused = false;
@@ -58,6 +59,7 @@ export class BattleFlowMethods {
 
   async executeTimelineAction(actor, action) {
     if (this.finished) return;
+    this.clearPreparationFeedback(actor);
     this.stopTurnTimeline();
     this.timelinePaused = true;
     this.busy = true;
@@ -71,6 +73,7 @@ export class BattleFlowMethods {
       this.finishCombatantTurn(this.player);
       this.pendingActions.player = null;
       this.timelineProgress.player = 0;
+      this.setTimelineMarkerState("player", "charging");
       this.updateTimelineMarkers();
 
       if (await this.resolveEnemyOutcome()) return;
@@ -86,6 +89,7 @@ export class BattleFlowMethods {
       if (this.player.guarding) this.clearGuard();
       this.pendingActions.enemy = null;
       this.timelineProgress.enemy = 0;
+      this.setTimelineMarkerState("enemy", "charging");
       this.updateTimelineMarkers();
 
       if (this.player.hp <= 0) return this.finishBattle(false);
@@ -103,6 +107,7 @@ export class BattleFlowMethods {
   async resolveEnemyOutcome() {
     const profile = this.encounters[this.enemyIndex];
     if (this.enemy.hp <= 0) {
+      this.clearPreparationFeedback("enemy");
       this.recordEnemyObservation({ defeated: true });
       if (this.mission.type === "route-combat") {
         this.defeatedEncounters += 1;
@@ -166,6 +171,7 @@ export class BattleFlowMethods {
     this.stopFighterFlash(this.foe);
     this.tweens.add({ targets: [...this.foe.targets, this.foe.shadow], alpha: 0, x: "+=70", duration: 480 });
     await this.delay(560);
+    this.clearBossPhaseSilhouette?.();
     destroyFighter(this.foe);
 
     if (interlude) await interlude();
@@ -434,9 +440,7 @@ export class BattleFlowMethods {
     this.enemy.evasion = this.combatantEvasion(this.enemy);
     this.enemyName.setText(`${profile.name} · FASE II`);
     this.setMessage(bossPhaseMessage(this.mission), "#d6a5ff");
-    this.bossAura = this.add.circle(this.foe.body.x, this.foe.body.y - 20, 82, 0x9a55df, 0.12)
-      .setStrokeStyle(5, 0xb879ff, 0.72).setDepth(7);
-    this.tweens.add({ targets: this.bossAura, scale: 1.1, alpha: 0.3, duration: 600, yoyo: true, repeat: -1 });
+    this.showBossPhaseSilhouette(this.foe);
     this.screenFlash(220, 130, 55, 180);
     this.tone(95, 0.35);
     this.refreshHud();

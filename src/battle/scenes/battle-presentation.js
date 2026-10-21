@@ -1,7 +1,6 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.71.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.69.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -280,10 +279,10 @@ export class BattlePresentationMethods {
       fontStyle: "bold"
     }).setOrigin(0.5);
 
-    this.playerTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x0c2b45, 1)
-      .setStrokeStyle(3, 0x50d7ff, 1);
-    this.enemyTurnMarker = this.add.circle(TIMELINE_START, trackY, 17, 0x45131b, 1)
-      .setStrokeStyle(3, 0xff5668, 1);
+    this.playerTurnMarker = this.add.image(TIMELINE_START, trackY, "timeline-crest")
+      .setDisplaySize(38, 37).setTint(0x50d7ff);
+    this.enemyTurnMarker = this.add.image(TIMELINE_START, trackY, "timeline-crest")
+      .setDisplaySize(38, 37).setTint(0xff5668).setFlipX(true);
     this.playerTurnLetter = this.add.text(TIMELINE_START, trackY, "TÚ", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "9px",
@@ -308,7 +307,10 @@ export class BattlePresentationMethods {
     this.timelineRunToken = 0;
     this.timelinePaused = true;
     this.timelineTween = null;
+    this.preparationFeedback = { player: null, enemy: null };
     this.updateTimelineMarkers();
+    this.setTimelineMarkerState("player", "charging");
+    this.setTimelineMarkerState("enemy", "charging");
   }
 
   createPauseButton() {
@@ -345,11 +347,15 @@ export class BattlePresentationMethods {
 
   async resetTurnTimeline() {
     this.stopTurnTimeline();
+    this.clearPreparationFeedback("player");
+    this.clearPreparationFeedback("enemy");
     this.timelinePaused = true;
     this.turnReady = false;
     this.setButtonsEnabled(false);
     this.timelineProgress = { player: 0, enemy: 0 };
     this.pendingActions = { player: null, enemy: null };
+    this.setTimelineMarkerState("player", "charging");
+    this.setTimelineMarkerState("enemy", "charging");
     await new Promise((resolve) => this.tweens.add({
       targets: [this.playerTurnMarker, this.playerTurnLetter, this.enemyTurnMarker, this.enemyTurnLetter],
       x: TIMELINE_START,
@@ -375,6 +381,137 @@ export class BattlePresentationMethods {
     this.playerTurnLetter.setX(playerX);
     this.enemyTurnMarker.setX(enemyX);
     this.enemyTurnLetter.setX(enemyX);
+  }
+
+  setTimelineMarkerState(actor, state, action = null) {
+    const marker = actor === "player" ? this.playerTurnMarker : this.enemyTurnMarker;
+    const letter = actor === "player" ? this.playerTurnLetter : this.enemyTurnLetter;
+    if (!marker || !letter) return;
+    const baseColor = actor === "player" ? 0x50d7ff : 0xff5668;
+    const color = state === "ready" ? 0xf0c77c : state === "preparing" ? action?.color || 0xf0b85c : baseColor;
+    marker.setTint(color).setAlpha(state === "charging" ? 0.82 : 1).setAngle(state === "ready" ? 45 : 0);
+    letter.setColor(state === "ready" ? "#ffe4a6" : "#fff4df");
+  }
+
+  playTimelineReadyBrush(actor) {
+    if (this.lightMode) return;
+    const marker = actor === "player" ? this.playerTurnMarker : this.enemyTurnMarker;
+    const color = actor === "player" ? 0x50d7ff : 0xff5668;
+    const brush = this.add.image(marker.x, marker.y, "timeline-ready-brush")
+      .setDisplaySize(104, 42)
+      .setTint(color)
+      .setAlpha(0)
+      .setDepth(31);
+    const targetScaleX = brush.scaleX;
+    const targetScaleY = brush.scaleY;
+    brush.setScale(targetScaleX * 0.55, targetScaleY * 0.72);
+    this.tweens.add({
+      targets: brush,
+      alpha: 0.86,
+      scaleX: targetScaleX,
+      scaleY: targetScaleY,
+      duration: 125,
+      yoyo: true,
+      hold: 55,
+      ease: "Quad.out",
+      onComplete: () => brush.destroy()
+    });
+  }
+
+  showPreparationFeedback(actor, action) {
+    this.clearPreparationFeedback(actor);
+    const fighter = actor === "player" ? this.hero : this.foe;
+    if (!fighter?.body || !action) return;
+    startPlayerPreparing(this, fighter);
+    this.setTimelineMarkerState(actor, "preparing", action);
+    if (this.lightMode) return;
+    const ribbon = this.add.image(0, -58, "preparation-ribbons")
+      .setDisplaySize(116, 70)
+      .setTint(action.color || 0xf0b85c)
+      .setAlpha(0);
+    fighter.body.addAt(ribbon, 0);
+    const targetScaleX = ribbon.scaleX;
+    const targetScaleY = ribbon.scaleY;
+    ribbon.setScale(targetScaleX * 0.72, targetScaleY * 0.72);
+    const particleFeedback = this.createPreparationParticles(fighter, action);
+    const feedback = { ribbon, ...particleFeedback };
+    this.preparationFeedback[actor] = feedback;
+    this.tweens.add({
+      targets: ribbon,
+      alpha: 0.62,
+      scaleX: targetScaleX,
+      scaleY: targetScaleY,
+      duration: 170,
+      ease: "Back.out",
+      onComplete: () => {
+        if (this.preparationFeedback[actor] !== feedback || !ribbon.active) return;
+        this.tweens.add({ targets: ribbon, alpha: 0.46, angle: actor === "player" ? 3 : -3, duration: 310, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+      }
+    });
+  }
+
+  createPreparationParticles(fighter, action) {
+    const hands = fighter.layers?.filter(({ name }) => name === "mano_derecha" || name === "mano_izquierda") || [];
+    const emitters = hands.map(() => this.add.particles(0, 0, "preparation-mote", {
+      lifespan: { min: 420, max: 720 },
+      frequency: 105,
+      quantity: 1,
+      maxParticles: 8,
+      speed: { min: 8, max: 23 },
+      angle: { min: 248, max: 292 },
+      accelerationY: -12,
+      scale: { start: 0.26, end: 0.04 },
+      alpha: { start: 0.8, end: 0 },
+      rotate: { min: -35, max: 35 },
+      tint: action.color || 0xf0b85c,
+      blendMode: "ADD"
+    }).setDepth(8));
+    const sync = () => {
+      hands.forEach((hand, index) => {
+        if (!hand?.active || !emitters[index]?.active) return;
+        const pose = hand.getWorldTransformMatrix().decomposeMatrix();
+        emitters[index].setPosition(pose.translateX, pose.translateY);
+      });
+    };
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, sync);
+    sync();
+    return { emitters, particleSync: sync };
+  }
+
+  destroyPreparationVisual(actor) {
+    const feedback = this.preparationFeedback?.[actor];
+    if (!feedback) return;
+    if (feedback.particleSync) this.events.off(Phaser.Scenes.Events.POST_UPDATE, feedback.particleSync);
+    if (feedback.ribbon?.active) {
+      this.tweens.killTweensOf(feedback.ribbon);
+      feedback.ribbon.destroy();
+    }
+    feedback.emitters?.forEach((emitter) => {
+      if (!emitter?.active) return;
+      emitter.stop();
+      emitter.destroy();
+    });
+    this.preparationFeedback[actor] = null;
+  }
+
+  clearPreparationFeedback(actor) {
+    const fighter = actor === "player" ? this.hero : this.foe;
+    this.destroyPreparationVisual(actor);
+    if (fighter?.body?.active && fighter.preparing) stopPlayerPreparing(this, fighter);
+  }
+
+  refreshPreparationFeedback() {
+    if (!this.preparationFeedback) return;
+    ["player", "enemy"].forEach((actor) => {
+      const action = this.pendingActions?.[actor];
+      const feedback = this.preparationFeedback[actor];
+      const hasVisual = Boolean(feedback?.ribbon?.active || feedback?.emitters?.some(({ active }) => active));
+      if (this.lightMode) {
+        this.destroyPreparationVisual(actor);
+      } else if (action && !hasVisual) {
+        this.showPreparationFeedback(actor, action);
+      }
+    });
   }
 
   runTurnTimeline() {
@@ -445,13 +582,17 @@ export class BattlePresentationMethods {
       this.busy = false;
       this.setButtonsEnabled(true);
       this.setMessage("Tu iniciativa está lista. Elige una acción.", "#83d8ff");
-      this.tweens.add({ targets: [this.playerTurnMarker, this.playerTurnLetter], scale: 1.22, duration: 170, yoyo: true, repeat: 1 });
+      this.setTimelineMarkerState("player", "ready");
+      this.playTimelineReadyBrush("player");
       return;
     }
 
+    this.setTimelineMarkerState("enemy", "ready");
+    this.playTimelineReadyBrush("enemy");
     const action = this.chooseEnemyAction();
     if (actionNeedsPreparation(action)) {
       this.pendingActions.enemy = action;
+      this.showPreparationFeedback("enemy", action);
       this.setMessage(`${this.encounters[this.enemyIndex].name} prepara ${action.name}.`, "#f0c77c");
       this.floatLabel(this.foe.body.x, this.foe.body.y - 165, `PREPARA: ${action.name.toUpperCase()}`, 0xf0b85c);
       this.runTurnTimeline();
@@ -466,11 +607,59 @@ export class BattlePresentationMethods {
     this.foe = createPlayerFighter(this, 740, fighterY, this.enemyAppearance(), true);
     this.styleFighterGrounding(this.hero);
     this.styleFighterGrounding(this.foe);
+    this.bossPhaseSilhouette = null;
   }
 
   styleFighterGrounding(fighter) {
     if (this.battleBackgroundKey !== "bg-marsh" || !fighter?.shadow) return;
     fighter.shadow.setFillStyle(0x123e45, 0.22).setStrokeStyle(2, 0x75d9da, 0.38).setScale(1.14, 0.58);
+  }
+
+  showBossPhaseSilhouette(fighter) {
+    this.clearBossPhaseSilhouette();
+    if (!fighter?.layers?.length) return;
+    fighter.phaseTwoActive = true;
+    if (!fighter.animations?.state || fighter.animations.state === "idle") startPlayerBreathing(this, fighter);
+    const clones = fighter.layers.map((source) => ({
+      source,
+      image: this.add.image(0, 0, source.texture.key, source.frame.name)
+        .setOrigin(source.originX, source.originY)
+        .setTintFill(0x8d4de8)
+        .setDepth(5)
+    }));
+    const intensity = { alpha: 0.38 };
+    const effect = { fighter, clones, intensity, sync: null };
+    effect.sync = () => {
+      clones.forEach(({ source, image }) => {
+        if (!source?.active || !image?.active) return;
+        const pose = source.getWorldTransformMatrix().decomposeMatrix();
+        image.setPosition(pose.translateX, pose.translateY)
+          .setRotation(pose.rotation)
+          .setScale(pose.scaleX * 1.075, pose.scaleY * 1.075)
+          .setAlpha(fighter.body.alpha * intensity.alpha)
+          .setVisible(source.visible && fighter.body.visible);
+      });
+    };
+    this.bossPhaseSilhouette = effect;
+    this.events.on(Phaser.Scenes.Events.POST_UPDATE, effect.sync);
+    effect.sync();
+    effect.pulse = this.tweens.add({ targets: intensity, alpha: 0.58, duration: 520, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+  }
+
+  clearBossPhaseSilhouette({ restoreIdle = true } = {}) {
+    const effect = this.bossPhaseSilhouette;
+    if (!effect) return;
+    this.events.off(Phaser.Scenes.Events.POST_UPDATE, effect.sync);
+    effect.pulse?.stop();
+    effect.clones.forEach(({ image }) => image?.destroy());
+    const fighter = effect.fighter;
+    this.bossPhaseSilhouette = null;
+    if (!fighter?.phaseTwoActive) return;
+    fighter.phaseTwoActive = false;
+    if (restoreIdle && !fighter.preparing && fighter.animations?.state === "idle") {
+      fighter.animations.stop({ reset: true });
+      startPlayerBreathing(this, fighter);
+    }
   }
 
   createActionPanel() {

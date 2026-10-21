@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.71.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.64.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -19,10 +19,10 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.69.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.69.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.69.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.69.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.71.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.71.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.70.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.71.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 
 export class BattleScene extends Phaser.Scene {
@@ -37,6 +37,10 @@ export class BattleScene extends Phaser.Scene {
     this.battleBackgroundKey = arena.texture;
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
     if (!this.textures.exists("substitution-log")) this.load.image("substitution-log", "assets/vfx/substitution-log-runtime.png?v=0.64.0");
+    if (!this.textures.exists("timeline-crest")) this.load.image("timeline-crest", "assets/vfx/feedback/timeline-crest.png?v=0.70.0");
+    if (!this.textures.exists("timeline-ready-brush")) this.load.image("timeline-ready-brush", "assets/vfx/feedback/timeline-ready-brush.png?v=0.70.0");
+    if (!this.textures.exists("preparation-ribbons")) this.load.image("preparation-ribbons", "assets/vfx/feedback/preparation-ribbons.png?v=0.70.0");
+    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", "assets/vfx/feedback/preparation-mote.png?v=0.71.0");
 
     // Ambos marcos optimizados pesan juntos menos de un tercio del PNG ancestral
     // anterior. Cargarlos aquí evita parpadeos al alternarlos desde la pausa.
@@ -150,7 +154,10 @@ export class BattleScene extends Phaser.Scene {
     }
     this.createActionPanel();
     this.createTurnTimeline();
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.stopTurnTimeline?.());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.stopTurnTimeline?.();
+      this.clearBossPhaseSilhouette?.({ restoreIdle: false });
+    });
     this.createPauseButton();
     this.startMusic();
     if (this.combatFeatures.tutorial && !this.saveData.campaign.completedMissions.includes(this.mission.id)) {
@@ -233,6 +240,7 @@ export class BattleScene extends Phaser.Scene {
         window.localStorage.setItem("hud-theme", this.hudTheme);
       } catch (_) { /* Las opciones funcionan aunque no puedan persistir. */ }
       if (this.hudFrames) this.applyHudTheme(this.hudTheme);
+      this.refreshPreparationFeedback?.();
     };
 
     cameraToggle.addEventListener("change", update);

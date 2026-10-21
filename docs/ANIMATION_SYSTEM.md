@@ -73,6 +73,17 @@ hombros; el giro de cabeza es deliberadamente mínimo.
 - `hit-heavy`: reacción de cuerpo completo para golpes de al menos 16 % de la
   vida máxima, con un mínimo de 10 puntos.
 
+## Preparación y fase II
+
+- `prepare-technique`: postura sostenida para el tramo 80–100 % de una técnica;
+  aproxima ambas manos al centro y mantiene una respiración contenida.
+- Durante esa postura, la rama anatómica izquierda se mueve temporalmente por
+  delante del torso para que la mano cruzada no parezca salir desde la espalda.
+- La fase II del jefe activa `idle-alert` y una silueta sincronizada detrás de
+  la marioneta; no introduce un estado de furia ni otro clip de ataque.
+- Si una reacción de daño interrumpe `prepare-technique`, la postura se retoma
+  mientras la acción continúe pendiente.
+
 El runtime calcula la jerarquía de la marioneta en cada fotograma. Las
 rotaciones del hombro arrastran codo, muñeca y mano, y las rotaciones de cadera
 arrastran rodilla, tobillo y pie, igual que en el rig de Phaser.

@@ -1,8 +1,8 @@
 # Crónicas del Sello — Prototipo jugable
 
-RPG 2D por turnos inspirado en los RPG sociales de navegador. La demo incluye una aldea navegable, una primera saga de cinco misiones principales, dos misiones secundarias y progresión persistente. Nuevas sagas y misiones se incorporarán en futuras etapas del desarrollo.
+RPG 2D por turnos inspirado en los RPG sociales de navegador. La versión actual incluye una aldea navegable, una primera saga de cinco misiones principales, dos misiones secundarias y progresión persistente. Nuevas sagas y misiones se incorporarán en futuras etapas del desarrollo.
 
-**Demo pública:** https://masterpet22.github.io/cronicas/
+**Versión pública:** https://masterpet22.github.io/cronicas/
 
 La arquitectura y el flujo de aprobación de la marioneta están documentados en
 [`docs/ANIMATION_SYSTEM.md`](docs/ANIMATION_SYSTEM.md).
@@ -45,6 +45,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
 - También puedes pulsar el sello iluminado con el ratón.
+- Al cerrar una misión, el informe de resultados usa un pergamino panorámico y marca el desenlace con un sello rojo: `APROBADO`, `ABANDONADO` o `FALLIDA`.
 - Una secuencia perfecta aumenta el daño un 10 %; demasiados errores lo reducen.
 - Desactiva **Sellos manuales** sobre el juego para ejecutar las secuencias automáticamente; la preferencia queda guardada en el navegador.
 - El modo manual no tiene límite de tiempo. Las técnicas ya vistas reproducen sus sellos más rápidamente.
@@ -53,6 +54,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Jugador y enemigo avanzan de forma independiente por una línea temporal según su velocidad efectiva.
 - Al llegar al 80 % se habilita la acción; las técnicas con preparación recorren el tramo 80–100 % mientras el rival sigue avanzando.
 - La elección del jugador usa modo de espera: la línea temporal se pausa en el 80 % y vuelve a correr al confirmar la acción.
+- La barra responde con crestas y pinceladas ilustradas; la preparación cambia la postura, respeta la profundidad de las manos y genera motas caligráficas con emisores reales. La fase II del jefe se distingue mediante una silueta animada, sin círculos ni un modo furia inventado.
 - **Guardia** recupera 12 puntos de chakra y reduce el siguiente impacto un 50 %.
 - Los jutsus tienen enfriamientos visibles y no pueden repetirse continuamente.
 - Fuego causa quemadura, viento abre una herida y relámpago aturde; el enemigo puede aplicar veneno.
@@ -103,6 +105,8 @@ assets/village/aldea.webp          Mapa WebP interactivo de la Aldea del Horizon
 assets/npcs/             Doce retratos WebP transparentes del reparto y Kagemori
 assets/locations/        Nueve fondos WebP panorámicos para las escenas de cada destino
 assets/elements/         Sistema de 22 iconos elementales en cuatro niveles
+assets/vfx/feedback/     Crestas, pinceladas, cintas y motas transparentes para feedback de combate
+assets/ui/results/       Pergamino y sello de tinta de la pantalla de resultados
 assets/reference/modular-character-system-v1.png  Hoja técnica del sistema modular
 assets/modular/          Capas, atlas y piezas utilizadas por el personaje modular
 scripts/generate_modular_assets.ps1  Generador reproducible de personajes

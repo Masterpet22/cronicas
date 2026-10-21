@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.71.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.69.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -108,6 +108,9 @@ export class BattleFeedbackMethods {
 
   async finishBattle(won) {
     this.stopTurnTimeline?.();
+    this.clearPreparationFeedback?.("player");
+    this.clearPreparationFeedback?.("enemy");
+    this.clearBossPhaseSilhouette?.();
     this.timelinePaused = true;
     const routeFailureStats = !won && this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     if (!won) {
@@ -196,7 +199,6 @@ export class BattleFeedbackMethods {
     this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
     this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
-
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
   }
 

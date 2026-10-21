@@ -1,5 +1,5 @@
-import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.44.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.44.0";
+import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.70.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.70.0";
 import { PUPPET_JOINTS } from "./animations/rig.js";
 
 const MAN_SPRITE_SCALE = 0.13;
@@ -60,18 +60,61 @@ function addPart(scene, parent, id, parentPoint = { x: 0, y: 0 }) {
 }
 
 export function startPlayerBreathing(scene, fighter) {
-  if (!fighter?.rig || fighter.animations?.clipId === DEFAULT_IDLE_CLIP) return;
+  if (!fighter?.rig) return;
   fighter.animations ||= createPuppetAnimationController(scene, fighter);
-  fighter.animations.loop(DEFAULT_IDLE_CLIP);
+  const clipId = fighter.phaseTwoActive && fighter.animations.supports("idle-alert") ? "idle-alert" : DEFAULT_IDLE_CLIP;
+  if (fighter.animations.clipId === clipId) return;
+  if (fighter.animations.state === "idle") fighter.animations.stop({ reset: true });
+  fighter.animations.loop(clipId);
   // Alias temporal para mantener compatibilidad mientras carrera y ataques
   // terminan de migrarse al nuevo controlador.
   fighter.breathingTweens = [...fighter.animations.tweens];
+}
+
+function bringPreparationArmForward(fighter) {
+  const branch = fighter?.joints?.shoulderLeft;
+  const rig = fighter?.rig;
+  const torso = fighter?.sprite;
+  if (!branch || !torso || typeof rig?.getIndex !== "function" || typeof rig?.moveTo !== "function") return;
+  if (!fighter.preparationLayerOrder) {
+    fighter.preparationLayerOrder = { branch, index: rig.getIndex(branch) };
+  }
+  const branchIndex = rig.getIndex(branch);
+  const torsoIndex = rig.getIndex(torso);
+  if (branchIndex < 0 || torsoIndex < 0 || branchIndex > torsoIndex) return;
+  // Al retirar una rama situada antes del torso, este retrocede una posición.
+  // Insertarla en el índice que tenía el torso la deja inmediatamente delante.
+  rig.moveTo(branch, torsoIndex);
+}
+
+function restorePreparationArmDepth(fighter) {
+  const saved = fighter?.preparationLayerOrder;
+  if (!saved || typeof fighter.rig?.moveTo !== "function") return;
+  fighter.rig.moveTo(saved.branch, saved.index);
+  fighter.preparationLayerOrder = null;
 }
 
 export function stopPlayerBreathing(fighter) {
   if (!fighter?.rig) return;
   if (fighter.animations?.state === "idle") fighter.animations.stop({ reset: true });
   fighter.breathingTweens = [];
+}
+
+export function startPlayerPreparing(scene, fighter) {
+  if (!fighter?.animations) return false;
+  stopPlayerBreathing(fighter);
+  fighter.preparing = true;
+  bringPreparationArmForward(fighter);
+  const clipId = fighter.animations.supports("prepare-technique") ? "prepare-technique" : "idle-alert";
+  return fighter.animations.loop(clipId, { force: true });
+}
+
+export function stopPlayerPreparing(scene, fighter) {
+  if (!fighter?.animations) return;
+  fighter.preparing = false;
+  restorePreparationArmDepth(fighter);
+  if (["prepare-technique", "idle-alert"].includes(fighter.animations.clipId)) fighter.animations.stop({ reset: true });
+  startPlayerBreathing(scene, fighter);
 }
 
 export function startPlayerGuard(scene, fighter) {
@@ -89,12 +132,14 @@ export function stopPlayerGuard(scene, fighter) {
 
 export async function playFighterDamageReaction(scene, fighter, { guarded = false, heavy = false } = {}) {
   if (!fighter?.animations) return false;
+  const resumePreparation = Boolean(fighter.preparing);
   stopPlayerBreathing(fighter);
   const articulatedClip = guarded ? "guard-impact" : heavy ? "hit-heavy" : "hit-light";
   const simpleClip = guarded ? "guard-impact-simple" : heavy ? "hit-heavy-simple" : "hit-light-simple";
   const clipId = fighter.animations.supports(articulatedClip) ? articulatedClip : simpleClip;
   const completed = await fighter.animations.playOnce(clipId, { force: true });
   if (guarded) startPlayerGuard(scene, fighter);
+  else if (resumePreparation) startPlayerPreparing(scene, fighter);
   else startPlayerBreathing(scene, fighter);
   return completed;
 }

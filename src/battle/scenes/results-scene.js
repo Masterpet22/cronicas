@@ -3,11 +3,17 @@ import { playerFighterAppearance } from "../../character.js?v=0.62.0";
 import { masterIdForCharacter } from "../../save.js?v=0.66.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.68.0";
 
+const PARCHMENT_TEXT = "#352217";
+const PARCHMENT_MUTED = "#6d5139";
+const STAMP_RED = "#9f201b";
+
 export class ResultsScene extends Phaser.Scene {
   constructor() { super("results"); }
 
   preload() {
     if (!this.textures.exists("results-headquarters")) this.load.image("results-headquarters", "assets/locations/headquarters.webp?v=0.20.0");
+    if (!this.textures.exists("results-parchment")) this.load.image("results-parchment", "assets/ui/results/results-parchment.png?v=0.72.0");
+    if (!this.textures.exists("result-stamp-frame")) this.load.image("result-stamp-frame", "assets/ui/results/result-stamp-frame.png?v=0.72.0");
     queuePlayerFighterTextures(this, playerFighterAppearance(battleRuntime.activeSave));
   }
 
@@ -17,6 +23,7 @@ export class ResultsScene extends Phaser.Scene {
     const completed = outcome === "completed";
     const abandoned = outcome === "abandoned";
     const title = completed ? "MISIÓN COMPLETADA" : abandoned ? "MISIÓN ABANDONADA" : "MISIÓN FALLIDA";
+    const stampText = completed ? "APROBADO" : abandoned ? "ABANDONADO" : "FALLIDA";
     const subtitle = completed ? "El objetivo ha sido cumplido." : abandoned ? "Regresas a la aldea para reorganizarte." : "La misión termina, pero conservas lo aprendido.";
     const masterName = masterIdForCharacter(battleRuntime.activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
     const masterLine = data.decision === "interrogate"
@@ -25,68 +32,121 @@ export class ResultsScene extends Phaser.Scene {
         ? `${masterName}: «Akumori no recibió refuerzos, pero perdimos la entrada secreta y un posible aliado.»`
         : completed
           ? `${masterName}: «Buen trabajo. Recuerda qué decisión te permitió volver.»`
-      : abandoned
-        ? `${masterName}: «Retirarse a tiempo también es parte del entrenamiento.»`
-        : `${masterName}: «Analiza la derrota, ajusta tu estrategia y vuelve.»`;
+          : abandoned
+            ? `${masterName}: «Retirarse a tiempo también es parte del entrenamiento.»`
+            : `${masterName}: «Analiza la derrota, ajusta tu estrategia y vuelve.»`;
 
     this.add.image(WIDTH / 2, HEIGHT / 2, "results-headquarters").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.48).setOrigin(0).setDepth(1);
-    this.add.rectangle(0, 0, WIDTH, 5, 0x43c9ff, 0.9).setOrigin(0).setDepth(2);
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x120b07, 0.66).setOrigin(0).setDepth(1);
+    this.add.image(WIDTH / 2, HEIGHT / 2, "results-parchment").setDisplaySize(920, 518).setDepth(2);
 
-    const fighter = createPlayerFighter(this, 205, 392, playerFighterAppearance(battleRuntime.activeSave));
+    this.add.text(480, 76, "INFORME DE MISIÓN", {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "10px", color: PARCHMENT_MUTED, fontStyle: "bold", letterSpacing: 3
+    }).setOrigin(0.5).setDepth(5);
+    this.add.text(480, 100, title, {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "25px", color: PARCHMENT_TEXT, fontStyle: "bold"
+    }).setOrigin(0.5).setAlpha(0).setName("results-title").setDepth(5);
+    this.add.text(480, 127, data.missionTitle || battleRuntime.activeMission?.title || "Misión", {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "14px", color: "#4d3220", fontStyle: "bold", align: "center", wordWrap: { width: 470 }
+    }).setOrigin(0.5).setDepth(5);
+    this.add.text(480, 149, subtitle, {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "13px", color: PARCHMENT_MUTED, fontStyle: "italic"
+    }).setOrigin(0.5).setDepth(5);
+
+    const fighter = createPlayerFighter(this, 213, 391, playerFighterAppearance(battleRuntime.activeSave));
     fighter.targets.forEach((target) => target.setAlpha(0));
-    fighter.shadow.setAlpha(0);
-    this.tweens.add({ targets: [...fighter.targets, fighter.shadow], alpha: 1, x: "+=18", duration: 650, ease: "Cubic.out" });
-    const namePlate = this.add.text(223, 493, battleRuntime.activeSave.character.name, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "11px", color: "#eaf7ff", fontStyle: "bold" })
-      .setOrigin(0.5).setPadding(13, 5).setBackgroundColor("#031220").setStroke("#5ecfff", 1).setDepth(12);
-    this.tweens.add({ targets: namePlate, alpha: { from: 0, to: 1 }, duration: 450, delay: 300 });
+    fighter.shadow.setAlpha(0.16);
+    this.tweens.add({ targets: fighter.targets, alpha: 1, x: "+=12", duration: 620, ease: "Cubic.out" });
+    this.tweens.add({ targets: fighter.shadow, alpha: 0.42, duration: 620, ease: "Cubic.out" });
+    const namePlate = this.add.text(225, 458, battleRuntime.activeSave.character.name, {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "11px", color: "#f5e5bd", fontStyle: "bold"
+    }).setOrigin(0.5).setPadding(15, 5).setBackgroundColor("#4b2c1d").setDepth(12).setAlpha(0);
+    this.tweens.add({ targets: namePlate, alpha: 1, duration: 450, delay: 280 });
 
-    const titleColor = completed ? "#f0b85c" : "#83d8ff";
-    this.add.text(625, 55, "INFORME DE MISIÓN", { fontFamily: '"Cinzel", Georgia, serif', fontSize: "11px", color: "#83d8ff", fontStyle: "bold", letterSpacing: 2 }).setOrigin(0.5);
-    this.add.text(625, 83, title, { fontFamily: '"Cinzel", Georgia, serif', fontSize: "27px", color: titleColor, fontStyle: "bold" }).setOrigin(0.5).setAlpha(0).setName("results-title");
-    this.add.text(625, 116, data.missionTitle || battleRuntime.activeMission?.title || "Misión", { fontFamily: '"Cinzel", Georgia, serif', fontSize: "15px", color: "#f4f0e8", fontStyle: "bold" }).setOrigin(0.5);
-    this.add.text(625, 143, subtitle, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "13px", color: "#b5c8d7" }).setOrigin(0.5);
-    this.add.text(625, 165, masterLine, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#d8c29b", fontStyle: "italic" }).setOrigin(0.5);
+    const ink = this.add.graphics().setDepth(3);
+    ink.lineStyle(2, 0x62432d, 0.58).beginPath().moveTo(330, 164).lineTo(330, 444).strokePath();
+    ink.lineStyle(1, 0x8c6847, 0.45).strokeRect(351, 165, 512, 279);
+    ink.fillStyle(0x6b4a31, 0.07).fillRect(352, 166, 510, 277);
+    ink.lineStyle(1, 0x745136, 0.34).beginPath().moveTo(370, 268).lineTo(843, 268).strokePath();
 
-    this.add.rectangle(625, 317, 530, 270, 0x031220, 0.95).setStrokeStyle(1.5, 0x55c9ff, 0.78).setDepth(3);
-    this.add.rectangle(362, 182, 4, 270, 0x3fcaff, 0.95).setOrigin(0, 0).setDepth(4);
-    this.add.text(385, 198, "ESTADO DEL EQUIPO", { fontFamily: '"Cinzel", Georgia, serif', fontSize: "11px", color: "#83d8ff", fontStyle: "bold", letterSpacing: 1 }).setOrigin(0, 0.5).setDepth(5);
-    const hpRatio = Phaser.Math.Clamp((data.playerHp || 0) / Math.max(1, data.maxHp || 1), 0, 1);
-    this.add.text(385, 230, "VIDA RESTANTE", { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#dce7ef", fontStyle: "bold" }).setOrigin(0, 0.5).setDepth(5);
-    this.add.rectangle(385, 253, 480, 18, 0x101f30, 1).setOrigin(0, 0.5).setStrokeStyle(1, 0x315b77, 0.9).setDepth(5);
-    const hpColor = hpRatio > 0.5 ? 0x43c9ff : hpRatio > 0.25 ? 0xf0b85c : 0xef6b72;
-    const hpFill = this.add.rectangle(387, 253, 1, 12, hpColor, 1).setOrigin(0, 0.5).setDepth(6);
-    this.tweens.add({ targets: hpFill, displayWidth: 476 * hpRatio, duration: 850, delay: 250, ease: "Cubic.out" });
-    this.add.text(865, 230, `${data.playerHp || 0}/${data.maxHp || 0}`, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#f4f0e8", fontStyle: "bold" }).setOrigin(1, 0.5).setDepth(5);
+    this.add.text(371, 183, "ESTADO DEL EQUIPO", {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "11px", color: "#5b3b25", fontStyle: "bold", letterSpacing: 1
+    }).setOrigin(0, 0.5).setDepth(5);
+
+    const hp = Number(data.playerHp) || 0;
+    const maxHp = Math.max(1, Number(data.maxHp) || 1);
+    const hpRatio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
+    this.add.text(371, 216, "VIDA RESTANTE", {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: PARCHMENT_TEXT, fontStyle: "bold"
+    }).setOrigin(0, 0.5).setDepth(5);
+    this.add.text(843, 216, `${hp}/${Number(data.maxHp) || 0}`, {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "12px", color: PARCHMENT_TEXT, fontStyle: "bold"
+    }).setOrigin(1, 0.5).setDepth(5);
+    this.add.rectangle(371, 241, 472, 17, 0x5a3c28, 0.24).setOrigin(0, 0.5).setStrokeStyle(1, 0x5e422c, 0.7).setDepth(5);
+    const hpColor = hpRatio > 0.5 ? 0x2e9c5d : hpRatio > 0.25 ? 0xc78c2a : 0xaa302b;
+    const hpFill = this.add.rectangle(374, 241, 1, 11, hpColor, 0.96).setOrigin(0, 0.5).setDepth(6);
+    this.tweens.add({ targets: hpFill, displayWidth: 466 * hpRatio, duration: 850, delay: 250, ease: "Cubic.out" });
 
     const rows = [
-      ["♛", "Rivales derrotados", `${data.defeated || 0}/${data.totalEncounters || 0}`],
-      ["★", "Experiencia obtenida", completed ? `+${data.rewards?.xp || 0} PX` : "Sin recompensa"],
-      ["◆", "Afinidad obtenida", completed ? `+${data.rewards?.affinityXp || 0} PX` : "Sin recompensa"],
-      ["▣", "Monedas obtenidas", completed ? `+${data.rewards?.coins || 0}` : "Sin recompensa"]
+      ["Rivales derrotados", `${data.defeated || 0}/${data.totalEncounters || 0}`],
+      ["Experiencia obtenida", completed ? `+${data.rewards?.xp || 0} PX` : "+0 PX"],
+      ["Afinidad obtenida", completed ? `+${data.rewards?.affinityXp || 0} PX` : "+0 PX"],
+      ["Monedas obtenidas", completed ? `+${data.rewards?.coins || 0}` : "+0"]
     ];
-    if (data.item) rows.push(["◇", "Objeto recuperado", data.item]);
-    rows.forEach(([icon, label, value], index) => {
-      const y = 286 + index * 32;
-      this.add.text(385, y, icon, { fontFamily: '"Cinzel", Georgia, serif', fontSize: "16px", color: "#f0b85c", fontStyle: "bold" }).setOrigin(0, 0.5).setDepth(5);
-      this.add.text(414, y, label, { fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "13px", color: "#b5c8d7" }).setOrigin(0, 0.5).setDepth(5);
-      const amount = this.add.text(865, y, value, { fontFamily: '"Cinzel", Georgia, serif', fontSize: "13px", color: completed ? "#f4f0e8" : "#8195a5", fontStyle: "bold" }).setOrigin(1, 0.5).setAlpha(0).setDepth(5);
-      this.tweens.add({ targets: amount, alpha: 1, x: "-=10", duration: 350, delay: 520 + index * 120, ease: "Cubic.out" });
+    if (data.item) rows.push(["Objeto recuperado", data.item]);
+    rows.forEach(([label, value], index) => {
+      const y = 290 + index * 27;
+      this.add.circle(377, y, 2.5, index === 0 ? 0x39251a : 0xa32620, 0.82).setDepth(5);
+      this.add.text(390, y, label, {
+        fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "13px", color: "#4d3929"
+      }).setOrigin(0, 0.5).setDepth(5);
+      const amount = this.add.text(843, y, value, {
+        fontFamily: '"Cinzel", Georgia, serif', fontSize: "12px", color: completed ? PARCHMENT_TEXT : "#786959", fontStyle: "bold"
+      }).setOrigin(1, 0.5).setAlpha(0).setDepth(5);
+      this.tweens.add({ targets: amount, alpha: 1, x: "-=8", duration: 330, delay: 500 + index * 105, ease: "Cubic.out" });
     });
 
-    const buttonBg = this.add.rectangle(625, 485, 220, 44, 0x0d4668, 1).setStrokeStyle(1.5, 0x55c9ff, 1).setInteractive({ useHandCursor: true }).setDepth(5);
-    const buttonLabel = this.add.text(625, 485, "← VOLVER A LA ALDEA", { fontFamily: '"Cinzel", Georgia, serif', fontSize: "13px", color: "#f4f8fb", fontStyle: "bold" }).setOrigin(0.5).setDepth(6);
-    buttonBg.on("pointerover", () => buttonBg.setFillStyle(0x17638d, 1));
-    buttonBg.on("pointerout", () => buttonBg.setFillStyle(0x0d4668, 1));
+    this.add.text(607, 425, masterLine, {
+      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "10px", color: PARCHMENT_MUTED, fontStyle: "italic", align: "center", wordWrap: { width: 450 }
+    }).setOrigin(0.5).setDepth(5);
+
+    const stamp = this.add.container(779, 177).setDepth(14).setAngle(-7).setAlpha(0).setScale(1.35);
+    const stampFrame = this.add.image(0, 0, "result-stamp-frame").setDisplaySize(166, 76).setAlpha(0.83);
+    const stampLabel = this.add.text(0, 0, stampText, {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: stampText.length > 8 ? "14px" : "17px", color: STAMP_RED, fontStyle: "bold", letterSpacing: 1
+    }).setOrigin(0.5).setStroke("#9f201b", 0.4);
+    stamp.add([stampFrame, stampLabel]);
+    this.time.delayedCall(340, () => {
+      this.tweens.add({ targets: stamp, alpha: 0.92, scale: 1, duration: 230, ease: "Back.out" });
+      this.cameras.main.shake(70, 0.0015);
+    });
+
+    const buttonShadow = this.add.rectangle(608, 483, 256, 42, 0x2a1a12, 0.26).setDepth(4);
+    const buttonBg = this.add.rectangle(608, 478, 250, 40, 0xd7bd87, 0.95)
+      .setStrokeStyle(2, 0x5d3a22, 0.95).setInteractive({ useHandCursor: true }).setDepth(5);
+    const leftRoller = this.add.rectangle(480, 478, 12, 48, 0x765133, 1).setStrokeStyle(1, 0x352217).setDepth(6);
+    const rightRoller = this.add.rectangle(736, 478, 12, 48, 0x765133, 1).setStrokeStyle(1, 0x352217).setDepth(6);
+    const buttonLabel = this.add.text(608, 478, "VOLVER A LA ALDEA", {
+      fontFamily: '"Cinzel", Georgia, serif', fontSize: "13px", color: PARCHMENT_TEXT, fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(7);
+    buttonBg.on("pointerover", () => {
+      buttonBg.setFillStyle(0xe8d19c, 1);
+      this.tweens.add({ targets: [buttonBg, buttonLabel, leftRoller, rightRoller], y: 476, duration: 100 });
+      buttonShadow.setAlpha(0.34);
+    });
+    buttonBg.on("pointerout", () => {
+      buttonBg.setFillStyle(0xd7bd87, 0.95);
+      this.tweens.add({ targets: [buttonBg, buttonLabel, leftRoller, rightRoller], y: 478, duration: 100 });
+      buttonShadow.setAlpha(0.26);
+    });
     buttonBg.once("pointerup", () => {
       buttonBg.disableInteractive();
       buttonLabel.setText("REGRESANDO...");
       this.scene.start("travel", { direction: "toVillage" });
     });
-    this.tweens.add({ targets: this.children.getByName("results-title"), alpha: 1, y: "+=8", duration: 600, ease: "Cubic.out" });
-    this.cameras.main.fadeIn(350, 3, 9, 18);
+
+    this.tweens.add({ targets: this.children.getByName("results-title"), alpha: 1, y: "+=6", duration: 560, ease: "Cubic.out" });
+    this.cameras.main.fadeIn(350, 18, 11, 7);
     sharpenTextTree(this.children.list);
   }
 }
-
-

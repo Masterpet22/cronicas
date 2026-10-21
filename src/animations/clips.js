@@ -69,6 +69,26 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
       { target: "shoulderRight", duration: 2200, yoyo: true, ease: "Sine.inOut", to: { y: -1.4 } }
     ])
   }),
+  "prepare-technique": Object.freeze({
+    id: "prepare-technique",
+    label: "Preparación de técnica",
+    description: "Acerca las manos al centro y tensa el cuerpo mientras se completa una técnica.",
+    category: "acción",
+    state: ANIMATION_STATES.ACTION,
+    status: "integrated",
+    loop: true,
+    enterDuration: 150,
+    requires: Object.freeze(["rig", "shoulderLeft", "shoulderRight", "elbowLeft", "elbowRight", "wristLeft", "wristRight"]),
+    tracks: Object.freeze([
+      { target: "shoulderLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: 42 }, to: { angle: 46 } },
+      { target: "elbowLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: 58 }, to: { angle: 62 } },
+      { target: "wristLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: 8 }, to: { angle: 5 } },
+      { target: "shoulderRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: -42 }, to: { angle: -46 } },
+      { target: "elbowRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: -58 }, to: { angle: -62 } },
+      { target: "wristRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: -8 }, to: { angle: -5 } },
+      { target: "rig", duration: 620, yoyo: true, ease: "Sine.inOut", from: { y: 1, angle: 0 }, to: { y: -1, angle: -0.6 } }
+    ])
+  }),
   "guard-hold": Object.freeze({
     id: "guard-hold",
     label: "Guardia sostenida",

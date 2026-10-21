@@ -71,4 +71,28 @@ for (const theme of ["ancestral", "lunar"]) {
   assert.deepEqual([runtimeImage.width, runtimeImage.height], hudThemeDimensions[theme], `El tema optimizado ${theme} no debe recortarse`);
   assert.equal(runtimeImage.alpha, true, `El tema optimizado ${theme} debe conservar transparencia`);
 }
+
+const feedbackAssets = {
+  "timeline-crest.png": [160, 156],
+  "timeline-ready-brush.png": [480, 192],
+  "preparation-ribbons.png": [432, 259],
+  "preparation-mote.png": [96, 96]
+};
+await Promise.all(Object.entries(feedbackAssets).map(async ([asset, expected]) => {
+  const png = await readFile(new URL(`../assets/vfx/feedback/${asset}`, import.meta.url));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `${asset} debe ser un PNG válido`);
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], expected, `${asset} debe conservar sus dimensiones de ejecución`);
+  assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
+}));
+
+const resultsAssets = {
+  "results-parchment.png": [1440, 810],
+  "result-stamp-frame.png": [640, 320]
+};
+await Promise.all(Object.entries(resultsAssets).map(async ([asset, expected]) => {
+  const png = await readFile(new URL(`../assets/ui/results/${asset}`, import.meta.url));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `${asset} debe ser un PNG válido`);
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], expected, `${asset} debe conservar sus dimensiones de ejecución`);
+  assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
+}));
 console.log("Pruebas de recursos modulares superadas.");
