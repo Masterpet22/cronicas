@@ -138,14 +138,14 @@ export class BattleFeedbackMethods {
     await this.delay(950);
     const result = this.resultPayload(won ? "completed" : "failed");
     if (routeFailureStats) {
-      this.scene.start("secondary-results", { ...result, routeStats: routeFailureStats });
+      this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: { ...result, routeStats: routeFailureStats } });
       return;
     }
     if (won && this.combatFeatures.tutorial && !battleRuntime.activeSave.campaign.sayoEncounterSeen) {
       this.scene.start("epilogue", { result });
       return;
     }
-    this.scene.start("results", result);
+    this.scene.start("travel", { direction: "toVillage", result });
   }
   resultPayload(outcome) {
     return createBattleResult({

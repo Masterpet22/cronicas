@@ -41,6 +41,9 @@
   <link rel="preload" href="assets/fonts/cinzel-latin-700.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/fonts/alegreya-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="assets/village/aldea.webp?v=0.20.0" as="image" type="image/webp" fetchpriority="high">
+  <link rel="preload" href="assets/locations/village-outskirts.webp?v=0.74.0" as="image" type="image/webp">
+  <link rel="preload" href="assets/locations/forest-road.webp?v=0.75.0" as="image" type="image/webp">
+  <link rel="preload" href="assets/locations/village-outskirts-branches.webp?v=0.74.0" as="image" type="image/webp">
   <link rel="stylesheet" href="styles.css?v=0.67.3">
   <link rel="stylesheet" href="desktop.css?v=0.67.3">
 </head>
@@ -98,7 +101,7 @@
         phaser.onerror = reject;
         document.body.append(phaser);
       });
-      await import("./game.js?v=0.72.0");
+      await import("./game.js?v=0.75.0");
     }
   </script>
 </body>

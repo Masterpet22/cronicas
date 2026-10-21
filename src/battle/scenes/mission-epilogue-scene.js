@@ -58,7 +58,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
       battleRuntime.activeSave.campaign.sayoEncounterSeen = true;
       battleRuntime.activeSave.campaign.secondaryBoardUnlocked = true;
       battleRuntime.activeSave = writeSave(battleRuntime.activeSave);
-      this.scene.start("results", data.result || {});
+      this.scene.start("travel", { direction: "toVillage", result: data.result || {} });
     });
     this.cameras.main.fadeIn(300, 3, 9, 18);
     sharpenTextTree(this.children.list);

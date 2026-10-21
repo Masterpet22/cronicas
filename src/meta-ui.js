@@ -199,7 +199,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     showMissionDecision: (...args) => showMissionDecision(...args),
     onSagaSelected(sagaId) { selectedSagaId = sagaId; renderStoryMissions(); },
     onStartMission,
-    onStartDoctorRoute(currentSave) { save = currentSave; view = "doctor-route"; renderDoctorRoute(); },
+    onStartDoctorRoute(currentSave, mission) { save = currentSave; onStartMission(save, mission); },
     onChooseHideoutEntrance(currentSave, choice) { save = writeSave(chooseHideoutEntrance(currentSave, choice)); return save; },
     onStartDoctorMission(currentSave, mission) { save = writeSave(startDoctorMission(currentSave, mission)); return save; },
     onCompleteInvestigation(currentSave, mission, clues) {

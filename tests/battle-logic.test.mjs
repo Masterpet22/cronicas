@@ -4,7 +4,7 @@ import { ENEMY_ROSTER } from "../src/data.js";
 import { MISSIONS } from "../src/content/index.js";
 import { resolveDamage } from "../src/battle/damage.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../src/battle/rewards.js";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, missionGrade } from "../src/battle/rewards.js";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../src/battle/turn.js";
 
 assert.deepEqual(resolveDamage({
@@ -45,6 +45,13 @@ assert.deepEqual(advanceCooldowns({ strike: 0, fire: 2 }), { strike: 0, fire: 1 
 const total = addBattleReward(addBattleReward(emptyBattleRewards(), { xp: 10, coins: 2 }), { affinityXp: 4, xp: 5 });
 assert.deepEqual(total, { xp: 15, affinityXp: 4, coins: 2 });
 assert.deepEqual(bestiaryObservation(["bandit"], 0, { defeated: true }), { enemyId: "bandit", observation: { defeated: true } });
+assert.equal(missionGrade("completed", 90, 100), "S");
+assert.equal(missionGrade("completed", 70, 100), "A");
+assert.equal(missionGrade("completed", 50, 100), "B");
+assert.equal(missionGrade("completed", 25, 100), "C");
+assert.equal(missionGrade("completed", 24, 100), "D");
+assert.equal(missionGrade("failed", 100, 100), "F");
+assert.equal(missionGrade("abandoned", 100, 100), "F");
 const result = createBattleResult({
   outcome: "completed",
   mission: { id: "test", type: "main", title: "Prueba", relic: null },

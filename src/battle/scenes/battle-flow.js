@@ -409,24 +409,28 @@ export class BattleFlowMethods {
   }
 
   async playEncounterTransition(profile) {
-    const backdrop = this.add.image(WIDTH / 2, HEIGHT / 2, "travel-forest").setDisplaySize(WIDTH, HEIGHT).setDepth(70).setAlpha(0);
+    const backdrop = this.add.image(WIDTH / 2 + 22, HEIGHT / 2, "forest-road").setDisplaySize(WIDTH + 88, HEIGHT + 50).setDepth(70).setAlpha(0);
     const shade = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x06130d, 0.38).setOrigin(0).setDepth(71).setAlpha(0);
-    const ground = this.add.rectangle(0, 421, WIDTH, 119, 0x06100b, 0.88).setOrigin(0).setDepth(72).setAlpha(0);
-    const chapter = this.add.text(WIDTH / 2, 62, `RUMBO AL ENCUENTRO ${this.enemyIndex + 1} DE ${this.encounters.length}`, this.textStyle(18, "#f5edd8", "800", true)).setOrigin(0.5).setDepth(75).setAlpha(0);
-    const title = this.add.text(WIDTH / 2, 94, profile.boss ? "El cabecilla bloquea el camino" : "Las huellas continúan", this.textStyle(13, "#bcd4c1", "700")).setOrigin(0.5).setDepth(75).setAlpha(0);
+    const foreground = this.add.image(WIDTH / 2 + 62, HEIGHT / 2, "village-outskirts-branches")
+      .setDisplaySize(WIDTH + 165, HEIGHT + 92).setDepth(75).setAlpha(0);
+    const chapter = this.add.text(WIDTH / 2, HEIGHT / 2 - 16, `RUMBO AL ENCUENTRO ${this.enemyIndex + 1} DE ${this.encounters.length}`, this.textStyle(18, "#f5edd8", "800", true)).setOrigin(0.5).setDepth(77).setAlpha(0);
+    const title = this.add.text(WIDTH / 2, HEIGHT / 2 + 20, profile.boss ? "El cabecilla bloquea el camino" : "Las huellas continúan", this.textStyle(13, "#bcd4c1", "700")).setOrigin(0.5).setDepth(77).setAlpha(0);
     const runner = createPlayerFighter(this, -90, 330, this.playerAppearance());
     runner.targets.forEach((target) => target.setDepth(74).setAlpha(0));
     runner.shadow.setDepth(73).setAlpha(0);
     startPlayerRunning(this, runner);
-    await this.tween({ targets: [backdrop, shade, ground, chapter, title, ...runner.targets, runner.shadow], alpha: 1, duration: 240, ease: "Sine.out" });
+    await this.tween({ targets: [backdrop, shade, foreground, chapter, title, ...runner.targets, runner.shadow], alpha: 1, duration: 240, ease: "Sine.out" });
     await Promise.all([
       this.tween({ targets: runner.body, x: WIDTH + 90, duration: 1900, ease: "Linear" }),
-      this.tween({ targets: runner.shadow, x: WIDTH + 90, duration: 1900, ease: "Linear" })
+      this.tween({ targets: runner.shadow, x: WIDTH + 90, duration: 1900, ease: "Linear" }),
+      this.tween({ targets: backdrop, x: WIDTH / 2 - 22, duration: 1900, ease: "Linear" }),
+      this.tween({ targets: foreground, x: WIDTH / 2 - 62, duration: 1900, ease: "Linear" }),
+      this.tween({ targets: [chapter, title], alpha: 0, delay: 650, duration: 260, ease: "Sine.in" })
     ]);
     stopPlayerRunning(runner);
-    await this.tween({ targets: [backdrop, shade, ground, chapter, title], alpha: 0, duration: 240, ease: "Sine.in" });
+    await this.tween({ targets: [backdrop, shade, foreground], alpha: 0, duration: 240, ease: "Sine.in" });
     destroyFighter(runner);
-    backdrop.destroy(); shade.destroy(); ground.destroy(); chapter.destroy(); title.destroy();
+    backdrop.destroy(); shade.destroy(); foreground.destroy(); chapter.destroy(); title.destroy();
   }
 
   async triggerBossPhaseTwo() {

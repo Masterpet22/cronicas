@@ -1,11 +1,11 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.67.2";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.67.3";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.66.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.71.0";
-import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.68.0";
-import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.68.0";
-import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.68.0";
-import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.72.0";
-import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.68.0";
+import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.73.0";
+import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.78.0";
+import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.72.0";
+import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.74.0";
+import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.75.0";
+import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.72.0";
 import { HUD_THEMES, Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.68.0";
 
 let game = null;
@@ -111,7 +111,7 @@ metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) =
     width: renderSize.width,
     height: renderSize.height,
     backgroundColor: "#101622",
-    scene: [SecondaryResultsScene, MissionTravelScene],
+    scene: [MissionTravelScene, SecondaryResultsScene],
     loader: { maxParallelDownloads: 4 },
     render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }

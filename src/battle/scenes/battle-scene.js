@@ -20,9 +20,9 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
 
 import { BattlePresentationMethods } from "./battle-presentation.js?v=0.71.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.71.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.72.0";
 import { BattleActionMethods } from "./battle-actions.js?v=0.70.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.71.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.72.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 
 export class BattleScene extends Phaser.Scene {
@@ -41,6 +41,8 @@ export class BattleScene extends Phaser.Scene {
     if (!this.textures.exists("timeline-ready-brush")) this.load.image("timeline-ready-brush", "assets/vfx/feedback/timeline-ready-brush.png?v=0.70.0");
     if (!this.textures.exists("preparation-ribbons")) this.load.image("preparation-ribbons", "assets/vfx/feedback/preparation-ribbons.png?v=0.70.0");
     if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", "assets/vfx/feedback/preparation-mote.png?v=0.71.0");
+    if (!this.textures.exists("forest-road")) this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.0");
+    if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.0");
 
     // Ambos marcos optimizados pesan juntos menos de un tercio del PNG ancestral
     // anterior. Cargarlos aquí evita parpadeos al alternarlos desde la pausa.

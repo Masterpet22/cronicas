@@ -45,7 +45,8 @@ export class PauseScene extends Phaser.Scene {
       if (button) button.disableInteractive();
       const payload = this.battle.abandonPayload();
       this.scene.stop("battle");
-      this.scene.start(this.battle.mission.type === "route-combat" ? "secondary-results" : "results", payload);
+      if (this.battle.mission.type === "route-combat") this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: payload });
+      else this.scene.start("travel", { direction: "toVillage", result: payload });
     }, 150);
 
     this.input.keyboard.once("keydown-ESC", () => {

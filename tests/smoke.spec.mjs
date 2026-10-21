@@ -117,7 +117,7 @@ test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ pag
   await page.keyboard.press("Escape");
   await page.waitForTimeout(250);
   await clickCanvasPoint(page, canvasBox, 560 / 960, 454 / 540);
-  await page.waitForTimeout(700);
+  await page.waitForTimeout(2_700);
   await clickCanvasPoint(page, canvasBox, 625 / 960, 485 / 540);
 
   await expect(page.locator("#meta")).toBeVisible({ timeout: 20_000 });
@@ -173,7 +173,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await page.locator('[data-debug-view="missions"]').click();
   await page.locator("[data-secondary-mission]:not([disabled])").last().click();
   await advanceDialogue(page);
-  await expect(page.locator(".doctor-route-screen")).toBeVisible();
+  await expect(page.locator(".doctor-route-screen")).toBeVisible({ timeout: 20_000 });
   expect(browserErrors, "No debe haber errores al recorrer las vistas meta").toEqual([]);
 });
 

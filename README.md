@@ -45,7 +45,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
 - También puedes pulsar el sello iluminado con el ratón.
-- Al cerrar una misión, el informe de resultados usa un pergamino panorámico y marca el desenlace con un sello rojo: `APROBADO`, `ABANDONADO` o `FALLIDA`.
+- Al cerrar una misión, primero se representa el regreso a la aldea y después aparece un informe de pergamino a pantalla completa, marcado con `APROBADO`, `ABANDONADO` o `FALLIDA`.
 - Una secuencia perfecta aumenta el daño un 10 %; demasiados errores lo reducen.
 - Desactiva **Sellos manuales** sobre el juego para ejecutar las secuencias automáticamente; la preferencia queda guardada en el navegador.
 - El modo manual no tiene límite de tiempo. Las técnicas ya vistas reproducen sus sellos más rápidamente.

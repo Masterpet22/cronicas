@@ -1,17 +1,25 @@
 import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.62.0";
 import { playerFighterAppearance } from "../../character.js?v=0.62.0";
 import { masterIdForCharacter } from "../../save.js?v=0.66.0";
+import { missionGrade } from "../rewards.js?v=0.69.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.68.0";
 
 const PARCHMENT_TEXT = "#352217";
 const PARCHMENT_MUTED = "#6d5139";
 const STAMP_RED = "#9f201b";
+const GRADE_COLORS = {
+  S: "#c88a16",
+  A: "#287348",
+  B: "#28658b",
+  C: "#a45e1d",
+  D: "#735346",
+  F: "#a12620"
+};
 
 export class ResultsScene extends Phaser.Scene {
   constructor() { super("results"); }
 
   preload() {
-    if (!this.textures.exists("results-headquarters")) this.load.image("results-headquarters", "assets/locations/headquarters.webp?v=0.20.0");
     if (!this.textures.exists("results-parchment")) this.load.image("results-parchment", "assets/ui/results/results-parchment.png?v=0.72.0");
     if (!this.textures.exists("result-stamp-frame")) this.load.image("result-stamp-frame", "assets/ui/results/result-stamp-frame.png?v=0.72.0");
     queuePlayerFighterTextures(this, playerFighterAppearance(battleRuntime.activeSave));
@@ -36,9 +44,9 @@ export class ResultsScene extends Phaser.Scene {
             ? `${masterName}: «Retirarse a tiempo también es parte del entrenamiento.»`
             : `${masterName}: «Analiza la derrota, ajusta tu estrategia y vuelve.»`;
 
-    this.add.image(WIDTH / 2, HEIGHT / 2, "results-headquarters").setDisplaySize(WIDTH, HEIGHT).setDepth(0);
-    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x120b07, 0.66).setOrigin(0).setDepth(1);
-    this.add.image(WIDTH / 2, HEIGHT / 2, "results-parchment").setDisplaySize(920, 518).setDepth(2);
+    this.cameras.main.setBackgroundColor(0x1b0e08);
+    this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x1b0e08, 1).setOrigin(0).setDepth(1);
+    this.add.image(WIDTH / 2, HEIGHT / 2, "results-parchment").setDisplaySize(WIDTH, HEIGHT).setDepth(2);
 
     this.add.text(480, 76, "INFORME DE MISIÓN", {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "10px", color: PARCHMENT_MUTED, fontStyle: "bold", letterSpacing: 3
@@ -52,6 +60,20 @@ export class ResultsScene extends Phaser.Scene {
     this.add.text(480, 149, subtitle, {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "13px", color: PARCHMENT_MUTED, fontStyle: "italic"
     }).setOrigin(0.5).setDepth(5);
+
+    const grade = missionGrade(outcome, data.playerHp, data.maxHp);
+    const gradeColor = GRADE_COLORS[grade];
+    const gradeMark = this.add.text(205, 176, grade, {
+      fontFamily: '"Segoe Print", "Bradley Hand", "Brush Script MT", cursive',
+      fontSize: "86px", color: gradeColor, fontStyle: "bold italic"
+    }).setPadding(24, 16, 24, 18).setOrigin(0.5).setStroke("#3a2317", 2.8).setShadow(2, 3, "#2f1b10", 0.32).setAngle(-7).setDepth(10).setAlpha(0).setScale(1.65);
+    const gradeBrush = this.add.graphics().setDepth(8).setAlpha(0);
+    gradeBrush.lineStyle(5, Phaser.Display.Color.HexStringToColor(gradeColor).color, 0.65)
+      .beginPath().moveTo(154, 235).lineTo(256, 224).strokePath();
+    gradeBrush.lineStyle(2, 0x3a2317, 0.45)
+      .beginPath().moveTo(166, 241).lineTo(247, 232).strokePath();
+    this.tweens.add({ targets: gradeBrush, alpha: 1, duration: 240, delay: 420 });
+    this.tweens.add({ targets: gradeMark, alpha: 1, scale: 1, angle: -3, duration: 420, delay: 330, ease: "Back.out" });
 
     const fighter = createPlayerFighter(this, 213, 391, playerFighterAppearance(battleRuntime.activeSave));
     fighter.targets.forEach((target) => target.setAlpha(0));
@@ -126,7 +148,7 @@ export class ResultsScene extends Phaser.Scene {
       .setStrokeStyle(2, 0x5d3a22, 0.95).setInteractive({ useHandCursor: true }).setDepth(5);
     const leftRoller = this.add.rectangle(480, 478, 12, 48, 0x765133, 1).setStrokeStyle(1, 0x352217).setDepth(6);
     const rightRoller = this.add.rectangle(736, 478, 12, 48, 0x765133, 1).setStrokeStyle(1, 0x352217).setDepth(6);
-    const buttonLabel = this.add.text(608, 478, "VOLVER A LA ALDEA", {
+    const buttonLabel = this.add.text(608, 478, "CONTINUAR EN LA ALDEA", {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "13px", color: PARCHMENT_TEXT, fontStyle: "bold"
     }).setOrigin(0.5).setDepth(7);
     buttonBg.on("pointerover", () => {
@@ -141,8 +163,8 @@ export class ResultsScene extends Phaser.Scene {
     });
     buttonBg.once("pointerup", () => {
       buttonBg.disableInteractive();
-      buttonLabel.setText("REGRESANDO...");
-      this.scene.start("travel", { direction: "toVillage" });
+      buttonLabel.setText("CERRANDO INFORME...");
+      battleRuntime.releaseGameToMeta("plaza");
     });
 
     this.tweens.add({ targets: this.children.getByName("results-title"), alpha: 1, y: "+=6", duration: 560, ease: "Cubic.out" });

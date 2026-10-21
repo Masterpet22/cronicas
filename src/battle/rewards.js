@@ -10,6 +10,16 @@ export function addBattleReward(total, reward) {
   };
 }
 
+export function missionGrade(outcome, playerHp, maxHp) {
+  if (outcome !== "completed") return "F";
+  const hpRatio = Math.max(0, Number(playerHp) || 0) / Math.max(1, Number(maxHp) || 1);
+  if (hpRatio >= 0.9) return "S";
+  if (hpRatio >= 0.7) return "A";
+  if (hpRatio >= 0.5) return "B";
+  if (hpRatio >= 0.25) return "C";
+  return "D";
+}
+
 export function createBattleResult({ outcome, mission, player, defeatedEncounters, encounterCount, battleRewards, combatFeatures, campaign }) {
   return {
     outcome,
