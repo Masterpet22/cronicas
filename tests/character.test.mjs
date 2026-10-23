@@ -11,7 +11,10 @@ const preview = fighterPreviewSvg(appearance);
 assert.match(preview, /^<svg/);
 assert.match(preview, /Vista previa personalizada/);
 assert.match(preview, /#68a8ff/, "La vista previa debe conservar el color normalizado al reutilizar una apariencia resuelta");
-assert.doesNotMatch(preview, /<img|assets\/modular/, "La vista previa no debe depender de los atlas experimentales");
+assert.match(fighterPreviewSvg({ bodyType: "male", hair: 1 }), /hair_corto\.png/, "Corto debe usar el recurso aprobado en el cuerpo masculino");
+assert.match(fighterPreviewSvg({ bodyType: "female", hair: 1 }), /hair_corto\.png/, "Corto debe estar disponible en el cuerpo femenino");
+assert.match(fighterPreviewSvg({ bodyType: "male", hair: 4 }), /hair_coleta\.png/, "Coleta debe usar el recurso aprobado en el cuerpo masculino");
+assert.match(fighterPreviewSvg({ bodyType: "female", hair: 4 }), /hair_coleta\.png/, "Coleta debe estar disponible en el cuerpo femenino");
 
 const repaired = resolveFighterAppearance({ face: 99, hair: -4, top: 0, bottom: 20, shoes: 8, weapon: "invalid" });
 assert.deepEqual(
@@ -23,7 +26,7 @@ import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "..
 import { PuppetAnimationController } from "../src/animations/controller.js";
 import { validateAnimationCatalog } from "../src/animations/schema.js";
 import { animationClipDuration, sampleAnimationPose } from "../src/animations/runtime.js";
-import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
+import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, playEarthWallCast, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
@@ -42,6 +45,12 @@ const mockScene = {
 };
 assert.equal(queuePlayerFighterTextures(mockScene, playerApp), "modular", "El cuerpo masculino debe usar los sprites modulares");
 assert.equal(loaded.length, 14, "Deben cargarse las catorce partes del cuerpo masculino");
+const shortHairLoaded = [];
+queuePlayerFighterTextures({ textures: { exists: (key) => shortHairLoaded.includes(key) }, load: { image: (key) => shortHairLoaded.push(key) } }, { ...playerApp, hair: 1, bodyType: "female" });
+assert.ok(shortHairLoaded.includes("player-hair-corto"), "Corto debe cargarse también para el cuerpo femenino");
+const ponytailLoaded = [];
+queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.includes(key) }, load: { image: (key) => ponytailLoaded.push(key) } }, { ...playerApp, hair: 4, bodyType: "male" });
+assert.ok(ponytailLoaded.includes("player-hair-coleta"), "Coleta debe cargarse también para el cuerpo masculino");
 assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
@@ -83,7 +92,29 @@ assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold"
 assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy", "hit-light-simple", "hit-heavy-simple"]);
 assert.deepEqual(animationClipList("locomoción").map(({ id }) => id), ["run-cycle", "run-simple"]);
 assert.deepEqual(animationClipList("ataque").map(({ id }) => id), ["punch-prepare", "punch-release", "punch-recover"]);
-assert.deepEqual(animationClipList("acción").map(({ id }) => id), ["prepare-technique"], "La preparación temporal debe usar una pose declarativa propia");
+assert.deepEqual(animationClipList("acción").map(({ id }) => id), ["prepare-technique", "earth-wall-cast"], "Las técnicas con pose propia deben vivir en el catálogo declarativo");
+assert.equal(PUPPET_ANIMATION_CLIPS["earth-wall-cast"].loop, false, "Muro Pétreo debe terminar antes de iniciar su spritesheet");
+assert.equal(PUPPET_ANIMATION_CLIPS["earth-wall-cast"].anchor, "ankleRight", "Muro Pétreo debe mantener anclado el pie derecho");
+assert.equal(animationClipDuration(PUPPET_ANIMATION_CLIPS["earth-wall-cast"]), 1000, "La animación importada de Kinetra debe durar un segundo");
+const earthWallPeakPose = sampleAnimationPose(PUPPET_ANIMATION_CLIPS["earth-wall-cast"], 792);
+assert.equal(earthWallPeakPose.rig.angle, -17.898053433406837, "La pose clave de Muro Pétreo debe conservar el giro de Kinetra");
+assert.equal(earthWallPeakPose.rig.x, undefined, "Muro Pétreo no debe desplazar al personaje horizontalmente");
+assert.equal(earthWallPeakPose.rig.y, undefined, "Muro Pétreo no debe desplazar al personaje verticalmente");
+const earthWallEvents = [];
+const earthWallFighter = {
+  rig: {},
+  animations: {
+    clipId: null,
+    state: null,
+    tweens: [],
+    supports: (id) => id === "earth-wall-cast" || id === DEFAULT_IDLE_CLIP,
+    async playOnce(id) { earthWallEvents.push(`${id}:inicio`); await Promise.resolve(); earthWallEvents.push(`${id}:fin`); return true; },
+    loop(id) { earthWallEvents.push(`${id}:inicio`); }
+  },
+  breathingTweens: []
+};
+await playEarthWallCast({}, earthWallFighter);
+assert.deepEqual(earthWallEvents, ["earth-wall-cast:inicio", "earth-wall-cast:fin", `${DEFAULT_IDLE_CLIP}:inicio`], "La pose de Muro Pétreo debe finalizar antes de regresar al reposo");
 assert.equal(PUPPET_ANIMATION_CLIPS["punch-prepare"].restore, false, "La preparación debe conservar su pose hasta la fase de impacto");
 assert.equal(PUPPET_ANIMATION_CLIPS["punch-release"].restore, false, "El impacto debe conservar su pose hasta la recuperación");
 assert.ok(Object.values(PUPPET_ANIMATION_CLIPS).every(({ status }) => status === "integrated"), "Los clips ofrecidos como listos deben estar integrados");

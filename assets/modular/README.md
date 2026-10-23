@@ -15,6 +15,8 @@ Este directorio conserva los atlas y capas ilustradas experimentales. Las varian
 
 `manifest.json` registra las variantes y los anclajes `HEAD`, `NECK`, `SHOULDER_L/R`, `HAND_L/R`, `WAIST`, `FOOT_L/R` y `WEAPON_HAND`.
 
+Los recursos `hair/hair_corto.png` y `hair/hair_coleta.png` son las variantes aprobadas para ejecución. Se comparten entre los cuerpos masculino y femenino y corresponden a las opciones 1 (Corto) y 4 (Coleta).
+
 ## Regeneración
 
 Desde la raíz del proyecto:

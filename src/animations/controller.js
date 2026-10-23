@@ -1,4 +1,4 @@
-import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.70.0";
+import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.80.0";
 import { addAnimationOffsets, isKeyframeAnimationClip, sampleKeyframeAnimationPose, TRANSFORM_PROPERTIES } from "./runtime.js";
 
 function targetFor(fighter, name) {
@@ -9,6 +9,13 @@ function targetFor(fighter, name) {
 
 function snapshot(target) {
   return Object.fromEntries(TRANSFORM_PROPERTIES.map((property) => [property, Number(target?.[property] ?? (property.startsWith("scale") || property === "alpha" ? 1 : 0))]));
+}
+
+function worldPoint(target) {
+  const matrix = target?.getWorldTransformMatrix?.();
+  if (!matrix?.transformPoint) return null;
+  const point = matrix.transformPoint(0, 0, {});
+  return Number.isFinite(point?.x) && Number.isFinite(point?.y) ? point : null;
 }
 
 export class PuppetAnimationController {
@@ -95,13 +102,24 @@ export class PuppetAnimationController {
       this.touched.set(target, base);
       targets.set(name, { target, base });
     });
+    const anchorTarget = clip.anchor ? targetFor(this.fighter, clip.anchor) : null;
+    const anchorPoint = worldPoint(anchorTarget);
+    const rigEntry = targets.get("rig");
 
     const applyAt = (elapsed) => {
+      if (rigEntry) Object.assign(rigEntry.target, rigEntry.base);
       const pose = sampleKeyframeAnimationPose(clip, elapsed);
       Object.entries(pose).forEach(([name, offsets]) => {
         const entry = targets.get(name);
         if (entry) Object.assign(entry.target, addAnimationOffsets(entry.base, offsets));
       });
+      const currentAnchor = worldPoint(anchorTarget);
+      if (anchorPoint && currentAnchor && rigEntry) {
+        const scaleX = Number(this.fighter.body?.scaleX) || 1;
+        const scaleY = Number(this.fighter.body?.scaleY) || 1;
+        rigEntry.target.x += (anchorPoint.x - currentAnchor.x) / scaleX;
+        rigEntry.target.y += (anchorPoint.y - currentAnchor.y) / scaleY;
+      }
     };
 
     applyAt(0);

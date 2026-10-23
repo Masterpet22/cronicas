@@ -24,6 +24,10 @@ export function validateAnimationCatalog(catalog, priorities) {
     required.forEach((target) => {
       if (!knownTargets.has(target)) errors.push(`${at}: requisito desconocido ${target}`);
     });
+    if (clip.anchor !== undefined) {
+      if (!knownTargets.has(clip.anchor)) errors.push(`${at}: anclaje desconocido ${clip.anchor}`);
+      else if (!required.has(clip.anchor)) errors.push(`${at}: el anclaje ${clip.anchor} debe estar declarado en requires`);
+    }
     const hasLegacyTracks = Array.isArray(clip.tracks) && clip.tracks.length > 0;
     const hasKeyframes = clip.keys && typeof clip.keys === "object" && !Array.isArray(clip.keys) && Object.keys(clip.keys).length > 0;
     if (hasLegacyTracks && hasKeyframes) errors.push(`${at}: no debe mezclar tracks heredados y keys`);

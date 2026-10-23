@@ -89,6 +89,31 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
       { target: "rig", duration: 620, yoyo: true, ease: "Sine.inOut", from: { y: 1, angle: 0 }, to: { y: -1, angle: -0.6 } }
     ])
   }),
+  "earth-wall-cast": Object.freeze({
+    id: "earth-wall-cast",
+    label: "Muro Pétreo",
+    description: "Animación de invocación creada en Kinetra para levantar la muralla después del gesto.",
+    category: "acción",
+    state: ANIMATION_STATES.ACTION,
+    status: "integrated",
+    duration: 1000,
+    loop: false,
+    requires: Object.freeze(["ankleLeft", "ankleRight", "elbowLeft", "elbowRight", "hipLeft", "hipRight", "kneeLeft", "kneeRight", "rig", "shoulderLeft", "shoulderRight"]),
+    anchor: "ankleRight",
+    keys: Object.freeze({
+      ankleRight: Object.freeze([{ t: 375, x: 0, y: 0, angle: 14.054736739479978 }, { t: 833, x: 0, y: 0, angle: 14.054736739479978 }, { t: 875, x: 0, y: 0, angle: 14.054736739479978 }, { t: 917, x: 0, y: 0, angle: 14.054736739479978 }]),
+      elbowLeft: Object.freeze([{ t: 0, x: 0, y: 0, angle: 85.77296456058406 }, { t: 250, x: 0, y: 0, angle: 84.43135978068875 }, { t: 375, x: 0, y: 0, angle: 70.93075157490739 }, { t: 792, x: 0, y: 0, angle: 94.49870705546024 }, { t: 833, x: 0, y: 0, angle: 70.93075157490739 }, { t: 875, x: 0, y: 0, angle: 84.43135978068875 }, { t: 917, x: 0, y: 0, angle: 85.77296456058406 }]),
+      elbowRight: Object.freeze([{ t: 0, x: 0, y: 0, angle: -71.97925283149254 }, { t: 83, angle: -47.68978249274857 }, { t: 250, angle: -59.271799047312705 }, { t: 792, x: 0, y: 0, angle: -31.348875766500008 }, { t: 875, angle: -59.271799047312705 }, { t: 917, x: 0, y: 0, angle: -71.97925283149254 }]),
+      hipLeft: Object.freeze([{ t: 0, x: 0, y: 0, angle: -91.98603066083245 }, { t: 83, angle: -46.04951311797681 }, { t: 250, x: 0, y: 0, angle: -97.43968401484904 }, { t: 375, x: 0, y: 0, angle: -103.0751630394891 }, { t: 792, x: 0, y: 0, angle: -110.66721826786285 }, { t: 833, x: 0, y: 0, angle: -103.0751630394891 }, { t: 875, x: 0, y: 0, angle: -97.43968401484904 }, { t: 917, x: 0, y: 0, angle: -91.98603066083245 }]),
+      hipRight: Object.freeze([{ t: 0, x: 0, y: 0, angle: 85.51358832963984 }, { t: 83, angle: 39.368500083885834 }, { t: 250, x: 0, y: 0, angle: 90.06710828857643 }, { t: 375, x: 0, y: 0, angle: 73.88838893715432 }, { t: 792, x: 0, y: 0, angle: 44.175045295864415 }, { t: 833, x: 0, y: 0, angle: 73.88838893715432 }, { t: 875, x: 0, y: 0, angle: 90.06710828857643 }, { t: 917, x: 0, y: 0, angle: 85.51358832963984 }]),
+      kneeLeft: Object.freeze([{ t: 0, x: 0, y: 0, angle: 92.9167776944554 }, { t: 83, angle: 48.99075237066157 }, { t: 250, x: 0, y: 0, angle: 99.97405857301365 }, { t: 375, x: 0, y: 0, angle: 56.75652101540675 }, { t: 792, x: 0, y: 0, angle: 15.500547991155763 }, { t: 833, x: 0, y: 0, angle: 56.75652101540675 }, { t: 875, x: 0, y: 0, angle: 99.97405857301365 }, { t: 917, x: 0, y: 0, angle: 92.9167776944554 }]),
+      kneeRight: Object.freeze([{ t: 0, x: 0, y: 0, angle: -98.91530523422365 }, { t: 83, angle: -41.222131213855995 }, { t: 250, x: 0, y: 0, angle: -84.94118620067411 }, { t: 375, x: 0, y: 0, angle: -68.89925084526017 }, { t: 792, x: 0, y: 0, angle: -38.173528313072026 }, { t: 833, x: 0, y: 0, angle: -68.89925084526017 }, { t: 875, x: 0, y: 0, angle: -84.94118620067411 }, { t: 917, x: 0, y: 0, angle: -98.91530523422365 }]),
+      rig: Object.freeze([{ t: 0, angle: 0 }, { t: 83, angle: 0 }, { t: 250, angle: -12.895703583307451 }, { t: 375, angle: -18.59292177237386 }, { t: 792, angle: -17.898053433406837 }, { t: 833, angle: -18.59292177237386 }, { t: 875, angle: -12.895703583307451 }, { t: 917, angle: 0 }]),
+      shoulderLeft: Object.freeze([{ t: 0, x: 0, y: 0, angle: -49.388779677683665 }, { t: 83, angle: -35.27605775448361 }, { t: 250, x: 0, y: 0, angle: -55.66143450336352 }, { t: 375, x: 0, y: 0, angle: -52.93136791869806 }, { t: 792, x: 0, y: 0, angle: -71.97075091170173 }, { t: 833, x: 0, y: 0, angle: -52.93136791869806 }, { t: 875, x: 0, y: 0, angle: -55.66143450336352 }, { t: 917, x: 0, y: 0, angle: -49.388779677683665 }]),
+      shoulderRight: Object.freeze([{ t: 0, x: 0, y: 0, angle: 52.470779647950486 }, { t: 83, angle: 31.595315412769786 }, { t: 250, angle: 39.059720279209216 }, { t: 792, x: 0, y: 0, angle: 19.53237954030852 }, { t: 875, angle: 39.059720279209216 }, { t: 917, x: 0, y: 0, angle: 52.470779647950486 }])
+    }),
+    spriteEvents: Object.freeze([])
+  }),
   "guard-hold": Object.freeze({
     id: "guard-hold",
     label: "Guardia sostenida",

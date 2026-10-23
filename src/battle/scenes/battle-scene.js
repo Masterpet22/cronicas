@@ -1,8 +1,8 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.71.0";
-import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.64.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
@@ -17,11 +17,11 @@ import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRe
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
-import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
+import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.81.0";
 
 import { BattlePresentationMethods } from "./battle-presentation.js?v=0.71.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.72.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.70.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.81.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.72.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 
@@ -53,9 +53,21 @@ export class BattleScene extends Phaser.Scene {
     const needsSealSheet = battleRuntime.activeSave.loadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
-      if (!battleRuntime.activeSave.loadout.includes(jutsuId) || this.textures.exists(`technique-vfx-${jutsuId}`)) return;
+      if (!battleRuntime.activeSave.loadout.includes(jutsuId)) return;
+      if (effect.creationFile) {
+        [["creation", effect.creationFile], ["destruction", effect.destructionFile]].forEach(([phase, file]) => {
+          const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
+          if (!this.textures.exists(phaseTexture)) this.load.spritesheet(phaseTexture, `assets/vfx/${file}?v=0.81.0`, {
+            frameWidth: effect.frameWidth,
+            frameHeight: effect.frameHeight,
+            endFrame: effect.frames - 1
+          });
+        });
+        return;
+      }
       const texture = `technique-vfx-${jutsuId}`;
-      const source = `assets/vfx/${effect.file}?v=0.52.0`;
+      if (this.textures.exists(texture)) return;
+      const source = `assets/vfx/${effect.file}?v=0.81.0`;
       if (Number.isFinite(effect.sourceY)) this.load.image(texture, source);
       else this.load.spritesheet(texture, source, {
           frameWidth: effect.frameWidth,
@@ -93,6 +105,21 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.setZoom(battleRuntime.renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     this.saveData = battleRuntime.activeSave;
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
+      if (effect.creationFile) {
+        ["creation", "destruction"].forEach((phase) => {
+          const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
+          const phaseAnimation = `${phaseTexture}-animation`;
+          if (!this.textures.exists(phaseTexture) || this.anims.exists(phaseAnimation)) return;
+          this.anims.create({
+            key: phaseAnimation,
+            frames: this.anims.generateFrameNumbers(phaseTexture, { start: 0, end: effect.frames - 1 }),
+            frameRate: effect.frameRate,
+            repeat: 0,
+            hideOnComplete: phase === "destruction"
+          });
+        });
+        return;
+      }
       const texture = `technique-vfx-${jutsuId}`;
       const animation = `${texture}-animation`;
       if (!this.textures.exists(texture) || this.anims.exists(animation)) return;

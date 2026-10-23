@@ -1,11 +1,15 @@
-import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.70.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.70.0";
+import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.80.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.80.0";
 import { PUPPET_JOINTS } from "./animations/rig.js";
 
 const MAN_SPRITE_SCALE = 0.13;
 const MAN_SPRITE_Y_OFFSET = -39;
 export const MAN_SPRITE_SHADOW_OFFSET = 60;
 const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
+const HAIR_TEXTURES = Object.freeze({
+  1: { id: "corto", width: 290, height: 255, x: -5, y: -260 },
+  4: { id: "coleta", width: 310, height: 278, x: -25, y: -255 }
+});
 
 // Centros calibrados sobre un lienzo de 2048 x 2048 con origen en el centro.
 // El orden z mantiene la superposición anatómica aprobada para el juego.
@@ -36,11 +40,19 @@ function manSpriteKey(id) {
   return `player-man-${id}`;
 }
 
+function hairTextureKey(style) {
+  return HAIR_TEXTURES[style] ? `player-hair-${HAIR_TEXTURES[style].id}` : null;
+}
+
 export function queuePlayerFighterTextures(scene, appearance) {
   MAN_SPRITE_LAYERS.forEach(({ id, assetId = id }) => {
     const key = manSpriteKey(id);
     if (!scene.textures.exists(key)) scene.load.image(key, `${MAN_SPRITE_ROOT}/${assetId}.png?v=0.40.0`);
   });
+  const hair = HAIR_TEXTURES[appearance?.hair];
+  if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
+    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=0.76.0`);
+  }
   return "modular";
 }
 
@@ -180,6 +192,14 @@ export async function recoverPlayerPunch(scene, fighter) {
   return true;
 }
 
+export async function playEarthWallCast(scene, fighter) {
+  if (!fighter?.animations?.supports("earth-wall-cast")) return false;
+  stopPlayerBreathing(fighter);
+  const completed = await fighter.animations.playOnce("earth-wall-cast", { force: true });
+  startPlayerBreathing(scene, fighter);
+  return completed;
+}
+
 export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   const shadow = scene.add.ellipse(x, y + MAN_SPRITE_SHADOW_OFFSET, 158, 22, 0x000000, 0.4).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);
@@ -228,8 +248,17 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   joints.neck = createJoint(scene, rig, "neck", MAN_SPRITE_JOINTS.neck);
   const head = addPart(scene, joints.neck, "cabeza", MAN_SPRITE_JOINTS.neck);
   layers.push(head);
+  const hairConfig = HAIR_TEXTURES[appearance?.hair];
+  let hair = null;
+  if (hairConfig) {
+    const key = hairTextureKey(appearance.hair);
+    hair = scene.add.image(hairConfig.x, hairConfig.y, key).setDisplaySize(hairConfig.width, hairConfig.height);
+    hair.name = `hair-${hairConfig.id}`;
+    joints.neck.add(hair);
+    layers.push(hair);
+  }
 
-  const fighter = { shadow, body, head, rig, joints, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
+  const fighter = { shadow, body, head, hair, rig, joints, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
   fighter.animations = createPuppetAnimationController(scene, fighter);
   startPlayerBreathing(scene, fighter);
   return fighter;

@@ -102,3 +102,10 @@ y la asociación entre piezas y huesos. El juego no mantiene copias de esas regl
 La carrera (`run-cycle` y su variante simple) y las tres fases del puñetazo
 (`punch-prepare`, `punch-release`, `punch-recover`) viven ahora en el catálogo,
 por lo que comparten el mismo sistema que defensa y daño.
+
+`earth-wall-cast` contiene la pose de un segundo importada desde Kinetra para
+Muro Pétreo. Es un clip de una sola ejecución: el efecto `earth_wall` comienza
+únicamente después de que `playEarthWallCast` resuelve y restaura la pose. Sus
+traslaciones raíz X/Y se descartan. El controlador compensa el `rig` en cada
+fotograma para conservar `ankleRight` en su coordenada mundial original: el pie
+derecho permanece plantado mientras se aplican el giro y las articulaciones.

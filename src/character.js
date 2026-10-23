@@ -1,4 +1,9 @@
 const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
+export const HAIR_STYLE_LABELS = Object.freeze(["Corto", "Largo", "Puntiagudo", "Coleta", "Ninja"]);
+const RASTER_HAIR = Object.freeze({
+  1: { asset: "assets/modular/hair/hair_corto.png?v=0.76.0", x: -57, y: -146, width: 114, height: 100 },
+  4: { asset: "assets/modular/hair/hair_coleta.png?v=0.76.0", x: -66, y: -151, width: 132, height: 118 }
+});
 const WEAPON_MAP = { kunai: "kunai", tanto: "sword", staff: "staff" };
 
 // Caja del SVG del combatiente. El punto (0, 0) es el centro del torso.
@@ -71,6 +76,12 @@ function hairSvg(style, color, ink) {
   return base;
 }
 
+function rasterHairSvg(style) {
+  const hair = RASTER_HAIR[style];
+  if (!hair) return "";
+  return `<image href="${hair.asset}" x="${hair.x}" y="${hair.y}" width="${hair.width}" height="${hair.height}" preserveAspectRatio="xMidYMid meet" style="image-rendering:pixelated"/>`;
+}
+
 export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {}) {
   const a = resolveFighterAppearance(appearance);
   const box = FIGHTER_VIEWBOX;
@@ -84,7 +95,7 @@ export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {})
   const vest = a.top === 2 ? `<path d="M-${torsoWidth / 2 + 8} -34 L-${torsoWidth / 2} -49 L-${torsoWidth / 2 - 5} -17 Z M${torsoWidth / 2 + 8} -34 L${torsoWidth / 2} -49 L${torsoWidth / 2 - 5} -17 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="4"/>` : "";
   return `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"${size} xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista previa personalizada">
     ${shadow ? `<ellipse cx="0" cy="117" rx="68" ry="10" fill="#05070a" opacity=".35"/>` : ""}
-    ${a.hair === 2 || a.hair === 4 ? hairSvg(a.hair, a.hairColor, a.ink) : ""}
+    ${a.hair === 2 ? hairSvg(a.hair, a.hairColor, a.ink) : ""}
     <path d="M-${legWidth + 5} 36 L-5 36 L-${legWidth - 2} 101 L-${legWidth + 20} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>
     <path d="M5 36 L${legWidth + 5} 36 L${legWidth + 20} 101 L${legWidth - 2} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>
     <path d="M-${legWidth + 23} ${98 - shoeHeight / 2} Q-${legWidth + 25} 114 -${legWidth + 2} 115 L-5 115 L-7 ${98 - shoeHeight / 2} Z" fill="#293242" stroke="${a.ink}" stroke-width="5"/>
@@ -97,7 +108,7 @@ export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {})
     <rect x="-10" y="-58" width="20" height="22" rx="7" fill="${a.skin}" stroke="${a.ink}" stroke-width="4"/>
     <ellipse cx="0" cy="-86" rx="43" ry="49" fill="${a.skin}" stroke="${a.ink}" stroke-width="5"/>
     <path d="${eye}" fill="none" stroke="${a.ink}" stroke-width="5" stroke-linecap="round"/><path d="${mouth}" fill="none" stroke="#7d3c3e" stroke-width="3" stroke-linecap="round"/>
-    ${a.hair === 2 || a.hair === 4 ? hairSvg(1, a.hairColor, a.ink) : hairSvg(a.hair, a.hairColor, a.ink)}
+    ${RASTER_HAIR[a.hair] ? rasterHairSvg(a.hair) : a.hair === 2 ? hairSvg(1, a.hairColor, a.ink) : hairSvg(a.hair, a.hairColor, a.ink)}
     ${weaponSvg(a.weapon, a.ink)}
   </svg>`;
 }

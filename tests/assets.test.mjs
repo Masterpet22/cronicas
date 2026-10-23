@@ -26,6 +26,14 @@ await Promise.all(assets.map(async (asset) => {
 }));
 assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");
 
+for (const asset of ["hair_corto.png", "hair_coleta.png"]) {
+  const png = await readFile(new URL(`../assets/modular/hair/${asset}`, import.meta.url));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `${asset} debe ser un PNG válido`);
+  assert.ok(png.readUInt32BE(16) >= 700, `${asset} debe conservar resolución suficiente para combate y vista previa`);
+  assert.ok(png.readUInt32BE(20) >= 600, `${asset} debe conservar resolución suficiente para combate y vista previa`);
+  assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
+}
+
 const manRuntimeLayers = [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
@@ -50,6 +58,16 @@ const substitutionLog = await readFile(new URL("../assets/vfx/substitution-log-r
 assert.equal(substitutionLog.subarray(1, 4).toString("ascii"), "PNG", "El tronco de Sustitución debe ser un PNG válido");
 assert.ok(substitutionLog.readUInt32BE(16) >= 768, "El tronco de Sustitución debe conservar resolución suficiente para la animación");
 assert.ok([3, 4, 6].includes(substitutionLog[25]), "El tronco de Sustitución debe conservar transparencia alfa");
+
+const earthWall = await readFile(new URL("../assets/vfx/earth-wall-spritesheet.png", import.meta.url));
+assert.deepEqual([earthWall.readUInt32BE(16), earthWall.readUInt32BE(20)], [2400, 1340], "Muralla pétrea debe conservar su cuadrícula de 2 × 4 fotogramas");
+assert.equal(earthWall[25], 6, "Muralla pétrea debe conservar transparencia alfa real");
+
+for (const asset of ["earth-fist-creation-spritesheet.png", "earth-fist-destruction-spritesheet.png"]) {
+  const sheet = await readFile(new URL(`../assets/vfx/${asset}`, import.meta.url));
+  assert.deepEqual([sheet.readUInt32BE(16), sheet.readUInt32BE(20)], [2400, 1340], `${asset} debe conservar su cuadrícula de 4 × 2 fotogramas`);
+  assert.equal(sheet[25], 6, `${asset} debe conservar transparencia alfa real`);
+}
 
 const village = webpDimensions(await readFile(new URL("../assets/village/aldea.webp", import.meta.url)), "aldea.webp");
 assert.equal(village.width, 1678, "El mapa debe conservar su ancho original");

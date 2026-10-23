@@ -1,8 +1,8 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.71.0";
-import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.62.0";
+import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.64.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
@@ -17,7 +17,7 @@ import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRe
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
-import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.68.0";
+import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.81.0";
 
 export class BattleActionMethods {
   async playSeals(jutsu) {
@@ -241,6 +241,8 @@ export class BattleActionMethods {
     const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
     const usesHandProjectile = jutsu.id === "fire_embers";
     const usesCastPose = usesHandProjectile && this.hero.animations?.supports("punch-release");
+    const usesEarthWallCast = jutsu.id === "earth_wall" && this.hero.animations?.supports("earth-wall-cast");
+    const usesEarthFistProjectile = jutsu.id === "earth_fist";
     if (usesPuppetPunch) {
       await preparePlayerPunch(this, this.hero);
       const strikeX = this.foe.body.x - 105;
@@ -254,6 +256,10 @@ export class BattleActionMethods {
         await preparePlayerPunch(this, this.hero);
         await releasePlayerPunch(this, this.hero);
       } else await this.delay(125);
+    } else if (usesEarthWallCast) {
+      await playEarthWallCast(this, this.hero);
+    } else if (usesEarthFistProjectile) {
+      await this.delay(90);
     } else {
       this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
       await this.delay(125);
@@ -261,6 +267,7 @@ export class BattleActionMethods {
 
     if (!this.rollHit(chance)) {
       if (usesHandProjectile) await this.playFireEmbersProjectile(true);
+      else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true);
       this.tone(205, 0.08);
       this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
       const substitution = this.playSubstitution(this.foe);
@@ -290,6 +297,7 @@ export class BattleActionMethods {
       damageReduction: this.enemy.damageReduction || 0
     });
     if (usesHandProjectile) await this.playFireEmbersProjectile(false);
+    else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
     else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
     else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
     this.tone(jutsu.cinematic ? 92 : 128, 0.12);
@@ -316,7 +324,7 @@ export class BattleActionMethods {
     } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, this.hero)]);
     else await reaction;
     await this.applyEarthReprisal(this.enemy, this.player, this.hero, amount);
-    await this.delay(usesPuppetPunch || usesCastPose ? 150 : 430);
+    await this.delay(usesPuppetPunch || usesCastPose || usesEarthWallCast || usesEarthFistProjectile ? 150 : 430);
     this.hero.body.x = originX;
     this.hero.shadow.x = originShadowX;
   }
@@ -337,6 +345,50 @@ export class BattleActionMethods {
       });
       sprite.play(animation);
     });
+  }
+
+  async playEarthFistProjectile(missed = false) {
+    const effect = TECHNIQUE_VFX.earth_fist;
+    const creationTexture = "technique-vfx-earth_fist-creation";
+    const destructionTexture = "technique-vfx-earth_fist-destruction";
+    const creationAnimation = `${creationTexture}-animation`;
+    const destructionAnimation = `${destructionTexture}-animation`;
+    if (!this.textures.exists(creationTexture) || !this.anims.exists(creationAnimation)) return;
+
+    const origin = { x: this.hero.body.x + 92, y: this.hero.shadow.y + 8 };
+    const projectile = this.add.sprite(origin.x, origin.y, creationTexture, 0)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(effect.width, effect.height)
+      .setDepth(14);
+    await new Promise((resolve) => {
+      projectile.once("animationcomplete", resolve);
+      projectile.play(creationAnimation);
+    });
+
+    const target = {
+      x: this.foe.body.x + (missed ? 145 : -18),
+      y: this.foe.shadow.y + (missed ? -22 : 8)
+    };
+    await this.tween({
+      targets: projectile,
+      x: target.x,
+      y: target.y,
+      alpha: missed ? 0 : 1,
+      duration: 480,
+      ease: "Cubic.in"
+    });
+    projectile.destroy();
+    if (missed || !this.textures.exists(destructionTexture) || !this.anims.exists(destructionAnimation)) return;
+
+    const destruction = this.add.sprite(this.foe.body.x - 18, this.foe.shadow.y + 8, destructionTexture, 0)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(effect.width, effect.height)
+      .setDepth(15);
+    await new Promise((resolve) => {
+      destruction.once("animationcomplete", resolve);
+      destruction.play(destructionAnimation);
+    });
+    destruction.destroy();
   }
 
   playerProjectileOrigin() {

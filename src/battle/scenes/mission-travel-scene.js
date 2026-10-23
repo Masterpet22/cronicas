@@ -1,6 +1,6 @@
-import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.62.0";
-import { playerFighterAppearance } from "../../character.js?v=0.62.0";
-import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.68.0";
+import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { playerFighterAppearance } from "../../character.js?v=0.76.0";
+import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.81.0";
 
 export class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
