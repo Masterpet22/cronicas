@@ -55,7 +55,7 @@ export class BattleScene extends Phaser.Scene {
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
       if (!battleRuntime.activeSave.loadout.includes(jutsuId)) return;
       if (effect.creationFile) {
-        [["creation", effect.creationFile], ["destruction", effect.destructionFile]].forEach(([phase, file]) => {
+        [["creation", effect.creationFile], ["destruction", effect.destructionFile]].filter(([, file]) => file).forEach(([phase, file]) => {
           const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
           if (!this.textures.exists(phaseTexture)) this.load.spritesheet(phaseTexture, `assets/vfx/${file}?v=0.81.0`, {
             frameWidth: effect.frameWidth,
@@ -63,6 +63,10 @@ export class BattleScene extends Phaser.Scene {
             endFrame: effect.frames - 1
           });
         });
+        if (effect.projectileFile) {
+          const projectileTexture = `technique-vfx-${jutsuId}-projectile`;
+          if (!this.textures.exists(projectileTexture)) this.load.image(projectileTexture, `assets/vfx/${effect.projectileFile}?v=0.81.0`);
+        }
         return;
       }
       const texture = `technique-vfx-${jutsuId}`;
@@ -113,7 +117,7 @@ export class BattleScene extends Phaser.Scene {
           this.anims.create({
             key: phaseAnimation,
             frames: this.anims.generateFrameNumbers(phaseTexture, { start: 0, end: effect.frames - 1 }),
-            frameRate: effect.frameRate,
+            frameRate: phase === "destruction" ? (effect.destructionFrameRate || effect.frameRate) : effect.frameRate,
             repeat: 0,
             hideOnComplete: phase === "destruction"
           });

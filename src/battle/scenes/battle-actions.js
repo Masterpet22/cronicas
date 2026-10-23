@@ -239,7 +239,9 @@ export class BattleActionMethods {
     const originX = this.hero.body.x;
     const originShadowX = this.hero.shadow.x;
     const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
-    const usesHandProjectile = jutsu.id === "fire_embers";
+    const usesFireEmbersProjectile = jutsu.id === "fire_embers";
+    const usesWaterShurikenProjectile = jutsu.id === "water_bullet";
+    const usesHandProjectile = usesFireEmbersProjectile || usesWaterShurikenProjectile;
     const usesCastPose = usesHandProjectile && this.hero.animations?.supports("punch-release");
     const usesEarthWallCast = jutsu.id === "earth_wall" && this.hero.animations?.supports("earth-wall-cast");
     const usesEarthFistProjectile = jutsu.id === "earth_fist";
@@ -266,7 +268,8 @@ export class BattleActionMethods {
     }
 
     if (!this.rollHit(chance)) {
-      if (usesHandProjectile) await this.playFireEmbersProjectile(true);
+      if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(true);
+      else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true);
       else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true);
       this.tone(205, 0.08);
       this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
@@ -296,7 +299,8 @@ export class BattleActionMethods {
       criticalMultiplier: AFFINITY_CONFIG.damage.criticalMultiplier,
       damageReduction: this.enemy.damageReduction || 0
     });
-    if (usesHandProjectile) await this.playFireEmbersProjectile(false);
+    if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false);
+    else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false);
     else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
     else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
     else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
@@ -334,8 +338,11 @@ export class BattleActionMethods {
     const texture = `technique-vfx-${jutsuId}`;
     const animation = `${texture}-animation`;
     if (!effect || !this.textures.exists(texture) || !this.anims.exists(animation)) return Promise.resolve();
-    const sprite = this.add.sprite(this.foe.body.x, this.foe.shadow.y + 8, texture, 0)
-      .setOrigin(0.5, 1)
+    const occupiesBattlefield = effect.position === "battlefield";
+    const x = occupiesBattlefield ? (this.hero.body.x + this.foe.body.x) / 2 : this.foe.body.x;
+    const y = occupiesBattlefield ? effect.y : this.foe.shadow.y + 8;
+    const sprite = this.add.sprite(x, y, texture, 0)
+      .setOrigin(0.5, occupiesBattlefield ? 0.5 : 1)
       .setDisplaySize(effect.width, effect.height)
       .setDepth(14);
     return new Promise((resolve) => {
@@ -355,7 +362,7 @@ export class BattleActionMethods {
     const destructionAnimation = `${destructionTexture}-animation`;
     if (!this.textures.exists(creationTexture) || !this.anims.exists(creationAnimation)) return;
 
-    const origin = { x: this.hero.body.x + 92, y: this.hero.shadow.y + 8 };
+    const origin = { x: this.hero.body.x + 165, y: this.hero.shadow.y + 86 };
     const projectile = this.add.sprite(origin.x, origin.y, creationTexture, 0)
       .setOrigin(0.5, 1)
       .setDisplaySize(effect.width, effect.height)
@@ -367,7 +374,7 @@ export class BattleActionMethods {
 
     const target = {
       x: this.foe.body.x + (missed ? 145 : -18),
-      y: this.foe.shadow.y + (missed ? -22 : 8)
+      y: this.foe.shadow.y + (missed ? 56 : 86)
     };
     await this.tween({
       targets: projectile,
@@ -380,7 +387,7 @@ export class BattleActionMethods {
     projectile.destroy();
     if (missed || !this.textures.exists(destructionTexture) || !this.anims.exists(destructionAnimation)) return;
 
-    const destruction = this.add.sprite(this.foe.body.x - 18, this.foe.shadow.y + 8, destructionTexture, 0)
+    const destruction = this.add.sprite(this.foe.body.x - 18, this.foe.shadow.y + 86, destructionTexture, 0)
       .setOrigin(0.5, 1)
       .setDisplaySize(effect.width, effect.height)
       .setDepth(15);
@@ -391,14 +398,53 @@ export class BattleActionMethods {
     destruction.destroy();
   }
 
-  playerProjectileOrigin() {
+  playerHandPosition() {
     const wrist = this.hero.joints?.wristRight;
     if (wrist?.getWorldTransformMatrix) {
       const point = wrist.getWorldTransformMatrix().transformPoint(0, 0);
-      const direction = this.hero.body.scaleX < 0 ? -1 : 1;
-      return { x: point.x + 18 * direction, y: point.y };
+      return { x: point.x, y: point.y };
     }
-    return { x: this.hero.body.x + 62, y: this.hero.body.y - 12 };
+    return { x: this.hero.body.x + 44, y: this.hero.body.y - 12 };
+  }
+
+  playerProjectileOrigin() {
+    const hand = this.playerHandPosition();
+    const direction = this.hero.body.scaleX < 0 ? -1 : 1;
+    return { x: hand.x + 18 * direction, y: hand.y };
+  }
+
+  async playWaterShurikenProjectile(missed = false) {
+    const effect = TECHNIQUE_VFX.water_bullet;
+    const creationTexture = "technique-vfx-water_bullet-creation";
+    const creationAnimation = `${creationTexture}-animation`;
+    const projectileTexture = "technique-vfx-water_bullet-projectile";
+    if (!this.textures.exists(creationTexture) || !this.anims.exists(creationAnimation) || !this.textures.exists(projectileTexture)) return;
+
+    const origin = this.playerHandPosition();
+    const creation = this.add.sprite(origin.x, origin.y, creationTexture, 0)
+      .setDisplaySize(effect.creationWidth, effect.creationHeight)
+      .setDepth(14);
+    await new Promise((resolve) => {
+      creation.once("animationcomplete", resolve);
+      creation.play(creationAnimation);
+    });
+    creation.destroy();
+
+    const target = { x: this.foe.body.x + (missed ? 90 : -8), y: this.foe.body.y - 18 };
+    const projectile = this.add.image(origin.x, origin.y, projectileTexture)
+      .setDisplaySize(effect.width, effect.height)
+      .setDepth(14);
+    await this.tween({
+      targets: projectile,
+      x: target.x,
+      y: target.y,
+      angle: 1440,
+      alpha: missed ? 0 : 1,
+      duration: 560,
+      ease: "Linear"
+    });
+    if (!missed) this.createImpact(target.x, target.y, 0x55bfff, 0.9);
+    projectile.destroy();
   }
 
   async playFireEmbersProjectile(missed = false) {

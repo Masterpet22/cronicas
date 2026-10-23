@@ -41,7 +41,7 @@ const EXTRA_ELEMENT_TECHNIQUES = [
   extraTechnique("fire_brand", "fuego", "Marca ardiente", 16, 20, 0, ["tigre", "serpiente"], 0xff6b3d, { type: "burn", label: "QUEMADURA", duration: 2, power: 3 }),
   extraTechnique("wind_step", "viento", "Paso del céfiro", 10, 14, 5, ["pajaro", "liebre"], 0x84e8cb),
   extraTechnique("wind_wave", "viento", "Onda cortante", 16, 20, 2, ["perro", "pajaro"], 0x67e8c3),
-  extraTechnique("water_bullet", "agua", "Proyectil de agua", 10, 14, 3, ["dragon", "liebre"], 0x55bfff),
+  extraTechnique("water_bullet", "agua", "Aqua Shuriken", 10, 14, 3, ["dragon", "liebre"], 0x55bfff),
   extraTechnique("water_whip", "agua", "Látigo de corriente", 14, 18, 2, ["dragon", "serpiente"], 0x48aee8),
   extraTechnique("water_wall", "agua", "Muro de marea", 18, 21, -1, ["buey", "dragon"], 0x378fc9),
   extraTechnique("water_lance", "agua", "Lanza abisal", 22, 27, -2, ["dragon", "tigre", "liebre"], 0x287bbd),

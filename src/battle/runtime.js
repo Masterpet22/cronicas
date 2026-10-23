@@ -70,9 +70,9 @@ export const BATTLE_ARENAS = Object.freeze([
 export const TECHNIQUE_VFX = Object.freeze({
   fire_embers: Object.freeze({ file: "fire-embers-spritesheet.png", frameWidth: 550.4, frameHeight: 280, sourceY: 620, width: 210, height: 112, frameRate: 10, frames: 5, projectile: true }),
   fire_breath: Object.freeze({ file: "fire-breath-spritesheet.png", frameWidth: 313, frameHeight: 717, width: 170, height: 390, frameRate: 11 }),
-  water_bullet: Object.freeze({ file: "water-bullet-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 180, height: 270, frameRate: 13 }),
-  water_whip: Object.freeze({ file: "water-whip-spritesheet.png", frameWidth: 310, frameHeight: 725, width: 220, height: 390, frameRate: 10 }),
-  earth_fist: Object.freeze({ creationFile: "earth-fist-creation-spritesheet.png", destructionFile: "earth-fist-destruction-spritesheet.png", frameWidth: 600, frameHeight: 670, width: 270, height: 302, frameRate: 12, frames: 8, projectile: true }),
+  water_bullet: Object.freeze({ creationFile: "aqua-shuriken-creation-spritesheet.png", projectileFile: "aqua-shuriken.png", frameWidth: 600, frameHeight: 670, creationWidth: 150, creationHeight: 168, width: 94, height: 96, frameRate: 14, frames: 8, projectile: true }),
+  water_whip: Object.freeze({ file: "aqua-whip-spritesheet.png", frameWidth: 600, frameHeight: 670, width: 500, height: 558, frameRate: 10, frames: 8, position: "battlefield", y: 360 }),
+  earth_fist: Object.freeze({ creationFile: "earth-fist-creation-spritesheet.png", destructionFile: "earth-fist-destruction-spritesheet.png", frameWidth: 600, frameHeight: 670, width: 243, height: 272, frameRate: 12, destructionFrameRate: 20, frames: 8, projectile: true }),
   earth_wall: Object.freeze({ file: "earth-wall-spritesheet.png", frameWidth: 1200, frameHeight: 335, width: 520, height: 220, frameRate: 10, frames: 8 }),
   wind_palm: Object.freeze({ file: "wind-palm-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 180, height: 285, frameRate: 13 }),
   wind_blade: Object.freeze({ file: "wind-blade-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 220, height: 390, frameRate: 10 })
