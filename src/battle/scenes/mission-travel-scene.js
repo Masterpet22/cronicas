@@ -1,6 +1,6 @@
 import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.81.0";
+import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
 
 export class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
@@ -46,6 +46,8 @@ export class MissionTravelScene extends Phaser.Scene {
     startPlayerRunning(this, runner);
     this.cameras.main.fadeIn(220, 4, 10, 7);
     const duration = 2350;
+    const backgroundTransitionDuration = 500;
+    const backgroundTransitionDelay = duration / 2 - backgroundTransitionDuration / 2;
     const foreground = this.add.image(foregroundStartX, HEIGHT / 2, "village-outskirts-branches")
       .setDisplaySize(WIDTH + 165, HEIGHT + 92).setDepth(5);
     this.tweens.add({ targets: [villageBackground, forestBackground], x: backgroundEndX, duration, ease: "Linear" });
@@ -56,9 +58,9 @@ export class MissionTravelScene extends Phaser.Scene {
     if (!returningToRoute) {
       const fadingOut = returningToVillage ? forestBackground : villageBackground;
       const fadingIn = returningToVillage ? villageBackground : forestBackground;
-      this.time.delayedCall(820, () => {
-        this.tweens.add({ targets: fadingOut, alpha: 0, duration: 650, ease: "Sine.easeInOut" });
-        this.tweens.add({ targets: fadingIn, alpha: 1, duration: 650, ease: "Sine.easeInOut" });
+      this.time.delayedCall(backgroundTransitionDelay, () => {
+        this.tweens.add({ targets: fadingOut, alpha: 0, duration: backgroundTransitionDuration, ease: "Sine.easeInOut" });
+        this.tweens.add({ targets: fadingIn, alpha: 1, duration: backgroundTransitionDuration, ease: "Sine.easeInOut" });
       });
     }
     this.time.delayedCall(duration - 260, () => this.cameras.main.fadeOut(250, 4, 10, 7));

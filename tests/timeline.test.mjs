@@ -13,7 +13,7 @@ import {
 assert.equal(TIMELINE_READY, 0.8);
 assert.equal(TIMELINE_COMPLETE, 1);
 assert.deepEqual(timelineMilestones(0, 100), [20, 40, 60, 80]);
-assert.equal(timelineMarkerPosition(0.8, 310, 914), 793.2);
+assert.equal(timelineMarkerPosition(0.8, 360, 840), 744);
 
 assert.equal(millisecondsToTimelineThreshold(0, 10), 1200);
 assert.equal(millisecondsToTimelineThreshold(0, 20), 600);

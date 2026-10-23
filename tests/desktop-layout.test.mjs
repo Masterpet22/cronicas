@@ -21,6 +21,9 @@ assert.doesNotMatch(desktopCss, /@keyframes dojo-tab-in \{[^}]*transform/, "La a
 assert.match(css, /\.location-dojo \.equipment-columns \{[^}]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/, "Equipo debe usar tres columnas equilibradas en escritorio");
 assert.match(css, /\.master-modal-options \{[^}]*auto-fit/, "El modal de maestros debe crecer sin depender de una cantidad fija");
 assert.match(css, /\.master-summary-card \{[^}]*height: 100%;[^}]*min-height: 280px;/, "La tarjeta del maestro debe ocupar la altura útil de su columna");
+assert.match(css, /\.master-summary-card img \{[^}]*position: absolute;[^}]*width: 128%;[^}]*height: 152%;[^}]*object-position: center top;/, "El retrato del maestro debe ampliarse y recortarse desde el torso hacia arriba");
+assert.match(css, /\.master-summary-card > span \{[^}]*position: absolute;[^}]*inset: auto 0 0;[^}]*linear-gradient/, "La información del maestro debe superponerse en la base de la imagen sin un panel rectangular");
+assert.match(css, /\.master-summary-card > span::before \{[^}]*backdrop-filter: blur\(8px\);[^}]*mask-image: linear-gradient/, "La base informativa debe difuminar progresivamente la imagen del maestro");
 assert.match(css, /\.technique-detail:not\(\.empty\) \{[^}]*minmax\(120px, 1fr\)/, "El arte de la técnica debe crecer con la altura disponible");
 assert.match(css, /\.statistics-layout/, "La pestaña de estadísticas debe distribuir el pentagrama y los controles sin superponerlos");
 assert.match(css, /\.statistics-character-preview/, "La pestaña de estadísticas debe reservar una columna amplia para la marioneta");

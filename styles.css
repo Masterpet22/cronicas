@@ -2509,16 +2509,18 @@ button:focus-visible {
 .location-dojo .equipment-columns .gear-copy { text-align: left; }
 .location-dojo .equipment-columns .companion-slot { border-style: dashed; opacity: .58; }
 .location-dojo .equipment-columns .companion-slot .gear-icon { color: #7891a3; }
-.master-summary-card { position: relative; display: grid; height: 100%; min-width: 0; min-height: 280px; grid-template-columns: minmax(145px, .88fr) minmax(0, 1.12fr); align-items: stretch; gap: 16px; border: 1px solid rgba(89, 164, 200, .42); border-radius: 8px; padding: 16px; background: radial-gradient(circle at 18% 42%, rgba(38, 119, 155, .24), transparent 42%), rgba(6, 19, 32, .78); color: #e7eef3; text-align: left; cursor: pointer; }
-.master-summary-card:hover, .master-summary-card:focus-visible { outline: none; border-color: #70d1ee; box-shadow: inset 0 0 28px rgba(47, 172, 211, .12); }
-.master-summary-card img { width: 100%; height: 100%; min-height: 220px; object-fit: contain; object-position: center; border-radius: 7px; background: radial-gradient(circle, rgba(31, 95, 129, .22), transparent 68%); }
-.master-summary-card > span { display: grid; min-width: 0; align-content: center; gap: 7px; padding-bottom: 24px; }
-.master-summary-card small { color: #7fcce9; font-size: .62rem; font-weight: 900; letter-spacing: .08em; }
-.master-summary-card strong { color: #f0e6d6; font: 700 1.02rem "Cinzel", Georgia, serif; }
-.master-summary-card .master-role { color: #a9bbc7; font-size: .68rem; font-weight: 700; }
-.master-summary-card em { color: #86d5ed; font-size: .7rem; font-style: normal; font-weight: 850; text-transform: uppercase; }
-.master-summary-card p { margin: 3px 0 0; color: #a5b6c2; font-size: .68rem; line-height: 1.45; }
-.master-summary-card > b { position: absolute; right: 12px; bottom: 10px; color: #efc170; font-size: .55rem; letter-spacing: .06em; }
+.master-summary-card { position: relative; display: block; isolation: isolate; overflow: hidden; height: 100%; min-width: 0; min-height: 280px; border: 1px solid rgba(89, 164, 200, .48); border-radius: 10px; padding: 0; background: radial-gradient(circle at 50% 27%, rgba(38, 119, 155, .28), transparent 58%), rgba(6, 19, 32, .9); color: #e7eef3; text-align: left; cursor: pointer; }
+.master-summary-card:hover, .master-summary-card:focus-visible { outline: none; border-color: #70d1ee; box-shadow: 0 0 0 1px rgba(112, 209, 238, .18), inset 0 0 34px rgba(47, 172, 211, .14); }
+.master-summary-card img { position: absolute; z-index: 0; top: -2%; left: 50%; width: 128%; height: 152%; max-width: none; object-fit: contain; object-position: center top; transform: translateX(-50%); filter: drop-shadow(0 14px 20px rgba(0, 0, 0, .34)); transition: transform 240ms ease, filter 240ms ease; }
+.master-summary-card:hover img, .master-summary-card:focus-visible img { transform: translateX(-50%) scale(1.025); filter: drop-shadow(0 17px 24px rgba(0, 0, 0, .42)) saturate(1.06); }
+.master-summary-card > span { position: absolute; z-index: 2; inset: auto 0 0; display: grid; min-width: 0; align-content: end; gap: 5px; padding: 68px 18px 40px; background: linear-gradient(180deg, rgba(3, 13, 24, 0) 0%, rgba(3, 13, 24, .42) 34%, rgba(3, 13, 24, .88) 70%, rgba(3, 13, 24, .98) 100%); text-shadow: 0 2px 7px rgba(0, 0, 0, .78); }
+.master-summary-card > span::before { content: ""; position: absolute; z-index: -1; inset: 30% 0 0; background: rgba(5, 17, 29, .08); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); -webkit-mask-image: linear-gradient(180deg, transparent, #000 46%); mask-image: linear-gradient(180deg, transparent, #000 46%); pointer-events: none; }
+.master-summary-card small { color: #8de1fa; font-size: .68rem; font-weight: 900; letter-spacing: .1em; }
+.master-summary-card strong { color: #fff3df; font: 700 1.18rem "Cinzel", Georgia, serif; line-height: 1.1; }
+.master-summary-card .master-role { color: #c3d3dd; font-size: .74rem; font-weight: 700; }
+.master-summary-card em { color: #91e3f6; font-size: .72rem; font-style: normal; font-weight: 850; text-transform: uppercase; }
+.master-summary-card p { max-width: 34ch; margin: 3px 0 0; color: #bdcbd4; font-size: .72rem; line-height: 1.4; }
+.master-summary-card > b { position: absolute; z-index: 3; right: 14px; bottom: 12px; color: #f4c878; font-size: .62rem; letter-spacing: .07em; text-shadow: 0 2px 6px rgba(0, 0, 0, .92); }
 .master-modal-card { width: min(820px, 100%); }
 .master-modal-note { margin: -2px 0 14px; color: #91a6b7; font-size: .65rem; }
 .master-modal-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }

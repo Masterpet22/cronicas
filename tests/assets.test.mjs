@@ -109,8 +109,23 @@ for (const theme of ["ancestral", "lunar"]) {
   assert.equal(runtimeImage.alpha, true, `El tema optimizado ${theme} debe conservar transparencia`);
 }
 
+const battleInterfaceAssets = {
+  "ancestral-action-slot.png": [1254, 1254],
+  "ancestral-speed-sword.png": [2172, 724],
+  "lunar-action-slot.png": [1254, 1254],
+  "lunar-speed-sword.png": [2172, 724]
+};
+await Promise.all(Object.entries(battleInterfaceAssets).map(async ([asset, expected]) => {
+  const png = await readFile(new URL(`../assets/ui/hud-themes/${asset}`, import.meta.url));
+  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `${asset} debe ser un PNG válido`);
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], expected, `${asset} debe conservar su composición original`);
+  assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
+}));
+
 const feedbackAssets = {
   "timeline-crest.png": [160, 156],
+  "timeline-player-shuriken.png": [1254, 1254],
+  "timeline-enemy-shuriken.png": [1310, 1201],
   "timeline-ready-brush.png": [480, 192],
   "preparation-ribbons.png": [432, 259],
   "preparation-mote.png": [96, 96]

@@ -4,7 +4,7 @@ import { ENEMY_ROSTER } from "../src/data.js";
 import { MISSIONS } from "../src/content/index.js";
 import { resolveDamage } from "../src/battle/damage.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, missionGrade } from "../src/battle/rewards.js";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, missionGrade, secondaryMissionGrade } from "../src/battle/rewards.js";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../src/battle/turn.js";
 
 assert.deepEqual(resolveDamage({
@@ -52,6 +52,11 @@ assert.equal(missionGrade("completed", 25, 100), "C");
 assert.equal(missionGrade("completed", 24, 100), "D");
 assert.equal(missionGrade("failed", 100, 100), "F");
 assert.equal(missionGrade("abandoned", 100, 100), "F");
+assert.equal(secondaryMissionGrade({ outcome: "completed", clues: 3 }), "S");
+assert.equal(secondaryMissionGrade({ outcome: "completed", playerHp: 35, maxHp: 50 }), "A");
+assert.equal(secondaryMissionGrade({ outcome: "completed", routeStats: { danger: 0, time: 3, clues: 6, resources: 3 } }), "S");
+assert.equal(secondaryMissionGrade({ outcome: "completed", routeStats: { danger: 4, time: 0, clues: 3, resources: 6 } }), "A");
+assert.equal(secondaryMissionGrade({ outcome: "abandoned", clues: 3 }), "F");
 const result = createBattleResult({
   outcome: "completed",
   mission: { id: "test", type: "main", title: "Prueba", relic: null },

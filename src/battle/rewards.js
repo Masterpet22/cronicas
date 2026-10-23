@@ -20,6 +20,26 @@ export function missionGrade(outcome, playerHp, maxHp) {
   return "D";
 }
 
+export function secondaryMissionGrade({ outcome, playerHp, maxHp, clues, routeStats } = {}) {
+  if (outcome !== "completed") return "F";
+  if (Number(maxHp) > 0) return missionGrade(outcome, playerHp, maxHp);
+  if (routeStats) {
+    const danger = Math.max(0, Number(routeStats.danger) || 0);
+    const time = Math.max(0, Number(routeStats.time) || 0);
+    const foundClues = Math.max(0, Number(routeStats.clues) || 0);
+    const resources = Math.max(0, Number(routeStats.resources) || 0);
+    const score = 70 + foundClues * 5 + resources * 3 - danger * 4 - time * 2;
+    if (score >= 90) return "S";
+    if (score >= 80) return "A";
+    if (score >= 70) return "B";
+    if (score >= 60) return "C";
+    return "D";
+  }
+  if ((Number(clues) || 0) >= 3) return "S";
+  if ((Number(clues) || 0) >= 2) return "B";
+  return "D";
+}
+
 export function createBattleResult({ outcome, mission, player, defeatedEncounters, encounterCount, battleRewards, combatFeatures, campaign }) {
   return {
     outcome,

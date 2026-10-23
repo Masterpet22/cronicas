@@ -2,7 +2,7 @@ import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { masterIdForCharacter } from "../../save.js?v=0.66.0";
 import { missionGrade } from "../rewards.js?v=0.69.0";
-import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.81.0";
+import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
 
 const PARCHMENT_TEXT = "#352217";
 const PARCHMENT_MUTED = "#6d5139";

@@ -2,7 +2,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.69.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.85.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -17,7 +17,80 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
 
 
-import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.81.0";
+import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
+
+export const BATTLE_INTERFACE_SKINS = Object.freeze({
+  ancestral: Object.freeze({
+    actionSlotTexture: "battle-ui-ancestral-action-slot",
+    actionSlotFile: "assets/ui/hud-themes/ancestral-action-slot.png?v=0.84.0",
+    speedSwordTexture: "battle-ui-ancestral-speed-sword",
+    speedSwordFile: "assets/ui/hud-themes/ancestral-speed-sword.png?v=0.82.8",
+    panel: 0x160c08,
+    buttonFill: 0x24150d,
+    buttonEdge: 0x74461f,
+    accent: 0xc9913b,
+    highlight: 0xf5d58b,
+    muted: 0x69513a,
+    shortcutFill: 0x21140d,
+    text: "#fff1cf",
+    mutedText: "#9e8870",
+    tooltipFill: 0x160c08,
+    tooltipEdge: 0xd4a34e,
+    tooltipHighlight: 0xffe4a3,
+    tooltipTitle: "#ffe9b5",
+    tooltipText: "#f5e7d2",
+    tooltipMutedText: "#cdbda8",
+    preparation: 0xb64b36,
+    playerMarker: 0xe0ae51,
+    enemyMarker: 0xb8443d,
+    timelineSwordWidth: 600,
+    timelineSwordHeight: 200
+  }),
+  lunar: Object.freeze({
+    actionSlotTexture: "battle-ui-lunar-action-slot",
+    actionSlotFile: "assets/ui/hud-themes/lunar-action-slot.png?v=0.84.0",
+    speedSwordTexture: "battle-ui-lunar-speed-sword",
+    speedSwordFile: "assets/ui/hud-themes/lunar-speed-sword.png?v=0.82.8",
+    panel: 0x020914,
+    buttonFill: 0x061321,
+    buttonEdge: 0x1d5c7a,
+    accent: 0x39c7ff,
+    highlight: 0x9be9ff,
+    muted: 0x315c72,
+    shortcutFill: 0x071421,
+    text: "#f7fbff",
+    mutedText: "#66849a",
+    tooltipFill: 0x020812,
+    tooltipEdge: 0xe0bd69,
+    tooltipHighlight: 0xffe6a0,
+    tooltipTitle: "#fff0bd",
+    tooltipText: "#e9f5fb",
+    tooltipMutedText: "#d7e2ea",
+    preparation: 0xe0bd69,
+    playerMarker: 0x50d7ff,
+    enemyMarker: 0xff5668,
+    timelineSwordWidth: 600,
+    timelineSwordHeight: 200
+  })
+});
+
+const ACTION_BACKDROP_BOUNDS = Object.freeze({ x: 15, y: 121, width: 106, height: 410, radius: 50 });
+
+function paintActionBackdrop(parts, skin) {
+  if (!parts) return;
+  const { haze, surface } = parts;
+  const { x, y, width, height, radius } = ACTION_BACKDROP_BOUNDS;
+
+  haze.clear();
+  haze.fillStyle(skin.panel, 0.1).fillRoundedRect(x - 4, y - 4, width + 8, height + 8, radius + 4);
+
+  surface.clear();
+  surface.fillGradientStyle(skin.panel, skin.panel, 0x020408, 0x020408, 0.16, 0.16, 0.24, 0.24);
+  surface.fillRoundedRect(x, y, width, height, radius);
+  surface.fillStyle(skin.highlight, 0.025).fillRoundedRect(x + 9, y + 7, width - 18, height - 14, radius - 8);
+  surface.lineStyle(1, skin.highlight, 0.12).strokeRoundedRect(x + 1, y + 1, width - 2, height - 2, radius - 1);
+  surface.lineStyle(1, skin.accent, 0.07).strokeRoundedRect(x + 5, y + 5, width - 10, height - 10, radius - 5);
+}
 
 export class BattlePresentationMethods {
   drawArena() {
@@ -220,6 +293,7 @@ export class BattlePresentationMethods {
     this.moveHudBar(this.enemyHpBar, this.hudBarCenters.healthFrameY + theme.barOffset.healthY);
     this.moveHudBar(this.chakraBar, this.hudBarCenters.chakraFrameY + theme.barOffset.chakraY);
     this.moveHudBar(this.enemyChakraBar, this.hudBarCenters.chakraFrameY + theme.barOffset.chakraY);
+    this.applyBattleInterfaceTheme(this.hudTheme);
   }
 
   moveHudBar(bar, y) {
@@ -232,6 +306,38 @@ export class BattlePresentationMethods {
     if (bar.maskShape) bar.maskShape.setPosition(bar.x, y);
   }
 
+  applyBattleInterfaceTheme(themeId = this.hudTheme) {
+    const resolvedThemeId = BATTLE_INTERFACE_SKINS[themeId] ? themeId : "ancestral";
+    const skin = BATTLE_INTERFACE_SKINS[resolvedThemeId];
+    if (this.timelineThemeParts) {
+      const { chrome, chevrons, sword, speedIcon, title, preparationLabel, preparationStart, trackY } = this.timelineThemeParts;
+      chrome.clear();
+      chrome.fillStyle(0x020408, 0.72).fillRoundedRect(preparationStart - 3, trackY - 7, TIMELINE_END - preparationStart + 6, 14, 7);
+      chrome.fillStyle(skin.preparation, 0.32).fillRoundedRect(preparationStart, trackY - 5, TIMELINE_END - preparationStart, 10, 5);
+      chrome.lineStyle(1, skin.highlight, 0.7).lineBetween(preparationStart + 2, trackY - 4, TIMELINE_END - 5, trackY - 4);
+      chrome.lineStyle(1, skin.preparation, 0.95).lineBetween(preparationStart + 2, trackY + 4, TIMELINE_END - 5, trackY + 4);
+      chrome.lineStyle(5, 0x020408, 0.86).lineBetween(preparationStart, trackY - 15, preparationStart, trackY + 15);
+      chrome.lineStyle(2, skin.preparation, 1).lineBetween(preparationStart, trackY - 14, preparationStart, trackY + 14);
+      chrome.fillStyle(skin.highlight, 0.96);
+      chrome.fillTriangle(preparationStart, trackY - 17, preparationStart - 5, trackY - 10, preparationStart + 5, trackY - 10);
+      chrome.fillTriangle(preparationStart, trackY + 17, preparationStart - 5, trackY + 10, preparationStart + 5, trackY + 10);
+      chrome.fillStyle(skin.preparation, 1).fillRect(preparationStart - 3, trackY - 3, 6, 6);
+      chevrons.clear();
+      timelineMilestones(TIMELINE_START, TIMELINE_END).forEach((x) => {
+        chevrons.lineStyle(4, 0x020408, 0.72).beginPath()
+          .moveTo(x - 5, trackY - 3).lineTo(x, trackY + 2).lineTo(x + 5, trackY - 3).strokePath();
+        chevrons.lineStyle(1.5, skin.highlight, 0.82).beginPath()
+          .moveTo(x - 4, trackY - 3).lineTo(x, trackY + 1).lineTo(x + 4, trackY - 3).strokePath();
+      });
+      sword.setTexture(skin.speedSwordTexture).setDisplaySize(skin.timelineSwordWidth, skin.timelineSwordHeight);
+      speedIcon.setTint(skin.accent);
+      title.setColor(skin.text);
+      preparationLabel.setColor(Phaser.Display.Color.IntegerToColor(skin.preparation).rgba);
+    }
+    paintActionBackdrop(this.actionBackdropThemeParts, skin);
+    this.actionSlots?.forEach((button) => button.applyTheme?.(skin));
+  }
+
   enemyRankForProfile(profile) {
     return profile?.boss ? 2 : 1;
   }
@@ -241,67 +347,40 @@ export class BattlePresentationMethods {
     const trackY = 505;
     const preparationStart = timelineMarkerPosition(0.8, TIMELINE_START, TIMELINE_END);
     const chrome = this.add.graphics();
-    chrome.fillStyle(0x020914, 0.92);
-    chrome.fillRoundedRect(184, 487, 752, 36, 12);
-    chrome.fillStyle(0xf0b85c, 0.1);
-    chrome.fillRect(preparationStart, 489, TIMELINE_END - preparationStart, 32);
-    chrome.lineStyle(1.5, 0x4abce9, 0.72);
-    chrome.strokeRoundedRect(184, 487, 752, 36, 12);
-    chrome.lineStyle(2, 0x8bdcff, 0.46);
-    chrome.lineBetween(TIMELINE_START, trackY, TIMELINE_END, trackY);
-    chrome.lineStyle(1, 0xa9c8d9, 0.38);
-    timelineMilestones(TIMELINE_START, TIMELINE_END).forEach((x) => chrome.lineBetween(x, trackY - 5, x, trackY + 5));
-    chrome.lineStyle(2, 0xf0b85c, 0.9);
-    chrome.lineBetween(preparationStart, trackY - 14, preparationStart, trackY + 14);
-    const speedIcon = createUiIcon(this, "speed", 204, trackY, { size: 18, tint: 0x38caff, depth: 31 });
+    const speedSword = this.add.image(560, trackY, BATTLE_INTERFACE_SKINS[this.hudTheme].speedSwordTexture);
+    const speedIcon = createUiIcon(this, "speed", 276, trackY, { size: 16, tint: BATTLE_INTERFACE_SKINS[this.hudTheme].accent, depth: 31 });
 
-    const title = this.add.text(221, trackY, "VELOCIDAD", {
+    const title = this.add.text(293, trackY, "VELOCIDAD", {
       fontFamily: '"Cinzel", Georgia, serif',
       fontSize: "10px",
-      color: "#f2f7fb",
-      fontStyle: "bold"
+      color: BATTLE_INTERFACE_SKINS[this.hudTheme].text,
+      fontStyle: "bold",
+      stroke: "#020408",
+      strokeThickness: 3,
+      shadow: { offsetX: 1, offsetY: 2, color: "#000000", blur: 4, stroke: true, fill: true }
     }).setOrigin(0, 0.5);
     const chevrons = this.add.graphics();
-    chevrons.lineStyle(2, 0x29c9ff, 0.62);
-    timelineMilestones(TIMELINE_START, TIMELINE_END).forEach((x) => {
-      [0, 7].forEach((offset) => {
-        chevrons.beginPath();
-        chevrons.moveTo(x + offset - 4, trackY - 4);
-        chevrons.lineTo(x + offset, trackY);
-        chevrons.lineTo(x + offset - 4, trackY + 4);
-        chevrons.strokePath();
-      });
-    });
-    const preparationLabel = this.add.text((preparationStart + TIMELINE_END) / 2, trackY - 18, "PREPARACIÓN", {
+    const preparationLabel = this.add.text((preparationStart + TIMELINE_END) / 2, trackY - 24, "PREPARACIÓN", {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "9px",
-      color: "#f0c77c",
-      fontStyle: "bold"
+      fontSize: "10px",
+      color: Phaser.Display.Color.IntegerToColor(BATTLE_INTERFACE_SKINS[this.hudTheme].preparation).rgba,
+      fontStyle: "bold",
+      stroke: "#020408",
+      strokeThickness: 3,
+      shadow: { offsetX: 1, offsetY: 2, color: "#000000", blur: 5, stroke: true, fill: true }
     }).setOrigin(0.5);
 
-    this.playerTurnMarker = this.add.image(TIMELINE_START, trackY, "timeline-crest")
-      .setDisplaySize(38, 37).setTint(0x50d7ff);
-    this.enemyTurnMarker = this.add.image(TIMELINE_START, trackY, "timeline-crest")
-      .setDisplaySize(38, 37).setTint(0xff5668).setFlipX(true);
-    this.playerTurnLetter = this.add.text(TIMELINE_START, trackY, "TÚ", {
-      fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "9px",
-      color: "#fff4df",
-      fontStyle: "bold"
-    }).setOrigin(0.5);
-    this.enemyTurnLetter = this.add.text(TIMELINE_START, trackY, "R", {
-      fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "9px",
-      color: "#ffd8dc",
-      fontStyle: "bold"
-    }).setOrigin(0.5);
+    this.playerTurnMarker = this.add.image(TIMELINE_START, trackY, "timeline-player-shuriken")
+      .setDisplaySize(44, 44);
+    this.enemyTurnMarker = this.add.image(TIMELINE_START, trackY, "timeline-enemy-shuriken")
+      .setDisplaySize(44, 40);
 
     this.timelineLayer.add([
-      chrome, speedIcon, title, chevrons,
+      speedSword, chrome, chevrons, speedIcon, title,
       preparationLabel,
-      this.playerTurnMarker, this.enemyTurnMarker,
-      this.playerTurnLetter, this.enemyTurnLetter
+      this.playerTurnMarker, this.enemyTurnMarker
     ]);
+    this.timelineThemeParts = { chrome, chevrons, sword: speedSword, speedIcon, title, preparationLabel, preparationStart, trackY };
     this.timelineProgress ||= { player: 0, enemy: 0 };
     this.pendingActions ||= { player: null, enemy: null };
     this.timelineRunToken = 0;
@@ -311,6 +390,7 @@ export class BattlePresentationMethods {
     this.updateTimelineMarkers();
     this.setTimelineMarkerState("player", "charging");
     this.setTimelineMarkerState("enemy", "charging");
+    this.applyBattleInterfaceTheme(this.hudTheme);
   }
 
   createPauseButton() {
@@ -357,7 +437,7 @@ export class BattlePresentationMethods {
     this.setTimelineMarkerState("player", "charging");
     this.setTimelineMarkerState("enemy", "charging");
     await new Promise((resolve) => this.tweens.add({
-      targets: [this.playerTurnMarker, this.playerTurnLetter, this.enemyTurnMarker, this.enemyTurnLetter],
+      targets: [this.playerTurnMarker, this.enemyTurnMarker],
       x: TIMELINE_START,
       duration: 330,
       ease: "Cubic.inOut",
@@ -378,19 +458,18 @@ export class BattlePresentationMethods {
     const playerX = timelineMarkerPosition(progress.player, TIMELINE_START, TIMELINE_END);
     const enemyX = timelineMarkerPosition(progress.enemy, TIMELINE_START, TIMELINE_END);
     this.playerTurnMarker.setX(playerX);
-    this.playerTurnLetter.setX(playerX);
     this.enemyTurnMarker.setX(enemyX);
-    this.enemyTurnLetter.setX(enemyX);
   }
 
   setTimelineMarkerState(actor, state, action = null) {
     const marker = actor === "player" ? this.playerTurnMarker : this.enemyTurnMarker;
-    const letter = actor === "player" ? this.playerTurnLetter : this.enemyTurnLetter;
-    if (!marker || !letter) return;
-    const baseColor = actor === "player" ? 0x50d7ff : 0xff5668;
-    const color = state === "ready" ? 0xf0c77c : state === "preparing" ? action?.color || 0xf0b85c : baseColor;
-    marker.setTint(color).setAlpha(state === "charging" ? 0.82 : 1).setAngle(state === "ready" ? 45 : 0);
-    letter.setColor(state === "ready" ? "#ffe4a6" : "#fff4df");
+    if (!marker) return;
+    const size = state === "ready" ? 48 : state === "preparing" ? 46 : 44;
+    const heightRatio = actor === "player" ? 1 : 40 / 44;
+    marker.clearTint()
+      .setDisplaySize(size, size * heightRatio)
+      .setAlpha(state === "charging" ? 0.86 : 1)
+      .setAngle(state === "ready" ? 45 : 0);
   }
 
   playTimelineReadyBrush(actor) {
@@ -664,15 +743,13 @@ export class BattlePresentationMethods {
 
   createActionPanel() {
     this.buttons = [];
-    const rail = this.add.graphics().setDepth(28);
-    rail.lineStyle(3, 0x24c8ff, 0.82);
-    rail.beginPath();
-    drawCubicBezier(rail, { x: -8, y: 112 }, { x: 108, y: 166 }, { x: 108, y: 478 }, { x: -8, y: 532 });
-    rail.strokePath();
-    rail.lineStyle(1, 0x9cecff, 0.3);
-    rail.beginPath();
-    drawCubicBezier(rail, { x: -5, y: 122 }, { x: 92, y: 172 }, { x: 92, y: 472 }, { x: -5, y: 522 });
-    rail.strokePath();
+    this.actionSlots = [];
+    const interfaceSkin = BATTLE_INTERFACE_SKINS[this.hudTheme] || BATTLE_INTERFACE_SKINS.ancestral;
+    const haze = this.add.graphics().setDepth(29);
+    const surface = this.add.graphics().setDepth(30);
+    const blur = haze.postFX?.addBlur?.(0, 2, 2, 1.25, interfaceSkin.panel, 3) || null;
+    this.actionBackdropThemeParts = { haze, surface, blur };
+    paintActionBackdrop(this.actionBackdropThemeParts, interfaceSkin);
 
     const hideTooltip = (entry) => {
       if (entry.tooltipTimer) {
@@ -685,7 +762,8 @@ export class BattlePresentationMethods {
 
     for (let index = 0; index < 6; index += 1) {
       const jutsu = this.actions[index] || null;
-      const button = createActionButton(this, jutsu, index);
+      const button = createActionButton(this, jutsu, index, interfaceSkin);
+      this.actionSlots.push(button);
       if (!jutsu) continue;
       const { hit } = button;
       hit.on("pointerover", () => {
@@ -713,6 +791,7 @@ export class BattlePresentationMethods {
     };
     this.input.keyboard.on("keydown", this.onActionShortcut);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keydown", this.onActionShortcut));
+    this.applyBattleInterfaceTheme(this.hudTheme);
   }
 
 }

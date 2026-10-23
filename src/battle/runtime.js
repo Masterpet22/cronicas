@@ -43,8 +43,8 @@ export function drawCubicBezier(graphics, start, controlA, controlB, end, segmen
   }
 }
 
-export const TIMELINE_START = 310;
-export const TIMELINE_END = 914;
+export const TIMELINE_START = 360;
+export const TIMELINE_END = 840;
 export const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
 export const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({

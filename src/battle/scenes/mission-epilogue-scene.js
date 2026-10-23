@@ -1,5 +1,5 @@
 import { writeSave } from "../../save.js?v=0.66.0";
-import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.81.0";
+import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
 
 export class MissionEpilogueScene extends Phaser.Scene {
   constructor() { super("epilogue"); }

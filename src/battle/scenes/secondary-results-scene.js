@@ -1,10 +1,19 @@
 import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.80.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.81.0";
+import { secondaryMissionGrade } from "../rewards.js?v=0.82.6";
+import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
 
 const PARCHMENT_TEXT = "#352217";
 const PARCHMENT_MUTED = "#6d5139";
 const STAMP_RED = "#9f201b";
+const GRADE_COLORS = {
+  S: "#c88a16",
+  A: "#287348",
+  B: "#28658b",
+  C: "#a45e1d",
+  D: "#735346",
+  F: "#a12620"
+};
 
 export class SecondaryResultsScene extends Phaser.Scene {
   constructor() { super("secondary-results"); }
@@ -47,6 +56,20 @@ export class SecondaryResultsScene extends Phaser.Scene {
     this.add.text(480, 149, subtitle, {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "13px", color: PARCHMENT_MUTED, fontStyle: "italic"
     }).setOrigin(0.5).setDepth(5);
+
+    const grade = secondaryMissionGrade({ ...data, outcome });
+    const gradeColor = GRADE_COLORS[grade];
+    const gradeMark = this.add.text(205, 176, grade, {
+      fontFamily: '"Segoe Print", "Bradley Hand", "Brush Script MT", cursive',
+      fontSize: "86px", color: gradeColor, fontStyle: "bold italic"
+    }).setPadding(24, 16, 24, 18).setOrigin(0.5).setStroke("#3a2317", 2.8).setShadow(2, 3, "#2f1b10", 0.32).setAngle(-7).setDepth(10).setAlpha(0).setScale(1.65);
+    const gradeBrush = this.add.graphics().setDepth(8).setAlpha(0);
+    gradeBrush.lineStyle(5, Phaser.Display.Color.HexStringToColor(gradeColor).color, 0.65)
+      .beginPath().moveTo(154, 235).lineTo(256, 224).strokePath();
+    gradeBrush.lineStyle(2, 0x3a2317, 0.45)
+      .beginPath().moveTo(166, 241).lineTo(247, 232).strokePath();
+    this.tweens.add({ targets: gradeBrush, alpha: 1, duration: 240, delay: 420 });
+    this.tweens.add({ targets: gradeMark, alpha: 1, scale: 1, angle: -3, duration: 420, delay: 330, ease: "Back.out" });
 
     const fighter = createPlayerFighter(this, 213, 391, playerFighterAppearance(battleRuntime.activeSave));
     fighter.targets.forEach((target) => target.setAlpha(0));
