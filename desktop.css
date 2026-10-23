@@ -692,7 +692,7 @@
 
   .dojo-tab-panel[hidden] { display: none; }
   .dojo-tab-panel { animation: dojo-tab-in .18s ease both; }
-  @keyframes dojo-tab-in { from { opacity: 0; transform: translateY(5px); } }
+  @keyframes dojo-tab-in { from { opacity: 0; } }
 
   .dojo-section,
   .skill-tree,
@@ -1113,9 +1113,12 @@
    encabezado, el árbol y los atributos del panel nuevo. */
 @media (min-width: 651px) {
   .location-dojo .stage-options {
+    display: grid;
     width: min(calc(100% - 48px), 1280px);
-    max-height: calc(100% - 122px);
-    margin: 98px auto 24px;
+    height: calc(100% - 172px);
+    max-height: none;
+    margin: 100px auto auto;
+    overflow: hidden;
     border: 1px solid rgba(95, 162, 197, .48);
     border-radius: 12px;
     padding: 14px;
@@ -1124,7 +1127,10 @@
   }
 
   .location-dojo .stage-options .dojo-layout.dojo-rework {
+    min-height: 0;
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    align-items: stretch;
     gap: 10px;
   }
 
@@ -1153,13 +1159,21 @@
     border-bottom-color: transparent;
   }
 
+  .location-dojo .xenoverse-appearance .character-preview {
+    width: 100%;
+  }
+
+  .location-dojo .stage-options .statistics-character-preview {
+    width: 100%;
+  }
+
   .location-dojo .technique-detail {
     min-height: 0;
     gap: 7px;
     padding: 10px;
   }
 
-  .location-dojo .technique-art-placeholder { min-height: 78px; }
+  .location-dojo .technique-art-placeholder { min-height: 120px; }
   .location-dojo .technique-metrics div { padding: 6px; }
   .location-dojo .technique-equip-button,
   .location-dojo .technique-upgrade-button { padding: 7px; }
@@ -1179,8 +1193,9 @@
 @media (min-width: 651px) and (max-width: 1100px) {
   .location-dojo .stage-options {
     width: calc(100% - 28px);
-    max-height: calc(100% - 104px);
-    margin: 84px auto 20px;
+    height: calc(100% - 148px);
+    max-height: none;
+    margin: 92px auto auto;
     padding: 12px;
   }
 
@@ -1226,7 +1241,6 @@
   main .technique-accuracy,
   main .skill-branch > header strong,
   main .skill-state,
-  main .attribute-reset,
   main .stat-readout em,
   main .mission-menu-item span,
   main .secondary-mission-item span,
@@ -1263,9 +1277,7 @@
     width: min(720px, calc(100% - 210px));
   }
 
-  .location-dojo .stage-options {
-    overflow-y: auto;
-  }
+  .location-dojo .stage-options { overflow: hidden; }
 
   .location-dojo .technique-detail,
   .location-dojo .skill-node,

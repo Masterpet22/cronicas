@@ -80,6 +80,11 @@ export function isTechniqueLearned(save, jutsu) {
     && affinityXpForElement(save?.character, jutsu.element) >= jutsu.affinityXpRequired;
 }
 
+function normalizeHairStyle(value) {
+  const hair = Number(value);
+  return hair === 0 || hair === 1 || hair === 4 ? hair : 1;
+}
+
 export function createCharacter(save, { name, affinity, appearance, bodyType, hair }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
   const cleanAffinity = BASIC_ELEMENT_IDS.includes(affinity) ? affinity : "fuego";
@@ -88,7 +93,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: Math.min(5, Math.max(1, Number(hair) || 1)), top: 1, bottom: 1, shoes: 1 },
+    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     loadout: initialLoadout(cleanAffinity),
@@ -144,7 +149,7 @@ export function normalizeSave(candidate) {
       bodyType,
       masterId,
       face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
-      hair: Math.min(5, Math.max(1, Math.floor(Number(candidate.character.hair) || 1))),
+      hair: normalizeHairStyle(candidate.character.hair),
       top: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.top) || 1))),
       bottom: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.bottom) || 1))),
       shoes: Math.min(2, Math.max(1, Math.floor(Number(candidate.character.shoes) || 1)))

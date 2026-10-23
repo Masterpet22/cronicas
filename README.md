@@ -40,7 +40,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Este contenido forma la primera saga; el plan es ampliarlo con nuevas sagas y misiones más adelante.
 - En el dojo, equipa o desequipa un arma, un protector y un accesorio.
 - La afinidad principal se elige al crear el personaje. La historia permite conocer otras y el nivel y rango elemental abren hasta tres espacios ponderados.
-- Cada una de las tres partidas fija el tipo de cuerpo al crear al personaje; el Dojo permite ajustar rostro, cinco peinados, prendas, calzado, color y arma con vista previa inmediata.
+- Cada una de las tres partidas fija el tipo de cuerpo al crear al personaje; el Dojo muestra la marioneta usada en combate y permite alternar en tiempo real entre Sin cabello, Corto y Coleta. Rostro, prendas y calzado permanecen visibles pero bloqueados hasta contar con gráficos compatibles.
 - Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
 - Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.

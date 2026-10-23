@@ -33,6 +33,9 @@ assert.equal(loadSave(slotStorage).character.name, "Kira", "La primera ranura de
 assert.equal(listSaveSlots(slotStorage).filter((entry) => entry.save?.character).length, 1, "Las ranuras deben conservar solamente las partidas creadas");
 selectSaveSlot(2, slotStorage);
 const secondCharacter = createCharacter(createDefaultSave(), { name: "Renji", affinity: "fuego", bodyType: "male", hair: 2 });
+assert.equal(secondCharacter.character.hair, 1, "Un peinado no compatible debe migrar a Corto al crear la partida");
+const baldCharacter = createCharacter(createDefaultSave(), { name: "Sora", affinity: "agua", bodyType: "male", hair: 0 });
+assert.equal(baldCharacter.character.hair, 0, "TIPO 01 debe persistirse como personaje sin cabello");
 writeSave(secondCharacter, slotStorage);
 assert.deepEqual(listSaveSlots(slotStorage).map((entry) => entry.save?.character?.name || null), ["Kira", "Renji", null], "Las tres ranuras deben conservar progresos independientes");
 selectSaveSlot(1, slotStorage);

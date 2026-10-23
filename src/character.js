@@ -1,5 +1,5 @@
 const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
-export const HAIR_STYLE_LABELS = Object.freeze(["Corto", "Largo", "Puntiagudo", "Coleta", "Ninja"]);
+export const HAIR_STYLE_LABELS = Object.freeze(["Sin cabello", "Corto", "Coleta"]);
 const RASTER_HAIR = Object.freeze({
   1: { asset: "assets/modular/hair/hair_corto.png?v=0.76.0", x: -57, y: -146, width: 114, height: 100 },
   4: { asset: "assets/modular/hair/hair_coleta.png?v=0.76.0", x: -66, y: -151, width: 132, height: 118 }
@@ -42,7 +42,8 @@ function colorHex(value, fallback) {
 }
 
 export function resolveFighterAppearance(appearance = {}) {
-  const hair = clampVariant(appearance.hair, 5);
+  const requestedHair = Number(appearance.hair);
+  const hair = requestedHair === 0 || requestedHair === 1 || requestedHair === 4 ? requestedHair : 1;
   return {
     bodyType: appearance.bodyType === "female" ? "female" : "male",
     face: clampVariant(appearance.face, 3),
@@ -53,7 +54,7 @@ export function resolveFighterAppearance(appearance = {}) {
     weapon: ["kunai", "sword", "staff", "dagger", "none"].includes(appearance.weapon) ? appearance.weapon : "kunai",
     cloth: colorHex(appearance.clothColor ?? appearance.cloth, "#3f6ea8"),
     accent: colorHex(appearance.accentColor ?? appearance.accent, "#25344d"),
-    hairColor: HAIR_COLORS[hair - 1],
+    hairColor: HAIR_COLORS[Math.max(0, hair - 1)],
     skin: appearance.bodyType === "female" ? "#efbd94" : "#e5ad82",
     ink: "#111722"
   };
@@ -108,7 +109,7 @@ export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {})
     <rect x="-10" y="-58" width="20" height="22" rx="7" fill="${a.skin}" stroke="${a.ink}" stroke-width="4"/>
     <ellipse cx="0" cy="-86" rx="43" ry="49" fill="${a.skin}" stroke="${a.ink}" stroke-width="5"/>
     <path d="${eye}" fill="none" stroke="${a.ink}" stroke-width="5" stroke-linecap="round"/><path d="${mouth}" fill="none" stroke="#7d3c3e" stroke-width="3" stroke-linecap="round"/>
-    ${RASTER_HAIR[a.hair] ? rasterHairSvg(a.hair) : a.hair === 2 ? hairSvg(1, a.hairColor, a.ink) : hairSvg(a.hair, a.hairColor, a.ink)}
+    ${a.hair === 0 ? "" : RASTER_HAIR[a.hair] ? rasterHairSvg(a.hair) : a.hair === 2 ? hairSvg(1, a.hairColor, a.ink) : hairSvg(a.hair, a.hairColor, a.ink)}
     ${weaponSvg(a.weapon, a.ink)}
   </svg>`;
 }

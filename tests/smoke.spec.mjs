@@ -158,9 +158,42 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await visitFromDebug("dojo", ".dojo-layout");
   await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
   await expect(page.locator(".technique-art-placeholder")).toBeVisible();
+  await page.locator("[data-dojo-tab='equipment']").click();
+  await expect(page.locator(".equipment-columns")).toBeVisible();
+  const equipmentPanelHeight = (await page.locator(".dojo-main-panel").boundingBox())?.height;
+  const equipmentMenuHeight = (await page.locator(".location-dojo .stage-options").boundingBox())?.height;
+  await expect(page.locator(".companion-slot")).toBeDisabled();
+  await page.locator("[data-open-master]").click();
+  await expect(page.locator(".master-modal")).toBeVisible();
+  await expect(page.locator(".master-modal [data-master]")).toHaveCount(2);
+  await page.locator("[data-close-master]").click();
+  await expect(page.locator(".master-summary-card .master-role")).toHaveText(/Instructora|Maestro/);
+  await expect(page.locator(".master-unlock-note")).toHaveCount(0);
+  await page.locator("[data-dojo-tab='statistics']").click();
+  await expect(page.locator(".stat-radar")).toBeVisible();
+  await expect(page.locator("#dojo-panel-statistics .puppet-preview-rig")).toBeVisible();
   await expect(page.locator(".attribute-card")).toHaveCount(5);
+  expect((await page.locator(".dojo-main-panel").boundingBox())?.height).toBe(equipmentPanelHeight);
+  expect((await page.locator(".location-dojo .stage-options").boundingBox())?.height).toBe(equipmentMenuHeight);
+  await page.locator("[data-dojo-tab='appearance']").click();
+  await expect(page.locator("#dojo-panel-appearance .puppet-preview-rig")).toBeVisible();
+  await expect(page.locator('[data-cosmetic-step="face"]').first()).toBeDisabled();
+  await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("TIPO 01");
+  await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveCount(0);
+  await expect(page.locator("#dojo-panel-appearance .raster-character-floor")).toHaveCount(0);
+  expect((await page.locator(".dojo-main-panel").boundingBox())?.height).toBe(equipmentPanelHeight);
+  expect((await page.locator(".location-dojo .stage-options").boundingBox())?.height).toBe(equipmentMenuHeight);
+  await page.locator('[data-cosmetic-step="hair"][data-direction="1"]').click();
+  await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("TIPO 02");
+  await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveAttribute("src", /hair_corto\.png/);
+  await page.locator("[data-dojo-tab='techniques']").click();
   await page.locator("[data-skill-select='fire_breath']").click();
   await expect(page.locator(".technique-detail h3")).toHaveText("Aliento de brasa");
+  await expect(page.locator("[data-equipped-count]")).toHaveText("1/2 TÉCNICAS");
+  await expect(page.locator("[data-skill-select='fire_breath'] .skill-state")).toHaveText("＋ EQUIPAR");
+  await page.locator("[data-skill-select='fire_breath']").click();
+  await expect(page.locator("[data-equipped-count]")).toHaveText("2/2 TÉCNICAS");
+  await expect(page.locator("[data-skill-select='fire_breath'] .skill-state")).toHaveText("✓ DESEQUIPAR");
   await page.locator("[data-technique-toggle='fire_breath']").click();
   await expect(page.locator("[data-equipped-count]")).toHaveText("1/2 TÉCNICAS");
   await page.locator("[data-technique-toggle='fire_breath']").click();
@@ -179,6 +212,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
 
 test("la primera visita al dojo muestra la configuración sin quedar bloqueada", async ({ page }) => {
   await page.setViewportSize({ width: 1360, height: 748 });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.addInitScript(() => {
     localStorage.clear();
     sessionStorage.clear();
@@ -192,7 +226,59 @@ test("la primera visita al dojo muestra la configuración sin quedar bloqueada",
   await expect(page.locator('[data-location-stage="dojo"] [data-stage-options]')).toBeVisible();
   await expect(page.locator(".dojo-layout")).toBeVisible();
   await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator("[data-reset-attributes]")).toBeDisabled();
+  await expect(page.locator(".dojo-attribute-actions button")).toHaveCount(0);
+
+  const readDojoGeometry = () => page.evaluate(() => {
+    const measure = (selector) => {
+      const element = document.querySelector(selector);
+      const rect = element.getBoundingClientRect();
+      return {
+        top: rect.top,
+        bottom: rect.bottom,
+        height: rect.height,
+        clientHeight: element.clientHeight,
+        scrollHeight: element.scrollHeight,
+        overflowY: getComputedStyle(element).overflowY
+      };
+    };
+    return {
+      window: measure(".location-dojo .stage-options"),
+      panel: measure(".location-dojo .dojo-main-panel"),
+      preview: measure(".dojo-tab-panel:not([hidden]) .character-preview"),
+      rig: measure(".dojo-tab-panel:not([hidden]) .puppet-preview-rig")
+    };
+  });
+
+  const maximumOverflowWhileSwitchingTo = (tabId) => page.evaluate(async (nextTabId) => {
+    const panel = document.querySelector(".location-dojo .dojo-main-panel");
+    document.querySelector(`[data-dojo-tab="${nextTabId}"]`).click();
+    let maximumOverflow = 0;
+    const finishAt = performance.now() + 240;
+    while (performance.now() < finishAt) {
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+      maximumOverflow = Math.max(maximumOverflow, panel.scrollHeight - panel.clientHeight);
+    }
+    return maximumOverflow;
+  }, tabId);
+
+  expect(await maximumOverflowWhileSwitchingTo("appearance")).toBeLessThanOrEqual(1);
+  expect(await maximumOverflowWhileSwitchingTo("statistics")).toBeLessThanOrEqual(1);
+
+  await page.locator("[data-dojo-tab='appearance']").click();
+  const appearanceGeometry = await readDojoGeometry();
+  expect(appearanceGeometry.window.overflowY).toBe("hidden");
+  expect(appearanceGeometry.panel.scrollHeight).toBeLessThanOrEqual(appearanceGeometry.panel.clientHeight + 1);
+  expect(appearanceGeometry.rig.top).toBeGreaterThanOrEqual(appearanceGeometry.preview.top - 1);
+  expect(appearanceGeometry.rig.bottom).toBeLessThanOrEqual(appearanceGeometry.preview.bottom + 1);
+
+  await page.locator("[data-dojo-tab='statistics']").click();
+  const statisticsGeometry = await readDojoGeometry();
+  expect(statisticsGeometry.window.overflowY).toBe("hidden");
+  expect(statisticsGeometry.panel.scrollHeight).toBeLessThanOrEqual(statisticsGeometry.panel.clientHeight + 1);
+  expect(statisticsGeometry.rig.top).toBeGreaterThanOrEqual(statisticsGeometry.preview.top - 1);
+  expect(statisticsGeometry.rig.bottom).toBeLessThanOrEqual(statisticsGeometry.preview.bottom + 1);
+
+  await page.locator("[data-dojo-tab='techniques']").click();
 
   const undersizedText = await page.locator("#meta").evaluate((root) => [...root.querySelectorAll("*")]
     .filter((element) => {

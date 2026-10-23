@@ -15,6 +15,9 @@ assert.match(fighterPreviewSvg({ bodyType: "male", hair: 1 }), /hair_corto\.png/
 assert.match(fighterPreviewSvg({ bodyType: "female", hair: 1 }), /hair_corto\.png/, "Corto debe estar disponible en el cuerpo femenino");
 assert.match(fighterPreviewSvg({ bodyType: "male", hair: 4 }), /hair_coleta\.png/, "Coleta debe usar el recurso aprobado en el cuerpo masculino");
 assert.match(fighterPreviewSvg({ bodyType: "female", hair: 4 }), /hair_coleta\.png/, "Coleta debe estar disponible en el cuerpo femenino");
+assert.equal(resolveFighterAppearance({ hair: 0 }).hair, 0, "TIPO 01 debe conservar la variante sin cabello");
+assert.doesNotMatch(fighterPreviewSvg({ hair: 0 }), /hair_(?:corto|coleta)\.png/, "La variante sin cabello no debe dibujar una capa de peinado");
+assert.equal(resolveFighterAppearance({ hair: 2 }).hair, 1, "Los peinados experimentales deben migrar a Corto");
 
 const repaired = resolveFighterAppearance({ face: 99, hair: -4, top: 0, bottom: 20, shoes: 8, weapon: "invalid" });
 assert.deepEqual(
@@ -30,7 +33,7 @@ import { MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, playEar
 import { playerFighterAppearance } from "../src/character.js";
 
 const playerSave = {
-  character: { name: "Akio", appearance: "#e64c3c", bodyType: "male", face: 2, hair: 3, top: 1, bottom: 2, shoes: 1 },
+  character: { name: "Akio", appearance: "#e64c3c", bodyType: "male", face: 2, hair: 1, top: 1, bottom: 2, shoes: 1 },
   equipment: { weapon: "tanto" }
 };
 const playerApp = playerFighterAppearance(playerSave);
@@ -44,13 +47,17 @@ const mockScene = {
   load: { image: (k, url) => loaded.push(k) }
 };
 assert.equal(queuePlayerFighterTextures(mockScene, playerApp), "modular", "El cuerpo masculino debe usar los sprites modulares");
-assert.equal(loaded.length, 14, "Deben cargarse las catorce partes del cuerpo masculino");
+assert.equal(loaded.length, 15, "Deben cargarse las catorce partes del cuerpo masculino y el peinado compatible");
 const shortHairLoaded = [];
 queuePlayerFighterTextures({ textures: { exists: (key) => shortHairLoaded.includes(key) }, load: { image: (key) => shortHairLoaded.push(key) } }, { ...playerApp, hair: 1, bodyType: "female" });
 assert.ok(shortHairLoaded.includes("player-hair-corto"), "Corto debe cargarse también para el cuerpo femenino");
 const ponytailLoaded = [];
 queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.includes(key) }, load: { image: (key) => ponytailLoaded.push(key) } }, { ...playerApp, hair: 4, bodyType: "male" });
 assert.ok(ponytailLoaded.includes("player-hair-coleta"), "Coleta debe cargarse también para el cuerpo masculino");
+const baldLoaded = [];
+queuePlayerFighterTextures({ textures: { exists: (key) => baldLoaded.includes(key) }, load: { image: (key) => baldLoaded.push(key) } }, { ...playerApp, hair: 0 });
+assert.equal(baldLoaded.length, 14, "La variante sin cabello solo debe cargar las catorce piezas de la marioneta");
+assert.ok(!baldLoaded.some((key) => key.startsWith("player-hair-")), "La variante sin cabello no debe encolar una textura de peinado");
 assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"

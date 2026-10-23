@@ -47,7 +47,7 @@ export function createSaveCreatorView(deps) {
           <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
           <fieldset class="affinity-picker"><legend>Afinidad inicial</legend>${affinityChoices}</fieldset>
           <label>Tipo de cuerpo<select name="bodyType"><option value="male">Masculino</option><option value="female">Femenino</option></select><small>Esta elección queda fija para esta partida.</small></label>
-          <label>Peinado<select name="hair"><option value="1">Corto</option><option value="2">Largo</option><option value="3">Puntiagudo</option><option value="4">Coleta</option><option value="5">Ninja</option></select></label>
+          <label>Peinado<select name="hair"><option value="0">Sin cabello</option><option value="1">Corto</option><option value="4">Coleta</option></select></label>
           <label>Color principal y aura<input name="appearance" type="color" value="#68a8ff"></label>
           <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
         </form>
