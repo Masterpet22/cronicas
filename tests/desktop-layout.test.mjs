@@ -28,6 +28,7 @@ assert.match(css, /\.statistics-layout \.stat-radar-wrap \{ grid-template-column
 assert.match(css, /\.statistics-layout \.stat-radar \{ width: min\(100%, 230px\);/, "El pentagrama debe aprovechar el espacio disponible sin quedar diminuto");
 assert.match(css, /\.puppet-preview-rig \{[^}]*aspect-ratio: 11 \/ 16;[^}]*translate\(-50%, -50%\)/, "La marioneta debe conservar la proporción de su lienzo para no separar sus piezas");
 assert.match(css, /\.appearance-customizer/, "Apariencia debe separar el personaje raster de su menú numérico");
+assert.match(css, /\.cosmetic-outfit-control \{[^}]*min-height: 68px;/, "El botón bloqueado de traje debe conservar una zona visible y legible");
 assert.match(css, /\.location-dojo \.dojo-main-panel \{[\s\S]*?border: 0;[\s\S]*?background: transparent;/, "El Dojo debe usar un solo marco exterior en lugar de acumular paneles anidados");
 assert.match(css, /\.location-dojo \.character-preview \{[\s\S]*?border: 0;/, "La marioneta no debe quedar encerrada por otro borde decorativo");
 assert.match(desktopCss, /\.location-dojo \.stage-options \{[\s\S]*?height: calc\(100% - 172px\);[\s\S]*?overflow: hidden;/, "El Dojo debe usar una altura contenida sin crear scroll exterior");

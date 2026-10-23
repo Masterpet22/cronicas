@@ -179,6 +179,9 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await expect(page.locator("#dojo-panel-appearance .puppet-preview-rig")).toBeVisible();
   await expect(page.locator('[data-cosmetic-step="face"]').first()).toBeDisabled();
   await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("TIPO 01");
+  await expect(page.locator('button[data-cosmetic-control="outfit"]')).toBeDisabled();
+  await expect(page.locator('button[data-cosmetic-control="outfit"] .cosmetic-label')).toHaveText("Traje");
+  await expect(page.locator('button[data-cosmetic-control="outfit"]')).toContainText("BLOQUEADO");
   await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveCount(0);
   await expect(page.locator("#dojo-panel-appearance .raster-character-floor")).toHaveCount(0);
   expect((await page.locator(".dojo-main-panel").boundingBox())?.height).toBe(equipmentPanelHeight);

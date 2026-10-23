@@ -54,15 +54,19 @@ const COSMETIC_DEFINITIONS = Object.freeze([
   { key: "hair", label: "Cabello", values: [0, 1, 4], names: ["Sin cabello", "Corto", "Coleta"] },
   { key: "top", label: "Parte superior", values: [1, 2, 3], disabled: true },
   { key: "bottom", label: "Parte inferior", values: [1, 2, 3], disabled: true },
-  { key: "shoes", label: "Calzado", values: [1, 2], disabled: true }
+  { key: "shoes", label: "Calzado", values: [1, 2], disabled: true },
+  { key: "outfit", label: "Traje", values: [], locked: true, detail: "No hay trajes completos disponibles" }
 ]);
 
 const variantNumber = (value) => String(Number(value) || 1).padStart(2, "0");
 const cosmeticIndex = (definition, current) => Math.max(0, definition.values.indexOf(Number(current)));
 
 function cosmeticControlMarkup(definition, current) {
+  if (definition.locked) {
+    return `<button class="cosmetic-control cosmetic-outfit-control unavailable" type="button" data-cosmetic-control="${definition.key}" disabled aria-label="${definition.label}: bloqueado. ${definition.detail}"><span class="cosmetic-label">${definition.label}</span><span class="cosmetic-lock-state"><b aria-hidden="true">⌾</b> BLOQUEADO</span><small data-cosmetic-detail="${definition.key}">${definition.detail}</small></button>`;
+  }
   const index = cosmeticIndex(definition, current);
-  const detail = definition.disabled ? "Gráfico compatible pendiente" : definition.names[index];
+  const detail = definition.disabled ? definition.detail || "Gráfico compatible pendiente" : definition.names[index];
   return `<div class="cosmetic-control ${definition.disabled ? "unavailable" : ""}" data-cosmetic-control="${definition.key}"><span class="cosmetic-label">${definition.label}</span><div class="cosmetic-stepper"><button type="button" data-cosmetic-step="${definition.key}" data-direction="-1" aria-label="${definition.label} anterior" ${definition.disabled ? "disabled" : ""}>‹</button><output data-cosmetic-value="${definition.key}">TIPO ${variantNumber(index + 1)}</output><button type="button" data-cosmetic-step="${definition.key}" data-direction="1" aria-label="${definition.label} siguiente" ${definition.disabled ? "disabled" : ""}>›</button></div><small data-cosmetic-detail="${definition.key}">${detail}</small></div>`;
 }
 
@@ -235,7 +239,7 @@ export function createDojoView(deps) {
           const output = root.querySelector(`[data-cosmetic-value="${definition.key}"]`);
           const detail = root.querySelector(`[data-cosmetic-detail="${definition.key}"]`);
           if (output) output.textContent = `TIPO ${variantNumber(index + 1)}`;
-          if (detail) detail.textContent = definition.disabled ? "Gráfico compatible pendiente" : definition.names[index];
+          if (detail) detail.textContent = definition.locked ? definition.detail : definition.disabled ? definition.detail || "Gráfico compatible pendiente" : definition.names[index];
         });
         root.querySelectorAll("[data-skill-select]").forEach((node) => {
           const selected = node.dataset.skillSelect === selectedTechniqueId;

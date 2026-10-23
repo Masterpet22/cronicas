@@ -28,6 +28,7 @@ const characterDocument = readFileSync(new URL("../docs/PERSONAJES_Y_EVENTOS.md"
 assert.doesNotMatch(metaUi, /data-cosmetic="bodyType"/, "El Dojo no debe permitir cambiar el tipo de cuerpo de una partida");
 assert.match(metaUi, /listSaveSlots\(\)/, "La interfaz debe mostrar las tres ranuras de partida");
 const styles = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
+const desktopStyles = readFileSync(new URL("../desktop.css", import.meta.url), "utf8");
 const desktop = readFileSync(new URL("../desktop.css", import.meta.url), "utf8");
 
 assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
@@ -271,6 +272,7 @@ assert.doesNotMatch(metaUi, /hair_0[1-5]_(?:front|rear)/, "Apariencia no debe ca
 assert.doesNotMatch(metaUi, /raster-character-floor/, "La vista de la marioneta no debe conservar la sombra elíptica del suelo");
 assert.doesNotMatch(styles, /\.puppet-preview-rig \{[^}]*drop-shadow/, "La marioneta del Dojo no debe aplicar una segunda sombra al conjunto");
 assert.match(metaUi, /data-cosmetic-step/, "Apariencia debe usar controles numéricos por variante");
+assert.match(metaUi, /key: "outfit", label: "Traje", values: \[\], locked: true/, "Apariencia debe reservar una opción bloqueada para trajes completos");
 assert.match(metaUi, /data-clue="\$\{clue\.id\}"/, "Kagemori debe ofrecer puntos de investigación interactivos");
 assert.match(metaUi, /class="clue-hotspots" viewBox="0 0 1672 941"[\s\S]*class="clue-shape" d="\$\{clue\.path\}"/, "Kagemori debe superponer áreas SVG ajustadas a los elementos de la escena");
 assert.doesNotMatch(metaUi, /class="clue-hotspot[^>]+<span[^>]*>[?✓]/, "Las pistas de Kagemori no deben conservar círculos ni signos de interrogación");
@@ -340,7 +342,9 @@ assert.match(metaUi, /id: `secondary:\$\{investigationMission\.id\}`[\s\S]*desti
 assert.match(metaUi, /class="mission-destination">IR A:/, "Las misiones secundarias deben mostrar visualmente su destino");
 assert.match(styles, /\.story-mission-current span \{[\s\S]*color: #f09a3e;[\s\S]*font-size: \.57rem;/, "El destino de la misión principal debe verse en naranja y con una fuente menor");
 assert.match(styles, /\.secondary-mission-item \.mission-destination \{ color: #f09a3e; font-size: \.62rem;/, "Los destinos secundarios deben verse en naranja y con una fuente menor");
-assert.match(styles, /\.player-settings-trigger \+ \.save-slots-trigger \{ margin-left: 10px; \}/, "Ajustes y Partidas deben conservar una separación visual clara");
+assert.match(html, /class="settings-save-slots"[\s\S]*PARTIDAS/, "Partidas debe vivir dentro del panel que abre el shuriken");
+assert.match(desktopStyles, /\.game-settings-panel \.settings-save-slots \{[\s\S]*background: transparent;/, "Partidas debe usar una fila limpia sin el marco ornamental del HUD");
+assert.doesNotMatch(metaUi, /class="save-slots-trigger"/, "La barra superior no debe conservar el botón de Partidas");
 assert.match(metaUi, /class="debug-tools-trigger"/, "La barra superior debe exponer el acceso a herramientas de pruebas");
 assert.match(metaUi, /RELEASE-BLOCKER 1\.0/, "El código debe recordar que las herramientas de pruebas se eliminan antes de 1.0");
 assert.match(metaUi, /RETIRAR ANTES DE 1\.0/, "La pantalla de pruebas debe mostrar el recordatorio de lanzamiento");

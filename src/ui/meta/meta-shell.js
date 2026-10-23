@@ -3,7 +3,6 @@ export function createMetaShell(deps) {
     id: "meta-shell",
     render({ save, view }, content) {
       const { character, progression, campaign } = save;
-      const visibleStoryMissionIds = deps.sagas.flatMap((saga) => saga.missionIds);
       const currentLocation = deps.locations.find((location) => location.id === view)
         || (view === "kagemori" ? { name: "Aldea de Kagemori" } : view === "doctor-route" ? { name: "Caminos del Norte" } : view === "debug" ? { name: "Herramientas de pruebas" } : null);
       const isSecondaryField = view === "kagemori" || view === "doctor-route";
@@ -14,20 +13,20 @@ export function createMetaShell(deps) {
             <div class="profile-heading">
               <span class="avatar-swatch" style="--avatar:${character.appearance}"></span>
               <div class="profile-copy"><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${deps.escapeHtml(character.name)}</h2></div>
-              <strong class="level-chip">Nivel ${progression.level}</strong>
+              <span class="level-chip" aria-label="Nivel ${progression.level}"><small>NIVEL</small><strong>${progression.level}</strong></span>
             </div>
-            <div class="campaign-summary">
-              <span class="summary-item"><b aria-hidden="true">★</b><strong>${progression.xp}/${deps.xpForNextLevel(progression.level)}</strong><small>PX</small></span>
-              <span class="summary-item"><b aria-hidden="true">▣</b><strong>${progression.coins}</strong><small>monedas</small></span>
-              <span class="summary-item"><b aria-hidden="true">♛</b><strong>${campaign.completedMissions.filter((id) => visibleStoryMissionIds.includes(id)).length}/${visibleStoryMissionIds.length}</strong><small>misiones</small></span>
+            <div class="campaign-summary" aria-label="Progreso de la partida">
+              <span class="summary-item" aria-label="${progression.xp} de ${deps.xpForNextLevel(progression.level)} puntos de experiencia"><img class="hud-stat-icon" src="assets/ui/hud-icons/progress-emblem.webp?v=0.83.0" alt="" aria-hidden="true"><strong>${progression.xp}/${deps.xpForNextLevel(progression.level)}</strong><small>PX</small></span>
+              <span class="summary-item" aria-label="${progression.coins} monedas"><img class="hud-stat-icon" src="assets/ui/hud-icons/coins.webp?v=0.83.0" alt="" aria-hidden="true"><strong>${progression.coins}</strong><small>monedas</small></span>
             </div>
-            <button class="player-settings-trigger" type="button" aria-label="Abrir ajustes" aria-expanded="false">
-              <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4 39 24 60 18 44 32 60 46 39 40 32 60 25 40 4 46 20 32 4 18 25 24Z"/><circle cx="32" cy="32" r="6"/></svg>
-            </button>
-            <button class="save-slots-trigger" type="button" aria-label="Cambiar de partida">PARTIDAS</button>
-            <!-- RELEASE-BLOCKER 1.0: eliminar este acceso y todo renderDebugTools antes de publicar la versión final. -->
-            <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas">PRUEBAS</button>
+            <div class="topbar-actions" aria-label="Acciones de la partida">
+              <button class="player-settings-trigger" type="button" aria-label="Abrir ajustes" aria-expanded="false">
+                <img src="assets/ui/hud-icons/settings-shuriken.webp?v=0.83.0" alt="" aria-hidden="true">
+              </button>
+            </div>
           </section>
+          <!-- RELEASE-BLOCKER 1.0: eliminar este acceso y todo renderDebugTools antes de publicar la versión final. -->
+          <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas"><span>DEV</span> PRUEBAS</button>
           ${navigation}
           ${content}
         </div>`;
@@ -68,7 +67,7 @@ export function createMetaShell(deps) {
         closeGlobalSettings();
         deps.onNavigate(button.dataset.view);
       }));
-      scope.listen(root.querySelector(".save-slots-trigger"), "click", () => {
+      scope.listen(document.querySelector(".settings-save-slots"), "click", () => {
         closeGlobalSettings();
         deps.onSaveSlots();
       });
