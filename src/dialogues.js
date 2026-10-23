@@ -69,7 +69,7 @@ const es = {
   ],
   "npc.yuna.intro": [
     { speaker: "yuna", text: "Bienvenido. Soy Yuna Ametsuki. Incluso un ninja necesita un lugar donde bajar la guardia." },
-    { speaker: "yuna", text: "La Posada reunirá conversaciones con aliados y escenas que ocurren entre misiones." }
+    { speaker: "yuna", text: "El Gremio reunirá conversaciones con aliados y escenas que ocurren entre misiones." }
   ],
   "npc.yuna.guide": [
     { speaker: "yuna", text: "Tu progreso se guarda automáticamente en este navegador." },

@@ -11,7 +11,7 @@ Los diez retratos de la aldea usan un lienzo común de 1145×1374 px aproximadam
 | `mei-hayate.webp` | Mei Hayate | Instructora de técnicas | Generado para el proyecto |
 | `goro-tetsugan.webp` | Goro Tetsugan | Campeón de la Arena | Generado para el proyecto |
 | `hana-kogane.webp` | Hana Kogane | Mercader de suministros | Generado para el proyecto |
-| `yuna-ametsuki.webp` | Yuna Ametsuki | Anfitriona de la Posada | Generado para el proyecto |
+| `yuna-ametsuki.webp` | Yuna Ametsuki | Anfitriona del Gremio | Generado para el proyecto |
 | `riku-senda.webp` | Riku Senda | Coordinador de misiones | Generado para el proyecto |
 | `nao-matsuri.webp` | Nao Matsuri | Maestre de festivales | Generado para el proyecto |
 | `iori-kagemori.webp` | Iori Takeda | Superviviente de Kagemori | Generado para el proyecto; fuente PNG conservada |

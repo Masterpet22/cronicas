@@ -13,7 +13,7 @@ export const NPCS = Object.freeze({
   mei: npc("mei", "Mei Hayate", "Instructora de Técnicas", "assets/npcs/mei-hayate.webp"),
   goro: npc("goro", "Goro Tetsugan", "Campeón de la Arena", "assets/npcs/goro-tetsugan.webp"),
   hana: npc("hana", "Hana Kogane", "Mercader de Suministros", "assets/npcs/hana-kogane.webp"),
-  yuna: npc("yuna", "Yuna Ametsuki", "Anfitriona de la Posada", "assets/npcs/yuna-ametsuki.webp"),
+  yuna: npc("yuna", "Yuna Ametsuki", "Anfitriona del Gremio", "assets/npcs/yuna-ametsuki.webp"),
   riku: npc("riku", "Riku Senda", "Coordinador de Misiones", "assets/npcs/riku-senda.webp"),
   nao: npc("nao", "Nao Matsuri", "Maestre de Festivales", "assets/npcs/nao-matsuri.webp"),
   iori: npc("iori", "Iori Kagemori", "Anciano de Kagemori", "assets/npcs/iori-kagemori.webp"),

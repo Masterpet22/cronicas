@@ -51,7 +51,7 @@ Conoce los caminos olvidados y descifra el mapa recuperado de Akumori. Su búsqu
 - **Kureha Tsukikage**, guía de una Torre todavía en preparación.
 - **Goro Tetsugan**, campeón de la Arena de práctica.
 - **Hana Kogane**, mercader de suministros.
-- **Yuna Ametsuki**, anfitriona de la Posada.
+- **Yuna Ametsuki**, anfitriona del Gremio.
 - **Nao Matsuri**, maestre de una Plaza de Eventos todavía en preparación.
 
 Estos personajes explican los sistemas o el estado de su ubicación. Su presencia no crea misiones adicionales en la campaña actual.
