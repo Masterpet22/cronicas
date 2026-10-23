@@ -69,6 +69,18 @@ for (const asset of ["earth-fist-creation-spritesheet.png", "earth-fist-destruct
   assert.equal(sheet[25], 6, `${asset} debe conservar transparencia alfa real`);
 }
 
+const aquaShurikenCreation = await readFile(new URL("../assets/vfx/aqua-shuriken-creation-spritesheet.png", import.meta.url));
+assert.deepEqual([aquaShurikenCreation.readUInt32BE(16), aquaShurikenCreation.readUInt32BE(20)], [2400, 1340], "Aqua Shuriken debe conservar su cuadrícula de creación de 4 × 2 fotogramas");
+assert.equal(aquaShurikenCreation[25], 6, "La creación de Aqua Shuriken debe conservar transparencia alfa real");
+
+const aquaShuriken = await readFile(new URL("../assets/vfx/aqua-shuriken.png", import.meta.url));
+assert.deepEqual([aquaShuriken.readUInt32BE(16), aquaShuriken.readUInt32BE(20)], [472, 479], "El proyectil de Aqua Shuriken debe conservar su resolución original");
+assert.equal(aquaShuriken[25], 6, "El proyectil de Aqua Shuriken debe conservar transparencia alfa real");
+
+const aquaWhip = await readFile(new URL("../assets/vfx/aqua-whip-spritesheet.png", import.meta.url));
+assert.deepEqual([aquaWhip.readUInt32BE(16), aquaWhip.readUInt32BE(20)], [2400, 1340], "Látigo de corriente debe conservar su cuadrícula de 4 × 2 fotogramas");
+assert.equal(aquaWhip[25], 6, "Látigo de corriente debe conservar transparencia alfa real");
+
 const village = webpDimensions(await readFile(new URL("../assets/village/aldea.webp", import.meta.url)), "aldea.webp");
 assert.equal(village.width, 1678, "El mapa debe conservar su ancho original");
 assert.equal(village.height, 937, "El mapa debe conservar su alto original");

@@ -44,7 +44,7 @@ export function actionDescription(action) {
   if (action.type === "guard") return "Adopta una postura defensiva que reduce el daño entrante y recupera chakra.";
   if (action.id === "strike") return "Ataque físico rápido contra el enemigo.";
   if (action.id === "water_whip") return "Ataca con un látigo de agua a presión.";
-  if (action.id === "water_bullet") return "Dispara una esfera de agua concentrada.";
+  if (action.id === "water_bullet") return "Forma un shuriken de agua y lo lanza girando contra el rival.";
   const element = ({ fuego: "fuego", agua: "agua", viento: "viento", tierra: "tierra", rayo: "rayo" })[action.element] || "energía elemental";
   return `Técnica concentrada de ${element}.`;
 }
