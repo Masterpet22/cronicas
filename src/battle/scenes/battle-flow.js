@@ -182,7 +182,7 @@ export class BattleFlowMethods {
     this.enemy = this.createEnemyState(profile);
     this.recordEnemyObservation({ encounter: true });
     this.enemyName.setText(profile.name);
-    this.enemyRankNumber.setText(String(this.enemyRankForProfile(profile)));
+    this.enemyRankNumber.setText(`NV ${this.enemyRankForProfile(profile)}`);
     this.foe = createPlayerFighter(this, 810, 372, this.enemyAppearance(), true);
     this.styleFighterGrounding(this.foe);
     this.foe.targets.forEach((target) => target.setAlpha(0));

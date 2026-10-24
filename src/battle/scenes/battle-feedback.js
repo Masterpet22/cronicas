@@ -199,14 +199,48 @@ export class BattleFeedbackMethods {
     this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
     this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
+    this.refreshStatusSlots(this.playerStatusSlots, this.player.statuses, this.player.guarding);
+    this.refreshStatusSlots(this.enemyStatusSlots, this.enemy.statuses, this.enemy.guarding);
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
   }
 
   updateHealthBar(bar, hp, maxHp) {
     const ratio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
-    const color = ratio > 0.5 ? 0x38df87 : ratio > 0.25 ? 0xf1c84b : 0xef4755;
+    const previousRatio = bar.currentRatio;
+    if (bar.ghost) {
+      this.tweens.killTweensOf(bar.ghost);
+      if (previousRatio !== null && ratio < previousRatio) {
+        const previousWidth = bar.width * previousRatio;
+        const previousX = bar.direction === "rtl" ? bar.x + bar.width - previousWidth : bar.x;
+        const nextWidth = bar.width * ratio;
+        const nextX = bar.direction === "rtl" ? bar.x + bar.width - nextWidth : bar.x;
+        bar.ghost.width = previousWidth;
+        bar.ghost.setX(previousX);
+        this.tweens.add({ targets: bar.ghost, width: nextWidth, x: nextX, delay: 260, duration: 720, ease: "Cubic.out" });
+      } else {
+        const width = bar.width * ratio;
+        bar.ghost.width = width;
+        bar.ghost.setX(bar.direction === "rtl" ? bar.x + bar.width - width : bar.x);
+      }
+    }
     this.setBarRatio(bar, ratio);
-    bar.fill.setFillStyle(color, 1);
+    bar.fill.setFillStyle(ratio <= 0.25 ? 0x9a6b54 : 0x6ea782, 1);
+    bar.currentRatio = ratio;
+  }
+
+  refreshStatusSlots(slots, statuses = [], guarding = false) {
+    if (!slots) return;
+    const entries = [...statuses];
+    if (guarding) entries.unshift({ type: "guard", label: "GUARDIA" });
+    const glyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guard: "守", poison: "毒", slow: "鈍" };
+    const colors = { burn: 0xe57343, bleed: 0xc6534f, stun: 0xe0bd55, soak: 0x59b9d1, guard: 0x8fb39f, poison: 0x9d7ab6, slow: 0x7790a4 };
+    slots.forEach((slot, index) => {
+      const status = entries[index];
+      slot.glyph.setText(status ? (glyphs[status.type] || "印") : "·");
+      slot.glyph.setColor(status ? `#${(colors[status.type] || 0xd1b36d).toString(16).padStart(6, "0")}` : "#667176");
+      slot.bg.setFillStyle(status ? 0x17212a : 0x07101a, status ? 0.98 : 0.78)
+        .setStrokeStyle(1, status ? (colors[status.type] || 0xd1b36d) : 0x76552f, status ? 0.9 : 0.5);
+    });
   }
 
   setBarRatio(bar, ratio) {
@@ -214,6 +248,10 @@ export class BattleFeedbackMethods {
     const fillX = bar.direction === "rtl" ? bar.x + bar.width - fillWidth : bar.x;
     bar.fill.width = fillWidth;
     bar.fill.setX(fillX);
+    if (bar.shade) {
+      bar.shade.width = fillWidth;
+      bar.shade.setX(fillX);
+    }
     if (bar.sheen) {
       bar.sheen.width = fillWidth;
       bar.sheen.setX(fillX);
