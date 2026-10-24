@@ -1,3 +1,4 @@
+import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.86.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";
 
 export function createBar(scene, x, y, width, height, color, {
@@ -62,14 +63,9 @@ export function actionDescription(action) {
   return `Técnica concentrada de ${element}.`;
 }
 
-const ACTION_POSITIONS = [
-  { x: 62, y: 154 },
-  { x: 62, y: 217 },
-  { x: 62, y: 280 },
-  { x: 62, y: 343 },
-  { x: 62, y: 406 },
-  { x: 62, y: 478 }
-];
+export const ACTION_POSITIONS = Array.from({ length: 6 }, (_, index) => ({
+  x: HUD_ART.skills.iconX, y: HUD_ART.skills.y + HUD_ART.skills.rowHeight * (index + 0.5)
+}));
 
 const DEFAULT_INTERFACE_SKIN = Object.freeze({
   actionSlotTexture: "battle-ui-lunar-action-slot",
@@ -92,7 +88,7 @@ const DEFAULT_INTERFACE_SKIN = Object.freeze({
 
 function drawActionChrome(scene, x, y, hasAction, index, initialSkin = DEFAULT_INTERFACE_SKIN) {
   const ultimate = index === 5;
-  const radius = ultimate ? 35 : 29;
+  const radius = 29;
   const chrome = scene.add.graphics().setDepth(32);
   chrome.applyTheme = (skin = DEFAULT_INTERFACE_SKIN) => {
     chrome.clear();
@@ -100,14 +96,6 @@ function drawActionChrome(scene, x, y, hasAction, index, initialSkin = DEFAULT_I
     chrome.lineStyle(4, 0x6e1e18, hasAction ? 0.98 : 0.58).strokeCircle(x, y, radius);
     chrome.lineStyle(1.5, 0xc79a4a, hasAction ? 0.9 : 0.42).strokeCircle(x, y, radius - 4);
     chrome.lineStyle(1, 0xf0cb76, hasAction ? 0.24 : 0.12).strokeCircle(x, y, radius - 8);
-    if (ultimate) {
-      for (let segment = 0; segment < 8; segment += 1) {
-        const start = -Math.PI / 2 + segment * Math.PI / 4 + 0.05;
-        const end = start + Math.PI / 4 - 0.1;
-        chrome.lineStyle(2.5, segment < 5 ? 0xd2a24d : 0x44211d, segment < 5 ? 0.95 : 0.72);
-        chrome.beginPath().arc(x, y, radius + 5, start, end).strokePath();
-      }
-    }
   };
   chrome.applyTheme(initialSkin);
   return chrome;
@@ -115,15 +103,15 @@ function drawActionChrome(scene, x, y, hasAction, index, initialSkin = DEFAULT_I
 
 function createTooltip(scene, action, index, initialSkin = DEFAULT_INTERFACE_SKIN) {
   const position = ACTION_POSITIONS[index];
-  const x = 116;
+  const x = 169;
   const y = Math.max(112, Math.min(350, position.y - 45));
-  const width = 240;
+  const width = 252;
   const height = 136;
   const layer = scene.add.container(0, 0).setDepth(58).setVisible(false);
   const bg = scene.add.graphics();
 
   const title = scene.add.text(x + 18, y + 13, action.name.toUpperCase(), {
-    fontFamily: '"Cinzel", Georgia, serif', fontSize: "15px", color: initialSkin.tooltipTitle, fontStyle: "bold"
+    fontFamily: '"Cinzel", Georgia, serif', fontSize: "12px", wordWrap: { width: 220 }, color: initialSkin.tooltipTitle, fontStyle: "bold"
   });
   const divider = scene.add.rectangle(x + 16, y + 39, width - 32, 1, initialSkin.accent, 0.35).setOrigin(0);
   const [cost, damage, timing] = actionLines(action);
@@ -171,7 +159,7 @@ export function createActionButton(scene, action, index, initialSkin = DEFAULT_I
   const { x, y } = ACTION_POSITIONS[index];
   const ultimate = index === 5;
   const chrome = drawActionChrome(scene, x, y, Boolean(action), index, initialSkin);
-  const shortcutOffset = ultimate ? 29 : 24;
+  const shortcutOffset = 26;
   const shortcutBg = scene.add.circle(x - shortcutOffset, y - shortcutOffset, 10, 0x4c1714, 1)
     .setStrokeStyle(1.25, action ? 0xc79a4a : 0x6f573b, 0.95)
     .setDepth(36);
@@ -188,20 +176,24 @@ export function createActionButton(scene, action, index, initialSkin = DEFAULT_I
     const sealGlyph = scene.add.text(x, y, "封", {
       fontFamily: '"Yu Mincho", "MS Mincho", serif', fontSize: ultimate ? "14px" : "12px", color: "#8e241d", fontStyle: "bold"
     }).setOrigin(0.5).setAngle(-7).setDepth(35);
-    const unlockLabel = index === 3 ? "NV 4" : index === 4 ? "NV 5" : index === 5 ? "CARGA" : "VACÍO";
-    const unlock = scene.add.text(x, y + (ultimate ? 27 : 24), unlockLabel, {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "8px", color: "#d5b96f", fontStyle: "bold", stroke: "#080706", strokeThickness: 2
+    const info = emptySkillInfo(scene, index);
+    const name = scene.add.text(106, y - 17, info.name, {
+      fontFamily: 'Georgia, "Yu Mincho", serif', fontSize: "11px", color: "#a59d91", fontStyle: "bold", wordWrap: { width: 51 }, lineSpacing: -1
+    }).setDepth(37);
+    const costBg = scene.add.rectangle(126, y + 21, 39, 16, HUD_ART.inkDeep, 1).setStrokeStyle(0.8, 0x826742, 0.9).setDepth(36);
+    const unlock = scene.add.text(126, y + 21, info.requirement, {
+      fontFamily: '"Alegreya Sans", sans-serif', fontSize: "10px", color: "#a59d91", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(37);
     const applyTheme = (skin = DEFAULT_INTERFACE_SKIN) => {
       chrome.applyTheme(skin);
       shortcutBg.setFillStyle(0x321513, 1).setStrokeStyle(1.25, 0x6f573b, 0.95);
       shortcut.setColor("#8f795b");
     };
-    return { empty: true, bg: chrome, shortcutBg, shortcut, lock: seal, visualParts: [chrome, shortcutBg, shortcut, faintKanji, seal, sealGlyph, unlock], applyTheme };
+    return { empty: true, bg: chrome, shortcutBg, shortcut, lock: seal, visualParts: [chrome, shortcutBg, shortcut, faintKanji, seal, sealGlyph, name, costBg, unlock], name, requirement: unlock, applyTheme };
   }
 
   const icon = action.iconTexture && scene.textures.exists(action.iconTexture)
-    ? scene.add.image(x, y, action.iconTexture).setDisplaySize(ultimate ? 56 : 47, ultimate ? 56 : 47).setDepth(34)
+    ? scene.add.image(x, y, action.iconTexture).setDisplaySize(47, 47).setDepth(34)
     : null;
   if (icon && action.id === "strike") icon.setTint(0xd1a25b);
   if (icon && action.type === "guard") icon.setTint(0xa6412d);
@@ -214,31 +206,41 @@ export function createActionButton(scene, action, index, initialSkin = DEFAULT_I
   const glyph = icon ? null : scene.add.text(x, y, action.type === "guard" ? "◇" : "◆", {
     fontFamily: '"Cinzel", Georgia, serif', fontSize: "25px", color: `#${action.color.toString(16).padStart(6, "0")}`, fontStyle: "bold"
   }).setOrigin(0.5).setDepth(34);
-  const hoverRing = scene.add.circle(x, y, ultimate ? 39 : 33, 0xe8a948, 0.1)
-    .setStrokeStyle(3, 0xe8a948, 0.88)
+  const hoverRing = scene.add.rectangle(90, y, 134, 65, 0xe8a948, 0.08)
+    .setStrokeStyle(1, HUD_ART.light, 0.88)
     .setAlpha(0.86)
     .setDepth(38)
     .setVisible(false);
-  const hit = scene.add.circle(x, y, ultimate ? 37 : 31, 0xffffff, 0.001)
+  const hit = scene.add.rectangle(90, y, 134, 66, 0xffffff, 0.001)
     .setDepth(40)
     .setInteractive({ useHandCursor: true });
-  const costBg = scene.add.rectangle(x + (ultimate ? 27 : 22), y + (ultimate ? 25 : 21), action.cost > 9 ? 32 : 27, 14, 0x08131c, 0.98)
-    .setStrokeStyle(1, 0xc99a47, 0.9).setDepth(36);
-  const cost = scene.add.text(costBg.x, costBg.y, `${action.cost || 0} CH`, {
-    fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "8px", color: "#d7eff2", fontStyle: "bold", stroke: "#020408", strokeThickness: 2
+  const name = scene.add.text(104, y - 23, action.name, {
+    fontFamily: 'Georgia, "Yu Mincho", serif', fontSize: "11px", fontStyle: "bold", color: HUD_ART.text,
+    wordWrap: { width: 54 }, lineSpacing: -1
+  }).setDepth(37);
+  // Fit long real technique names above the cost, without replacing their text.
+  for (let size = 11; size > 9 && (name.height > 33 || name.width > 54); size -= 0.5) name.setFontSize(size - 0.5);
+  const costBg = scene.add.rectangle(126, y + 21, 39, 16, HUD_ART.inkDeep, 0.98)
+    .setStrokeStyle(0.8, HUD_ART.gold, 1).setDepth(36);
+  const cost = scene.add.text(126, y + 21, `${scene.actionCost(action)} CH`, {
+    fontFamily: '"Alegreya Sans", sans-serif', fontSize: "10px", color: "#b2e5ff", fontStyle: "bold"
   }).setOrigin(0.5).setDepth(37);
+  const availability = scene.add.text(x + 15, y + 16, "", {
+    fontFamily: '"Alegreya Sans", sans-serif', fontSize: "9px", color: "#fff0bc", fontStyle: "bold", stroke: "#02050a", strokeThickness: 3
+  }).setOrigin(0.5).setDepth(38);
   const tooltip = createTooltip(scene, action, index, initialSkin);
-  const visualParts = [chrome, shortcutBg, shortcut, icon, mark, glyph, costBg, cost].filter(Boolean);
+  const visualParts = [chrome, shortcutBg, shortcut, icon, mark, glyph, name, costBg, cost, availability].filter(Boolean);
   const applyTheme = (skin = DEFAULT_INTERFACE_SKIN) => {
     chrome.applyTheme(skin);
     shortcutBg.setFillStyle(0x4c1714, 1).setStrokeStyle(1.25, 0xc79a4a, 0.95);
     shortcut.setColor("#f0cf7a");
-    hoverRing.setFillStyle(0xe8a948, 0.1).setStrokeStyle(3, 0xe8a948, 0.88);
+    hoverRing.setFillStyle(0xe8a948, 0.1).setStrokeStyle(1, HUD_ART.light, 0.88);
     tooltip.applyTheme(skin);
   };
   return {
     bg: chrome,
     icon,
+    name, cost, availability,
     mark,
     iconText: glyph,
     shortcutBg,

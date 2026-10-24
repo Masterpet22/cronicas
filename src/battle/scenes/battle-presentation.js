@@ -1,8 +1,9 @@
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.86.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.85.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.86.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -34,7 +35,7 @@ export const BATTLE_INTERFACE_SKINS = Object.freeze({
     shortcutFill: 0x21140d,
     text: "#fff1cf",
     mutedText: "#9e8870",
-    tooltipFill: 0x160c08,
+    tooltipFill: 0x0a1429,
     tooltipEdge: 0xd4a34e,
     tooltipHighlight: 0xffe4a3,
     tooltipTitle: "#ffe9b5",
@@ -74,24 +75,14 @@ export const BATTLE_INTERFACE_SKINS = Object.freeze({
   })
 });
 
-const ACTION_BACKDROP_BOUNDS = Object.freeze({ x: 17, y: 120, width: 90, height: 410, radius: 40 });
-
-function paintActionBackdrop(parts, skin) {
+function paintActionBackdrop(parts) {
   if (!parts) return;
-  const { haze, surface } = parts;
-  const { x, y, width, height, radius } = ACTION_BACKDROP_BOUNDS;
-
-  haze.clear();
-  haze.fillStyle(0x02050b, 0.18).fillRoundedRect(x - 5, y - 4, width + 10, height + 8, radius + 4);
-
-  surface.clear();
-  surface.fillGradientStyle(0x3f1517, 0x250d11, 0x050913, 0x050913, 0.28, 0.22, 0.42, 0.42);
-  surface.fillRoundedRect(x, y, width, height, radius);
-  surface.fillStyle(0x921f1a, 0.07).fillRoundedRect(x + 7, y + 8, width - 14, height - 16, radius - 7);
-  surface.lineStyle(1, 0xd2a14c, 0.34).strokeRoundedRect(x + 1, y + 1, width - 2, height - 2, radius - 1);
-  surface.lineStyle(1, 0x8c2a20, 0.4).strokeRoundedRect(x + 5, y + 5, width - 10, height - 10, radius - 5);
-  for (let stroke = 0; stroke < 5; stroke += 1) {
-    surface.lineStyle(1, 0xe2c783, 0.025).lineBetween(x + 19 + stroke * 11, y + 18, x + 11 + stroke * 12, y + height - 18);
+  parts.haze.clear();
+  parts.surface.clear();
+  const { x, y, width, rowHeight } = HUD_ART.skills;
+  drawOrnatePanel(parts.surface, x, y, width, rowHeight * 6, { radius: 12 });
+  for (let row = 1; row < 6; row += 1) {
+    parts.surface.lineStyle(0.8, HUD_ART.gold, 0.48).lineBetween(x + 5, y + rowHeight * row, x + width - 5, y + rowHeight * row);
   }
 }
 
@@ -143,116 +134,68 @@ export class BattlePresentationMethods {
   }
 
   createHud() {
-    const playerFrameX = 248;
-    const enemyFrameX = 712;
-    const healthFrameY = 55;
-    const chakraFrameY = 85;
-    const healthBarWidth = 270;
-    const chakraBarWidth = 264;
-    const playerHealthX = 113;
-    const playerChakraX = 116;
-    const enemyHealthX = 577;
-    const enemyChakraX = 580;
-
+    const firstHudChild = this.children.list.length;
+    const healthFrameY = 49;
+    const chakraFrameY = 72;
+    const healthBarWidth = 202;
+    const chakraBarWidth = 202;
+    const playerHealthX = 148;
+    const playerChakraX = 148;
+    const enemyHealthX = 657;
+    const enemyChakraX = 657;
     this.hudLacquerChrome = this.add.graphics().setDepth(20);
-    this.paintHudLacquerChrome({
-      playerHealthX, playerChakraX, enemyHealthX, enemyChakraX,
-      healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth
-    });
-
-    this.playerName = this.add.text(
-      113,
-      10,
-      this.saveData.character.name.toUpperCase(),
-      {
-        fontFamily: '"Yu Mincho", "Cinzel", Georgia, serif',
-        fontSize: "16px",
-        color: "#f4dfae",
-        fontStyle: "bold",
-        stroke: "#120907",
-        strokeThickness: 3
-      }
-    ).setDepth(21);
-
-    this.enemyName = this.add.text(
-      847,
-      10,
-      this.encounters[this.enemyIndex].name.toUpperCase(),
-      {
-        fontFamily: '"Yu Mincho", "Cinzel", Georgia, serif',
-        fontSize: "16px",
-        color: "#f4dfae",
-        fontStyle: "bold",
-        stroke: "#120907",
-        strokeThickness: 3
-      }
-    ).setOrigin(1, 0).setDepth(21);
-
-    this.playerHpBar = createBar(this, playerHealthX, healthFrameY, healthBarWidth, 22, 0x6ea782, { ghostColor: 0xf1d57a, slotColor: 0x0a1717 });
-    this.chakraBar = createBar(this, playerChakraX, chakraFrameY, chakraBarWidth, 9, 0x35c7e8, { slotColor: 0x07131d, edgeColor: 0x9b793e });
-    this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY, healthBarWidth, 22, 0x6ea782, { direction: "rtl", ghostColor: 0xf1d57a, slotColor: 0x0a1717 });
-    this.enemyChakraBar = createBar(this, enemyChakraX, chakraFrameY, chakraBarWidth, 9, 0x1c3842, { direction: "rtl", slotColor: 0x081016, edgeColor: 0x755c35 });
-    this.chakraSwirl = this.add.graphics().setDepth(23).setMask(this.chakraBar.slotMask);
-    for (let swirl = 0; swirl < 9; swirl += 1) {
-      const cx = playerChakraX + 18 + swirl * 29;
-      this.chakraSwirl.lineStyle(1, 0xcaf8ff, 0.24).beginPath().arc(cx, chakraFrameY, 5, Math.PI * 0.15, Math.PI * 1.45).strokePath();
-    }
-    this.enemyChakraBar.valueText.setVisible(false);
-    this.enemyChakraLock = this.createOfudaSeal(enemyFrameX, chakraFrameY);
-    this.enemyChakraBar.centerIcon = this.enemyChakraLock;
+    this.paintHudLacquerChrome({ playerHealthX, playerChakraX, enemyHealthX, enemyChakraX, healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth });
+    const nameStyle = { fontFamily: HUD_ART.font, fontSize: "17px", color: HUD_ART.text, fontStyle: "bold", stroke: "#02050a", strokeThickness: 2 };
+    this.playerName = this.add.text(116, 16, this.saveData.character.name.toUpperCase(), nameStyle).setDepth(21);
+    this.enemyName = this.add.text(867, 16, this.encounters[this.enemyIndex].name.toUpperCase(), nameStyle).setOrigin(1, 0).setDepth(21);
+    this.playerHpBar = createBar(this, playerHealthX, healthFrameY, healthBarWidth, 14, HUD_ART.health, { ghostColor: 0xf1d57a });
+    this.chakraBar = createBar(this, playerChakraX, chakraFrameY, chakraBarWidth, 14, HUD_ART.chakra);
+    this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY, healthBarWidth, 14, HUD_ART.health, { direction: "rtl", ghostColor: 0xf1d57a });
+    this.enemyChakraBar = createBar(this, enemyChakraX, chakraFrameY, chakraBarWidth, 14, HUD_ART.chakra, { direction: "rtl" });
     this.hudBarCenters = { healthFrameY, chakraFrameY };
-
-    const enemyRankNumber = this.enemyRankForProfile(this.encounters[this.enemyIndex]);
-    this.playerRankStar = this.createLevelBadge(354, 21, `NV ${this.saveData.progression.level}`);
+    for (const iconX of [111, 620]) {
+      createUiIcon(this, "health", iconX, healthFrameY, { size: 17, tint: 0xff474b, depth: 25 });
+      createUiIcon(this, "chakra", iconX, chakraFrameY, { size: 17, tint: 0x29baff, depth: 25 });
+      for (const [label, y] of [["PV", healthFrameY], ["CH", chakraFrameY]]) {
+        this.add.text(iconX + 13, y, label, { fontFamily: HUD_ART.font, fontSize: "11px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0, 0.5).setDepth(25);
+      }
+    }
+    this.playerRankStar = this.createLevelBadge(325, 25, `NV ${this.saveData.progression.level}`);
     this.playerRankNumber = this.playerRankStar.text;
-    this.enemyRankStar = this.createLevelBadge(606, 21, `NV ${enemyRankNumber}`);
+    this.enemyRankStar = this.createLevelBadge(634, 25, `NV ${this.enemyRankForProfile(this.encounters[this.enemyIndex])}`);
     this.enemyRankNumber = this.enemyRankStar.text;
-
-    this.playerPortrait = this.createCombatPortrait(78, 58, this.playerAppearance(), false);
-    this.enemyPortrait = this.createCombatPortrait(882, 58, this.enemyAppearance(), true);
-    this.playerStatusSlots = this.createStatusRow(121, 106, "ltr");
-    this.enemyStatusSlots = this.createStatusRow(839, 106, "rtl");
-
+    this.playerPortrait = this.createCombatPortrait(61, 50, this.playerAppearance(), false);
+    this.enemyPortrait = this.createCombatPortrait(900, 50, this.enemyAppearance(), true);
+    this.playerStatusSlots = this.createStatusRow(168, 93, "ltr");
+    this.enemyStatusSlots = this.createStatusRow(705, 93, "ltr");
     this.hudFrames = { health: [], chakra: [] };
     this.applyHudTheme(this.hudTheme);
-
     [this.playerHpBar, this.chakraBar, this.enemyHpBar, this.enemyChakraBar].forEach((bar) => {
-      bar.bg.setDepth(21);
-      if (bar.slot) bar.slot.setDepth(21);
-      if (bar.ghost) bar.ghost.setDepth(22);
-      bar.fill.setDepth(22);
-      if (bar.shade) bar.shade.setDepth(23);
-      if (bar.sheen) bar.sheen.setDepth(23);
-      if (bar.edge) bar.edge.setDepth(24);
-      bar.valueText.setDepth(25);
+      bar.bg.setDepth(21); bar.slot.setDepth(21);
+      bar.ghost?.setDepth(22); bar.fill.setDepth(22);
+      bar.shade.setDepth(23); bar.sheen.setDepth(23); bar.edge.setDepth(24);
+      bar.valueText.setOrigin(1, 0.5).setX(bar.x + bar.width - 6).setFontSize(12).setDepth(25);
     });
-
+    const phaseChrome = this.add.graphics().setDepth(24);
+    drawOrnatePanel(phaseChrome, 380, 17, 200, 28, { fill: HUD_ART.wine, radius: 14 });
+    this.phaseLabel = this.add.text(480, 31, "INICIATIVA", {
+      fontFamily: HUD_ART.font, fontSize: "14px", fontStyle: "bold", color: HUD_ART.text, stroke: "#170607", strokeThickness: 2
+    }).setOrigin(0.5).setDepth(25);
     this.refreshHud();
+    this.hudCanvasParts = this.children.list.slice(firstHudChild).filter(part => part.depth < 58);
     this.sealLayer = this.add.container(WIDTH / 2, 120).setDepth(30);
   }
 
   paintHudLacquerChrome({ playerHealthX, playerChakraX, enemyHealthX, enemyChakraX, healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth }) {
     const g = this.hudLacquerChrome;
     g.clear();
-    [[42, 4], [563, 4]].forEach(([x, y]) => {
-      g.fillGradientStyle(0x11182a, 0x11182a, 0x040811, 0x040811, 0.7, 0.7, 0.88, 0.88)
-        .fillRoundedRect(x, y, 355, 116, 24);
-      g.lineStyle(1, 0x9c3729, 0.28).strokeRoundedRect(x + 1, y + 1, 353, 114, 23);
-    });
-    const bars = [
-      [playerHealthX, healthFrameY, healthBarWidth, 22], [enemyHealthX, healthFrameY, healthBarWidth, 22],
-      [playerChakraX, chakraFrameY, chakraBarWidth, 9], [enemyChakraX, chakraFrameY, chakraBarWidth, 9]
-    ];
-    bars.forEach(([x, y, width, height], index) => {
-      const large = index < 2;
-      g.fillStyle(0x5e1917, 0.98).fillRoundedRect(x - 6, y - height / 2 - 5, width + 12, height + 10, large ? 10 : 7);
-      g.lineStyle(1.5, 0xc49748, 0.9).strokeRoundedRect(x - 4, y - height / 2 - 3, width + 8, height + 6, large ? 8 : 5);
-      g.lineStyle(1, 0xf1cc76, 0.22).lineBetween(x + 8, y - height / 2 - 1, x + width - 8, y - height / 2 - 1);
-      g.fillStyle(0x7b201b, 1).fillRoundedRect(x - 10, y - height / 2 - 1, 8, height + 2, 3);
-      g.fillRoundedRect(x + width + 2, y - height / 2 - 1, 8, height + 2, 3);
-      g.lineStyle(1, 0xc49748, 0.74).strokeRoundedRect(x - 9, y - height / 2, 6, height, 2);
-      g.strokeRoundedRect(x + width + 3, y - height / 2, 6, height, 2);
-    });
+    drawOrnatePanel(g, 23, 12, 341, 94, { radius: 18 });
+    drawOrnatePanel(g, 596, 12, 341, 94, { radius: 18 });
+    for (const [x, y, width] of [[playerHealthX, healthFrameY, healthBarWidth], [enemyHealthX, healthFrameY, healthBarWidth], [playerChakraX, chakraFrameY, chakraBarWidth], [enemyChakraX, chakraFrameY, chakraBarWidth]]) {
+      g.fillStyle(0x02070d, 1).fillRoundedRect(x - 3, y - 10, width + 6, 20, 10);
+      g.lineStyle(1.2, HUD_ART.gold, 1).strokeRoundedRect(x - 2, y - 9, width + 4, 18, 9);
+      g.lineStyle(0.6, HUD_ART.light, 0.5).lineBetween(x + 8, y - 7, x + width - 8, y - 7);
+    }
   }
 
   createLevelBadge(x, y, label) {
@@ -276,7 +219,9 @@ export class BattlePresentationMethods {
       ? this.add.image(x + (flipped ? 1 : -1), y - 17, hairKey).setDisplaySize(55, appearance?.hair === 4 ? 50 : 43).setFlipX(flipped).setMask(mask).setDepth(26)
       : null;
     const frame = this.add.graphics().setDepth(27);
-    frame.lineStyle(5, 0x6f1d18, 1).strokeCircle(x, y, 32);
+    frame.lineStyle(5, 0x6f1d18, 1).strokeCircle(x, y, 34);
+    frame.lineStyle(1.5, HUD_ART.gold, 1).strokeCircle(x, y, 36);
+    frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
     frame.lineStyle(1.5, 0xd0a04f, 0.95).strokeCircle(x, y, 29);
     frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
     return { shadow, wash, head, hair, frame, maskShape };
@@ -293,12 +238,17 @@ export class BattlePresentationMethods {
 
   createStatusRow(anchorX, y, direction) {
     return Array.from({ length: 5 }, (_, index) => {
-      const x = anchorX + (direction === "rtl" ? -index : index) * 20;
+      const x = anchorX + (direction === "rtl" ? -index : index) * 24;
       const bg = this.add.circle(x, y, 7, 0x07101a, 0.88).setStrokeStyle(1, 0x9b6e38, 0.62).setDepth(24);
       const glyph = this.add.text(x, y, "·", {
         fontFamily: '"Yu Mincho", "Alegreya Sans", sans-serif', fontSize: "8px", color: "#6f7a7e", fontStyle: "bold"
       }).setOrigin(0.5).setDepth(25);
-      return { bg, glyph };
+      const detail = this.add.text(x, y + 12, "", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "10px", color: "#f5e1af", backgroundColor: "#0a1429", padding: { x: 5, y: 4 } }).setOrigin(0.5, 0).setDepth(58).setVisible(false);
+      const slot = { bg, glyph, detail, status: null };
+      bg.setInteractive();
+      bg.on("pointerover", () => { if (slot.status) detail.setText(slot.status).setVisible(true); });
+      bg.on("pointerout", () => detail.setVisible(false));
+      return slot;
     });
   }
 
@@ -355,40 +305,24 @@ export class BattlePresentationMethods {
     const resolvedThemeId = BATTLE_INTERFACE_SKINS[themeId] ? themeId : "ancestral";
     const skin = BATTLE_INTERFACE_SKINS[resolvedThemeId];
     if (this.timelineThemeParts) {
-      const { chrome, ticks, sword, speedIcon, title, preparationLabel, preparationStart, trackY } = this.timelineThemeParts;
+      const { chrome, ticks, preparationStart, trackY } = this.timelineThemeParts;
+      const { x, y, width, height, start, end } = HUD_ART.timeline;
       chrome.clear();
-      // Katana parcialmente desenvainada: empuñadura y saya bermellón,
-      // filo cálido y una zona de acción roja en la punta.
-      chrome.fillStyle(0x010309, 0.62).fillRoundedRect(252, trackY - 24, 602, 48, 24);
-      chrome.fillStyle(0x35100f, 1).fillRoundedRect(254, trackY - 8, 82, 16, 7);
-      for (let wrap = 0; wrap < 6; wrap += 1) {
-        chrome.lineStyle(2, 0xc69b52, 0.66).lineBetween(262 + wrap * 11, trackY - 7, 270 + wrap * 11, trackY + 7);
-      }
-      chrome.fillStyle(0x6f1d18, 1).fillEllipse(338, trackY, 18, 42);
-      chrome.lineStyle(2, 0xd0a24f, 0.95).strokeEllipse(338, trackY, 18, 42);
-      chrome.fillStyle(0xdbc17e, 0.96);
-      chrome.fillTriangle(344, trackY - 8, 850, trackY - 5, 862, trackY);
-      chrome.fillTriangle(344, trackY + 8, 850, trackY + 5, 862, trackY);
-      chrome.fillStyle(0xffefd0, 0.45).fillTriangle(354, trackY - 5, 850, trackY - 3, 858, trackY);
-      chrome.lineStyle(1, 0x6e441f, 0.95).lineBetween(344, trackY + 8, 851, trackY + 5);
-      chrome.fillStyle(0x711c18, 0.98).fillRoundedRect(327, trackY - 11, 186, 22, 10);
-      chrome.lineStyle(2, 0xc89b4b, 0.9).strokeRoundedRect(329, trackY - 9, 182, 18, 8);
-      chrome.lineStyle(1, 0xf0cf7b, 0.22).lineBetween(342, trackY - 6, 498, trackY - 6);
-      chrome.fillStyle(0x2d0b0b, 0.88).fillRoundedRect(preparationStart - 2, trackY - 10, TIMELINE_END - preparationStart + 10, 20, 9);
-      chrome.fillStyle(0xa63724, 0.66).fillRoundedRect(preparationStart, trackY - 8, TIMELINE_END - preparationStart + 7, 16, 8);
-      chrome.lineStyle(1, 0xf1c75f, 0.9).lineBetween(preparationStart + 2, trackY - 6, TIMELINE_END + 4, trackY - 3);
-      chrome.lineStyle(2, 0xd9a34b, 1).lineBetween(preparationStart, trackY - 17, preparationStart, trackY + 17);
-      chrome.fillStyle(0xf0cb70, 0.98).fillTriangle(preparationStart, trackY - 19, preparationStart - 5, trackY - 12, preparationStart + 5, trackY - 12);
-      chrome.fillTriangle(preparationStart, trackY + 19, preparationStart - 5, trackY + 12, preparationStart + 5, trackY + 12);
+      drawOrnatePanel(chrome, x, y, width, height, { radius: 22 });
+      chrome.lineStyle(1.5, HUD_ART.gold, 1).strokeTriangle(x - 9, trackY, x + 10, trackY - 17, x + 10, trackY + 17);
+      chrome.strokeTriangle(x + width + 9, trackY, x + width - 10, trackY - 17, x + width - 10, trackY + 17);
+      chrome.fillStyle(HUD_ART.wine, 1).fillRoundedRect(start - 1, trackY - 6, end - start + 2, 12, 6);
+      chrome.fillStyle(0x9b322d, 0.7).fillRoundedRect(preparationStart, trackY - 4, end - preparationStart - 8, 8, 3);
+      chrome.lineStyle(1.8, HUD_ART.gold, 1).strokeRoundedRect(start - 1, trackY - 6, end - start + 2, 12, 6);
+      chrome.lineStyle(0.8, HUD_ART.light, 0.6).lineBetween(start + 5, trackY - 4, end - 5, trackY - 4);
+      chrome.fillStyle(HUD_ART.gold, 1).fillTriangle(end - 16, trackY - 11, end + 5, trackY, end - 16, trackY + 11);
+      chrome.lineStyle(1, HUD_ART.light, 0.8).lineBetween(preparationStart, trackY - 9, preparationStart, trackY + 9);
+      drawOrnatePanel(chrome, 401, 453, 173, 19, { radius: 9 });
       ticks.clear();
-      timelineMilestones(TIMELINE_START, TIMELINE_END).forEach((x) => {
-        ticks.lineStyle(3, 0x120908, 0.72).lineBetween(x, trackY - 8, x, trackY + 8);
-        ticks.lineStyle(1, 0xe2c06e, 0.88).lineBetween(x, trackY - 7, x, trackY + 7);
+      timelineMilestones(start, end).filter((tick) => tick < preparationStart).forEach((tick) => {
+        ticks.fillStyle(HUD_ART.light, 1).fillCircle(tick, trackY, 4);
+        ticks.lineStyle(1, 0x50251a, 1).strokeCircle(tick, trackY, 4);
       });
-      sword.setVisible(false);
-      speedIcon.setTint(0xd1a24d);
-      title.setColor("#f1d78f");
-      preparationLabel.setColor("#e8b958");
     }
     paintActionBackdrop(this.actionBackdropThemeParts, skin);
     this.actionSlots?.forEach((button) => button.applyTheme?.(skin));
@@ -400,47 +334,32 @@ export class BattlePresentationMethods {
 
   createTurnTimeline() {
     this.timelineLayer = this.add.container(0, 0).setDepth(30);
-    const trackY = 500;
-    const preparationStart = timelineMarkerPosition(0.8, TIMELINE_START, TIMELINE_END);
+    const { start, end, trackY } = HUD_ART.timeline;
+    const preparationStart = timelineMarkerPosition(0.8, start, end);
     const chrome = this.add.graphics();
     const ticks = this.add.graphics();
-    const progressGlow = this.add.rectangle(TIMELINE_START, trackY, 1, 10, 0xf0c96a, 0.42).setOrigin(0, 0.5);
-    const speedSword = this.add.rectangle(0, 0, 1, 1, 0x000000, 0).setVisible(false);
-    const speedIcon = createUiIcon(this, "speed", 273, trackY - 31, { size: 14, tint: 0xd1a24d, depth: 31 });
-
-    const title = this.add.text(287, trackY - 31, "VELOCIDAD", {
-      fontFamily: '"Cinzel", Georgia, serif',
-      fontSize: "11px",
-      color: "#f1d78f",
-      fontStyle: "bold",
-      stroke: "#080504",
-      strokeThickness: 3,
-      shadow: { offsetX: 1, offsetY: 2, color: "#000000", blur: 4, stroke: true, fill: true }
-    }).setOrigin(0, 0.5);
-    const preparationLabel = this.add.text((preparationStart + TIMELINE_END) / 2, trackY - 31, "PREPARACIÓN", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
-      fontSize: "11px",
-      color: "#e8b958",
-      fontStyle: "bold",
-      stroke: "#080504",
-      strokeThickness: 3,
-      shadow: { offsetX: 1, offsetY: 2, color: "#000000", blur: 5, stroke: true, fill: true }
-    }).setOrigin(0.5);
-
-    this.playerMarkerHalo = this.add.circle(TIMELINE_START, trackY - 21, 15, 0x10222b, 0.96).setStrokeStyle(2, 0xd2a34f, 0.95);
-    this.enemyMarkerHalo = this.add.circle(TIMELINE_START, trackY + 21, 15, 0x251214, 0.96).setStrokeStyle(2, 0xa94532, 0.95);
-    this.playerTurnMarker = this.add.image(TIMELINE_START, trackY - 21, "player-man-cabeza")
-      .setDisplaySize(20, 30);
-    this.enemyTurnMarker = this.add.image(TIMELINE_START, trackY + 21, "player-man-cabeza")
-      .setDisplaySize(20, 30).setFlipX(true);
-
-    this.timelineLayer.add([
-      speedSword, chrome, progressGlow, ticks, speedIcon, title,
-      preparationLabel,
-      this.playerMarkerHalo, this.enemyMarkerHalo,
-      this.playerTurnMarker, this.enemyTurnMarker
-    ]);
-    this.timelineThemeParts = { chrome, ticks, progressGlow, sword: speedSword, speedIcon, title, preparationLabel, preparationStart, trackY };
+    const progressGlow = this.add.rectangle(start, trackY, 1, 6, HUD_ART.light, 0.3).setOrigin(0, 0.5);
+    const title = this.add.text(487, 463, "ORDEN DE TURNO", { fontFamily: HUD_ART.font, fontSize: "11px", fontStyle: "bold", color: HUD_ART.text }).setOrigin(0.5);
+    // Keep both phases explicit: this is the real 80–100 % preparation zone.
+    const preparationLabel = this.add.text((preparationStart + end) / 2, 477, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "7px", color: "#d4b77a" }).setOrigin(0.5);
+    this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
+    this.enemyMarkerHalo = this.add.circle(start, trackY, 16, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
+    this.playerTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(19, 29);
+    this.enemyTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(17, 26).setFlipX(true);
+    const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[this.playerAppearance()?.hair];
+    this.playerMarkerHair = hairKey && this.textures.exists(hairKey) ? this.add.image(start - 1, trackY - 12, hairKey).setDisplaySize(27, 23) : null;
+    const tag = (name) => {
+      const bg = this.add.rectangle(start, 518, 68, 15, HUD_ART.inkDeep, 1).setStrokeStyle(0.8, HUD_ART.gold, 1);
+      const text = this.add.text(start, 518, name.toUpperCase(), { fontFamily: HUD_ART.font, fontSize: "9px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0.5);
+      return { bg, text };
+    };
+    this.playerTimelineTag = tag(this.saveData.character.name);
+    this.enemyTimelineTag = tag(this.encounters[this.enemyIndex].name);
+    this.timelineLayer.add([chrome, progressGlow, ticks, preparationLabel, title,
+      this.playerMarkerHalo, this.enemyMarkerHalo, this.playerTurnMarker, this.enemyTurnMarker,
+      ...[this.playerMarkerHair].filter(Boolean),
+      this.playerTimelineTag.bg, this.playerTimelineTag.text, this.enemyTimelineTag.bg, this.enemyTimelineTag.text]);
+    this.timelineThemeParts = { chrome, ticks, progressGlow, title, preparationLabel, preparationStart, trackY };
     this.timelineProgress ||= { player: 0, enemy: 0 };
     this.pendingActions ||= { player: null, enemy: null };
     this.timelineRunToken = 0;
@@ -453,26 +372,41 @@ export class BattlePresentationMethods {
     this.applyBattleInterfaceTheme(this.hudTheme);
   }
 
-  createPauseButton() {
-    const bg = this.add.circle(480, 24, 14, 0x020914, 0.72)
-      .setStrokeStyle(1, 0x53cfff, 0.34)
-      .setDepth(25)
-      .setInteractive({ useHandCursor: true });
-    const label = createUiIcon(this, "pause", 480, 24, { size: 13, tint: 0x9fdfff, depth: 26 });
+  refreshBattlePhase() {
+    if (!this.phaseLabel) return;
+    const name = this.saveData.character.name.toUpperCase();
+    const enemy = this.encounters[this.enemyIndex].name.toUpperCase();
+    const actor = this.pendingActions?.player ? name : enemy;
+    const text = this.finished ? "COMBATE FINALIZADO"
+      : this.scene.isPaused() ? "COMBATE EN PAUSA"
+      : this.turnReady ? `TURNO DE ${name}`
+      : this.busy ? "EN COMBATE"
+      : this.pendingActions?.player || this.pendingActions?.enemy ? `PREPARA ${actor}` : "INICIATIVA";
+    if (this.phaseLabel.text !== text) this.phaseLabel.setText(text).setFontSize(Math.min(14, 175 / Math.max(text.length, 1) * 1.6));
+    this.accessibleHud?.refresh();
+  }
 
-    bg.on("pointerover", () => {
-      bg.setFillStyle(0x2b9bd0, 0.34);
-    });
-    bg.on("pointerout", () => {
-      bg.setFillStyle(0x020914, 0.72);
-    });
-    const openPause = () => {
+  createPauseButton() {
+    const bg = this.add.circle(480, 67, 18, HUD_ART.ink, 0.96).setStrokeStyle(1.2, HUD_ART.light, 1)
+      .setDepth(25).setInteractive({ useHandCursor: true });
+    const label = createUiIcon(this, "pause", 480, 67, { size: 19, tint: 0x9fdfff, depth: 26 });
+    bg.on("pointerover", () => bg.setFillStyle(0x23415b, 1));
+    bg.on("pointerout", () => bg.setFillStyle(HUD_ART.ink, 0.96));
+    bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));
+    this.openBattlePause = () => {
       if (this.finished || this.scene.isPaused()) return;
       this.scene.launch("pause");
       this.scene.pause();
+      this.refreshBattlePhase();
     };
-    bg.on("pointerup", openPause);
-    this.input.keyboard.on("keydown-ESC", openPause);
+    bg.on("pointerup", this.openBattlePause);
+    this.input.keyboard.on("keydown-ESC", this.openBattlePause);
+    const onResume = () => this.refreshBattlePhase();
+    this.events.on(Phaser.Scenes.Events.RESUME, onResume);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.events.off(Phaser.Scenes.Events.RESUME, onResume);
+      this.input.keyboard.off("keydown-ESC", this.openBattlePause);
+    });
     this.pauseButton = { bg, label };
   }
 
@@ -486,6 +420,7 @@ export class BattlePresentationMethods {
   }
 
   async resetTurnTimeline() {
+    const previousProgress = { ...this.timelineProgress };
     this.stopTurnTimeline();
     this.clearPreparationFeedback("player");
     this.clearPreparationFeedback("enemy");
@@ -496,11 +431,16 @@ export class BattlePresentationMethods {
     this.pendingActions = { player: null, enemy: null };
     this.setTimelineMarkerState("player", "charging");
     this.setTimelineMarkerState("enemy", "charging");
+    const resetClock = { value: 0 };
     await new Promise((resolve) => this.tweens.add({
-      targets: [this.playerTurnMarker, this.enemyTurnMarker, this.playerMarkerHalo, this.enemyMarkerHalo],
-      x: TIMELINE_START,
+      targets: resetClock,
+      value: 1,
       duration: 330,
       ease: "Cubic.inOut",
+      onUpdate: () => this.updateTimelineMarkers({
+        player: previousProgress.player * (1 - resetClock.value),
+        enemy: previousProgress.enemy * (1 - resetClock.value)
+      }),
       onComplete: resolve
     }));
   }
@@ -515,29 +455,36 @@ export class BattlePresentationMethods {
 
   updateTimelineMarkers(progress = this.timelineProgress) {
     if (!progress || !this.playerTurnMarker || !this.enemyTurnMarker) return;
-    const playerX = timelineMarkerPosition(progress.player, TIMELINE_START, TIMELINE_END);
-    const enemyX = timelineMarkerPosition(progress.enemy, TIMELINE_START, TIMELINE_END);
-    this.playerTurnMarker.setX(playerX);
-    this.enemyTurnMarker.setX(enemyX);
-    this.playerMarkerHalo?.setX(playerX);
-    this.enemyMarkerHalo?.setX(enemyX);
-    if (this.timelineThemeParts?.progressGlow) {
-      this.timelineThemeParts.progressGlow.width = Math.max(1, playerX - TIMELINE_START);
-      this.timelineThemeParts.progressGlow.setAlpha(0.26 + progress.player * 0.52);
+    const { start, end, trackY } = HUD_ART.timeline;
+    const playerX = timelineMarkerPosition(progress.player, start, end);
+    const enemyX = timelineMarkerPosition(progress.enemy, start, end);
+    const overlap = Math.abs(playerX - enemyX) < 42;
+    const playerY = overlap ? trackY - 11 : trackY;
+    const enemyY = overlap ? trackY + 10 : trackY;
+    this.playerTurnMarker.setPosition(playerX, playerY);
+    this.enemyTurnMarker.setPosition(enemyX, enemyY);
+    this.playerMarkerHalo?.setPosition(playerX, playerY);
+    this.enemyMarkerHalo?.setPosition(enemyX, enemyY);
+    this.playerMarkerHair?.setPosition(playerX - 1, playerY - 12);
+    const labelOverlap = Math.abs(playerX - enemyX) < 73;
+    const playerTagX = labelOverlap ? Math.min(playerX, enemyX) - 34 : playerX;
+    const enemyTagX = labelOverlap ? Math.max(playerX, enemyX) + 34 : enemyX;
+    for (const [tag, x] of [[this.playerTimelineTag, playerTagX], [this.enemyTimelineTag, enemyTagX]]) {
+      tag?.bg.setX(x); tag?.text.setX(x);
     }
+    if (this.timelineThemeParts?.progressGlow) {
+      this.timelineThemeParts.progressGlow.width = Math.max(0, playerX - start);
+    }
+    this.accessibleHud?.updateProgress(progress);
   }
 
   setTimelineMarkerState(actor, state, action = null) {
     const marker = actor === "player" ? this.playerTurnMarker : this.enemyTurnMarker;
     if (!marker) return;
     const halo = actor === "player" ? this.playerMarkerHalo : this.enemyMarkerHalo;
-    const size = state === "ready" ? 24 : state === "preparing" ? 22 : 20;
-    marker.clearTint()
-      .setDisplaySize(size, size * 1.5)
-      .setAlpha(state === "charging" ? 0.86 : 1)
-      .setAngle(0);
-    halo?.setScale(state === "ready" ? 1.14 : state === "preparing" ? 1.07 : 1)
-      .setAlpha(state === "charging" ? 0.86 : 1);
+    marker.clearTint().setAlpha(state === "charging" ? 0.92 : 1).setAngle(0);
+    halo?.setStrokeStyle(state === "ready" ? 2.5 : 1.4, state === "ready" ? 0xffe6a0 : HUD_ART.gold, 1);
+    this.refreshBattlePhase();
   }
 
   playTimelineReadyBrush(actor) {
@@ -810,6 +757,7 @@ export class BattlePresentationMethods {
   }
 
   createActionPanel() {
+    const firstActionChild = this.children.list.length;
     this.buttons = [];
     this.actionSlots = [];
     const interfaceSkin = BATTLE_INTERFACE_SKINS[this.hudTheme] || BATTLE_INTERFACE_SKINS.ancestral;
@@ -826,6 +774,13 @@ export class BattlePresentationMethods {
       }
       entry.tooltip.layer.setVisible(false);
       entry.hoverRing.setVisible(Boolean(entry.selected));
+    };
+    this.selectHudAction = (index) => {
+      this.buttons.forEach((entry) => {
+        entry.selected = entry === this.actionSlots[index];
+        entry.hoverRing.setVisible(entry.selected);
+      });
+      this.accessibleHud?.refresh();
     };
 
     for (let index = 0; index < 6; index += 1) {
@@ -846,10 +801,7 @@ export class BattlePresentationMethods {
       });
       hit.on("pointerout", () => hideTooltip(button));
       hit.on("pointerdown", () => {
-        this.buttons.forEach((entry) => {
-          entry.selected = entry === button;
-          entry.hoverRing.setVisible(entry.selected);
-        });
+        this.selectHudAction(index);
         if (button.available) this.useJutsu(jutsu);
       });
       this.buttons.push(button);
@@ -860,10 +812,12 @@ export class BattlePresentationMethods {
       this.buttons[0].hoverRing.setVisible(true).setAlpha(0.5);
     }
 
+    this.actionCanvasParts = this.children.list.slice(firstActionChild).filter(part => part.depth < 58);
     this.onActionShortcut = (event) => {
       const index = Number(event.key) - 1;
       if (index < 0 || index >= this.actions.length) return;
       const jutsu = this.actions[index];
+      if (this.actionSlots[index]?.available) this.selectHudAction(index);
       if (jutsu) this.useJutsu(jutsu);
     };
     this.input.keyboard.on("keydown", this.onActionShortcut);

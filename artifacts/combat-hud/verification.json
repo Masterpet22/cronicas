@@ -1,0 +1,19 @@
+{
+  "checks": [
+    "1920×1080, 1600×900, 1366×768, 390×844 y 844×390: seis controles accesibles, sin overflow",
+    "Foco, tooltip y ranura bloqueada con ratón y atajo",
+    "Vida máxima, parcial, cero y recuperación en ambos paneles",
+    "Chakra insuficiente: ni clic ni atajo ejecutan la técnica",
+    "Estado con duración y desaparición en su fila, separado de las estadísticas",
+    "Técnica por teclado: consumo real, preparación, pausa con progreso detenido y reanudación",
+    "Enfriamiento visible y sincronizado después de ejecutar",
+    "Daño a través de loseHealth actualiza vida, número e indicador del protagonista",
+    "Guardia conserva la sexta posición y responde al ratón",
+    "Marcadores con nombres y separación cuando coinciden",
+    "Menú de pausa compacto con ajustes existentes y reanudación táctil",
+    "Reinicio de iniciativa mantiene retratos, pelo y etiquetas sincronizados",
+    "Acceso desde un teléfono nuevo carga el juego con controles compactos"
+  ],
+  "receivedDamage": true,
+  "errors": []
+}

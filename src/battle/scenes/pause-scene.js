@@ -1,4 +1,5 @@
 import { HEIGHT, HUD_THEMES, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=0.86.0";
 
 export class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
@@ -54,6 +55,7 @@ export class PauseScene extends Phaser.Scene {
       this.scene.stop();
     });
     sharpenTextTree(this.children.list);
+    mountAccessiblePause(this);
   }
 
   makePauseToggle(x, y, label, inputId) {
