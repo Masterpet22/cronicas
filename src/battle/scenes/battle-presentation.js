@@ -1,9 +1,10 @@
-import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.86.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.87.0";
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.87.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.86.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.87.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -147,15 +148,15 @@ export class BattlePresentationMethods {
     this.paintHudLacquerChrome({ playerHealthX, playerChakraX, enemyHealthX, enemyChakraX, healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth });
     const nameStyle = { fontFamily: HUD_ART.font, fontSize: "17px", color: HUD_ART.text, fontStyle: "bold", stroke: "#02050a", strokeThickness: 2 };
     this.playerName = this.add.text(116, 16, this.saveData.character.name.toUpperCase(), nameStyle).setDepth(21);
-    this.enemyName = this.add.text(867, 16, this.encounters[this.enemyIndex].name.toUpperCase(), nameStyle).setOrigin(1, 0).setDepth(21);
+    this.enemyName = this.add.text(861, 16, this.encounters[this.enemyIndex].name.toUpperCase(), nameStyle).setOrigin(1, 0).setDepth(21);
     this.playerHpBar = createBar(this, playerHealthX, healthFrameY, healthBarWidth, 14, HUD_ART.health, { ghostColor: 0xf1d57a });
     this.chakraBar = createBar(this, playerChakraX, chakraFrameY, chakraBarWidth, 14, HUD_ART.chakra);
     this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY, healthBarWidth, 14, HUD_ART.health, { direction: "rtl", ghostColor: 0xf1d57a });
     this.enemyChakraBar = createBar(this, enemyChakraX, chakraFrameY, chakraBarWidth, 14, HUD_ART.chakra, { direction: "rtl" });
     this.hudBarCenters = { healthFrameY, chakraFrameY };
     for (const iconX of [111, 620]) {
-      createUiIcon(this, "health", iconX, healthFrameY, { size: 17, tint: 0xff474b, depth: 25 });
-      createUiIcon(this, "chakra", iconX, chakraFrameY, { size: 17, tint: 0x29baff, depth: 25 });
+      drawResourceEmblem(this, "health", iconX, healthFrameY);
+      drawResourceEmblem(this, "chakra", iconX, chakraFrameY);
       for (const [label, y] of [["PV", healthFrameY], ["CH", chakraFrameY]]) {
         this.add.text(iconX + 13, y, label, { fontFamily: HUD_ART.font, fontSize: "11px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0, 0.5).setDepth(25);
       }
@@ -173,11 +174,18 @@ export class BattlePresentationMethods {
     [this.playerHpBar, this.chakraBar, this.enemyHpBar, this.enemyChakraBar].forEach((bar) => {
       bar.bg.setDepth(21); bar.slot.setDepth(21);
       bar.ghost?.setDepth(22); bar.fill.setDepth(22);
-      bar.shade.setDepth(23); bar.sheen.setDepth(23); bar.edge.setDepth(24);
+      bar.shade.setDepth(23).setAlpha(0);
+      bar.sheen.setDepth(23).setAlpha(0);
+      const blue = bar === this.chakraBar || bar === this.enemyChakraBar;
+      bar.lustre = this.add.graphics().setPosition(bar.x, bar.bg.y).setDepth(23).setMask(bar.slotMask);
+      bar.lustre.fillGradientStyle(0xeafff5, 0xeafff5, blue ? 0x001b39 : 0x00240e, blue ? 0x001b39 : 0x00240e, .24, .24, .38, .38)
+        .fillRect(0, -bar.height / 2, bar.width, bar.height);
+      bar.edge.setDepth(24);
+      bar.edge.lineStyle(.6, 0xe7fbd4, .55).lineBetween(8, -5, bar.width - 8, -5);
       bar.valueText.setOrigin(1, 0.5).setX(bar.x + bar.width - 6).setFontSize(12).setDepth(25);
     });
     const phaseChrome = this.add.graphics().setDepth(24);
-    drawOrnatePanel(phaseChrome, 380, 17, 200, 28, { fill: HUD_ART.wine, radius: 14 });
+    drawCloudPlate(phaseChrome, 380, 17, 200, 28);
     this.phaseLabel = this.add.text(480, 31, "INICIATIVA", {
       fontFamily: HUD_ART.font, fontSize: "14px", fontStyle: "bold", color: HUD_ART.text, stroke: "#170607", strokeThickness: 2
     }).setOrigin(0.5).setDepth(25);
@@ -189,8 +197,8 @@ export class BattlePresentationMethods {
   paintHudLacquerChrome({ playerHealthX, playerChakraX, enemyHealthX, enemyChakraX, healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth }) {
     const g = this.hudLacquerChrome;
     g.clear();
-    drawOrnatePanel(g, 23, 12, 341, 94, { radius: 18 });
-    drawOrnatePanel(g, 596, 12, 341, 94, { radius: 18 });
+    drawStatusPanel(g, 23, 12, 341, 94);
+    drawStatusPanel(g, 596, 12, 341, 94, true);
     for (const [x, y, width] of [[playerHealthX, healthFrameY, healthBarWidth], [enemyHealthX, healthFrameY, healthBarWidth], [playerChakraX, chakraFrameY, chakraBarWidth], [enemyChakraX, chakraFrameY, chakraBarWidth]]) {
       g.fillStyle(0x02070d, 1).fillRoundedRect(x - 3, y - 10, width + 6, 20, 10);
       g.lineStyle(1.2, HUD_ART.gold, 1).strokeRoundedRect(x - 2, y - 9, width + 4, 18, 9);
@@ -199,8 +207,10 @@ export class BattlePresentationMethods {
   }
 
   createLevelBadge(x, y, label) {
-    const plate = this.add.rectangle(x, y, 39, 18, 0x7b201b, 0.98)
-      .setStrokeStyle(1, 0xd0a04f, 0.9).setDepth(25);
+    const plate = this.add.graphics().setPosition(x - 19.5, y - 8.5).setDepth(25);
+    plate.fillStyle(0x58151d, 1).fillRoundedRect(0, 0, 39, 17, 3);
+    plate.lineStyle(.9, 0xd7a857, 1).strokeRoundedRect(0, 0, 39, 17, 3);
+    plate.lineStyle(.5, 0xffdaa1, .3).lineBetween(4, 2, 35, 2);
     const text = this.add.text(x, y, label, {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "9px", color: "#f6d986", fontStyle: "bold", stroke: "#1a0907", strokeThickness: 2
     }).setOrigin(0.5).setDepth(26);
@@ -219,6 +229,8 @@ export class BattlePresentationMethods {
       ? this.add.image(x + (flipped ? 1 : -1), y - 17, hairKey).setDisplaySize(55, appearance?.hair === 4 ? 50 : 43).setFlipX(flipped).setMask(mask).setDepth(26)
       : null;
     const frame = this.add.graphics().setDepth(27);
+    const side = flipped ? 1 : -1;
+    chromePath(frame, [['M', 0, 8], ['L', 10, -3], ['L', 7, 7], ['L', 16, 12], ['L', 5, 10], ['Z']], { x: x + side * 31, y: y - 31, sx: side, fill: 0x8e3420, width: .9 });
     frame.lineStyle(5, 0x6f1d18, 1).strokeCircle(x, y, 34);
     frame.lineStyle(1.5, HUD_ART.gold, 1).strokeCircle(x, y, 36);
     frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
@@ -239,7 +251,7 @@ export class BattlePresentationMethods {
   createStatusRow(anchorX, y, direction) {
     return Array.from({ length: 5 }, (_, index) => {
       const x = anchorX + (direction === "rtl" ? -index : index) * 24;
-      const bg = this.add.circle(x, y, 7, 0x07101a, 0.88).setStrokeStyle(1, 0x9b6e38, 0.62).setDepth(24);
+      const bg = this.add.circle(x, y, 7, 0x07101a, 0.88).setStrokeStyle(1, 0xc79a52, 0.85).setDepth(24);
       const glyph = this.add.text(x, y, "·", {
         fontFamily: '"Yu Mincho", "Alegreya Sans", sans-serif', fontSize: "8px", color: "#6f7a7e", fontStyle: "bold"
       }).setOrigin(0.5).setDepth(25);
@@ -295,6 +307,7 @@ export class BattlePresentationMethods {
     bar.fill.setY(y);
     if (bar.shade) bar.shade.setY(y + bar.height / 3);
     if (bar.sheen) bar.sheen.setY(y - bar.height / 4);
+    bar.lustre?.setY(y);
     if (bar.edge) bar.edge.setY(y);
     bar.valueText.setY(y);
     if (bar.centerIcon) bar.centerIcon.setY(y);
@@ -308,20 +321,20 @@ export class BattlePresentationMethods {
       const { chrome, ticks, preparationStart, trackY } = this.timelineThemeParts;
       const { x, y, width, height, start, end } = HUD_ART.timeline;
       chrome.clear();
-      drawOrnatePanel(chrome, x, y, width, height, { radius: 22 });
-      chrome.lineStyle(1.5, HUD_ART.gold, 1).strokeTriangle(x - 9, trackY, x + 10, trackY - 17, x + 10, trackY + 17);
-      chrome.strokeTriangle(x + width + 9, trackY, x + width - 10, trackY - 17, x + width - 10, trackY + 17);
+      drawInitiativeFrame(chrome, x - 8, y, width + 16, height);
       chrome.fillStyle(HUD_ART.wine, 1).fillRoundedRect(start - 1, trackY - 6, end - start + 2, 12, 6);
       chrome.fillStyle(0x9b322d, 0.7).fillRoundedRect(preparationStart, trackY - 4, end - preparationStart - 8, 8, 3);
       chrome.lineStyle(1.8, HUD_ART.gold, 1).strokeRoundedRect(start - 1, trackY - 6, end - start + 2, 12, 6);
       chrome.lineStyle(0.8, HUD_ART.light, 0.6).lineBetween(start + 5, trackY - 4, end - 5, trackY - 4);
-      chrome.fillStyle(HUD_ART.gold, 1).fillTriangle(end - 16, trackY - 11, end + 5, trackY, end - 16, trackY + 11);
+      drawTimelineTail(chrome, start - 13, trackY);
+      chromePath(chrome, [['M', -16, -11], ['L', 5, 0], ['L', -16, 11], ['L', -12, 0], ['Z']], { x: end, y: trackY, fill: HUD_ART.gold, stroke: 0xf4ce7e, width: .7 });
       chrome.lineStyle(1, HUD_ART.light, 0.8).lineBetween(preparationStart, trackY - 9, preparationStart, trackY + 9);
-      drawOrnatePanel(chrome, 401, 453, 173, 19, { radius: 9 });
+      drawCloudPlate(chrome, 401, 453, 173, 19, HUD_ART.inkDeep);
       ticks.clear();
       timelineMilestones(start, end).filter((tick) => tick < preparationStart).forEach((tick) => {
-        ticks.fillStyle(HUD_ART.light, 1).fillCircle(tick, trackY, 4);
-        ticks.lineStyle(1, 0x50251a, 1).strokeCircle(tick, trackY, 4);
+        ticks.fillStyle(HUD_ART.gold, 1).fillTriangle(tick, trackY - 9, tick - 2, trackY - 5, tick + 2, trackY - 5);
+        ticks.fillStyle(HUD_ART.light, 1).fillCircle(tick, trackY, 4.5);
+        ticks.lineStyle(1.2, 0x35140d, 1).strokeCircle(tick, trackY, 4.5);
       });
     }
     paintActionBackdrop(this.actionBackdropThemeParts, skin);
@@ -343,13 +356,24 @@ export class BattlePresentationMethods {
     // Keep both phases explicit: this is the real 80–100 % preparation zone.
     const preparationLabel = this.add.text((preparationStart + end) / 2, 477, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "7px", color: "#d4b77a" }).setOrigin(0.5);
     this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
-    this.enemyMarkerHalo = this.add.circle(start, trackY, 16, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
-    this.playerTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(19, 29);
-    this.enemyTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(17, 26).setFlipX(false);
+    this.enemyMarkerHalo = this.add.circle(start, trackY, 17, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
+    this.playerTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(22, 34);
+    this.enemyTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(21, 32).setFlipX(false);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[this.playerAppearance()?.hair];
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey) ? this.add.image(start - 1, trackY - 12, hairKey).setDisplaySize(27, 23) : null;
+    this.timelinePortraitMasks = [18, 15.5].map(radius => {
+      const shape = this.make.graphics({ add: false });
+      shape.fillStyle(0xffffff).fillCircle(0, 0, radius);
+      return shape;
+    });
+    const playerClip = this.timelinePortraitMasks[0].createGeometryMask();
+    this.playerTurnMarker.setMask(playerClip);
+    this.playerMarkerHair?.setMask(playerClip);
+    this.enemyTurnMarker.setMask(this.timelinePortraitMasks[1].createGeometryMask());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.timelinePortraitMasks.forEach(mask => mask.destroy()));
     const tag = (name) => {
-      const bg = this.add.rectangle(start, 518, 68, 15, HUD_ART.inkDeep, 1).setStrokeStyle(0.8, HUD_ART.gold, 1);
+      const bg = this.add.graphics().setPosition(start, 518);
+      drawBeveledTag(bg);
       const text = this.add.text(start, 518, name.toUpperCase(), { fontFamily: HUD_ART.font, fontSize: "9px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0.5);
       return { bg, text };
     };
@@ -387,9 +411,10 @@ export class BattlePresentationMethods {
   }
 
   createPauseButton() {
-    const bg = this.add.circle(480, 67, 18, HUD_ART.ink, 0.96).setStrokeStyle(1.2, HUD_ART.light, 1)
+    const bg = this.add.circle(480, 67, 18, HUD_ART.ink, 0.96).setStrokeStyle(1.1, 0x8adeee, 1)
       .setDepth(25).setInteractive({ useHandCursor: true });
-    const label = createUiIcon(this, "pause", 480, 67, { size: 19, tint: 0x9fdfff, depth: 26 });
+    const label = this.add.graphics().setDepth(26);
+    label.fillStyle(0x99dff8, 1).fillRect(475.5, 61, 3, 13).fillRect(481.5, 61, 3, 13);
     bg.on("pointerover", () => bg.setFillStyle(0x23415b, 1));
     bg.on("pointerout", () => bg.setFillStyle(HUD_ART.ink, 0.96));
     bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));
@@ -466,6 +491,8 @@ export class BattlePresentationMethods {
     this.playerMarkerHalo?.setPosition(playerX, playerY);
     this.enemyMarkerHalo?.setPosition(enemyX, enemyY);
     this.playerMarkerHair?.setPosition(playerX - 1, playerY - 12);
+    this.timelinePortraitMasks?.[0].setPosition(playerX, playerY);
+    this.timelinePortraitMasks?.[1].setPosition(enemyX, enemyY);
     const labelOverlap = Math.abs(playerX - enemyX) < 73;
     const playerTagX = labelOverlap ? Math.min(playerX, enemyX) - 34 : playerX;
     const enemyTagX = labelOverlap ? Math.max(playerX, enemyX) + 34 : enemyX;

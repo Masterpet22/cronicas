@@ -1,4 +1,5 @@
-import { emptySkillInfo } from './hud-art.js?v=0.86.0';
+import { skillFrameSvg } from "./hud-chrome.js?v=0.87.0";
+import { emptySkillInfo } from './hud-art.js?v=0.87.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -51,7 +52,7 @@ export function mountAccessibleBattleHud(scene) {
   actions.className = 'combat-access-actions';
   // Native CSS perspective transforms artwork, type and hit targets together.
   // Keep tooltips in the untransformed overlay so their text remains readable.
-  actions.innerHTML = `<svg class="combat-skill-ornaments" viewBox="0 0 180 408" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 24V13Q3 3 15 3H28M152 3H165Q177 3 177 16V28M3 380V395Q3 405 17 405H28M152 405H165Q177 405 177 393V380"/><path d="M5 19q17 1 11-11q-10-7-9 4q5 5 9-3M175 19q-17 1-11-11q10-7 9 4q-5 5-9-3M5 389q17-1 11 11q-10 7-9-4q5-5 9 3M175 389q-17-1-11 11q10 7 9-4q-5-5-9 3"/></g></svg>`;
+  actions.innerHTML = skillFrameSvg();
   const controls = scene.actionSlots.map((slot, index) => {
     const button = document.createElement('button');
     button.type = 'button';
@@ -66,6 +67,8 @@ export function mountAccessibleBattleHud(scene) {
     shortcut.textContent = index + 1;
     const art = document.createElement('span');
     art.className = 'combat-skill-art';
+    const availability = document.createElement('span');
+    availability.className = 'combat-skill-availability';
     const action = scene.actions[index];
     const source = action?.iconTexture && scene.textures.get(action.iconTexture)?.getSourceImage();
     if (source) {
@@ -77,7 +80,27 @@ export function mountAccessibleBattleHud(scene) {
       const height = source.naturalHeight || source.height;
       const scale = Math.min(icon.width / width, icon.height / height);
       const context = icon.getContext('2d');
-      context.drawImage(source, (192 - width * scale) / 2, (192 - height * scale) / 2, width * scale, height * scale);
+      const offsetX = (192 - width * scale) / 2, offsetY = (192 - height * scale) / 2;
+      context.drawImage(source, offsetX, offsetY, width * scale, height * scale);
+      // Remove only transparent padding so differently exported icons have the
+      // same visual weight. Preserve their proportions and original artwork.
+      const alpha = context.getImageData(0, 0, 192, 192).data;
+      let left = 192, top = 192, right = -1, bottom = -1;
+      for (let row = 0; row < 192; row += 1) {
+        for (let col = 0; col < 192; col += 1) {
+          if (alpha[(row * 192 + col) * 4 + 3] > 8) {
+            left = Math.min(left, col); right = Math.max(right, col);
+            top = Math.min(top, row); bottom = Math.max(bottom, row);
+          }
+        }
+      }
+      if (right >= left && bottom >= top) {
+        const cropWidth = (right - left + 1) / scale, cropHeight = (bottom - top + 1) / scale;
+        const fit = Math.min(184 / cropWidth, 184 / cropHeight);
+        context.clearRect(0, 0, 192, 192);
+        context.drawImage(source, Math.max(0, (left - offsetX) / scale), Math.max(0, (top - offsetY) / scale), cropWidth, cropHeight,
+          (192 - cropWidth * fit) / 2, (192 - cropHeight * fit) / 2, cropWidth * fit, cropHeight * fit);
+      }
       const tint = action.id === 'strike' ? [0xd1, 0xa2, 0x5b] : action.type === 'guard' ? [0xa6, 0x41, 0x2d] : null;
       if (tint) {
         const pixels = context.getImageData(0, 0, 192, 192);
@@ -100,6 +123,7 @@ export function mountAccessibleBattleHud(scene) {
       glyph.textContent = mark;
       art.append(glyph);
     }
+    art.append(availability);
     art.setAttribute('aria-hidden', 'true');
     shortcut.setAttribute('aria-hidden', 'true');
     const info = document.createElement('span');
@@ -124,7 +148,7 @@ export function mountAccessibleBattleHud(scene) {
       if (slot.available) slot.hit.emit('pointerdown');
     });
     actions.append(button);
-    return { button, name, cost, slot, index };
+    return { button, name, cost, availability, slot, index };
   });
   const progress = document.createElement('div');
   progress.className = 'combat-access-progress';
@@ -162,14 +186,16 @@ export function mountAccessibleBattleHud(scene) {
     }
     put(phaseText, scene.phaseLabel.text);
     put(message, scene.lastBattleMessage?.text || '');
-    controls.forEach(({ button, name, cost, slot, index }) => {
+    controls.forEach(({ button, name, cost, availability, slot, index }) => {
       const action = scene.actions[index];
       const empty = action ? null : emptySkillInfo(scene, index);
       const cooldown = action ? scene.cooldowns[action.id] || 0 : 0;
       const affordable = action && scene.player.chakra >= scene.actionCost(action);
       const requirement = action ? `${scene.actionCost(action)} CH${cooldown ? ` · CD ${cooldown}` : !affordable ? ' · Sin chakra' : ''}` : empty.requirement;
       put(name, action?.name || empty.name);
-      put(cost, requirement);
+      put(cost, root.classList.contains('compact') ? requirement : action ? `${scene.actionCost(action)} CH` : empty.requirement);
+      put(availability, action ? cooldown ? `CD ${cooldown}` : !affordable ? 'SIN CH' : '' : '');
+      button.dataset.resourceState = action && !affordable ? 'insufficient' : cooldown ? 'cooldown' : 'normal';
       button.setAttribute('aria-label', `${index + 1}. ${name.textContent}, ${requirement}`);
       button.setAttribute('aria-disabled', String(!slot.available));
       button.setAttribute('aria-pressed', String(Boolean(slot.selected)));
@@ -191,6 +217,7 @@ export function mountAccessibleBattleHud(scene) {
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
     if (query.matches) scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
     if (query.matches) [...scene.playerStatusSlots, ...scene.enemyStatusSlots].forEach(slot => slot.detail.setVisible(false));
+    refresh();
   };
   query.addEventListener('change', layout);
   const remove = () => {

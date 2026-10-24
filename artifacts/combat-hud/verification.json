@@ -1,6 +1,7 @@
 {
   "checks": [
     "Retratos orientados hacia el avance y panel completo con perspectiva 3D",
+    "Iconos encuadrados en sus aros y placas de coste sin desbordamiento",
     "1920×1080, 1600×900, 1366×768, 390×844 y 844×390: seis controles accesibles, sin overflow",
     "Foco, tooltip y ranura bloqueada con ratón y atajo",
     "Vida máxima, parcial, cero y recuperación en ambos paneles",

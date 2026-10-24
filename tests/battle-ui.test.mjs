@@ -91,8 +91,8 @@ assert.match(ui, /setDisplaySize\(47, 47/, "Los iconos deben ocupar cerca del oc
 assert.equal(packageJson.dependencies["lucide-static"], "1.55.0", "Lucide debe permanecer fijado a una versión reproducible");
 assert.match(icons, /export function loadUiIcons/, "La integración debe exponer un cargador reutilizable de iconos");
 assert.match(icons, /export function createUiIcon/, "La integración debe exponer un constructor reutilizable para Phaser");
-assert.match(battle, /createUiIcon\(this, "health"/, "La vida debe identificarse con un icono");
-assert.match(battle, /createUiIcon\(this, "chakra"/, "El chakra debe identificarse con un icono");
+assert.match(battle, /drawResourceEmblem\(this, "health"/, "La vida debe identificarse con un icono");
+assert.match(battle, /drawResourceEmblem\(this, "chakra"/, "El chakra debe identificarse con un icono");
 assert.match(battle, /PREPARACIÓN/, "Velocidad debe usar el icono de Lucide");
 assert.match(battle, /const BATTLE_INTERFACE_SKINS = Object\.freeze\([\s\S]*ancestral:[\s\S]*lunar:/, "La línea temporal y las habilidades deben compartir variantes ancestral y lunar");
 assert.match(battle, /actionSlotFile: "assets\/ui\/hud-themes\/ancestral-action-slot\.png[\s\S]*speedSwordFile: "assets\/ui\/hud-themes\/ancestral-speed-sword\.png/, "La interfaz ancestral debe usar adornos ilustrados propios");
@@ -181,7 +181,7 @@ assert.match(battle, /loseHealth\(this\.enemy, this\.foe/, "El rival debe reacci
 assert.match(battle, /loseHealth\(target, fighter/, "Toda pérdida de vida debe pasar por una operación centralizada");
 assert.equal((battle.match(/\.hp = Math\.max\(0/g) || []).length, 1, "No debe haber reducciones de vida fuera de loseHealth");
 assert.match(battle, /createUiIcon\(this, "healthLoss"/, "La pérdida de vida debe mostrar una gota roja junto al número");
-assert.match(battle, /ratio <= 0\.25 \? 0xe06b52 : 0x31d779/, "La barra de vida debe conservar el jade y apagarse solamente en estado crítico");
+assert.match(battle, /ratio <= 0\.25 \? 0xe06b52 : 0x06d45a/, "La barra de vida debe conservar el jade y apagarse solamente en estado crítico");
 assert.match(battle, /\[\.\.\.this\.foe\.targets, this\.foe\.shadow\]/, "La sombra enemiga debe desvanecerse junto con el cuerpo");
 assert.match(battle, /this\.foe = createPlayerFighter\(this, 740, fighterY, this\.enemyAppearance\(\), true\)/, "El rival debe usar su apariencia registrada y mirar hacia el jugador");
 assert.match(battle, /battle-mist-marsh-water\.png/, "La marisma debe usar el fondo sin plataforma de piedra");
@@ -205,7 +205,7 @@ assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo num
 assert.match(ui, /const ACTION_POSITIONS = Array\.from\([\s\S]*HUD_ART.skills.rowHeight/, "Las acciones deben formar una columna vertical alineada");
 assert.match(battle, /HUD_ART.skills[\s\S]*drawOrnatePanel\(parts.surface/, "La columna de habilidades debe descansar sobre un fondo vertical compacto");
 assert.match(battle, /haze\.postFX\?\.addBlur\?\./, "El fondo de habilidades debe suavizarse con un blur discreto cuando WebGL lo permita");
-assert.match(battle, /drawOrnatePanel\(g, 23, 12, 341, 94/, "El fondo debe combinar laca roja e índigo translúcido");
+assert.match(battle, /drawStatusPanel\(g, 23, 12, 341, 94/, "El fondo debe combinar laca roja e índigo translúcido");
 assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repetir nombres que ya aparecen en el tooltip");
 assert.doesNotMatch(battle, /abilityArc|actionArc|actionThemeParts|drawCubicBezier\(rail/, "La columna de habilidades no debe conservar arcos ni guías vectoriales");
 assert.match(ui, /x \+ width \/ 2/, "Los valores de vida y chakra deben quedar en el centro horizontal de la barra");

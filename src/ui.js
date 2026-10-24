@@ -1,4 +1,4 @@
-import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.86.0";
+import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.87.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";
 
 export function createBar(scene, x, y, width, height, color, {

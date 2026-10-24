@@ -3,7 +3,7 @@ import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.86.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.87.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -204,6 +204,7 @@ export class BattleFeedbackMethods {
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
     this.setBarRatio(this.enemyChakraBar, this.enemy.maxChakra > 0 ? this.enemy.chakra / this.enemy.maxChakra : 0);
     this.enemyChakraBar.valueText.setText(`${this.enemy.chakra}/${this.enemy.maxChakra}`);
+    this.enemyName.setText(this.encounters[this.enemyIndex].name.toUpperCase());
     this.enemyTimelineTag?.text.setText(this.encounters[this.enemyIndex].name.toUpperCase());
     this.playerRankNumber.setText(`NV ${this.saveData.progression.level}`);
     for (const name of [this.playerName, this.enemyName]) {
@@ -236,7 +237,7 @@ export class BattleFeedbackMethods {
       }
     }
     this.setBarRatio(bar, ratio);
-    bar.fill.setFillStyle(ratio <= 0.25 ? 0xe06b52 : 0x31d779, 1);
+    bar.fill.setFillStyle(ratio <= 0.25 ? 0xe06b52 : 0x06d45a, 1);
     bar.currentRatio = ratio;
   }
 
@@ -264,6 +265,7 @@ export class BattleFeedbackMethods {
     const fillX = bar.direction === "rtl" ? bar.x + bar.width - fillWidth : bar.x;
     bar.fill.width = fillWidth;
     bar.fill.setX(fillX);
+    bar.lustre?.setX(fillX).setScale(bar.width > 0 ? fillWidth / bar.width : 0, 1);
     if (bar.shade) {
       bar.shade.width = fillWidth;
       bar.shade.setX(fillX);

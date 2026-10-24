@@ -33,7 +33,7 @@ await page.evaluate(async () => {
 await page.reload();
 await page.locator('[data-select-slot="1"]').click();
 await page.evaluate(async () => {
-  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.86.0');
+  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.87.0');
   const create = BattleScene.prototype.create;
   BattleScene.prototype.create = function (...args) { window.__hudScene = this; return create.apply(this, args); };
 });
@@ -61,6 +61,14 @@ assert.ok(await page.locator('.combat-skill-art canvas').evaluateAll(canvases =>
   const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
   return pixels.some((value, index) => index % 4 === 3 && value > 0);
 })), 'Los iconos deben conservar sus píxeles originales visibles');
+assert.ok(await page.locator('.combat-skill-art canvas').evaluateAll(canvases => canvases.every(canvas => {
+  const box = canvas.getBoundingClientRect(), frame = canvas.parentElement.getBoundingClientRect();
+  return box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom;
+})), 'Los iconos deben quedar dentro de sus marcos circulares');
+assert.ok(await page.locator('.combat-skill-cost').evaluateAll(costs => costs.every(cost => {
+  return cost.getBoundingClientRect().right <= cost.closest('button').getBoundingClientRect().right;
+})), 'Las placas de coste deben caber en sus filas');
+record('Iconos encuadrados en sus aros y placas de coste sin desbordamiento');
 if (process.argv.includes('--pause-only')) {
   await page.locator('.combat-access-pause').click();
   await page.waitForSelector('.combat-pause-access');
@@ -113,10 +121,13 @@ for (const ratio of [0.37, 0, 1]) {
     s.enemy.hp = Math.round(s.enemy.maxHp * ratio);
     s.refreshHud();
     return [s.playerHpBar.fill.width / s.playerHpBar.width, s.enemyHpBar.fill.width / s.enemyHpBar.width,
-      s.player.hp / s.player.maxHp, s.enemy.hp / s.enemy.maxHp];
+      s.player.hp / s.player.maxHp, s.enemy.hp / s.enemy.maxHp,
+      s.playerHpBar.lustre.scaleX, s.enemyHpBar.lustre.scaleX];
   }, ratio);
   assert.equal(values[0], values[2]);
   assert.equal(values[1], values[3]);
+  assert.ok(Math.abs(values[4] - values[2]) < .000001);
+  assert.ok(Math.abs(values[5] - values[3]) < .000001);
 }
 record('Vida máxima, parcial, cero y recuperación en ambos paneles');
 await page.evaluate(() => {
@@ -194,6 +205,9 @@ await page.evaluate(async () => {
   await s.resetTurnTimeline();
   if (s.playerTurnMarker.x !== s.enemyTurnMarker.x || s.playerMarkerHair && Math.abs(s.playerMarkerHair.x - s.playerTurnMarker.x + 1) > 0.01) {
     throw new Error('El retrato y sus accesorios se separaron al reiniciar');
+  }
+  if (s.timelinePortraitMasks.some((mask, index) => Math.abs(mask.x - [s.playerTurnMarker, s.enemyTurnMarker][index].x) > .01)) {
+    throw new Error('El recorte circular se separó del retrato de iniciativa');
   }
   s.startTurnCharge();
 });
