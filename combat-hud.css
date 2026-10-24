@@ -12,6 +12,7 @@
   pointer-events: none;
   font-family: 'Alegreya Sans', Georgia, serif;
   color: var(--hud-text);
+  container-type: inline-size;
 }
 .combat-access[hidden] { display: none; }
 .combat-access:not(.compact) .combat-access-status,
@@ -31,19 +32,54 @@
   pointer-events: auto;
   touch-action: manipulation;
 }
-.combat-access:not(.compact) .combat-access-actions button {
+.combat-access:not(.compact) .combat-access-actions {
   position: absolute;
   left: 2.1%;
-  top: calc(21.1% + var(--row) * 12.59%);
-  width: 14.5%;
-  height: 12.59%;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: transparent;
-  box-shadow: none;
+  top: 21.1%;
+  width: 18.3%;
+  height: 75.55%;
+  display: grid;
+  grid-template-rows: repeat(6, minmax(0, 1fr));
+  transform: perspective(48cqw) rotateY(24deg) skewY(2deg);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  border: 1.5px solid var(--hud-gold);
+  border-radius: 1.3cqw;
+  background: linear-gradient(105deg, #16243bfa, #07101eeb 60%, #0a1429ed);
+  box-shadow: inset 4px 0 0 #07101e, inset 6px 0 0 #d7a85755, 3px 4px 8px #0005;
+  pointer-events: none;
 }
-.combat-access:not(.compact) .combat-access-actions button > * { opacity: 0; }
+.combat-access:not(.compact) .combat-access-actions button {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52% 48%;
+  align-items: center;
+  min-height: 0;
+  min-width: 0;
+  margin: 0 4px;
+  padding: 0 8px;
+  border: 0;
+  border-bottom: 1px solid #d7a85780;
+  border-radius: 0;
+  background: transparent;
+  color: var(--hud-text);
+  box-shadow: none;
+  text-align: left;
+}
+.combat-access:not(.compact) .combat-access-actions button:last-child { border-bottom: 0; }
+.combat-access:not(.compact) .combat-access-actions button:first-of-type { border-radius: 1.2cqw 1.2cqw 0 0; }
+.combat-access:not(.compact) .combat-access-actions button:last-child { border-radius: 0 0 1.2cqw 1.2cqw; }
+.combat-skill-ornaments { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; color: #e2ba73; pointer-events: none; }
+.combat-skill-shortcut { position: absolute; z-index: 2; left: 4%; top: 4%; display: grid; place-items: center; width: 2.05cqw; height: 2.05cqw; border: 1px solid #d7a857; border-radius: 50%; background: #58151d; color: #f5e1af; font: 700 1.2cqw Georgia, serif; }
+.combat-skill-art { position: relative; display: grid; place-items: center; justify-self: end; height: 84%; aspect-ratio: 1; margin-right: 8px; border: 0.3cqw solid #72291f; border-radius: 50%; background: #030914; box-shadow: 0 0 0 1px #e6bb6a, inset 0 0 0 1px #d7a857, inset 0 0 0 5px #050c19, inset 0 0 0 6px #9b753f; }
+.combat-skill-art canvas { display: block; width: 80%; height: 80%; object-fit: contain; }
+.combat-skill-info { display: grid; justify-items: start; align-content: center; gap: .55cqw; min-width: 0; }
+.combat-skill-name { max-width: 6.3cqw; font: 700 1.25cqw / 1.1 Georgia, 'Yu Mincho', serif; overflow-wrap: normal; }
+.combat-skill-cost { padding: .16cqw .55cqw; border: 1px solid #d7a857; background: #06101d; color: #b2e5ff; font: 700 1.02cqw / 1.15 'Alegreya Sans', sans-serif; white-space: nowrap; }
+.combat-skill-seal { display: grid; place-items: center; width: 28%; height: 58%; border: 1px solid #a43d30; background: #e0d0a7; color: #92251d; transform: rotate(-7deg); font: 700 1.7cqw 'Yu Mincho', serif; }
+.combat-skill-mark { position: absolute; color: #ffe4a0; font: 700 2.6cqw 'Yu Mincho', serif; text-shadow: 2px 2px #4f120c, -2px -2px #4f120c; }
+.is-empty .combat-skill-art, .is-empty .combat-skill-info, .is-empty .combat-skill-shortcut { opacity: .65; }
+.combat-access:not(.compact) .combat-access-actions button[aria-pressed=true] { background: linear-gradient(90deg, #d7a85715, transparent); }
 .combat-access:not(.compact) .combat-access-pause {
   position: absolute;
   top: 8.8%;
@@ -78,6 +114,12 @@ html.mobile-viewport.compact-game-enabled .mobile-gate { display: none; }
 .compact .combat-access-pause { width: 44px; height: 44px; border: 1px solid var(--hud-gold); border-radius: 50%; background: var(--hud-ink); color: #a6e1ff; font-size: 23px; }
 .compact .combat-access-scene { aspect-ratio: 16 / 9; margin-inline: -10px; }
 .compact .combat-access-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.compact .combat-skill-ornaments, .compact .combat-skill-art { display: none; }
+.compact .combat-skill-info { display: grid; gap: 3px; }
+.compact .combat-skill-name { font: inherit; }
+.compact .combat-skill-cost { padding: 0; border: 0; background: transparent; font: 700 13px 'Alegreya Sans', sans-serif; }
+.compact .combat-skill-shortcut { position: static; display: inline; width: auto; height: auto; border: 0; background: none; font: inherit; }
+.compact .combat-access-actions button { grid-template-columns: auto minmax(0, 1fr); column-gap: 6px; }
 .compact .combat-access-actions button { display: grid; align-content: center; gap: 3px; min-height: 62px; padding: 7px 10px; border: 1px solid var(--hud-gold); border-radius: 8px; background: var(--hud-ink); color: var(--hud-text); text-align: left; font-weight: 700; transition: background var(--hud-transition); }
 .compact .combat-access-actions button[aria-disabled=true] { color: #b8b3aa; border-color: #73654f; }
 .compact .combat-access-actions button[aria-pressed=true] { box-shadow: inset 0 0 0 1px #f2cb7b; }

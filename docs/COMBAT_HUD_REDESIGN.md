@@ -48,7 +48,8 @@ La etiqueta central refleja iniciativa, selección, preparación y acción reale
   mismos botones Phaser; acceso con Tab/Enter, lectura de estadísticas y
   presentación compacta. La pausa utiliza los controles originales del juego.
 - `combat-hud.css` (nuevo): foco y presentación compacta, con objetivos de al
-  menos 44 px. En escritorio la imagen de la UI sigue siendo Canvas.
+  menos 44 px. El HUD superior y la iniciativa se dibujan en Canvas; el panel
+  de habilidades usa la capa DOM para proyectar arte, texto y controles juntos.
 - `src/battle/scenes/battle-scene.js` y `pause-scene.js`: montaje y ciclo de vida
   de esas capas accesibles. Se retiran listeners y nodos al cerrar las escenas.
 - `index.html` y `game.js`: carga de estilos/módulos y acceso opcional compacto
@@ -81,8 +82,6 @@ con el motor real.
 Las capturas y resultados están en `artifacts/combat-hud/`. Para repetir:
 
 ```powershell
-node scripts/static-server.mjs
-# En otra terminal:
 node scripts/verify-combat-hud.mjs
 ```
 
@@ -104,3 +103,17 @@ reglas, velocidad, costes, estadísticas ni archivos del motor de daño.
   proyecto; los detalles caligráficos no son una copia píxel a píxel.
 - En teléfonos se usa una composición compacta para mantener textos y controles
   legibles, conservando el encuadre 16:9 del escenario.
+
+## Ajuste posterior: perspectiva y orientación
+
+Los dos retratos de iniciativa miran a la derecha, siguiendo el avance de la
+barra. El panel de habilidades reproduce el trapecio de la nueva referencia:
+lado izquierdo más alto, derecho más corto y divisores, iconos y textos sujetos
+a la misma proyección. Los botones nativos conservan las áreas de interacción
+transformadas por el navegador; los tooltips permanecen sin distorsión.
+
+Los iconos reutilizan los píxeles ya decodificados por Phaser y los mismos tintes
+del HUD original. No solicitan de nuevo las URL temporales del cargador. La
+presentación compacta sigue disponible y los callbacks de combate se conservan.
+La verificación comprueba orientación, perspectiva y presencia de píxeles en
+todos los iconos. El script inicia su servidor local automáticamente si hace falta.

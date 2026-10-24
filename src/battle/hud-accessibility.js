@@ -49,21 +49,70 @@ export function mountAccessibleBattleHud(scene) {
   spacer.setAttribute('aria-hidden', 'true');
   const actions = document.createElement('div');
   actions.className = 'combat-access-actions';
+  // Native CSS perspective transforms artwork, type and hit targets together.
+  // Keep tooltips in the untransformed overlay so their text remains readable.
+  actions.innerHTML = `<svg class="combat-skill-ornaments" viewBox="0 0 180 408" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.2"><path d="M3 24V13Q3 3 15 3H28M152 3H165Q177 3 177 16V28M3 380V395Q3 405 17 405H28M152 405H165Q177 405 177 393V380"/><path d="M5 19q17 1 11-11q-10-7-9 4q5 5 9-3M175 19q-17 1-11-11q10-7 9 4q-5 5-9-3M5 389q17-1 11 11q-10 7-9-4q5-5 9 3M175 389q-17-1-11 11q10 7 9-4q-5-5-9 3"/></g></svg>`;
   const controls = scene.actionSlots.map((slot, index) => {
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.combatAction = index + 1;
     button.style.setProperty('--row', index);
     const name = document.createElement('span');
+    name.className = 'combat-skill-name';
     const cost = document.createElement('b');
-    button.append(name, cost);
+    cost.className = 'combat-skill-cost';
+    const shortcut = document.createElement('span');
+    shortcut.className = 'combat-skill-shortcut';
+    shortcut.textContent = index + 1;
+    const art = document.createElement('span');
+    art.className = 'combat-skill-art';
+    const action = scene.actions[index];
+    const source = action?.iconTexture && scene.textures.get(action.iconTexture)?.getSourceImage();
+    if (source) {
+      // Phaser revokes loader blob URLs after decoding. Reuse the decoded
+      // texture pixels instead of starting a second request to that dead URL.
+      const icon = document.createElement('canvas');
+      icon.width = icon.height = 192;
+      const width = source.naturalWidth || source.width;
+      const height = source.naturalHeight || source.height;
+      const scale = Math.min(icon.width / width, icon.height / height);
+      const context = icon.getContext('2d');
+      context.drawImage(source, (192 - width * scale) / 2, (192 - height * scale) / 2, width * scale, height * scale);
+      const tint = action.id === 'strike' ? [0xd1, 0xa2, 0x5b] : action.type === 'guard' ? [0xa6, 0x41, 0x2d] : null;
+      if (tint) {
+        const pixels = context.getImageData(0, 0, 192, 192);
+        for (let pixel = 0; pixel < pixels.data.length; pixel += 4) {
+          for (let channel = 0; channel < 3; channel += 1) pixels.data[pixel + channel] *= tint[channel] / 255;
+        }
+        context.putImageData(pixels, 0, 0);
+      }
+      art.append(icon);
+    } else {
+      const seal = document.createElement('span');
+      seal.className = 'combat-skill-seal';
+      seal.textContent = '封';
+      art.append(seal);
+    }
+    const mark = ({ fire_embers: '火', fire_breath: '炎', fire_ring: '輪', fire_phoenix: '鳳' })[action?.id];
+    if (mark) {
+      const glyph = document.createElement('span');
+      glyph.className = 'combat-skill-mark';
+      glyph.textContent = mark;
+      art.append(glyph);
+    }
+    art.setAttribute('aria-hidden', 'true');
+    shortcut.setAttribute('aria-hidden', 'true');
+    const info = document.createElement('span');
+    info.className = 'combat-skill-info';
+    info.append(name, cost);
+    button.classList.toggle('is-empty', !action);
+    if (action) button.dataset.actionId = action.id;
+    button.append(shortcut, art, info);
     const focus = () => {
       if (root.classList.contains('compact')) return;
-      slot.hoverRing?.setVisible(true);
       slot.tooltip?.layer.setVisible(true);
     };
     const blur = () => {
-      slot.hoverRing?.setVisible(Boolean(slot.selected));
       slot.tooltip?.layer.setVisible(false);
     };
     button.addEventListener('pointerenter', focus);
@@ -119,9 +168,9 @@ export function mountAccessibleBattleHud(scene) {
       const cooldown = action ? scene.cooldowns[action.id] || 0 : 0;
       const affordable = action && scene.player.chakra >= scene.actionCost(action);
       const requirement = action ? `${scene.actionCost(action)} CH${cooldown ? ` · CD ${cooldown}` : !affordable ? ' · Sin chakra' : ''}` : empty.requirement;
-      put(name, `${index + 1}. ${action?.name || empty.name}`);
+      put(name, action?.name || empty.name);
       put(cost, requirement);
-      button.setAttribute('aria-label', `${name.textContent}, ${requirement}`);
+      button.setAttribute('aria-label', `${index + 1}. ${name.textContent}, ${requirement}`);
       button.setAttribute('aria-disabled', String(!slot.available));
       button.setAttribute('aria-pressed', String(Boolean(slot.selected)));
       button.title = action ? `${action.name}: ${requirement}` : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
@@ -129,11 +178,13 @@ export function mountAccessibleBattleHud(scene) {
     markers.forEach(({ name, actor }) => put(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
   const query = window.matchMedia('(max-width: 980px)');
+  // The existing Phaser actions remain the execution contract; the native layer
+  // supplies the projected presentation and pointer geometry at every size.
+  scene.actionCanvasLayer = scene.add.container(0, 0, scene.actionCanvasParts).setDepth(30).setVisible(false);
   const originals = new Map([...scene.hudCanvasParts, ...scene.actionCanvasParts].map(part => [part, part.visible]));
   const layout = () => {
     root.classList.toggle('compact', query.matches);
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
-    scene.actionCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
     scene.timelineLayer.setVisible(!query.matches);
     scene.pauseButton.bg.setVisible(!query.matches);
     scene.pauseButton.label.setVisible(!query.matches);

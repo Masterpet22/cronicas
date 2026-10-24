@@ -345,7 +345,7 @@ export class BattlePresentationMethods {
     this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
     this.enemyMarkerHalo = this.add.circle(start, trackY, 16, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
     this.playerTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(19, 29);
-    this.enemyTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(17, 26).setFlipX(true);
+    this.enemyTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(17, 26).setFlipX(false);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[this.playerAppearance()?.hair];
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey) ? this.add.image(start - 1, trackY - 12, hairKey).setDisplaySize(27, 23) : null;
     const tag = (name) => {

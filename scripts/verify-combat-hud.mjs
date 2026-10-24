@@ -1,6 +1,18 @@
 import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+
+// Keep verification self-contained, including after an interrupted terminal.
+let localServer;
+try { await fetch('http://127.0.0.1:4173'); } catch {
+  localServer = spawn(process.execPath, ['scripts/static-server.mjs'], { stdio: 'ignore', windowsHide: true });
+  localServer.unref();
+  process.on('exit', () => localServer.kill());
+  for (let attempt = 0; attempt < 30; attempt += 1) {
+    try { await fetch('http://127.0.0.1:4173'); break; } catch { await new Promise(resolve => setTimeout(resolve, 100)); }
+  }
+}
 
 const browser = await chromium.launch({ headless: true });
 const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, reducedMotion: 'reduce' });
@@ -39,6 +51,16 @@ const state = await page.evaluate(() => {
 });
 assert.deepEqual(state.hero, [220, 372]);
 assert.deepEqual(state.foe, [740, 372]);
+assert.ok(await page.evaluate(() => {
+  const s = window.__hudScene;
+  return !s.playerTurnMarker.flipX && !s.enemyTurnMarker.flipX;
+}), 'Ambos retratos deben mirar en el sentido de avance');
+assert.ok(await page.locator('.combat-access-actions').evaluate(el => getComputedStyle(el).transform.startsWith('matrix3d(')), 'El panel completo debe tener perspectiva');
+record('Retratos orientados hacia el avance y panel completo con perspectiva 3D');
+assert.ok(await page.locator('.combat-skill-art canvas').evaluateAll(canvases => canvases.length > 0 && canvases.every(canvas => {
+  const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
+  return pixels.some((value, index) => index % 4 === 3 && value > 0);
+})), 'Los iconos deben conservar sus píxeles originales visibles');
 if (process.argv.includes('--pause-only')) {
   await page.locator('.combat-access-pause').click();
   await page.waitForSelector('.combat-pause-access');
