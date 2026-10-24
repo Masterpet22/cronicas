@@ -48,3 +48,20 @@ Capturas:
 - Antes: `artifacts/combat-hud/before-detail-refinement.png`.
 - Después: `artifacts/combat-hud/combat-1600x900.png`.
 - Resoluciones adicionales y resultados: `artifacts/combat-hud/`.
+
+## Visibilidad entre fases y menú de pausa
+
+El selector «Marco del HUD» se retiró de la pausa y de los ajustes generales.
+La interfaz sigue pudiendo leer preferencias anteriores para mantener compatibilidad.
+El menú conserva los interruptores, volumen, reanudación y abandono.
+
+La capa nativa del HUD se suspende durante transiciones, decisiones, investigación
+y obtención de objetos. Las suspensiones anidadas se restauran mediante `finally`;
+actualizar estadísticas, pausar o redimensionar no vuelve a mostrar habilidades
+antes de que termine la fase. En móvil se mantiene el espacio del escenario para
+evitar saltos de tamaño. El HUD se elimina al abandonar la escena de combate.
+
+Regresión reproducible: `node scripts/verify-combat-hud.mjs --transitions-only`.
+Comprueba el segundo encuentro real, investigación, salida de misión, pausa sin
+selector y redimensionamiento; resultados en `transition-regression.json` y capturas
+`encounter-transition-no-skills-1600x900.png` / `pause-without-theme-1600x900.png`.

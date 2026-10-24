@@ -1,0 +1,10 @@
+{
+  "themeOptionRemoved": true,
+  "volumeAndResume": true,
+  "encounterTransition": true,
+  "resizeDuringTransition": true,
+  "combatRestored": true,
+  "investigation": true,
+  "missionExit": true,
+  "errors": []
+}

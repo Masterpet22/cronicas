@@ -1,10 +1,10 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.87.0";
-import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.87.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.88.0";
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.88.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.87.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -142,8 +142,8 @@ export class BattlePresentationMethods {
     const chakraBarWidth = 202;
     const playerHealthX = 148;
     const playerChakraX = 148;
-    const enemyHealthX = 657;
-    const enemyChakraX = 657;
+    const enemyHealthX = WIDTH - playerHealthX - healthBarWidth;
+    const enemyChakraX = WIDTH - playerChakraX - chakraBarWidth;
     this.hudLacquerChrome = this.add.graphics().setDepth(20);
     this.paintHudLacquerChrome({ playerHealthX, playerChakraX, enemyHealthX, enemyChakraX, healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth });
     const nameStyle = { fontFamily: HUD_ART.font, fontSize: "17px", color: HUD_ART.text, fontStyle: "bold", stroke: "#02050a", strokeThickness: 2 };
@@ -154,11 +154,14 @@ export class BattlePresentationMethods {
     this.enemyHpBar = createBar(this, enemyHealthX, healthFrameY, healthBarWidth, 14, HUD_ART.health, { direction: "rtl", ghostColor: 0xf1d57a });
     this.enemyChakraBar = createBar(this, enemyChakraX, chakraFrameY, chakraBarWidth, 14, HUD_ART.chakra, { direction: "rtl" });
     this.hudBarCenters = { healthFrameY, chakraFrameY };
-    for (const iconX of [111, 620]) {
+    for (const { iconX, labelOffset, labelOrigin } of [
+      { iconX: 111, labelOffset: 13, labelOrigin: 0 },
+      { iconX: WIDTH - 111, labelOffset: -13, labelOrigin: 1 }
+    ]) {
       drawResourceEmblem(this, "health", iconX, healthFrameY);
       drawResourceEmblem(this, "chakra", iconX, chakraFrameY);
       for (const [label, y] of [["PV", healthFrameY], ["CH", chakraFrameY]]) {
-        this.add.text(iconX + 13, y, label, { fontFamily: HUD_ART.font, fontSize: "11px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0, 0.5).setDepth(25);
+        this.add.text(iconX + labelOffset, y, label, { fontFamily: HUD_ART.font, fontSize: "11px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(labelOrigin, 0.5).setDepth(25);
       }
     }
     this.playerRankStar = this.createLevelBadge(325, 25, `NV ${this.saveData.progression.level}`);
@@ -168,7 +171,7 @@ export class BattlePresentationMethods {
     this.playerPortrait = this.createCombatPortrait(61, 50, this.playerAppearance(), false);
     this.enemyPortrait = this.createCombatPortrait(900, 50, this.enemyAppearance(), true);
     this.playerStatusSlots = this.createStatusRow(168, 93, "ltr");
-    this.enemyStatusSlots = this.createStatusRow(705, 93, "ltr");
+    this.enemyStatusSlots = this.createStatusRow(WIDTH - 168, 93, "rtl");
     this.hudFrames = { health: [], chakra: [] };
     this.applyHudTheme(this.hudTheme);
     [this.playerHpBar, this.chakraBar, this.enemyHpBar, this.enemyChakraBar].forEach((bar) => {
@@ -182,7 +185,8 @@ export class BattlePresentationMethods {
         .fillRect(0, -bar.height / 2, bar.width, bar.height);
       bar.edge.setDepth(24);
       bar.edge.lineStyle(.6, 0xe7fbd4, .55).lineBetween(8, -5, bar.width - 8, -5);
-      bar.valueText.setOrigin(1, 0.5).setX(bar.x + bar.width - 6).setFontSize(12).setDepth(25);
+      const mirrored = bar.direction === "rtl";
+      bar.valueText.setOrigin(mirrored ? 0 : 1, 0.5).setX(mirrored ? bar.x + 6 : bar.x + bar.width - 6).setFontSize(12).setDepth(25);
     });
     const phaseChrome = this.add.graphics().setDepth(24);
     drawCloudPlate(phaseChrome, 380, 17, 200, 28);

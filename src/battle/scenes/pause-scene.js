@@ -1,5 +1,5 @@
-import { HEIGHT, HUD_THEMES, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
-import { mountAccessiblePause } from "../hud-accessibility.js?v=0.87.0";
+import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=0.88.1";
 
 export class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
@@ -33,8 +33,7 @@ export class PauseScene extends Phaser.Scene {
 
     rows.forEach(([label, id], index) => this.makePauseToggle(480, 172 + index * 33, label, id));
 
-    this.makeHudThemeControl(480, 347);
-    this.makeVolumeControl(480, 392);
+    this.makeVolumeControl(480, 357);
 
     this.makePauseAction(400, 454, "REANUDAR", 0x36b5e8, () => {
       this.scene.resume("battle");
@@ -98,29 +97,6 @@ export class PauseScene extends Phaser.Scene {
 
     this.makePauseAction(x - 32, y, "−", 0x6f8fb7, () => adjust(-10), 42, false);
     this.makePauseAction(x + 112, y, "+", 0x6f8fb7, () => adjust(10), 42, false);
-  }
-
-  makeHudThemeControl(x, y) {
-    const input = document.getElementById("hud-theme");
-    const themes = Object.keys(HUD_THEMES);
-    const labels = { ancestral: "PERGAMINO", lunar: "LUNAR" };
-    this.add.text(x - 165, y, "MARCO DEL HUD", {
-      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "12px", color: "#dce4ef", fontStyle: "bold"
-    }).setOrigin(0, 0.5).setDepth(103);
-
-    const value = this.add.text(x + 45, y, labels[input.value] || labels.ancestral, {
-      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "11px", color: "#f5c96b", fontStyle: "bold"
-    }).setOrigin(0.5).setDepth(103);
-
-    const selectTheme = (delta) => {
-      const currentIndex = Math.max(0, themes.indexOf(input.value));
-      input.value = themes[(currentIndex + delta + themes.length) % themes.length];
-      input.dispatchEvent(new Event("change", { bubbles: true }));
-      value.setText(labels[input.value] || input.value.toUpperCase());
-    };
-
-    this.makePauseAction(x - 32, y, "<", 0xb98545, () => selectTheme(-1), 38, false);
-    this.makePauseAction(x + 112, y, ">", 0xb98545, () => selectTheme(1), 38, false);
   }
 
   makePauseAction(x, y, label, color, callback, width = 260, once = true) {

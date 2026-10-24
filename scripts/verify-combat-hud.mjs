@@ -33,7 +33,7 @@ await page.evaluate(async () => {
 await page.reload();
 await page.locator('[data-select-slot="1"]').click();
 await page.evaluate(async () => {
-  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.87.0');
+  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.88.2');
   const create = BattleScene.prototype.create;
   BattleScene.prototype.create = function (...args) { window.__hudScene = this; return create.apply(this, args); };
 });
@@ -69,7 +69,7 @@ assert.ok(await page.locator('.combat-skill-cost').evaluateAll(costs => costs.ev
   return cost.getBoundingClientRect().right <= cost.closest('button').getBoundingClientRect().right;
 })), 'Las placas de coste deben caber en sus filas');
 record('Iconos encuadrados en sus aros y placas de coste sin desbordamiento');
-if (process.argv.includes('--pause-only')) {
+if (process.argv.includes('--pause-only') || process.argv.includes('--transitions-only')) {
   await page.locator('.combat-access-pause').click();
   await page.waitForSelector('.combat-pause-access');
   assert.equal(await page.locator('.combat-access').evaluate(el => el.inert), true);
@@ -77,17 +77,71 @@ if (process.argv.includes('--pause-only')) {
   assert.equal(await page.evaluate(() => document.activeElement.textContent), 'ABANDONAR');
   await page.keyboard.press('Tab');
   assert.match(await page.evaluate(() => document.activeElement.textContent), /Sellos manuales/);
+  assert.doesNotMatch(await page.locator('.combat-pause-access').innerText(), /MARCO|LUNAR|PERGAMINO/i);
+  await page.screenshot({ path: 'artifacts/combat-hud/pause-without-theme-1600x900.png' });
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.getByRole('button', { name: 'Marco siguiente', exact: true }).click();
-  assert.match(await page.locator('.combat-pause-preferences').innerText(), /Santuario lunar/);
+  assert.equal(await page.locator('#hud-theme').count(), 0);
+  assert.doesNotMatch(await page.locator('.combat-pause-access').innerText(), /MARCO|LUNAR|PERGAMINO/i);
+  await page.getByRole('button', { name: 'Subir volumen', exact: true }).click();
+  assert.match(await page.locator('.combat-pause-preferences').innerText(), /Volumen 80%/);
   await page.screenshot({ path: 'artifacts/combat-hud/pause-390x844.png', fullPage: true });
   await page.getByRole('button', { name: 'REANUDAR', exact: true }).click();
   await page.waitForFunction(() => window.__hudScene.scene.isActive());
   assert.equal(await page.locator('.combat-access').evaluate(el => el.inert), false);
   assert.deepEqual(errors, []);
-  await writeFile('artifacts/combat-hud/pause-accessibility.json', JSON.stringify({ focusLoop: true, backgroundInert: true, theme: true, resume: true, errors }));
+  await writeFile('artifacts/combat-hud/pause-accessibility.json', JSON.stringify({ focusLoop: true, backgroundInert: true, volume: true, themeSelectorRemoved: true, resume: true, errors }));
+  if (process.argv.includes('--pause-only')) {
+    await browser.close();
+    console.log('Pausa: selector retirado, volumen y reanudación correctos, sin errores');
+    process.exit(0);
+  }
+}
+if (process.argv.includes('--transitions-only')) {
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.evaluate(() => {
+    const s = window.__hudScene;
+    s.busy = true;
+    s.turnReady = false;
+    s.stopTurnTimeline();
+    s.setButtonsEnabled(false);
+    s.loseHealth(s.enemy, s.foe, s.enemy.hp, { react: false });
+    window.__advanceDone = false;
+    window.__advancePromise = s.resolveEnemyOutcome().then(() => { window.__advanceDone = true; });
+  });
+  await page.waitForFunction(() => window.__hudScene.children.list.some(child => child.depth === 70 && child.texture?.key === 'forest-road' && child.alpha > .95));
+  await page.evaluate(() => { window.__hudScene.tweens.timeScale = 0; window.__hudScene.refreshHud(); });
+  assert.equal(await page.locator('.combat-access-actions').isVisible(), false);
+  assert.equal(await page.locator('.combat-access').evaluate(el => el.inert), true);
+  await page.screenshot({ path: 'artifacts/combat-hud/encounter-transition-no-skills-1600x900.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.waitForTimeout(150);
+  assert.equal(await page.locator('.combat-access-actions').isVisible(), false);
+  assert.ok((await page.locator('#game').boundingBox()).height > 0);
+  await page.setViewportSize({ width: 1600, height: 900 });
+  await page.evaluate(() => { window.__hudScene.tweens.timeScale = 1; });
+  await page.waitForFunction(() => window.__advanceDone);
+  assert.equal(await page.locator('.combat-access-actions').isVisible(), true);
+  assert.equal(await page.evaluate(() => window.__hudScene.enemyIndex), 1);
+  await page.evaluate(() => {
+    window.__investigationDone = false;
+    window.__hudScene.playInvestigationPhase().then(() => { window.__investigationDone = true; });
+  });
+  await page.locator('.mission-investigation-overlay').waitFor();
+  assert.equal(await page.locator('.combat-access-actions').isVisible(), false);
+  for (const clue of ['cart', 'house', 'tracks']) {
+    await page.locator(`[data-investigation-region="${clue}"]`).press('Enter');
+  }
+  await page.locator('[data-mission-investigation-continue]').click();
+  await page.waitForFunction(() => window.__investigationDone);
+  assert.equal(await page.locator('.combat-access-actions').isVisible(), true);
+  await page.evaluate(() => { window.__hudScene.finishBattle(false); });
+  await page.waitForFunction(() => !window.__hudScene.scene.isActive());
+  assert.equal(await page.locator('.combat-access').count(), 0);
+  await page.screenshot({ path: 'artifacts/combat-hud/mission-exit-no-skills-1600x900.png' });
+  assert.deepEqual(errors, []);
+  await writeFile('artifacts/combat-hud/transition-regression.json', JSON.stringify({ themeOptionRemoved: true, volumeAndResume: true, encounterTransition: true, resizeDuringTransition: true, combatRestored: true, investigation: true, missionExit: true, errors }, null, 2));
   await browser.close();
-  console.log('Pausa: foco contenido, fondo inerte, tema real, reanudación y consola sin errores');
+  console.log('Pausa sin selector; habilidades ocultas en transición, investigación y salida; restauración y resize correctos; sin errores');
   process.exit(0);
 }
 for (const [width, height] of [[1920, 1080], [1366, 768], [390, 844], [844, 390]]) {

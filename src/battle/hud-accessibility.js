@@ -1,5 +1,5 @@
-import { skillFrameSvg } from "./hud-chrome.js?v=0.87.0";
-import { emptySkillInfo } from './hud-art.js?v=0.87.0';
+import { skillFrameSvg } from "./hud-chrome.js?v=0.88.0";
+import { emptySkillInfo } from './hud-art.js?v=0.88.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -53,7 +53,40 @@ export function mountAccessibleBattleHud(scene) {
   // Native CSS perspective transforms artwork, type and hit targets together.
   // Keep tooltips in the untransformed overlay so their text remains readable.
   actions.innerHTML = skillFrameSvg();
+  let frontSkill = null;
+  const restorePerspective = () => {
+    if (!frontSkill) return;
+    const { row, button, slot } = frontSkill;
+    row.classList.remove('is-front');
+    button.style.removeProperty('--skill-front-transform');
+    slot.tooltip?.layer.setX(0).setVisible(false);
+    frontSkill = null;
+  };
+  const faceSkill = (row, button, slot) => {
+    if (root.classList.contains('compact') || root.hidden || root.inert) return;
+    if (frontSkill?.button !== button) restorePerspective();
+    const style = getComputedStyle(actions);
+    const [originX, originY] = style.transformOrigin.split(' ').map(parseFloat);
+    const panel = new DOMMatrix().translate(originX, originY)
+      .multiply(new DOMMatrix(style.transform)).translate(-originX, -originY);
+    const x = row.offsetLeft + button.offsetLeft;
+    const y = row.offsetTop + button.offsetTop;
+    const center = new DOMPoint(x, y + button.offsetHeight / 2).matrixTransform(panel);
+    const left = center.x / center.w;
+    const top = center.y / center.w - button.offsetHeight / 2;
+    // Cancel the complete ancestor projection, including its perspective and
+    // skew. The row's original hit area remains stable in its wrapper.
+    const correction = new DOMMatrix().translate(-x, -y).multiply(panel.inverse())
+      .translate(left, top);
+    button.style.setProperty('--skill-front-transform', correction.toString());
+    row.classList.add('is-front');
+    frontSkill = { row, button, slot };
+    slot.tooltip?.layer.setX(Math.max(0, (actions.offsetLeft + left + button.offsetWidth + 12) * 960 / root.clientWidth - 169));
+  };
   const controls = scene.actionSlots.map((slot, index) => {
+    const row = document.createElement('div');
+    row.className = 'combat-skill-row';
+    row.dataset.skillRow = index + 1;
     const button = document.createElement('button');
     button.type = 'button';
     button.dataset.combatAction = index + 1;
@@ -139,15 +172,20 @@ export function mountAccessibleBattleHud(scene) {
     const blur = () => {
       slot.tooltip?.layer.setVisible(false);
     };
-    button.addEventListener('pointerenter', focus);
-    button.addEventListener('pointerleave', blur);
+    row.addEventListener('pointerenter', () => { faceSkill(row, button, slot); focus(); });
+    row.addEventListener('pointerleave', () => {
+      if (frontSkill?.button === button) restorePerspective();
+      blur();
+    });
     button.addEventListener('focus', focus);
     button.addEventListener('blur', blur);
     button.addEventListener('click', () => {
       if (!scene.scene.isActive() || scene.finished) return;
       if (slot.available) slot.hit.emit('pointerdown');
     });
-    actions.append(button);
+    row.addEventListener('click', event => { if (event.target === row) button.click(); });
+    row.append(button);
+    actions.append(row);
     return { button, name, cost, availability, slot, index };
   });
   const progress = document.createElement('div');
@@ -169,12 +207,32 @@ export function mountAccessibleBattleHud(scene) {
   message.setAttribute('role', 'status');
   root.append(summary, spacer, actions, progress, message);
   scene.game.canvas.parentElement.append(root);
+  let visibilityLocks = 0;
+  let sleeping = false;
+  const refreshVisibility = () => {
+    const hidden = visibilityLocks > 0 || sleeping || scene.scene.isPaused() || scene.finished;
+    if (hidden) restorePerspective();
+    root.hidden = Boolean(hidden);
+    root.inert = Boolean(hidden);
+  };
+  const suspend = () => {
+    visibilityLocks += 1;
+    refreshVisibility();
+    scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
+    [...scene.playerStatusSlots, ...scene.enemyStatusSlots].forEach(slot => slot.detail.setVisible(false));
+    let restored = false;
+    return () => {
+      if (restored) return;
+      restored = true;
+      visibilityLocks -= 1;
+      refreshVisibility();
+    };
+  };
   const put = (el, text) => { if (el.textContent !== String(text)) el.textContent = text; };
   const statusText = unit => [...(unit.guarding ? [{ label: 'Guardia' }] : []), ...(unit.statuses || []), ...(unit.soak?.stacks ? [{ label: `Empapado ×${unit.soak.stacks}`, duration: unit.soak.turns }] : [])]
     .map(s => `${s.label || s.type}${s.duration ? ` (${s.duration})` : ''}`).join(' · ');
   const refresh = () => {
-    const paused = scene.scene.isPaused();
-    root.hidden = paused;
+    refreshVisibility();
     for (const [ui, unit, name] of [[player, scene.player, scene.saveData.character.name], [enemy, scene.enemy, scene.encounters[scene.enemyIndex].name]]) {
       put(ui.name, name.toUpperCase());
       [[unit.hp, unit.maxHp], [unit.chakra, unit.maxChakra]].forEach(([value, max], index) => {
@@ -209,6 +267,7 @@ export function mountAccessibleBattleHud(scene) {
   scene.actionCanvasLayer = scene.add.container(0, 0, scene.actionCanvasParts).setDepth(30).setVisible(false);
   const originals = new Map([...scene.hudCanvasParts, ...scene.actionCanvasParts].map(part => [part, part.visible]));
   const layout = () => {
+    restorePerspective();
     root.classList.toggle('compact', query.matches);
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
     scene.timelineLayer.setVisible(!query.matches);
@@ -220,15 +279,30 @@ export function mountAccessibleBattleHud(scene) {
     refresh();
   };
   query.addEventListener('change', layout);
+  const resizeObserver = new ResizeObserver(() => {
+    if (frontSkill) faceSkill(frontSkill.row, frontSkill.button, frontSkill.slot);
+  });
+  resizeObserver.observe(actions);
+  const onSleep = () => { sleeping = true; refreshVisibility(); };
+  const onWake = () => { sleeping = false; refreshVisibility(); };
+  scene.events.on('pause', refreshVisibility);
+  scene.events.on('resume', refreshVisibility);
+  scene.events.on('sleep', onSleep);
+  scene.events.on('wake', onWake);
   const remove = () => {
     query.removeEventListener('change', layout);
+    resizeObserver.disconnect();
+    scene.events.off('pause', refreshVisibility);
+    scene.events.off('resume', refreshVisibility);
+    scene.events.off('sleep', onSleep);
+    scene.events.off('wake', onWake);
     root.remove();
     scene.game.canvas.parentElement?.classList.remove('compact-combat');
   };
   scene.events.once('shutdown', remove);
   layout();
   refresh();
-  return { refresh, updateProgress(values) {
+  return { refresh, suspend, updateProgress(values) {
     markers.forEach(({ actor, meter }) => { meter.value = Math.max(0, Math.min(1, values[actor])); });
   } };
 }
@@ -246,8 +320,7 @@ export function mountAccessiblePause(scene) {
   const preferences = document.createElement('p');
   preferences.className = 'combat-pause-preferences';
   const updatePreferences = () => {
-    const theme = document.getElementById('hud-theme');
-    preferences.textContent = `${theme.selectedOptions[0].textContent} · Volumen ${document.getElementById('game-volume').value}%`;
+    preferences.textContent = `Volumen ${document.getElementById('game-volume').value}%`;
   };
   updatePreferences();
   root.append(title, preferences);
@@ -261,8 +334,7 @@ export function mountAccessiblePause(scene) {
     const label = () => {
       const texts = scene.children.list.filter(child => typeof child.text === 'string' && child.y === part.y && Math.abs(child.x - part.x) <= part.width / 2);
       let text = texts.map(child => child.text).join(' · ');
-      if (part.y === 347) text = part.x < 480 ? 'Marco anterior' : 'Marco siguiente';
-      if (part.y === 392) text = part.x < 480 ? 'Bajar volumen' : 'Subir volumen';
+      if (part.y === 357) text = part.x < 480 ? 'Bajar volumen' : 'Subir volumen';
       button.textContent = text;
     };
     label();
@@ -288,7 +360,8 @@ export function mountAccessiblePause(scene) {
   controls[0]?.button.focus({ preventScroll: true });
   scene.events.once('shutdown', () => {
     if (battleHud) battleHud.inert = false;
+    scene.battle.accessibleHud?.refresh();
     root.remove();
-    scene.game.canvas.parentElement?.querySelector('.combat-access-pause')?.focus({ preventScroll: true });
+    if (!battleHud?.hidden) scene.game.canvas.parentElement?.querySelector('.combat-access-pause')?.focus({ preventScroll: true });
   });
 }

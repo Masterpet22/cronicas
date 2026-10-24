@@ -42,9 +42,9 @@ assert.match(battle, /ancestral\.webp\?v=0\.45\.1/, "El marco ancestral de ejecu
 assert.doesNotMatch(battle, /Object\.values\(HUD_THEMES\)\.forEach\(\(theme\) => \{[\s\S]*this\.load\.image\(theme\.texture/, "El HUD lacado no debe descargar los marcos raster antiguos");
 assert.match(battle, /paintHudLacquerChrome\(/, "Vida y chakra deben usar un marco lacado vectorial ligero");
 assert.match(battle, /applyHudTheme\(themeId\)/, "El tema debe poder cambiarse durante el combate");
-assert.match(battle, /localStorage\.setItem\("hud-theme"/, "La elección del marco debe persistir");
-assert.match(html, /select id="hud-theme"/, "Opciones debe permitir elegir el marco de combate");
-assert.match(battle, /makeHudThemeControl\(480, 347\)/, "El menú de pausa debe permitir cambiar el marco durante el combate");
+assert.match(battle, /localStorage\.getItem\("hud-theme"/, "La preferencia anterior del marco debe seguir siendo compatible");
+assert.doesNotMatch(html, /select id="hud-theme"/, "Opciones ya no debe mostrar el selector de marco");
+assert.doesNotMatch(battle, /makeHudThemeControl|MARCO DEL HUD/, "La pausa no debe ofrecer el selector de marco retirado");
 assert.match(battle, /RANK_LEVELS/, "El rango del HUD debe representarse mediante un nivel numérico escalable");
 assert.match(battle, /displayWidth: 360/, "Los marcos de vida deben mantener una escala compacta");
 assert.match(battle, /const healthBarWidth = 202/, "Las barras de vida deben permanecer compactas y separadas de las esquinas");
@@ -64,8 +64,6 @@ assert.match(battle, /enemyRankStar = this\.createLevelBadge/, "El enemigo debe 
 assert.match(battle, /createCombatPortrait\(900, 50, this\.enemyAppearance\(\), true\)/, "El retrato enemigo debe mirar hacia el campo de batalla");
 assert.doesNotMatch(battle, /playerX \+ 32, 57, "VIDA"/, "El HUD no debe mostrar la etiqueta VIDA");
 assert.doesNotMatch(battle, /playerX \+ 32, 80, "CHAKRA"/, "El HUD no debe mostrar la etiqueta CHAKRA");
-assert.match(html, /Pergamino ancestral/, "El selector debe ofrecer Pergamino ancestral");
-assert.match(html, /Santuario lunar/, "El selector debe ofrecer Santuario lunar");
 assert.match(battle, /this\.turnReady/, "Las acciones deben depender de que el turno esté listo");
 assert.match(battle, /resetTurnTimeline\(\)/, "Los marcadores deben regresar al terminar una ronda");
 assert.match(battle, /class ResultsScene extends Phaser\.Scene/, "Toda misión debe terminar en una pantalla de resultados independiente");
@@ -79,9 +77,8 @@ assert.match(battle, /outcome === "completed" \? \{ \.\.\.battleRewards \} : \{ 
 assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
 assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
-assert.match(battle, /makePauseToggle\(480, 172 \+ index \* 33[\s\S]*makeHudThemeControl\(480, 347\)[\s\S]*makeVolumeControl\(480, 392\)[\s\S]*makePauseAction\(400, 454, "REANUDAR"/, "El menú de pausa debe separar ajustes, selectores y acciones en filas sin superposición");
+assert.match(battle, /makePauseToggle\(480, 172 \+ index \* 33[\s\S]*makeVolumeControl\(480, 357\)[\s\S]*makePauseAction\(400, 454, "REANUDAR"/, "El menú de pausa debe separar ajustes, selectores y acciones en filas sin superposición");
 assert.match(battle, /const value = this\.add\.text\(x \+ 45, y, `\$\{input\.value\}%`[\s\S]*makePauseAction\(x - 32, y, "−"[\s\S]*makePauseAction\(x \+ 112, y, "\+"/, "El control de volumen debe reservar una columna independiente para su etiqueta");
-assert.match(battle, /const value = this\.add\.text\(x \+ 45, y, labels\[input\.value\][\s\S]*makePauseAction\(x - 32, y, "<"[\s\S]*makePauseAction\(x \+ 112, y, ">"/, "El selector del marco debe reservar una columna independiente para su etiqueta");
 assert.match(battle, /index < 6/, "La barra debe conservar siempre seis espacios de acción");
 assert.match(battle, /this\.actions\[index\] \|\| null/, "Los espacios sin técnica deben renderizarse vacíos");
 assert.match(battle, /Array\.from\(\{ length: 4 \}/, "La barra debe reservar cuatro ranuras configurables entre las acciones fijas");

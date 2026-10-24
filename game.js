@@ -1,12 +1,12 @@
 import { mountMetaUI } from "./src/meta-ui.js?v=0.82.5";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.66.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.87.0";
+import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.88.2";
 import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.85.1";
 import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.72.0";
 import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.82.6";
 import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.75.0";
-import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.87.0";
-import { HUD_THEMES, Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.82.9";
+import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.88.1";
+import { Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.82.9";
 
 let game = null;
 let metaUi = null;
@@ -55,14 +55,6 @@ function bindGlobalOptions() {
   const volume = document.getElementById("game-volume");
   try { volume.value = window.localStorage.getItem("game-volume") || "70"; } catch (_) { /* Preferencias opcionales. */ }
   volume.addEventListener("input", () => { try { window.localStorage.setItem("game-volume", volume.value); } catch (_) { /* Preferencias opcionales. */ } });
-  const hudTheme = document.getElementById("hud-theme");
-  try {
-    const savedHudTheme = window.localStorage.getItem("hud-theme");
-    hudTheme.value = HUD_THEMES[savedHudTheme] ? savedHudTheme : "ancestral";
-  } catch (_) { hudTheme.value = "ancestral"; }
-  hudTheme.addEventListener("change", () => {
-    try { window.localStorage.setItem("hud-theme", hudTheme.value); } catch (_) { /* Preferencias opcionales. */ }
-  });
   document.getElementById("mode-hint").textContent = document.getElementById("manual-seals").checked ? "Completa las secuencias con QWER / ASDF / ZXCV." : "Los sellos se ejecutarán automáticamente.";
 }
 
