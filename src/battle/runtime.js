@@ -74,8 +74,8 @@ export const TECHNIQUE_VFX = Object.freeze({
   water_whip: Object.freeze({ file: "aqua-whip-spritesheet.png", frameWidth: 600, frameHeight: 670, width: 500, height: 558, frameRate: 10, frames: 8, position: "battlefield", y: 360 }),
   earth_fist: Object.freeze({ creationFile: "earth-fist-creation-spritesheet.png", destructionFile: "earth-fist-destruction-spritesheet.png", frameWidth: 600, frameHeight: 670, width: 243, height: 272, frameRate: 12, destructionFrameRate: 20, frames: 8, projectile: true }),
   earth_wall: Object.freeze({ file: "earth-wall-spritesheet.png", frameWidth: 1200, frameHeight: 335, width: 520, height: 220, frameRate: 10, frames: 8 }),
-  wind_palm: Object.freeze({ file: "wind-palm-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 180, height: 285, frameRate: 13 }),
-  wind_blade: Object.freeze({ file: "wind-blade-spritesheet.png", frameWidth: 310, frameHeight: 724, width: 220, height: 390, frameRate: 10 })
+  wind_palm: Object.freeze({ file: "wind-palm-spritesheet.png", version: "0.83.0", frameWidth: 600, frameHeight: 670, width: 260, height: 290, frameRate: 13, frames: 8 }),
+  wind_blade: Object.freeze({ file: "wind-blade-spritesheet.png", version: "0.84.0", frameWidth: 600, frameHeight: 670, width: 300, height: 335, frameRate: 10, frames: 8 })
 });
 export const TECHNIQUE_VFX_FRAMES = 7;
 

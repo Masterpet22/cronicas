@@ -34,6 +34,16 @@ for (const asset of ["hair_corto.png", "hair_coleta.png"]) {
   assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
 }
 
+const shortHair = await readFile(new URL("../assets/modular/hair/hair_corto.png", import.meta.url));
+assert.deepEqual([shortHair.readUInt32BE(16), shortHair.readUInt32BE(20)], [1500, 1163], "El cabello corto debe conservar la resolución exacta del recurso aprobado");
+
+const ponytailHair = await readFile(new URL("../assets/modular/hair/hair_coleta.png", import.meta.url));
+assert.deepEqual([ponytailHair.readUInt32BE(16), ponytailHair.readUInt32BE(20)], [1000, 800], "La coleta debe conservar la resolución exacta del recurso aprobado");
+
+const shortHairPortrait = await readFile(new URL("../assets/modular/hair/head_corto.png", import.meta.url));
+assert.deepEqual([shortHairPortrait.readUInt32BE(16), shortHairPortrait.readUInt32BE(20)], [260, 400], "El retrato de cabello corto debe conservar la composición aprobada de cabeza y cabello");
+assert.equal(shortHairPortrait[25], 6, "El retrato de cabello corto debe conservar transparencia alfa real");
+
 const manRuntimeLayers = [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
@@ -80,6 +90,14 @@ assert.equal(aquaShuriken[25], 6, "El proyectil de Aqua Shuriken debe conservar 
 const aquaWhip = await readFile(new URL("../assets/vfx/aqua-whip-spritesheet.png", import.meta.url));
 assert.deepEqual([aquaWhip.readUInt32BE(16), aquaWhip.readUInt32BE(20)], [2400, 1340], "Látigo de corriente debe conservar su cuadrícula de 4 × 2 fotogramas");
 assert.equal(aquaWhip[25], 6, "Látigo de corriente debe conservar transparencia alfa real");
+
+const windPalm = await readFile(new URL("../assets/vfx/wind-palm-spritesheet.png", import.meta.url));
+assert.deepEqual([windPalm.readUInt32BE(16), windPalm.readUInt32BE(20)], [2400, 1340], "Palma de vacío debe conservar su cuadrícula de 4 × 2 fotogramas");
+assert.equal(windPalm[25], 6, "Palma de vacío debe conservar transparencia alfa real");
+
+const windBlade = await readFile(new URL("../assets/vfx/wind-blade-spritesheet.png", import.meta.url));
+assert.deepEqual([windBlade.readUInt32BE(16), windBlade.readUInt32BE(20)], [2400, 1340], "Filo de vendaval debe conservar su cuadrícula de 4 × 2 fotogramas");
+assert.equal(windBlade[25], 6, "Filo de vendaval debe conservar transparencia alfa real");
 
 const village = webpDimensions(await readFile(new URL("../assets/village/aldea.webp", import.meta.url)), "aldea.webp");
 assert.equal(village.width, 1678, "El mapa debe conservar su ancho original");

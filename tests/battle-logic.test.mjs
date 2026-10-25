@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { AFFINITY_CONFIG } from "../src/affinity-system.js";
 import { ENEMY_ROSTER } from "../src/data.js";
 import { MISSIONS } from "../src/content/index.js";
-import { resolveDamage } from "../src/battle/damage.js";
+import { resolveDamage, splitDamageAcrossHits } from "../src/battle/damage.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, missionGrade, secondaryMissionGrade } from "../src/battle/rewards.js";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../src/battle/turn.js";
@@ -17,6 +17,8 @@ assert.deepEqual(resolveDamage({
   damageReduction: 3,
   guarding: true
 }), { affinityDamage: 30, criticalDamage: 45, damage: 21 });
+assert.deepEqual(splitDamageAcrossHits(19, 3), [7, 6, 6], "El multigolpe debe repartir los residuos sin perder daño");
+assert.equal(splitDamageAcrossHits(19, 3).reduce((sum, hit) => sum + hit, 0), 19, "La suma de los impactos debe conservar el daño original");
 
 const enemy = createEnemyState(ENEMY_ROSTER[MISSIONS[0].encounters[0]], MISSIONS[0], {});
 assert.ok(enemy.maxHp > 0);

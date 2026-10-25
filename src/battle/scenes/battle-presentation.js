@@ -2,7 +2,7 @@ import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail,
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.88.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { createPlayerFighter, destroyFighter, fighterHairPortraitLayout, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -229,8 +229,9 @@ export class BattlePresentationMethods {
     const mask = maskShape.createGeometryMask();
     const head = this.add.image(x, y + 8, "player-man-cabeza").setDisplaySize(42, 64).setFlipX(flipped).setMask(mask).setDepth(25);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[appearance?.hair];
+    const hairLayout = fighterHairPortraitLayout(appearance?.hair, 42, 64, flipped);
     const hair = hairKey && this.textures.exists(hairKey)
-      ? this.add.image(x + (flipped ? 1 : -1), y - 17, hairKey).setDisplaySize(55, appearance?.hair === 4 ? 50 : 43).setFlipX(flipped).setMask(mask).setDepth(26)
+      ? this.add.image(x + hairLayout.x, y + 8 + hairLayout.y, hairKey).setDisplaySize(hairLayout.width, hairLayout.height).setFlipX(flipped).setMask(mask).setDepth(26)
       : null;
     const frame = this.add.graphics().setDepth(27);
     const side = flipped ? 1 : -1;
@@ -361,10 +362,14 @@ export class BattlePresentationMethods {
     const preparationLabel = this.add.text((preparationStart + end) / 2, 477, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "7px", color: "#d4b77a" }).setOrigin(0.5);
     this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
     this.enemyMarkerHalo = this.add.circle(start, trackY, 17, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
+    const markerHairStyle = this.playerAppearance()?.hair;
     this.playerTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(22, 34);
     this.enemyTurnMarker = this.add.image(start, trackY, "player-man-cabeza").setDisplaySize(21, 32).setFlipX(false);
-    const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[this.playerAppearance()?.hair];
-    this.playerMarkerHair = hairKey && this.textures.exists(hairKey) ? this.add.image(start - 1, trackY - 12, hairKey).setDisplaySize(27, 23) : null;
+    const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[markerHairStyle];
+    this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34);
+    this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
+      ? this.add.image(start + this.playerMarkerHairLayout.x, trackY + this.playerMarkerHairLayout.y, hairKey).setDisplaySize(this.playerMarkerHairLayout.width, this.playerMarkerHairLayout.height)
+      : null;
     this.timelinePortraitMasks = [18, 15.5].map(radius => {
       const shape = this.make.graphics({ add: false });
       shape.fillStyle(0xffffff).fillCircle(0, 0, radius);
@@ -494,7 +499,7 @@ export class BattlePresentationMethods {
     this.enemyTurnMarker.setPosition(enemyX, enemyY);
     this.playerMarkerHalo?.setPosition(playerX, playerY);
     this.enemyMarkerHalo?.setPosition(enemyX, enemyY);
-    this.playerMarkerHair?.setPosition(playerX - 1, playerY - 12);
+    this.playerMarkerHair?.setPosition(playerX + this.playerMarkerHairLayout.x, playerY + this.playerMarkerHairLayout.y);
     this.timelinePortraitMasks?.[0].setPosition(playerX, playerY);
     this.timelinePortraitMasks?.[1].setPosition(enemyX, enemyY);
     const labelOverlap = Math.abs(playerX - enemyX) < 73;
@@ -857,4 +862,3 @@ export class BattlePresentationMethods {
   }
 
 }
-

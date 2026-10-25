@@ -89,12 +89,12 @@ const PUPPET_PREVIEW_LAYERS = Object.freeze([
 
 function rasterCharacterPreviewMarkup(save, assetVersion) {
   const hair = Number(save.character.hair) === 4
-    ? { asset: "hair_coleta", x: -25, y: -570, width: 310, height: 278 }
+    ? { asset: "hair_coleta", x: -59, y: -561, width: 392, height: 314, version: "0.79.0" }
     : Number(save.character.hair) === 1
-      ? { asset: "hair_corto", x: -5, y: -575, width: 290, height: 255 }
+      ? { asset: "hair_corto", x: -26, y: -588, width: 295, height: 229, version: "0.101.0" }
       : null;
   const layer = ({ id, asset = id, x, y, width, height }, index) => `<img class="puppet-preview-layer" src="assets/modular/man_sprites/runtime/${asset}.png?v=${assetVersion}" alt="" width="${width}" height="${height}" draggable="false" style="--puppet-x:${((550 + x) / 11).toFixed(3)}%;--puppet-y:${((800 + y) / 16).toFixed(3)}%;--puppet-w:${(width / 11).toFixed(3)}%;--puppet-h:${(height / 16).toFixed(3)}%;--puppet-z:${index}">`;
-  const hairLayer = hair ? `<img class="puppet-preview-layer puppet-preview-hair" src="assets/modular/hair/${hair.asset}.png?v=${assetVersion}" alt="" width="${hair.width}" height="${hair.height}" draggable="false" style="--puppet-x:${((550 + hair.x) / 11).toFixed(3)}%;--puppet-y:${((800 + hair.y) / 16).toFixed(3)}%;--puppet-w:${(hair.width / 11).toFixed(3)}%;--puppet-h:${(hair.height / 16).toFixed(3)}%;--puppet-z:${PUPPET_PREVIEW_LAYERS.length}">` : "";
+  const hairLayer = hair ? `<img class="puppet-preview-layer puppet-preview-hair" src="assets/modular/hair/${hair.asset}.png?v=${hair.version}" alt="" width="${hair.width}" height="${hair.height}" draggable="false" style="--puppet-x:${((550 + hair.x) / 11).toFixed(3)}%;--puppet-y:${((800 + hair.y) / 16).toFixed(3)}%;--puppet-w:${(hair.width / 11).toFixed(3)}%;--puppet-h:${(hair.height / 16).toFixed(3)}%;--puppet-z:${PUPPET_PREVIEW_LAYERS.length}">` : "";
   return `<div class="raster-character-stage" role="img" aria-label="Marioneta del combatiente usada en combate"><div class="raster-character-aura" aria-hidden="true"></div><div class="puppet-preview-rig">${PUPPET_PREVIEW_LAYERS.map(layer).join("")}${hairLayer}</div></div>`;
 }
 

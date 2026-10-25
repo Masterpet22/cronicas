@@ -65,7 +65,7 @@ export class BattleScene extends Phaser.Scene {
       }
       const texture = `technique-vfx-${jutsuId}`;
       if (this.textures.exists(texture)) return;
-      const source = `assets/vfx/${effect.file}?v=0.81.0`;
+      const source = `assets/vfx/${effect.file}?v=${effect.version || "0.81.0"}`;
       if (Number.isFinite(effect.sourceY)) this.load.image(texture, source);
       else this.load.spritesheet(texture, source, {
           frameWidth: effect.frameWidth,

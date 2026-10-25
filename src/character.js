@@ -1,8 +1,8 @@
 const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
 export const HAIR_STYLE_LABELS = Object.freeze(["Sin cabello", "Corto", "Coleta"]);
 const RASTER_HAIR = Object.freeze({
-  1: { asset: "assets/modular/hair/hair_corto.png?v=0.76.0", x: -57, y: -146, width: 114, height: 100 },
-  4: { asset: "assets/modular/hair/hair_coleta.png?v=0.76.0", x: -66, y: -151, width: 132, height: 118 }
+  1: { asset: "assets/modular/hair/hair_corto.png?v=0.101.0", x: -48, y: -136, width: 98, height: 76 },
+  4: { asset: "assets/modular/hair/hair_coleta.png?v=0.79.0", x: -80.45, y: -146.91, width: 166, height: 133 }
 });
 const WEAPON_MAP = { kunai: "kunai", tanto: "sword", staff: "staff" };
 

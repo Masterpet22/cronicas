@@ -20,3 +20,11 @@ export function resolveDamage({
   };
 }
 
+export function splitDamageAcrossHits(totalDamage, hitCount) {
+  const total = Number.isFinite(Number(totalDamage)) ? Math.max(0, Math.round(Number(totalDamage))) : 0;
+  const count = Number.isFinite(Number(hitCount)) ? Math.max(1, Math.floor(Number(hitCount))) : 1;
+  const base = Math.floor(total / count);
+  const remainder = total % count;
+  return Array.from({ length: count }, (_, index) => base + (index < remainder ? 1 : 0));
+}
+

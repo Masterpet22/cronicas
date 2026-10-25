@@ -257,7 +257,8 @@ record('Menú de pausa compacto con ajustes existentes y reanudación táctil');
 await page.evaluate(async () => {
   const s = window.__hudScene;
   await s.resetTurnTimeline();
-  if (s.playerTurnMarker.x !== s.enemyTurnMarker.x || s.playerMarkerHair && Math.abs(s.playerMarkerHair.x - s.playerTurnMarker.x + 1) > 0.01) {
+  const expectedHairX = s.playerTurnMarker.x + (s.playerMarkerHairLayout?.x ?? 0);
+  if (s.playerTurnMarker.x !== s.enemyTurnMarker.x || s.playerMarkerHair && Math.abs(s.playerMarkerHair.x - expectedHairX) > 0.01) {
     throw new Error('El retrato y sus accesorios se separaron al reiniciar');
   }
   if (s.timelinePortraitMasks.some((mask, index) => Math.abs(mask.x - [s.playerTurnMarker, s.enemyTurnMarker][index].x) > .01)) {

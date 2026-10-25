@@ -7,8 +7,8 @@ const MAN_SPRITE_Y_OFFSET = -39;
 export const MAN_SPRITE_SHADOW_OFFSET = 60;
 const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
 const HAIR_TEXTURES = Object.freeze({
-  1: { id: "corto", width: 290, height: 255, x: -5, y: -260 },
-  4: { id: "coleta", width: 310, height: 278, x: -25, y: -255 }
+  1: { id: "corto", width: 295, height: 229, x: -26, y: -273 },
+  4: { id: "coleta", width: 392, height: 314, x: -59, y: -246 }
 });
 
 // Centros calibrados sobre un lienzo de 2048 x 2048 con origen en el centro.
@@ -44,6 +44,21 @@ function hairTextureKey(style) {
   return HAIR_TEXTURES[style] ? `player-hair-${HAIR_TEXTURES[style].id}` : null;
 }
 
+export function fighterHairPortraitLayout(style, width, height, flipped = false) {
+  const hair = HAIR_TEXTURES[style];
+  if (!hair) return null;
+  const head = MAN_SPRITE_BY_ID.cabeza;
+  const neck = MAN_SPRITE_JOINTS.neck;
+  const scaleX = width / 260;
+  const scaleY = height / 392;
+  return {
+    x: (neck.x + hair.x - head.x) * scaleX * (flipped ? -1 : 1),
+    y: (neck.y + hair.y - head.y) * scaleY,
+    width: hair.width * scaleX,
+    height: hair.height * scaleY
+  };
+}
+
 export function queuePlayerFighterTextures(scene, appearance) {
   MAN_SPRITE_LAYERS.forEach(({ id, assetId = id }) => {
     const key = manSpriteKey(id);
@@ -51,7 +66,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   });
   const hair = HAIR_TEXTURES[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
-    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=0.76.0`);
+    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.101.0" : "0.79.0"}`);
   }
   return "modular";
 }

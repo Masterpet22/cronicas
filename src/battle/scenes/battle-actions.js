@@ -10,7 +10,7 @@ import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
-import { resolveDamage } from "../damage.js?v=0.68.0";
+import { resolveDamage, splitDamageAcrossHits } from "../damage.js?v=0.85.0";
 import { createEnemyState } from "../enemy-state.js?v=0.68.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
@@ -241,6 +241,8 @@ export class BattleActionMethods {
     const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
     const usesFireEmbersProjectile = jutsu.id === "fire_embers";
     const usesWaterShurikenProjectile = jutsu.id === "water_bullet";
+    const usesWindPalmProjectile = jutsu.id === "wind_palm";
+    const usesWindBladeMultiHit = jutsu.id === "wind_blade";
     const usesHandProjectile = usesFireEmbersProjectile || usesWaterShurikenProjectile;
     const usesCastPose = usesHandProjectile && this.hero.animations?.supports("punch-release");
     const usesEarthWallCast = jutsu.id === "earth_wall" && this.hero.animations?.supports("earth-wall-cast");
@@ -271,6 +273,7 @@ export class BattleActionMethods {
       if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(true);
       else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true);
       else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true);
+      else if (usesWindPalmProjectile) await this.playWindPalmProjectile(true);
       this.tone(205, 0.08);
       this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
       const substitution = this.playSubstitution(this.foe);
@@ -299,15 +302,35 @@ export class BattleActionMethods {
       criticalMultiplier: AFFINITY_CONFIG.damage.criticalMultiplier,
       damageReduction: this.enemy.damageReduction || 0
     });
-    if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false);
-    else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false);
-    else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
-    else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
-    else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
-    this.tone(jutsu.cinematic ? 92 : 128, 0.12);
-    this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
-    if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 156, "CRÍTICO", 0xf5c96b);
-    const { amount, reaction } = this.loseHealth(this.enemy, this.foe, damage);
+    let amount = 0;
+    let reaction = Promise.resolve(false);
+    if (usesWindBladeMultiHit) {
+      const hitDamages = splitDamageAcrossHits(damage, 3);
+      const reactions = [];
+      if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, "CRÍTICO", 0xf5c96b);
+      await this.playWindBladeEffect((hitIndex) => {
+        this.tone(128, 0.08);
+        this.shake(90, 0.004);
+        const hit = this.loseHealth(this.enemy, this.foe, hitDamages[hitIndex], {
+          react: hitIndex === hitDamages.length - 1,
+          yOffset: -112 - hitIndex * 26
+        });
+        amount += hit.amount;
+        reactions.push(hit.reaction);
+      });
+      reaction = Promise.all(reactions);
+    } else {
+      if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false);
+      else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false);
+      else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
+      else if (usesWindPalmProjectile) await this.playWindPalmProjectile(false);
+      else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
+      else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
+      this.tone(jutsu.cinematic ? 92 : 128, 0.12);
+      this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
+      if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 156, "CRÍTICO", 0xf5c96b);
+      ({ amount, reaction } = this.loseHealth(this.enemy, this.foe, damage));
+    }
     const appliedSoak = this.applyWaterPassive(this.player, this.enemy);
     if (appliedSoak) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, `EMPAPADO ×${appliedSoak.stacks}`, 0x63cfff);
     if (jutsu.status && this.enemy.hp > 0) {
@@ -347,6 +370,77 @@ export class BattleActionMethods {
       .setDepth(14);
     return new Promise((resolve) => {
       sprite.once("animationcomplete", () => {
+        sprite.destroy();
+        resolve();
+      });
+      sprite.play(animation);
+    });
+  }
+
+  playWindPalmProjectile(missed = false) {
+    const effect = TECHNIQUE_VFX.wind_palm;
+    const texture = "technique-vfx-wind_palm";
+    const animation = `${texture}-animation`;
+    if (!effect || !this.textures.exists(texture) || !this.anims.exists(animation)) return Promise.resolve();
+
+    const groundY = this.foe.shadow.y + 8;
+    const origin = { x: (this.hero.body.x + this.foe.body.x) / 2, y: groundY };
+    const target = missed
+      ? { x: this.foe.body.x + 115, y: groundY - 70 }
+      : { x: this.foe.body.x, y: groundY };
+    const sprite = this.add.sprite(origin.x, origin.y, texture, 0)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(effect.width, effect.height)
+      .setDepth(14);
+
+    return new Promise((resolve) => {
+      let launched = false;
+      sprite.on("animationupdate", (_animation, frame) => {
+        if (launched || Number(frame.textureFrame) < 2) return;
+        launched = true;
+        this.tweens.add({
+          targets: sprite,
+          x: target.x,
+          y: target.y,
+          duration: 230,
+          ease: "Cubic.in"
+        });
+      });
+      sprite.once("animationcomplete", () => {
+        sprite.destroy();
+        resolve();
+      });
+      sprite.play(animation);
+    });
+  }
+
+  playWindBladeEffect(onHit) {
+    const effect = TECHNIQUE_VFX.wind_blade;
+    const texture = "technique-vfx-wind_blade";
+    const animation = `${texture}-animation`;
+    const hitFrames = [1, 2, 3];
+    const deliveredFrames = new Set();
+    const deliverHitsThrough = (frameIndex) => {
+      hitFrames.forEach((hitFrame, hitIndex) => {
+        if (hitFrame > frameIndex || deliveredFrames.has(hitFrame)) return;
+        deliveredFrames.add(hitFrame);
+        onHit(hitIndex);
+      });
+    };
+
+    if (!effect || !this.textures.exists(texture) || !this.anims.exists(animation)) {
+      deliverHitsThrough(hitFrames.at(-1));
+      return Promise.resolve();
+    }
+
+    const sprite = this.add.sprite(this.foe.body.x, this.foe.shadow.y + 8, texture, 0)
+      .setOrigin(0.5, 1)
+      .setDisplaySize(effect.width, effect.height)
+      .setDepth(14);
+    return new Promise((resolve) => {
+      sprite.on("animationupdate", (_animation, frame) => deliverHitsThrough(Number(frame.textureFrame)));
+      sprite.once("animationcomplete", () => {
+        deliverHitsThrough(hitFrames.at(-1));
         sprite.destroy();
         resolve();
       });
