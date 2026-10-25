@@ -40,22 +40,32 @@ assert.deepEqual([shortHair.readUInt32BE(16), shortHair.readUInt32BE(20)], [1500
 const ponytailHair = await readFile(new URL("../assets/modular/hair/hair_coleta.png", import.meta.url));
 assert.deepEqual([ponytailHair.readUInt32BE(16), ponytailHair.readUInt32BE(20)], [1000, 800], "La coleta debe conservar la resolución exacta del recurso aprobado");
 
+const coinSheet = await readFile(new URL("../assets/vfx/coin-spin-spritesheet.png", import.meta.url));
+assert.deepEqual([coinSheet.readUInt32BE(16), coinSheet.readUInt32BE(20)], [1280, 512], "Las diez monedas deben formar una cuadrícula normalizada de 5 × 2");
+assert.equal(coinSheet[25], 6, "El spritesheet de monedas debe conservar transparencia alfa");
+
+const experienceSheet = await readFile(new URL("../assets/vfx/experience-spin-spritesheet.png", import.meta.url));
+assert.deepEqual([experienceSheet.readUInt32BE(16), experienceSheet.readUInt32BE(20)], [1280, 512], "Los diez emblemas de experiencia deben formar una cuadrícula normalizada de 5 × 2");
+assert.equal(experienceSheet[25], 6, "El spritesheet de experiencia debe conservar transparencia alfa");
+
 const shortHairPortrait = await readFile(new URL("../assets/modular/hair/head_corto.png", import.meta.url));
 assert.deepEqual([shortHairPortrait.readUInt32BE(16), shortHairPortrait.readUInt32BE(20)], [260, 400], "El retrato de cabello corto debe conservar la composición aprobada de cabeza y cabello");
 assert.equal(shortHairPortrait[25], 6, "El retrato de cabello corto debe conservar transparencia alfa real");
 
-const manRuntimeLayers = [
+const puppetRuntimeLayers = [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
 ];
-await Promise.all(manRuntimeLayers.map(async (id) => {
-  const png = await readFile(new URL(`../assets/modular/man_sprites/runtime/${id}.png`, import.meta.url));
-  const width = png.readUInt32BE(16);
-  const height = png.readUInt32BE(20);
-  assert.ok(width > 0 && width < 600, `${id} debe estar recortado para ejecución`);
-  assert.ok(height > 0 && height < 700, `${id} debe estar recortado para ejecución`);
-  assert.equal(png[25], 6, `${id} debe conservar transparencia`);
-}));
+for (const body of ["man", "woman"]) {
+  await Promise.all(puppetRuntimeLayers.map(async (id) => {
+    const png = await readFile(new URL(`../assets/modular/${body}_sprites/runtime/${id}.png`, import.meta.url));
+    const width = png.readUInt32BE(16);
+    const height = png.readUInt32BE(20);
+    assert.ok(width > 0 && width < 600, `${body}/${id} debe estar recortado para ejecución`);
+    assert.ok(height > 0 && height < 700, `${body}/${id} debe estar recortado para ejecución`);
+    assert.equal(png[25], 6, `${body}/${id} debe conservar transparencia`);
+  }));
+}
 
 for (const asset of ["basic-strike.webp", "guard.webp"]) {
   const image = webpDimensions(await readFile(new URL(`../assets/actions/${asset}`, import.meta.url)), asset);

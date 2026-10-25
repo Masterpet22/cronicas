@@ -1,6 +1,6 @@
 # Archivo experimental de personajes modulares
 
-Este directorio conserva los atlas y capas ilustradas experimentales. Las variantes de personalización no se cargan directamente en Phaser porque sus proporciones y anclajes todavía no son suficientemente consistentes para producción. La única excepción es `man_sprites/runtime/`, que contiene las piezas raster de la marioneta provisional utilizada actualmente en viajes y combates.
+Este directorio conserva los atlas y capas ilustradas experimentales. Las variantes de personalización no se cargan directamente en Phaser porque sus proporciones y anclajes todavía no son suficientemente consistentes para producción. Las excepciones son `man_sprites/runtime/` y `woman_sprites/runtime/`, que contienen las piezas raster elegidas según el tipo de cuerpo del perfil y utilizadas en viajes y combates.
 
 ## Orden de renderizado
 

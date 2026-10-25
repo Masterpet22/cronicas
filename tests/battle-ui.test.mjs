@@ -63,10 +63,10 @@ assert.match(battle, /barOffset: Object\.freeze/, "Cada marco debe declarar su c
 assert.match(battle, /createLevelBadge\(325, 25, `NV /, "El jugador debe mostrar el nivel como sello compacto");
 assert.match(battle, /enemyRankStar = this\.createLevelBadge/, "El enemigo debe mostrar un nivel simétrico");
 assert.match(battle, /createCombatPortrait\(900, 50, this\.enemyAppearance\(\), true\)/, "El retrato enemigo debe mirar hacia el campo de batalla");
-assert.match(fighters, /fighterHairPortraitLayout\(style, width, height, flipped = false\)/, "Los retratos deben calcular el cabello desde la geometría compartida del combatiente");
+assert.match(fighters, /fighterHairPortraitLayout\(style, width, height, flipped = false, bodyType = "male"\)/, "Los retratos deben calcular el cabello desde la geometría compartida del combatiente");
 assert.doesNotMatch(fighters, /player-head-corto/, "Los retratos no deben sustituir la cabeza y el peinado por una composición distinta");
-assert.match(battle, /this\.add\.image\(x, y \+ 8, "player-man-cabeza"\)[\s\S]*fighterHairPortraitLayout\(appearance\?\.hair, 42, 64, flipped\)/, "El retrato principal debe superponer el peinado usando la misma geometría que el muñeco");
-assert.match(battle, /fighterHairPortraitLayout\(markerHairStyle, 22, 34\)/, "El icono de orden de turno debe escalar la misma composición del personaje");
+assert.match(battle, /fighterPuppetTextureKey\(appearance, "cabeza"\)[\s\S]*fighterHairPortraitLayout\(appearance\?\.hair, 42, 64, flipped, appearance\?\.bodyType\)/, "El retrato principal debe usar el cuerpo elegido y superponer el peinado con su geometría");
+assert.match(battle, /fighterHairPortraitLayout\(markerHairStyle, 22, 34, false, this\.playerAppearance\(\)\?\.bodyType\)/, "El icono de orden de turno debe escalar la misma composición del personaje");
 assert.match(fighters, /1: \{ id: "corto", width: 295, height: 229, x: -26, y: -273 \}/, "El cabello corto debe coincidir con la posición del Dojo en el cuerpo de combate");
 assert.match(fighters, /4: \{ id: "coleta", width: 392, height: 314, x: -59, y: -246 \}/, "La coleta debe coincidir con la posición del Dojo en el cuerpo de combate");
 assert.doesNotMatch(battle, /playerX \+ 32, 57, "VIDA"/, "El HUD no debe mostrar la etiqueta VIDA");
@@ -109,6 +109,16 @@ assert.doesNotMatch(battle, /actionRailFrame|timelineFrame/, "La interfaz no deb
 assert.match(battle, /applyBattleInterfaceTheme\(this\.hudTheme\)/, "Cambiar el marco debe actualizar también velocidad y habilidades");
 assert.match(battle, /this\.actionSlots\?\.forEach\(\(button\) => button\.applyTheme\?\.\(skin\)\)/, "Las ranuras llenas y bloqueadas deben responder al cambio de tema");
 assert.match(battle, /const TECHNIQUE_VFX = Object\.freeze/, "Las técnicas elementales básicas deben compartir un catálogo de efectos animados");
+assert.match(battle, /COIN_DROP_VFX = Object\.freeze\([\s\S]*frameWidth: 256[\s\S]*frames: 10[\s\S]*displaySize: 30/, "Las monedas deben usar los diez cuadros normalizados y mostrarse aproximadamente al tamaño de una mano");
+assert.match(battle, /EXPERIENCE_DROP_VFX = Object\.freeze\([\s\S]*frameWidth: 256[\s\S]*frames: 10[\s\S]*displaySize: 30/, "La experiencia debe usar los diez cuadros normalizados y mostrarse aproximadamente al tamaño de una mano");
+assert.match(battle, /load\.spritesheet\("coin-drop"[\s\S]*COIN_DROP_VFX\.frames - 1/, "El combate debe cargar el spritesheet completo de monedas");
+assert.match(battle, /load\.spritesheet\("experience-drop"[\s\S]*EXPERIENCE_DROP_VFX\.frames - 1/, "El combate debe cargar el spritesheet completo de experiencia");
+assert.match(battle, /key: "coin-drop-spin"[\s\S]*repeat: -1/, "Las monedas deben girar continuamente mientras están visibles");
+assert.match(battle, /key: "experience-drop-spin"[\s\S]*repeat: -1/, "La experiencia debe girar continuamente mientras está visible");
+assert.match(battle, /playEncounterRewards\(encounterIndex\)[\s\S]*visibleRewardCountForEncounter\(encounterIndex\)[\s\S]*texture: "coin-drop"[\s\S]*texture: "experience-drop"/, "Monedas y experiencia deben usar la misma progresión visual por pelea");
+assert.match(battle, /playRewardBurst\(count[\s\S]*setDisplaySize\(effect\.displaySize[\s\S]*playerTarget = \{ x: this\.hero\.body\.x[\s\S]*\.then\(\(\) => rewardSprite\.destroy\(\)\)/, "Cada recompensa visual debe salir del enemigo, viajar al jugador y desaparecer al alcanzarlo");
+assert.match(battle, /progression = \[5, 7, 10, 13, 15\][\s\S]*progression\.length - 1/, "La representación debe crecer por pelea hasta un máximo visual de quince monedas");
+assert.match(battle, /this\.battleRewards = addBattleReward\(this\.battleRewards, reward\);\s*await this\.playEncounterRewards\(this\.enemyIndex\);[\s\S]*await this\.advanceEncounter/, "La transición debe esperar ambas animaciones visuales sin sustituir las recompensas reales del encuentro");
 for (const id of ["fire_embers", "fire_breath", "water_bullet", "water_whip", "earth_fist", "earth_wall", "wind_palm", "wind_blade"]) {
   assert.match(battle, new RegExp(`${id}: Object\\.freeze`), `${id} debe tener un spritesheet asignado`);
 }
@@ -122,8 +132,9 @@ assert.match(battle, /else this\.load\.spritesheet\(texture, source/, "Las demá
 assert.match(battle, /if \(Number\.isFinite\(effect\.sourceY\)\) this\.load\.image\(texture, source\)/, "El proyectil alineado debe cargarse completo antes de definir sus cuadros");
 assert.match(battle, /sheet\.add\(index, 0, index \* effect\.frameWidth, effect\.sourceY, effect\.frameWidth, effect\.frameHeight\)/, "Los cinco cuadros deben compartir exactamente el mismo tamaño y línea base");
 assert.match(battle, /if \(usesFireEmbersProjectile\) await this\.playFireEmbersProjectile\(false\);[\s\S]*else if \(usesWaterShurikenProjectile\) await this\.playWaterShurikenProjectile\(false\);[\s\S]*else if \(TECHNIQUE_VFX\[jutsu\.id\]\) await this\.playTechniqueEffect\(jutsu\.id\)/, "Los proyectiles de fuego y agua deben usar sus recorridos dedicados");
-assert.match(battle, /usesWindPalmProjectile = jutsu\.id === "wind_palm"[\s\S]*else if \(usesWindPalmProjectile\) await this\.playWindPalmProjectile\(false\)/, "Palma de vacío debe usar su recorrido dedicado");
-assert.match(battle, /playWindPalmProjectile\(missed = false\)[\s\S]*\(this\.hero\.body\.x \+ this\.foe\.body\.x\) \/ 2[\s\S]*"animationupdate"[\s\S]*Number\(frame\.textureFrame\) < 2[\s\S]*targets: sprite[\s\S]*duration: 230[\s\S]*sprite\.once\("animationcomplete"/, "Palma de vacío debe nacer en el centro, viajar desde el tercer cuadro y terminar su animación tras el impacto");
+assert.match(battle, /usesWindPalmProjectile = jutsu\.id === "wind_palm"[\s\S]*else if \(usesWindPalmProjectile\) await this\.playWindPalmProjectile\(\)/, "Palma de vacío debe usar su recorrido dedicado");
+assert.match(battle, /playWindPalmProjectile\(\)[\s\S]*\(this\.hero\.body\.x \+ this\.foe\.body\.x\) \/ 2[\s\S]*"animationupdate"[\s\S]*Number\(frame\.textureFrame\) < 2[\s\S]*targets: sprite[\s\S]*duration: 230[\s\S]*sprite\.once\("animationcomplete"/, "Palma de vacío debe nacer en el centro, viajar desde el tercer cuadro y terminar su animación tras el impacto");
+assert.doesNotMatch(battle, /playWindPalmProjectile[\s\S]*groundY - 70/, "Palma de vacío no debe desviarse cuando el rival usa Sustitución");
 assert.match(battle, /usesWindBladeMultiHit = jutsu\.id === "wind_blade"[\s\S]*splitDamageAcrossHits\(damage, 3\)[\s\S]*playWindBladeEffect\(\(hitIndex\)[\s\S]*hitDamages\[hitIndex\]/, "Filo de vendaval debe repartir su daño original entre tres impactos");
 assert.match(battle, /playWindBladeEffect\(onHit\)[\s\S]*const hitFrames = \[1, 2, 3\][\s\S]*"animationupdate"[\s\S]*deliverHitsThrough\(Number\(frame\.textureFrame\)\)/, "Filo de vendaval debe golpear en sus fotogramas segundo, tercero y cuarto");
 assert.match(battle, /usesEarthWallCast[\s\S]*await playEarthWallCast\(this, this\.hero\)[\s\S]*TECHNIQUE_VFX\[jutsu\.id\][\s\S]*await this\.playTechniqueEffect\(jutsu\.id\)/, "La muralla debe comenzar después de finalizar la animación Kinetra del personaje");
@@ -239,8 +250,8 @@ assert.doesNotMatch(battle, /battle-hud-overlay-v1\.png/, "El combate no debe ca
 assert.match(battle, /function sharpenTextTree\(/, "El texto debe ajustarse recursivamente incluso dentro de contenedores");
 assert.match(battle, /child\.setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
 assert.match(icons, /width: 128, height: 128/, "Los SVG deben rasterizarse con suficiente resolución antes de ampliarlos");
-assert.match(battle, /this\.playerTurnMarker = this\.add\.image\(start, trackY, "player-man-cabeza"\)/, "El jugador debe usar la cabeza base en el minirretrato y mostrar el cabello como capa");
-assert.match(battle, /this\.enemyTurnMarker = this\.add\.image\(start, trackY, "player-man-cabeza"\)/, "El rival debe usar un minirretrato bajo la hoja");
+assert.match(battle, /this\.playerTurnMarker = this\.add\.image\(start, trackY, fighterPuppetTextureKey\(this\.playerAppearance\(\), "cabeza"\)\)/, "El jugador debe usar en el minirretrato la cabeza elegida en su perfil");
+assert.match(battle, /this\.enemyTurnMarker = this\.add\.image\(start, trackY, fighterPuppetTextureKey\(this\.enemyAppearance\(\), "cabeza"\)\)/, "El rival debe usar un minirretrato bajo la hoja");
 assert.doesNotMatch(battle, /playerTurnLetter|enemyTurnLetter/, "Los marcadores ilustrados no deben depender de iniciales vectoriales");
 assert.match(battle, /marker\.clearTint\(\)/, "Los minirretratos deben conservar sus colores pintados en todos los temas");
 assert.match(battle, /timelineMilestones\(start, end\)\.filter/, "Las muescas grabadas deben marcar cada 20 % de la barra de velocidad");
@@ -300,8 +311,9 @@ assert.match(metaUi, /statistics-character-preview/, "Estadísticas debe mostrar
 assert.match(metaUi, /puppet-preview-rig/, "Apariencia debe usar la marioneta raster del combate en lugar de la vista vectorial");
 assert.match(metaUi, /values: \[0, 1, 4\]/, "Apariencia debe ofrecer Sin cabello como TIPO 01 antes de Corto y Coleta");
 assert.match(metaUi, /hair_corto[\s\S]*hair_coleta|hair_coleta[\s\S]*hair_corto/, "Apariencia debe limitar los peinados con gráfico a Corto y Coleta");
-assert.match(metaUi, /hair_corto", x: -26, y: -588, width: 295, height: 229/, "El Dojo debe conservar la proporción nativa del cabello corto y su borde izquierdo");
-assert.match(metaUi, /hair_coleta", x: -59, y: -561, width: 392, height: 314/, "El Dojo debe reflejar el desplazamiento vertical de la coleta");
+assert.match(metaUi, /hair_corto", x: female \? -17\.39144 : -26, y: female \? -521\.65808 : -588, width: female \? 259\.6 : 295, height: female \? 201\.52 : 229/, "El Dojo debe alinear el cabello corto con cada rig");
+assert.match(metaUi, /hair_coleta", x: female \? -46\.43144 : -59, y: female \? -497\.89808 : -561, width: female \? 344\.96 : 392, height: female \? 276\.32 : 314/, "El Dojo debe alinear la coleta con cada rig");
+assert.match(metaUi, /FEMALE_PUPPET_PREVIEW_LAYERS[\s\S]*restRotation: -12/, "La vista femenina debe conservar la pose de reposo importada de Kinetra");
 assert.match(metaUi, /hair_corto[\s\S]*version: "0\.101\.0"[\s\S]*hair_coleta|hair_coleta[\s\S]*version: "0\.79\.0"[\s\S]*hair_corto/, "El Dojo debe usar las versiones aprobadas de ambos peinados");
 assert.match(metaUi, /assets\/modular\/hair\/\$\{hair\.asset\}\.png\?v=\$\{hair\.version\}/, "El Dojo debe invalidar la caché con la versión propia de cada peinado");
 assert.doesNotMatch(metaUi, /hair_0[1-5]_(?:front|rear)/, "Apariencia no debe cargar los peinados experimentales incompatibles");

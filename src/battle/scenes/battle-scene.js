@@ -2,7 +2,7 @@ import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.88.1";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -14,14 +14,14 @@ import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncoun
 import { resolveDamage } from "../damage.js?v=0.68.0";
 import { createEnemyState } from "../enemy-state.js?v=0.68.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.91.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
-import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.82.9";
+import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 import { BattlePresentationMethods } from "./battle-presentation.js?v=0.88.2";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.88.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.91.0";
 import { BattleActionMethods } from "./battle-actions.js?v=0.81.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.88.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
@@ -43,6 +43,16 @@ export class BattleScene extends Phaser.Scene {
     if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", "assets/vfx/feedback/preparation-mote.png?v=0.71.0");
     if (!this.textures.exists("forest-road")) this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.0");
     if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.0");
+    if (!this.textures.exists("coin-drop")) this.load.spritesheet("coin-drop", `assets/vfx/${COIN_DROP_VFX.file}?v=0.89.0`, {
+      frameWidth: COIN_DROP_VFX.frameWidth,
+      frameHeight: COIN_DROP_VFX.frameHeight,
+      endFrame: COIN_DROP_VFX.frames - 1
+    });
+    if (!this.textures.exists("experience-drop")) this.load.spritesheet("experience-drop", `assets/vfx/${EXPERIENCE_DROP_VFX.file}?v=0.91.0`, {
+      frameWidth: EXPERIENCE_DROP_VFX.frameWidth,
+      frameHeight: EXPERIENCE_DROP_VFX.frameHeight,
+      endFrame: EXPERIENCE_DROP_VFX.frames - 1
+    });
 
     const needsSealSheet = battleRuntime.activeSave.loadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
@@ -135,6 +145,22 @@ export class BattleScene extends Phaser.Scene {
         hideOnComplete: !effect.projectile
       });
     });
+    if (this.textures.exists("coin-drop") && !this.anims.exists("coin-drop-spin")) {
+      this.anims.create({
+        key: "coin-drop-spin",
+        frames: this.anims.generateFrameNumbers("coin-drop", { start: 0, end: COIN_DROP_VFX.frames - 1 }),
+        frameRate: COIN_DROP_VFX.frameRate,
+        repeat: -1
+      });
+    }
+    if (this.textures.exists("experience-drop") && !this.anims.exists("experience-drop-spin")) {
+      this.anims.create({
+        key: "experience-drop-spin",
+        frames: this.anims.generateFrameNumbers("experience-drop", { start: 0, end: EXPERIENCE_DROP_VFX.frames - 1 }),
+        frameRate: EXPERIENCE_DROP_VFX.frameRate,
+        repeat: -1
+      });
+    }
     this.mission = battleRuntime.activeMission;
     this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
     this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);

@@ -13,10 +13,11 @@ async function clickCanvasPoint(page, box, xRatio, yRatio) {
   await page.mouse.click(box.x + box.width * xRatio, box.y + box.height * yRatio);
 }
 
-async function createFreshCharacter(page, name = "Smoke") {
+async function createFreshCharacter(page, name = "Smoke", bodyType = "male") {
   await page.goto("/");
   await page.locator('[data-select-slot="1"]').click();
   await page.locator('input[name="name"]').fill(name);
+  await page.locator('select[name="bodyType"]').selectOption(bodyType);
   await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
   await advanceDialogue(page);
 }
@@ -73,6 +74,28 @@ async function completeDebugMission(page, { checkpoint, missionId }) {
     return (await completedMissionIds(page)).includes(missionId);
   }, { timeout: 85_000, intervals: [250, 350, 500] }).toBe(true);
 }
+
+test("el perfil femenino carga la marioneta femenina", async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    localStorage.setItem("music-enabled", "off");
+  });
+  await createFreshCharacter(page, "Kira", "female");
+  await page.locator(".debug-tools-trigger").click();
+  await page.locator('[data-debug-view="dojo"]').click();
+  await page.locator('[data-dojo-tab="statistics"]').click();
+  await expect(page.locator("#dojo-panel-statistics .puppet-preview-layer").first()).toHaveAttribute("src", /woman_sprites\/runtime/);
+
+  await page.locator(".debug-tools-trigger").click();
+  await page.locator('[data-debug-view="headquarters"]').click();
+  const femaleTorso = page.waitForResponse((response) => response.url().includes("woman_sprites/runtime/torso.png"));
+  await page.locator('[data-saga="saga-1"]').click();
+  await page.locator('[data-mission="m01"]').click();
+  await advanceDialogue(page);
+  await femaleTorso;
+  await expect(page.locator("#game canvas")).toHaveCount(1);
+});
 
 test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ page }) => {
   const browserErrors = [];

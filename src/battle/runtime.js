@@ -79,3 +79,21 @@ export const TECHNIQUE_VFX = Object.freeze({
 });
 export const TECHNIQUE_VFX_FRAMES = 7;
 
+export const COIN_DROP_VFX = Object.freeze({
+  file: "coin-spin-spritesheet.png",
+  frameWidth: 256,
+  frameHeight: 256,
+  frames: 10,
+  frameRate: 14,
+  displaySize: 30
+});
+
+export const EXPERIENCE_DROP_VFX = Object.freeze({
+  file: "experience-spin-spritesheet.png",
+  frameWidth: 256,
+  frameHeight: 256,
+  frames: 10,
+  frameRate: 14,
+  displaySize: 30
+});
+

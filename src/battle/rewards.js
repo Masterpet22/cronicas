@@ -10,6 +10,12 @@ export function addBattleReward(total, reward) {
   };
 }
 
+export function visibleRewardCountForEncounter(encounterIndex) {
+  const progression = [5, 7, 10, 13, 15];
+  const index = Math.max(0, Math.floor(Number(encounterIndex) || 0));
+  return progression[Math.min(index, progression.length - 1)];
+}
+
 export function missionGrade(outcome, playerHp, maxHp) {
   if (outcome !== "completed") return "F";
   const hpRatio = Math.max(0, Number(playerHp) || 0) / Math.max(1, Number(maxHp) || 1);

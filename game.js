@@ -1,12 +1,12 @@
 import { mountMetaUI } from "./src/meta-ui.js?v=0.82.5";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.66.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.88.2";
+import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.91.0";
 import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.85.1";
 import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.72.0";
 import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.82.6";
 import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.75.0";
 import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.88.1";
-import { Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.82.9";
+import { Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.91.0";
 
 let game = null;
 let metaUi = null;

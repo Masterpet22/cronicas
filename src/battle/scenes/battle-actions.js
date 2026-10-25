@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -17,7 +17,7 @@ import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRe
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
-import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.82.9";
+import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 export class BattleActionMethods {
   async playSeals(jutsu) {
@@ -273,7 +273,7 @@ export class BattleActionMethods {
       if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(true);
       else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true);
       else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true);
-      else if (usesWindPalmProjectile) await this.playWindPalmProjectile(true);
+      else if (usesWindPalmProjectile) await this.playWindPalmProjectile();
       this.tone(205, 0.08);
       this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
       const substitution = this.playSubstitution(this.foe);
@@ -323,7 +323,7 @@ export class BattleActionMethods {
       if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false);
       else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false);
       else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
-      else if (usesWindPalmProjectile) await this.playWindPalmProjectile(false);
+      else if (usesWindPalmProjectile) await this.playWindPalmProjectile();
       else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
       else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
       this.tone(jutsu.cinematic ? 92 : 128, 0.12);
@@ -377,7 +377,7 @@ export class BattleActionMethods {
     });
   }
 
-  playWindPalmProjectile(missed = false) {
+  playWindPalmProjectile() {
     const effect = TECHNIQUE_VFX.wind_palm;
     const texture = "technique-vfx-wind_palm";
     const animation = `${texture}-animation`;
@@ -385,9 +385,7 @@ export class BattleActionMethods {
 
     const groundY = this.foe.shadow.y + 8;
     const origin = { x: (this.hero.body.x + this.foe.body.x) / 2, y: groundY };
-    const target = missed
-      ? { x: this.foe.body.x + 115, y: groundY - 70 }
-      : { x: this.foe.body.x, y: groundY };
+    const target = { x: this.foe.body.x, y: groundY };
     const sprite = this.add.sprite(origin.x, origin.y, texture, 0)
       .setOrigin(0.5, 1)
       .setDisplaySize(effect.width, effect.height)

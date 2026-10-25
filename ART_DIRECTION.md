@@ -22,9 +22,9 @@ La hoja `assets/reference/modular-character-system-v1.png` define la plantilla d
 - Capas para cabello trasero, cuerpo, rostro, ropa superior e inferior, manos, cabello delantero, accesorio, arma y efectos.
 - Anclajes `HEAD`, `NECK`, `SHOULDER_L/R`, `HAND_L/R`, `WAIST`, `FOOT_L/R` y `WEAPON_HAND`.
 
-El renderer activo de combate utiliza una marioneta raster articulada construida por `src/fighters.js` con las piezas de `assets/modular/man_sprites/runtime/`. Por ahora todos los combatientes comparten ese cuerpo provisional. La vista previa SVG del Dojo, definida en `src/character.js`, sí representa cuerpo, rostro, peinado, ropa, calzado, color y arma, pero esa apariencia todavía no se traslada a la marioneta de combate. Integrar ambas representaciones es trabajo pendiente para la identidad visual definitiva.
+El renderer activo de combate utiliza marionetas raster articuladas construidas por `src/fighters.js` con las piezas de `assets/modular/man_sprites/runtime/` y `assets/modular/woman_sprites/runtime/`. El perfil del jugador selecciona el cuerpo masculino o femenino; los rivales conservan provisionalmente el masculino. Rostro, ropa, calzado, color y arma todavía no se trasladan a la marioneta de combate.
 
-Los atlas de personalización de `assets/modular/` son experimentos archivados y no se cargan durante el juego. La excepción es `assets/modular/man_sprites/runtime/`, que contiene la marioneta provisional actual. Ninguno debe considerarse arte modular terminado: las variantes generadas no comparten todavía una anatomía suficientemente estricta. Solo se integrarán cuando exista una plantilla maestra editable y todas las combinaciones superen una revisión visual.
+Los atlas de personalización de `assets/modular/` son experimentos archivados y no se cargan durante el juego. Las excepciones son los directorios `runtime/` de las marionetas masculina y femenina y los peinados aprobados. Ninguno debe considerarse arte modular terminado: las demás variantes generadas no comparten todavía una anatomía suficientemente estricta.
 
 ## Vocabulario de sellos
 

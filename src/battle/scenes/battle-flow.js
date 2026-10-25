@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.80.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
@@ -13,12 +13,12 @@ import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncoun
 import { resolveDamage } from "../damage.js?v=0.68.0";
 import { createEnemyState } from "../enemy-state.js?v=0.68.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, visibleRewardCountForEncounter } from "../rewards.js?v=0.91.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 
 
-import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.82.9";
+import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 export class BattleFlowMethods {
   async useJutsu(jutsu) {
@@ -130,6 +130,7 @@ export class BattleFlowMethods {
       this.lastReward = reward;
       this.defeatedEncounters += 1;
       this.battleRewards = addBattleReward(this.battleRewards, reward);
+      await this.playEncounterRewards(this.enemyIndex);
       if (this.enemyIndex === this.encounters.length - 1) {
         if (this.combatFeatures.relicDecision) await this.playRelicDrop();
         if (this.combatFeatures.postCombatChoice) await this.playHideoutDiscoveryChoice();
@@ -162,6 +163,70 @@ export class BattleFlowMethods {
       await this.triggerBossPhaseTwo();
     }
     return false;
+  }
+
+  async playEncounterRewards(encounterIndex) {
+    const count = visibleRewardCountForEncounter(encounterIndex);
+    await Promise.all([
+      this.playRewardBurst(count, {
+        texture: "coin-drop",
+        animation: "coin-drop-spin",
+        effect: COIN_DROP_VFX,
+        originYOffset: -38,
+        groundYOffset: -10,
+        targetYOffset: -28,
+        horizontalShift: -12
+      }),
+      this.playRewardBurst(count, {
+        texture: "experience-drop",
+        animation: "experience-drop-spin",
+        effect: EXPERIENCE_DROP_VFX,
+        originYOffset: -66,
+        groundYOffset: -52,
+        targetYOffset: -58,
+        horizontalShift: 12
+      })
+    ]);
+  }
+
+  async playRewardBurst(count, { texture, animation, effect, originYOffset, groundYOffset, targetYOffset, horizontalShift }) {
+    if (!count || !this.textures.exists(texture) || !this.anims.exists(animation)) return;
+    const originX = this.foe.body.x + horizontalShift;
+    const originY = this.foe.body.y + originYOffset;
+    const groundY = this.foe.shadow.y + groundYOffset;
+    const spacing = count > 1 ? Math.min(24, 132 / (count - 1)) : 0;
+    const center = (count - 1) / 2;
+    const rewardSprites = Array.from({ length: count }, (_, index) => {
+      const rewardSprite = this.add.sprite(originX, originY, texture, index % effect.frames)
+        .setDisplaySize(effect.displaySize, effect.displaySize)
+        .setDepth(18)
+        .play(animation);
+      rewardSprite.setScale((effect.displaySize / effect.frameWidth) * 0.18);
+      return rewardSprite;
+    });
+
+    await Promise.all(rewardSprites.map((rewardSprite, index) => this.tween({
+      targets: rewardSprite,
+      x: originX + (index - center) * spacing,
+      y: groundY - (index % 2) * 8,
+      scaleX: effect.displaySize / effect.frameWidth,
+      scaleY: effect.displaySize / effect.frameHeight,
+      angle: (index - center) * 12,
+      delay: index * 24,
+      duration: 340,
+      ease: "Cubic.out"
+    })));
+    await this.delay(160);
+
+    const playerTarget = { x: this.hero.body.x, y: this.hero.body.y + targetYOffset };
+    await Promise.all(rewardSprites.map((rewardSprite, index) => this.tween({
+      targets: rewardSprite,
+      x: playerTarget.x,
+      y: playerTarget.y,
+      delay: index * 28,
+      duration: 380,
+      ease: "Cubic.in"
+    }).then(() => rewardSprite.destroy())));
   }
 
   async advanceEncounter(interlude = null) {

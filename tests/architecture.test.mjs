@@ -21,6 +21,11 @@ function javascriptFiles(directory) {
 
 const protectedFiles = [path.join(projectRoot, "game.js"), ...javascriptFiles(path.join(projectRoot, "src"))]
   .filter((file) => file !== dataPath && !file.includes(`${path.sep}content${path.sep}`) && !file.includes(`${path.sep}save${path.sep}migrations${path.sep}`));
+
+const runtimeImportVersions = [...new Set(protectedFiles.flatMap((file) => (
+  [...readFileSync(file, "utf8").matchAll(/(?:src\/battle\/|\.\.\/)runtime\.js\?v=([\d.]+)/g)].map((match) => match[1])
+)))];
+assert.deepEqual(runtimeImportVersions, ["0.91.0"], "Todas las escenas deben compartir la misma instancia versionada de battleRuntime");
 const catalogIds = [...new Set(ALL_MISSIONS.flatMap((mission) => [
   mission.id,
   ...(mission.flow || []).map((step) => step.id).filter(Boolean)

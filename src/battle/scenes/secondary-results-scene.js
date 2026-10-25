@@ -1,7 +1,7 @@
-import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.80.0";
+import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.81.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { secondaryMissionGrade } from "../rewards.js?v=0.82.6";
-import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.82.9";
+import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 const PARCHMENT_TEXT = "#352217";
 const PARCHMENT_MUTED = "#6d5139";

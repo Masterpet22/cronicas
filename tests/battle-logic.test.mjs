@@ -4,7 +4,7 @@ import { ENEMY_ROSTER } from "../src/data.js";
 import { MISSIONS } from "../src/content/index.js";
 import { resolveDamage, splitDamageAcrossHits } from "../src/battle/damage.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, missionGrade, secondaryMissionGrade } from "../src/battle/rewards.js";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, missionGrade, secondaryMissionGrade, visibleRewardCountForEncounter } from "../src/battle/rewards.js";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../src/battle/turn.js";
 
 assert.deepEqual(resolveDamage({
@@ -46,6 +46,11 @@ assert.deepEqual(advanceCooldowns({ strike: 0, fire: 2 }), { strike: 0, fire: 1 
 
 const total = addBattleReward(addBattleReward(emptyBattleRewards(), { xp: 10, coins: 2 }), { affinityXp: 4, xp: 5 });
 assert.deepEqual(total, { xp: 15, affinityXp: 4, coins: 2 });
+assert.deepEqual(
+  [0, 1, 2, 3, 4, 5, 20].map(visibleRewardCountForEncounter),
+  [5, 7, 10, 13, 15, 15, 15],
+  "La cantidad visual debe crecer por pelea y detenerse en quince"
+);
 assert.deepEqual(bestiaryObservation(["bandit"], 0, { defeated: true }), { enemyId: "bandit", observation: { defeated: true } });
 assert.equal(missionGrade("completed", 90, 100), "S");
 assert.equal(missionGrade("completed", 70, 100), "A");
