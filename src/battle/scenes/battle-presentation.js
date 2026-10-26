@@ -87,51 +87,13 @@ function paintActionBackdrop(parts) {
   }
 }
 
+import { mountArenaVisuals } from "../arena-visual-controller.js?v=1.0.0";
+
 export class BattlePresentationMethods {
   drawArena() {
-    const theme = (this.mission.number - 1) % 3;
-    const bgKey = this.battleBackgroundKey || BATTLE_ARENAS[theme].texture;
-    if (this.textures.exists(bgKey)) {
-      this.add.image(WIDTH / 2, HEIGHT / 2, bgKey).setDisplaySize(WIDTH, HEIGHT).setDepth(0);
-    }
-
-    const g = this.add.graphics().setDepth(1);
-    if (theme === 0) this.drawDuskPass(g);
-    else if (theme === 1) this.drawMistMarsh(g);
-    else this.drawMoonShrine(g);
-
-    // Solo se oscurece el borde inferior para integrar la barra de velocidad
-    // sin cubrir el campo de batalla.
-    g.fillGradientStyle(0x061321, 0x061321, 0x020812, 0x020812, 0, 0, 0.24, 0.38);
-    g.fillRect(0, 450, WIDTH, 90);
-
-    this.arenaLabel = ["PASO DEL CREPÚSCULO", "MARISMA DE LOS JUNCOS", "SANTUARIO DE LA LUNA"][theme];
-  }
-
-  drawDuskPass(g) {
-    g.fillGradientStyle(0x000000, 0x000000, 0x2a1210, 0x2a1210, 0.08, 0.08, 0.38, 0.38);
-    g.fillRect(0, 0, WIDTH, 350);
-    for (let x = 30; x < WIDTH; x += 64) {
-      g.fillStyle(0xffbd73, 0.22);
-      g.fillCircle(x, 260 + (x % 5) * 12, 2);
-    }
-  }
-
-  drawMistMarsh(g) {
-    g.fillGradientStyle(0x000000, 0x000000, 0x0b2420, 0x0b2420, 0.08, 0.08, 0.42, 0.42);
-    g.fillRect(0, 0, WIDTH, 350);
-    g.fillStyle(0x67e8c3, 0.06);
-    g.fillEllipse(320, 320, 480, 40);
-    g.fillEllipse(720, 310, 460, 45);
-  }
-
-  drawMoonShrine(g) {
-    g.fillGradientStyle(0x000000, 0x000000, 0x1d0f2e, 0x1d0f2e, 0.08, 0.08, 0.42, 0.42);
-    g.fillRect(0, 0, WIDTH, 350);
-    for (let x = 60; x < WIDTH; x += 96) {
-      g.fillStyle(0xb879ff, 0.18);
-      g.fillCircle(x, 230 + (x % 4) * 18, 2);
-    }
+    const arena = BATTLE_ARENAS.find(({ texture }) => texture === this.battleBackgroundKey)
+      || BATTLE_ARENAS[((this.mission.number || 1) - 1) % BATTLE_ARENAS.length];
+    mountArenaVisuals(this, arena, { width: WIDTH, height: HEIGHT });
   }
 
   createHud() {
@@ -728,8 +690,10 @@ export class BattlePresentationMethods {
   }
 
   styleFighterGrounding(fighter) {
-    if (this.battleBackgroundKey !== "bg-marsh" || !fighter?.shadow) return;
-    fighter.shadow.setFillStyle(0x123e45, 0.22).setStrokeStyle(2, 0x75d9da, 0.38).setScale(1.14, 0.58);
+    const ground = this.arenaVisuals?.profile.grounding;
+    if (!ground || !fighter?.shadow?.scene) return;
+    fighter.shadow.setFillStyle(ground.color, ground.alpha)
+      .setStrokeStyle(ground.strokeWidth, ground.strokeColor, ground.strokeAlpha).setScale(ground.scaleX, ground.scaleY);
   }
 
   showBossPhaseSilhouette(fighter) {

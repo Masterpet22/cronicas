@@ -36,7 +36,7 @@ Existe una línea base repetible para detectar regresiones visuales y de rendimi
 presupuestos por escena y benchmark de 27 combinaciones de escenario, tamaño y modo.
 Protocolo: [`RENDIMIENTO_PHASER_4.md`](RENDIMIENTO_PHASER_4.md).
 Resultados: [`../artifacts/phaser-performance/baseline.md`](../artifacts/phaser-performance/baseline.md).
-El siguiente incremento pendiente es la fase 1; esta medición no añade perfiles ambientales.
+La línea base se conserva para comparar los perfiles ambientales de la fase 1.
 
 ## Fase 1 — Perfiles visuales declarativos por arena
 
@@ -45,15 +45,22 @@ El siguiente incremento pendiente es la fase 1; esta medición no añade perfile
 
 ### Entregables
 
-- [ ] Crear un catálogo `BATTLE_VISUAL_PROFILES` asociado a cada entrada de `BATTLE_ARENAS`.
-- [ ] Declarar color ambiental, viñeta, niebla, intensidad de cámara y densidad de partículas por arena.
-- [ ] Crear un controlador único que aplique, actualice y destruya los efectos al cambiar de escena.
-- [ ] Incorporar perfiles iniciales para desfiladero, pantano y santuario lunar.
-- [ ] Añadir fallback sin filtros que preserve fondo, contraste y legibilidad.
+- [x] Crear un catálogo `BATTLE_VISUAL_PROFILES` asociado a cada entrada de `BATTLE_ARENAS`.
+- [x] Declarar color ambiental, viñeta, niebla, intensidad de cámara y densidad de partículas por arena.
+- [x] Crear un controlador único que aplique, actualice y destruya los efectos al cambiar de escena.
+- [x] Incorporar perfiles iniciales para desfiladero, pantano y santuario lunar.
+- [x] Añadir fallback sin filtros que preserve fondo, contraste y legibilidad.
 
 ### Criterio de salida
 
 Cada arena tiene una identidad distinguible y puede cambiarse desde datos sin modificar `BattleScene`.
+
+**Estado: completada el 26 de octubre de 2026.** Catálogo por textura, controlador común,
+calidad reactiva y limpieza de objetos/texturas al salir o reiniciar. No se elevan los
+presupuestos de la fase 0 ni se añaden filtros. Detalles y comandos en
+[`PERFILES_VISUALES_ARENAS.md`](PERFILES_VISUALES_ARENAS.md); referencias y comparación en
+[`../artifacts/phaser-phase1/comparison.md`](../artifacts/phaser-phase1/comparison.md).
+La siguiente entrega pendiente es la fase 2.
 
 ## Fase 2 — Transiciones y filtros cinematográficos
 

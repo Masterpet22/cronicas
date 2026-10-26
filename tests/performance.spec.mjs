@@ -92,6 +92,15 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await page.locator(".debug-tools-trigger").click();
   await expect(page.locator("[data-perf-enabled]")).not.toBeChecked();
   await page.locator("[data-perf-enabled]").check();
+  await page.evaluate(async () => {
+    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.0.0");
+    const create = BattleScene.prototype.create;
+    BattleScene.prototype.create = function (...args) {
+      const result = create.apply(this, args);
+      window.__liveArenaController = this.arenaVisuals;
+      return result;
+    };
+  });
   await page.locator('[data-debug-mission="m02"]').click();
   await expect(page.locator(".performance-panel")).toHaveCount(1);
   await expect.poll(() => page.evaluate(async () => {
@@ -111,6 +120,8 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   });
   await expect(page.locator("#meta")).toBeVisible();
   await expect(page.locator(".performance-panel")).toHaveCount(0);
+  expect(await page.evaluate(() => ({ destroyed: window.__liveArenaController.destroyed, owned: window.__liveArenaController.ownedCount })))
+    .toEqual({ destroyed: true, owned: 0 });
   const lastCapture = await page.evaluate(async () => {
     const { performanceTools } = await import("/src/dev/performance-tools.js?v=0.99.0");
     const report = performanceTools.snapshot();

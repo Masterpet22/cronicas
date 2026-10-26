@@ -1,5 +1,5 @@
 // La misma receta se usa en las regresiones y en npm run performance:baseline.
-export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false } = {}) {
+export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false, arenaIndex = 1 } = {}) {
   await page.addInitScript(() => {
     sessionStorage.setItem("compact-combat-enabled", "1");
     localStorage.setItem("music-enabled", "off");
@@ -7,8 +7,8 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
   });
   await page.goto("/");
   await page.waitForFunction(() => window.Phaser && document.querySelector('[data-select-slot="1"]'));
-  await page.evaluate(async ({ renderer, lightMode }) => {
-    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=0.99.0");
+  await page.evaluate(async ({ renderer, lightMode, arenaIndex }) => {
+    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.0.0");
     const { battleRuntime, configureRenderResolution } = await import("/src/battle/runtime.js?v=0.91.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");
     const { MISSIONS } = await import("/src/content/index.js");
@@ -21,7 +21,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     document.getElementById("camera-effects").checked = false;
     document.getElementById("flash-effects").checked = false;
     localStorage.setItem("light-mode", lightMode ? "on" : "off");
-    const mission = MISSIONS[1];
+    const mission = MISSIONS[arenaIndex];
     const save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType: "male" });
     save.progression.level = 8;
     save.character.affinityXp.fuego = 1000;
@@ -59,7 +59,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
       render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
       scale: { mode: window.Phaser.Scale.FIT, autoCenter: window.Phaser.Scale.CENTER_BOTH }
     });
-  }, { renderer, lightMode });
+  }, { renderer, lightMode, arenaIndex });
   await page.waitForFunction(() => window.__performanceReference?.ready, null, { timeout: 30_000 });
 }
 

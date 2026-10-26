@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "id": "common-character-template-v1",
+  "status": "technical-candidate-art-pending",
+  "canvas": [2048, 2048],
+  "origin": [1024, 1024],
+  "coordinateSystem": "x-right-y-down; anatomical-right-is-screen-left",
+  "pose": "neutral-three-quarter-front",
+  "headTopY": 330,
+  "groundY": 1800,
+  "headHeight": 420,
+  "bodyHeadRatio": 3.5,
+  "tolerances": { "anchorPx": 4, "groundPx": 4, "headTopPx": 4, "dojoTransformPx": 0.1 },
+  "anchors": {
+    "HEAD": [1024, 540],
+    "NECK": [1024, 750],
+    "SHOULDER_R": [824, 790],
+    "SHOULDER_L": [1164, 790],
+    "HAND_R": [720, 1190],
+    "HAND_L": [1344, 1155],
+    "WAIST": [1024, 1166],
+    "FOOT_R": [871, 1800],
+    "FOOT_L": [1175, 1800],
+    "WEAPON_HAND": [720, 1190]
+  },
+  "roles": ["hair-rear", "body", "bottom", "shoes", "top", "face", "hair-front", "accessory", "weapon"],
+  "requiredMetadata": ["templateId", "bodyType", "role", "variantId", "anchors", "source", "license", "artReview"],
+  "exportRules": {
+    "format": "PNG RGBA",
+    "masterUntrimmed": true,
+    "runtimeCropRequiresRegistration": true,
+    "noIndependentRescaleOrRecenter": true,
+    "bodyTypes": ["male", "female"],
+    "minimumReviewHeightPx": 220,
+    "maximumReviewHeightPx": 255,
+    "artReviewRequired": true
+  },
+  "notes": [
+    "This is a measurable production contract, not approval of existing character illustrations.",
+    "Both body types must share cap height, ground line, registration and semantic anchors; their silhouettes may differ.",
+    "Arm, forearm, hand and leg exports need pivots and overlap margins to survive articulated poses.",
+    "Experimental 768x768 atlases are not registered to this master and must not be relabelled as approved."
+  ]
+}

@@ -4,12 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/affinity-system.test.mjs && node tests/rules.test.mjs && node tests/content-systems.test.mjs && node tests/architecture.test.mjs && node tests/combat-snapshot.test.mjs && node tests/battle-logic.test.mjs && node tests/timeline.test.mjs && node tests/battle-state.test.mjs && node tests/save-migrations.test.mjs && node tests/save.test.mjs && node tests/progression-balance.test.mjs && node tests/victory-transaction.test.mjs && node tests/mission-travel-presentation.test.mjs && node tests/save-fixtures.test.mjs && node tests/character.test.mjs && node tests/village-map.test.mjs && node tests/npcs.test.mjs && node tests/assets.test.mjs && node tests/elements.test.mjs && node tests/battle-ui.test.mjs && node tests/desktop-layout.test.mjs && node tests/performance-metrics.test.mjs",
+    "test": "node tests/affinity-system.test.mjs && node tests/rules.test.mjs && node tests/content-systems.test.mjs && node tests/architecture.test.mjs && node tests/combat-snapshot.test.mjs && node tests/battle-logic.test.mjs && node tests/timeline.test.mjs && node tests/battle-state.test.mjs && node tests/save-migrations.test.mjs && node tests/save.test.mjs && node tests/progression-balance.test.mjs && node tests/victory-transaction.test.mjs && node tests/mission-travel-presentation.test.mjs && node tests/save-fixtures.test.mjs && node tests/character.test.mjs && node tests/village-map.test.mjs && node tests/npcs.test.mjs && node tests/assets.test.mjs && node tests/elements.test.mjs && node tests/battle-ui.test.mjs && node tests/desktop-layout.test.mjs && node tests/performance-metrics.test.mjs && node tests/visual-profiles.test.mjs && node tests/character-template.test.mjs",
     "smoke": "playwright test --config=playwright.config.mjs",
     "performance:test": "node tests/performance-metrics.test.mjs && playwright test --config=playwright.config.mjs tests/performance.spec.mjs",
     "performance:baseline": "node scripts/performance-baseline.mjs",
     "metrics": "node scripts/metrics.mjs",
-    "fixtures:generate": "node scripts/generate-save-fixtures.mjs"
+    "fixtures:generate": "node scripts/generate-save-fixtures.mjs",
+    "arenas:test": "node tests/visual-profiles.test.mjs && playwright test --config=playwright.config.mjs tests/arena-visuals.spec.mjs",
+    "arenas:verify": "node scripts/verify-arena-visuals.mjs",
+    "arenas:benchmark": "node scripts/performance-baseline.mjs --output=artifacts/phaser-phase1/performance --no-screenshots && node scripts/compare-phaser-baselines.mjs",
+    "art:validate": "node scripts/validate-character-template.mjs"
   },
   "dependencies": {
     "lucide-static": "1.55.0"

@@ -36,11 +36,17 @@ Las principales se consultan únicamente en el **Cuartel General** y las secunda
 - `src/dialogues.js` conserva diálogos de NPC y resuelve las claves de misión agregadas desde `src/content/`.
 - `src/save/save-migrations.js` migra versiones puramente; `campaign-state.js`, `character-state.js` y `slot-repository.js` dividen las responsabilidades del guardado.
 - `src/battle/` contiene las escenas Phaser, el estado serializable de combate y los módulos puros de daño, turnos, enemigos y recompensas.
+- Las tres arenas tienen perfiles visuales declarativos y un controlador con alternativas para Canvas, modo ligero y movimiento reducido; véase [`PERFILES_VISUALES_ARENAS.md`](PERFILES_VISUALES_ARENAS.md).
 - `src/view-runtime.js` desmonta la vista anterior, aborta sus listeners y elimina overlays antes de montar otra.
 - Al abandonar Phaser para una ubicación HTML, la instancia se destruye; no permanece un canvas oculto ejecutándose en segundo plano.
 - [`SISTEMA_MISIONES_DIALOGOS.md`](SISTEMA_MISIONES_DIALOGOS.md) es el contrato para añadir requisitos, mecánicas, efectos y traducciones sin condicionales por ID.
 
 ## Expansión futura
+
+La [plantilla artística común](VALIDACION_PLANTILLA_ARTISTICA.md) tiene contrato candidato,
+guía SVG y auditoría de seis combinaciones. La integridad geométrica activa pasa; la aprobación
+del arte definitivo sigue pendiente por maestros/vestuario compatibles, registro de cuerpos
+y orden de capas. La apariencia actual no se ha sustituido por la candidata.
 
 La campaña crecerá mediante nuevas sagas y misiones después de estabilizar la primera. Los documentos [`HISTORIA_GENERAL.md`](HISTORIA_GENERAL.md) y [`PERSONAJES_Y_EVENTOS.md`](PERSONAJES_Y_EVENTOS.md) describen el relato y el reparto vigentes; no reservan capítulos ni personajes para expansiones todavía no aprobadas.
 

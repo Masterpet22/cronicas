@@ -139,6 +139,15 @@ resolución y presupuestos por escena, con exportación JSON. El benchmark gener
 El protocolo, los límites y la interpretación de resultados están en
 [`docs/RENDIMIENTO_PHASER_4.md`](docs/RENDIMIENTO_PHASER_4.md).
 
+Las tres arenas usan perfiles declarativos de ambiente, niebla, viñeta, partículas y cámara,
+con variantes sin filtros para Canvas, modo ligero y movimiento reducido. Se verifican con
+`npm run arenas:test`, `npm run arenas:verify` y `npm run arenas:benchmark`; véase
+[`docs/PERFILES_VISUALES_ARENAS.md`](docs/PERFILES_VISUALES_ARENAS.md).
+
+La plantilla artística común se audita con `npm run art:validate`. El contrato JSON y la guía
+SVG son candidatos técnicos; la [validación artística](docs/VALIDACION_PLANTILLA_ARTISTICA.md)
+detalla qué coincide entre Dojo y combate y qué impide aprobar todavía el arte definitivo.
+
 ## Escenario de escritorio
 
 Todas las vistas comparten un escenario lógico de `1440 × 810` píxeles (`16:9`). El marco se centra y escala de forma proporcional en pantallas de escritorio, mientras que en monitores grandes conserva su tamaño máximo.

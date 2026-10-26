@@ -1,0 +1,656 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-26T19:40:30.810Z",
+  "technicalIntegrity": {
+    "passed": true,
+    "errors": []
+  },
+  "productionApproval": {
+    "approved": false,
+    "status": "art-not-ready",
+    "reasons": [
+      "No hay exportaciones maestras de ambos cuerpos registradas a la plantilla común.",
+      "El manifiesto experimental usa 768×768; el contrato común usa 2048×2048.",
+      "Los cuerpos actuales tienen distintas alturas y líneas de suelo en el mismo espacio de rig.",
+      "El orden de capas del Dojo masculino difiere del ensamblado jerárquico de combate.",
+      "Faltan rostro, prendas, calzado y arma ilustrados compatibles y una revisión artística de silueta/estilo."
+    ]
+  },
+  "contractId": "common-character-template-v1",
+  "experimentalCanvas": [
+    768,
+    768
+  ],
+  "commonCanvas": [
+    2048,
+    2048
+  ],
+  "measurements": {
+    "groundDelta": 108.246,
+    "headTopDelta": 78.704
+  },
+  "variants": [
+    {
+      "bodyType": "male",
+      "hair": 0,
+      "bodyBounds": {
+        "left": -378.639,
+        "right": 412.923,
+        "top": -694.684,
+        "bottom": 800.316
+      },
+      "geometricHeadHeight": 392,
+      "bodyHeadRatio": 3.8138,
+      "maxTransformError": 0.008,
+      "geometryDifferences": [],
+      "layerOrderMatches": false,
+      "runtimeOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza"
+      ],
+      "dojoOrder": [
+        "pie_derecho",
+        "brazo_izquierdo",
+        "mano_derecha",
+        "muslo_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pie_izquierdo",
+        "pierna_derecha",
+        "pierna_izquierda",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "cabeza"
+      ],
+      "supportedClips": [
+        "idle-natural",
+        "idle-alert",
+        "idle-focus",
+        "prepare-technique",
+        "earth-wall-cast",
+        "guard-hold",
+        "guard-impact",
+        "hit-light",
+        "hit-heavy",
+        "guard-hold-simple",
+        "guard-impact-simple",
+        "hit-light-simple",
+        "hit-heavy-simple",
+        "run-cycle",
+        "run-simple",
+        "punch-prepare",
+        "punch-release",
+        "punch-recover"
+      ]
+    },
+    {
+      "bodyType": "male",
+      "hair": 1,
+      "bodyBounds": {
+        "left": -378.639,
+        "right": 412.923,
+        "top": -694.684,
+        "bottom": 800.316
+      },
+      "geometricHeadHeight": 392,
+      "bodyHeadRatio": 3.8138,
+      "maxTransformError": 0.008,
+      "geometryDifferences": [],
+      "layerOrderMatches": false,
+      "runtimeOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza",
+        "hair-corto"
+      ],
+      "dojoOrder": [
+        "pie_derecho",
+        "brazo_izquierdo",
+        "mano_derecha",
+        "muslo_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pie_izquierdo",
+        "pierna_derecha",
+        "pierna_izquierda",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "cabeza",
+        "hair-corto"
+      ],
+      "supportedClips": [
+        "idle-natural",
+        "idle-alert",
+        "idle-focus",
+        "prepare-technique",
+        "earth-wall-cast",
+        "guard-hold",
+        "guard-impact",
+        "hit-light",
+        "hit-heavy",
+        "guard-hold-simple",
+        "guard-impact-simple",
+        "hit-light-simple",
+        "hit-heavy-simple",
+        "run-cycle",
+        "run-simple",
+        "punch-prepare",
+        "punch-release",
+        "punch-recover"
+      ]
+    },
+    {
+      "bodyType": "male",
+      "hair": 4,
+      "bodyBounds": {
+        "left": -378.639,
+        "right": 412.923,
+        "top": -694.684,
+        "bottom": 800.316
+      },
+      "geometricHeadHeight": 392,
+      "bodyHeadRatio": 3.8138,
+      "maxTransformError": 0.008,
+      "geometryDifferences": [],
+      "layerOrderMatches": false,
+      "runtimeOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza",
+        "hair-coleta"
+      ],
+      "dojoOrder": [
+        "pie_derecho",
+        "brazo_izquierdo",
+        "mano_derecha",
+        "muslo_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pie_izquierdo",
+        "pierna_derecha",
+        "pierna_izquierda",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "cabeza",
+        "hair-coleta"
+      ],
+      "supportedClips": [
+        "idle-natural",
+        "idle-alert",
+        "idle-focus",
+        "prepare-technique",
+        "earth-wall-cast",
+        "guard-hold",
+        "guard-impact",
+        "hit-light",
+        "hit-heavy",
+        "guard-hold-simple",
+        "guard-impact-simple",
+        "hit-light-simple",
+        "hit-heavy-simple",
+        "run-cycle",
+        "run-simple",
+        "punch-prepare",
+        "punch-release",
+        "punch-recover"
+      ]
+    },
+    {
+      "bodyType": "female",
+      "hair": 0,
+      "bodyBounds": {
+        "left": -309.7268,
+        "right": 355.6989,
+        "top": -615.98,
+        "bottom": 692.07
+      },
+      "geometricHeadHeight": 345.84,
+      "bodyHeadRatio": 3.7822,
+      "maxTransformError": 0.0073,
+      "geometryDifferences": [],
+      "layerOrderMatches": true,
+      "runtimeOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza"
+      ],
+      "dojoOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza"
+      ],
+      "supportedClips": [
+        "idle-natural",
+        "idle-alert",
+        "idle-focus",
+        "prepare-technique",
+        "earth-wall-cast",
+        "guard-hold",
+        "guard-impact",
+        "hit-light",
+        "hit-heavy",
+        "guard-hold-simple",
+        "guard-impact-simple",
+        "hit-light-simple",
+        "hit-heavy-simple",
+        "run-cycle",
+        "run-simple",
+        "punch-prepare",
+        "punch-release",
+        "punch-recover"
+      ]
+    },
+    {
+      "bodyType": "female",
+      "hair": 1,
+      "bodyBounds": {
+        "left": -309.7268,
+        "right": 355.6989,
+        "top": -615.98,
+        "bottom": 692.07
+      },
+      "geometricHeadHeight": 345.84,
+      "bodyHeadRatio": 3.7822,
+      "maxTransformError": 0.0073,
+      "geometryDifferences": [],
+      "layerOrderMatches": true,
+      "runtimeOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza",
+        "hair-corto"
+      ],
+      "dojoOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza",
+        "hair-corto"
+      ],
+      "supportedClips": [
+        "idle-natural",
+        "idle-alert",
+        "idle-focus",
+        "prepare-technique",
+        "earth-wall-cast",
+        "guard-hold",
+        "guard-impact",
+        "hit-light",
+        "hit-heavy",
+        "guard-hold-simple",
+        "guard-impact-simple",
+        "hit-light-simple",
+        "hit-heavy-simple",
+        "run-cycle",
+        "run-simple",
+        "punch-prepare",
+        "punch-release",
+        "punch-recover"
+      ]
+    },
+    {
+      "bodyType": "female",
+      "hair": 4,
+      "bodyBounds": {
+        "left": -309.7268,
+        "right": 355.6989,
+        "top": -615.98,
+        "bottom": 692.07
+      },
+      "geometricHeadHeight": 345.84,
+      "bodyHeadRatio": 3.7822,
+      "maxTransformError": 0.0073,
+      "geometryDifferences": [],
+      "layerOrderMatches": true,
+      "runtimeOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza",
+        "hair-coleta"
+      ],
+      "dojoOrder": [
+        "brazo_izquierdo",
+        "antebrazo_izquierdo",
+        "mano_izquierda",
+        "muslo_izquierdo",
+        "pierna_izquierda",
+        "pie_izquierdo",
+        "torso",
+        "muslo_derecho",
+        "pierna_derecha",
+        "pie_derecho",
+        "brazo_derecho",
+        "antebrazo_derecho",
+        "mano_derecha",
+        "cabeza",
+        "hair-coleta"
+      ],
+      "supportedClips": [
+        "idle-natural",
+        "idle-alert",
+        "idle-focus",
+        "prepare-technique",
+        "earth-wall-cast",
+        "guard-hold",
+        "guard-impact",
+        "hit-light",
+        "hit-heavy",
+        "guard-hold-simple",
+        "guard-impact-simple",
+        "hit-light-simple",
+        "hit-heavy-simple",
+        "run-cycle",
+        "run-simple",
+        "punch-prepare",
+        "punch-release",
+        "punch-recover"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "asset": "assets/modular/man_sprites/runtime/pie_derecho.png",
+      "width": 146,
+      "height": 136,
+      "rgba": true,
+      "sha256": "72dd9481ffe8a75cb0420b9f25db76325ea01c6588d20180dd5c8089c26710fe"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/brazo_derecho.png",
+      "width": 228,
+      "height": 290,
+      "rgba": true,
+      "sha256": "bf4b45856613bac085eab219ac08a950cdf79c7bc7a8003e332927ea6e8cfd90"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/mano_derecha.png",
+      "width": 146,
+      "height": 187,
+      "rgba": true,
+      "sha256": "bf6809ce03980c311adcfa25c262aafc99338dafddb9e9451e32216ef72c1d80"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/muslo_izquierdo.png",
+      "width": 264,
+      "height": 332,
+      "rgba": true,
+      "sha256": "1ae0fc1b9cbbe3487e7998f0768391d2f125fe668e118ae4865eeb94ecdfbda4"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/torso.png",
+      "width": 372,
+      "height": 577,
+      "rgba": true,
+      "sha256": "d5e808d7735786a4561694b24a7722df984c0212ced93fbcdc293d8bd1830ec2"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/muslo_derecho.png",
+      "width": 198,
+      "height": 351,
+      "rgba": true,
+      "sha256": "caa326419641428af7689b0019d1ab7d8540bd1d52eda6b4bbbcac81b5dd34d5"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/pie_izquierdo.png",
+      "width": 219,
+      "height": 132,
+      "rgba": true,
+      "sha256": "d2631f9d1eb79b4e780196cd1424750da303e23f8f32f0048e77cbd5c336398a"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/pierna_derecha.png",
+      "width": 157,
+      "height": 297,
+      "rgba": true,
+      "sha256": "ea445e97380ee7cdab1f9b354c2b062b4852295e73ec1bf21e39e48314956c71"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/pierna_izquierda.png",
+      "width": 254,
+      "height": 336,
+      "rgba": true,
+      "sha256": "d1cefe837fd3c76572ca46194e18d23420c8455f36de1eef424ac6bc1885b1cd"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/brazo_izquierdo.png",
+      "width": 228,
+      "height": 321,
+      "rgba": true,
+      "sha256": "11820169d1e7187b4590a08c54644c53bd457727fa78c64003160003510c8e13"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/antebrazo_derecho.png",
+      "width": 126,
+      "height": 239,
+      "rgba": true,
+      "sha256": "361906b1ace9e9b66a563c33728d06c76c409ad2cac6f8648fdcb21daafb091d"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/antebrazo_izquierdo.png",
+      "width": 197,
+      "height": 239,
+      "rgba": true,
+      "sha256": "f7df01006ae43eb394cf7f5796031cbf58520d36d3ccecb0f3d13485e3875d15"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/mano_izquierda.png",
+      "width": 115,
+      "height": 188,
+      "rgba": true,
+      "sha256": "ab1089151fa10533997db2960ba92e25eda8c038d0778fce79e6b2aeba67b2bc"
+    },
+    {
+      "asset": "assets/modular/man_sprites/runtime/cabeza.png",
+      "width": 260,
+      "height": 392,
+      "rgba": true,
+      "sha256": "dcd04b7383e3b5906b5df6815652aa45bccad66011322be9bdc5ae1401c8b3b6"
+    },
+    {
+      "asset": "assets/modular/hair/hair_corto.png",
+      "width": 1500,
+      "height": 1163,
+      "rgba": true,
+      "sha256": "6c5aeaa42bf1132ee45d16dd0f629f47f67219fb3ba1f7bbffed9870fd1b572f"
+    },
+    {
+      "asset": "assets/modular/hair/hair_coleta.png",
+      "width": 1000,
+      "height": 800,
+      "rgba": true,
+      "sha256": "83b6717c5c0caf176dba2e0b7393f41cdab3de88cbbc4a878499835172ab177c"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/antebrazo_izquierdo.png",
+      "width": 210,
+      "height": 292,
+      "rgba": true,
+      "sha256": "9e35b21131c78103a1eab3c86dd79f536d7b2beffe726074f77defb7de80436d"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/brazo_izquierdo.png",
+      "width": 188,
+      "height": 231,
+      "rgba": true,
+      "sha256": "06319955fa8fa4f6b8b11ebd85385a4e4c5c6697d716fe00d79f925524b47ce4"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/mano_izquierda.png",
+      "width": 117,
+      "height": 188,
+      "rgba": true,
+      "sha256": "740cf8658ca68ead5f39dfdd1802289ac8f3c85b87835d59375364c8bd33d98e"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/muslo_izquierdo.png",
+      "width": 189,
+      "height": 353,
+      "rgba": true,
+      "sha256": "a0595dcdba6fd91c1fac15e70bb644fc01e876ce56ac9c5316c3591a3350ef5e"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/pierna_izquierda.png",
+      "width": 148,
+      "height": 250,
+      "rgba": true,
+      "sha256": "9391ac15b32b8e518471d47a4ed430dbced5bcb788320403ebbcc2fa92a6f817"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/pie_izquierdo.png",
+      "width": 219,
+      "height": 179,
+      "rgba": true,
+      "sha256": "d8511679c5d483f25fd81acbc2bb6d4593d039b04d54d138a2ae0d613cecc293"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/torso.png",
+      "width": 364,
+      "height": 616,
+      "rgba": true,
+      "sha256": "95f448b6b8003c4cdfdbe520ab29ad011b34a8773bc48e1751fb01d66fce0c7e"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/muslo_derecho.png",
+      "width": 199,
+      "height": 362,
+      "rgba": true,
+      "sha256": "eead7f568db85ea710dc104030ba09eb71a284d05c00c596e522642393d1233f"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/pierna_derecha.png",
+      "width": 158,
+      "height": 251,
+      "rgba": true,
+      "sha256": "53a10202f41edbf050fafcacecedff2f260349a41d78dea311b0d28d785f0670"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/pie_derecho.png",
+      "width": 148,
+      "height": 168,
+      "rgba": true,
+      "sha256": "241a9291b9ed00d1f3bef524de3b6a4b3ee50eb75d7e196386d1cc14a4768ffa"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/antebrazo_derecho.png",
+      "width": 220,
+      "height": 312,
+      "rgba": true,
+      "sha256": "02d6793890a6257b2e7d3b2ec6cb9ba9b4b22ffcbf7d8bee2f69e1626c36fe4b"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/brazo_derecho.png",
+      "width": 117,
+      "height": 241,
+      "rgba": true,
+      "sha256": "365b76328368de3a88a50841df9b3462057a137a86dcfec3f7e6113972e76ea1"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/mano_derecha.png",
+      "width": 147,
+      "height": 190,
+      "rgba": true,
+      "sha256": "d929eca5f9a90442761572b409c893544f53523ab56d85af4a61eb5473e4a94c"
+    },
+    {
+      "asset": "assets/modular/woman_sprites/runtime/cabeza.png",
+      "width": 261,
+      "height": 393,
+      "rgba": true,
+      "sha256": "ddc5226de6fb284680b665fc6fc41e5932634b890a411b77006769320458916e"
+    }
+  ]
+}

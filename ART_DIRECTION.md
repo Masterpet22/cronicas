@@ -26,6 +26,12 @@ El renderer activo de combate utiliza marionetas raster articuladas construidas 
 
 Los atlas de personalización de `assets/modular/` son experimentos archivados y no se cargan durante el juego. Las excepciones son los directorios `runtime/` de las marionetas masculina y femenina y los peinados aprobados. Ninguno debe considerarse arte modular terminado: las demás variantes generadas no comparten todavía una anatomía suficientemente estricta.
 
+La revisión reproducible está en [`docs/VALIDACION_PLANTILLA_ARTISTICA.md`](docs/VALIDACION_PLANTILLA_ARTISTICA.md).
+`assets/reference/character-template-v1.json` y su guía `.svg` definen una candidata técnica
+de maestro común 2048×2048; no son una aprobación artística ni el contrato de los atlas
+experimentales 768×768. Antes de exportar el vestuario definitivo se deben producir ambos
+maestros normalizados y verificar su correspondencia y orden de dibujo en Dojo y combate.
+
 ## Vocabulario de sellos
 
 Las doce posiciones se denominan: Alba, Pulso, Vínculo, Umbral, Flujo, Espiral, Sendero, Nexo, Estallido, Eco, Ruptura y Horizonte. Sus teclas conservan la cuadrícula `QWER / ASDF / ZXCV`.

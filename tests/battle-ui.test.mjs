@@ -33,9 +33,8 @@ const styles = readFileSync(new URL("../styles.css", import.meta.url), "utf8");
 const desktopStyles = readFileSync(new URL("../desktop.css", import.meta.url), "utf8");
 const desktop = readFileSync(new URL("../desktop.css", import.meta.url), "utf8");
 
-assert.match(battle, /drawDuskPass\(g\)/, "El combate debe incluir el fondo del paso al atardecer");
-assert.match(battle, /drawMistMarsh\(g\)/, "El combate debe incluir el fondo de la marisma");
-assert.match(battle, /drawMoonShrine\(g\)/, "El combate debe incluir el fondo del santuario lunar");
+assert.match(battle, /mountArenaVisuals\(this, arena/, "El combate debe delegar la presentación de arenas en un controlador común");
+assert.match(battle, /const BATTLE_VISUAL_PROFILES = freeze/, "Las arenas deben compartir un catálogo declarativo");
 assert.match(battle, /createTurnTimeline\(\)/, "El combate debe crear una barra de orden de acción");
 assert.match(battle, /const HUD_THEMES = Object\.freeze/, "Los marcos de combate deben compartir un catálogo de temas");
 assert.match(battle, /hud-theme-ancestral/, "El HUD debe cargar el tema Pergamino ancestral");
@@ -206,7 +205,7 @@ assert.match(battle, /ratio <= 0\.25 \? 0xe06b52 : 0x06d45a/, "La barra de vida 
 assert.match(battle, /\[\.\.\.this\.foe\.targets, this\.foe\.shadow\]/, "La sombra enemiga debe desvanecerse junto con el cuerpo");
 assert.match(battle, /this\.foe = createPlayerFighter\(this, 740, fighterY, this\.enemyAppearance\(\), true\)/, "El rival debe usar su apariencia registrada y mirar hacia el jugador");
 assert.match(battle, /battle-mist-marsh-water\.png/, "La marisma debe usar el fondo sin plataforma de piedra");
-assert.match(battle, /styleFighterGrounding\(fighter\)[\s\S]*setStrokeStyle\(2, 0x75d9da/, "Ambos combatientes deben integrarse en el agua mediante reflejo y ondas");
+assert.match(battle, /styleFighterGrounding\(fighter\)[\s\S]*profile\.grounding[\s\S]*setStrokeStyle\(ground\.strokeWidth/, "El contacto de ambos combatientes con el suelo debe proceder del perfil visual de la arena");
 assert.match(battle, /assets\/vfx\/substitution-log-runtime\.png/, "El combate debe cargar el tronco raster optimizado de Sustitución");
 assert.match(battle, /async playSubstitution\(fighter\)[\s\S]*fighter\.body\.setAlpha\(0\)[\s\S]*setScale\(finalScaleX \* 0\.04, finalScaleY \* 0\.04\)[\s\S]*ease: "Back\.out"[\s\S]*fighter\.body, alpha: bodyAlpha/, "La Sustitución debe ocultar al combatiente, hacer crecer el tronco y restaurarlo");
 assert.match(battle, /createSubstitutionSmoke\(x, y, spread = 1\)[\s\S]*Array\.from\(\{ length: 14 \}/, "La Sustitución debe envolver el tronco con humo animado");

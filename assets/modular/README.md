@@ -19,6 +19,11 @@ Los recursos `hair/hair_corto.png` y `hair/hair_coleta.png` son las variantes ap
 
 ## Regeneración
 
+La validación del runtime y la plantilla común candidata están documentadas en
+[`../../docs/VALIDACION_PLANTILLA_ARTISTICA.md`](../../docs/VALIDACION_PLANTILLA_ARTISTICA.md).
+Ejecutar `npm run art:validate` desde la raíz genera el informe y la lámina comparativa.
+El contrato nuevo 2048×2048 no convierte estos atlas 768×768 en recursos aprobados.
+
 Desde la raíz del proyecto:
 
 ```powershell

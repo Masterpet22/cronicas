@@ -1,0 +1,736 @@
+{
+  "generatedAt": "2026-10-26T19:39:51.334Z",
+  "reports": [
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:14.873Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 14,
+        "elapsedMs": 1245.3,
+        "fpsMean": 11.24,
+        "frameMsMean": 88.95,
+        "frameMsP50": 84.1,
+        "frameMsP95": 129,
+        "frameMsMax": 129,
+        "cpuMsMean": 7.32,
+        "framesOver33ms": 14
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 8,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 8,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m01",
+        "arenaNumber": 1,
+        "techniqueId": "fire_breath",
+        "bootMs": 1094,
+        "quality": "normal"
+      },
+      "profile": {
+        "id": "dusk-pass",
+        "label": "PASO DEL CREPÚSCULO",
+        "owned": 3
+      },
+      "screenshot": "dusk-pass-1-webgl-normal.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:20.225Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 16,
+        "elapsedMs": 1425.1,
+        "fpsMean": 11.23,
+        "frameMsMean": 89.07,
+        "frameMsP50": 84.3,
+        "frameMsP95": 133,
+        "frameMsMax": 133,
+        "cpuMsMean": 7.04,
+        "framesOver33ms": 16
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 8,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 8,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1333,
+        "quality": "normal"
+      },
+      "profile": {
+        "id": "mist-marsh",
+        "label": "MARISMA DE LOS JUNCOS",
+        "owned": 3
+      },
+      "screenshot": "mist-marsh-2-webgl-normal.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:25.538Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 14,
+        "elapsedMs": 1257.1,
+        "fpsMean": 11.14,
+        "frameMsMean": 89.79,
+        "frameMsP50": 84.1,
+        "frameMsP95": 140.8,
+        "frameMsMax": 140.8,
+        "cpuMsMean": 7.59,
+        "framesOver33ms": 14
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 8,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 8,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m03",
+        "arenaNumber": 3,
+        "techniqueId": "fire_breath",
+        "bootMs": 1203,
+        "quality": "normal"
+      },
+      "profile": {
+        "id": "moon-shrine",
+        "label": "SANTUARIO DE LA LUNA",
+        "owned": 3
+      },
+      "screenshot": "moon-shrine-3-webgl-normal.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:30.534Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 14,
+        "elapsedMs": 1171.8,
+        "fpsMean": 11.95,
+        "frameMsMean": 83.7,
+        "frameMsP50": 80.5,
+        "frameMsP95": 108.6,
+        "frameMsMax": 108.6,
+        "cpuMsMean": 6.74,
+        "framesOver33ms": 14
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m01",
+        "arenaNumber": 1,
+        "techniqueId": "fire_breath",
+        "bootMs": 1112,
+        "quality": "light"
+      },
+      "profile": {
+        "id": "dusk-pass",
+        "label": "PASO DEL CREPÚSCULO",
+        "owned": 2
+      },
+      "screenshot": "dusk-pass-1-webgl-light.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:35.497Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 15,
+        "elapsedMs": 1317.1,
+        "fpsMean": 11.39,
+        "frameMsMean": 87.81,
+        "frameMsP50": 86.4,
+        "frameMsP95": 98,
+        "frameMsMax": 98,
+        "cpuMsMean": 7.08,
+        "framesOver33ms": 15
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1218,
+        "quality": "light"
+      },
+      "profile": {
+        "id": "mist-marsh",
+        "label": "MARISMA DE LOS JUNCOS",
+        "owned": 2
+      },
+      "screenshot": "mist-marsh-2-webgl-light.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:40.348Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 14,
+        "elapsedMs": 1103,
+        "fpsMean": 12.69,
+        "frameMsMean": 78.79,
+        "frameMsP50": 79.3,
+        "frameMsP95": 82.9,
+        "frameMsMax": 82.9,
+        "cpuMsMean": 6.73,
+        "framesOver33ms": 14
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m03",
+        "arenaNumber": 3,
+        "techniqueId": "fire_breath",
+        "bootMs": 1099,
+        "quality": "light"
+      },
+      "profile": {
+        "id": "moon-shrine",
+        "label": "SANTUARIO DE LA LUNA",
+        "owned": 2
+      },
+      "screenshot": "moon-shrine-3-webgl-light.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:44.300Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 46,
+        "elapsedMs": 1193.8,
+        "fpsMean": 38.53,
+        "frameMsMean": 25.95,
+        "frameMsP50": 25.6,
+        "frameMsP95": 28,
+        "frameMsMax": 35,
+        "cpuMsMean": 2.8,
+        "framesOver33ms": 1
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 25,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 26,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m01",
+        "arenaNumber": 1,
+        "techniqueId": "fire_breath",
+        "bootMs": 461,
+        "quality": "normal"
+      },
+      "profile": {
+        "id": "dusk-pass",
+        "label": "PASO DEL CREPÚSCULO",
+        "owned": 3
+      },
+      "screenshot": "dusk-pass-1-canvas-normal.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:47.420Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 41,
+        "elapsedMs": 1199.8,
+        "fpsMean": 34.17,
+        "frameMsMean": 29.26,
+        "frameMsP50": 28.9,
+        "frameMsP95": 33.3,
+        "frameMsMax": 37.4,
+        "cpuMsMean": 2.91,
+        "framesOver33ms": 2
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 21,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 23,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 452,
+        "quality": "normal"
+      },
+      "profile": {
+        "id": "mist-marsh",
+        "label": "MARISMA DE LOS JUNCOS",
+        "owned": 3
+      },
+      "screenshot": "mist-marsh-2-canvas-normal.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T19:39:50.580Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 45,
+        "elapsedMs": 1192.3,
+        "fpsMean": 37.74,
+        "frameMsMean": 26.5,
+        "frameMsP50": 26.4,
+        "frameMsP95": 28.8,
+        "frameMsMax": 34.3,
+        "cpuMsMean": 2.9,
+        "framesOver33ms": 1
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 25,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 297,
+            "emitters": 5,
+            "particles": 25,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m03",
+        "arenaNumber": 3,
+        "techniqueId": "fire_breath",
+        "bootMs": 436,
+        "quality": "normal"
+      },
+      "profile": {
+        "id": "moon-shrine",
+        "label": "SANTUARIO DE LA LUNA",
+        "owned": 3
+      },
+      "screenshot": "moon-shrine-3-canvas-normal.png"
+    }
+  ],
+  "errors": [],
+  "skipped": []
+}

@@ -309,7 +309,8 @@ export class BattleFeedbackMethods {
   }
 
   shake(duration, intensity) {
-    if (this.cameraEffects && !this.lightMode) this.cameras.main.shake(duration, intensity);
+    const strength = intensity * (this.arenaVisuals?.cameraIntensity ?? 1);
+    if (this.cameraEffects && !this.lightMode && strength > 0) this.cameras.main.shake(duration, strength);
   }
 
   screenFlash(duration, red, green, blue) {

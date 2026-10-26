@@ -80,15 +80,21 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Diseñar un vocabulario propio para los sellos.
 - [x] Reemplazar la cuadrícula provisional por la nueva hoja de doce símbolos.
 - [x] Diseñar una hoja técnica con cuerpo masculino, femenino, piezas, capas, anclajes y variantes.
+- [x] Auditar los registros activos y producir un contrato candidato medible para la plantilla artística común.
 - [ ] Exportar cuerpos y prendas ilustrados realmente compatibles desde una plantilla artística común.
 - [ ] Separar el arte definitivo en cuerpo, rostro, cabello delantero/trasero, ropa, calzado y arma.
 - [x] Preparar cinco movimientos reutilizables mediante transformaciones: reposo, ataque, técnica, impacto y derrota.
 - [x] Crear una biblioteca ligera de efectos por elemento.
 - [x] Definir guía de color, interfaz y tipografía.
 
-**Estado: pausada mientras se valida el diseño definitivo.**
+**Estado: plantilla técnica auditada; producción del arte definitivo pendiente.**
 
 **Criterio de salida pendiente:** el juego usa una marioneta raster provisional y los atlas de personalización permanecen archivados como experimentos. La fase solo se considerará terminada cuando la apariencia del Dojo se represente también en combate y todas las combinaciones ilustradas compartan anatomía y anclajes verificables. También se debe confirmar la autoría o licencia de la hoja de símbolos proporcionada.
+
+La [validación de la plantilla común](docs/VALIDACION_PLANTILLA_ARTISTICA.md) verifica seis
+combinaciones activas y registra las diferencias de altura/suelo y orden de capas. El contrato
+y la guía SVG son candidatos técnicos; no aprueban las prendas experimentales ni sustituyen
+los dos maestros ilustrados pendientes.
 
 ## Fase 5 — Servicios en línea, solo después de validar la demo
 
@@ -112,7 +118,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-La fase 0 del [`roadmap de Phaser 4`](docs/ROADMAP_PHASER_4.md) está completada: instrumentación opcional, presupuestos y línea base repetible de rendimiento y referencias visuales. El siguiente incremento es la fase 1: crear perfiles visuales declarativos para las tres arenas. En paralelo, producir y validar una plantilla artística real antes de integrar la apariencia personalizable definitiva en combate.
+Las fases 0 y 1 del [`roadmap de Phaser 4`](docs/ROADMAP_PHASER_4.md) están completadas: línea base repetible y perfiles visuales declarativos para las tres arenas. El siguiente incremento es la fase 2: transiciones y filtros cinematográficos con sus alternativas accesibles. En paralelo, producir los maestros ilustrados y el primer vestuario compatibles con el contrato candidato de la plantilla común, corregir su registro y revisar el orden de capas antes de integrar la apariencia definitiva en combate.
 
 ## Bloqueador obligatorio antes de 1.0
 

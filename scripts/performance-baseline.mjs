@@ -9,8 +9,9 @@ import { REFERENCE_SCENARIOS, SCENE_PERFORMANCE_BUDGETS } from "../src/dev/perfo
 
 const projectRoot = fileURLToPath(new URL("../", import.meta.url));
 const baseURL = "http://127.0.0.1:4173";
-const output = resolve(projectRoot, "artifacts/phaser-performance");
+const output = resolve(projectRoot, process.argv.find((arg) => arg.startsWith("--output="))?.slice(9) || "artifacts/phaser-performance");
 const sampleMs = 3000;
+const screenshots = !process.argv.includes("--no-screenshots");
 const viewports = [{ width: 1366, height: 768 }, { width: 1600, height: 900 }, { width: 844, height: 390 }];
 const modes = [{ renderer: "WebGL", lightMode: false }, { renderer: "WebGL", lightMode: true }, { renderer: "Canvas", lightMode: false }];
 let server;
@@ -51,9 +52,11 @@ try {
           report.viewport = viewport;
           report.captureWindowMs = sampleMs;
           reports.push(report);
-          const screenshot = `${label}-${scenario.id}.png`;
-          await capturePerformancePreview(page, scenario.id, resolve(output, screenshot));
-          report.screenshot = screenshot;
+          if (screenshots) {
+            const screenshot = `${label}-${scenario.id}.png`;
+            await capturePerformancePreview(page, scenario.id, resolve(output, screenshot));
+            report.screenshot = screenshot;
+          }
           process.stdout.write(`${label} · ${scenario.id}: ${report.timing.fpsMean} FPS · p95 ${report.timing.frameMsP95} ms\n`);
         }
         await disposePerformanceReference(page);

@@ -1,0 +1,600 @@
+{
+  "before": "2026-10-26T18:59:24.800Z",
+  "after": "2026-10-26T19:38:48.971Z",
+  "changes": [
+    {
+      "reference": "1366x768-webgl-normal",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 11.99,
+      "afterFps": 12.08,
+      "frameMeanDeltaPercent": -0.8,
+      "p95Before": 92.5,
+      "p95After": 88.9,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 1
+      },
+      "afterPeak": {
+        "objects": 291,
+        "emitters": 1,
+        "particles": 0,
+        "filters": 1
+      }
+    },
+    {
+      "reference": "1366x768-webgl-normal",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 11.33,
+      "afterFps": 11.46,
+      "frameMeanDeltaPercent": -1.2,
+      "p95Before": 96.2,
+      "p95After": 99.6,
+      "beforePeak": {
+        "objects": 296,
+        "emitters": 4,
+        "particles": 27,
+        "filters": 1
+      },
+      "afterPeak": {
+        "objects": 297,
+        "emitters": 5,
+        "particles": 21,
+        "filters": 1
+      }
+    },
+    {
+      "reference": "1366x768-webgl-normal",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 11.65,
+      "afterFps": 10.7,
+      "frameMeanDeltaPercent": 8.9,
+      "p95Before": 111,
+      "p95After": 115,
+      "beforePeak": {
+        "objects": 294,
+        "emitters": 1,
+        "particles": 8,
+        "filters": 2
+      },
+      "afterPeak": {
+        "objects": 295,
+        "emitters": 2,
+        "particles": 10,
+        "filters": 2
+      }
+    },
+    {
+      "reference": "1366x768-webgl-light",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 11.91,
+      "afterFps": 12.17,
+      "frameMeanDeltaPercent": -2.2,
+      "p95Before": 98.5,
+      "p95After": 97.5,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1366x768-webgl-light",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 11.92,
+      "afterFps": 12.45,
+      "frameMeanDeltaPercent": -4.3,
+      "p95Before": 90.4,
+      "p95After": 83.6,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1366x768-webgl-light",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 11.47,
+      "afterFps": 11.55,
+      "frameMeanDeltaPercent": -0.7,
+      "p95Before": 94.1,
+      "p95After": 94.7,
+      "beforePeak": {
+        "objects": 292,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 292,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1366x768-canvas-normal",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 44.55,
+      "afterFps": 43.59,
+      "frameMeanDeltaPercent": 2.2,
+      "p95Before": 24.5,
+      "p95After": 26.3,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 291,
+        "emitters": 1,
+        "particles": 3,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1366x768-canvas-normal",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 43.2,
+      "afterFps": 37.82,
+      "frameMeanDeltaPercent": 14.2,
+      "p95Before": 26.9,
+      "p95After": 29.4,
+      "beforePeak": {
+        "objects": 296,
+        "emitters": 4,
+        "particles": 25,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 297,
+        "emitters": 5,
+        "particles": 33,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1366x768-canvas-normal",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 43.78,
+      "afterFps": 42.37,
+      "frameMeanDeltaPercent": 3.3,
+      "p95Before": 25.5,
+      "p95After": 26.7,
+      "beforePeak": {
+        "objects": 293,
+        "emitters": 1,
+        "particles": 8,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 294,
+        "emitters": 2,
+        "particles": 15,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1600x900-webgl-normal",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 9.35,
+      "afterFps": 9.68,
+      "frameMeanDeltaPercent": -3.5,
+      "p95Before": 117,
+      "p95After": 112.6,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 1
+      },
+      "afterPeak": {
+        "objects": 291,
+        "emitters": 1,
+        "particles": 0,
+        "filters": 1
+      }
+    },
+    {
+      "reference": "1600x900-webgl-normal",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 9.1,
+      "afterFps": 9.4,
+      "frameMeanDeltaPercent": -3.2,
+      "p95Before": 119.3,
+      "p95After": 118.2,
+      "beforePeak": {
+        "objects": 296,
+        "emitters": 4,
+        "particles": 28,
+        "filters": 1
+      },
+      "afterPeak": {
+        "objects": 297,
+        "emitters": 5,
+        "particles": 17,
+        "filters": 1
+      }
+    },
+    {
+      "reference": "1600x900-webgl-normal",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 9.08,
+      "afterFps": 8.86,
+      "frameMeanDeltaPercent": 2.5,
+      "p95Before": 140.4,
+      "p95After": 124.8,
+      "beforePeak": {
+        "objects": 294,
+        "emitters": 1,
+        "particles": 8,
+        "filters": 2
+      },
+      "afterPeak": {
+        "objects": 295,
+        "emitters": 2,
+        "particles": 10,
+        "filters": 2
+      }
+    },
+    {
+      "reference": "1600x900-webgl-light",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 9.3,
+      "afterFps": 9.58,
+      "frameMeanDeltaPercent": -2.9,
+      "p95Before": 115.3,
+      "p95After": 111.6,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1600x900-webgl-light",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 9.43,
+      "afterFps": 9.76,
+      "frameMeanDeltaPercent": -3.4,
+      "p95Before": 112.2,
+      "p95After": 134.5,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1600x900-webgl-light",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 9.27,
+      "afterFps": 8.63,
+      "frameMeanDeltaPercent": 7.4,
+      "p95Before": 115.3,
+      "p95After": 123.4,
+      "beforePeak": {
+        "objects": 292,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 292,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1600x900-canvas-normal",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 34.03,
+      "afterFps": 32.72,
+      "frameMeanDeltaPercent": 4,
+      "p95Before": 30.6,
+      "p95After": 34,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 291,
+        "emitters": 1,
+        "particles": 2,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1600x900-canvas-normal",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 33.47,
+      "afterFps": 30.07,
+      "frameMeanDeltaPercent": 11.3,
+      "p95Before": 31.8,
+      "p95After": 37.9,
+      "beforePeak": {
+        "objects": 296,
+        "emitters": 4,
+        "particles": 27,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 297,
+        "emitters": 5,
+        "particles": 32,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "1600x900-canvas-normal",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 32.48,
+      "afterFps": 33.28,
+      "frameMeanDeltaPercent": -2.4,
+      "p95Before": 33.8,
+      "p95After": 33.6,
+      "beforePeak": {
+        "objects": 293,
+        "emitters": 1,
+        "particles": 8,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 294,
+        "emitters": 2,
+        "particles": 16,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "844x390-webgl-normal",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 41.14,
+      "afterFps": 42.88,
+      "frameMeanDeltaPercent": -4.1,
+      "p95Before": 27,
+      "p95After": 25.2,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 1
+      },
+      "afterPeak": {
+        "objects": 291,
+        "emitters": 1,
+        "particles": 3,
+        "filters": 1
+      }
+    },
+    {
+      "reference": "844x390-webgl-normal",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 38.27,
+      "afterFps": 38.76,
+      "frameMeanDeltaPercent": -1.3,
+      "p95Before": 28.3,
+      "p95After": 27.4,
+      "beforePeak": {
+        "objects": 296,
+        "emitters": 4,
+        "particles": 25,
+        "filters": 1
+      },
+      "afterPeak": {
+        "objects": 297,
+        "emitters": 5,
+        "particles": 33,
+        "filters": 1
+      }
+    },
+    {
+      "reference": "844x390-webgl-normal",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 38.89,
+      "afterFps": 39.84,
+      "frameMeanDeltaPercent": -2.4,
+      "p95Before": 29.8,
+      "p95After": 29.5,
+      "beforePeak": {
+        "objects": 294,
+        "emitters": 1,
+        "particles": 8,
+        "filters": 2
+      },
+      "afterPeak": {
+        "objects": 295,
+        "emitters": 2,
+        "particles": 15,
+        "filters": 2
+      }
+    },
+    {
+      "reference": "844x390-webgl-light",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 40.6,
+      "afterFps": 43.09,
+      "frameMeanDeltaPercent": -5.8,
+      "p95Before": 26.2,
+      "p95After": 24.9,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "844x390-webgl-light",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 40.05,
+      "afterFps": 43.37,
+      "frameMeanDeltaPercent": -7.6,
+      "p95Before": 28.7,
+      "p95After": 24.8,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "844x390-webgl-light",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 36.92,
+      "afterFps": 41.77,
+      "frameMeanDeltaPercent": -11.6,
+      "p95Before": 31.8,
+      "p95After": 26.1,
+      "beforePeak": {
+        "objects": 292,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 292,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "844x390-canvas-normal",
+      "scenario": "battle-entry",
+      "comparable": true,
+      "beforeFps": 60.02,
+      "afterFps": 60,
+      "frameMeanDeltaPercent": 0.1,
+      "p95Before": 17.8,
+      "p95After": 18.1,
+      "beforePeak": {
+        "objects": 290,
+        "emitters": 0,
+        "particles": 0,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 291,
+        "emitters": 1,
+        "particles": 4,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "844x390-canvas-normal",
+      "scenario": "charged-turn",
+      "comparable": true,
+      "beforeFps": 60.06,
+      "afterFps": 60,
+      "frameMeanDeltaPercent": 0.1,
+      "p95Before": 17.9,
+      "p95After": 17.9,
+      "beforePeak": {
+        "objects": 296,
+        "emitters": 4,
+        "particles": 28,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 297,
+        "emitters": 5,
+        "particles": 34,
+        "filters": 0
+      }
+    },
+    {
+      "reference": "844x390-canvas-normal",
+      "scenario": "elemental-technique",
+      "comparable": true,
+      "beforeFps": 60.01,
+      "afterFps": 60.03,
+      "frameMeanDeltaPercent": 0,
+      "p95Before": 17.8,
+      "p95After": 18.3,
+      "beforePeak": {
+        "objects": 293,
+        "emitters": 1,
+        "particles": 8,
+        "filters": 0
+      },
+      "afterPeak": {
+        "objects": 294,
+        "emitters": 2,
+        "particles": 14,
+        "filters": 0
+      }
+    }
+  ]
+}

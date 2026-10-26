@@ -21,10 +21,10 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.99.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=1.0.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.97.0";
 import { BattleActionMethods } from "./battle-actions.js?v=0.94.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.95.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=1.0.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 
 export class BattleScene extends Phaser.Scene {
@@ -108,6 +108,14 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create() {
+    // Los objetos del HUD anterior ya están destruidos cuando Phaser reinicia la escena.
+    this.actionSlots = [];
+    this.buttons = [];
+    this.actionBackdropThemeParts = null;
+    this.timelineThemeParts = null;
+    this.playerTimelineTag = null;
+    this.enemyTimelineTag = null;
+    this.accessibleHud = null;
     // La resolución lógica se escala explícitamente para conservar un HUD nítido.
     // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
@@ -290,6 +298,7 @@ export class BattleScene extends Phaser.Scene {
       this.lightMode = lightToggle.checked;
       this.volume = Number(volumeInput.value) / 100;
       if (this.lightMode) { clearSceneFilters(this); clearSceneParticles(this); }
+      this.arenaVisuals?.update();
       this.refreshActionPanelFilter?.();
       try {
         window.localStorage.setItem("camera-effects", this.cameraEffects ? "on" : "off");
