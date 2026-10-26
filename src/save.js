@@ -3,10 +3,11 @@ import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
 import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.93.0";
-import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.60.0";
+import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.100.0";
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
 import { createCompletedMissionProgress, migrateSaveToV17 } from "./save/save-migrations.js";
 import { createSlotRepository } from "./save/slot-repository.js";
+import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
 import { advanceMissionProgress as advanceCampaignMission, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
 export { attributeTrainingLimit };
@@ -346,7 +347,7 @@ export function completeMission(save, missionId) {
   return { save: result, xp: gainedXp, affinityXp, coins: gainedCoins, bonusCoins: secretBonus, levelsGained, firstClear: true };
 }
 function completeRouteSearchMission(result, mission) {
-  if (missionState(mission, result).completed || result.campaign.doctorRoute.phase < 3) return emptySecondaryCompletion(result);
+  if (missionState(mission, result).completed || result.campaign.doctorRoute.phase < 3 || !cipherComplete(result.campaign.doctorRoute.cipher)) return emptySecondaryCompletion(result, { blocked: true });
   const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
   const gainedCoins = mission.reward.coins * (result.campaign.banditPrisonerChoice === "interrogate" ? 2 : 1);
   const affinityXp = Math.max(8, Math.round(gainedXp * 0.35));
@@ -421,6 +422,15 @@ export function cancelDoctorMission(save) {
 
 export function completeDoctorMission(save, mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS)) {
   return completeSecondaryMission(save, mission);
+}
+
+export function actOnDoctorCipher(save, action, payload) {
+  const result = normalizeSave(save);
+  const route = result.campaign.doctorRoute;
+  if (!route.active || route.phase < 3 || route.pendingEvent) return { save: result, valid: false, steps: [] };
+  const resolution = applyCipherAction(route.cipher, action, payload);
+  route.cipher = resolution.state;
+  return { ...resolution, save: normalizeSave(result) };
 }
 
 export function deliverBestiaryBook(save) {

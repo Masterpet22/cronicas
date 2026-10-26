@@ -1,5 +1,6 @@
+import { cipherComplete, cipherHint } from "../src/puzzles/seal-cipher.js";
 import assert from "node:assert/strict";
-import { DEBUG_CHECKPOINTS, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resetAttributes, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
+import { DEBUG_CHECKPOINTS, actOnDoctorCipher, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resetAttributes, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
 import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
@@ -151,13 +152,20 @@ doctorRoute = resolveDoctorRiverPassage(doctorRoute, "reeds");
 assert.equal(doctorRoute.campaign.doctorRoute.phase, 2, "El paso correcto debe completar la fase del río");
 doctorRoute = chooseDoctorMissionRoute(doctorRoute, "forest");
 assert.equal(doctorRoute.campaign.doctorRoute.phase, 3, "El bosque de la tercera fase debe converger directamente en Haru");
-let combatRoute = chooseDoctorMissionRoute(startDoctorMission(canyonComplete), "elevated");
+let combatRoute = chooseDoctorMissionRoute(startDoctorMission(canyonComplete), "forest");
 combatRoute = chooseDoctorMissionRoute(combatRoute, "forest");
 assert.equal(combatRoute.campaign.doctorRoute.pendingEvent.type, "combat", "El bosque de la segunda fase debe activar un duelo individual");
 const combatRouteCoins = combatRoute.progression.coins;
 combatRoute = resolveDoctorMissionCombat(combatRoute);
 assert.equal(combatRoute.campaign.doctorRoute.phase, 2, "Vencer el duelo debe reanudar la búsqueda sin conceder una fase adicional");
 assert.equal(combatRoute.progression.coins, combatRouteCoins, "El duelo de ruta no debe otorgar monedas repetibles");
+assert.equal(completeDoctorMission(doctorRoute).blocked, true, "Encontrar a Haru no permite cobrar antes de descifrar el mapa");
+doctorRoute = actOnDoctorCipher(doctorRoute, "start").save;
+for (let turn = 0; turn < 200 && !cipherComplete(doctorRoute.campaign.doctorRoute.cipher); turn += 1) {
+  const hint = cipherHint(doctorRoute.campaign.doctorRoute.cipher);
+  doctorRoute = actOnDoctorCipher(doctorRoute, "swap", hint).save;
+}
+assert.equal(cipherComplete(doctorRoute.campaign.doctorRoute.cipher), true);
 const doctorCompletion = completeDoctorMission(doctorRoute);
 assert.equal(doctorCompletion.save.campaign.doctorBookDeliveryPending, true, "Haru debe entregar el libro para llevarlo obligatoriamente a la Biblioteca");
 assert.equal(doctorCompletion.coins, 60, "La información del teniente debe duplicar las monedas de este encargo");

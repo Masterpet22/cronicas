@@ -1,0 +1,84 @@
+.doctor-meeting .doctor-encounter { width: min(880px, 100%); margin-block: auto; padding: 36px; }
+.doctor-meeting .doctor-encounter p { max-width: 600px; color: #c4d2d5; font-size: 18px; line-height: 1.6; }
+.doctor-meeting .doctor-meeting-note { color: #d5b986; }
+.cipher-entry-transition { position: absolute; z-index: 80; inset: 0; display: grid; align-content: center; justify-items: center; gap: 10px; background: radial-gradient(ellipse at center, #16313a, #030b14 70%); text-align: center; }
+.cipher-entry-transition[hidden] { display: none; }
+.cipher-entry-transition > div { width: 150px; height: 130px; display: grid; place-items: center; }
+.cipher-entry-transition .cipher-glyph { width: 140px; }
+.cipher-entry-transition h2 { font-size: 32px; }
+.cipher-entry-transition p:not(.eyebrow) { color: #b8cbd2; font-size: 18px; }
+.cipher-screen { background: radial-gradient(ellipse at 65% 55%, rgba(23,52,65,.65), rgba(2,9,17,.82) 75%), url("assets/locations/battle-dusk-pass.jpg?v=0.20.0") center/cover; }
+.cipher-screen > header { width: min(1120px, 100%); }
+.cipher-screen > header > div > p:last-child { margin-bottom: 0; }
+.cipher-workspace { display: grid; flex: 1; grid-template-columns: minmax(270px, .8fr) minmax(0, 1fr); align-items: center; gap: clamp(28px, 5vw, 78px); width: min(1120px, 100%); min-height: 0; margin: 18px auto 0; animation: cipher-enter .5s ease-out both; }
+.cipher-guidance { max-width: 420px; padding: 10px 0; }
+.cipher-guide-name { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; }
+.cipher-guide-name > span { display: grid; place-items: center; width: 54px; height: 54px; flex: 0 0 54px; border: 1px solid #cfb37c; border-radius: 50%; color: #e7c78e; background: rgba(118,93,43,.12); font-size: 28px; }
+.cipher-guide-name .eyebrow { margin: 0 0 4px; font-size: 12px; }
+.cipher-guide-name strong { color: #f0e6d1; font: 700 18px Cinzel, serif; }
+.cipher-guidance > p:not(.eyebrow) { color: #bdced3; font-size: 16px; line-height: 1.5; }
+.cipher-guidance p strong { color: #e1cc9c; }
+.cipher-seal-legend { display: flex; justify-content: space-between; gap: 7px; margin: 20px 0; }
+.cipher-seal-legend > span { display: grid; justify-items: center; gap: 5px; }
+.cipher-glyph { display: block; width: 72%; aspect-ratio: 688 / 512; background-image: url("assets/sellos-originales.webp?v=0.20.0"); background-size: 400% 300%; background-repeat: no-repeat; mix-blend-mode: screen; }
+.cipher-seal-legend .cipher-glyph { width: 37px; }
+.cipher-seal-legend small { color: var(--seal-color); font-size: 12px; }
+.cipher-type-0 { --seal-color: #f2c478; --seal-tint: rgba(240,184,92,.23); }
+.cipher-type-1 { --seal-color: #70e0bc; --seal-tint: rgba(72,186,145,.23); }
+.cipher-type-2 { --seal-color: #8bd4fc; --seal-tint: rgba(71,156,215,.23); }
+.cipher-type-3 { --seal-color: #c3a1ef; --seal-tint: rgba(157,104,218,.23); }
+.cipher-type-4 { --seal-color: #f49d91; --seal-tint: rgba(212,105,85,.23); }
+.cipher-progress-label { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-top: 24px; color: #d1c4a5; font-size: 12px; letter-spacing: .1em; }
+.cipher-progress-label strong { color: #f5e8bf; font-size: 24px; letter-spacing: 0; }
+.cipher-progress-track { height: 5px; margin-top: 10px; overflow: hidden; border-radius: 4px; background: #18303a; }
+.cipher-progress-track > span { display: block; height: 100%; background: linear-gradient(90deg, #66bdac, #e2c58b); transition: width .3s ease; }
+.cipher-guidance .cipher-move-count { margin-top: 9px; color: #8fa7b4; font-size: 13px; }
+.cipher-guidance .cipher-feedback { min-height: 44px; padding-left: 12px; border-left: 2px solid #c1a36d; color: #dbd1b9; font-size: 14px; }
+.cipher-hint-button { min-height: 42px; padding: 10px 20px; font-size: 14px; }
+.cipher-puzzle { justify-self: center; width: min(100%, 490px, calc(100dvh - 260px)); }
+.cipher-paper { position: relative; width: 100%; aspect-ratio: 1; overflow: hidden; border: 2px solid #b9a071; border-radius: 8px; background: #cbbb8b; box-shadow: 0 22px 70px #0007, 0 0 0 7px rgba(154,132,91,.08); }
+.cipher-map-image, .cipher-ink, .cipher-grid { position: absolute; inset: 0; width: 100%; height: 100%; }
+.cipher-map-image { display: block; object-fit: cover; }
+.cipher-ink, .cipher-grid { display: grid; grid-template-columns: repeat(6, 1fr); grid-template-rows: repeat(6, 1fr); }
+.cipher-ink { pointer-events: none; }
+.cipher-ink > span { background: radial-gradient(circle at center, #16313c, #0a1823 90%); border: 1px solid #668a9a22; transition: opacity .28s ease; }
+.cipher-ink > span.revealed { opacity: 0; }
+.cipher-cell { position: relative; display: grid; place-items: center; min-width: 0; min-height: 0; padding: 5px; border: 0; border-radius: 0; background: transparent; cursor: pointer; isolation: isolate; }
+.cipher-piece { position: relative; display: grid; place-items: center; width: 92%; aspect-ratio: 1; border: 1px solid var(--seal-color); border-radius: 13px; background: radial-gradient(circle at 45% 35%, var(--seal-tint), transparent 75%), #101c26; color: var(--seal-color); box-shadow: inset 0 0 15px #0005, 0 4px 8px #0005; transition: background .2s, box-shadow .2s; }
+.cipher-cell.uncovered .cipher-piece { width: 72%; border-radius: 50%; background: #07131be8; opacity: .86; }
+.cipher-cell:hover:not(:disabled) .cipher-piece { box-shadow: 0 0 0 2px var(--seal-color), 0 0 18px var(--seal-tint); }
+.cipher-cell.selected .cipher-piece, .cipher-cell:focus-visible .cipher-piece { outline: 3px solid #fff0bd; outline-offset: 2px; box-shadow: 0 0 24px #f0cf8555; }
+.cipher-cell:focus-visible { z-index: 3; outline: none; }
+.cipher-cell.selected { z-index: 3; }
+.cipher-cell.hinted .cipher-piece { outline: 2px dashed #ffe5a3; outline-offset: 2px; animation: cipher-hint 1s ease-in-out infinite alternate; }
+.cipher-cell.breaking .cipher-piece { animation: cipher-break .23s ease-in forwards; }
+.cipher-cell.special .cipher-piece { border-width: 2px; box-shadow: 0 0 15px var(--seal-tint); }
+.cipher-cell.special-row .cipher-piece::before, .cipher-cell.special-column .cipher-piece::before { content: ""; position: absolute; z-index: -1; left: 12%; right: 12%; top: 46%; height: 7%; background: var(--seal-color); opacity: .4; }
+.cipher-cell.special-column .cipher-piece::before { top: 12%; bottom: 12%; left: 46%; width: 7%; height: auto; }
+.cipher-special-mark { position: absolute; right: -3px; bottom: -5px; color: #ffdfa1; font-size: 21px; text-shadow: 0 1px 5px #000; }
+.cipher-board-caption { margin: 14px 0 0; color: #b5a47f; font: 700 11px Cinzel, serif; letter-spacing: .14em; text-align: center; }
+.cipher-solved .cipher-grid { pointer-events: none; opacity: 0; }
+.cipher-solved .cipher-paper { box-shadow: 0 22px 70px #0007, 0 0 35px #d7b67022; animation: cipher-reveal .8s ease-out both; }
+.cipher-solved .cipher-guidance > .primary-button { margin-top: 8px; padding: 13px 18px; font-size: 14px; }
+@keyframes cipher-enter { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cipher-hint { to { box-shadow: 0 0 20px #ffe6a255; } }
+@keyframes cipher-break { to { transform: scale(.25); opacity: 0; } }
+@keyframes cipher-reveal { from { filter: brightness(.7); } to { filter: brightness(1); } }
+@media (max-height: 780px) and (min-width: 981px) {
+  .cipher-screen { padding-top: 92px; }
+  .cipher-workspace { margin-top: 10px; gap: 35px; }
+  .cipher-guidance > p:not(.eyebrow) { font-size: 14px; margin-block: 10px; }
+  .cipher-guide-name { margin-bottom: 14px; }
+  .cipher-seal-legend { margin: 12px 0; }
+  .cipher-progress-label { margin-top: 15px; }
+  .cipher-puzzle { width: min(100%, calc(100dvh - 275px)); }
+}
+@media (max-width: 980px) {
+  .cipher-workspace { gap: 20px; grid-template-columns: minmax(230px, .8fr) minmax(0, 1fr); }
+  .cipher-guidance > p:not(.eyebrow) { font-size: 14px; }
+  .cipher-guide-name strong { font-size: 15px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cipher-workspace, .cipher-cell.hinted .cipher-piece, .cipher-cell.breaking .cipher-piece, .cipher-solved .cipher-paper { animation: none; }
+  .cipher-ink > span, .cipher-progress-track > span { transition: none; }
+}

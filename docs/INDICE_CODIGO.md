@@ -61,6 +61,7 @@ index.html
 - `sagas/futuro-prometedor/saga.js`: orden canónico y listas de misiones principales/secundarias.
 - Cada carpeta `m01-gato`, `s01-kagemori`, `m02-desfiladero`, `s02-medico`, `m03-umbral`, `m04-corazon` y `m05-raizen` contiene `mission.js` y `dialogues.js`.
 - `s01-kagemori/clues.js` y `s02-medico/routes.js`: datos visuales/de ruta junto al contenido que los usa.
+- `s02-medico/route-map.js`: nodos, coordenadas y conexiones compartidas por las reglas y el mapa; determina los siguientes destinos permitidos.
 - `content/index.js`: agregación sin lógica.
 
 ### `src/mission-system.js` — Reglas de misiones
@@ -106,8 +107,11 @@ index.html
 ### `src/doctor-mission.js` — Rutas del médico errante
 
 - Implementa las rutas declaradas junto a `s02` en `src/content/sagas/futuro-prometedor/s02-medico/routes.js`.
+- Valida cada avance contra el grafo de `route-map.js`. `src/ui/meta/doctor-route-map.js` dibuja ese mismo grafo con caminos SVG y nodos HTML, posición actual, opciones disponibles y recorrido persistido.
 - `chooseDoctorRoute`, `resolveRiverPassage`, `resolveDoctorRouteCombat`: actualizan peligro, tiempo, pistas y recursos sin ramificar la historia final.
 - `createDoctorRouteState`, `normalizeDoctorRouteState`: crean y validan el progreso reanudable de la búsqueda.
+- `src/puzzles/seal-cipher.js`: reglas puras del tablero 6 × 6, intercambios, cascadas, sellos de línea, pistas, reorganización y normalización determinista. `src/ui/meta/doctor-cipher.js` presenta la lección de Haru, la transición, las animaciones y el mapa revelado; `cipher.css` contiene sus estilos.
+- `src/ui/meta/character-preview.js`: capas y composición raster compartidas por el Dojo y la creación de personaje. `creator.css` organiza la vista previa y los tres controles iniciales; el validador artístico comprueba este mismo componente contra el rig de combate.
 
 ### `src/rules.js` — Reglas puras de combate
 

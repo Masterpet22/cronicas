@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600">
+  <defs>
+    <radialGradient id="paper"><stop stop-color="#eee0b6"/><stop offset=".78" stop-color="#cbbb8b"/><stop offset="1" stop-color="#aa9369"/></radialGradient>
+    <pattern id="grain" width="30" height="30" patternUnits="userSpaceOnUse"><path d="M2 5h9m8 18h8M5 28h3" stroke="#5d5135" stroke-opacity=".08"/></pattern>
+    <g id="mountain" fill="#887e59" fill-opacity=".18" stroke="#716747" stroke-width="2"><path d="m-35 20 35-60 37 60M-12-18 0-9 11-21M-28 12l10-3M20 10l10 7"/></g>
+    <g id="tree" fill="#52664c" fill-opacity=".35" stroke="#586146" stroke-width="2"><path d="m0-20-12 18h6l-12 18h36L6-2h6Z"/><path d="M0 16v10"/></g>
+  </defs>
+  <path fill="url(#paper)" d="M0 0h600v600H0z"/><path fill="url(#grain)" d="M0 0h600v600H0z"/>
+  <rect x="18" y="18" width="564" height="564" rx="5" fill="none" stroke="#7f704c" stroke-width="2"/><rect x="25" y="25" width="550" height="550" rx="3" fill="none" stroke="#7f704c" stroke-opacity=".4"/>
+  <g font-family="Georgia,serif" fill="#514936" text-anchor="middle"><text x="300" y="64" font-size="24" letter-spacing="4">CAMINOS OLVIDADOS</text><text x="300" y="86" font-size="11" letter-spacing="3">REGISTRO DE AKUMORI</text></g>
+  <g fill="none" stroke="#8f8059" stroke-opacity=".23"><path d="M30 155Q160 100 290 153T570 130M30 176Q170 120 300 178T570 155M35 202Q170 150 299 197T570 184M42 420Q150 382 250 423T565 405M35 442Q170 407 280 450T570 434"/></g>
+  <g><use href="#mountain" x="115" y="167"/><use href="#mountain" x="170" y="148"/><use href="#mountain" x="220" y="172"/><use href="#mountain" x="459" y="210"/><use href="#mountain" x="500" y="182"/><use href="#mountain" x="528" y="233"/></g>
+  <path d="M292 109C252 172 338 212 302 280S231 370 283 423s89 54 64 135" fill="none" stroke="#759ca0" stroke-width="18" stroke-linecap="round" opacity=".7"/><path d="M292 109C252 172 338 212 302 280S231 370 283 423s89 54 64 135" fill="none" stroke="#dbe3cc" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+  <g><use href="#tree" x="102" y="300"/><use href="#tree" x="140" y="280"/><use href="#tree" x="174" y="309"/><use href="#tree" x="119" y="341"/><use href="#tree" x="163" y="351"/><use href="#tree" x="409" y="434"/><use href="#tree" x="446" y="420"/><use href="#tree" x="482" y="453"/><use href="#tree" x="432" y="475"/></g>
+  <path d="M115 487C127 428 211 437 226 376S211 289 284 309s109 17 106-43 18-80 58-115" fill="none" stroke="#7c4338" stroke-width="4" stroke-dasharray="3 9" stroke-linecap="round"/>
+  <g fill="#c9b47d" stroke="#69553b" stroke-width="3"><circle cx="115" cy="487" r="10"/><circle cx="226" cy="376" r="8"/><circle cx="284" cy="309" r="8"/><circle cx="390" cy="266" r="8"/></g>
+  <path d="m448 128 18 23-18 23-18-23Z" fill="#7c4338"/><path d="M438 155v-9l10-7 10 7v9m-15 0v-7h10v7" fill="none" stroke="#ead4a4" stroke-width="2"/>
+  <g font-family="Georgia,serif" fill="#514936" text-anchor="middle" font-size="13"><text x="126" y="522">ALDEA DEL HORIZONTE</text><text x="183" y="400">PASO DEL RÍO</text><text x="356" y="350">DESFILADERO</text><text x="356" y="367">DEL CUERVO</text><text x="447" y="111" fill="#7c4338" font-size="17" font-weight="bold">GUARIDA</text></g>
+  <g transform="translate(515 520)" stroke="#746343" fill="none"><circle r="29" stroke-width="1"/><path d="M0-36V36M-36 0h72"/><path d="M0-25 6 0 0 25-6 0Z" fill="#746343"/><text y="-40" text-anchor="middle" fill="#514936" stroke="none" font-family="Georgia,serif" font-size="12">N</text></g>
+  <text x="190" y="560" font-family="Georgia,serif" font-style="italic" font-size="12" fill="#746343">La tinta esconde lo que el camino recuerda.</text>
+</svg>

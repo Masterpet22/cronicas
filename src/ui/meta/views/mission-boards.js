@@ -1,5 +1,7 @@
 import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
 import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
+import { renderDoctorRouteMap } from "../doctor-route-map.js";
+import { mountDoctorCipher, renderDoctorCipher } from "../doctor-cipher.js";
 
 export function createMissionBoardsView(deps) {
   let currentState = null;
@@ -90,21 +92,13 @@ export function createMissionBoardsView(deps) {
   function renderDoctorRoute(state) {
     const current = state.save.campaign.doctorRoute;
     const metrics = `<div class="route-metrics"><span><small>PELIGRO</small><strong>${current.danger}</strong></span><span><small>TIEMPO</small><strong>${current.time}</strong></span><span><small>PISTAS</small><strong>${current.clues}</strong></span><span><small>RECURSOS</small><strong>${current.resources}</strong></span></div>`;
-    if (current.phase >= 3) return `<section class="doctor-route-screen"><header><p class="eyebrow">FASE 3/3 COMPLETADA</p><h2>El médico errante</h2></header><section class="doctor-encounter"><div class="doctor-mark" aria-hidden="true">医</div><div><p class="eyebrow">OBJETIVO LOCALIZADO</p><h2>Haru Takamine</h2><p>«Estas marcas pertenecen a una red de caminos anterior a la aldea. El mapa conduce a la guarida de los bandidos.»</p><p>«Lleva este libro a Sayo. Registra criaturas, técnicas y debilidades, pero sus páginas se completarán con tus propios encuentros.»</p>${metrics}<button class="primary-button" type="button" data-complete-doctor>RECIBIR EL LIBRO Y REGRESAR</button></div></section></section>`;
+    if (current.phase >= 3) return renderDoctorCipher(current, secondaryByType("route-search"), deps, state.save);
     const pendingRiver = current.pendingEvent?.type === "river";
     const pendingCombat = current.pendingEvent?.type === "combat";
-    const definitions = Object.values(deps.doctorRouteDefinitions);
-    const routeRows = [2, 1, 0].map((phase) => `<div class="route-map-row" data-map-phase="${phase}">${definitions.map((definition) => {
-      const chosen = current.choices[phase] === definition.id;
-      const available = phase === current.phase && !current.pendingEvent;
-      const status = chosen ? "chosen" : phase < current.phase ? "passed" : available ? "available" : "locked";
-      const icon = definition.id === "elevated" ? "▲" : definition.id === "river" ? "≈" : "♣";
-      return `<button class="route-node route-${definition.id} ${status}" type="button" data-route="${definition.id}" ${available ? "" : "disabled"} aria-label="${deps.escapeHtml(definition.title)}: ${deps.escapeHtml(definition.description)}"><i aria-hidden="true">${icon}</i><span>${deps.escapeHtml(definition.title)}</span><small>${deps.escapeHtml(definition.subtitle)}</small></button>`;
-    }).join("")}</div>`).join("");
-    const routeMap = `<section class="route-map" aria-label="Mapa de rutas hacia Haru"><div class="route-destination"><span>医</span><strong>HARU</strong></div><div class="route-map-links" aria-hidden="true"></div>${routeRows}<div class="route-map-start"><span>◆</span><strong>INICIO</strong></div><p class="route-map-help">Selecciona uno de los tres nodos verdes del tramo ${current.phase + 1}.</p></section>`;
+    const routeMap = renderDoctorRouteMap(current, deps.doctorRouteDefinitions, deps.escapeHtml);
     const riverPanel = pendingRiver ? `<section class="river-investigation"><p class="eyebrow">LEE LA CORRIENTE</p><h3>Encuentra el paso correcto</h3><p>${deps.escapeHtml(current.lastEvent)}</p><div>${deps.riverPassages.map((passage) => `<button type="button" data-passage="${passage.id}">${passage.label}</button>`).join("")}</div></section>` : "";
     const combatPanel = pendingCombat ? `<section class="river-investigation combat-route-prompt"><p class="eyebrow">PELIGRO EN EL SENDERO</p><h3>Un saqueador bloquea el bosque</h3><p>${deps.escapeHtml(current.lastEvent)}</p><div><button type="button" data-resume-route-combat>INICIAR DUELO 1 CONTRA 1</button></div></section>` : "";
-    return `<section class="doctor-route-screen"><header><div><p class="eyebrow">EL MÉDICO ERRANTE · FASE ${current.phase + 1}/3</p><h2>Traza tu camino hasta Haru</h2><p>Elige un nodo conectado en cada tramo. Cada camino altera peligro, tiempo, pistas y recursos.</p></div>${metrics}</header>${current.lastEvent && !pendingRiver && !pendingCombat ? `<p class="route-log">${deps.escapeHtml(current.lastEvent)}</p>` : ""}${routeMap}${riverPanel}${combatPanel}</section>`;
+    return `<section class="doctor-route-screen"><header><div><p class="eyebrow">EL MÉDICO ERRANTE · TRAMO ${current.phase + 1}/3</p><h2>Tras el rastro de Haru</h2><p>Sigue los caminos. Cada desvío abre unas rutas y deja otras atrás.</p></div>${metrics}</header><div class="route-workspace ${pendingRiver || pendingCombat ? "has-event" : ""}">${routeMap}${riverPanel}${combatPanel}</div>${current.lastEvent && !pendingRiver && !pendingCombat ? `<p class="route-log" role="status">${deps.escapeHtml(current.lastEvent)}</p>` : ""}</section>`;
   }
 
   return {
@@ -205,6 +199,7 @@ export function createMissionBoardsView(deps) {
       }
       if (state.view === "doctor-route") {
         const mission = secondaryByType("route-search");
+        if (state.save.campaign.doctorRoute.phase >= 3) mountDoctorCipher(root, scope, state, mission, deps);
         const startRouteCombat = () => deps.onStartMission(getSave(), { id: `${mission.id}-route-combat`, parentMissionId: mission.id, parentType: mission.type, number: mission.number, type: "route-combat", title: "Emboscada en el bosque", location: "Bosque cerrado", encounters: ["reed_bandit"], reward: { xp: 0, coins: 0 } });
         scope.listen(root.querySelector("[data-complete-doctor]"), "click", () => deps.onCompleteDoctor(getSave(), mission));
         root.querySelectorAll("[data-route]").forEach((button) => scope.listen(button, "click", () => {

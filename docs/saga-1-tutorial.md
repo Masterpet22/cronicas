@@ -63,7 +63,9 @@ Completar esta misión activa «El médico errante». La elección libre de maes
 
 ### Secundaria 2 — El médico errante
 
-El jugador busca al doctor **Haru Takamine** para descifrar el mapa. La misión tiene tres fases y en cada una se elige una de tres rutas. Las decisiones actualizan peligro, tiempo, pistas y recursos, pero convergen en el mismo encuentro narrativo:
+El jugador busca al doctor **Haru Takamine** para descifrar el mapa. La misión tiene tres tramos y un mapa horizontal de nueve lugares conectados, con bifurcaciones y convergencias. Solo se puede avanzar a los nodos conectados a la posición actual; los caminos visibles y las opciones jugables comparten el mismo grafo. El recorrido elegido aparece en violeta y las siguientes opciones en verde. Las decisiones actualizan peligro, tiempo, pistas y recursos, pero convergen en el mismo encuentro narrativo:
+
+Al encontrar a Haru, el médico agradece la visita y explica cómo deshacer la tinta cifrada mediante los sellos de las habilidades. Una transición abre un tablero de 6 × 6: intercambiar vecinos para reunir tres sellos iguales revela permanentemente las casillas de una imagen del mapa situada debajo. Hay caídas y cascadas; cuatro o más sellos crean un poder de fila o columna que se activa al intercambiarlo. No hay reloj ni límite de movimientos. Haru ofrece pistas y un tablero sin jugadas se reorganiza conservando fragmentos y poderes. El guardado v17 incorpora un campo opcional `doctorRoute.cipher` con tablero, poderes, casillas reveladas, movimientos y semilla. Solo tras revelar las 36 casillas se puede recibir el libro y completar el encargo; las misiones ya completadas en partidas anteriores conservan su estado.
 
 1. **Camino elevado:** ruta segura y lenta. Sus diálogos enseñan a valorar la preparación por encima de la rapidez.
 2. **Sendero del río:** investigación breve para identificar el cruce correcto. Equivocarse aumenta tiempo y peligro sin bloquear la misión.

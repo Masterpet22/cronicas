@@ -31,7 +31,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 
 ## Controles
 
-- Crea un personaje con nombre, color de atuendo y afinidad inicial.
+- Crea un personaje eligiendo nombre, género y afinidad inicial, con la misma vista previa de Apariencia. El peinado se ajusta después en el Dojo.
 - Recorre la aldea desde un mapa ilustrado con nueve destinos interactivos. Cada edificio usa una silueta SVG precisa que se resalta al pasar el cursor o enfocarla con el teclado.
 - Cada destino abre como una escena ilustrada: el personaje presenta el lugar mediante un bocadillo y, al terminar, aparecen sus opciones.
 - Los habitantes explican controles al explorar las opciones, hacen comentarios ocasionales y pueden recibir un clic para repetir consejos.

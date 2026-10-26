@@ -18,7 +18,7 @@ const CARD_PRESENTERS = Object.freeze({
   }),
   "route-search": (mission, state, save) => ({
     visible: state.unlocked || state.completed,
-    detail: `${mission.location} · ${mission.duration} · Tres fases de rutas`,
+    detail: `${mission.location} · ${mission.duration} · Rutas y descifrado de sellos`,
     actionLabel: state.completed ? "COMPLETADA" : save.campaign.doctorRoute.active ? "CONTINUAR" : "BUSCAR A HARU"
   })
 });

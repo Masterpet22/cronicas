@@ -1,7 +1,9 @@
 import { DOCTOR_ROUTE_DEFINITIONS } from "./content/sagas/futuro-prometedor/s02-medico/routes.js";
+import { availableDoctorMapNodes } from "./content/sagas/futuro-prometedor/s02-medico/route-map.js";
+import { normalizeCipherState } from "./puzzles/seal-cipher.js";
 
 export function createDoctorRouteState() {
-  return { active: false, phase: 0, danger: 0, time: 0, clues: 0, resources: 0, choices: [], pendingEvent: null, lastEvent: "" };
+  return { active: false, phase: 0, danger: 0, time: 0, clues: 0, resources: 0, choices: [], pendingEvent: null, lastEvent: "", cipher: null };
 }
 
 export function normalizeDoctorRouteState(candidate = {}) {
@@ -16,7 +18,8 @@ export function normalizeDoctorRouteState(candidate = {}) {
     resources: Math.max(0, Math.floor(Number(candidate.resources) || 0)),
     choices: Array.isArray(candidate.choices) ? candidate.choices.filter((id) => Object.hasOwn(DOCTOR_ROUTE_DEFINITIONS, id)).slice(0, phase) : [],
     pendingEvent: pending && ["river", "combat"].includes(pending.type) ? { type: pending.type, routeId: pending.routeId, correct: pending.correct || null } : null,
-    lastEvent: String(candidate.lastEvent || "").slice(0, 300)
+    lastEvent: String(candidate.lastEvent || "").slice(0, 300),
+    cipher: phase >= 3 ? normalizeCipherState(candidate.cipher) : null
   };
 }
 
@@ -40,7 +43,7 @@ export function chooseDoctorRoute(state, routeId) {
   const next = normalizeDoctorRouteState(state);
   if (!next.active || next.phase >= 3 || next.pendingEvent) return next;
   const route = DOCTOR_ROUTE_DEFINITIONS[routeId];
-  if (!route) return next;
+  if (!route || !availableDoctorMapNodes(next).some((node) => node.routeId === routeId)) return next;
   if (routeId === "river") {
     next.pendingEvent = { type: "river", routeId, correct: route.passages[next.phase].correct };
     next.lastEvent = route.passages[next.phase].hint;

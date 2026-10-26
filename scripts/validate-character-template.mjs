@@ -56,7 +56,7 @@ function arrayFromSource(source, name) {
 function dojoLayers(source, character) {
   const context = { PUPPET_PREVIEW_LAYERS: arrayFromSource(source,"PUPPET_PREVIEW_LAYERS"), FEMALE_PUPPET_PREVIEW_LAYERS: arrayFromSource(source,"FEMALE_PUPPET_PREVIEW_LAYERS") };
   const start = source.indexOf("function rasterCharacterPreviewMarkup(");
-  const end = source.indexOf("\nexport function createDojoView", start);
+  const end = source.length;
   if (start < 0 || end < 0) throw new Error("No se encuentra la vista raster del Dojo");
   const render = runInNewContext(`(${source.slice(start,end)})`, context, { timeout: 2000 });
   return [...render({ character }, "validation").matchAll(/<img\b[^>]+>/g)].map(([tag]) => {
@@ -104,7 +104,7 @@ async function assemble(character, images) {
 }
 export async function analyzeCharacterTemplate() {
   const contract = JSON.parse(await readFile(resolve(root,"assets/reference/character-template-v1.json"),"utf8"));
-  const source = await readFile(resolve(root,"src/ui/meta/views/dojo.js"),"utf8");
+  const source = await readFile(resolve(root,"src/ui/meta/character-preview.js"),"utf8");
   const manifest = JSON.parse((await readFile(resolve(root,"assets/modular/manifest.json"),"utf8")).replace(/^\uFEFF/,""));
   const images=new Map(), variants=[];
   for (const bodyType of ["male","female"]) for (const hair of [0,1,4]) {

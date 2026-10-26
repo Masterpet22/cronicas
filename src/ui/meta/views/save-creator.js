@@ -1,3 +1,5 @@
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.102.0";
+
 export function createSaveCreatorView(deps) {
   let currentState = null;
   let currentId = "save-slots";
@@ -38,18 +40,22 @@ export function createSaveCreatorView(deps) {
   }
 
   function renderCreator() {
-    const affinityChoices = deps.basicElementIds.map((id, index) => `<label class="affinity-choice"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>Afinidad básica</small></span></label>`).join("");
+    const affinityChoices = deps.basicElementIds.map((id, index) => `<label class="affinity-choice creator-affinity-choice" style="--affinity-color:#${deps.elements[id].color.toString(16).padStart(6, "0")}"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>Afinidad básica</small></span><b class="creator-affinity-check" aria-hidden="true">✓</b></label>`).join("");
+    const affinity = deps.basicElementIds[0];
+    const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;
+    const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", hair: 1 } }, "0.82.5");
     return `
-      <section class="dojo-card creator-card">
-        <p class="eyebrow">PRIMER PASO</p><h2>Crea tu combatiente</h2>
-        <p class="lead">Comienzas con una afinidad básica. Los rangos 2 y 3 abrirán nuevos espacios y combinaciones.</p>
-        <form id="character-form" class="creator-form">
-          <label>Nombre<input name="name" maxlength="18" value="Akio" required></label>
-          <fieldset class="affinity-picker"><legend>Afinidad inicial</legend>${affinityChoices}</fieldset>
-          <label>Tipo de cuerpo<select name="bodyType"><option value="male">Masculino</option><option value="female">Femenino</option></select><small>Esta elección queda fija para esta partida.</small></label>
-          <label>Peinado<select name="hair"><option value="0">Sin cabello</option><option value="1">Corto</option><option value="4">Coleta</option></select></label>
-          <label>Color principal y aura<input name="appearance" type="color" value="#68a8ff"></label>
-          <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
+      <section class="dojo-card creator-card creator-customizer" style="--creator-affinity:${color}">
+        <header class="creator-heading"><div><p class="eyebrow">PRIMER PASO · PARTIDA ${deps.activeSaveSlot()}</p><h2>Crea tu combatiente</h2><p>Elige quién dará el primer paso en la Aldea del Horizonte.</p></div><span class="creator-heading-mark" aria-hidden="true">始</span></header>
+        <form id="character-form" class="creator-form creator-layout">
+          <div class="creator-preview-column"><div class="character-preview creator-preview" data-creator-preview data-body-type="male">${preview}</div><div class="creator-preview-caption"><div><small>TU COMBATIENTE</small><strong data-creator-name>Akio</strong></div><span class="creator-affinity-badge"><img data-creator-affinity-icon src="${deps.elementIcon(affinity)}" alt="" width="48" height="48"><span data-creator-affinity-name>${deps.elementName(affinity)}</span></span></div></div>
+          <div class="creator-controls">
+            <label class="creator-name-control" for="creator-name"><span>NOMBRE</span><input id="creator-name" name="name" maxlength="18" value="Akio" autocomplete="off" spellcheck="false" required><small>Hasta 18 caracteres.</small></label>
+            <div class="cosmetic-control creator-gender-control"><label class="cosmetic-label" for="creator-gender">Género</label><div class="cosmetic-stepper"><button type="button" data-creator-gender-step="-1" aria-label="Género anterior">‹</button><select id="creator-gender" name="bodyType" aria-describedby="creator-gender-note"><option value="male">Masculino</option><option value="female">Femenino</option></select><button type="button" data-creator-gender-step="1" aria-label="Género siguiente">›</button></div><small id="creator-gender-note">Esta elección queda fija para esta partida.</small></div>
+            <fieldset class="creator-affinity-control"><legend>AFINIDAD INICIAL</legend><div class="creator-affinity-grid">${affinityChoices}</div><p>Comienzas con una afinidad básica. Los rangos 2 y 3 abrirán nuevos espacios y combinaciones.</p></fieldset>
+            <input name="hair" type="hidden" value="1"><input name="appearance" type="hidden" value="${color}">
+            <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
+          </div>
         </form>
       </section>`;
   }
@@ -73,8 +79,33 @@ export function createSaveCreatorView(deps) {
         }));
         return;
       }
-      scope.listen(root.querySelector("#character-form"), "submit", (event) => {
+      const form = root.querySelector("#character-form");
+      const name = form.elements.namedItem("name");
+      const gender = form.elements.namedItem("bodyType");
+      const preview = root.querySelector("[data-creator-preview]");
+      const updateGender = () => {
+        preview.dataset.bodyType = gender.value;
+        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, hair: 1 } }, "0.82.5");
+      };
+      scope.listen(name, "input", () => { name.setCustomValidity(""); root.querySelector("[data-creator-name]").textContent = name.value.trim() || "Tu combatiente"; });
+      scope.listen(gender, "change", updateGender);
+      root.querySelectorAll("[data-creator-gender-step]").forEach((button) => scope.listen(button, "click", () => {
+        const nextIndex = (gender.selectedIndex + Number(button.dataset.creatorGenderStep) + gender.options.length) % gender.options.length;
+        gender.selectedIndex = nextIndex;
+        updateGender();
+      }));
+      scope.listen(form, "change", (event) => {
+        if (event.target.name !== "affinity") return;
+        const affinity = event.target.value;
+        const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;
+        root.querySelector(".creator-customizer").style.setProperty("--creator-affinity", color);
+        root.querySelector("[data-creator-affinity-icon]").src = deps.elementIcon(affinity);
+        root.querySelector("[data-creator-affinity-name]").textContent = deps.elementName(affinity);
+        form.elements.namedItem("appearance").value = color;
+      });
+      scope.listen(form, "submit", (event) => {
         event.preventDefault();
+        if (!name.value.trim()) { name.setCustomValidity("Escribe un nombre para tu combatiente."); name.reportValidity(); return; }
         const nextSave = deps.onCreateCharacter(Object.fromEntries(new FormData(event.currentTarget)));
         deps.showDialogue(welcomeDialogue(nextSave.character), deps.onTutorialComplete, "VER SAGAS", "story");
       });
