@@ -2,7 +2,7 @@
 
 ## Auditoría previa
 
-La pantalla es `BattleScene` (Phaser 3 / Canvas), con métodos instalados desde
+La pantalla es `BattleScene` (Phaser 4), con métodos instalados desde
 `battle-presentation.js`, `battle-feedback.js`, `battle-flow.js` y `battle-actions.js`.
 `src/ui.js` construye barras, ranuras y tooltips. No existe un HUD DOM previo.
 El lienzo lógico es 960 × 540; la cámara y el framebuffer se escalan desde

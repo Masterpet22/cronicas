@@ -4,7 +4,7 @@ import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from 
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, fighterHairPortraitLayout, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.92.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -180,7 +180,7 @@ export class BattlePresentationMethods {
       bar.shade.setDepth(23).setAlpha(0);
       bar.sheen.setDepth(23).setAlpha(0);
       const blue = bar === this.chakraBar || bar === this.enemyChakraBar;
-      bar.lustre = this.add.graphics().setPosition(bar.x, bar.bg.y).setDepth(23).setMask(bar.slotMask);
+      bar.lustre = this.add.graphics().setPosition(bar.x, bar.bg.y).setDepth(23);
       bar.lustre.fillGradientStyle(0xeafff5, 0xeafff5, blue ? 0x001b39 : 0x00240e, blue ? 0x001b39 : 0x00240e, .24, .24, .38, .38)
         .fillRect(0, -bar.height / 2, bar.width, bar.height);
       bar.edge.setDepth(24);
@@ -224,14 +224,11 @@ export class BattlePresentationMethods {
   createCombatPortrait(x, y, appearance, flipped) {
     const shadow = this.add.circle(x, y + 2, 34, 0x02050a, 0.9).setDepth(23);
     const wash = this.add.circle(x, y, 30, 0x182536, 0.96).setDepth(24);
-    const maskShape = this.make.graphics({ add: false });
-    maskShape.fillStyle(0xffffff).fillCircle(x, y, 29);
-    const mask = maskShape.createGeometryMask();
-    const head = this.add.image(x, y + 8, fighterPuppetTextureKey(appearance, "cabeza")).setDisplaySize(42, 64).setFlipX(flipped).setMask(mask).setDepth(25);
+    const head = this.add.image(x, y + 8, fighterPuppetTextureKey(appearance, "cabeza")).setDisplaySize(42, 64).setFlipX(flipped).setDepth(25);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[appearance?.hair];
     const hairLayout = fighterHairPortraitLayout(appearance?.hair, 42, 64, flipped, appearance?.bodyType);
     const hair = hairKey && this.textures.exists(hairKey)
-      ? this.add.image(x + hairLayout.x, y + 8 + hairLayout.y, hairKey).setDisplaySize(hairLayout.width, hairLayout.height).setFlipX(flipped).setMask(mask).setDepth(26)
+      ? this.add.image(x + hairLayout.x, y + 8 + hairLayout.y, hairKey).setDisplaySize(hairLayout.width, hairLayout.height).setFlipX(flipped).setDepth(26)
       : null;
     const frame = this.add.graphics().setDepth(27);
     const side = flipped ? 1 : -1;
@@ -241,7 +238,7 @@ export class BattlePresentationMethods {
     frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
     frame.lineStyle(1.5, 0xd0a04f, 0.95).strokeCircle(x, y, 29);
     frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
-    return { shadow, wash, head, hair, frame, maskShape };
+    return { shadow, wash, head, hair, frame };
   }
 
   createOfudaSeal(x, y) {
@@ -370,16 +367,6 @@ export class BattlePresentationMethods {
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
       ? this.add.image(start + this.playerMarkerHairLayout.x, trackY + this.playerMarkerHairLayout.y, hairKey).setDisplaySize(this.playerMarkerHairLayout.width, this.playerMarkerHairLayout.height)
       : null;
-    this.timelinePortraitMasks = [18, 15.5].map(radius => {
-      const shape = this.make.graphics({ add: false });
-      shape.fillStyle(0xffffff).fillCircle(0, 0, radius);
-      return shape;
-    });
-    const playerClip = this.timelinePortraitMasks[0].createGeometryMask();
-    this.playerTurnMarker.setMask(playerClip);
-    this.playerMarkerHair?.setMask(playerClip);
-    this.enemyTurnMarker.setMask(this.timelinePortraitMasks[1].createGeometryMask());
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.timelinePortraitMasks.forEach(mask => mask.destroy()));
     const tag = (name) => {
       const bg = this.add.graphics().setPosition(start, 518);
       drawBeveledTag(bg);
@@ -754,7 +741,8 @@ export class BattlePresentationMethods {
       source,
       image: this.add.image(0, 0, source.texture.key, source.frame.name)
         .setOrigin(source.originX, source.originY)
-        .setTintFill(0x8d4de8)
+        .setTint(0x8d4de8)
+        .setTintMode(Phaser.TintModes.FILL)
         .setDepth(5)
     }));
     const intensity = { alpha: 0.38 };
@@ -799,7 +787,9 @@ export class BattlePresentationMethods {
     const interfaceSkin = BATTLE_INTERFACE_SKINS[this.hudTheme] || BATTLE_INTERFACE_SKINS.ancestral;
     const haze = this.add.graphics().setDepth(29);
     const surface = this.add.graphics().setDepth(30);
-    const blur = haze.postFX?.addBlur?.(0, 2, 2, 1.25, interfaceSkin.panel, 3) || null;
+    const blur = this.game.renderer.type === Phaser.WEBGL
+      ? haze.enableFilters().filters.internal.addBlur(0, 2, 2, 1.25, interfaceSkin.panel, 3)
+      : null;
     this.actionBackdropThemeParts = { haze, surface, blur };
     paintActionBackdrop(this.actionBackdropThemeParts, interfaceSkin);
 

@@ -15,7 +15,7 @@ El contrato para añadir misiones, mecánicas y traducciones sin acoplarlas a un
 
 ## Ejecutar
 
-Phaser está incluido en el proyecto. Para servir el juego localmente:
+Phaser 4.2.1 está incluido localmente en el proyecto. Para servir el juego:
 
 Desde esta carpeta ejecuta:
 

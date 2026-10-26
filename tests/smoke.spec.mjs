@@ -67,9 +67,9 @@ async function completeDebugMission(page, { checkpoint, missionId }) {
     if (box) {
       await clickCanvasPoint(page, box, 480 / 960, 340 / 540);
       await clickCanvasPoint(page, box, 355 / 960, 340 / 540);
-      await page.keyboard.press("1");
-      await page.keyboard.press("2");
-      await page.keyboard.press("3");
+      const action = page.locator('.combat-access-actions button[aria-disabled="false"]').first();
+      if (await action.isVisible().catch(() => false)) await action.click({ force: true, timeout: 1_000 }).catch(() => {});
+      else await page.keyboard.press("1");
     }
     return (await completedMissionIds(page)).includes(missionId);
   }, { timeout: 85_000, intervals: [250, 350, 500] }).toBe(true);
@@ -95,6 +95,7 @@ test("el perfil femenino carga la marioneta femenina", async ({ page }) => {
   await advanceDialogue(page);
   await femaleTorso;
   await expect(page.locator("#game canvas")).toHaveCount(1);
+  await expect.poll(() => page.evaluate(() => window.Phaser?.VERSION)).toBe("4.2.1");
 });
 
 test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ page }) => {

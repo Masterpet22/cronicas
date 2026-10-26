@@ -58,7 +58,7 @@ assert.match(battle, /enemyChakraBar\.valueText\.setText/, "El chakra enemigo de
 assert.doesNotMatch(battle, /enemyChakraLock = this\.createOfudaSeal/, "El chakra enemigo debe quedar libre de sellos decorativos");
 assert.match(battle, /setBarRatio\(this\.enemyChakraBar/, "El chakra enemigo debe sincronizarse con su recurso real");
 assert.match(battle, /ghostColor: 0xf1d57a/, "La vida debe conservar una estela amarilla de daño reciente");
-assert.match(ui, /createGeometryMask\(\)/, "El relleno debe recortarse antes de quedar cubierto por el marco ilustrado");
+assert.doesNotMatch(ui, /createGeometryMask\(\)/, "El HUD no debe depender de máscaras geométricas incompatibles con WebGL en Phaser 4");
 assert.match(battle, /barOffset: Object\.freeze/, "Cada marco debe declarar su compensación vertical de barras");
 assert.match(battle, /createLevelBadge\(325, 25, `NV /, "El jugador debe mostrar el nivel como sello compacto");
 assert.match(battle, /enemyRankStar = this\.createLevelBadge/, "El enemigo debe mostrar un nivel simétrico");
@@ -224,7 +224,7 @@ assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer ata
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
 assert.match(ui, /const ACTION_POSITIONS = Array\.from\([\s\S]*HUD_ART.skills.rowHeight/, "Las acciones deben formar una columna vertical alineada");
 assert.match(battle, /HUD_ART.skills[\s\S]*drawOrnatePanel\(parts.surface/, "La columna de habilidades debe descansar sobre un fondo vertical compacto");
-assert.match(battle, /haze\.postFX\?\.addBlur\?\./, "El fondo de habilidades debe suavizarse con un blur discreto cuando WebGL lo permita");
+assert.match(battle, /renderer\.type === Phaser\.WEBGL[\s\S]*haze\.enableFilters\(\)\.filters\.internal\.addBlur\(/, "El fondo de habilidades debe usar filtros de Phaser 4 solo bajo WebGL");
 assert.match(battle, /drawStatusPanel\(g, 23, 12, 341, 94/, "El fondo debe combinar laca roja e índigo translúcido");
 assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repetir nombres que ya aparecen en el tooltip");
 assert.doesNotMatch(battle, /abilityArc|actionArc|actionThemeParts|drawCubicBezier\(rail/, "La columna de habilidades no debe conservar arcos ni guías vectoriales");
@@ -263,13 +263,13 @@ assert.match(battle, /"timeline-ready-brush"/, "La llegada al umbral debe usar u
 assert.match(battle, /showPreparationFeedback\(actor, action\)/, "La preparación debe tener una respuesta visual propia");
 assert.match(battle, /this\.add\.particles\(0, 0, "preparation-mote"/, "La preparación debe usar emisores de partículas reales de Phaser");
 assert.match(battle, /showBossPhaseSilhouette\(this\.foe\)/, "La silueta debe activarse exclusivamente al comenzar la fase II del jefe");
-assert.match(battle, /setTintFill\(0x8d4de8\)[\s\S]*pose\.scaleX \* 1\.075/, "La fase II debe dibujar un contorno sincronizado detrás de la marioneta");
+assert.match(battle, /setTint\(0x8d4de8\)[\s\S]*setTintMode\(Phaser\.TintModes\.FILL\)[\s\S]*pose\.scaleX \* 1\.075/, "La fase II debe usar el modo de tinte de relleno de Phaser 4");
 assert.match(battle, /this\.refreshPreparationFeedback\?\.\(\);/, "El modo ligero debe actualizar inmediatamente las partículas de preparación");
 assert.doesNotMatch(battle, /FURY_VISUAL_THRESHOLD|fury-mantle|refreshFuryFeedback|showFuryFeedback/, "La presentación no debe inventar un modo furia separado de la fase II");
 assert.doesNotMatch(battle, /playerTimelineTrail|enemyTimelineTrail|emitTimelineMotionParticles/, "La barra no debe recuperar estelas ni emisores geométricos persistentes");
 assert.doesNotMatch(battle, /this\.bossAura\s*=\s*this\.add\.circle/, "La fase II no debe dibujar un círculo morado alrededor del rival");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
-assert.match(html, /assets\/vendor\/phaser-3\.90\.0\.min\.js/, "Phaser debe servirse localmente para evitar dependencias de terceros");
+assert.match(html, /assets\/vendor\/phaser-4\.2\.1\.min\.js/, "Phaser 4 debe servirse localmente para evitar dependencias de terceros");
 assert.match(html, /class="mobile-gate"/, "Las resoluciones de teléfono deben recibir una pantalla de próximamente");
 assert.match(html, /if \(!mobileViewport\.matches \|\| compactEnabled\)/, "El modo compacto debe permitir cargar el combate desde el acceso móvil");
 assert.match(styles, /html\.mobile-viewport body > main \{ display: none; \}/, "El contenido del juego debe permanecer oculto detrás del aviso");

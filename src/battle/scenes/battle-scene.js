@@ -107,7 +107,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   create() {
-    // Phaser 3.90 no escala el framebuffer mediante GameConfig.resolution.
+    // La resolución lógica se escala explícitamente para conservar un HUD nítido.
     // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
     this.cameras.main.setZoom(battleRuntime.renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);

@@ -112,7 +112,7 @@
     if (!mobileViewport.matches || compactEnabled) {
       await new Promise((resolve, reject) => {
         const phaser = document.createElement("script");
-        phaser.src = "assets/vendor/phaser-3.90.0.min.js";
+        phaser.src = "assets/vendor/phaser-4.2.1.min.js";
         phaser.onload = resolve;
         phaser.onerror = reject;
         document.body.append(phaser);
