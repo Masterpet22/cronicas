@@ -112,7 +112,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Ejecutar el primer incremento del [`roadmap de Phaser 4`](docs/ROADMAP_PHASER_4.md): establecer una línea base de rendimiento y crear perfiles visuales declarativos para las tres arenas. En paralelo, producir y validar una plantilla artística real antes de integrar la apariencia personalizable definitiva en combate.
+La fase 0 del [`roadmap de Phaser 4`](docs/ROADMAP_PHASER_4.md) está completada: instrumentación opcional, presupuestos y línea base repetible de rendimiento y referencias visuales. El siguiente incremento es la fase 1: crear perfiles visuales declarativos para las tres arenas. En paralelo, producir y validar una plantilla artística real antes de integrar la apariencia personalizable definitiva en combate.
 
 ## Bloqueador obligatorio antes de 1.0
 

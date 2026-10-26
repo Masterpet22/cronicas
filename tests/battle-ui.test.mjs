@@ -225,7 +225,7 @@ assert.match(battle, /Number\(event\.key\) - 1/, "Las acciones deben ofrecer ata
 assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo numérico");
 assert.match(ui, /const ACTION_POSITIONS = Array\.from\([\s\S]*HUD_ART.skills.rowHeight/, "Las acciones deben formar una columna vertical alineada");
 assert.match(battle, /HUD_ART.skills[\s\S]*drawOrnatePanel\(parts.surface/, "La columna de habilidades debe descansar sobre un fondo vertical compacto");
-assert.match(battle, /renderer\.type === Phaser\.WEBGL[\s\S]*haze\.enableFilters\(\)\.filters\.internal\.addBlur\(/, "El fondo de habilidades debe usar filtros de Phaser 4 solo bajo WebGL");
+assert.match(battle, /renderer\.type === Phaser\.WEBGL && !this\.lightMode[\s\S]*parts\.haze\.enableFilters\(\)\.filters\.internal\.addBlur\(/, "El fondo de habilidades debe usar filtros de Phaser 4 solo bajo WebGL y fuera del modo ligero");
 assert.match(battle, /drawStatusPanel\(g, 23, 12, 341, 94/, "El fondo debe combinar laca roja e índigo translúcido");
 assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repetir nombres que ya aparecen en el tooltip");
 assert.doesNotMatch(battle, /abilityArc|actionArc|actionThemeParts|drawCubicBezier\(rail/, "La columna de habilidades no debe conservar arcos ni guías vectoriales");

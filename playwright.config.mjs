@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: ["smoke.spec.mjs", "elemental-effects.spec.mjs", "level-up.spec.mjs", "mission-transitions.spec.mjs", "phase-transitions.spec.mjs"],
+  testMatch: ["smoke.spec.mjs", "elemental-effects.spec.mjs", "level-up.spec.mjs", "mission-transitions.spec.mjs", "phase-transitions.spec.mjs", "performance.spec.mjs"],
   timeout: 90_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,

@@ -1,7 +1,7 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.95.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.99.0";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.94.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.97.0";
-import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.97.0";
+import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.99.0";
+import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.98.0";
 import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.95.0";
 import { LevelUpScene } from "./src/battle/scenes/level-up-scene.js?v=0.95.0";
 import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.96.0";
@@ -9,6 +9,7 @@ import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.96.0";
 import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.95.0";
 import { Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.91.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";
+import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=0.99.0";
 
 let game = null;
 let metaUi = null;
@@ -20,6 +21,7 @@ let gameLaunchRevision = 0;
 
 function destroyGameInstance(instance = game) {
   if (!instance) return;
+  uninstallPerformanceTools(instance);
   if (game === instance) game = null;
   try { instance.destroy(true); } catch (_) { /* La vista HTML debe recuperarse aunque Phaser ya se haya cerrado. */ }
   gameRoot.replaceChildren();
@@ -30,6 +32,7 @@ function releaseGameToMeta(locationId = "plaza", { commitVictory = false } = {})
   gameLaunchRevision += 1;
   const instance = game;
   instance?.loop.sleep();
+  uninstallPerformanceTools(instance);
   if (commitVictory) commitPendingVictory(battleRuntime, writeSave);
   else {
     if (battleRuntime.pendingVictorySave) battleRuntime.activeSave = loadSave();
@@ -86,6 +89,7 @@ metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) =
   const renderSize = configureRenderResolution(gameRoot);
   game = new Phaser.Game({
     type: Phaser.AUTO,
+    callbacks: { postBoot: (instance) => installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution }) },
     parent: "game",
     width: renderSize.width,
     height: renderSize.height,
@@ -111,6 +115,7 @@ metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) =
   const renderSize = configureRenderResolution(gameRoot);
   game = new Phaser.Game({
     type: Phaser.AUTO,
+    callbacks: { postBoot: (instance) => installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution }) },
     parent: "game",
     width: renderSize.width,
     height: renderSize.height,

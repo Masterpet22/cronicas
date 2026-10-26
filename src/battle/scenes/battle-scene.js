@@ -1,4 +1,5 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.95.0";
+import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.93.0";
@@ -20,7 +21,7 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.94.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.99.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.97.0";
 import { BattleActionMethods } from "./battle-actions.js?v=0.94.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.95.0";
@@ -288,6 +289,8 @@ export class BattleScene extends Phaser.Scene {
       this.musicEnabled = musicToggle.checked;
       this.lightMode = lightToggle.checked;
       this.volume = Number(volumeInput.value) / 100;
+      if (this.lightMode) { clearSceneFilters(this); clearSceneParticles(this); }
+      this.refreshActionPanelFilter?.();
       try {
         window.localStorage.setItem("camera-effects", this.cameraEffects ? "on" : "off");
         window.localStorage.setItem("flash-effects", this.flashEffects ? "on" : "off");

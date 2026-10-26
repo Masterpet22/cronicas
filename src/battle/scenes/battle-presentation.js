@@ -780,6 +780,21 @@ export class BattlePresentationMethods {
     }
   }
 
+  refreshActionPanelFilter() {
+    const parts = this.actionBackdropThemeParts;
+    if (!parts) return;
+    const allowed = this.game.renderer.type === Phaser.WEBGL && !this.lightMode
+      && !window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    const filters = parts.haze.filters?.internal;
+    if (!allowed) {
+      if (parts.blur && filters?.list.includes(parts.blur)) filters.remove(parts.blur);
+      parts.blur = null;
+    } else if (!parts.blur || !filters?.list.includes(parts.blur)) {
+      const skin = BATTLE_INTERFACE_SKINS[this.hudTheme] || BATTLE_INTERFACE_SKINS.ancestral;
+      parts.blur = parts.haze.enableFilters().filters.internal.addBlur(0, 2, 2, 1.25, skin.panel, 3);
+    }
+  }
+
   createActionPanel() {
     const firstActionChild = this.children.list.length;
     this.buttons = [];
@@ -787,10 +802,8 @@ export class BattlePresentationMethods {
     const interfaceSkin = BATTLE_INTERFACE_SKINS[this.hudTheme] || BATTLE_INTERFACE_SKINS.ancestral;
     const haze = this.add.graphics().setDepth(29);
     const surface = this.add.graphics().setDepth(30);
-    const blur = this.game.renderer.type === Phaser.WEBGL
-      ? haze.enableFilters().filters.internal.addBlur(0, 2, 2, 1.25, interfaceSkin.panel, 3)
-      : null;
-    this.actionBackdropThemeParts = { haze, surface, blur };
+    this.actionBackdropThemeParts = { haze, surface, blur: null };
+    this.refreshActionPanelFilter();
     paintActionBackdrop(this.actionBackdropThemeParts, interfaceSkin);
 
     const hideTooltip = (entry) => {

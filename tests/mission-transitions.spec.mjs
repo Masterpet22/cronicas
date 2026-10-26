@@ -1,13 +1,14 @@
 import { expect, test } from "@playwright/test";
 
-async function bootTravel(page, direction, result = null) {
-  return page.evaluate(async ({ direction, result }) => {
-    const { MissionTravelScene } = await import("/src/battle/scenes/mission-travel-scene.js?v=0.97.0");
+async function bootTravel(page, direction, result = null, missionId = "m05") {
+  return page.evaluate(async ({ direction, result, missionId }) => {
+    const { MissionTravelScene } = await import("/src/battle/scenes/mission-travel-scene.js?v=0.98.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");
-    const { MISSIONS } = await import("/src/content/index.js");
+    const { ALL_MISSIONS } = await import("/src/content/index.js");
     battleRuntime.activeSave = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "male", appearance: "#315f87" });
-    battleRuntime.activeMission = MISSIONS[4];
+    battleRuntime.activeMission = ALL_MISSIONS.find((mission) => mission.id === missionId);
+    const secondaryResult = battleRuntime.activeMission.category === "secondary";
     battleRuntime.renderResolution = 1;
     const stage = document.createElement("div");
     stage.id = "mission-travel-test-stage";
@@ -28,16 +29,16 @@ async function bootTravel(page, direction, result = null) {
             progressX: progress?.x, progressOriginX: progress?.originX,
             arenaAlpha: travel.children.getByName("travel-arena-preview")?.alpha };
         });
-        this.scene.start("travel", { direction, ...(result ? { result } : {}) });
+        this.scene.start("travel", { direction, secondaryResult, ...(result ? { result } : {}) });
       }
     }
     class DestinationScene extends window.Phaser.Scene {
-      constructor() { super(direction === "toVillage" ? "results" : "battle"); }
+      constructor() { super(direction === "toVillage" ? secondaryResult ? "secondary-results" : "results" : "battle"); }
       create(data) { state.reached = this.scene.key; state.payload = data; }
     }
     state.game = new window.Phaser.Game({ type: window.Phaser.CANVAS, parent: stage, width: 960, height: 540,
       scene: [BootScene, MissionTravelScene, DestinationScene] });
-  }, { direction, result });
+  }, { direction, result, missionId });
 }
 
 test("el viaje a la misión usa parallax, cámara, partículas y llegada contextual", async ({ page }) => {
@@ -48,7 +49,7 @@ test("el viaje a la misión usa parallax, cámara, partículas y llegada context
   await bootTravel(page, "toMission");
   await expect.poll(() => page.evaluate(() => {
     const scene = window.__missionTravelTest.game.scene.getScene("travel");
-    return scene.children.getByName("travel-progress")?.width > 60;
+    return scene.children.getByName("travel-progress")?.displayWidth > 60;
   })).toBe(true);
   const during = await page.evaluate(() => {
     const scene = window.__missionTravelTest.game.scene.getScene("travel");
@@ -94,29 +95,45 @@ test("el regreso reducido llega al informe con el resultado intacto", async ({ p
   expect(errors).toEqual([]);
 });
 
-test("el regreso invierte personaje, escenario y barra de derecha a izquierda", async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
-  await bootTravel(page, "toVillage", { outcome: "completed", levelUpShown: true });
-  await expect.poll(() => page.evaluate(() => window.__missionTravelTest.departureFrame)).not.toBeNull();
-  expect(await page.evaluate(() => window.__missionTravelTest.departureFrame)).toMatchObject({
-    runnerX: 1050, runnerScaleX: -1, progressX: 660, progressOriginX: 1, arenaAlpha: 1
+for (const { missionId, reducedMotion, destination, arenaAlpha } of [
+  { missionId: "m05", reducedMotion: "no-preference", destination: "results", arenaAlpha: 1 },
+  { missionId: "s01", reducedMotion: "reduce", destination: "secondary-results", arenaAlpha: undefined }
+]) {
+  test(`el regreso de ${missionId} rellena la ruta hacia la izquierda sin rebasar sus extremos`, async ({ page }) => {
+    await page.emulateMedia({ reducedMotion });
+    const errors = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await page.goto("/");
+    await bootTravel(page, "toVillage", { outcome: "completed", levelUpShown: true }, missionId);
+    await expect.poll(() => page.evaluate(() => window.__missionTravelTest.departureFrame)).not.toBeNull();
+    expect(await page.evaluate(() => window.__missionTravelTest.departureFrame)).toMatchObject({
+      runnerX: 1050, runnerScaleX: -1, progressX: 660, progressOriginX: 1, arenaAlpha
+    });
+    await expect.poll(() => page.evaluate(() => {
+      const scene = window.__missionTravelTest.game.scene.getScene("travel");
+      const runner = scene.children.getByName("travel-runner");
+      const progress = scene.children.getByName("travel-progress");
+      return runner?.x < 420 && progress?.displayWidth > 180;
+    }), { intervals: [50] }).toBe(true);
+    const fill = await page.evaluate(() => {
+      const progress = window.__missionTravelTest.game.scene.getScene("travel").children.getByName("travel-progress");
+      const transform = progress.getWorldTransformMatrix();
+      return {
+        left: transform.transformPoint(-progress.displayOriginX, 0).x,
+        right: transform.transformPoint(progress.width - progress.displayOriginX, 0).x
+      };
+    });
+    expect(fill.right).toBeCloseTo(660, 3);
+    expect(fill.left).toBeGreaterThanOrEqual(300);
+    expect(fill.left).toBeLessThan(480);
+    await page.locator("#mission-travel-test-stage canvas").screenshot({ path: `test-results/mission-return-${missionId}-preview.png` });
+    await expect.poll(() => page.evaluate(() => window.__missionTravelTest.reached)).toBe(destination);
+    await page.evaluate(() => {
+      const state = window.__missionTravelTest;
+      state.game.destroy(true);
+      state.stage.remove();
+      delete window.__missionTravelTest;
+    });
+    expect(errors).toEqual([]);
   });
-  await expect.poll(() => page.evaluate(() => {
-    const scene = window.__missionTravelTest.game.scene.getScene("travel");
-    const runner = scene.children.getByName("travel-runner");
-    const progress = scene.children.getByName("travel-progress");
-    return runner?.x < 420 && progress?.width > 180;
-  }), { intervals: [50] }).toBe(true);
-  await page.locator("#mission-travel-test-stage canvas").screenshot({ path: "test-results/mission-return-preview.png" });
-  await expect.poll(() => page.evaluate(() => window.__missionTravelTest.reached)).toBe("results");
-  await page.evaluate(() => {
-    const state = window.__missionTravelTest;
-    state.game.destroy(true);
-    state.stage.remove();
-    delete window.__missionTravelTest;
-  });
-  expect(errors).toEqual([]);
-});
+}

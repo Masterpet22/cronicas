@@ -1,0 +1,2281 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-10-26T18:59:24.800Z",
+  "browser": "156.0.8078.4",
+  "host": {
+    "platform": "win32",
+    "release": "10.0.19045",
+    "cpu": "Intel(R) Core(TM) i5-3570 CPU @ 3.40GHz",
+    "logicalCpus": 4
+  },
+  "method": "Cadencia postrender sin suavizado; CPU desde prestep hasta postrender; PNG fuera de la ventana medida; no es tiempo GPU",
+  "budgets": {
+    "battle": {
+      "objects": 450,
+      "particles": 64,
+      "emitters": 6,
+      "filters": 2
+    },
+    "travel": {
+      "objects": 100,
+      "particles": 24,
+      "emitters": 1,
+      "filters": 0
+    },
+    "pause": {
+      "objects": 120,
+      "particles": 0,
+      "emitters": 0,
+      "filters": 0
+    },
+    "results": {
+      "objects": 160,
+      "particles": 0,
+      "emitters": 0,
+      "filters": 0
+    },
+    "secondary-results": {
+      "objects": 160,
+      "particles": 0,
+      "emitters": 0,
+      "filters": 0
+    },
+    "level-up": {
+      "objects": 240,
+      "particles": 0,
+      "emitters": 0,
+      "filters": 0
+    },
+    "epilogue": {
+      "objects": 160,
+      "particles": 0,
+      "emitters": 0,
+      "filters": 0
+    },
+    "default": {
+      "objects": 800,
+      "particles": 96,
+      "emitters": 8,
+      "filters": 3
+    }
+  },
+  "reports": [
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:53:40.303Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 36,
+        "elapsedMs": 3002.6,
+        "fpsMean": 11.99,
+        "frameMsMean": 83.41,
+        "frameMsP50": 82.8,
+        "frameMsP95": 92.5,
+        "frameMsMax": 96.9,
+        "cpuMsMean": 6.44,
+        "framesOver33ms": 36
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1218,
+        "quality": "normal"
+      },
+      "reference": "1366x768-webgl-normal",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-webgl-normal-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:53:55.624Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 34,
+        "elapsedMs": 3002.1,
+        "fpsMean": 11.33,
+        "frameMsMean": 88.3,
+        "frameMsP50": 84.8,
+        "frameMsP95": 96.2,
+        "frameMsMax": 153,
+        "cpuMsMean": 6.53,
+        "framesOver33ms": 34
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 17,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 27,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1218,
+        "quality": "normal"
+      },
+      "reference": "1366x768-webgl-normal",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-webgl-normal-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:54:10.776Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 35,
+        "elapsedMs": 3005.2,
+        "fpsMean": 11.65,
+        "frameMsMean": 85.86,
+        "frameMsP50": 82.5,
+        "frameMsP95": 111,
+        "frameMsMax": 138.7,
+        "cpuMsMean": 6.42,
+        "framesOver33ms": 35
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 294,
+            "emitters": 1,
+            "particles": 8,
+            "filters": 2
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1218,
+        "quality": "normal"
+      },
+      "reference": "1366x768-webgl-normal",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-webgl-normal-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:54:29.515Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 35,
+        "elapsedMs": 2939.7,
+        "fpsMean": 11.91,
+        "frameMsMean": 83.99,
+        "frameMsP50": 81.6,
+        "frameMsP95": 98.5,
+        "frameMsMax": 111.2,
+        "cpuMsMean": 6.49,
+        "framesOver33ms": 35
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1225,
+        "quality": "light"
+      },
+      "reference": "1366x768-webgl-light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-webgl-light-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:54:46.127Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 35,
+        "elapsedMs": 2937,
+        "fpsMean": 11.92,
+        "frameMsMean": 83.91,
+        "frameMsP50": 83.4,
+        "frameMsP95": 90.4,
+        "frameMsMax": 91,
+        "cpuMsMean": 5.85,
+        "framesOver33ms": 35
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1225,
+        "quality": "light"
+      },
+      "reference": "1366x768-webgl-light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-webgl-light-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:55:03.839Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 36,
+        "elapsedMs": 3139.1,
+        "fpsMean": 11.47,
+        "frameMsMean": 87.2,
+        "frameMsP50": 84.6,
+        "frameMsP95": 94.1,
+        "frameMsMax": 145.3,
+        "cpuMsMean": 6.12,
+        "framesOver33ms": 36
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 292,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1225,
+        "quality": "light"
+      },
+      "reference": "1366x768-webgl-light",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-webgl-light-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:55:24.578Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 134,
+        "elapsedMs": 3007.7,
+        "fpsMean": 44.55,
+        "frameMsMean": 22.45,
+        "frameMsP50": 22.2,
+        "frameMsP95": 24.5,
+        "frameMsMax": 39.7,
+        "cpuMsMean": 2.32,
+        "framesOver33ms": 1
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 466,
+        "quality": "normal"
+      },
+      "reference": "1366x768-canvas-normal",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-canvas-normal-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:55:29.188Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 130,
+        "elapsedMs": 3009,
+        "fpsMean": 43.2,
+        "frameMsMean": 23.15,
+        "frameMsP50": 22.5,
+        "frameMsP95": 26.9,
+        "frameMsMax": 40.9,
+        "cpuMsMean": 2.6,
+        "framesOver33ms": 1
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 21,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 25,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 466,
+        "quality": "normal"
+      },
+      "reference": "1366x768-canvas-normal",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-canvas-normal-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:55:33.902Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1362,
+        "height": 766
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1363,
+        "height": 766
+      },
+      "scale": {
+        "render": 1.4184895833333333,
+        "cssX": 1.0009751284875184,
+        "cssY": 0.9999796018276762,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 132,
+        "elapsedMs": 3015,
+        "fpsMean": 43.78,
+        "frameMsMean": 22.84,
+        "frameMsP50": 22.7,
+        "frameMsP95": 25.5,
+        "frameMsMax": 33,
+        "cpuMsMean": 2.49,
+        "framesOver33ms": 0
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 293,
+            "emitters": 1,
+            "particles": 8,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 466,
+        "quality": "normal"
+      },
+      "reference": "1366x768-canvas-normal",
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1366x768-canvas-normal-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:55:41.933Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 29,
+        "elapsedMs": 3103.2,
+        "fpsMean": 9.35,
+        "frameMsMean": 107.01,
+        "frameMsP50": 105,
+        "frameMsP95": 117,
+        "frameMsMax": 134.8,
+        "cpuMsMean": 6.47,
+        "framesOver33ms": 29
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1297,
+        "quality": "normal"
+      },
+      "reference": "1600x900-webgl-normal",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-webgl-normal-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:55:58.523Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 27,
+        "elapsedMs": 2966.8,
+        "fpsMean": 9.1,
+        "frameMsMean": 109.88,
+        "frameMsP50": 107.4,
+        "frameMsP95": 119.3,
+        "frameMsMax": 162.3,
+        "cpuMsMean": 6.29,
+        "framesOver33ms": 27
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 18,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 28,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1297,
+        "quality": "normal"
+      },
+      "reference": "1600x900-webgl-normal",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-webgl-normal-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:56:13.525Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 27,
+        "elapsedMs": 2973,
+        "fpsMean": 9.08,
+        "frameMsMean": 110.11,
+        "frameMsP50": 105.1,
+        "frameMsP95": 140.4,
+        "frameMsMax": 167.2,
+        "cpuMsMean": 7.09,
+        "framesOver33ms": 27
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 294,
+            "emitters": 1,
+            "particles": 8,
+            "filters": 2
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1297,
+        "quality": "normal"
+      },
+      "reference": "1600x900-webgl-normal",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-webgl-normal-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:56:37.319Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 27,
+        "elapsedMs": 2903.2,
+        "fpsMean": 9.3,
+        "frameMsMean": 107.53,
+        "frameMsP50": 107.1,
+        "frameMsP95": 115.3,
+        "frameMsMax": 121.1,
+        "cpuMsMean": 6.86,
+        "framesOver33ms": 27
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1353,
+        "quality": "light"
+      },
+      "reference": "1600x900-webgl-light",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-webgl-light-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:56:52.620Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 28,
+        "elapsedMs": 2968.8,
+        "fpsMean": 9.43,
+        "frameMsMean": 106.03,
+        "frameMsP50": 104.9,
+        "frameMsP95": 112.2,
+        "frameMsMax": 115,
+        "cpuMsMean": 6.03,
+        "framesOver33ms": 28
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1353,
+        "quality": "light"
+      },
+      "reference": "1600x900-webgl-light",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-webgl-light-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:57:07.988Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 27,
+        "elapsedMs": 2913.5,
+        "fpsMean": 9.27,
+        "frameMsMean": 107.91,
+        "frameMsP50": 104.8,
+        "frameMsP95": 115.3,
+        "frameMsMax": 154.5,
+        "cpuMsMean": 5.84,
+        "framesOver33ms": 27
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 292,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1353,
+        "quality": "light"
+      },
+      "reference": "1600x900-webgl-light",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-webgl-light-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:57:26.384Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 102,
+        "elapsedMs": 2997.7,
+        "fpsMean": 34.03,
+        "frameMsMean": 29.39,
+        "frameMsP50": 29.2,
+        "frameMsP95": 30.6,
+        "frameMsMax": 48,
+        "cpuMsMean": 2.24,
+        "framesOver33ms": 2
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 493,
+        "quality": "normal"
+      },
+      "reference": "1600x900-canvas-normal",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-canvas-normal-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:57:31.253Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 100,
+        "elapsedMs": 2988,
+        "fpsMean": 33.47,
+        "frameMsMean": 29.88,
+        "frameMsP50": 29.9,
+        "frameMsP95": 31.8,
+        "frameMsMax": 38.2,
+        "cpuMsMean": 2.54,
+        "framesOver33ms": 2
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 22,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 27,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 493,
+        "quality": "normal"
+      },
+      "reference": "1600x900-canvas-normal",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-canvas-normal-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:57:36.358Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 1596,
+        "height": 898
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 1598,
+        "height": 898
+      },
+      "scale": {
+        "render": 1.662962962962963,
+        "cssX": 1.0012531328320802,
+        "cssY": 1,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 97,
+        "elapsedMs": 2986.7,
+        "fpsMean": 32.48,
+        "frameMsMean": 30.79,
+        "frameMsP50": 30.5,
+        "frameMsP95": 33.8,
+        "frameMsMax": 37.8,
+        "cpuMsMean": 2.53,
+        "framesOver33ms": 6
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 293,
+            "emitters": 1,
+            "particles": 8,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 493,
+        "quality": "normal"
+      },
+      "reference": "1600x900-canvas-normal",
+      "viewport": {
+        "width": 1600,
+        "height": 900
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "1600x900-canvas-normal-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:57:43.911Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 123,
+        "elapsedMs": 2990,
+        "fpsMean": 41.14,
+        "frameMsMean": 24.31,
+        "frameMsP50": 24.1,
+        "frameMsP95": 27,
+        "frameMsMax": 29.6,
+        "cpuMsMean": 0.76,
+        "framesOver33ms": 0
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1124,
+        "quality": "normal"
+      },
+      "reference": "844x390-webgl-normal",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-webgl-normal-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:57:56.101Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 115,
+        "elapsedMs": 3005.3,
+        "fpsMean": 38.27,
+        "frameMsMean": 26.13,
+        "frameMsP50": 25.4,
+        "frameMsP95": 28.3,
+        "frameMsMax": 80.9,
+        "cpuMsMean": 0.83,
+        "framesOver33ms": 3
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 23,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 25,
+            "filters": 1
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1124,
+        "quality": "normal"
+      },
+      "reference": "844x390-webgl-normal",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-webgl-normal-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:58:10.122Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 136,
+        "elapsedMs": 3496.9,
+        "fpsMean": 38.89,
+        "frameMsMean": 25.71,
+        "frameMsP50": 24.6,
+        "frameMsP95": 29.8,
+        "frameMsMax": 87.9,
+        "cpuMsMean": 0.84,
+        "framesOver33ms": 2
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 1
+          },
+          "peak": {
+            "objects": 294,
+            "emitters": 1,
+            "particles": 8,
+            "filters": 2
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 2
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1124,
+        "quality": "normal"
+      },
+      "reference": "844x390-webgl-normal",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-webgl-normal-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:58:25.175Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 123,
+        "elapsedMs": 3029.3,
+        "fpsMean": 40.6,
+        "frameMsMean": 24.63,
+        "frameMsP50": 24.5,
+        "frameMsP95": 26.2,
+        "frameMsMax": 30.3,
+        "cpuMsMean": 0.75,
+        "framesOver33ms": 0
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1105,
+        "quality": "light"
+      },
+      "reference": "844x390-webgl-light",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-webgl-light-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:58:41.979Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 125,
+        "elapsedMs": 3121.1,
+        "fpsMean": 40.05,
+        "frameMsMean": 24.97,
+        "frameMsP50": 24,
+        "frameMsP95": 28.7,
+        "frameMsMax": 34.5,
+        "cpuMsMean": 0.64,
+        "framesOver33ms": 1
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1105,
+        "quality": "light"
+      },
+      "reference": "844x390-webgl-light",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-webgl-light-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "WebGL",
+      "graphics": {
+        "vendor": "Google Inc. (Google)",
+        "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)"
+      },
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:58:56.843Z",
+      "lightMode": true,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 113,
+        "elapsedMs": 3060.7,
+        "fpsMean": 36.92,
+        "frameMsMean": 27.09,
+        "frameMsP50": 25.4,
+        "frameMsP95": 31.8,
+        "frameMsMax": 103.2,
+        "cpuMsMean": 0.65,
+        "framesOver33ms": 3
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 292,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 0,
+            "emitters": 0,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 1105,
+        "quality": "light"
+      },
+      "reference": "844x390-webgl-light",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-webgl-light-elemental-technique.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "battle-entry",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:59:14.464Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 180,
+        "elapsedMs": 2998.8,
+        "fpsMean": 60.02,
+        "frameMsMean": 16.66,
+        "frameMsP50": 16.7,
+        "frameMsP95": 17.8,
+        "frameMsMax": 18.7,
+        "cpuMsMean": 1.02,
+        "framesOver33ms": 0
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 406,
+        "quality": "normal"
+      },
+      "reference": "844x390-canvas-normal",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-canvas-normal-battle-entry.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "charged-turn",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:59:18.590Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 180,
+        "elapsedMs": 2997.1,
+        "fpsMean": 60.06,
+        "frameMsMean": 16.65,
+        "frameMsP50": 16.8,
+        "frameMsP95": 17.9,
+        "frameMsMax": 18.9,
+        "cpuMsMean": 0.98,
+        "framesOver33ms": 0
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 23,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 296,
+            "emitters": 4,
+            "particles": 28,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 406,
+        "quality": "normal"
+      },
+      "reference": "844x390-canvas-normal",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-canvas-normal-charged-turn.png"
+    },
+    {
+      "schemaVersion": 1,
+      "scenario": "elemental-technique",
+      "renderer": "Canvas",
+      "graphics": null,
+      "phaserVersion": "4.2.1",
+      "capturedAt": "2026-10-26T18:59:22.738Z",
+      "lightMode": false,
+      "reducedMotion": false,
+      "resolution": {
+        "width": 960,
+        "height": 540
+      },
+      "logicalResolution": {
+        "width": 960,
+        "height": 540
+      },
+      "displaySize": {
+        "width": 842,
+        "height": 474
+      },
+      "scale": {
+        "render": 1,
+        "cssX": 0.8770833333333333,
+        "cssY": 0.8770833333333333,
+        "devicePixelRatio": 1
+      },
+      "timing": {
+        "frames": 181,
+        "elapsedMs": 3016,
+        "fpsMean": 60.01,
+        "frameMsMean": 16.66,
+        "frameMsP50": 16.9,
+        "frameMsP95": 17.8,
+        "frameMsMax": 23.2,
+        "cpuMsMean": 0.75,
+        "framesOver33ms": 0
+      },
+      "scenes": [
+        {
+          "key": "battle",
+          "current": {
+            "objects": 290,
+            "emitters": 0,
+            "particles": 0,
+            "filters": 0
+          },
+          "peak": {
+            "objects": 293,
+            "emitters": 1,
+            "particles": 8,
+            "filters": 0
+          },
+          "budget": {
+            "objects": 450,
+            "particles": 64,
+            "emitters": 6,
+            "filters": 0
+          },
+          "violations": []
+        }
+      ],
+      "activeScenes": [
+        "battle"
+      ],
+      "fixture": {
+        "missionId": "m02",
+        "arenaNumber": 2,
+        "techniqueId": "fire_breath",
+        "bootMs": 406,
+        "quality": "normal"
+      },
+      "reference": "844x390-canvas-normal",
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "captureWindowMs": 3000,
+      "screenshot": "844x390-canvas-normal-elemental-technique.png"
+    }
+  ],
+  "skipped": [],
+  "errors": [],
+  "violations": []
+}

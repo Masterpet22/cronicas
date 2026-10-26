@@ -1,0 +1,16 @@
+.performance-panel {
+  position: absolute; top: 8px; right: 8px; z-index: 300;
+  max-width: min(440px, calc(100% - 16px)); max-height: calc(100% - 16px); overflow: auto;
+  padding: 10px; border: 1px solid #84ccdf; border-radius: 6px;
+  background: #061321f2; color: #e2f4fa; font: 13px/1.4 monospace;
+}
+.performance-panel summary { cursor: pointer; font-weight: 700; }
+.performance-panel pre { white-space: pre-wrap; font: inherit; margin: 8px 0; }
+.performance-panel label { display: flex; align-items: center; gap: 8px; }
+.performance-panel > div { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.performance-panel button, .performance-panel select {
+  padding: 5px; border: 1px solid #84ccdf; border-radius: 3px;
+  background: #142b3e; color: #e2f4fa; font: inherit;
+}
+.debug-performance-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; }
+.debug-performance-controls label { display: flex; align-items: center; gap: 8px; }

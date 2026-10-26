@@ -22,15 +22,21 @@ Este roadmap parte de Phaser 4.2.1 y prioriza cambios visibles, medibles y rever
 
 ### Entregables
 
-- [ ] Registrar renderer, resolución, escala, FPS medio y tiempo de frame en las herramientas de desarrollo.
-- [ ] Definir tres escenarios de referencia: entrada al combate, turno cargado y técnica elemental.
-- [ ] Capturar referencias visuales en 1366×768, 1600×900 y modo compacto.
-- [ ] Añadir una comprobación de que el modo ligero no activa filtros WebGL costosos.
-- [ ] Establecer un presupuesto de objetos, partículas y filtros por escena.
+- [x] Registrar renderer, resolución, escala, FPS medio y tiempo de frame en las herramientas de desarrollo.
+- [x] Definir tres escenarios de referencia: entrada al combate, turno cargado y técnica elemental.
+- [x] Capturar referencias visuales en 1366×768, 1600×900 y modo compacto.
+- [x] Añadir una comprobación de que el modo ligero no activa filtros WebGL costosos.
+- [x] Establecer un presupuesto de objetos, partículas y filtros por escena.
 
 ### Criterio de salida
 
 Existe una línea base repetible para detectar regresiones visuales y de rendimiento antes de añadir efectos.
+
+**Estado: completada el 26 de octubre de 2026.** Panel opcional en PRUEBAS, muestras JSON,
+presupuestos por escena y benchmark de 27 combinaciones de escenario, tamaño y modo.
+Protocolo: [`RENDIMIENTO_PHASER_4.md`](RENDIMIENTO_PHASER_4.md).
+Resultados: [`../artifacts/phaser-performance/baseline.md`](../artifacts/phaser-performance/baseline.md).
+El siguiente incremento pendiente es la fase 1; esta medición no añade perfiles ambientales.
 
 ## Fase 1 — Perfiles visuales declarativos por arena
 

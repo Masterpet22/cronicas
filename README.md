@@ -126,6 +126,19 @@ npm run smoke
 npm run metrics
 ```
 
+Para la línea base visual y de rendimiento de Phaser 4:
+
+```powershell
+npm run performance:test
+npm run performance:baseline
+```
+
+En **PRUEBAS → Medir rendimiento** se activa el panel opcional de FPS, tiempos de frame,
+resolución y presupuestos por escena, con exportación JSON. El benchmark genera las
+27 muestras y referencias visuales en `artifacts/phaser-performance/`.
+El protocolo, los límites y la interpretación de resultados están en
+[`docs/RENDIMIENTO_PHASER_4.md`](docs/RENDIMIENTO_PHASER_4.md).
+
 ## Escenario de escritorio
 
 Todas las vistas comparten un escenario lógico de `1440 × 810` píxeles (`16:9`). El marco se centra y escala de forma proporcional en pantallas de escritorio, mientras que en monitores grandes conserva su tamaño máximo.

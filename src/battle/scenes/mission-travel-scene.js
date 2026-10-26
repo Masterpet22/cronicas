@@ -76,8 +76,9 @@ export class MissionTravelScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(11).setAlpha(0);
 
     this.add.rectangle(WIDTH / 2, 486, 360, 3, 0xdde8e5, 0.25).setDepth(10);
-    const progress = this.add.rectangle(returning ? 660 : 300, 486, 0, 3, presentation.accent, 0.95)
-      .setOrigin(returning ? 1 : 0, 0.5).setDepth(11).setName("travel-progress");
+    // Mantener la geometría fija conserva el anclaje al escalar el relleno.
+    const progress = this.add.rectangle(returning ? 660 : 300, 486, 360, 3, presentation.accent, 0.95)
+      .setOrigin(returning ? 1 : 0, 0.5).setScale(0, 1).setDepth(11).setName("travel-progress");
     this.add.circle(returning ? 660 : 300, 486, 5, presentation.accent, 0.92).setDepth(12);
     this.add.circle(returning ? 300 : 660, 486, 5, 0xe4efed, 0.7).setDepth(12);
     this.add.text(300, 466, returning ? presentation.destination : presentation.departure, {
@@ -107,7 +108,7 @@ export class MissionTravelScene extends Phaser.Scene {
     this.tweens.add({ targets: [travelTitle, travelSubtitle], alpha: 0, delay: duration * 0.37, duration: 200, ease: "Sine.easeIn" });
     this.tweens.add({ targets: [arrival, arrivalLocation], alpha: 1, y: "-=8", delay: duration * 0.58,
       duration: reducedMotion ? 120 : 330, ease: "Cubic.out" });
-    this.tweens.add({ targets: progress, width: 360, duration: duration - 210, ease: "Sine.inOut" });
+    this.tweens.add({ targets: progress, scaleX: 1, duration: duration - 210, ease: "Sine.inOut" });
     this.tweens.add({ targets: atmosphere, alpha: 0.12, duration: duration / 2, yoyo: true, ease: "Sine.inOut" });
     if (!reducedMotion && !lightMode) {
       this.cameras.main.zoomTo(battleRuntime.renderResolution * 1.045, duration - 180);
