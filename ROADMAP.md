@@ -112,7 +112,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 ## Próximo hito
 
-Pulir arquitectura, combate, balance e interfaz sobre la marioneta provisional; en paralelo, producir y validar una plantilla artística real antes de integrar la apariencia personalizable en combate.
+Ejecutar el primer incremento del [`roadmap de Phaser 4`](docs/ROADMAP_PHASER_4.md): establecer una línea base de rendimiento y crear perfiles visuales declarativos para las tres arenas. En paralelo, producir y validar una plantilla artística real antes de integrar la apariencia personalizable definitiva en combate.
 
 ## Bloqueador obligatorio antes de 1.0
 
