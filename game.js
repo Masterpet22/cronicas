@@ -1,11 +1,11 @@
 import { mountMetaUI } from "./src/meta-ui.js?v=0.95.0";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.94.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.95.0";
-import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.95.0";
+import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=0.97.0";
+import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=0.97.0";
 import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.95.0";
 import { LevelUpScene } from "./src/battle/scenes/level-up-scene.js?v=0.95.0";
-import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.95.0";
-import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.95.0";
+import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.96.0";
+import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.96.0";
 import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=0.95.0";
 import { Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.91.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";

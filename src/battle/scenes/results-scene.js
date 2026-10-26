@@ -2,6 +2,7 @@ import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { masterIdForCharacter } from "../../save.js?v=0.94.0";
 import { missionGrade } from "../rewards.js?v=0.69.0";
+import { returnToVillage } from "../return-to-village.js?v=0.96.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 const PARCHMENT_TEXT = "#352217";
@@ -164,7 +165,7 @@ export class ResultsScene extends Phaser.Scene {
     buttonBg.once("pointerup", () => {
       buttonBg.disableInteractive();
       buttonLabel.setText("CERRANDO INFORME...");
-      battleRuntime.releaseGameToMeta("plaza", { commitVictory: completed });
+      returnToVillage(this, completed);
     });
 
     this.tweens.add({ targets: this.children.getByName("results-title"), alpha: 1, y: "+=6", duration: 560, ease: "Cubic.out" });

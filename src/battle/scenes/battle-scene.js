@@ -21,7 +21,7 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 import { BattlePresentationMethods } from "./battle-presentation.js?v=0.94.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.95.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.97.0";
 import { BattleActionMethods } from "./battle-actions.js?v=0.94.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.95.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";

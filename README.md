@@ -38,6 +38,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Los bocadillos identifican siempre al hablante y su función; cuando hay varios personajes, el activo se ilumina mientras los demás quedan atenuados.
 - El perfil, el regreso al mapa y los ajustes funcionan como HUD flotante; ya no ocupan una cabecera separada del escenario.
 - La campaña disponible contiene cinco misiones principales: **Tras las huellas del gato**, **Asalto al Desfiladero del Cuervo**, **El umbral de los cuervos**, **El corazón de la guarida** y **El jefe de los bandidos**.
+- Los viajes de cada misión muestran su destino y el resultado del regreso con parallax, partículas ambientales y movimiento de cámara de Phaser 4. Al volver, el personaje, el escenario y la ruta avanzan de derecha a izquierda. Entre rivales aparece la siguiente fase de la misión, y los jefes anuncian sus cambios de fase antes de reanudar el combate. El informe se funde antes de volver a la aldea; con movimiento reducido se usa una transición más breve.
 - Las misiones secundarias disponibles son **El silencio de Kagemori** y **El médico errante**. Sus decisiones y descubrimientos abren el progreso de la saga principal.
 - Este contenido forma la primera saga; el plan es ampliarlo con nuevas sagas y misiones más adelante.
 - En el dojo, equipa o desequipa un arma, un protector y un accesorio.
