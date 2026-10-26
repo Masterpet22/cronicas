@@ -59,20 +59,24 @@ assert.equal(trainedStats.damageBonus, 16, "Fuerza debe aumentar el daño, adem�
 assert.equal(trainedStats.speed, 11, "Velocidad debe acelerar el avance desde la base fija");
 assert.equal(trainedStats.maxChakra, 150, "Chakra debe aumentar la reserva antes del bono de Viento");
 assert.equal(trainedStats.evasion, 18, "Suerte base, entrenamiento y chaleco deben modificar la evasión");
-assert.equal(trainedStats.criticalChance, 21, "Suerte base y entrenamiento deben aumentar la probabilidad de crítico");
+assert.equal(trainedStats.criticalChance, 13, "Suerte debe mejorar el crítico sin volverlo demasiado frecuente");
 const resetTraining = resetAttributes(save);
 assert.deepEqual(resetTraining.progression.attributes, { health: 0, strength: 0, speed: 0, chakra: 0, luck: 0 }, "Reiniciar atributos debe devolver la distribución a cero");
 assert.equal(resetTraining.progression.attributePoints, 5, "Reiniciar atributos debe reembolsar todos los puntos invertidos");
 
-const reward = awardEncounter(save, 3);
-assert.equal(reward.coins, 70, "El jefe debe entregar su recompensa");
+const reward = awardEncounter(save, "boss_raizen");
+assert.equal(reward.coins, 75, "El jefe final debe entregar una recompensa propia");
 assert.equal(reward.save.progression.level, 1, "Una sola recompensa del jefe no debe saltar el umbral inicial");
 assert.ok(reward.save.character.affinityXp.viento > save.character.affinityXp.viento, "Combatir debe entrenar las afinidades activas");
 
 let routeSave = save;
-for (let encounter = 0; encounter < 4; encounter += 1) routeSave = awardEncounter(routeSave, encounter).save;
+for (const enemyId of MISSIONS[0].encounters) routeSave = awardEncounter(routeSave, enemyId).save;
+routeSave = completeMission(routeSave, "m01").save;
 assert.equal(routeSave.progression.level, 2, "Completar la ruta debe subir al personaje de nivel");
 assert.equal(routeSave.progression.attributePoints, 2, "Subir de nivel debe entregar dos puntos de atributo");
+assert.equal(awardEncounter(routeSave, "boss_varek", { firstClear: false }).xp, 0, "Repetir una misión no debe otorgar experiencia ilimitada");
+const levelTwoStats = derivedStats(routeSave);
+assert.ok(levelTwoStats.maxHp > trainedStats.maxHp, "Subir de nivel debe fortalecer al personaje aun sin repartir puntos");
 
 let campaignSave = save;
 const startedMission = startMissionProgress(campaignSave, "m01");

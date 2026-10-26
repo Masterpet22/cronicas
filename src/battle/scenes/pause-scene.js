@@ -1,5 +1,5 @@
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
-import { mountAccessiblePause } from "../hud-accessibility.js?v=0.88.1";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=0.95.0";
 
 export class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
@@ -40,21 +40,83 @@ export class PauseScene extends Phaser.Scene {
       this.scene.stop();
     }, 150);
 
-    this.makePauseAction(560, 454, "ABANDONAR", 0xef665f, () => {
-      const button = this.children.getByName("pause-action-ABANDONAR");
-      if (button) button.disableInteractive();
-      const payload = this.battle.abandonPayload();
-      this.scene.stop("battle");
-      if (this.battle.mission.type === "route-combat") this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: payload });
-      else this.scene.start("travel", { direction: "toVillage", result: payload });
-    }, 150);
+    this.makePauseAction(560, 454, "ABANDONAR", 0xef665f, () => this.showAbandonWarning(), 150, false);
 
-    this.input.keyboard.once("keydown-ESC", () => {
+    this.input.keyboard.on("keydown-ESC", () => {
+      if (this.abandonWarningOpen) {
+        this.closeAbandonWarning?.();
+        return;
+      }
       this.scene.resume("battle");
       this.scene.stop();
     });
     sharpenTextTree(this.children.list);
-    mountAccessiblePause(this);
+    this.pauseAccess = mountAccessiblePause(this);
+  }
+
+  showAbandonWarning() {
+    if (this.abandonWarningOpen) return;
+    this.abandonWarningOpen = true;
+    if (this.pauseAccess?.root) this.pauseAccess.root.inert = true;
+    const pendingLevels = Math.max(0, this.battle.rewardPreviewSave.progression.level - this.battle.missionStartSave.progression.level);
+    const levelLine = pendingLevels
+      ? `También perderás ${pendingLevels} nivel${pendingLevels === 1 ? "" : "es"} mostrado${pendingLevels === 1 ? "" : "s"} durante el combate.`
+      : "Cualquier nivel mostrado durante esta misión también se perderá.";
+    const layer = [];
+    const add = (object) => { layer.push(object); return object; };
+    add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x010813, 0.88).setOrigin(0).setDepth(110).setInteractive());
+    add(this.add.rectangle(480, 270, 620, 278, 0x102033, 0.99).setStrokeStyle(2, 0xef8075, 0.95).setDepth(111));
+    add(this.add.text(480, 172, "¿ABANDONAR LA MISIÓN?", {
+      fontFamily: "Cinzel, Georgia, serif", fontSize: "23px", color: "#fff0e0", fontStyle: "bold"
+    }).setOrigin(0.5).setDepth(112));
+    add(this.add.text(480, 229, "Si sales ahora, perderás toda la experiencia, las monedas y las recompensas de esta misión.", {
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "16px", color: "#e7e1dc", align: "center", wordWrap: { width: 530 }
+    }).setOrigin(0.5).setDepth(112));
+    add(this.add.text(480, 289, levelLine, {
+      fontFamily: "Alegreya Sans, Segoe UI, sans-serif", fontSize: "16px", color: "#ffd0aa", align: "center", wordWrap: { width: 530 }
+    }).setOrigin(0.5).setDepth(112));
+    const stay = add(this.add.rectangle(360, 354, 206, 43, 0x1a5472, 1).setStrokeStyle(1, 0x9bd9f0).setInteractive({ useHandCursor: true }).setDepth(112));
+    add(this.add.text(360, 354, "SEGUIR JUGANDO", { fontFamily: "Cinzel, Georgia, serif", fontSize: "13px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setDepth(113));
+    const leave = add(this.add.rectangle(600, 354, 206, 43, 0x8b3334, 1).setStrokeStyle(1, 0xff9f96).setInteractive({ useHandCursor: true }).setDepth(112).setName("confirm-abandon-mission"));
+    add(this.add.text(600, 354, "ABANDONAR MISIÓN", { fontFamily: "Cinzel, Georgia, serif", fontSize: "13px", color: "#ffffff", fontStyle: "bold" }).setOrigin(0.5).setDepth(113));
+
+    const dialog = document.createElement("div");
+    dialog.className = "combat-abandon-confirm-access";
+    dialog.setAttribute("role", "alertdialog");
+    dialog.setAttribute("aria-modal", "true");
+    dialog.setAttribute("aria-label", "Confirmar abandono de misión");
+    dialog.style.cssText = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
+    const message = document.createElement("p");
+    message.textContent = `Si abandonas, perderás toda la experiencia, monedas y recompensas de esta misión. ${levelLine}`;
+    const stayButton = document.createElement("button");
+    stayButton.type = "button";
+    stayButton.textContent = "Seguir jugando";
+    const leaveButton = document.createElement("button");
+    leaveButton.type = "button";
+    leaveButton.textContent = "Abandonar misión y perder recompensas";
+    dialog.append(message, stayButton, leaveButton);
+    this.game.canvas.parentElement?.append(dialog);
+    const close = () => {
+      layer.forEach((object) => object.destroy());
+      dialog.remove();
+      this.abandonWarningOpen = false;
+      this.closeAbandonWarning = null;
+      if (this.pauseAccess?.root) this.pauseAccess.root.inert = false;
+    };
+    const confirm = () => {
+      close();
+      const payload = this.battle.abandonPayload();
+      this.scene.stop("battle");
+      if (this.battle.mission.type === "route-combat") this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: payload });
+      else this.scene.start("travel", { direction: "toVillage", result: payload });
+    };
+    this.closeAbandonWarning = close;
+    stay.on("pointerup", close);
+    leave.once("pointerup", confirm);
+    stayButton.addEventListener("click", close);
+    leaveButton.addEventListener("click", confirm);
+    stayButton.focus({ preventScroll: true });
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => dialog.remove());
   }
 
   makePauseToggle(x, y, label, inputId) {

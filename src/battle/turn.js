@@ -1,4 +1,4 @@
-import { addSoak, cappedEvasion, effectiveSpeed, hurricaneEyeEvasionBonus, tickSoak } from "../affinity-system.js?v=0.58.0";
+import { addSoak, cappedEvasion, effectiveSpeed, hurricaneEyeEvasionBonus, tickSoak } from "../affinity-system.js?v=0.93.0";
 
 export function combatantSpeed(combatant) {
   return effectiveSpeed(combatant.baseSpeed, combatant.speedModifier, combatant.soak);

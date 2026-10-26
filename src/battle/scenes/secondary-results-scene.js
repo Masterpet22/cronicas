@@ -142,7 +142,7 @@ export class SecondaryResultsScene extends Phaser.Scene {
     buttonBg.once("pointerup", () => {
       buttonBg.disableInteractive();
       buttonLabel.setText("CERRANDO INFORME...");
-      battleRuntime.releaseGameToMeta("plaza");
+      battleRuntime.releaseGameToMeta("plaza", { commitVictory: completed });
     });
 
     this.tweens.add({ targets: this.children.getByName("secondary-results-title"), alpha: 1, y: "+=6", duration: 560, ease: "Cubic.out" });

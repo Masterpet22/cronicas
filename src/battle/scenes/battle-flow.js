@@ -1,21 +1,24 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.69.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
+import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.93.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.95.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
 import { resolveDamage } from "../damage.js?v=0.68.0";
-import { createEnemyState } from "../enemy-state.js?v=0.68.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
+import { createEnemyState } from "../enemy-state.js?v=0.93.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.93.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, visibleRewardCountForEncounter } from "../rewards.js?v=0.91.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
+import { encounterRecovery } from "../../progression-balance.js?v=0.94.0";
+import { playLevelUpFlash } from "../level-up-transition.js?v=0.95.0";
+import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
@@ -124,24 +127,28 @@ export class BattleFlowMethods {
       }
       // Las recompensas se calculan para informar al jugador, pero no se
       // incorporan al guardado hasta completar toda la misión.
-      const reward = awardEncounter(this.rewardPreviewSave, this.enemyIndex);
+      const firstClear = !this.missionStartSave.campaign.completedMissions.includes(this.mission.id);
+      const reward = awardEncounter(this.rewardPreviewSave, this.encounterIds[this.enemyIndex], { firstClear });
       this.rewardPreviewSave = reward.save;
       this.pendingEncounterRewards.push(this.enemyIndex);
       this.lastReward = reward;
       this.defeatedEncounters += 1;
       this.battleRewards = addBattleReward(this.battleRewards, reward);
-      await this.playEncounterRewards(this.enemyIndex);
+      if (reward.xp || reward.coins) await this.playEncounterRewards(this.enemyIndex);
+      await this.showPendingLevelUp(this.rewardPreviewSave);
       if (this.enemyIndex === this.encounters.length - 1) {
         if (this.combatFeatures.relicDecision) await this.playRelicDrop();
         if (this.combatFeatures.postCombatChoice) await this.playHideoutDiscoveryChoice();
         this.pendingEncounterRewards.forEach((encounterIndex) => {
-          this.saveData = awardEncounter(this.saveData, encounterIndex).save;
+          this.saveData = awardEncounter(this.saveData, this.encounterIds[encounterIndex], { firstClear }).save;
         });
         const completion = completeMission(this.saveData, this.mission.id);
-        this.saveData = writeSave(completion.save);
-        battleRuntime.activeSave = this.saveData;
+        this.saveData = completion.save;
+        stageVictory(battleRuntime, this.saveData);
+        this.rewardPreviewSave = this.saveData;
         this.missionReward = completion;
         this.battleRewards = addBattleReward(this.battleRewards, completion);
+        await this.showPendingLevelUp(this.saveData);
         await this.finishBattle(true);
       } else {
         const investigationStep = missionStep(this.mission, "investigation");
@@ -163,6 +170,29 @@ export class BattleFlowMethods {
       await this.triggerBossPhaseTwo();
     }
     return false;
+  }
+
+  async showPendingLevelUp(previewSave) {
+    const report = levelUpReport(this.lastShownLevel, previewSave);
+    if (!report) return;
+    this.stopTurnTimeline?.();
+    await playLevelUpFlash(this, this.hero);
+    const restoreHud = this.accessibleHud?.suspend?.();
+    await new Promise((resolve) => {
+      this.events.once(Phaser.Scenes.Events.RESUME, () => {
+        const oldHp = this.player.maxHp;
+        const oldChakra = this.player.maxChakra;
+        Object.assign(this.player, derivedStats(previewSave));
+        this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.maxHp - oldHp);
+        this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + this.player.maxChakra - oldChakra);
+        this.lastShownLevel = report.afterLevel;
+        this.refreshHud();
+        restoreHud?.();
+        resolve();
+      });
+      this.scene.launch("level-up", { result: { outcome: "completed", levelUp: report }, returnToBattle: true });
+      this.scene.pause();
+    });
   }
 
   async playEncounterRewards(encounterIndex) {
@@ -234,7 +264,10 @@ export class BattleFlowMethods {
     try {
       const defeatedName = this.encounters[this.enemyIndex].name;
       const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
-      this.setMessage(`${defeatedName} derrotado · +${this.lastReward.xp} PX · +${this.lastReward.affinityXp} PX de afinidad · +${this.lastReward.coins} monedas${levelNote}`, "#79e8b5");
+      const rewardMessage = this.lastReward.xp || this.lastReward.coins
+        ? `+${this.lastReward.xp} PX · +${this.lastReward.affinityXp} PX de afinidad · +${this.lastReward.coins} monedas${levelNote}`
+        : "sin nuevas recompensas por repetición";
+      this.setMessage(`${defeatedName} derrotado · ${rewardMessage}`, "#79e8b5");
       this.stopFighterFlash(this.foe);
       this.tweens.add({ targets: [...this.foe.targets, this.foe.shadow], alpha: 0, x: "+=70", duration: 480 });
       await this.delay(560);
@@ -257,7 +290,7 @@ export class BattleFlowMethods {
       this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });
       this.tweens.add({ targets: this.foe.shadow, x: "-=70", alpha: 0.4, duration: 520, ease: "Cubic.out" });
 
-      const recovery = this.nextRecovery || { hp: 35, chakra: 25, clearStatuses: true };
+      const recovery = this.nextRecovery || encounterRecovery(this.player.maxHp, this.player.maxChakra);
       this.player.hp = Math.min(this.player.maxHp, this.player.hp + recovery.hp);
       this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + recovery.chakra);
       if (recovery.clearStatuses) this.player.statuses = [];

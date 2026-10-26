@@ -1,5 +1,6 @@
 import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
+import { shouldShowLevelUp } from "./level-up-scene.js?v=0.95.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 export class MissionTravelScene extends Phaser.Scene {
@@ -66,7 +67,11 @@ export class MissionTravelScene extends Phaser.Scene {
     this.time.delayedCall(duration - 260, () => this.cameras.main.fadeOut(250, 4, 10, 7));
     this.time.delayedCall(duration, () => {
       stopPlayerRunning(runner);
-      if (returningToVillage && data.result) this.scene.start(data.secondaryResult ? "secondary-results" : "results", data.result);
+      if (returningToVillage && data.result) {
+        const nextScene = data.secondaryResult ? "secondary-results" : "results";
+        if (!data.result.levelUpShown && shouldShowLevelUp(data.result)) this.scene.start("level-up", { result: data.result, nextScene });
+        else this.scene.start(nextScene, data.result);
+      }
       else if (returningToVillage) battleRuntime.releaseGameToMeta("plaza");
       else if (returningToRoute || battleRuntime.activeMission?.type === "route-search") battleRuntime.releaseGameToMeta("doctor-route");
       else if (battleRuntime.activeMission?.type === "investigation") battleRuntime.releaseGameToMeta("kagemori");

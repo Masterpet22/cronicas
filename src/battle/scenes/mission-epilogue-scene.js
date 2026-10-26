@@ -1,5 +1,5 @@
-import { writeSave } from "../../save.js?v=0.66.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
+import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 
 export class MissionEpilogueScene extends Phaser.Scene {
   constructor() { super("epilogue"); }
@@ -57,7 +57,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
       button.disableInteractive();
       battleRuntime.activeSave.campaign.sayoEncounterSeen = true;
       battleRuntime.activeSave.campaign.secondaryBoardUnlocked = true;
-      battleRuntime.activeSave = writeSave(battleRuntime.activeSave);
+      stageVictory(battleRuntime, battleRuntime.activeSave);
       this.scene.start("travel", { direction: "toVillage", result: data.result || {} });
     });
     this.cameras.main.fadeIn(300, 3, 9, 18);

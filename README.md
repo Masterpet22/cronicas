@@ -12,6 +12,8 @@ El alcance jugable vigente, las misiones conectadas y la distinción entre conte
 [`docs/ESTADO_ACTUAL.md`](docs/ESTADO_ACTUAL.md).
 El contrato para añadir misiones, mecánicas y traducciones sin acoplarlas a una pantalla está en
 [`docs/SISTEMA_MISIONES_DIALOGOS.md`](docs/SISTEMA_MISIONES_DIALOGOS.md).
+Las fórmulas y objetivos de progresión y combate están en
+[`docs/BALANCE_COMBATE.md`](docs/BALANCE_COMBATE.md).
 
 ## Ejecutar
 
@@ -58,12 +60,14 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - **Guardia** recupera 12 puntos de chakra y reduce el siguiente impacto un 50 %.
 - Los jutsus tienen enfriamientos visibles y no pueden repetirse continuamente.
 - Fuego causa quemadura, viento abre una herida y relámpago aturde; el enemigo puede aplicar veneno.
+- Las técnicas elementales muestran impactos propios de fuego, agua, tierra, viento y rayo; en WebGL añaden brillo de Phaser 4 y en modo ligero o con movimiento reducido conservan una versión simple.
 - Cada ataque compara su precisión con la evasión del objetivo y puede fallar.
 - El estado **Sellado** reduce en 15 puntos la precisión mientras permanece activo.
 - Cada enemigo tiene debilidad, resistencia y patrón de acciones propios.
-- Al derrotar un enemigo se recuperan 35 PV y 25 CH antes del siguiente encuentro.
+- Al derrotar un enemigo se recupera el 22 % de los PV máximos y el 18 % del chakra máximo antes del siguiente encuentro (mínimo 12 de cada recurso).
 - La técnica especial utiliza una presentación cinematográfica oscura.
-- Cada enemigo concede experiencia y monedas; las recompensas y decisiones quedan guardadas localmente.
+- Cada enemigo concede experiencia y monedas según su dificultad en la primera victoria de la misión. Repetirla no vuelve a dar experiencia ni monedas.
+- Si la experiencia de un rival alcanza el siguiente nivel, el personaje destella con luz blanca y pasa entre humo a una ventana con los atributos anteriores y nuevos. Al aceptar, el humo devuelve al combate si quedan rivales. Los aumentos dependen de la afinidad principal y se aplican provisionalmente; experiencia, monedas y niveles sólo se guardan al cerrar el informe y llegar a la aldea. Abandonar pide confirmación y descarta esas recompensas.
 - Al finalizar aparece un botón para volver a la aldea y ajustar la estrategia.
 - **Modo ligero** desactiva sacudidas y destellos de combatientes para equipos modestos.
 - La música ambiental sintetizada puede desactivarse independientemente de los demás efectos.

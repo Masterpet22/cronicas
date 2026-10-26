@@ -1,13 +1,15 @@
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.66.0";
+import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.93.0";
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
 import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
-import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.58.0";
+import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.93.0";
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.60.0";
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
 import { createCompletedMissionProgress, migrateSaveToV17 } from "./save/save-migrations.js";
 import { createSlotRepository } from "./save/slot-repository.js";
 import { advanceMissionProgress as advanceCampaignMission, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
+import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
+export { attributeTrainingLimit };
 import { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
 export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
 export const SAVE_KEY = "cronicas-del-sello-save";
@@ -113,6 +115,10 @@ export function normalizeSave(candidate) {
   const progression = candidate.progression || {};
   const attributes = progression.attributes || {};
   const level = Math.max(1, Math.floor(Number(progression.level) || 1));
+  const trainingLimit = attributeTrainingLimit(level);
+  const trainedAttributes = Object.fromEntries(["health", "strength", "speed", "chakra", "luck"].map((id) => [id, Math.max(0, Math.floor(Number(attributes[id]) || 0))]));
+  const excessTraining = Object.values(trainedAttributes).reduce((sum, points) => sum + Math.max(0, points - trainingLimit), 0);
+  const balancedAttributes = Object.fromEntries(Object.entries(trainedAttributes).map(([id, points]) => [id, Math.min(points, trainingLimit)]));
   const completedMissions = [...new Set(Array.isArray(candidate.campaign?.completedMissions) ? candidate.campaign.completedMissions : [])]
     .filter((id) => MISSIONS.some((mission) => mission.id === id));
   const completedSecondaryMissions = [...new Set(Array.isArray(candidate.campaign?.completedSecondaryMissions) ? candidate.campaign.completedSecondaryMissions : [])]
@@ -158,14 +164,8 @@ export function normalizeSave(candidate) {
       level,
       xp: Math.max(0, Math.floor(Number(progression.xp) || 0)),
       coins: Math.max(0, Math.floor(Number(progression.coins) || 0)),
-      attributePoints: Math.max(0, Math.floor(Number(progression.attributePoints) || 0)),
-      attributes: {
-        health: Math.max(0, Math.floor(Number(attributes.health) || 0)),
-        strength: Math.max(0, Math.floor(Number(attributes.strength) || 0)),
-        speed: Math.max(0, Math.floor(Number(attributes.speed) || 0)),
-        chakra: Math.max(0, Math.floor(Number(attributes.chakra) || 0)),
-        luck: Math.max(0, Math.floor(Number(attributes.luck) || 0))
-      }
+      attributePoints: Math.max(0, Math.floor(Number(progression.attributePoints) || 0)) + excessTraining,
+      attributes: balancedAttributes
     },
     equipment: {
       weapon: validEquipment("weapon", candidate.equipment?.weapon),
@@ -292,19 +292,14 @@ export function applyDebugCheckpoint(save, checkpointId) {
 }
 
 export function xpForNextLevel(level) {
-  return 80 + level * 40;
+  return experienceForNextLevel(level);
 }
 
-export function awardEncounter(save, encounterIndex) {
-  const rewards = [
-    { xp: 28, coins: 18 },
-    { xp: 36, coins: 26 },
-    { xp: 48, coins: 36 },
-    { xp: 90, coins: 70 }
-  ];
+export function awardEncounter(save, enemyId, { firstClear = true } = {}) {
   const result = normalizeSave(save);
+  const base = firstClear ? ENCOUNTER_REWARDS[enemyId] : null;
+  if (!base) return { save: result, xp: 0, affinityXp: 0, coins: 0, levelsGained: 0 };
   const stats = derivedStats(result);
-  const base = rewards[encounterIndex] || rewards[0];
   const gainedXp = Math.round(base.xp * (1 + stats.xpBonus));
   result.progression.xp += gainedXp;
   result.progression.coins += base.coins;
@@ -458,7 +453,9 @@ export function recordBestiaryObservation(save, enemyId, observation = {}) {
 
 export function spendAttribute(save, attribute) {
   const result = normalizeSave(save);
-  if (!Object.hasOwn(result.progression.attributes, attribute) || result.progression.attributePoints <= 0) return result;
+  if (!Object.hasOwn(result.progression.attributes, attribute)
+    || result.progression.attributePoints <= 0
+    || result.progression.attributes[attribute] >= attributeTrainingLimit(result.progression.level)) return result;
   result.progression.attributes[attribute] += 1;
   result.progression.attributePoints -= 1;
   return result;
@@ -495,12 +492,13 @@ export function selectNextAffinity(save, affinityId) {
 export function derivedStats(save) {
   const normalized = normalizeSave(save);
   const { health, strength, speed, chakra, luck: trainedLuck } = normalized.progression.attributes;
+  const levelBonus = levelStatBonus(normalized.progression.level, normalized.character?.affinity);
   const baseStats = {
-    health: AFFINITY_CONFIG.baseStats.health + health * AFFINITY_CONFIG.attributeGains.health,
-    strength: AFFINITY_CONFIG.baseStats.strength + strength * AFFINITY_CONFIG.attributeGains.strength,
-    speed: AFFINITY_CONFIG.baseStats.speed + speed * AFFINITY_CONFIG.attributeGains.speed,
-    chakra: AFFINITY_CONFIG.baseStats.chakra + chakra * AFFINITY_CONFIG.attributeGains.chakra,
-    luck: AFFINITY_CONFIG.baseStats.luck + trainedLuck * AFFINITY_CONFIG.attributeGains.luck
+    health: AFFINITY_CONFIG.baseStats.health + levelBonus.health + health * AFFINITY_CONFIG.attributeGains.health,
+    strength: AFFINITY_CONFIG.baseStats.strength + levelBonus.strength + strength * AFFINITY_CONFIG.attributeGains.strength,
+    speed: AFFINITY_CONFIG.baseStats.speed + levelBonus.speed + speed * AFFINITY_CONFIG.attributeGains.speed,
+    chakra: AFFINITY_CONFIG.baseStats.chakra + levelBonus.chakra + chakra * AFFINITY_CONFIG.attributeGains.chakra,
+    luck: AFFINITY_CONFIG.baseStats.luck + levelBonus.luck + trainedLuck * AFFINITY_CONFIG.attributeGains.luck
   };
   const utility = {
     accuracy: 95,
@@ -542,6 +540,32 @@ export function derivedStats(save) {
     costReduction: utility.costReduction,
     xpBonus: utility.xpBonus,
     damageReduction: utility.damageReduction
+  };
+}
+
+export function levelUpReport(previousLevel, save) {
+  const afterSave = normalizeSave(save);
+  const beforeLevel = Math.max(1, Math.floor(Number(previousLevel) || 1));
+  const afterLevel = afterSave.progression.level;
+  if (afterLevel <= beforeLevel) return null;
+  const beforeSave = { ...afterSave, progression: { ...afterSave.progression, level: beforeLevel } };
+  const beforeStats = derivedStats(beforeSave);
+  const afterStats = derivedStats(afterSave);
+  const affinity = afterSave.character?.affinity || "fuego";
+  const statDefinitions = [
+    ["health", "VIDA", "maxHp"],
+    ["strength", "FUERZA", "strength"],
+    ["speed", "VELOCIDAD", "speed"],
+    ["chakra", "CHAKRA", "maxChakra"],
+    ["luck", "SUERTE", "luck"]
+  ];
+  return {
+    beforeLevel,
+    afterLevel,
+    affinity,
+    focus: AFFINITY_LEVEL_FOCUS[affinity],
+    pointsGained: (afterLevel - beforeLevel) * 2,
+    stats: statDefinitions.map(([id, label, key]) => ({ id, label, before: beforeStats[key], after: afterStats[key], gain: afterStats[key] - beforeStats[key] }))
   };
 }
 

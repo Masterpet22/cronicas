@@ -141,6 +141,8 @@ test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ pag
   await page.keyboard.press("Escape");
   await page.waitForTimeout(250);
   await clickCanvasPoint(page, canvasBox, 560 / 960, 454 / 540);
+  await expect(page.locator("#game [role='alertdialog']")).toBeVisible();
+  await clickCanvasPoint(page, canvasBox, 600 / 960, 354 / 540);
   await page.waitForTimeout(2_700);
   await clickCanvasPoint(page, canvasBox, 625 / 960, 485 / 540);
 

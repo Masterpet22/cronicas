@@ -19,6 +19,7 @@ const readJavaScriptTree = (directory) => readdirSync(directory, { withFileTypes
 const missionData = readJavaScriptTree(fileURLToPath(new URL("../src/content", import.meta.url))).join("\n");
 const battle = [readFileSync(new URL("../game.js", import.meta.url), "utf8"), ...readJavaScriptTree(fileURLToPath(new URL("../src/battle", import.meta.url)))].join("\n");
 const travelScene = readFileSync(new URL("../src/battle/scenes/mission-travel-scene.js", import.meta.url), "utf8");
+const resultsScene = readFileSync(new URL("../src/battle/scenes/results-scene.js", import.meta.url), "utf8");
 const secondaryResultsScene = readFileSync(new URL("../src/battle/scenes/secondary-results-scene.js", import.meta.url), "utf8");
 const metaUi = [readFileSync(new URL("../src/meta-ui.js", import.meta.url), "utf8"), ...readJavaScriptTree(metaRoot)].join("\n");
 const readme = readFileSync(new URL("../README.md", import.meta.url), "utf8");
@@ -118,7 +119,7 @@ assert.match(battle, /key: "experience-drop-spin"[\s\S]*repeat: -1/, "La experie
 assert.match(battle, /playEncounterRewards\(encounterIndex\)[\s\S]*visibleRewardCountForEncounter\(encounterIndex\)[\s\S]*texture: "coin-drop"[\s\S]*texture: "experience-drop"/, "Monedas y experiencia deben usar la misma progresión visual por pelea");
 assert.match(battle, /playRewardBurst\(count[\s\S]*setDisplaySize\(effect\.displaySize[\s\S]*playerTarget = \{ x: this\.hero\.body\.x[\s\S]*\.then\(\(\) => rewardSprite\.destroy\(\)\)/, "Cada recompensa visual debe salir del enemigo, viajar al jugador y desaparecer al alcanzarlo");
 assert.match(battle, /progression = \[5, 7, 10, 13, 15\][\s\S]*progression\.length - 1/, "La representación debe crecer por pelea hasta un máximo visual de quince monedas");
-assert.match(battle, /this\.battleRewards = addBattleReward\(this\.battleRewards, reward\);\s*await this\.playEncounterRewards\(this\.enemyIndex\);[\s\S]*await this\.advanceEncounter/, "La transición debe esperar ambas animaciones visuales sin sustituir las recompensas reales del encuentro");
+assert.match(battle, /this\.battleRewards = addBattleReward\(this\.battleRewards, reward\);\s*if \(reward\.xp \|\| reward\.coins\) await this\.playEncounterRewards\(this\.enemyIndex\);[\s\S]*await this\.advanceEncounter/, "La transición debe esperar ambas animaciones visuales cuando hay recompensa real");
 for (const id of ["fire_embers", "fire_breath", "water_bullet", "water_whip", "earth_fist", "earth_wall", "wind_palm", "wind_blade"]) {
   assert.match(battle, new RegExp(`${id}: Object\\.freeze`), `${id} debe tener un spritesheet asignado`);
 }
@@ -193,7 +194,7 @@ assert.match(missionData, /hpMultiplier: 0\.85/, "La intervención del teniente 
 assert.match(battle, /ANUNCIA: \$\{action\.name\.toUpperCase\(\)\}/, "Raizen debe anunciar sus ataques peligrosos");
 assert.match(save, /banditPrisonerChoice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
 assert.match(missionData, /type: "enemy-stats"[\s\S]*stats: \{ health: 22, strength: 2, speed: 2, luck: 1 \}[\s\S]*equals: "interrogate"/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
-assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "Viaje, combate, epílogos y ambos resultados deben formar el flujo de misión");
+assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "La subida de nivel debe formar parte del flujo antes de los informes");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /loseHealth\(this\.player, this\.hero/, "Los impactos enemigos deben pasar por la reacción centralizada");
@@ -341,7 +342,7 @@ assert.match(desktop, /location-stage\.location-kagemori \.stage-speech \{[\s\S]
 assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kurose/, "La transición no debe duplicar en Phaser los recursos de la investigación HTML");
 assert.match(travelScene, /(?:battleRuntime\.)?releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => destroyGameInstance\(instance\)\)/, "Al volver a HTML, Phaser debe destruirse en vez de quedar oculto consumiendo recursos");
-assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[MissionTravelScene, SecondaryResultsScene\]/, "Los resultados secundarios deben crear una instancia limpia y regresar por el camino antes del informe");
+assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[MissionTravelScene, LevelUpScene, SecondaryResultsScene\]/, "Los resultados secundarios deben poder mostrar la subida durante el regreso antes del informe");
 assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
 assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
@@ -370,7 +371,7 @@ assert.match(travelScene, /returningToVillage \? forestBackground : villageBackg
 assert.match(travelScene, /backgroundTransitionDelay = duration \/ 2 - backgroundTransitionDuration \/ 2/, "El fundido entre aldea y bosque debe quedar centrado exactamente a mitad del viaje");
 assert.doesNotMatch(travelScene, /targets: foreground, alpha:/, "Las ramas deben permanecer visibles sobre la aldea y el bosque durante todo el viaje");
 assert.match(travelScene, /HEIGHT \/ 2 - 16[\s\S]*RUMBO A LA ALDEA[\s\S]*HEIGHT \/ 2 \+ 22/, "Los nombres del viaje deben mostrarse en el centro de la pantalla");
-assert.match(battle, /returningToVillage && data\.result[\s\S]*scene\.start\(data\.secondaryResult \? "secondary-results" : "results", data\.result\)/, "Cada informe debe abrirse sólo al terminar el viaje de regreso");
+assert.match(travelScene, /returningToVillage && data\.result[\s\S]*const nextScene = data\.secondaryResult \? "secondary-results" : "results";[\s\S]*this\.scene\.start\(nextScene, data\.result\)/, "Cada informe debe abrirse sólo al terminar el viaje de regreso y de la subida");
 assert.match(battle, /scene\.start\("travel", \{ direction: "toVillage", result \}\)/, "El cierre del combate debe iniciar el regreso antes del informe");
 assert.doesNotMatch(battle, /add\.circle\(WIDTH \/ 2, 236/, "Resultados no debe recuperar el círculo decorativo ajeno al HUD");
 assert.match(battle, /this\.combatFeatures\.secretEntry[\s\S]*await this\.playSecretWarehouse\(\);[\s\S]*this\.startTurnCharge\(\);/, "La entrada secreta debe mostrar el almacén antes de iniciar los turnos");
@@ -418,5 +419,9 @@ assert.match(storyDocument, /Futuro prometedor[\s\S]*Raizen Kurogane/i, "La hist
 assert.doesNotMatch(storyDocument, /Eclipse|Riven|Nerezza|Mika|Maestra Aya/i, "La historia general no debe conservar tramas de misiones retiradas");
 assert.match(characterDocument, /Reparto vigente[\s\S]*Ren Arashiro[\s\S]*Raizen Kurogane/i, "El registro de personajes debe corresponder a la campaña vigente");
 assert.doesNotMatch(characterDocument, /Mika|Maestra Aya|Riven|Nerezza|Malakor/i, "El registro de personajes no debe mezclar conceptos descartados con el reparto actual");
+assert.match(travelScene, /if \(!data\.result\.levelUpShown && shouldShowLevelUp\(data\.result\)\) this\.scene\.start\("level-up", \{ result: data\.result, nextScene \}\)/, "El viaje sólo debe abrir la escena de nivel cuando aún no se mostró durante el combate");
+assert.match(battle, /levelUp: outcome === "completed" \? levelUpReport\(this\.missionStartSave\.progression\.level, this\.saveData\) : null/, "El combate debe entregar el cambio real de atributos a la escena de nivel");
+assert.match(metaUi, /levelUp: levelUpReport\(currentSave\.progression\.level, save\)/, "La misión del médico debe entregar la misma progresión a la escena de nivel");
+assert.doesNotMatch(resultsScene + secondaryResultsScene, /drawLevelUpNotice/, "Los informes no deben repetir la subida como un letrero");
 
 console.log("Pruebas de interfaz de combate superadas.");

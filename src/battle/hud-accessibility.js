@@ -364,4 +364,5 @@ export function mountAccessiblePause(scene) {
     root.remove();
     if (!battleHud?.hidden) scene.game.canvas.parentElement?.querySelector('.combat-access-pause')?.focus({ preventScroll: true });
   });
+  return { root };
 }

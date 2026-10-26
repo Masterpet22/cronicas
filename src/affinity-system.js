@@ -7,7 +7,7 @@ export const AFFINITY_CONFIG = Object.freeze({
   // entrenamiento, equipo y maestro se aplican después sobre estos valores.
   baseStats: Object.freeze({ health: 100, strength: 10, speed: 10, chakra: 100, luck: 10 }),
   attributeGains: Object.freeze({ health: 10, strength: 1, speed: 1, chakra: 5, luck: 1 }),
-  derived: Object.freeze({ baseEvasion: 3, baseCriticalChance: 5, luckCriticalScale: 1.5, criticalChanceCap: 35 }),
+  derived: Object.freeze({ baseEvasion: 3, baseCriticalChance: 5, luckCriticalScale: 0.8, criticalChanceCap: 25 }),
   slots: Object.freeze([
     Object.freeze({ position: 1, weight: 1, bonus: 0.20, penalty: -0.12, level: 1, storyRank: 1 }),
     Object.freeze({ position: 2, weight: 0.5, bonus: 0.10, penalty: -0.06, level: 15, storyRank: 2 }),

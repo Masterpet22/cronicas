@@ -8,6 +8,7 @@ export const battleRuntime = {
   activeSave: null,
   activeMission: null,
   pendingSecondaryResults: null,
+  pendingVictorySave: null,
   renderResolution: 1,
   textTextureResolution: 2,
   releaseGameToMeta: () => {}

@@ -1,4 +1,4 @@
-import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "../affinity-system.js?v=0.58.0";
+import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "../affinity-system.js?v=0.93.0";
 import { activeCombatModifiers } from "../combat-modifiers.js?v=0.67.0";
 
 function targetsProfile(modifier, profile) {

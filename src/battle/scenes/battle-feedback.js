@@ -1,23 +1,24 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.66.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.58.0";
+import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.93.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.66.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.94.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
 import { resolveDamage } from "../damage.js?v=0.68.0";
-import { createEnemyState } from "../enemy-state.js?v=0.68.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.68.0";
+import { createEnemyState } from "../enemy-state.js?v=0.93.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.93.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
+import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {
@@ -114,6 +115,7 @@ export class BattleFeedbackMethods {
     this.timelinePaused = true;
     const routeFailureStats = !won && this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     if (!won) {
+      discardVictory(battleRuntime);
       this.missionStartSave.bestiary = this.saveData.bestiary;
       this.saveData = this.mission.type === "route-combat"
         ? cancelDoctorMission(this.missionStartSave)
@@ -148,7 +150,7 @@ export class BattleFeedbackMethods {
     this.scene.start("travel", { direction: "toVillage", result });
   }
   resultPayload(outcome) {
-    return createBattleResult({
+    const result = createBattleResult({
       outcome,
       mission: this.mission,
       player: this.player,
@@ -158,8 +160,14 @@ export class BattleFeedbackMethods {
       combatFeatures: this.combatFeatures,
       campaign: this.saveData.campaign
     });
+    return {
+      ...result,
+      levelUp: outcome === "completed" ? levelUpReport(this.missionStartSave.progression.level, this.saveData) : null,
+      levelUpShown: outcome === "completed" && this.lastShownLevel >= this.saveData.progression.level
+    };
   }
   abandonPayload() {
+    discardVictory(battleRuntime);
     const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     this.missionStartSave.bestiary = this.saveData.bestiary;
     this.saveData = writeSave(this.missionStartSave);

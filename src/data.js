@@ -111,65 +111,65 @@ const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ he
 
 export const ENEMY_ROSTER = {
   tutorial_bandit: {
-    name: "BANDIDO", affinity: "tierra", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
+    name: "BANDIDO", level: 1, affinity: "tierra", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
     pattern: ["quick", "quick", "heavy"],
     colors: { cloth: 0x7b6a50, accent: 0x2c241d }
   },
   tutorial_bandit_second: {
-    name: "BANDIDO", affinity: "viento", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
+    name: "BANDIDO", level: 1, affinity: "viento", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
     pattern: ["quick", "heavy", "quick"],
     colors: { cloth: 0x596b4d, accent: 0x20291d }
   },
   boss_varek: {
-    name: "VAREK, EL RAPTAFELINOS", affinity: "fuego", stats: enemyStats(94, 2, 11, 42, 4), accuracy: 90,
+    name: "VAREK, EL RAPTAFELINOS", level: 2, affinity: "fuego", stats: enemyStats(94, 2, 11, 42, 4), accuracy: 90,
     pattern: ["heavy", "quick", "heavy"],
     phase2Pattern: ["quick", "heavy", "quick", "ember"], boss: true,
     colors: { cloth: 0x8f5747, accent: 0x321b19 }
   },
   bandit_pathfinder: {
-    name: "RASTREADOR BANDIDO", affinity: "viento", stats: enemyStats(72, 1, 12, 34, 4), accuracy: 89,
+    name: "RASTREADOR BANDIDO", level: 2, affinity: "viento", stats: enemyStats(72, 1, 12, 34, 4), accuracy: 89,
     pattern: ["quick", "toxin", "heavy"],
     colors: { cloth: 0x53684b, accent: 0x1d2b20 }
   },
   bandit_lieutenant: {
-    name: "TENIENTE DE LA CANTERA", affinity: "tierra", stats: enemyStats(86, 2, 11, 40, 4), accuracy: 92,
+    name: "TENIENTE DE LA CANTERA", level: 3, affinity: "tierra", stats: enemyStats(86, 2, 11, 40, 4), accuracy: 92,
     pattern: ["heavy", "quick", "toxin"],
     colors: { cloth: 0x755744, accent: 0x2d1e19 }
   },
   boss_akumori: {
-    name: "AKUMORI, CAPATAZ DEL CUERVO", affinity: "fuego", stats: enemyStats(118, 3, 12, 54, 5), accuracy: 94,
+    name: "AKUMORI, CAPATAZ DEL CUERVO", level: 3, affinity: "fuego", stats: enemyStats(118, 3, 12, 54, 5), accuracy: 94,
     pattern: ["heavy", "quick", "toxin"],
     phase2Pattern: ["ember", "heavy", "quick", "toxin"], boss: true,
     colors: { cloth: 0x6d3e48, accent: 0x25131a }
   },
   boss_raizen: {
-    name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", affinity: "fuego", stats: enemyStats(168, 5, 13, 80, 6), accuracy: 96,
+    name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", level: 6, affinity: "fuego", stats: enemyStats(168, 5, 13, 80, 6), accuracy: 96,
     pattern: ["heavy", "quick", "ember"],
     phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true,
     colors: { cloth: 0x4b3341, accent: 0x170d15 }
   },
   gate_guard: {
-    name: "GUARDIÁN DEL PASO", affinity: "tierra", stats: enemyStats(68, 1, 10, 32, 2), accuracy: 90,
+    name: "GUARDIÁN DEL PASO", level: 3, affinity: "tierra", stats: enemyStats(68, 1, 10, 32, 2), accuracy: 90,
     pattern: ["quick", "heavy", "quick"],
     colors: { cloth: 0xe0a45a, accent: 0x3d2021 }
   },
   ash_adept: {
-    name: "ADEPTA DE CENIZA", affinity: "fuego", stats: enemyStats(76, 1, 9, 58, 1), accuracy: 92,
+    name: "ADEPTA DE CENIZA", level: 4, affinity: "fuego", stats: enemyStats(76, 1, 9, 58, 1), accuracy: 92,
     pattern: ["ember", "quick", "heavy", "ember"],
     colors: { cloth: 0xd87855, accent: 0x411b24 }
   },
   reed_bandit: {
-    name: "BANDIDO DEL JUNCO", affinity: "viento", stats: enemyStats(70, 1, 12, 30, 4), accuracy: 88,
+    name: "BANDIDO DEL JUNCO", level: 2, affinity: "viento", stats: enemyStats(70, 1, 12, 30, 4), accuracy: 88,
     pattern: ["quick", "quick", "heavy"],
     colors: { cloth: 0x7ea063, accent: 0x253421 }
   },
   stone_hunter: {
-    name: "CAZADOR DE PIEDRA", affinity: "tierra", stats: enemyStats(92, 3, 8, 36, 0), accuracy: 93,
+    name: "CAZADOR DE PIEDRA", level: 4, affinity: "tierra", stats: enemyStats(92, 3, 8, 36, 0), accuracy: 93,
     pattern: ["heavy", "quick", "heavy"],
     colors: { cloth: 0x9b8c7b, accent: 0x332d2a }
   },
   venom_medic: {
-    name: "MÉDICA DEL VENENO", affinity: "agua", stats: enemyStats(78, 1, 11, 64, 3), accuracy: 94,
+    name: "MÉDICA DEL VENENO", level: 4, affinity: "agua", stats: enemyStats(78, 1, 11, 64, 3), accuracy: 94,
     pattern: ["toxin", "quick", "toxin", "ember"],
     colors: { cloth: 0x8e75b8, accent: 0x2e2145 }
   }

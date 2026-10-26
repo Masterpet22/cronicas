@@ -11,7 +11,7 @@ const MASTER_DEFINITIONS = Object.freeze([
   { id: "daichi", npcId: "daichi", advantage: "Fuerza de la montaña", detail: "Añade 3 puntos al daño de todos tus ataques." }
 ]);
 
-function attributeDistributionMarkup(stats, attributes, points) {
+function attributeDistributionMarkup(stats, attributes, points, trainingLimit) {
   const icons = { health: "♥", strength: "⚔", speed: "➤", chakra: "◉", luck: "✣" };
   const cards = ATTRIBUTE_DEFINITIONS.map((definition) => {
     const value = Number(stats[definition.stat]) || 0;
@@ -20,7 +20,7 @@ function attributeDistributionMarkup(stats, attributes, points) {
     const modifier = percent ? `${percent > 0 ? "+" : ""}${percent}% afinidad` : "Base sin ajuste";
     const width = Math.max(4, Math.min(100, value / definition.cap * 100));
     const modifierClass = percent > 0 ? "positive" : percent < 0 ? "negative" : "neutral";
-    return `<article class="attribute-card ${definition.key} ${modifierClass}" style="--attribute-fill:${width}%"><header><span class="attribute-icon" aria-hidden="true">${icons[definition.key]}</span><span><strong>${definition.label}</strong><small>${modifier}</small></span><b>${value}</b></header><div class="attribute-meter" role="meter" aria-label="${definition.label}" aria-valuemin="0" aria-valuemax="${definition.cap}" aria-valuenow="${Math.min(value, definition.cap)}"><span></span></div><footer><small>${definition.hint} · Entrenado ${trained}</small><button type="button" data-attribute="${definition.key}" aria-label="Añadir punto a ${definition.label}" ${points ? "" : "disabled"}>+</button></footer></article>`;
+    return `<article class="attribute-card ${definition.key} ${modifierClass}" style="--attribute-fill:${width}%"><header><span class="attribute-icon" aria-hidden="true">${icons[definition.key]}</span><span><strong>${definition.label}</strong><small>${modifier}</small></span><b>${value}</b></header><div class="attribute-meter" role="meter" aria-label="${definition.label}" aria-valuemin="0" aria-valuemax="${definition.cap}" aria-valuenow="${Math.min(value, definition.cap)}"><span></span></div><footer><small>${definition.hint} · Entrenado ${trained}/${trainingLimit}</small><button type="button" data-attribute="${definition.key}" aria-label="Añadir punto a ${definition.label}" ${points && trained < trainingLimit ? "" : "disabled"}>+</button></footer></article>`;
   }).join("");
   return `<div class="attribute-distribution">${cards}</div>`;
 }
@@ -198,7 +198,7 @@ export function createDojoView(deps) {
         return `<button class="gear-slot ${id ? "equipped" : "empty"}" type="button" data-gear-slot="${type}" aria-label="${gearTitles[type]}: ${item?.name || "nada equipado"}">${gearSlotContents(type)}</button>`;
       };
       const companionSlot = `<button class="gear-slot companion-slot locked" type="button" disabled aria-label="Compañero: ranura bloqueada"><span class="gear-icon" aria-hidden="true">♟</span><span class="gear-copy"><small>Compañero</small><strong>Ranura bloqueada</strong><em>Se desbloqueará al avanzar en la historia.</em></span><span class="gear-action" aria-hidden="true">⌾</span></button>`;
-      const attributeMarkup = (source = save) => attributeDistributionMarkup(deps.derivedStats(source), source.progression.attributes, source.progression.attributePoints);
+      const attributeMarkup = (source = save) => attributeDistributionMarkup(deps.derivedStats(source), source.progression.attributes, source.progression.attributePoints, deps.attributeTrainingLimit(source.progression.level));
       const radarMarkup = (source = save) => statRadarMarkup(deps.derivedStats(source));
       const characterPreviewMarkup = (source = save) => rasterCharacterPreviewMarkup(source, deps.assetVersion);
       renderModel = { gearIcons, gearTitles, gearSlotState, gearSlotContents, techniqueCapacity, techniqueDetailMarkup, attributeMarkup, radarMarkup, characterPreviewMarkup };
