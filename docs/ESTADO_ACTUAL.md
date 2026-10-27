@@ -9,6 +9,7 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Plataforma de juego habilitada: navegador en pantalla de escritorio.
 - Guardado: tres partidas locales, esquema `SAVE_VERSION = 17`, progreso por paso y migración automática desde v16.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
+- La misión 1 enseña el combate con una guía de 11 pasos, foco visual y práctica real. Se puede omitir y repetir desde la Biblioteca, disponible como manual desde el inicio; el bestiario sigue requiriendo el libro de Haru.
 
 ## Contenido jugable vigente
 

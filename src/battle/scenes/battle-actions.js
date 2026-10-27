@@ -63,6 +63,8 @@ export class BattleActionMethods {
     }
 
     let mistakes = 0;
+    await this.combatTutorial?.seals();
+    if (this.finished) return { mistakes: 0, multiplier: 1 };
     for (let i = 0; i < cards.length; i += 1) {
       const current = cards[i];
       current.plate.setStrokeStyle(4, 0xffffff, 1);
@@ -72,6 +74,7 @@ export class BattleActionMethods {
         const inputWindow = jutsu.cinematic ? 1500 : 1200;
         this.setSealPrompt(`PULSA ${current.seal.key} · ${current.seal.label.toUpperCase()}  (${i + 1}/${cards.length})`);
         const result = await this.waitForSealInput(current.seal.key, current.card, jutsu.color, inputWindow);
+        if (this.finished) return { mistakes: 0, multiplier: 1 };
         mistakes += result.mistakes;
         current.plate.setStrokeStyle(3, result.timedOut ? 0xff665f : result.mistakes === 0 ? 0x66efad : 0xffc46b, 1);
       } else {
@@ -107,7 +110,9 @@ export class BattleActionMethods {
       await this.delay(120);
     }
     this.seenJutsus.add(jutsu.id);
-    try { window.localStorage.setItem("seen-jutsus", JSON.stringify([...this.seenJutsus])); } catch (_) { /* La aceleración sigue activa durante la sesión. */ }
+    if (!this.mission.tutorialReplay) {
+      try { window.localStorage.setItem("seen-jutsus", JSON.stringify([...this.seenJutsus])); } catch (_) { /* La aceleración sigue activa durante la sesión. */ }
+    }
     return { mistakes, multiplier };
   }
 
@@ -116,6 +121,7 @@ export class BattleActionMethods {
       let mistakes = 0;
       let done = false;
       let timedOut = false;
+      let onTutorialSkip;
 
       // La barra de tiempo queda fuera de la tarjeta para no tapar
       // la tecla ni el nombre del sello.
@@ -124,14 +130,17 @@ export class BattleActionMethods {
       const timerFill = this.add.rectangle(-(card.width - 12) / 2, timerY, card.width - 12, 5, 0xf5c96b, 1).setOrigin(0, 0.5);
       card.add([timerBg, timerFill]);
 
-      const timerTween = this.tweens.add({
+      const guided = this.combatTutorial?.sealPractice;
+      timerBg.setVisible(!guided);
+      timerFill.setVisible(!guided);
+      const timerTween = !guided && this.tweens.add({
         targets: timerFill,
         scaleX: 0,
         duration: timeoutMs,
         ease: "Linear"
       });
 
-      const timeoutEvent = this.time.delayedCall(timeoutMs, () => {
+      const timeoutEvent = !guided && this.time.delayedCall(timeoutMs, () => {
         if (done) return;
         timedOut = true;
         mistakes += 1;
@@ -144,10 +153,12 @@ export class BattleActionMethods {
       const finish = () => {
         if (done) return;
         done = true;
-        timeoutEvent.remove(false);
-        timerTween.stop();
-        this.input.keyboard.off("keydown", onKey);
-        card.disableInteractive();
+        if (timeoutEvent) timeoutEvent.remove(false);
+        if (timerTween) timerTween.stop();
+        this.input?.keyboard?.off("keydown", onKey);
+        this.game.canvas.parentElement?.querySelector("[data-tutorial-skip]")?.removeEventListener("click", onTutorialSkip);
+        this.events.off("shutdown", finish);
+        if (card.scene) card.disableInteractive();
         resolve({ mistakes, timedOut });
       };
 
@@ -166,6 +177,12 @@ export class BattleActionMethods {
       };
 
       this.input.keyboard.on("keydown", onKey);
+      // Omitting the guide also releases an untimed seal practice.
+      if (guided) {
+        onTutorialSkip = () => { if (!this.combatTutorial?.active) finish(); };
+        this.game.canvas.parentElement.querySelector("[data-tutorial-skip]")?.addEventListener("click", onTutorialSkip, { once: true });
+      }
+      this.events.once("shutdown", finish);
       card.setInteractive({ useHandCursor: true });
       card.once("pointerdown", finish);
       card.getAt(0).setStrokeStyle(4, color, 1);

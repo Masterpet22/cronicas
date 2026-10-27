@@ -1,4 +1,5 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.95.0";
+import { mountCombatTutorial } from "../combat-tutorial.js?v=1.0.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
@@ -21,10 +22,10 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=1.0.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.97.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.94.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=1.0.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=1.1.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=1.1.0";
+import { BattleActionMethods } from "./battle-actions.js?v=1.1.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=1.1.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 
 export class BattleScene extends Phaser.Scene {
@@ -55,10 +56,21 @@ export class BattleScene extends Phaser.Scene {
       endFrame: EXPERIENCE_DROP_VFX.frames - 1
     });
 
-    const needsSealSheet = battleRuntime.activeSave.loadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
+    // An empty loadout must not prevent learning seals. The loaned technique
+    // exists only in this battle and never changes the player's saved loadout.
+    this.battleLoadout = [...battleRuntime.activeSave.loadout];
+    this.practiceTechnique = false;
+    this.tutorialRequested = combatFeatures(battleRuntime.activeMission, battleRuntime.activeSave.campaign).tutorial
+      && (battleRuntime.activeMission.tutorialReplay || !battleRuntime.activeSave.campaign.completedMissions.includes(battleRuntime.activeMission.id));
+    if (this.tutorialRequested
+      && !this.battleLoadout.some(id => JUTSU_LIBRARY.find(jutsu => jutsu.id === id)?.seals.length)) {
+      const practice = JUTSU_LIBRARY.find(jutsu => jutsu.element === battleRuntime.activeSave.character.affinity && jutsu.seals?.length);
+      if (practice) { this.battleLoadout[0] = practice.id; this.practiceTechnique = true; }
+    }
+    const needsSealSheet = this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
-      if (!battleRuntime.activeSave.loadout.includes(jutsuId)) return;
+      if (!this.battleLoadout.includes(jutsuId)) return;
       if (effect.creationFile) {
         [["creation", effect.creationFile], ["destruction", effect.destructionFile]].filter(([, file]) => file).forEach(([phase, file]) => {
           const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
@@ -100,7 +112,7 @@ export class BattleScene extends Phaser.Scene {
       const key = `action-${action.id}`;
       if (!this.textures.exists(key)) this.load.image(key, action.icon);
     });
-    this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean).forEach((element) => {
+    this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean).forEach((element) => {
       const key = `element-${element}`;
       if (!this.textures.exists(key)) this.load.image(key, elementIcon(element));
     });
@@ -116,6 +128,7 @@ export class BattleScene extends Phaser.Scene {
     this.playerTimelineTag = null;
     this.enemyTimelineTag = null;
     this.accessibleHud = null;
+    this.combatTutorial = null;
     // La resolución lógica se escala explícitamente para conservar un HUD nítido.
     // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
@@ -175,7 +188,7 @@ export class BattleScene extends Phaser.Scene {
     this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
-    const selectedJutsus = this.saveData.loadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean)
+    const selectedJutsus = this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean)
       .map((jutsu) => ({ ...jutsu, iconTexture: `element-${jutsu.element}` }));
     // La barra tiene un contrato estable: Golpe siempre ocupa 1, las cuatro
     // técnicas configurables viven en 2–5 y Guardia siempre ocupa 6.
@@ -218,16 +231,19 @@ export class BattleScene extends Phaser.Scene {
     this.createActionPanel();
     this.createTurnTimeline();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.finished = true;
+      this.combatTutorial?.destroy();
       this.stopTurnTimeline?.();
       this.clearBossPhaseSilhouette?.({ restoreIdle: false });
     });
     this.createPauseButton();
     this.accessibleHud = mountAccessibleBattleHud(this);
     this.startMusic();
-    if (this.combatFeatures.tutorial && !this.saveData.campaign.completedMissions.includes(this.mission.id)) {
+    if (this.tutorialRequested) {
+      this.combatTutorial = mountCombatTutorial(this, { onReplayExit: this.mission.tutorialReplay ? () => this.exitTutorialReplay() : null });
       this.time.delayedCall(120, async () => {
         await this.playMissionOneTutorial();
-        this.startTurnCharge();
+        if (!this.finished) this.startTurnCharge();
       });
     } else if (this.combatFeatures.secretEntry) {
       this.time.delayedCall(120, async () => {
@@ -244,9 +260,18 @@ export class BattleScene extends Phaser.Scene {
   }
 
   recordEnemyObservation(observation) {
+    if (this.mission.tutorialReplay) return;
     const entry = bestiaryObservation(this.encounterIds, this.enemyIndex, observation);
     this.saveData = writeSave(recordBestiaryObservation(this.saveData, entry.enemyId, entry.observation));
     battleRuntime.activeSave = this.saveData;
+  }
+
+  exitTutorialReplay() {
+    if (this.finished) return;
+    this.finished = true;
+    this.stopTurnTimeline?.();
+    this.combatTutorial?.destroy();
+    battleRuntime.releaseGameToMeta("archive");
   }
 
   configureSealMode() {

@@ -41,7 +41,9 @@ Creación de partida, afinidad, maestro asignado, mapa de la aldea y acceso al C
 
 ### Misión 1 — Tras las huellas del gato
 
-Tutorial guiado de vida, chakra, velocidad, sellos, guardia y técnicas elementales mediante tres duelos consecutivos. Antes del primer turno, el maestro explica el HUD y cada transición introduce el siguiente concepto. El encuentro posterior con Sayo desbloquea el Tablón.
+Tutorial guiado en 11 pasos sobre el HUD real, con foco visual en vida, chakra, barra de velocidad, golpe, guardia, técnicas, preparación, sellos, enfriamiento y pausa. El tiempo se detiene durante las explicaciones y al elegir una acción. Se practican un golpe, una guardia y una técnica en el primer duelo; la primera secuencia manual de sellos no tiene límite de tiempo. Durante la guía, ambos combatientes conservan al menos 1 PV para poder completar la práctica. Si no hay técnicas equipadas, se presta una de la afinidad del jugador solo para ese combate. Se puede omitir en cualquier momento con el botón o Escape y continuar la misión. Después siguen los tres duelos consecutivos y el encuentro con Sayo desbloquea el Tablón.
+
+La Biblioteca ofrece «Repetir tutorial guiado» desde el inicio, incluso antes de abrir el bestiario. El repaso usa el mismo campo de batalla y la misma guía; permite salir en cualquier paso y vuelve a la Biblioteca al terminar. No registra encuentros, recompensas, misiones ni cambios de equipo.
 
 ### Secundaria 1 — El silencio de Kagemori
 
@@ -59,7 +61,7 @@ Tutorial de exploración. El jugador investiga tres lugares y habla con Iori y N
 6. Duelo contra Akumori.
 7. Akumori deja caer un **mapa cifrado**.
 
-Completar esta misión activa «El médico errante». La elección libre de maestro y la Biblioteca todavía permanecen bloqueadas.
+Completar esta misión activa «El médico errante». La elección libre de maestro y el bestiario de la Biblioteca todavía permanecen bloqueados; el tutorial sí está disponible.
 
 ### Secundaria 2 — El médico errante
 
@@ -102,7 +104,7 @@ Duelo final contra Raizen Kurogane. Manipula la velocidad, anuncia sus golpes m�
 
 ## Biblioteca y bestiario
 
-El libro del doctor es el objeto que desbloquea la Biblioteca. Cada ficha progresa así:
+La guía de combate está disponible en la Biblioteca desde el inicio. El libro del doctor desbloquea su bestiario. Cada ficha progresa así:
 
 1. Primer encuentro: nombre, apariencia y afiliación.
 2. Técnica observada: se registra el movimiento.

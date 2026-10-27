@@ -40,7 +40,10 @@ export class PauseScene extends Phaser.Scene {
       this.scene.stop();
     }, 150);
 
-    this.makePauseAction(560, 454, "ABANDONAR", 0xef665f, () => this.showAbandonWarning(), 150, false);
+    this.makePauseAction(560, 454, this.battle.mission.tutorialReplay ? "SALIR" : "ABANDONAR", 0xef665f, () => {
+      if (this.battle.mission.tutorialReplay) this.battle.exitTutorialReplay();
+      else this.showAbandonWarning();
+    }, 150, false);
 
     this.input.keyboard.on("keydown-ESC", () => {
       if (this.abandonWarningOpen) {

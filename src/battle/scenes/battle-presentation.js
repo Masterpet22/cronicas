@@ -663,6 +663,7 @@ export class BattlePresentationMethods {
       this.setMessage("Tu iniciativa está lista. Elige una acción.", "#83d8ff");
       this.setTimelineMarkerState("player", "ready");
       this.playTimelineReadyBrush("player");
+      this.combatTutorial?.onReady();
       return;
     }
 

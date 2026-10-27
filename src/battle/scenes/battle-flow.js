@@ -27,6 +27,7 @@ import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, 
 export class BattleFlowMethods {
   async useJutsu(jutsu) {
     if (this.busy || this.finished || !this.turnReady) return;
+    if (this.combatTutorial && !this.combatTutorial.canUse(jutsu)) return;
     if (jutsu.type === "guard" && this.player.guarding) {
       this.setMessage("La Guardia ya está preparada.", "#f0c77c");
       return;
@@ -43,6 +44,7 @@ export class BattleFlowMethods {
     }
 
     this.busy = true;
+    this.combatTutorial?.selected();
     this.turnReady = false;
     this.timelinePaused = true;
     this.player.chakra -= cost;
@@ -55,6 +57,8 @@ export class BattleFlowMethods {
       this.setMessage(`Preparando ${jutsu.name}: debe recorrer el tramo final de la barra.`, "#f0c77c");
       this.busy = false;
       this.timelinePaused = false;
+      await this.combatTutorial?.preparation();
+      if (this.finished) return;
       this.startTurnCharge();
       return;
     }
@@ -72,16 +76,22 @@ export class BattleFlowMethods {
 
     if (actor === "player") {
       const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
+      if (this.finished) return;
       if (action.type === "guard") await this.playerGuard();
       else await this.playerAttack(action, casting);
+      if (this.finished) return;
       this.finishCombatantTurn(this.player);
       this.pendingActions.player = null;
       this.timelineProgress.player = 0;
       this.setTimelineMarkerState("player", "charging");
       this.updateTimelineMarkers();
 
+      await this.combatTutorial?.afterAction();
+      if (this.finished) return;
+
       if (await this.resolveEnemyOutcome()) return;
       await this.resolveCombatantStatusTick(this.player, this.hero);
+      if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
       if (this.player.hp <= 0) return this.finishBattle(false);
       if (await this.resolveEnemyOutcome()) return;
 
@@ -96,6 +106,7 @@ export class BattleFlowMethods {
       this.setTimelineMarkerState("enemy", "charging");
       this.updateTimelineMarkers();
 
+      if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
       if (this.player.hp <= 0) return this.finishBattle(false);
       await this.resolveCombatantStatusTick(this.enemy, this.foe);
       if (await this.resolveEnemyOutcome()) return;
@@ -109,6 +120,16 @@ export class BattleFlowMethods {
   }
 
   async resolveEnemyOutcome() {
+    // Keep the practice partner standing until every guided action is tried.
+    if (this.combatTutorial?.active && this.enemy.hp <= 0) {
+      this.enemy.hp = 1;
+      this.refreshHud();
+      return false;
+    }
+    if (this.mission.tutorialReplay && this.enemy.hp <= 0) {
+      this.exitTutorialReplay();
+      return true;
+    }
     const profile = this.encounters[this.enemyIndex];
     if (this.enemy.hp <= 0) {
       this.clearPreparationFeedback("enemy");
@@ -350,11 +371,8 @@ export class BattleFlowMethods {
   }
 
   async playMissionOneTutorial() {
-    const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
-    await this.playBattleChoice("TUTORIAL DE COMBATE", this.missionSceneText("combat-tutorial", { master: masterName }), [
-      { value: "continue", label: "COMENZAR ENTRENAMIENTO", detail: "Primer objetivo: elige Golpe veloz o una técnica elemental.", primary: true }
-    ]);
-    this.setMessage("Espera a alcanzar el 80 % y elige una acción. Las técnicas recorren el tramo final de preparación.", "#83d8ff");
+    await this.combatTutorial.start();
+    if (!this.finished) this.setMessage("Observa los retratos: al alcanzar el 80 % podrás elegir una acción.", "#83d8ff");
   }
 
   async playResourceChoice() {

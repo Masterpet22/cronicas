@@ -108,6 +108,7 @@ export class BattleFeedbackMethods {
   }
 
   async finishBattle(won) {
+    if (this.mission.tutorialReplay) return this.exitTutorialReplay();
     this.stopTurnTimeline?.();
     this.clearPreparationFeedback?.("player");
     this.clearPreparationFeedback?.("enemy");
@@ -167,6 +168,7 @@ export class BattleFeedbackMethods {
     };
   }
   abandonPayload() {
+    if (this.mission.tutorialReplay) return this.resultPayload("abandoned");
     discardVictory(battleRuntime);
     const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     this.missionStartSave.bestiary = this.saveData.bestiary;

@@ -344,7 +344,7 @@ assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => d
 assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[MissionTravelScene, LevelUpScene, SecondaryResultsScene\]/, "Los resultados secundarios deben poder mostrar la subida durante el regreso antes del informe");
 assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
 assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
-assert.match(metaUi, /location\.id === "archive" && !save\.campaign\.archiveUnlocked/, "La Biblioteca debe permanecer bloqueada al inicio");
+assert.match(metaUi, /if \(!save\.campaign\.archiveUnlocked\) return/, "El bestiario permanece bloqueado, con el tutorial disponible desde el inicio");
 assert.match(battle, /masterIdForCharacter\((?:battleRuntime\.)?activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
 assert.match(battle, /criticalMultiplier: AFFINITY_CONFIG\.damage\.criticalMultiplier,[\s\S]*damageReduction: this\.player\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
 assert.doesNotMatch(battle, /companionAttack|Mika/, "El combate no debe conservar el acompañante de la campaña retirada");

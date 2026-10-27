@@ -55,8 +55,7 @@ export function createVillageView(deps) {
   let layout = { locationId: null };
 
   const isComingSoon = (location, save) => Boolean(COMING_SOON_LOCATIONS[location.id])
-    || (location.id === "missions" && !save.campaign.secondaryBoardUnlocked)
-    || (location.id === "archive" && !save.campaign.archiveUnlocked && !save.campaign.doctorBookDeliveryPending);
+    || (location.id === "missions" && !save.campaign.secondaryBoardUnlocked);
 
   const welcomeDialogue = (character) => {
     const master = deps.masterForCharacter(character).name;
@@ -150,8 +149,7 @@ export function createVillageView(deps) {
       root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
         const locationId = hotspot.getAttribute("data-coming-soon");
         const info = COMING_SOON_LOCATIONS[locationId]
-          || (locationId === "missions" ? { npcId: "riku", message: "El Tablón todavía no está recibiendo encargos. Sayo avisará cuando exista una pista que investigar." } : null)
-          || (locationId === "archive" ? { npcId: "ren", message: "La Biblioteca permanece reservada para informes clasificados. Completa la segunda misión de la saga para obtener acceso." } : null);
+          || (locationId === "missions" ? { npcId: "riku", message: "El Tablón todavía no está recibiendo encargos. Sayo avisará cuando exista una pista que investigar." } : null);
         const label = root.querySelector(`[data-map-label="${locationId}"]`);
         const showLabel = () => label?.classList.add("visible");
         const hideLabel = () => label?.classList.remove("visible");

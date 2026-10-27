@@ -24,7 +24,7 @@ const es = {
   ],
   "npc.sayo.intro": [
     { speaker: "sayo", text: "Soy Sayo Kisaragi. Aquí una misión no termina al cobrar la recompensa: se convierte en memoria." },
-    { speaker: "sayo", text: "La Biblioteca conserva tu campaña, rango y los capítulos que aún no has completado." }
+    { speaker: "sayo", text: "Puedes repetir el tutorial de combate aquí cuando quieras. El bestiario se abrirá cuando me entregues el libro de Haru." }
   ],
   "npc.sayo.guide": [
     { speaker: "sayo", text: "Los registros marcados con una señal verde ya fueron completados y pueden repetirse desde el Tablón." },
