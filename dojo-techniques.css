@@ -47,7 +47,7 @@
 #dojo-panel-techniques .skill-tree { grid-column: 2; grid-row: 2; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 9px; min-width: 0; min-height: 0; height: 100%; padding: 0; overflow: hidden; }
 .technique-catalog-heading h3 { margin: 0 0 5px; color: #e6decf; font: 700 15px "Cinzel", Georgia, serif; }
 .technique-catalog-heading p { margin: 0; color: #9eb5c7; font-size: 14px; line-height: 1.35; }
-#dojo-panel-techniques .skill-branches { display: grid; grid-auto-rows: max-content; align-content: start; gap: 16px; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 2px 7px 7px 2px; }
+#dojo-panel-techniques .skill-branches { display: grid; grid-auto-rows: max-content; align-content: start; gap: 16px; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 2px 7px 7px 2px; scrollbar-width: thin; scrollbar-color: #5096b7 #0b1c2b; }
 #dojo-panel-techniques .skill-branch { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; min-height: 0; padding: 0; border: 0; background: transparent; }
 #dojo-panel-techniques .skill-branch > header { display: flex; flex-direction: row; align-items: center; justify-content: start; gap: 9px; min-height: 28px; padding: 0; border: 0; background: transparent; }
 #dojo-panel-techniques .skill-branch > header img { width: 28px; height: 28px; object-fit: contain; }

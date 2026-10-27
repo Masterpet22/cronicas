@@ -1337,7 +1337,7 @@
     margin: 0;
     overflow: hidden;
     color: #dba05b;
-    font-size: .66rem !important;
+    font-size: var(--text-caption) !important;
     line-height: 1.15;
     letter-spacing: .16em;
     text-overflow: ellipsis;
@@ -1375,7 +1375,7 @@
   .village-topbar .level-chip small {
     color: #968a7c;
     font-family: var(--font-display);
-    font-size: .56rem !important;
+    font-size: var(--text-caption) !important;
     font-weight: 600;
     letter-spacing: .11em;
   }
@@ -1536,7 +1536,7 @@
     background: rgba(16, 12, 10, .76);
     color: #b9aa96;
     box-shadow: 0 6px 18px rgba(0, 0, 0, .32);
-    font-size: .66rem !important;
+    font-size: var(--text-caption) !important;
     letter-spacing: .06em;
     opacity: .62;
   }
@@ -1546,7 +1546,7 @@
     padding: 2px 4px;
     background: rgba(221, 160, 82, .16);
     color: #e2ad68;
-    font-size: .56rem;
+    font-size: var(--text-caption);
     font-weight: 800;
     letter-spacing: .08em;
   }
@@ -1596,7 +1596,7 @@
     padding-right: 8px;
   }
   .village-topbar .avatar-swatch { width: 40px; height: 40px; flex-basis: 40px; }
-  .village-topbar .profile-copy .eyebrow { font-size: .6rem !important; letter-spacing: .1em; }
+  .village-topbar .profile-copy .eyebrow { font-size: var(--text-caption) !important; letter-spacing: .1em; }
   .village-topbar .level-chip { min-width: 0; padding-left: 7px; }
   .village-topbar .summary-item { grid-template-columns: 26px minmax(0, 1fr); column-gap: 5px; padding-inline: 6px !important; }
   .village-topbar .hud-stat-icon { width: 32px; height: 32px; margin-left: -3px; }

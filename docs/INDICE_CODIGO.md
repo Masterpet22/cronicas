@@ -35,6 +35,7 @@ index.html
 | `game.js` | Punto de entrada | Bootstrap de Phaser y del metajuego; 121 líneas. Las escenas están bajo `src/battle/scenes/`. |
 | `styles.css` | Estilos generales | Presentación de acceso, creación de personaje, aldea, ubicaciones, dojo, diálogos, misiones y herramientas internas. |
 | `desktop.css` | Diseño de escritorio | Adapta la interfaz al escenario lógico de escritorio y sus resoluciones. |
+| `dojo-techniques.css` | Colección y equipo de técnicas | Distribuye las ranuras visibles, el catálogo por afinidad y el detalle con acciones fijas. |
 | `package.json` / `package-lock.json` | Configuración del proyecto | Versión, dependencia fija de iconos y comando de pruebas. |
 
 ## Combate: `src/battle`
@@ -165,6 +166,7 @@ index.html
 ### `src/meta-ui.js` — Aldea y metajuego
 
 - `mountMetaUI`: monta la creación del personaje, mapa, ubicaciones, diálogos, misiones, dojo y archivo.
+- `src/ui/meta/dojo-techniques.js`: presenta las técnicas aprendidas, sus requisitos y las ranuras de combate; gestiona equipar, quitar y reemplazar sin perder lo aprendido.
 - `warmImage`, `warmLocationAssets`: anticipan únicamente los fondos y retratos de la ubicación señalada o enfocada; no descargan secciones que el jugador todavía no abrió.
 - `escapeHtml`: protege el texto que se inserta en plantillas HTML.
 - `VILLAGE_LOCATIONS`: geometría, nombres y descripciones de los destinos del mapa.
