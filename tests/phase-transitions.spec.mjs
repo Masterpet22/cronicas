@@ -64,7 +64,7 @@ test("al pasar al siguiente rival se muestra la fase de misión y se limpia la t
     stage.id = "encounter-transition-test-stage";
     stage.style.cssText = "width:960px;height:540px";
     document.body.append(stage);
-    const state = { stage, game: null, phaseLabel: null, progressStarted: false, completed: false };
+    const state = { stage, game: null, phaseLabel: null, progressStarted: false, completed: false, route: null };
     window.__encounterTransitionTest = state;
     class EncounterScene extends window.Phaser.Scene {
       constructor() { super("encounter-test"); }
@@ -76,13 +76,21 @@ test("al pasar al siguiente rival se muestra la fase de misión y se limpia la t
       create() {
         this.add.rectangle(0, 0, 960, 540, 0x122033).setOrigin(0);
         this.enemyIndex = 1;
+        this.mission = { id: "m01", number: 1, category: "main", location: "Bosque del Este" };
         this.encounters = [{ name: "Bandido" }, { name: "Varek" }, { name: "Raizen" }];
         this.playerAppearance = () => appearance;
         this.textStyle = (size, color) => ({ fontFamily: "Arial", fontSize: `${size}px`, color });
         this.accessibleHud = { suspend: () => () => {} };
         this.tween = (config) => new Promise((resolve) => this.tweens.add({ ...config, onComplete: resolve }));
         this.events.on(window.Phaser.Scenes.Events.UPDATE, () => {
-          state.progressStarted ||= (this.children.getByName("encounter-transition-progress")?.width || 0) > 20;
+          const progress = this.children.getByName("encounter-transition-progress");
+          state.progressStarted ||= (progress?.displayWidth || 0) > 20;
+          if (progress?.displayWidth > 40 && progress.displayWidth < 320) {
+            state.route = { x: progress.x, y: progress.y, width: progress.width, scaleX: progress.scaleX,
+              originX: progress.originX, trackWidth: this.children.getByName("encounter-transition-progress-track").width,
+              from: this.children.getByName("encounter-transition-route-left").text,
+              to: this.children.getByName("encounter-transition-route-right").text };
+          }
         });
         void BattleFlowMethods.prototype.playEncounterTransition.call(this, this.encounters[1])
           .then(() => { state.completed = true; });
@@ -92,12 +100,19 @@ test("al pasar al siguiente rival se muestra la fase de misión y se limpia la t
     state.game = new window.Phaser.Game({ type: window.Phaser.CANVAS, parent: stage, width: 960, height: 540, scene: [EncounterScene] });
   });
   await expect.poll(() => page.evaluate(() => window.__encounterTransitionTest.phaseLabel)).toBe("FASE DE MISIÓN 2 / 3");
+  await expect.poll(() => page.evaluate(() => window.__encounterTransitionTest.route)).not.toBeNull();
+  const route = await page.evaluate(() => window.__encounterTransitionTest.route);
+  expect(route).toMatchObject({ x: 300, y: 486, width: 360, originX: 0, trackWidth: 360, from: "FASE 01", to: "FASE 02" });
+  expect(route.scaleX).toBeGreaterThan(0);
+  expect(route.scaleX).toBeLessThan(1);
+  await page.locator("#encounter-transition-test-stage canvas").screenshot({ path: "test-results/encounter-transition-preview.png" });
   await expect.poll(() => page.evaluate(() => window.__encounterTransitionTest.completed)).toBe(true);
   const result = await page.evaluate(() => {
     const state = window.__encounterTransitionTest;
     const scene = state.game.scene.getScene("encounter-test");
     const value = { progressStarted: state.progressStarted,
-      cleaned: !scene.children.getByName("encounter-phase-tag") && !scene.children.getByName("encounter-transition-progress") };
+      cleaned: !scene.children.getByName("encounter-phase-tag") && !scene.children.getByName("encounter-transition-progress")
+        && !scene.children.getByName("encounter-transition-progress-track") && !scene.children.getByName("encounter-transition-route-left") };
     state.game.destroy(true);
     state.stage.remove();
     delete window.__encounterTransitionTest;

@@ -1,13 +1,18 @@
 import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { shouldShowLevelUp } from "./level-up-scene.js?v=0.95.0";
+import { shouldShowLevelUp } from "./level-up-scene.js?v=1.5.0";
 import { missionTravelPresentation } from "../mission-travel-presentation.js?v=0.96.0";
+import { createTravelProgress } from "../travel-progress.js?v=1.0.0";
+import { missionTransitionMode } from "../../mission-transitions.js";
+import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
+import { playMissionTeleport } from "../mission-teleport.js?v=1.1.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 export class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
 
   preload() {
+    queueTeleportObjects(this);
     if (!this.textures.exists("village-outskirts")) this.load.image("village-outskirts", "assets/locations/village-outskirts.webp?v=0.74.0");
     if (!this.textures.exists("forest-road")) this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.0");
     if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.0");
@@ -25,6 +30,10 @@ export class MissionTravelScene extends Phaser.Scene {
       battleRuntime.pendingSecondaryResults = null;
     }
     this.cameras.main.setZoom(battleRuntime.renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
+    if (missionTransitionMode(battleRuntime.activeMission, data.direction === "toVillage" || data.direction === "toDoctorRoute" ? "return" : "departure") === "teleport") {
+      void playMissionTeleport(this, data);
+      return;
+    }
     const returningToVillage = data.direction === "toVillage";
     const returningToRoute = data.direction === "toDoctorRoute";
     const returning = returningToVillage || returningToRoute;
@@ -75,18 +84,7 @@ export class MissionTravelScene extends Phaser.Scene {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "15px", color: "#d5e2e8", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(11).setAlpha(0);
 
-    this.add.rectangle(WIDTH / 2, 486, 360, 3, 0xdde8e5, 0.25).setDepth(10);
-    // Mantener la geometría fija conserva el anclaje al escalar el relleno.
-    const progress = this.add.rectangle(returning ? 660 : 300, 486, 360, 3, presentation.accent, 0.95)
-      .setOrigin(returning ? 1 : 0, 0.5).setScale(0, 1).setDepth(11).setName("travel-progress");
-    this.add.circle(returning ? 660 : 300, 486, 5, presentation.accent, 0.92).setDepth(12);
-    this.add.circle(returning ? 300 : 660, 486, 5, 0xe4efed, 0.7).setDepth(12);
-    this.add.text(300, 466, returning ? presentation.destination : presentation.departure, {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "11px", color: "#d6e7e4", fontStyle: "bold"
-    }).setOrigin(0, 0.5).setDepth(11);
-    this.add.text(660, 466, returning ? presentation.departure : presentation.destination, {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "11px", color: "#d6e7e4", fontStyle: "bold"
-    }).setOrigin(1, 0.5).setDepth(11);
+    const { fill: progress } = createTravelProgress(this, { ...presentation, returning });
 
     const startX = returning ? WIDTH + 90 : -90;
     const endX = returning ? -90 : WIDTH + 90;
@@ -131,17 +129,23 @@ export class MissionTravelScene extends Phaser.Scene {
     this.time.delayedCall(duration - 260, () => this.cameras.main.fadeOut(250, 4, 10, 7));
     this.time.delayedCall(duration, () => {
       stopPlayerRunning(runner);
-      if (returningToVillage && data.result) {
-        const nextScene = data.secondaryResult ? "secondary-results" : "results";
-        if (!data.result.levelUpShown && shouldShowLevelUp(data.result)) this.scene.start("level-up", { result: data.result, nextScene });
-        else this.scene.start(nextScene, data.result);
-      }
-      else if (returningToVillage) battleRuntime.releaseGameToMeta("plaza");
-      else if (returningToRoute || battleRuntime.activeMission?.type === "route-search") battleRuntime.releaseGameToMeta("doctor-route");
-      else if (battleRuntime.activeMission?.type === "investigation") battleRuntime.releaseGameToMeta("kagemori");
-      else this.scene.start("battle");
+      this.finishTravel(data);
     });
     sharpenTextTree(this.children.list);
+  }
+
+  finishTravel(data) {
+    const returningToVillage = data.direction === "toVillage";
+    const returningToRoute = data.direction === "toDoctorRoute";
+    if (returningToVillage && data.result) {
+      const nextScene = data.secondaryResult ? "secondary-results" : "results";
+      if (!data.result.levelUpShown && shouldShowLevelUp(data.result)) this.scene.start("level-up", { result: data.result, nextScene });
+      else this.scene.start(nextScene, data.result);
+    }
+    else if (returningToVillage) battleRuntime.releaseGameToMeta("plaza");
+    else if (returningToRoute || battleRuntime.activeMission?.type === "route-search") battleRuntime.releaseGameToMeta("doctor-route");
+    else if (battleRuntime.activeMission?.type === "investigation") battleRuntime.releaseGameToMeta("kagemori");
+    else this.scene.start("battle");
   }
 }
 

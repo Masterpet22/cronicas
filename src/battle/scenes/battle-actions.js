@@ -12,6 +12,7 @@ import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
 import { attackBaseDamage, resolveDamage, splitDamageAcrossHits } from "../damage.js?v=0.93.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";
+import { playCombatSubstitution } from "../teleport-transition.js?v=1.1.0";
 import { createEnemyState } from "../enemy-state.js?v=0.93.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.93.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
@@ -189,64 +190,12 @@ export class BattleActionMethods {
     });
   }
 
-  createSubstitutionSmoke(x, y, spread = 1) {
-    const colors = [0xe2e7eb, 0xb9c2c9, 0x87939e];
-    const puffs = Array.from({ length: 14 }, (_, index) => {
-      const angle = (Math.PI * 2 * index) / 14;
-      const innerRadius = 18 + (index % 4) * 7;
-      const puff = this.add.circle(
-        x + Math.cos(angle) * innerRadius * 0.45,
-        y + Math.sin(angle) * innerRadius * 0.28,
-        11 + (index % 5) * 3,
-        colors[index % colors.length],
-        0.76
-      ).setDepth(19).setScale(0.18);
-      const distance = (42 + (index % 4) * 12) * spread;
-      this.tweens.add({
-        targets: puff,
-        x: puff.x + Math.cos(angle) * distance,
-        y: puff.y + Math.sin(angle) * distance * 0.58 - 12,
-        scale: 1.25 + (index % 3) * 0.22,
-        alpha: 0,
-        duration: 430 + (index % 4) * 45,
-        ease: "Cubic.out",
-        onComplete: () => puff.destroy()
-      });
-      return puff;
-    });
-    return puffs;
-  }
-
   async playSubstitution(fighter) {
-    if (!fighter?.body || !fighter?.shadow || !this.textures.exists("substitution-log")) return;
-    const x = fighter.body.x;
-    const groundY = fighter.shadow.y + 8;
-    const bodyAlpha = fighter.body.alpha;
-    const shadowAlpha = fighter.shadow.alpha;
-    this.createSubstitutionSmoke(x, groundY - 48, 1.05);
-    fighter.body.setAlpha(0);
-    fighter.shadow.setAlpha(0);
-    const log = this.add.image(x, groundY, "substitution-log")
-      .setOrigin(0.5, 0.88)
-      .setDisplaySize(178, 119)
-      .setDepth(18)
-      .setAngle(-4);
-    const finalScaleX = log.scaleX;
-    const finalScaleY = log.scaleY;
-    log.setScale(finalScaleX * 0.04, finalScaleY * 0.04);
+    if (!fighter?.body || !fighter?.shadow) return;
+    const objectId = fighter === this.foe ? "log" : this.saveData?.character?.teleportObject;
     this.tone(155, 0.11);
-    this.floatLabel(x, groundY - 142, "SUSTITUCIÓN", 0xdde6ec);
-    await this.tween({ targets: log, scaleX: finalScaleX, scaleY: finalScaleY, angle: 0, duration: 230, ease: "Back.out" });
-    await this.delay(260);
-    this.createSubstitutionSmoke(x, groundY - 45, 0.78);
-    await this.tween({ targets: log, alpha: 0, scaleX: finalScaleX * 0.72, scaleY: finalScaleY * 0.72, y: groundY - 10, duration: 170, ease: "Cubic.in" });
-    log.destroy();
-    fighter.body.setAlpha(0);
-    fighter.shadow.setAlpha(0);
-    await Promise.all([
-      this.tween({ targets: fighter.body, alpha: bodyAlpha, duration: 130, ease: "Sine.out" }),
-      this.tween({ targets: fighter.shadow, alpha: shadowAlpha, duration: 130, ease: "Sine.out" })
-    ]);
+    this.floatLabel(fighter.body.x, fighter.shadow.y - 134, "SUSTITUCIÓN", 0xdde6ec);
+    return playCombatSubstitution(this, fighter, objectId);
   }
 
   async playerAttack(jutsu, casting) {
@@ -304,6 +253,7 @@ export class BattleActionMethods {
         ]);
       } else if (usesCastPose) await Promise.all([substitution, recoverPlayerPunch(this, this.hero)]);
       else await substitution;
+      if (this.finished) return;
       await this.delay(120);
       this.hero.body.x = originX;
       this.hero.shadow.x = originShadowX;
@@ -666,6 +616,7 @@ export class BattleActionMethods {
           this.tween({ targets: this.foe.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
         ]);
       } else await substitution;
+      if (this.finished) return;
       await this.delay(120);
       this.foe.body.x = originX;
       this.foe.shadow.x = originShadowX;

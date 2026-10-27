@@ -200,7 +200,7 @@ export function createMissionBoardsView(deps) {
       if (state.view === "doctor-route") {
         const mission = secondaryByType("route-search");
         if (state.save.campaign.doctorRoute.phase >= 3) mountDoctorCipher(root, scope, state, mission, deps);
-        const startRouteCombat = () => deps.onStartMission(getSave(), { id: `${mission.id}-route-combat`, parentMissionId: mission.id, parentType: mission.type, number: mission.number, type: "route-combat", title: "Emboscada en el bosque", location: "Bosque cerrado", encounters: ["reed_bandit"], reward: { xp: 0, coins: 0 } });
+        const startRouteCombat = () => deps.onStartMission(getSave(), { id: `${mission.id}-route-combat`, parentMissionId: mission.id, parentType: mission.type, transitions: mission.transitions, number: mission.number, type: "route-combat", title: "Emboscada en el bosque", location: "Bosque cerrado", encounters: ["reed_bandit"], reward: { xp: 0, coins: 0 } });
         scope.listen(root.querySelector("[data-complete-doctor]"), "click", () => deps.onCompleteDoctor(getSave(), mission));
         root.querySelectorAll("[data-route]").forEach((button) => scope.listen(button, "click", () => {
           state.save = deps.onChooseDoctorRoute(getSave(), button.dataset.route);

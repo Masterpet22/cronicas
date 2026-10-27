@@ -1,7 +1,7 @@
 import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.81.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";
-import { playTeleportSmoke } from "../level-up-transition.js?v=0.95.0";
+import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-transition.js?v=1.1.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 const THEMES = Object.freeze({
@@ -47,11 +47,12 @@ export class LevelUpScene extends Phaser.Scene {
     const innerAura = this.add.circle(220, 326, 99, theme.color, 0.11).setStrokeStyle(1.5, 0xffffff, 0.5).setDepth(3);
     const fighter = createPlayerFighter(this, 220, 390, playerFighterAppearance(battleRuntime.activeSave));
     fighter.body.setName("level-up-fighter");
-    fighter.shadow.setAlpha(0.16);
+    fighter.body.setAlpha(0);
+    fighter.shadow.setAlpha(0);
     const name = this.add.text(220, 471, battleRuntime.activeSave.character.name.toUpperCase(), {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "16px", color: "#f5e6c5", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(8);
-    this.time.delayedCall(35, () => { void playTeleportSmoke(this, 220, 326); });
+    const arrival = new Promise(resolve => this.time.delayedCall(90, () => { resolve(teleportArrival(this, fighter, { pace: "substitution" })); }));
 
     if (!reducedMotion) {
       this.tweens.add({ targets: outerAura, scale: 1.18, alpha: 0.3, duration: 900, ease: "Sine.inOut", yoyo: true, repeat: -1 });
@@ -108,6 +109,7 @@ export class LevelUpScene extends Phaser.Scene {
     }).setOrigin(0.5));
     const button = add(this.add.rectangle(0, 199, 263, 39, theme.color, 0.92)
       .setName("level-up-continue").setStrokeStyle(1.5, 0xffffff, 0.7).setInteractive({ useHandCursor: true }));
+    button.disableInteractive().setAlpha(.55);
     add(this.add.text(0, 199, "ACEPTAR", {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "14px", color: "#122032", fontStyle: "bold"
     }).setOrigin(0.5));
@@ -117,8 +119,9 @@ export class LevelUpScene extends Phaser.Scene {
     const continueToResults = async () => {
       if (!ready || continuing) return;
       continuing = true;
-      await playTeleportSmoke(this, 220, 326);
       if (returnToBattle) {
+        if (!await teleportVanish(this, fighter)) return;
+        if (!await teleportFadeOut(this, { pace: "substitution" })) return;
         this.scene.resume("battle");
         this.scene.stop();
       } else this.scene.start(nextScene, result);
@@ -144,9 +147,9 @@ export class LevelUpScene extends Phaser.Scene {
       document.removeEventListener("keydown", onKeydown);
       accessibleDialog.remove();
     });
-    this.tweens.add({ targets: panel, alpha: 1, scale: 1, delay: reducedMotion ? 0 : 530, duration: reducedMotion ? 100 : 440, ease: "Back.out",
-      onComplete: () => { ready = true; accessibleDialog.focus(); } });
-    this.cameras.main.fadeIn(220, 6, 15, 27);
+    this.tweens.add({ targets: panel, alpha: 1, scale: 1, delay: reducedMotion ? 0 : 90, duration: reducedMotion ? 100 : 180, ease: "Back.out",
+      onComplete: async () => { await arrival; ready = true; button.setAlpha(1).setInteractive({ useHandCursor: true }); accessibleDialog.focus(); } });
+    this.cameras.main.fadeIn(90, 6, 15, 27);
     sharpenTextTree(this.children.list);
   }
 }

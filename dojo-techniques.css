@@ -1,0 +1,82 @@
+/* The combat loadout and learned collection have separate, visible roles. */
+#dojo-panel-techniques .dojo-technique-workspace { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.5fr); grid-template-rows: auto minmax(0, 1fr); gap: 12px; height: 100%; min-height: 0; }
+#dojo-panel-techniques .dojo-technique-layout { display: contents; }
+#dojo-panel-techniques .technique-detail-wrap { grid-column: 1; grid-row: 1 / 3; min-width: 0; min-height: 0; height: 100%; overflow: hidden; }
+#dojo-panel-techniques .technique-detail { display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 0; height: 100%; min-height: 0; padding: 0; overflow: hidden; border-radius: 9px; }
+#dojo-panel-techniques .technique-detail-body { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; padding: 14px; scrollbar-gutter: stable; }
+#dojo-panel-techniques .technique-detail h3 { font-size: 20px; line-height: 1.2; overflow-wrap: anywhere; }
+#dojo-panel-techniques .technique-detail .eyebrow { font-size: 13px; }
+.technique-element-art { display: flex; align-items: center; gap: 12px; padding: 9px; border-radius: 7px; background: color-mix(in srgb, var(--technique-color) 12%, #091523); }
+.technique-element-art img { width: 52px; height: 52px; object-fit: contain; }
+.technique-element-art > div { display: grid; gap: 5px; }
+.technique-element-art strong { color: #f0d4a4; font-size: 14px; }
+.technique-element-art span { color: #9db5c6; font-size: 13px; line-height: 1.3; }
+#dojo-panel-techniques .technique-description, #dojo-panel-techniques .technique-accuracy { margin: 0; font-size: 14px; line-height: 1.4; }
+#dojo-panel-techniques .technique-metrics { flex: 0 0 auto; }
+#dojo-panel-techniques .technique-metrics div { min-height: 48px; }
+#dojo-panel-techniques .technique-detail-actions { display: grid; gap: 7px; padding: 12px 14px; border-top: 1px solid #52687966; background: #081522; }
+#dojo-panel-techniques .technique-detail-actions p { margin: 0; color: #b3c5d0; font-size: 13px; line-height: 1.35; }
+#dojo-panel-techniques .technique-equip-button { width: 100%; min-height: 44px; margin: 0; padding: 10px 8px; font-size: 14px; white-space: normal; }
+
+.technique-loadout { grid-column: 2; grid-row: 1; display: grid; gap: 9px; min-width: 0; padding: 12px; border: 1px solid #68849a66; border-radius: 9px; background: #0b1c2bf2; }
+.technique-loadout > header { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
+.technique-loadout > header > div { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; }
+.technique-loadout h3 { margin: 0; color: #f2e1c1; font: 700 15px "Cinzel", Georgia, serif; }
+.technique-loadout > header p { max-width: 32ch; margin: 0; color: #a8bdcd; font-size: 13px; line-height: 1.35; }
+.technique-loadout-count { display: inline-block; padding: 3px 7px; border: 1px solid #67c6bc77; border-radius: 5px; color: #9de5d5; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.technique-loadout-count.is-full { border-color: #d8ac6988; color: #f0cc8f; }
+.technique-loadout-slots { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.technique-loadout-slot { position: relative; display: flex; flex-direction: column; justify-content: center; gap: 5px; min-width: 0; min-height: 82px; margin: 0; padding: 10px; border: 1px solid #496a7d; border-radius: 6px; background: #091523; overflow-wrap: anywhere; }
+.technique-loadout-slot small { color: #85ccbd; font-size: 13px; line-height: 1.3; font-weight: 700; }
+.technique-loadout-slot strong { color: #eff1e7; font-size: 14px; line-height: 1.25; }
+.technique-loadout-slot > span { color: #92adbf; font-size: 13px; line-height: 1.3; }
+.technique-loadout-slot.is-equipped { padding: 0; border-color: #64b9aa; }
+.technique-loadout-slot > button:first-child { display: flex; flex-direction: column; align-items: start; justify-content: center; gap: 6px; width: 100%; min-height: 82px; padding: 10px 23px 10px 10px; border: 0; border-radius: 6px; background: transparent; text-align: left; cursor: pointer; }
+.technique-loadout-slot .technique-loadout-remove { position: absolute; top: 2px; right: 2px; display: grid; place-items: center; width: 25px; height: 29px; padding: 0; border: 0; border-radius: 4px; background: #163040; color: #c5dfde; cursor: pointer; }
+.technique-loadout-slot.is-locked { border-style: dashed; border-color: #65738688; background: #0d1722; }
+.technique-loadout-slot.is-locked small, .technique-loadout-slot.is-locked strong { color: #c6c9d0; }
+.technique-loadout-slot.is-empty { border-style: dashed; }
+.technique-loadout-instruction { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 21px; }
+.technique-loadout-instruction p { margin: 0; color: #d8c5a4; font-size: 14px; line-height: 1.35; }
+.technique-loadout-instruction button { flex: 0 0 auto; min-height: 36px; padding: 5px 9px; border: 1px solid #7897aa; border-radius: 5px; background: #142b3b; color: #e5eef4; font-size: 13px; cursor: pointer; }
+.technique-loadout.is-choosing { border-color: #e8b75f; }
+.technique-loadout-slot.is-replacement { border: 2px solid #edb85b; background: #3f3020; }
+.technique-loadout-slot.is-replacement small { color: #ffda8a; }
+#dojo-panel-techniques button:focus-visible { outline: 2px solid #8cddff; outline-offset: 2px; }
+
+#dojo-panel-techniques .skill-tree { grid-column: 2; grid-row: 2; display: grid; grid-template-rows: auto minmax(0, 1fr); gap: 9px; min-width: 0; min-height: 0; height: 100%; padding: 0; overflow: hidden; }
+.technique-catalog-heading h3 { margin: 0 0 5px; color: #e6decf; font: 700 15px "Cinzel", Georgia, serif; }
+.technique-catalog-heading p { margin: 0; color: #9eb5c7; font-size: 14px; line-height: 1.35; }
+#dojo-panel-techniques .skill-branches { display: grid; grid-auto-rows: max-content; align-content: start; gap: 16px; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 2px 7px 7px 2px; }
+#dojo-panel-techniques .skill-branch { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; min-width: 0; min-height: 0; padding: 0; border: 0; background: transparent; }
+#dojo-panel-techniques .skill-branch > header { display: flex; flex-direction: row; align-items: center; justify-content: start; gap: 9px; min-height: 28px; padding: 0; border: 0; background: transparent; }
+#dojo-panel-techniques .skill-branch > header img { width: 28px; height: 28px; object-fit: contain; }
+#dojo-panel-techniques .skill-branch > header > span { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+#dojo-panel-techniques .skill-branch > header strong { font-size: 14px; color: #e5e6dd; }
+#dojo-panel-techniques .skill-branch > header small { font-size: 13px; color: #9eb5c7; }
+#dojo-panel-techniques .skill-path { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-flow: row; gap: 8px; min-width: 0; padding: 0; overflow: visible; }
+#dojo-panel-techniques .skill-node { display: grid; grid-template-columns: 21px minmax(0, 1fr); gap: 5px 7px; min-width: 0; min-height: 100px; padding: 10px; border-color: #5d6676; border-radius: 7px; }
+#dojo-panel-techniques .skill-node::before, #dojo-panel-techniques .skill-node::after { display: none; }
+#dojo-panel-techniques .skill-node.locked { opacity: 1; background: #0b1520; cursor: pointer; }
+#dojo-panel-techniques .skill-node.available { border-color: #bc894f; }
+#dojo-panel-techniques .skill-node.equipped { border-color: #5ebba5; background: #102c30; }
+#dojo-panel-techniques .skill-node.focused { outline: 2px solid #91d9f8; outline-offset: -2px; box-shadow: none; }
+#dojo-panel-techniques .skill-state { grid-column: 1 / -1; padding-top: 5px; color: #efc27b; font-size: 13px; line-height: 1.3; letter-spacing: 0; }
+#dojo-panel-techniques .skill-node.equipped .skill-state { color: #a1e8d6; }
+#dojo-panel-techniques .skill-node.locked .skill-state { color: #b9c5d2; }
+#dojo-panel-techniques .skill-hint { grid-column: 1 / -1; color: #9fb6c8; font-size: 13px; line-height: 1.3; }
+#dojo-panel-techniques .skill-copy strong { font-size: 14px; line-height: 1.3; }
+#dojo-panel-techniques .skill-copy small { font-size: 13px; line-height: 1.3; }
+
+@media (max-width: 1180px) {
+  #dojo-panel-techniques .dojo-technique-workspace { grid-template-columns: minmax(220px, .8fr) minmax(0, 1.5fr); gap: 10px; }
+  .technique-loadout > header { flex-direction: column; gap: 5px; }
+  .technique-loadout > header p { max-width: none; }
+  #dojo-panel-techniques .skill-path { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 980px) {
+  #dojo-panel-techniques .dojo-technique-workspace { display: flex; flex-direction: column; overflow-y: auto; }
+  .technique-loadout { flex: 0 0 auto; }
+  #dojo-panel-techniques .technique-detail-wrap { flex: 0 0 380px; order: 2; }
+  #dojo-panel-techniques .skill-tree { flex: 0 0 360px; }
+}

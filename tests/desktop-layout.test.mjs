@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const desktopCss = await readFile(new URL("../desktop.css", import.meta.url), "utf8");
+const techniquesCss = await readFile(new URL("../dojo-techniques.css", import.meta.url), "utf8");
 const locationStageSource = await readFile(new URL("../src/ui/meta/location-stage.js", import.meta.url), "utf8");
 
 assert.match(css, /@media \(min-width: 981px\)/, "El escenario unificado debe limitarse a la versión de escritorio");
@@ -24,7 +25,8 @@ assert.match(css, /\.master-summary-card \{[^}]*height: 100%;[^}]*min-height: 28
 assert.match(css, /\.master-summary-card img \{[^}]*position: absolute;[^}]*width: 128%;[^}]*height: 152%;[^}]*object-position: center top;/, "El retrato del maestro debe ampliarse y recortarse desde el torso hacia arriba");
 assert.match(css, /\.master-summary-card > span \{[^}]*position: absolute;[^}]*inset: auto 0 0;[^}]*linear-gradient/, "La información del maestro debe superponerse en la base de la imagen sin un panel rectangular");
 assert.match(css, /\.master-summary-card > span::before \{[^}]*backdrop-filter: blur\(8px\);[^}]*mask-image: linear-gradient/, "La base informativa debe difuminar progresivamente la imagen del maestro");
-assert.match(css, /\.technique-detail:not\(\.empty\) \{[^}]*minmax\(120px, 1fr\)/, "El arte de la técnica debe crecer con la altura disponible");
+assert.match(techniquesCss, /\.technique-detail \{[^}]*grid-template-rows: minmax\(0, 1fr\) auto/, "El detalle debe reservar espacio para las acciones sin desbordarse");
+assert.match(techniquesCss, /\.technique-detail-body \{[^}]*overflow-y: auto/, "La descripción debe desplazarse dentro del detalle si falta altura");
 assert.match(css, /\.statistics-layout/, "La pestaña de estadísticas debe distribuir el pentagrama y los controles sin superponerlos");
 assert.match(css, /\.statistics-character-preview/, "La pestaña de estadísticas debe reservar una columna amplia para la marioneta");
 assert.match(css, /\.statistics-layout \.stat-radar-wrap \{ grid-template-columns:/, "El pentagrama y su resumen deben compartir la fila inferior en escritorio");

@@ -1,4 +1,5 @@
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
+import { validateMissionTransitions } from "./mission-transitions.js";
 
 export const MISSION_CATEGORIES = Object.freeze({ MAIN: "main", SECONDARY: "secondary" });
 export const MISSION_STEP_TYPES = Object.freeze(["dialogue", "combat", "investigation", "route", "choice", "resource", "consequence"]);
@@ -101,6 +102,7 @@ export function applyMissionEffects(save, effects = [], context = {}) {
 export function validateMissionCatalog(missions, sagas = []) {
   const errors = [];
   const ids = new Set();
+  missions.forEach(mission => errors.push(...validateMissionTransitions(mission)));
   const supportedSteps = new Set(MISSION_STEP_TYPES);
   const supportedRequirements = new Set(MISSION_REQUIREMENT_TYPES);
   const supportedEffects = new Set(MISSION_EFFECT_TYPES);

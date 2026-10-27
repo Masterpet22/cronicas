@@ -53,7 +53,7 @@ test("la subida animada aparece antes del informe y detalla el crecimiento", asy
     const panel = scene.children.getByName("level-up-panel");
     return panel?.alpha === 1 && Boolean(scene.children.getByName("level-up-fighter"))
       && Boolean(scene.children.getByName("level-up-aura"))
-      && panel.list.some((child) => child.name === "level-up-continue");
+      && panel.list.some((child) => child.name === "level-up-continue" && child.input?.enabled);
   })).toBe(true);
   await page.locator("#level-up-test-stage canvas").click({ position: { x: 636, y: 469 } });
   await expect.poll(() => page.evaluate(() => window.__levelUpTest.arrived)).toBe(true);
@@ -81,8 +81,9 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
     const { playerFighterAppearance } = await import("/src/character.js?v=0.76.0");
+    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");
     const { createCharacter, createDefaultSave, derivedStats, writeSave } = await import("/src/save.js?v=0.94.0");
-    const base = writeSave(createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female" }));
+    const base = writeSave(createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female", teleportObject: "dog" }));
     const preview = { ...base, progression: { ...base.progression, level: 2, attributePoints: 2 } };
     battleRuntime.activeSave = base;
     battleRuntime.renderResolution = 1;
@@ -90,15 +91,21 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
     stage.id = "level-up-battle-stage";
     stage.style.cssText = "width:960px;height:540px";
     document.body.append(stage);
-    const state = { stage, game: null, resumed: false, oldHp: derivedStats(base).maxHp, newHp: 0 };
+    const state = { stage, game: null, resumed: false, oldHp: derivedStats(base).maxHp, newHp: 0,
+      battleStages: [], modalStages: [], modalHadObject: false };
     window.__levelUpBattleTest = state;
     class FakeBattleScene extends window.Phaser.Scene {
       constructor() { super("battle"); }
-      preload() { queuePlayerFighterTextures(this, playerFighterAppearance(base)); }
+      preload() { queuePlayerFighterTextures(this, playerFighterAppearance(base)); queueTeleportObjects(this); }
       create() {
         const stats = derivedStats(base);
         this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra };
+        this.saveData = base;
         this.hero = createPlayerFighter(this, 220, 390, playerFighterAppearance(base));
+        this.events.on("teleport-stage", event => state.battleStages.push(event));
+        const levelUp = this.scene.get("level-up");
+        levelUp.events.on("teleport-stage", event => state.modalStages.push(event.stage));
+        levelUp.events.on("update", () => { state.modalHadObject ||= Boolean(levelUp.children?.getByName("teleport-object")); });
         this.lastShownLevel = 1;
         this.accessibleHud = { suspend: () => () => {} };
         this.refreshHud = () => {};
@@ -113,20 +120,27 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
       scene: [FakeBattleScene, LevelUpScene] });
   });
   await expect(page.locator("#level-up-battle-stage [role='dialog']")).toContainText("volver al combate");
-  await expect.poll(() => page.evaluate(() => window.__levelUpBattleTest.game.scene.getScene("level-up").children.getByName("level-up-panel")?.alpha === 1)).toBe(true);
+  await expect.poll(() => page.evaluate(() => {
+    const panel = window.__levelUpBattleTest.game.scene.getScene("level-up").children.getByName("level-up-panel");
+    return panel?.alpha === 1 && panel.list.some(child => child.name === "level-up-continue" && child.input?.enabled);
+  })).toBe(true);
   await page.locator("#level-up-battle-stage canvas").click({ position: { x: 636, y: 469 } });
   await expect.poll(() => page.evaluate(() => window.__levelUpBattleTest.resumed)).toBe(true);
   const result = await page.evaluate(async () => {
     const { loadSave } = await import("/src/save.js?v=0.94.0");
     const state = window.__levelUpBattleTest;
     const outcome = { grewInCombat: state.newHp > state.oldHp, persistedLevel: loadSave().progression.level,
-      battleActive: state.game.scene.isActive("battle") };
+      battleActive: state.game.scene.isActive("battle"), battleStages: state.battleStages, modalStages: state.modalStages,
+      modalHadObject: state.modalHadObject };
     state.game.destroy(true);
     state.stage.remove();
     delete window.__levelUpBattleTest;
     return outcome;
   });
-  expect(result).toEqual({ grewInCombat: true, persistedLevel: 1, battleActive: true });
+  expect(result).toMatchObject({ grewInCombat: true, persistedLevel: 1, battleActive: true, modalHadObject: false });
+  expect(result.battleStages.map(event => event.stage)).toEqual(["departure-smoke", "object-left", "object-disappears", "screen-transition", "arrival-smoke", "character-arrives"]);
+  expect(result.battleStages.filter(event => event.stage === "object-left")).toEqual([{ stage: "object-left", object: "dog" }]);
+  expect(result.modalStages).toEqual(["arrival-smoke", "character-arrives", "departure-smoke", "screen-transition"]);
   expect(browserErrors).toEqual([]);
 });
 

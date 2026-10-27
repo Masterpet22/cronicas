@@ -2,7 +2,7 @@ import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js
 import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.103.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.67.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";
-import { DEBUG_CHECKPOINTS, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.94.0";
+import { DEBUG_CHECKPOINTS, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.106.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.93.0";
@@ -10,10 +10,10 @@ import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.66.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.99.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.103.0";
-import { createDojoView } from "./ui/meta/views/dojo.js?v=0.102.0";
-import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.101.0";
+import { createDojoView } from "./ui/meta/views/dojo.js?v=0.107.0";
+import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.106.0";
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.103.0";
-import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.102.0";
+import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.105.0";
 import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
 import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.67.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
@@ -179,7 +179,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     }
   });
   const dojoView = createDojoView({
-    assetVersion: ASSET_VERSION,
+    assetVersion: ASSET_VERSION, escapeHtml,
     affinityConfig: AFFINITY_CONFIG, elements: ELEMENTS, elementRankLabels: ELEMENT_RANK_LABELS,
     equipment: EQUIPMENT, jutsus: JUTSU_LIBRARY, npcs: NPCS,
     affinityXpForElement, availableAffinitySlots, basicRequirements, canAccessElement, derivedStats,

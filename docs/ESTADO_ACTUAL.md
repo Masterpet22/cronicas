@@ -10,6 +10,10 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Guardado: tres partidas locales, esquema `SAVE_VERSION = 17`, progreso por paso y migración automática desde v16.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
 - La misión 1 enseña el combate con una guía de 11 pasos, foco visual y práctica real. Se puede omitir y repetir desde la Biblioteca, disponible como manual desde el inicio; el bestiario sigue requiriendo el libro de Haru.
+- El creador permite elegir peinado (sin cabello, corto o coleta) con vista previa y conserva la elección al cambiar de género. Incluye la sección de traje, pendiente de sus recursos gráficos. Las transiciones entre encuentros comparten la barra de recorrido de salida y regreso de misión.
+- La vista previa del creador muestra partículas de la afinidad detrás del cuerpo: brasas, gotas, fragmentos de tierra o corrientes de viento. Con movimiento reducido se mantienen estáticas.
+- Las misiones eligen ruta o transportación en `transitions`, por salida, regreso y encuentro de destino. La transportación sigue seis pasos y usa el objeto elegido en Dojo → Apariencia (tronco, perrito o silla). Consulta [`TRANSICIONES.md`](TRANSICIONES.md).
+- Dojo → Técnicas separa la colección aprendida del equipo de combate. Muestra las cuatro ranuras (las adicionales se abren en niveles 5 y 8), permite reemplazar una equipada sin perder lo aprendido y mantiene las acciones del detalle dentro del panel.
 
 ## Contenido jugable vigente
 

@@ -30,7 +30,7 @@ const FEMALE_PUPPET_PREVIEW_LAYERS = Object.freeze([
   { id: "mano_derecha", x: -234.603333, y: 213.724444, width: 129.36, height: 167.2, restRotation: 4 },
   { id: "cabeza", x: -3.96, y: -443.06, width: 229.68, height: 345.84 }
 ]);
-export function rasterCharacterPreviewMarkup(save, assetVersion) {
+export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null } = {}) {
   const female = save.character.bodyType === "female";
   const puppetLayers = female ? FEMALE_PUPPET_PREVIEW_LAYERS : PUPPET_PREVIEW_LAYERS;
   const puppetRoot = female ? "woman_sprites" : "man_sprites";
@@ -41,6 +41,6 @@ export function rasterCharacterPreviewMarkup(save, assetVersion) {
       : null;
   const layer = ({ id, asset = id, x, y, width, height, restRotation = 0 }, index) => `<img class="puppet-preview-layer" src="assets/modular/${puppetRoot}/runtime/${asset}.png?v=${assetVersion}" alt="" width="${width}" height="${height}" draggable="false" style="--puppet-x:${((550 + x) / 11).toFixed(3)}%;--puppet-y:${((800 + y) / 16).toFixed(3)}%;--puppet-w:${(width / 11).toFixed(3)}%;--puppet-h:${(height / 16).toFixed(3)}%;--puppet-z:${index};--puppet-rotation:${restRotation}deg">`;
   const hairLayer = hair ? `<img class="puppet-preview-layer puppet-preview-hair" src="assets/modular/hair/${hair.asset}.png?v=${hair.version}" alt="" width="${hair.width}" height="${hair.height}" draggable="false" style="--puppet-x:${((550 + hair.x) / 11).toFixed(3)}%;--puppet-y:${((800 + hair.y) / 16).toFixed(3)}%;--puppet-w:${(hair.width / 11).toFixed(3)}%;--puppet-h:${(hair.height / 16).toFixed(3)}%;--puppet-z:${puppetLayers.length}">` : "";
-  return `<div class="raster-character-stage" role="img" aria-label="Marioneta del combatiente usada en combate"><div class="raster-character-aura" aria-hidden="true"></div><div class="puppet-preview-rig">${puppetLayers.map(layer).join("")}${hairLayer}</div></div>`;
+  return `<div class="raster-character-stage" role="img" aria-label="Marioneta del combatiente usada en combate">${backdrop ?? '<div class="raster-character-aura" aria-hidden="true"></div>'}<div class="puppet-preview-rig">${puppetLayers.map(layer).join("")}${hairLayer}</div></div>`;
 }
 

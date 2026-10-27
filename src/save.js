@@ -7,6 +7,7 @@ import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoct
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
 import { createCompletedMissionProgress, migrateSaveToV17 } from "./save/save-migrations.js";
 import { createSlotRepository } from "./save/slot-repository.js";
+import { teleportObject } from "./teleport-objects.js";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
 import { advanceMissionProgress as advanceCampaignMission, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
@@ -88,7 +89,7 @@ function normalizeHairStyle(value) {
   return hair === 0 || hair === 1 || hair === 4 ? hair : 1;
 }
 
-export function createCharacter(save, { name, affinity, appearance, bodyType, hair }) {
+export function createCharacter(save, { name, affinity, appearance, bodyType, hair, teleportObject: selectedObject }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
   const cleanAffinity = BASIC_ELEMENT_IDS.includes(affinity) ? affinity : "fuego";
   const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
@@ -96,7 +97,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), top: 1, bottom: 1, shoes: 1 },
+    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     loadout: initialLoadout(cleanAffinity),
@@ -157,6 +158,7 @@ export function normalizeSave(candidate) {
       masterId,
       face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
       hair: normalizeHairStyle(candidate.character.hair),
+      teleportObject: teleportObject(candidate.character.teleportObject).id,
       top: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.top) || 1))),
       bottom: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.bottom) || 1))),
       shoes: Math.min(2, Math.max(1, Math.floor(Number(candidate.character.shoes) || 1)))

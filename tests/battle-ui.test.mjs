@@ -206,9 +206,7 @@ assert.match(battle, /\[\.\.\.this\.foe\.targets, this\.foe\.shadow\]/, "La somb
 assert.match(battle, /this\.foe = createPlayerFighter\(this, 740, fighterY, this\.enemyAppearance\(\), true\)/, "El rival debe usar su apariencia registrada y mirar hacia el jugador");
 assert.match(battle, /battle-mist-marsh-water\.png/, "La marisma debe usar el fondo sin plataforma de piedra");
 assert.match(battle, /styleFighterGrounding\(fighter\)[\s\S]*profile\.grounding[\s\S]*setStrokeStyle\(ground\.strokeWidth/, "El contacto de ambos combatientes con el suelo debe proceder del perfil visual de la arena");
-assert.match(battle, /assets\/vfx\/substitution-log-runtime\.png/, "El combate debe cargar el tronco raster optimizado de Sustitución");
-assert.match(battle, /async playSubstitution\(fighter\)[\s\S]*fighter\.body\.setAlpha\(0\)[\s\S]*setScale\(finalScaleX \* 0\.04, finalScaleY \* 0\.04\)[\s\S]*ease: "Back\.out"[\s\S]*fighter\.body, alpha: bodyAlpha/, "La Sustitución debe ocultar al combatiente, hacer crecer el tronco y restaurarlo");
-assert.match(battle, /createSubstitutionSmoke\(x, y, spread = 1\)[\s\S]*Array\.from\(\{ length: 14 \}/, "La Sustitución debe envolver el tronco con humo animado");
+assert.match(battle, /queueTeleportObjects\(this\)/, "El combate debe cargar los objetos de apariencia para la Sustitución");
 assert.match(battle, /El rival evitó \$\{jutsu\.name\} con una Sustitución/, "El enemigo debe usar Sustitución al esquivar al jugador");
 assert.match(battle, /Evitaste \$\{action\.name\} con una Sustitución/, "El jugador debe usar Sustitución al esquivar al enemigo");
 assert.match(metaUi, /assets\/modular\/man_sprites\/runtime\/cabeza\.png/, "El bestiario debe usar el modelo raster provisional y no combatientes vectoriales");
@@ -305,7 +303,7 @@ assert.doesNotMatch(metaUi, /master-unlock-note|La elección se desbloquea al co
 assert.match(metaUi, /class="master-role">\$\{currentMaster\.npc\.title\}/, "La tarjeta del maestro debe mostrar su cargo además de la ventaja pasiva");
 assert.match(metaUi, /data-dojo-tab="statistics"/, "La distribución de estadísticas debe vivir en una pestaña propia");
 assert.match(metaUi, /stat-radar-wrap/, "Estadísticas debe incluir el pentagrama solicitado");
-assert.match(metaUi, /toggleTechnique\(selectedTechniqueId\)/, "Cada técnica aprendida debe poder equiparse o desequiparse desde su tarjeta");
+assert.match(metaUi, /data-technique-toggle/, "El detalle debe ofrecer una acción explícita para equipar o quitar la técnica");
 assert.doesNotMatch(metaUi, /El pentagrama resume el perfil|PENTAGRAMA DE HABILIDADES/, "Estadísticas debe aprovechar el espacio sin encabezados descriptivos redundantes");
 assert.match(metaUi, /statistics-character-preview/, "Estadísticas debe mostrar la marioneta junto a los atributos y el pentagrama");
 assert.match(metaUi, /puppet-preview-rig/, "Apariencia debe usar la marioneta raster del combate en lugar de la vista vectorial");

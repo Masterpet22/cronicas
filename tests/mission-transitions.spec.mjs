@@ -1,7 +1,9 @@
 import { expect, test } from "@playwright/test";
 
 async function bootTravel(page, direction, result = null, missionId = "m05") {
-  return page.evaluate(async ({ direction, result, missionId }) => {
+  // Let the app finish loading its save before the isolated scene supplies one.
+  await expect(page.locator(".save-selector")).toBeVisible();
+  await page.evaluate(async ({ direction, result, missionId }) => {
     const { MissionTravelScene } = await import("/src/battle/scenes/mission-travel-scene.js?v=0.98.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");
@@ -39,6 +41,7 @@ async function bootTravel(page, direction, result = null, missionId = "m05") {
     state.game = new window.Phaser.Game({ type: window.Phaser.CANVAS, parent: stage, width: 960, height: 540,
       scene: [BootScene, MissionTravelScene, DestinationScene] });
   }, { direction, result, missionId });
+  await expect.poll(() => page.evaluate(() => window.__missionTravelTest.arrival), { timeout: 20_000 }).not.toBeNull();
 }
 
 test("el viaje a la misión usa parallax, cámara, partículas y llegada contextual", async ({ page }) => {

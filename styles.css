@@ -2577,7 +2577,7 @@ button:focus-visible {
 .raster-character-aura { position: absolute; top: 42%; left: 50%; width: 78%; aspect-ratio: 1; border: 1px solid rgba(95, 213, 242, .3); border-radius: 50%; background: radial-gradient(circle, rgba(61, 194, 229, .16), transparent 67%); box-shadow: 0 0 42px rgba(38, 161, 207, .2), inset 0 0 32px rgba(77, 202, 235, .12); transform: translate(-50%, -50%); }
 .puppet-preview-rig { position: absolute; top: 50%; left: 50%; width: auto; height: min(calc(100% - 28px), 500px); aspect-ratio: 11 / 16; transform: translate(-50%, -50%); }
 .puppet-preview-layer { position: absolute; z-index: var(--puppet-z); top: var(--puppet-y); left: var(--puppet-x); display: block; width: var(--puppet-w); height: var(--puppet-h); object-fit: contain; transform: translate(-50%, -50%) rotate(var(--puppet-rotation, 0deg)); pointer-events: none; user-select: none; }
-.cosmetic-menu { display: grid; align-content: center; gap: 8px; }
+.cosmetic-menu { display: grid; align-content: start; gap: 8px; min-height: 0; overflow-y: auto; padding: 3px 6px 3px 3px; }
 .cosmetic-control { display: grid; grid-template-columns: minmax(110px, .8fr) minmax(160px, 1.2fr); align-items: center; gap: 4px 12px; border: 1px solid rgba(78, 137, 170, .36); border-radius: 7px; padding: 10px 11px; background: linear-gradient(90deg, rgba(10, 35, 54, .92), rgba(8, 19, 32, .88)); transition: border-color .16s ease, background .16s ease, transform .16s ease; }
 .cosmetic-control:hover, .cosmetic-control:focus-within { border-color: rgba(93, 211, 242, .7); background: linear-gradient(90deg, rgba(14, 61, 84, .94), rgba(8, 23, 39, .92)); transform: translateX(-3px); }
 .cosmetic-control.unavailable { border-style: dashed; opacity: .58; }
@@ -2591,6 +2591,8 @@ button:focus-visible {
 .cosmetic-stepper button:hover, .cosmetic-stepper button:focus-visible { outline: none; border-color: #70dcfa; background: rgba(17, 93, 125, .9); color: #fff; }
 .cosmetic-stepper button:disabled { border-color: rgba(87, 116, 132, .28); background: rgba(8, 22, 32, .62); color: #607888; cursor: not-allowed; }
 .cosmetic-stepper output { min-width: 0; color: #f4c676; font: 800 .76rem "Cinzel", Georgia, serif; letter-spacing: .08em; text-align: center; white-space: nowrap; }
+.cosmetic-stepper output:has(.teleport-object-preview) { display: flex; align-items: center; justify-content: center; gap: 6px; letter-spacing: 0; }
+.teleport-object-preview { width: 30px; height: 30px; object-fit: contain; }
 .cosmetic-control > small { grid-column: 2; color: #83a8bc; font-size: .58rem; text-align: center; }
 .dojo-technique-layout { display: grid; height: 100%; min-height: 0; grid-template-columns: minmax(240px, .76fr) minmax(0, 1.42fr); align-items: stretch; gap: 13px; }
 .technique-detail-wrap { height: 100%; min-height: 0; }

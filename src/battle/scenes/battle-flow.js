@@ -4,7 +4,7 @@ import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.95.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
@@ -17,9 +17,13 @@ import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRe
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { encounterRecovery } from "../../progression-balance.js?v=0.94.0";
-import { playLevelUpFlash } from "../level-up-transition.js?v=0.95.0";
+import { playLevelUpFlash } from "../level-up-transition.js?v=1.5.0";
 import { playBossPhaseTransition } from "../phase-transition.js?v=0.97.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
+import { createTravelProgress } from "../travel-progress.js?v=1.0.0";
+import { missionTravelPresentation } from "../mission-travel-presentation.js?v=0.96.0";
+import { missionTransitionMode } from "../../mission-transitions.js";
+import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../teleport-transition.js?v=1.1.0";
 
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
@@ -198,10 +202,15 @@ export class BattleFlowMethods {
     const report = levelUpReport(this.lastShownLevel, previewSave);
     if (!report) return;
     this.stopTurnTimeline?.();
-    await playLevelUpFlash(this, this.hero);
     const restoreHud = this.accessibleHud?.suspend?.();
+    const arrivalAppearance = { bodyAlpha: this.hero.body.alpha, shadowAlpha: this.hero.shadow.alpha, pace: "substitution" };
+    await playLevelUpFlash(this, this.hero);
+    if (this.finished) { restoreHud?.(); return; }
+    const teleportCover = await teleportFadeOut(this, { pace: "substitution" });
+    if (!teleportCover || this.finished) { restoreHud?.(); return; }
     await new Promise((resolve) => {
-      this.events.once(Phaser.Scenes.Events.RESUME, () => {
+      this.events.once(Phaser.Scenes.Events.RESUME, async () => {
+        teleportCover.destroy();
         const oldHp = this.player.maxHp;
         const oldChakra = this.player.maxChakra;
         Object.assign(this.player, derivedStats(previewSave));
@@ -209,6 +218,7 @@ export class BattleFlowMethods {
         this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + this.player.maxChakra - oldChakra);
         this.lastShownLevel = report.afterLevel;
         this.refreshHud();
+        await teleportArrival(this, this.hero, arrivalAppearance);
         restoreHud?.();
         resolve();
       });
@@ -301,6 +311,7 @@ export class BattleFlowMethods {
       this.enemyIndex += 1;
       const profile = this.encounters[this.enemyIndex];
       await this.playEncounterTransition(profile);
+      if (this.finished) return;
       this.enemy = this.createEnemyState(profile);
       this.recordEnemyObservation({ encounter: true });
       this.enemyName.setText(profile.name);
@@ -553,6 +564,10 @@ export class BattleFlowMethods {
   async playEncounterTransition(profile) {
     const restoreHud = this.accessibleHud?.suspend?.();
     try {
+      if (missionTransitionMode(this.mission, "betweenEncounters", this.enemyIndex + 1) === "teleport") {
+        await playTeleportTransition(this, { fighter: this.hero, objectId: this.saveData.character.teleportObject });
+        return;
+      }
       const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
       const duration = reducedMotion ? 900 : 1900;
       const fadeDuration = reducedMotion ? 130 : 240;
@@ -564,25 +579,31 @@ export class BattleFlowMethods {
         this.textStyle(12, "#b9efce", "800", true)).setOrigin(0.5).setDepth(77).setAlpha(0).setName("encounter-phase-tag");
       const chapter = this.add.text(WIDTH / 2, HEIGHT / 2 - 16, `RUMBO AL ENCUENTRO ${this.enemyIndex + 1} DE ${this.encounters.length}`, this.textStyle(18, "#f5edd8", "800", true)).setOrigin(0.5).setDepth(77).setAlpha(0);
       const title = this.add.text(WIDTH / 2, HEIGHT / 2 + 20, profile.name, this.textStyle(14, "#d6e9df", "700")).setOrigin(0.5).setDepth(77).setAlpha(0);
-      const progress = this.add.rectangle(300, HEIGHT / 2 + 59, 0, 3, 0x84dca9, 0.9)
-        .setOrigin(0, 0.5).setDepth(77).setName("encounter-transition-progress");
+      const route = createTravelProgress(this, {
+        accent: missionTravelPresentation(this.mission).accent,
+        departure: `FASE ${String(this.enemyIndex).padStart(2, "0")}`,
+        destination: `FASE ${String(this.enemyIndex + 1).padStart(2, "0")}`,
+        depth: 76, name: "encounter-transition"
+      });
+      route.parts.forEach(part => part.setAlpha(0));
       const runner = createPlayerFighter(this, -90, 330, this.playerAppearance());
       runner.targets.forEach((target) => target.setDepth(74).setAlpha(0));
       runner.shadow.setDepth(73).setAlpha(0);
       startPlayerRunning(this, runner);
-      await this.tween({ targets: [backdrop, shade, foreground, phaseTag, chapter, title, ...runner.targets, runner.shadow], alpha: 1, duration: fadeDuration, ease: "Sine.out" });
+      await this.tween({ targets: [backdrop, shade, foreground, phaseTag, chapter, title, ...runner.targets, runner.shadow, ...route.parts], alpha: 1, duration: fadeDuration, ease: "Sine.out" });
       await Promise.all([
         this.tween({ targets: runner.body, x: WIDTH + 90, duration, ease: "Linear" }),
         this.tween({ targets: runner.shadow, x: WIDTH + 90, duration, ease: "Linear" }),
         this.tween({ targets: backdrop, x: WIDTH / 2 - 22, duration, ease: "Linear" }),
         this.tween({ targets: foreground, x: WIDTH / 2 - 62, duration, ease: "Linear" }),
-        this.tween({ targets: progress, width: 360, duration: duration - 200, ease: "Sine.inOut" }),
+        this.tween({ targets: route.fill, scaleX: 1, duration: duration - 200, ease: "Sine.inOut" }),
         this.tween({ targets: [phaseTag, chapter, title], alpha: 0, delay: duration * 0.49, duration: fadeDuration, ease: "Sine.in" })
       ]);
       stopPlayerRunning(runner);
-      await this.tween({ targets: [backdrop, shade, foreground], alpha: 0, duration: fadeDuration, ease: "Sine.in" });
+      await this.tween({ targets: [backdrop, shade, foreground, ...route.parts], alpha: 0, duration: fadeDuration, ease: "Sine.in" });
       destroyFighter(runner);
-      backdrop.destroy(); shade.destroy(); foreground.destroy(); phaseTag.destroy(); chapter.destroy(); title.destroy(); progress.destroy();
+      backdrop.destroy(); shade.destroy(); foreground.destroy(); phaseTag.destroy(); chapter.destroy(); title.destroy();
+      route.destroy();
     } finally {
       restoreHud?.();
     }
