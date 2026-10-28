@@ -40,7 +40,7 @@ Las principales usan `category: "main"` y `board: "headquarters"`. Las secundari
 }
 ```
 
-Los IDs son consecutivos: `m01`, `m02`… para principales y `s01`, `s02`… para secundarias. `validateMissionCatalog` rechaza saltos, duplicados, referencias inexistentes, pasos sin ID y tipos no registrados.
+Los IDs son estables y no determinan la categoría: `s01` y `s02` conservan su identidad histórica, aunque ahora sean principales. El campo `number` sigue el orden narrativo. `validateMissionCatalog` rechaza números discontinuos, IDs duplicados, referencias inexistentes, pasos sin ID y tipos no registrados.
 
 ### Requisitos disponibles
 

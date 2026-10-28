@@ -14,7 +14,7 @@ export function normalizeMissionProgress(candidate, completedMissions, completed
     const validSteps = new Set((mission.flow || []).map((step) => step.id).filter(Boolean));
     const completedSteps = [...new Set(Array.isArray(entry.completedSteps) ? entry.completedSteps : [])].filter((id) => validSteps.has(id));
     const currentStepId = validSteps.has(entry.currentStepId) && !completedSteps.includes(entry.currentStepId) ? entry.currentStepId : null;
-    const status = completedIds.has(mission.id) ? "completed" : entry.status === "failed" ? "failed" : "in-progress";
+    const status = completedIds.has(mission.id) ? "completed" : ["failed", "abandoned"].includes(entry.status) ? entry.status : "in-progress";
     return [[mission.id, {
       status,
       currentStepId: status === "completed" ? null : currentStepId || mission.flow.find((step) => step.id && !completedSteps.includes(step.id))?.id || null,

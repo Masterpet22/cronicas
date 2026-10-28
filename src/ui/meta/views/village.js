@@ -30,18 +30,8 @@ function activeMissionObjectives(save) {
   const deps = arguments[1];
   const campaign = save.campaign;
   const objectives = [];
-  const investigationMission = deps.secondaryMissionByType("investigation", deps.secondaryMissions);
-  const routeSearchMission = deps.secondaryMissionByType("route-search", deps.secondaryMissions);
-  const investigationState = deps.missionState(investigationMission, save);
-  const routeSearchState = deps.missionState(routeSearchMission, save);
-  if (routeSearchState.unlocked && !routeSearchState.completed) {
-    objectives.push({ id: `secondary:${routeSearchMission.id}`, type: "BÚSQUEDA", title: routeSearchMission.title, detail: "Encuentra al doctor Haru Takamine para descifrar el mapa.", destination: "Tablón de Misiones", view: "missions" });
-  }
   if (campaign.doctorBookDeliveryPending) {
-    objectives.unshift({ id: `secondary:${routeSearchMission.id}-delivery`, type: "ENTREGA OBLIGATORIA", title: "El libro de Haru", detail: "Entrega el libro antiguo a Sayo para activar sus registros.", destination: "Biblioteca", view: "archive" });
-  }
-  if (investigationState.unlocked && !investigationState.completed) {
-    objectives.push({ id: `secondary:${investigationMission.id}`, type: "ENCARGO DE SAYO", title: investigationMission.title, detail: "Investiga las pistas de la Aldea de Kagemori.", destination: "Tablón de Misiones", view: "missions" });
+    objectives.push({ id: "story:book-delivery", type: "ENTREGA OBLIGATORIA", title: "El libro de Haru", detail: "Entrega el libro a Sayo para preparar la siguiente misión.", destination: "Biblioteca", view: "archive" });
   }
   const storyMission = deps.nextAvailableMission(deps.mainMissions, "main", save);
   if (storyMission) {
@@ -67,12 +57,7 @@ export function createVillageView(deps) {
   };
 
   function renderPlaza(save) {
-    const boardReady = save.campaign.secondaryBoardUnlocked;
-    const investigationState = deps.missionState(deps.secondaryMissionByType("investigation", deps.secondaryMissions), save);
-    const routeSearchState = deps.missionState(deps.secondaryMissionByType("route-search", deps.secondaryMissions), save);
-    const nextObjective = save.campaign.doctorBookDeliveryPending ? "archive"
-      : routeSearchState.unlocked && !routeSearchState.completed ? "missions"
-      : boardReady && !investigationState.completed ? "missions" : "headquarters";
+    const nextObjective = save.campaign.doctorBookDeliveryPending ? "archive" : "headquarters";
     const missionObjectives = activeMissionObjectives(save, deps);
     const storyObjective = missionObjectives.find((objective) => objective.id.startsWith("story:"));
     const secondaryObjectives = missionObjectives.filter((objective) => !objective.id.startsWith("story:"));
@@ -86,7 +71,7 @@ export function createVillageView(deps) {
         <strong>${deps.escapeHtml(storyObjective?.title || "Sin misión principal activa")}</strong>
         ${storyObjective ? `<span>IR A: ${deps.escapeHtml(storyObjective.destination)}</span>` : ""}
       </div>
-      <div class="secondary-mission-menu ${unseenSecondaryObjectives.length ? "has-unseen" : ""}">
+      ${secondaryObjectives.length ? `<div class="secondary-mission-menu ${unseenSecondaryObjectives.length ? "has-unseen" : ""}">
         <button class="secondary-mission-trigger" type="button" aria-expanded="false" aria-controls="secondary-mission-panel" aria-label="Misiones secundarias${unseenSecondaryObjectives.length ? `, ${unseenSecondaryObjectives.length} sin revisar` : ""}">
           <span class="mission-target-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5"/><path d="M16 1v6M16 25v6M1 16h6M25 16h6"/><circle cx="16" cy="16" r="1.5"/></svg></span>
         </button>
@@ -94,7 +79,7 @@ export function createVillageView(deps) {
           <header><div><small>TABLÓN</small><strong>Misiones secundarias</strong></div><span>${secondaryObjectives.length}</span></header>
           <div class="secondary-mission-list">${secondaryMissionItems}</div>
         </section>
-      </div>
+      </div>` : ""}
     </section>`;
     const hotspots = VILLAGE_LOCATIONS.map((location) => {
       const comingSoon = isComingSoon(location, save);

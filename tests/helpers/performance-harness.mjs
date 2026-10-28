@@ -25,7 +25,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     document.getElementById("camera-effects").checked = false;
     document.getElementById("flash-effects").checked = false;
     localStorage.setItem("light-mode", lightMode ? "on" : "off");
-    const mission = MISSIONS[arenaIndex];
+    const mission = MISSIONS.filter((mission) => mission.encounters)[arenaIndex];
     const save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType: "male" });
     save.progression.level = 8;
     save.character.affinityXp.fuego = 1000;

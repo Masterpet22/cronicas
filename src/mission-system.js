@@ -11,25 +11,25 @@ const campaignOf = (save) => save?.campaign || {};
 const completedMain = (save) => new Set(campaignOf(save).completedMissions || []);
 const completedSecondary = (save) => new Set(campaignOf(save).completedSecondaryMissions || []);
 
-const mainIds = MISSIONS.map((mission) => mission.id);
-const secondaryIdsByType = Object.fromEntries(SECONDARY_MISSIONS.map((mission) => [mission.type, mission.id]));
+const combatIds = MISSIONS.filter((mission) => !mission.type).map((mission) => mission.id);
+const fieldIdsByType = Object.fromEntries([...MISSIONS, ...SECONDARY_MISSIONS].map((mission) => [mission.type, mission.id]));
 const DERIVED_CAMPAIGN_VALUES = Object.freeze({
-  kagemoriInvestigated: (save) => completedSecondary(save).has(secondaryIdsByType.investigation),
-  banditBossMissionUnlocked: (save) => completedSecondary(save).has(secondaryIdsByType.investigation),
-  doctorMissionUnlocked: (save) => completedMain(save).has(mainIds[1]),
-  doctorMissionCompleted: (save) => completedSecondary(save).has(secondaryIdsByType["route-search"]),
-  cipherMapObtained: (save) => completedMain(save).has(mainIds[1]),
-  bestiaryBookObtained: (save) => completedSecondary(save).has(secondaryIdsByType["route-search"]),
-  hideoutLocationRevealed: (save) => completedSecondary(save).has(secondaryIdsByType["route-search"]),
+  kagemoriInvestigated: (save) => completedMain(save).has(fieldIdsByType.investigation),
+  banditBossMissionUnlocked: (save) => completedMain(save).has(fieldIdsByType.investigation),
+  doctorMissionUnlocked: (save) => completedMain(save).has(combatIds[1]),
+  doctorMissionCompleted: (save) => completedMain(save).has(fieldIdsByType["route-search"]),
+  cipherMapObtained: (save) => completedMain(save).has(combatIds[1]),
+  bestiaryBookObtained: (save) => completedMain(save).has(fieldIdsByType["route-search"]),
+  hideoutLocationRevealed: (save) => completedMain(save).has(fieldIdsByType["route-search"]),
   hideoutMissionUnlocked: (save) => Boolean(campaignOf(save).archiveUnlocked),
   secretEntranceKnown: (save) => campaignOf(save).banditPrisonerChoice === "interrogate" && Boolean(campaignOf(save).archiveUnlocked),
-  heartMissionUnlocked: (save) => completedMain(save).has(mainIds[2]),
+  heartMissionUnlocked: (save) => completedMain(save).has(combatIds[2]),
   prisonersRescued: (save) => campaignOf(save).hideoutDiscoveryChoice === "prisoners",
   organizationDocumentsRecovered: (save) => campaignOf(save).hideoutDiscoveryChoice === "documents",
-  organizationRevealed: (save) => Boolean(campaignOf(save).hideoutDiscoveryChoice) || completedMain(save).has(mainIds[3]),
-  banditLeaderMissionUnlocked: (save) => completedMain(save).has(mainIds[3]),
-  firstSagaCompleted: (save) => completedMain(save).has(mainIds[4]),
-  masterSelectionUnlocked: (save) => completedMain(save).has(mainIds[4])
+  organizationRevealed: (save) => Boolean(campaignOf(save).hideoutDiscoveryChoice) || completedMain(save).has(combatIds[3]),
+  banditLeaderMissionUnlocked: (save) => completedMain(save).has(combatIds[3]),
+  firstSagaCompleted: (save) => completedMain(save).has(combatIds[4]),
+  masterSelectionUnlocked: (save) => completedMain(save).has(combatIds[4])
 });
 
 export function campaignFlag(save, id) {
@@ -174,13 +174,9 @@ export function validateMissionCatalog(missions, sagas = []) {
       if (!effect.id) errors.push(`${mission.id}: efecto ${effect.type} sin destino`);
     });
   });
-  [
-    [MISSION_CATEGORIES.MAIN, "m"],
-    [MISSION_CATEGORIES.SECONDARY, "s"]
-  ].forEach(([category, prefix]) => {
+  [MISSION_CATEGORIES.MAIN, MISSION_CATEGORIES.SECONDARY].forEach((category) => {
     missions.filter((mission) => mission.category === category).sort((a, b) => a.number - b.number).forEach((mission, index) => {
-      const expected = `${prefix}${String(index + 1).padStart(2, "0")}`;
-      if (mission.id !== expected || mission.number !== index + 1) errors.push(`${mission.id}: secuencia inválida; se esperaba ${expected}`);
+      if (mission.number !== index + 1) errors.push(`${mission.id}: número de misión inválido; se esperaba ${index + 1}`);
     });
   });
   sagas.forEach((saga) => saga.missionIds.forEach((id) => {

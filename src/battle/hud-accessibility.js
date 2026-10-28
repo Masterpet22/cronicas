@@ -55,11 +55,31 @@ export function mountAccessibleBattleHud(scene) {
   // Keep tooltips in the untransformed overlay so their text remains readable.
   actions.innerHTML = skillFrameSvg();
   let frontSkill = null;
+  let activeTooltip = null;
+  let tooltipTimeout = null;
+  const hideTooltip = () => {
+    window.clearTimeout(tooltipTimeout);
+    tooltipTimeout = null;
+    activeTooltip?.tooltip?.layer.setVisible(false);
+    activeTooltip = null;
+  };
+  const showTooltip = (slot) => {
+    // Focus after hovering must not extend the same detail's deadline.
+    if (activeTooltip === slot) return;
+    hideTooltip();
+    activeTooltip = slot;
+    slot.tooltip?.layer.setVisible(true);
+    tooltipTimeout = window.setTimeout(() => {
+      slot.tooltip?.layer.setVisible(false);
+      tooltipTimeout = null;
+    }, 3200);
+  };
   const restorePerspective = () => {
     if (!frontSkill) return;
     const { row, button, slot } = frontSkill;
     row.classList.remove('is-front');
     button.style.removeProperty('--skill-front-transform');
+    hideTooltip();
     slot.tooltip?.layer.setX(0).setVisible(false);
     frontSkill = null;
   };
@@ -142,10 +162,10 @@ export function mountAccessibleBattleHud(scene) {
     button.append(shortcut, art, info);
     const focus = () => {
       if (root.classList.contains('compact')) return;
-      slot.tooltip?.layer.setVisible(true);
+      showTooltip(slot);
     };
     const blur = () => {
-      slot.tooltip?.layer.setVisible(false);
+      if (activeTooltip === slot) hideTooltip();
     };
     row.addEventListener('pointerenter', () => { faceSkill(row, button, slot); focus(); });
     row.addEventListener('pointerleave', () => {
@@ -191,6 +211,7 @@ export function mountAccessibleBattleHud(scene) {
     root.inert = Boolean(hidden);
   };
   const suspend = () => {
+    hideTooltip();
     visibilityLocks += 1;
     refreshVisibility();
     scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
@@ -265,6 +286,7 @@ export function mountAccessibleBattleHud(scene) {
   scene.events.on('sleep', onSleep);
   scene.events.on('wake', onWake);
   const remove = () => {
+    hideTooltip();
     query.removeEventListener('change', layout);
     resizeObserver.disconnect();
     scene.events.off('pause', refreshVisibility);

@@ -62,10 +62,10 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 ## Fase 3 — Demo jugable
 
 - [x] Una aldea ilustrada con nueve edificios interactivos, resaltado por hover y navegación por teclado.
-- [x] Primera saga con cinco misiones principales consecutivas: `m01`, `m02`, `m03`, `m04` y `m05`.
+- [x] Primera saga con siete misiones principales consecutivas: `m01`, `s01`, `m02`, `s02`, `m03`, `m04` y `m05`.
 - [x] Catálogo declarativo separado para misiones principales y secundarias, con requisitos, actividades y efectos.
 - [x] Catálogo de diálogo traducible y ciclo exclusivo de montaje/desmontaje de vistas.
-- [x] Dos misiones secundarias integradas en la progresión: Kagemori y el médico errante.
+- [x] Kagemori y el médico errante integrados como misiones principales en el Cuartel General.
 - [ ] Expandir la campaña con nuevas sagas y misiones después de estabilizar el contenido actual.
 - [x] Diálogos y tutorial breve.
 - [x] Reparto visual por ubicación con conversaciones y guías contextuales.
@@ -73,7 +73,7 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 **Estado: primera saga jugable; expansión planificada.**
 
-**Criterio de salida parcialmente cumplido:** las cinco misiones principales y las dos secundarias forman el contenido vigente. Antes de ampliar la campaña se deben estabilizar sus rutas, decisiones, recompensas y continuidad de guardado.
+**Criterio de salida parcialmente cumplido:** las siete misiones principales forman el contenido vigente. Antes de ampliar la campaña se deben estabilizar sus rutas, decisiones, recompensas y continuidad de guardado.
 
 ## Fase 4 — Identidad visual propia
 

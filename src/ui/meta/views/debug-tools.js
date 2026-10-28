@@ -13,12 +13,12 @@ export function createDebugToolsView(deps) {
       const checkpointCards = deps.checkpoints.map((checkpoint) => `<button class="debug-checkpoint" type="button" data-debug-checkpoint="${checkpoint.id}"><strong>${deps.escapeHtml(checkpoint.label)}</strong><small>${deps.escapeHtml(checkpoint.description)}</small></button>`).join("");
       const missionCards = deps.missions.map((mission) => {
         const completed = campaign.completedMissions.includes(mission.id);
-        return `<article class="debug-mission ${completed ? "completed" : ""}"><span>${String(mission.number).padStart(2, "0")}</span><div><strong>${deps.escapeHtml(mission.title)}</strong><small>${deps.escapeHtml(mission.location)} · ${mission.encounters.length} encuentro${mission.encounters.length === 1 ? "" : "s"}</small></div><button type="button" data-debug-mission="${mission.id}" ${mission.comingSoon ? "disabled" : ""}>${mission.comingSoon ? "NO DISPONIBLE" : "INICIAR DIRECTO"}</button></article>`;
+        return `<article class="debug-mission ${completed ? "completed" : ""}"><span>${String(mission.number).padStart(2, "0")}</span><div><strong>${deps.escapeHtml(mission.title)}</strong><small>${deps.escapeHtml(mission.location)} · ${(mission.encounters || []).length} encuentro${(mission.encounters || []).length === 1 ? "" : "s"}</small></div><button type="button" data-debug-mission="${mission.id}" ${mission.comingSoon ? "disabled" : ""}>${mission.comingSoon ? "NO DISPONIBLE" : "INICIAR DIRECTO"}</button></article>`;
       }).join("");
       const debugFlags = [
         ["Tablón", campaign.secondaryBoardUnlocked],
         ["Kagemori", campaignFlag(save, "kagemoriInvestigated")],
-        ["Misión 2", campaignFlag(save, "banditBossMissionUnlocked")],
+        ["Desfiladero", campaignFlag(save, "banditBossMissionUnlocked")],
         ["Doctor", campaignFlag(save, "doctorMissionUnlocked")],
         ["Biblioteca", campaign.archiveUnlocked],
         ["Elegir maestro", campaignFlag(save, "masterSelectionUnlocked")]

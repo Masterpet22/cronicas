@@ -21,7 +21,7 @@ assert.ok(ENEMIES.filter((enemy) => enemy.boss).every((enemy) => enemy.phase2Pat
 assert.ok(ENEMIES.every((enemy) => ["health", "strength", "speed", "chakra", "luck"].every((stat) => Number.isFinite(enemy.stats?.[stat]))), "Cada enemigo debe usar las cinco estadísticas de balance");
 assert.ok(ENEMIES.every((enemy) => ["fuego", "agua", "tierra", "viento"].includes(enemy.affinity)), "Cada enemigo debe tener una afinidad principal para el ciclo de combate");
 assert.equal(ENEMIES.find((enemy) => enemy.name.includes("RAIZEN KUROGANE"))?.boss, true, "Raizen debe ser el jefe final jugable de la saga");
-assert.equal(MISSIONS.length, 5, "La campaña debe contener solamente las cinco misiones principales vigentes");
+assert.equal(MISSIONS.length, 7, "La campaña debe contener solamente las siete misiones principales vigentes");
 assert.deepEqual(MISSIONS[0].encounters, ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"], "La primera misión debe encadenar dos bandidos y un minijefe");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m02").encounters, ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], "La segunda misión de la saga debe cerrar con Akumori");
 assert.equal(MISSIONS.find((mission) => mission.id === "m02").relic, "Mapa cifrado", "Akumori debe dejar el mapa que activa la búsqueda del doctor");
@@ -29,7 +29,7 @@ assert.deepEqual(MISSIONS.find((mission) => mission.id === "m03").encounters, ["
 assert.equal(MISSIONS.find((mission) => mission.id === "m03").flow.find((step) => step.type === "choice")?.completionBonus?.coins, 90, "La entrada secreta debe conceder oro adicional");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m04").encounters, ["bandit_pathfinder", "venom_medic", "ash_adept"], "El corazón de la guarida debe reutilizar una ficha conocida y enseñar estados en duelos consecutivos");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m05").encounters, ["boss_raizen"], "El duelo final debe ser un único combate contra Raizen");
-const doctorMission = SECONDARY_MISSIONS.find((mission) => mission.id === "s02");
+const doctorMission = MISSIONS.find((mission) => mission.id === "s02");
 assert.equal(doctorMission.routeMode, "convergent", "Las elecciones deben converger en Haru sin multiplicar la historia");
 assert.deepEqual(doctorMission.routeEvents.map((event) => event.type), ["dialogue", "investigation", "combat"], "La búsqueda debe ofrecer consejo, investigación y combate individual");
 assert.equal(MISSIONS.filter((mission) => mission.exam).length, 0, "El catálogo vigente no debe inventar un examen fuera de la saga implementada");

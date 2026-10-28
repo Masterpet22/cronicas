@@ -94,7 +94,7 @@ index.html
 
 ### `src/save.js` — Guardado y progresión
 
-- `SAVE_VERSION`: versión `17`; añade progreso por paso y elimina valores derivados del esquema.
+- `SAVE_VERSION`: versión `18`; conserva el progreso por paso y migra Kagemori y Haru al historial principal.
 - `createDefaultSave`: genera una partida vacía compatible con la versión actual.
 - `initialLoadout` y `loadoutSlotsForLevel`: calculan técnicas y ranuras iniciales.
 - `affinityXpForElement`, `isTechniqueLearned`: resuelven progreso y desbloqueos elementales.

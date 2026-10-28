@@ -29,6 +29,7 @@ import { BattleActionMethods } from "./battle-actions.js?v=1.5.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=1.4.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=1.0.0";
+import { FREE_MISSION_RETRIES } from "../mission-retries.js";
 
 export class BattleScene extends Phaser.Scene {
   constructor() {
@@ -38,7 +39,7 @@ export class BattleScene extends Phaser.Scene {
 
   preload() {
     queueTeleportObjects(this);
-    const arenaIndex = ((battleRuntime.activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
+    const arenaIndex = ((battleRuntime.activeMission?.arenaNumber || battleRuntime.activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
     const arena = BATTLE_ARENAS[arenaIndex];
     this.battleBackgroundKey = arena.texture;
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
@@ -201,6 +202,7 @@ export class BattleScene extends Phaser.Scene {
       { ...BASE_ACTIONS[1], iconTexture: "action-guard" }
     ];
     this.enemyIndex = 0;
+    this.freeRetries = FREE_MISSION_RETRIES;
     this.enemy = this.createEnemyState(this.encounters[this.enemyIndex]);
     this.recordEnemyObservation({ encounter: true });
     this.cooldowns = Object.fromEntries(this.actions.filter(Boolean).map((action) => [action.id, 0]));

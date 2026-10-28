@@ -10,7 +10,7 @@ const es = {
   ],
   "npc.ren.guide": [
     { speaker: "ren", text: "Tu nivel aumenta con experiencia y cada ascenso concede puntos de atributo." },
-    { speaker: "ren", text: "Las cinco misiones principales se desbloquean en orden a medida que investigas a los Bandidos del Cuervo." },
+    { speaker: "ren", text: "Las siete misiones principales se desbloquean en orden a medida que investigas a los Bandidos del Cuervo." },
     { speaker: "ren", text: "Antes de partir, revisa el Dojo y prepara las técnicas que permita tu nivel." }
   ],
   "npc.kureha.intro": [
@@ -27,8 +27,8 @@ const es = {
     { speaker: "sayo", text: "Puedes repetir el tutorial de combate aquí cuando quieras. El bestiario se abrirá cuando me entregues el libro de Haru." }
   ],
   "npc.sayo.guide": [
-    { speaker: "sayo", text: "Los registros marcados con una señal verde ya fueron completados y pueden repetirse desde el Tablón." },
-    { speaker: "sayo", text: "La primera crónica reúne cinco misiones principales y dos encargos secundarios conectados." },
+    { speaker: "sayo", text: "Los registros marcados con una señal verde ya fueron completados y puedes consultarlos en el Cuartel General." },
+    { speaker: "sayo", text: "La primera crónica reúne siete misiones principales conectadas en el Cuartel General." },
     { speaker: "sayo", text: "Cuando derrotes a Raizen, el desenlace de Futuro prometedor quedará inscrito aquí." }
   ],
   "npc.daichi.intro": [

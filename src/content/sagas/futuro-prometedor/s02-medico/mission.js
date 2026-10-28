@@ -1,5 +1,5 @@
 export const S02 = {
-    id: "s02", number: 2, category: "secondary", board: "missions", type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
+    id: "s02", number: 4, category: "main", legacyCategory: "secondary", arenaNumber: 2, board: "headquarters", type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
     requirements: [{ type: "main-completed", id: "m02" }],
     dialogueId: "mission.s02.briefing", routeMode: "convergent",
     flow: [{ type: "dialogue" }, { type: "route", id: "doctor-search" }, { type: "dialogue", id: "doctor-lesson" }, { type: "investigation", id: "map-decipher" }, { type: "dialogue", id: "doctor-farewell" }],

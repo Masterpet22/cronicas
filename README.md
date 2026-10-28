@@ -1,6 +1,6 @@
 # Crónicas del Sello — Prototipo jugable
 
-RPG 2D por turnos inspirado en los RPG sociales de navegador. La versión actual incluye una aldea navegable, una primera saga de cinco misiones principales, dos misiones secundarias y progresión persistente. Nuevas sagas y misiones se incorporarán en futuras etapas del desarrollo.
+RPG 2D por turnos inspirado en los RPG sociales de navegador. La versión actual incluye una aldea navegable, una primera saga de siete misiones principales y progresión persistente. Nuevas sagas y misiones se incorporarán en futuras etapas del desarrollo.
 
 **Versión pública:** https://masterpet22.github.io/cronicas/
 
@@ -37,9 +37,9 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Los habitantes explican controles al explorar las opciones, hacen comentarios ocasionales y pueden recibir un clic para repetir consejos.
 - Los bocadillos identifican siempre al hablante y su función; cuando hay varios personajes, el activo se ilumina mientras los demás quedan atenuados.
 - El perfil, el regreso al mapa y los ajustes funcionan como HUD flotante; ya no ocupan una cabecera separada del escenario.
-- La campaña disponible contiene cinco misiones principales: **Tras las huellas del gato**, **Asalto al Desfiladero del Cuervo**, **El umbral de los cuervos**, **El corazón de la guarida** y **El jefe de los bandidos**.
+- La campaña disponible contiene siete misiones principales: **Tras las huellas del gato**, **El silencio de Kagemori**, **Asalto al Desfiladero del Cuervo**, **El médico errante**, **El umbral de los cuervos**, **El corazón de la guarida** y **El jefe de los bandidos**.
 - Los viajes de cada misión muestran su destino y el resultado del regreso con parallax, partículas ambientales y movimiento de cámara de Phaser 4. Al volver, el personaje, el escenario y la ruta avanzan de derecha a izquierda. Entre rivales aparece la siguiente fase de la misión, y los jefes anuncian sus cambios de fase antes de reanudar el combate. El informe se funde antes de volver a la aldea; con movimiento reducido se usa una transición más breve.
-- Las misiones secundarias disponibles son **El silencio de Kagemori** y **El médico errante**. Sus decisiones y descubrimientos abren el progreso de la saga principal.
+- Kagemori y la búsqueda de Haru forman parte de la historia principal del Cuartel. Las misiones futuras permanecen ocultas hasta descubrirse; el Tablón se reserva para encargos opcionales.
 - Este contenido forma la primera saga; el plan es ampliarlo con nuevas sagas y misiones más adelante.
 - En el dojo, equipa o desequipa un arma, un protector y un accesorio.
 - La afinidad principal se elige al crear el personaje. La historia permite conocer otras y el nivel y rango elemental abren hasta tres espacios ponderados.
@@ -102,7 +102,7 @@ docs/INDICE_CODIGO.md    Índice en español de archivos, módulos y funciones
 docs/ESTADO_ACTUAL.md    Alcance vigente y campaña realmente conectada
 docs/SISTEMA_MISIONES_DIALOGOS.md  Contrato extensible de misiones, diálogos y vistas
 docs/METRICAS.md          Línea base final de arquitectura y calidad
-docs/saga-1-tutorial.md  Diseño de la primera saga y sus dos secundarias
+docs/saga-1-tutorial.md  Diseño de las siete misiones de la primera saga
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
 assets/sellos-originales.webp      Hoja WebP optimizada de doce símbolos

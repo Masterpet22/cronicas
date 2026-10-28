@@ -5,7 +5,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
   constructor() { super("epilogue"); }
 
   preload() {
-    const arenaIndex = ((battleRuntime.activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
+    const arenaIndex = ((battleRuntime.activeMission?.arenaNumber || battleRuntime.activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
     const arena = BATTLE_ARENAS[arenaIndex];
     this.epilogueBackground = arena.texture;
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
@@ -16,7 +16,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
     this.cameras.main.setZoom(battleRuntime.renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     const lines = [
       "Seguí el rastro de estos bandidos. No era un grupo aislado: llevan semanas saqueando las aldeas vecinas.",
-      "Perdí su rastro en la Aldea de Kagemori. Cuando regreses, dejaré una misión de investigación en el Tablón."
+      "Perdí su rastro en la Aldea de Kagemori. Cuando regreses, dejaré una misión de investigación en el Cuartel General."
     ];
     let lineIndex = 0;
 

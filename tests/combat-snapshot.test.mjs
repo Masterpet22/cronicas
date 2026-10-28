@@ -27,7 +27,7 @@ function snapshotCase(mission, campaign) {
 }
 
 const cases = {};
-for (const mission of MISSIONS) {
+for (const mission of MISSIONS.filter((mission) => mission.encounters)) {
   for (const banditPrisonerChoice of ["interrogate", "eliminate"]) {
     for (const hideoutEntryChoice of ["secret", "main"]) {
       for (const hideoutSupplies of [0, 1, 2]) {

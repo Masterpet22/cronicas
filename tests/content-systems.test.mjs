@@ -6,7 +6,7 @@ import { secondaryMissionCardModel } from "../src/secondary-missions.js";
 import { completeSecondaryMission, createDefaultSave } from "../src/save.js";
 import { createViewRuntime } from "../src/view-runtime.js";
 
-assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "m02", "m03", "m04", "m05"], "Las misiones principales deben tener IDs continuos");
+assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "Las misiones principales deben seguir el orden narrativo conservando sus IDs");
 assert.ok(MISSIONS.every((mission) => mission.category === "main" && mission.board === "headquarters"), "Las principales deben pertenecer exclusivamente al Cuartel");
 assert.ok(SECONDARY_MISSIONS.every((mission) => mission.category === "secondary" && mission.board === "missions"), "Las secundarias deben pertenecer exclusivamente al Tablón");
 assert.deepEqual(validateMissionCatalog(ALL_MISSIONS, STORY_SAGAS), [], "El catálogo no debe tener IDs, requisitos o mecánicas inválidas");
@@ -26,23 +26,23 @@ for (const key of missionKeys) {
 }
 assert.deepEqual(validateDialogueReferences(ALL_MISSIONS), [], "Cada misión debe apuntar a un diálogo traducible existente");
 assert.ok(ALL_MISSIONS.every((mission) => !Object.hasOwn(mission, "briefing")), "El texto no debe quedar incrustado en las definiciones de misión");
-assert.ok(missionHasStep(MISSIONS[2], "choice", "hideout-entry"), "Una misión debe poder declarar decisiones sin cambiar el renderizador del Tablón");
-assert.ok(missionHasStep(MISSIONS[3], "resource", "hideout-supplies"), "El flujo debe admitir mecánicas de recursos además de combate");
-assert.ok(missionHasStep(MISSIONS[4], "consequence", "prisoner-intelligence"), "Una misión futura debe poder reaccionar a decisiones anteriores sin depender de su ID");
+assert.ok(missionHasStep(MISSIONS[4], "choice", "hideout-entry"), "Una misión debe poder declarar decisiones sin cambiar el renderizador del Tablón");
+assert.ok(missionHasStep(MISSIONS[5], "resource", "hideout-supplies"), "El flujo debe admitir mecánicas de recursos además de combate");
+assert.ok(missionHasStep(MISSIONS[6], "consequence", "prisoner-intelligence"), "Una misión futura debe poder reaccionar a decisiones anteriores sin depender de su ID");
 
 const initial = { progression: { level: 1 }, campaign: { completedMissions: [], completedSecondaryMissions: [] } };
 assert.equal(missionState(MISSIONS[0], initial).unlocked, true, "La primera misión debe estar disponible");
 assert.equal(missionState(MISSIONS[1], initial).unlocked, false, "La segunda principal debe esperar la secundaria requerida");
 const afterFirst = { progression: { level: 1 }, campaign: { completedMissions: ["m01"], completedSecondaryMissions: [], secondaryBoardUnlocked: true } };
-assert.equal(missionState(SECONDARY_MISSIONS[0], afterFirst).unlocked, true, "La principal debe poder desbloquear una secundaria en otro tablero");
-const afterInvestigation = { progression: { level: 1 }, campaign: { ...afterFirst.campaign, completedSecondaryMissions: ["s01"], banditBossMissionUnlocked: true } };
-assert.equal(missionState(MISSIONS[1], afterInvestigation).unlocked, true, "La secundaria completada debe desbloquear la siguiente principal");
+assert.equal(missionState(MISSIONS[1], afterFirst).unlocked, true, "La principal debe poder desbloquear una secundaria en otro tablero");
+const afterInvestigation = { progression: { level: 1 }, campaign: { ...afterFirst.campaign, completedMissions: ["m01", "s01"], banditBossMissionUnlocked: true } };
+assert.equal(missionState(MISSIONS[2], afterInvestigation).unlocked, true, "La secundaria completada debe desbloquear la siguiente principal");
 const flagRequirements = ALL_MISSIONS.flatMap((mission) => (mission.requirements || []).filter((requirement) => requirement.type === "flag"));
-assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["secondaryBoardUnlocked"], "Solo el evento narrativo del Tablón puede seguir siendo un requisito guardado; los demás desbloqueos se derivan del historial");
+assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["archiveUnlocked"], "La entrega del libro debe preceder a la entrada en la guarida");
 assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "interrogate" } }), true, "Los modificadores deben poder comparar valores de campaña sin convertirlos a booleanos");
 assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "eliminate" } }), false, "Una comparación declarativa debe rechazar otro valor de campaña");
 const invalidModifierCatalog = structuredClone(MISSIONS);
-invalidModifierCatalog[4].flow.find((step) => step.type === "consequence").modifiers.push({ type: "enemy-opening", hpMultiplier: 0 });
+invalidModifierCatalog[6].flow.find((step) => step.type === "consequence").modifiers.push({ type: "enemy-opening", hpMultiplier: 0 });
 assert.ok(validateMissionCatalog(invalidModifierCatalog, STORY_SAGAS).some((error) => error.includes("hpMultiplier positivo")), "El catálogo debe rechazar modificadores de combate incompletos");
 
 const fakeInvestigation = {

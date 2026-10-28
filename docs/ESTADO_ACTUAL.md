@@ -7,8 +7,9 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Versión del paquete: `0.45.1`.
 - Estado: prototipo jugable con la primera saga disponible y expansión futura planificada.
 - Plataforma de juego habilitada: navegador en pantalla de escritorio.
-- Guardado: tres partidas locales, esquema `SAVE_VERSION = 17`, progreso por paso y migración automática desde v16.
+- Guardado: tres partidas locales, esquema `SAVE_VERSION = 18`, progreso por paso y migración automática desde v16/v17, conservando las investigaciones como principales.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
+- Cada misión incluye dos reintentos del duelo perdido, con vida y chakra restaurados, estados y recargas limpios y los duelos previos conservados. Al agotarse se desactiva Reintentar; Retirada abandona la misión y descarta sus recompensas provisionales. Una misión abandonada vuelve a ofrecer Iniciar historia.
 - El metajuego inicia sin descargar Phaser ni las escenas de combate. La primera misión carga ambos bajo demanda una sola vez; las entradas posteriores reutilizan los módulos y la instancia aparcada.
 - La entrada solo precarga las dos fuentes críticas. Los fondos de aldea, viaje y combate se solicitan al entrar en su vista, con versiones compartidas para evitar descargas redundantes.
 - Los tintes sólidos usan la API de Phaser 4 y las operaciones de pausa, reanudación y cierre validan el estado de la escena. Cerrar una transición de subida de nivel cancela sus continuaciones y restaura el HUD.
@@ -21,22 +22,19 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 
 ## Contenido jugable vigente
 
-La primera saga se llama **Futuro prometedor** y contiene cinco misiones principales:
+La primera saga se llama **Futuro prometedor** y contiene siete misiones principales, todas en el **Cuartel General**:
 
 1. `m01` — **Tras las huellas del gato**.
-2. `m02` — **Asalto al Desfiladero del Cuervo**.
-3. `m03` — **El umbral de los cuervos**.
-4. `m04` — **El corazón de la guarida**.
-5. `m05` — **El jefe de los bandidos**.
+2. `s01` — **El silencio de Kagemori**.
+3. `m02` — **Asalto al Desfiladero del Cuervo**.
+4. `s02` — **El médico errante**.
+5. `m03` — **El umbral de los cuervos**.
+6. `m04` — **El corazón de la guarida**.
+7. `m05` — **El jefe de los bandidos**.
 
-También existen dos misiones secundarias conectadas a su progresión:
+El catálogo `MISSIONS` contiene exclusivamente estas siete misiones principales. Los IDs históricos `s01` y `s02` se conservan para mantener partidas, decisiones y rutas; ya no indican categoría secundaria. `SECONDARY_MISSIONS` está vacío: el Tablón queda reservado para futuros encargos opcionales.
 
-1. `s01` — **El silencio de Kagemori**.
-2. `s02` — **El médico errante**.
-
-El catálogo `MISSIONS` contiene exclusivamente estas cinco misiones principales. `STORY_SAGAS` utiliza los mismos identificadores y es la fuente del orden narrativo.
-
-Las principales se consultan únicamente en el **Cuartel General** y las secundarias únicamente en el **Tablón de Misiones**. Los requisitos pueden cruzar ambos catálogos: completar una principal abre un encargo y completar ese encargo puede habilitar la siguiente principal, sin mezclar sus interfaces.
+El Cuartel y la crónica de la Biblioteca muestran solo misiones descubiertas: disponibles o completadas. Las futuras misiones y sagas no revelan títulos, destinos, recompensas ni fichas bloqueadas. Tras completar la búsqueda de Haru se entrega el libro a Sayo antes de desbloquear la entrada a la guarida.
 
 ## Sistemas de contenido
 

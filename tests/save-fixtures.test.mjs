@@ -18,8 +18,8 @@ for (const expectation of expectations) {
   const normalized = normalizeSave(serialized);
   assert.equal(serialized.version, 16, `${expectation.filename} debe conservar el formato v16 serializado`);
   assert.equal(normalized.version, SAVE_VERSION, `${expectation.filename} debe normalizarse a la versión vigente`);
-  assert.deepEqual(normalized.campaign.completedMissions, expectation.main, `${expectation.filename} debe conservar sus misiones principales`);
-  assert.deepEqual(normalized.campaign.completedSecondaryMissions, expectation.secondary, `${expectation.filename} debe conservar sus misiones secundarias`);
+  assert.deepEqual(normalized.campaign.completedMissions, [...expectation.main, ...expectation.secondary], `${expectation.filename} debe conservar sus misiones principales`);
+  assert.deepEqual(normalized.campaign.completedSecondaryMissions, [], `${expectation.filename} debe conservar sus misiones secundarias`);
   assert.equal(normalized.campaign.missionProgress && typeof normalized.campaign.missionProgress === "object", true, `${expectation.filename} debe migrar a progreso por misión`);
   assert.equal(Object.hasOwn(normalized.campaign, "masterSelectionUnlocked"), false, `${expectation.filename} no debe persistir indicadores derivados`);
 }

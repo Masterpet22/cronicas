@@ -9,8 +9,8 @@ export function createMissionBoardsView(deps) {
   let boardMissions = [];
 
   const missionById = (id) => deps.mainMissions.find((mission) => mission.id === id);
-  const visibleSagaMissions = (saga) => saga.missionIds.map(missionById).filter(Boolean);
-  const secondaryByType = (type) => deps.secondaryMissionByType(type, deps.secondaryMissions);
+  const visibleSagaMissions = (saga) => saga.missionIds.map(missionById).filter((mission) => mission && deps.missionState(mission, currentState.save).unlocked);
+  const secondaryByType = (type) => deps.secondaryMissionByType(type, deps.fieldMissions || deps.secondaryMissions);
 
   function briefingForMission(mission, save) {
     const master = deps.masterForCharacter(save.character);
@@ -41,18 +41,17 @@ export function createMissionBoardsView(deps) {
     const activeSaga = selectedSagaId ? deps.sagas.find((saga) => saga.id === selectedSagaId) : null;
     const sagaUnlocked = (_saga, index) => index === 0 || deps.sagas[index - 1].missionIds.every((id) => completed.has(id));
     if (!activeSaga) {
-      const sagaCards = deps.sagas.map((saga, index) => {
+      const sagaCards = deps.sagas.filter((saga, index) => sagaUnlocked(saga, index)).map((saga, index) => {
         const unlocked = sagaUnlocked(saga, index);
         const missions = visibleSagaMissions(saga);
         const completedCount = missions.filter((mission) => completed.has(mission.id)).length;
-        const rewards = missions.reduce((total, mission) => ({ xp: total.xp + mission.reward.xp, coins: total.coins + mission.reward.coins }), { xp: 0, coins: 0 });
-        return `<button class="saga-card ${unlocked ? "" : "locked"} ${completedCount === missions.length ? "completed" : ""}" type="button" data-saga="${saga.id}" ${unlocked ? "" : "disabled"}><span class="saga-number">SAGA ${String(saga.number).padStart(2, "0")}</span><strong>${deps.escapeHtml(saga.title)}</strong><small>${deps.escapeHtml(saga.subtitle)}</small><div class="saga-progress"><span>${completedCount}/${missions.length} misiones</span><span>${rewards.xp} PX · ${rewards.coins} monedas</span></div><span class="saga-action">${unlocked ? "VER MISIONES →" : "BLOQUEADA"}</span></button>`;
+        return `<button class="saga-card ${unlocked ? "" : "locked"} ${saga.missionIds.every((id) => completed.has(id)) ? "completed" : ""}" type="button" data-saga="${saga.id}" ${unlocked ? "" : "disabled"}><span class="saga-number">SAGA ${String(saga.number).padStart(2, "0")}</span><strong>${deps.escapeHtml(saga.title)}</strong><small>${deps.escapeHtml(saga.subtitle)}</small><div class="saga-progress"><span>${completedCount}/${missions.length} misiones</span><span>Misiones descubiertas</span></div><span class="saga-action">${unlocked ? "VER MISIONES →" : "BLOQUEADA"}</span></button>`;
       }).join("");
       const missionIds = deps.sagas.flatMap((saga) => visibleSagaMissions(saga).map((mission) => mission.id));
       const completedStory = missionIds.filter((id) => completed.has(id)).length;
       return `<section class="stage-panel mission-board saga-selector" data-comment="La campaña está dividida en sagas. Completa una saga para desbloquear la siguiente."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Selecciona una saga</h2></div><strong>${completedStory}/${missionIds.length} completadas</strong></div><p class="lead">Cada saga agrupa un arco de la historia principal. Entra en una para ver sus misiones.</p><div class="saga-grid">${sagaCards}</div></section>`;
     }
-    const sagaIndex = deps.sagas.findIndex((saga) => saga.id === activeSaga.id);
+    if (!sagaUnlocked(activeSaga, deps.sagas.indexOf(activeSaga))) return "";
     const missions = visibleSagaMissions(activeSaga);
     const mechanics = { combat: "combate", investigation: "investigación", route: "rutas", choice: "decisiones", resource: "recursos", consequence: "consecuencias" };
     const cards = missions.map((mission) => {
@@ -60,18 +59,18 @@ export function createMissionBoardsView(deps) {
       const done = completed.has(mission.id);
       const progressStatus = save.campaign.missionProgress[mission.id]?.status;
       const inProgress = progressStatus === "in-progress";
-      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? "REPETIR" : progressStatus === "failed" ? "REINTENTAR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
+      const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? mission.type ? "COMPLETADA" : "REPETIR" : progressStatus === "failed" ? "REINTENTAR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
       const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
       const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas`;
-      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon ? "" : "disabled"}>${label}</button></article>`;
+      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
     const completedInSaga = missions.filter((mission) => completed.has(mission.id)).length;
-    return `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${deps.escapeHtml(activeSaga.title)}</h2><p>${deps.escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${missions.length}</strong></div><div class="mission-list">${cards}</div>${sagaIndex < deps.sagas.length - 1 ? `<p class="saga-next-note">Completa esta saga para desbloquear <strong>${deps.escapeHtml(deps.sagas[sagaIndex + 1].title)}</strong>.</p>` : ""}</section>`;
+    return `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${deps.escapeHtml(activeSaga.title)}</h2><p>${deps.escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${missions.length}</strong></div><div class="mission-list">${cards}</div></section>`;
   }
 
   function renderSecondaryBoard(state) {
     const { save } = state;
-    if (!save.campaign.secondaryBoardUnlocked) return `<section class="stage-panel mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>0 disponibles</strong></div><div class="development-note"><strong>Sin encargos publicados.</strong><br>Sayo avisará cuando exista una pista que investigar.</div></section>`;
+    if (!save.campaign.secondaryBoardUnlocked || !deps.secondaryMissions.length) return `<section class="stage-panel mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>0 disponibles</strong></div><div class="development-note"><strong>Sin encargos publicados.</strong><br>La historia principal se consulta en el Cuartel General. Aquí aparecerán encargos opcionales.</div></section>`;
     boardMissions = deps.missionsForBoard(deps.secondaryMissions, "missions", save);
     const cardModels = boardMissions.map(({ mission }) => deps.secondaryMissionCardModel(mission, save)).filter((model) => model?.visible);
     const choiceBonus = save.campaign.banditPrisonerChoice === "interrogate"
@@ -85,7 +84,7 @@ export function createMissionBoardsView(deps) {
   function renderKagemori(state) {
     const mission = secondaryByType("investigation");
     const completed = deps.missionState(mission, state.save).completed;
-    if (completed) return `<section class="kagemori-complete"><p class="eyebrow">INVESTIGACIÓN COMPLETADA</p><h2>El rastro continúa</h2><p>Nami ubicó la guarida en el Desfiladero del Cuervo. La nueva misión principal ya figura en el Cuartel General.</p><button class="primary-button" type="button" data-view="plaza">VOLVER A LA ALDEA</button></section>`;
+    if (completed) return `<section class="kagemori-complete"><p class="eyebrow">INVESTIGACIÓN COMPLETADA</p><h2>El rastro continúa</h2><p>Nami ubicó la guarida en el Desfiladero del Cuervo. La siguiente misión ya figura en el Cuartel General.</p><button class="primary-button" type="button" data-view="plaza">VOLVER A LA ALDEA</button></section>`;
     const clues = state.investigatedClues;
     return `<section class="kagemori-investigation"><header><div><p class="eyebrow">ALDEA DE KAGEMORI</p><h2>Reconstruye la ruta de los bandidos</h2></div><strong data-clue-count>${clues.size}/3 pistas</strong></header><p class="investigation-log" data-investigation-log>Explora la escena y selecciona las áreas sospechosas.</p><svg class="clue-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${KAGEMORI_CLUES.map((clue) => `<g class="clue-hotspot ${clues.has(clue.id) ? "found" : ""}" data-clue="${clue.id}" role="button" tabindex="0" aria-label="Investigar ${deps.escapeHtml(clue.label)}"><path class="clue-shape" d="${clue.path}"/></g>`).join("")}</svg>${KAGEMORI_CLUES.map((clue) => `<span class="clue-label" data-clue-label="${clue.id}" aria-hidden="true" style="--clue-label-x:${clue.labelX}%;--clue-label-y:${clue.labelY}%"><strong>${clues.has(clue.id) ? "✓ " : ""}${deps.escapeHtml(clue.label)}</strong></span>`).join("")}</section>`;
   }
@@ -117,12 +116,28 @@ export function createMissionBoardsView(deps) {
       if (!currentState) return;
       const state = currentState;
       const getSave = () => state.save;
+      const launchFieldMission = (mission) => {
+        if (mission.type === "route-search" && getSave().campaign.doctorRoute.active) {
+          deps.onStartDoctorRoute(getSave(), mission);
+          return;
+        }
+        if (mission.type === "investigation") deps.warmLocationAssets("kagemori");
+        const lines = deps.getDialogue(mission.dialogueId, { save: getSave(), placement: { surface: "mission-briefing", owner: mission.id } }).map((line) => [deps.npcName(line.speaker), line.text]);
+        deps.showDialogue(lines, () => {
+          if (mission.type === "route-search") {
+            state.save = deps.onStartDoctorMission(getSave(), mission);
+            deps.onStartDoctorRoute(getSave(), mission);
+          } else deps.onStartMission(getSave(), mission);
+        }, mission.type === "route-search" ? "INICIAR BÚSQUEDA" : "VIAJAR A KAGEMORI", "story");
+      };
+
       if (state.view === "headquarters") {
         root.querySelectorAll("[data-saga]").forEach((button) => scope.listen(button, "click", () => { if (!button.disabled) deps.onSagaSelected(button.dataset.saga); }));
         scope.listen(root.querySelector("[data-back-sagas]"), "click", () => deps.onSagaSelected(null));
         root.querySelectorAll("[data-mission]").forEach((button) => scope.listen(button, "click", () => {
           const mission = missionById(button.dataset.mission);
-          if (!mission || mission.comingSoon) return;
+          if (!mission || mission.comingSoon || !deps.missionState(mission, getSave()).unlocked) return;
+          if (mission.type) { if (!deps.missionState(mission, getSave()).completed) launchFieldMission(mission); return; }
           const inProgress = getSave().campaign.missionProgress[mission.id]?.status === "in-progress";
           if (inProgress) {
             deps.onStartMission(getSave(), mission);
@@ -143,27 +158,9 @@ export function createMissionBoardsView(deps) {
         }));
       }
       if (state.view === "missions") {
-        const launchers = {
-          investigation(mission) {
-            deps.warmLocationAssets("kagemori");
-            const lines = deps.getDialogue(mission.dialogueId, { save: getSave(), placement: { surface: "mission-briefing", owner: mission.id } }).map((line) => [deps.npcName(line.speaker), line.text]);
-            deps.showDialogue(lines, () => deps.onStartMission(getSave(), mission), "VIAJAR A KAGEMORI", "story");
-          },
-          "route-search"(mission) {
-            const launch = () => {
-              if (!getSave().campaign.doctorRoute.active) state.save = deps.onStartDoctorMission(getSave(), mission);
-              deps.onStartDoctorRoute(getSave(), mission);
-            };
-            if (getSave().campaign.doctorRoute.active) launch();
-            else {
-              const lines = deps.getDialogue(mission.dialogueId, { save: getSave(), placement: { surface: "mission-briefing", owner: mission.id } }).map((line) => [deps.npcName(line.speaker), line.text]);
-              deps.showDialogue(lines, launch, "INICIAR BÚSQUEDA", "story");
-            }
-          }
-        };
         root.querySelectorAll("[data-secondary-mission]").forEach((button) => scope.listen(button, "click", () => {
           const mission = boardMissions.find(({ mission: entry }) => entry.id === button.dataset.secondaryMission)?.mission;
-          launchers[mission?.type]?.(mission);
+          if (mission) launchFieldMission(mission);
         }));
       }
       if (state.view === "kagemori" && !deps.missionState(secondaryByType("investigation"), getSave()).completed) {
@@ -187,7 +184,7 @@ export function createMissionBoardsView(deps) {
             conclusionTimer = window.setTimeout(() => deps.showDialogue([
               ["Iori Kagemori", "Las tres señales coinciden. No vinieron a saquear al azar: reunieron comida, herramientas y mapas para abastecer un campamento."],
               ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
-              ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Lleva esta información a Sayo; el rastro continúa en la vieja cantera."]
+              ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Informa en el Cuartel General; el rastro continúa en la vieja cantera."]
             ], () => deps.onCompleteInvestigation(getSave(), secondaryByType("investigation"), KAGEMORI_CLUES.length), "REGISTRAR HALLAZGO", "story"), 420);
           };
           scope.listen(area, "mouseenter", showLabel);
@@ -201,7 +198,7 @@ export function createMissionBoardsView(deps) {
       if (state.view === "doctor-route") {
         const mission = secondaryByType("route-search");
         if (state.save.campaign.doctorRoute.phase >= 3) mountDoctorCipher(root, scope, state, mission, deps);
-        const startRouteCombat = () => deps.onStartMission(getSave(), { id: `${mission.id}-route-combat`, parentMissionId: mission.id, parentType: mission.type, transitions: mission.transitions, number: mission.number, type: "route-combat", title: "Emboscada en el bosque", location: "Bosque cerrado", encounters: ["reed_bandit"], reward: { xp: 0, coins: 0 } });
+        const startRouteCombat = () => deps.onStartMission(getSave(), { id: `${mission.id}-route-combat`, parentMissionId: mission.id, parentType: mission.type, transitions: mission.transitions, number: mission.number, arenaNumber: mission.arenaNumber, type: "route-combat", title: "Emboscada en el bosque", location: "Bosque cerrado", encounters: ["reed_bandit"], reward: { xp: 0, coins: 0 } });
         scope.listen(root.querySelector("[data-complete-doctor]"), "click", () => deps.onCompleteDoctor(getSave(), mission));
         root.querySelectorAll("[data-route]").forEach((button) => scope.listen(button, "click", () => {
           state.save = deps.onChooseDoctorRoute(getSave(), button.dataset.route);

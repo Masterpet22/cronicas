@@ -15,7 +15,7 @@ const legacy = {
     firstSagaCompleted: false
   }
 };
-const migrated = migrateSaveToV17(legacy, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
+const migrated = migrateSaveToV17(legacy, { missions: MISSIONS.filter((mission) => !mission.type), secondaryMissions: MISSIONS.filter((mission) => mission.type) });
 assert.equal(migrated.version, 17);
 assert.deepEqual(migrated.campaign.completedMissions, ["m01", "m02", "m04"]);
 assert.deepEqual(migrated.campaign.completedSecondaryMissions, ["s01"]);
@@ -27,7 +27,7 @@ assert.equal(Object.hasOwn(migrated.campaign, "firstSagaCompleted"), false);
 assert.equal(migrated.campaign.missionProgress.m01.status, "completed");
 assert.equal(migrated.campaign.missionProgress.m01.currentStepId, null);
 
-const oldNumbering = migrateSaveToV17({ version: 15, campaign: { completedMissions: ["m01", "m11", "m12", "m13", "m14"] } }, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
+const oldNumbering = migrateSaveToV17({ version: 15, campaign: { completedMissions: ["m01", "m11", "m12", "m13", "m14"] } }, { missions: MISSIONS.filter((mission) => !mission.type), secondaryMissions: MISSIONS.filter((mission) => mission.type) });
 assert.deepEqual(oldNumbering.campaign.completedMissions, ["m01", "m02", "m03", "m04", "m05"]);
 
 console.log("Pruebas de migración v17 superadas.");

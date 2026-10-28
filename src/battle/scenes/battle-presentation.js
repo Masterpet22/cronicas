@@ -93,7 +93,7 @@ import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-
 export class BattlePresentationMethods {
   drawArena() {
     const arena = BATTLE_ARENAS.find(({ texture }) => texture === this.battleBackgroundKey)
-      || BATTLE_ARENAS[((this.mission.number || 1) - 1) % BATTLE_ARENAS.length];
+      || BATTLE_ARENAS[((this.mission.arenaNumber || this.mission.number || 1) - 1) % BATTLE_ARENAS.length];
     mountArenaVisuals(this, arena, { width: WIDTH, height: HEIGHT });
   }
 

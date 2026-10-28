@@ -4,7 +4,7 @@ import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, failMissionProgress, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
+import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
@@ -19,6 +19,7 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
+import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js";
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {
@@ -108,21 +109,41 @@ export class BattleFeedbackMethods {
   }
 
   async finishBattle(won) {
+    if (this.finished) return;
     if (this.mission.tutorialReplay) return this.exitTutorialReplay();
     this.stopTurnTimeline?.();
     this.clearPreparationFeedback?.("player");
     this.clearPreparationFeedback?.("enemy");
     this.clearBossPhaseSilhouette?.();
     this.timelinePaused = true;
-    const routeFailureStats = !won && this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     if (!won) {
-      discardVictory(battleRuntime);
-      this.missionStartSave.bestiary = this.saveData.bestiary;
-      this.saveData = this.mission.type === "route-combat"
-        ? cancelDoctorMission(this.missionStartSave)
-        : failMissionProgress(this.missionStartSave, this.mission.id);
-      this.saveData = writeSave(this.saveData);
-      battleRuntime.activeSave = this.saveData;
+      this.finished = true;
+      this.busy = true;
+      this.setButtonsEnabled(false);
+      this.refreshHud();
+      const choice = await showRetryDialog(this, availableRetries(this.freeRetries));
+      if (!choice) return;
+      if (choice === "retry") {
+        const consumed = consumeRetry(this.freeRetries);
+        if (consumed === null) return;
+        this.freeRetries = consumed;
+        this.clearGuard();
+        this.stopFighterFlash(this.hero);
+        this.stopFighterFlash(this.foe);
+        destroyFighter(this.foe);
+        restoreDuel(this);
+        this.foe = createPlayerFighter(this, 740, 372, this.enemyAppearance(), true);
+        this.styleFighterGrounding(this.foe);
+        this.finished = false;
+        this.refreshHud();
+        await this.resetTurnTimeline();
+        this.setMessage(`Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${this.encounters[this.enemyIndex].name}.`);
+        this.startTurnCharge();
+        return;
+      }
+      const result = this.abandonPayload();
+      this.scene.start("travel", { direction: "toVillage", result, secondaryResult: this.mission.type === "route-combat" });
+      return;
     }
     this.finished = true;
     this.busy = false;
@@ -140,10 +161,6 @@ export class BattleFeedbackMethods {
     });
     await this.delay(950);
     const result = this.resultPayload(won ? "completed" : "failed");
-    if (routeFailureStats) {
-      this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: { ...result, routeStats: routeFailureStats } });
-      return;
-    }
     if (won && this.combatFeatures.tutorial && !battleRuntime.activeSave.campaign.sayoEncounterSeen) {
       this.scene.start("epilogue", { result });
       return;
@@ -172,7 +189,7 @@ export class BattleFeedbackMethods {
     discardVictory(battleRuntime);
     const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     this.missionStartSave.bestiary = this.saveData.bestiary;
-    this.saveData = writeSave(this.missionStartSave);
+    this.saveData = writeSave(abandonMissionProgress(this.missionStartSave, this.mission.parentMissionId || this.mission.id));
     if (this.mission.type === "route-combat") this.saveData = writeSave(cancelDoctorMission(this.saveData));
     battleRuntime.activeSave = this.saveData;
     this.battleRewards = emptyBattleRewards();

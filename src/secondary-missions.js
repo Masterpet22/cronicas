@@ -37,7 +37,8 @@ export function emptySecondaryCompletion(result, { blocked = false } = {}) {
 export function completeInvestigationMission(result, mission) {
   const state = missionState(mission, result);
   if (state.completed || !state.unlocked) return emptySecondaryCompletion(result, { blocked: !state.unlocked });
-  result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, mission.id])];
+  const history = mission.category === "main" ? "completedMissions" : "completedSecondaryMissions";
+  result.campaign[history] = [...new Set([...result.campaign[history], mission.id])];
   applyMissionEffects(result, mission.completionEffects);
   result.campaign.missionProgress[mission.id] = createCompletedMissionProgress(mission);
   return { ...emptySecondaryCompletion(result), firstClear: true };

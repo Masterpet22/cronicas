@@ -14,8 +14,9 @@ async function openDoctor(page, seed = true) {
   }
   await page.reload();
   await page.locator(".debug-tools-trigger").click();
-  await page.locator('[data-debug-view="missions"]').click();
-  await page.locator('[data-secondary-mission="s02"]').click();
+  await page.locator('[data-debug-view="headquarters"]').click();
+  await page.locator('[data-saga="saga-1"]').click();
+  await page.locator('[data-mission="s02"]').click();
 }
 
 async function finishLesson(page) {
@@ -102,14 +103,14 @@ test("el cifrado se reanuda, revela el mapa completo y solo entonces entrega el 
   await expect(page.locator(".cipher-ink > span.revealed")).toHaveCount(36);
   await expect(page.locator(".cipher-map-image")).not.toHaveAttribute("aria-hidden", "true");
   await expect(page.locator("[data-complete-doctor]")).toBeVisible();
-  const completedBeforeReturn = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).campaign.completedSecondaryMissions.includes("s02"));
+  const completedBeforeReturn = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).campaign.completedMissions.includes("s02"));
   expect(completedBeforeReturn).toBe(false);
   await page.screenshot({ path: "artifacts/doctor-cipher/mapa-revelado.png" });
   await page.locator("[data-complete-doctor]").click();
   await expect(page.locator("#game canvas")).toBeVisible();
   await expect.poll(async () => {
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
-    if (saved.campaign.completedSecondaryMissions.includes("s02")) return true;
+    if (saved.campaign.completedMissions.includes("s02")) return true;
     const box = await page.locator("#game canvas").boundingBox();
     if (box) await page.mouse.click(box.x + box.width * 608 / 960, box.y + box.height * 478 / 540);
     return false;

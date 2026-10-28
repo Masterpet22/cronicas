@@ -132,7 +132,7 @@ function createTooltip(scene, action, index, initialSkin = DEFAULT_INTERFACE_SKI
   layer.add([bg, title, divider, ...statIcons, statText, description]);
   const applyTheme = (skin = DEFAULT_INTERFACE_SKIN) => {
     bg.clear();
-    bg.fillStyle(skin.tooltipFill, 0.97).fillRoundedRect(x, y, width, height, 12);
+    bg.fillStyle(skin.tooltipFill, 0.68).fillRoundedRect(x, y, width, height, 12);
     bg.lineStyle(3, skin.tooltipEdge, 0.9).strokeRoundedRect(x, y, width, height, 12);
     bg.lineStyle(1, skin.tooltipHighlight, 0.34).strokeRoundedRect(x + 4, y + 4, width - 8, height - 8, 9);
     bg.fillStyle(skin.tooltipEdge, 0.96).fillTriangle(x - 9, position.y, x + 1, position.y - 8, x + 1, position.y + 8);

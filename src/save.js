@@ -5,7 +5,7 @@ import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elemen
 import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.93.0";
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.100.0";
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
-import { createCompletedMissionProgress, migrateSaveToV17 } from "./save/save-migrations.js";
+import { createCompletedMissionProgress, migrateSaveToV18 } from "./save/save-migrations.js";
 import { createSlotRepository } from "./save/slot-repository.js";
 import { teleportObject } from "./teleport-objects.js";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
@@ -17,11 +17,10 @@ export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/chara
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 17;
+export const SAVE_VERSION = 18;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
-const SECONDARY_MISSION_IDS = Object.freeze(SECONDARY_MISSIONS.map((mission) => mission.id));
 const ALL_MISSIONS = [...MISSIONS, ...SECONDARY_MISSIONS];
 
 export function createDefaultSave() {
@@ -111,7 +110,7 @@ function validEquipment(type, id) {
 }
 
 export function normalizeSave(candidate) {
-  candidate = migrateSaveToV17(candidate, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
+  candidate = migrateSaveToV18(candidate, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
   const defaults = createDefaultSave();
   if (!candidate || typeof candidate !== "object") return defaults;
   const progression = candidate.progression || {};
@@ -232,15 +231,22 @@ export function failMissionProgress(save, missionId) {
   return markMissionFailed(normalizeSave(save), missionId);
 }
 
+export function abandonMissionProgress(save, missionId) {
+  const result = markMissionFailed(normalizeSave(save), missionId);
+  const progress = result.campaign.missionProgress[missionId];
+  if (progress?.status === "failed") progress.status = "abandoned";
+  return result;
+}
+
 export const DEBUG_CHECKPOINTS = Object.freeze([
   { id: "saga-start", label: "Inicio de la saga", description: "Cuartel disponible; ninguna misión completada." },
-  { id: "kagemori-ready", label: "Investigar Kagemori", description: "Misión 1 completada y Tablón desbloqueado." },
-  { id: "mission-2-ready", label: "Misión 2 disponible", description: "Kagemori resuelta y Desfiladero desbloqueado." },
+  { id: "kagemori-ready", label: "Investigar Kagemori", description: "Primera misión completada; investigación disponible en el Cuartel." },
+  { id: "mission-2-ready", label: "Desfiladero disponible", description: "Kagemori resuelta y Desfiladero desbloqueado." },
   { id: "doctor-ready", label: "Buscar al doctor", description: "Mapa cifrado obtenido; misión del médico disponible." },
   { id: "library-ready", label: "Biblioteca desbloqueada", description: "Doctor encontrado, libro recibido y Biblioteca abierta." },
-  { id: "mission-3-ready", label: "Misión 3 disponible", description: "Entrada secreta y Biblioteca preparadas para probar El umbral." },
-  { id: "mission-4-ready", label: "Misión 4 disponible", description: "El umbral completado; suministros listos para las galerías." },
-  { id: "mission-5-ready", label: "Misión 5 disponible", description: "El corazón completado; Raizen listo para el duelo final." }
+  { id: "mission-3-ready", label: "El umbral disponible", description: "Entrada secreta y Biblioteca preparadas para probar El umbral." },
+  { id: "mission-4-ready", label: "El corazón disponible", description: "El umbral completado; suministros listos para las galerías." },
+  { id: "mission-5-ready", label: "Raizen disponible", description: "El corazón completado; Raizen listo para el duelo final." }
 ]);
 
 export function applyDebugCheckpoint(save, checkpointId) {
@@ -254,41 +260,35 @@ export function applyDebugCheckpoint(save, checkpointId) {
       secondaryBoardUnlocked: true
     },
     "mission-2-ready": {
-      completedMissions: MAIN_MISSION_IDS.slice(0, 1),
-      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 1),
+      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
     },
     "doctor-ready": {
-      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
-      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 1),
+      completedMissions: MAIN_MISSION_IDS.slice(0, 3),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
     },
     "library-ready": {
-      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
-      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
+      completedMissions: MAIN_MISSION_IDS.slice(0, 4),
       sayoEncounterSeen: true,
       secondaryBoardUnlocked: true,
       archiveUnlocked: true,
     },
     "mission-3-ready": {
-      completedMissions: MAIN_MISSION_IDS.slice(0, 2),
-      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
+      completedMissions: MAIN_MISSION_IDS.slice(0, 4),
       banditPrisonerChoice: "interrogate",
       archiveUnlocked: true,
     },
     "mission-4-ready": {
-      completedMissions: MAIN_MISSION_IDS.slice(0, 3),
-      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
+      completedMissions: MAIN_MISSION_IDS.slice(0, 5),
       banditPrisonerChoice: "interrogate",
       archiveUnlocked: true,
       secretWarehouseLooted: true,
       hideoutSupplies: 2
     },
     "mission-5-ready": {
-      completedMissions: MAIN_MISSION_IDS.slice(0, 4),
-      completedSecondaryMissions: SECONDARY_MISSION_IDS.slice(0, 2),
+      completedMissions: MAIN_MISSION_IDS.slice(0, 6),
       banditPrisonerChoice: "interrogate",
       archiveUnlocked: true,
     }
@@ -325,6 +325,7 @@ export function awardEncounter(save, enemyId, { firstClear = true } = {}) {
 export function completeMission(save, missionId) {
   const result = normalizeSave(save);
   const mission = MISSIONS.find((entry) => entry.id === missionId);
+  if (mission?.type) return completeSecondaryMission(result, mission);
   const state = mission ? missionState(mission, result) : null;
   if (!mission || state.completed || !state.unlocked) {
     return { save: result, xp: 0, coins: 0, levelsGained: 0, firstClear: false, blocked: Boolean(mission && !state.unlocked) };
@@ -361,7 +362,8 @@ function completeRouteSearchMission(result, mission) {
   result.progression.xp += gainedXp;
   result.progression.coins += gainedCoins;
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
-  result.campaign.completedSecondaryMissions = [...new Set([...result.campaign.completedSecondaryMissions, mission.id])];
+  const history = mission.category === "main" ? "completedMissions" : "completedSecondaryMissions";
+  result.campaign[history] = [...new Set([...result.campaign[history], mission.id])];
   result.campaign.doctorSupplyBonus = supplyBonus;
   result.campaign.doctorBookDeliveryPending = true;
   result.campaign.doctorRoute.active = false;
@@ -382,7 +384,7 @@ const SECONDARY_COMPLETION_HANDLERS = Object.freeze({
 });
 
 export function completeSecondaryMission(save, missionOrId) {
-  return completeSecondaryByType(normalizeSave(save), missionOrId, SECONDARY_MISSIONS, SECONDARY_COMPLETION_HANDLERS);
+  return completeSecondaryByType(normalizeSave(save), missionOrId, ALL_MISSIONS, SECONDARY_COMPLETION_HANDLERS);
 }
 
 export function markSecondaryMissionCompleted(save, missionOrId) {
@@ -395,7 +397,7 @@ export function chooseHideoutEntrance(save, entrance) {
   return normalizeSave(result);
 }
 
-export function startDoctorMission(save, mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS)) {
+export function startDoctorMission(save, mission = secondaryMissionByType("route-search", ALL_MISSIONS)) {
   const result = normalizeSave(save);
   if (!mission || !missionState(mission, result).unlocked || missionState(mission, result).completed) return result;
   result.campaign.doctorRoute = { ...createDoctorRouteState(), active: true };
@@ -426,7 +428,7 @@ export function cancelDoctorMission(save) {
   return normalizeSave(result);
 }
 
-export function completeDoctorMission(save, mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS)) {
+export function completeDoctorMission(save, mission = secondaryMissionByType("route-search", ALL_MISSIONS)) {
   return completeSecondaryMission(save, mission);
 }
 

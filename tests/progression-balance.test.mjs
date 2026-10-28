@@ -30,7 +30,7 @@ for (const affinity of AFFINITY_IDS) {
   assert.ok(report.stats.find((stat) => stat.id === report.focus.stat).gain > 0, "El atributo especializado debe crecer de verdad");
   assert.equal(levelUpReport(2, leveled), null, "Un nivel sin cambios no debe abrir una ventana");
   let previousHp = derivedStats(save).maxHp;
-  for (const [index, mission] of MISSIONS.entries()) {
+  for (const [index, mission] of MISSIONS.filter((mission) => mission.encounters).entries()) {
     if (checkpoints[index]) save = applyDebugCheckpoint(save, checkpoints[index]);
     const statsBefore = derivedStats(save);
     const starterTechnique = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1 && jutsu.damage > 0)

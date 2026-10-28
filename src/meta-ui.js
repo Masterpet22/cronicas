@@ -1,8 +1,8 @@
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.93.0"; import { MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./content/index.js";
+import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.93.0"; import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./content/index.js";
 import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.103.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.67.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";
-import { DEBUG_CHECKPOINTS, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.106.0";
+import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.106.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.93.0";
@@ -49,7 +49,6 @@ function warmLocationAssets(locationId) {
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }
-
 export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondaryMission) {
   let save = initialSave;
   let view = "plaza";
@@ -79,10 +78,10 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     onAbandonSecondary(currentView, currentSave) {
       confirmSecondaryAbandon(showMissionDecision, () => {
         const type = currentView === "doctor-route" ? "route-search" : "investigation";
-        const mission = secondaryMissionByType(type, SECONDARY_MISSIONS);
+        const mission = secondaryMissionByType(type, ALL_MISSIONS);
         const routeStats = { ...currentSave.campaign.doctorRoute };
-        if (currentView === "doctor-route") save = writeSave(cancelDoctorMission(currentSave));
-        onFinishSecondaryMission(save, mission, { outcome: "abandoned", clues: investigatedClues.size, routeStats });
+        save = writeSave(abandonMissionProgress(currentView === "doctor-route" ? cancelDoctorMission(currentSave) : currentSave, mission.id));
+        onFinishSecondaryMission(save, mission, { outcome: "abandoned", clues: investigatedClues.size, routeStats }); if (type === "investigation") investigatedClues.clear();
       });
     }
   });
@@ -168,7 +167,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   });
   const sagaMissions = STORY_SAGAS.flatMap((saga) => saga.missionIds.map((id) => MISSIONS.find((mission) => mission.id === id)).filter(Boolean));
   const archiveView = createArchiveView({
-    missions: sagaMissions, enemyRoster: ENEMY_ROSTER, enemyActions: ENEMY_ACTIONS,
+    missionState, missions: sagaMissions, enemyRoster: ENEMY_ROSTER, enemyActions: ENEMY_ACTIONS,
     elementName, escapeHtml,
     onStartMission,
     showDialogue: (...args) => showDialogue(...args),
@@ -190,7 +189,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     onRerender: () => renderDojo()
   });
   const missionBoardsView = createMissionBoardsView({
-    mainMissions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS, sagas: STORY_SAGAS,
+    mainMissions: MISSIONS, fieldMissions: ALL_MISSIONS, secondaryMissions: SECONDARY_MISSIONS, sagas: STORY_SAGAS,
     enemyActions: ENEMY_ACTIONS, enemyRoster: ENEMY_ROSTER,
     doctorRouteDefinitions: DOCTOR_ROUTE_DEFINITIONS, riverPassages: RIVER_PASSAGES,
     elementName, escapeHtml, getDialogue, getMissionSceneDialogue, masterForCharacter, npcName,
@@ -245,7 +244,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
 
   const renderMissionBoardView = () => {
     if (view === "doctor-route") {
-      const mission = secondaryMissionByType("route-search", SECONDARY_MISSIONS);
+      const mission = secondaryMissionByType("route-search", ALL_MISSIONS);
       if (!save.campaign.doctorRoute.active && !missionState(mission, save).completed) save = writeSave(startDoctorMission(save, mission));
     }
     const content = missionBoardsView.render({ save, view, selectedSagaId, investigatedClues });

@@ -11,8 +11,9 @@ async function startSearch(page) {
   });
   await page.reload();
   await page.locator(".debug-tools-trigger").click();
-  await page.locator('[data-debug-view="missions"]').click();
-  await page.locator('[data-secondary-mission="s02"]').click();
+  await page.locator('[data-debug-view="headquarters"]').click();
+  await page.locator('[data-saga="saga-1"]').click();
+  await page.locator('[data-mission="s02"]').click();
   const dialogue = page.locator(".dialogue-overlay");
   await expect(dialogue).toBeVisible();
   for (let i = 0; i < 8 && await dialogue.isVisible(); i += 1) await dialogue.locator("button").click();
@@ -66,8 +67,9 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
 
     await page.reload();
     await page.locator(".debug-tools-trigger").click();
-    await page.locator('[data-debug-view="missions"]').click();
-    await page.locator('[data-secondary-mission="s02"]').click();
+    await page.locator('[data-debug-view="headquarters"]').click();
+    await page.locator('[data-saga="saga-1"]').click();
+  await page.locator('[data-mission="s02"]').click();
     await expect(page.locator(".river-investigation")).toBeVisible({ timeout: 20_000 });
     await page.locator('[data-passage="stones"]').click();
     await expect(page.locator(".river-investigation")).toBeVisible();

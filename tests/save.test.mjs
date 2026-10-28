@@ -5,8 +5,8 @@ import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 17, "La versión debe incluir el progreso idempotente por misión");
-assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "m02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
+assert.equal(SAVE_VERSION, 18, "La versión debe incluir el progreso idempotente por misión");
+assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
 assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
@@ -111,7 +111,7 @@ assert.equal(unknownMission.firstClear, false, "Una misión inexistente no debe 
 assert.deepEqual(unknownMission.save.campaign.completedMissions, ["m01"], "Una misión inexistente no debe entrar al historial");
 
 let fullCampaign = completeMission(applyDebugCheckpoint(save, "mission-5-ready"), "m05").save;
-assert.deepEqual(fullCampaign.campaign.completedMissions, ["m01", "m02", "m03", "m04", "m05"], "La campaña completa debe registrar exactamente las cinco misiones vigentes");
+assert.deepEqual([...fullCampaign.campaign.completedMissions].sort(), ["m01", "m02", "m03", "m04", "m05", "s01", "s02"], "La campaña completa debe registrar exactamente las siete misiones vigentes");
 assert.equal(campaignFlag(fullCampaign, "firstSagaCompleted"), true, "La última misión vigente debe cerrar la primera saga");
 assert.equal(fullCampaign.campaign.missionProgress.m05.status, "completed", "El progreso debe cerrar la misión en el historial por pasos");
 
@@ -126,8 +126,8 @@ assert.deepEqual(
 );
 
 const migrated = normalizeSave({ version: 15, character: { name: "Prueba", affinity: "viento", affinities: ["viento"] }, progression: { level: 2 }, equipment: {}, campaign: { completedMissions: ["m01", "m11", "m12", "m07"], elementRank: 2, kagemoriInvestigated: true, doctorMissionCompleted: true } });
-assert.deepEqual(migrated.campaign.completedMissions, ["m01", "m02", "m03"], "La migración debe conservar el progreso usando la numeración nueva");
-assert.deepEqual(migrated.campaign.completedSecondaryMissions, ["s01", "s02"], "La migración debe separar el progreso de encargos secundarios");
+assert.deepEqual(migrated.campaign.completedMissions, ["m01", "m02", "m03", "s01", "s02"], "La migración debe conservar el progreso usando la numeración nueva");
+assert.deepEqual(migrated.campaign.completedSecondaryMissions, [], "La migración debe separar el progreso de encargos secundarios");
 assert.equal(migrated.campaign.missionProgress.m01.status, "completed", "La migración debe reconstruir el progreso completo por misión");
 assert.equal(Object.hasOwn(migrated.campaign, "doctorMissionUnlocked"), false, "El v17 elimina indicadores reconstruibles");
 assert.equal(Object.hasOwn(migrated.campaign, "companion"), false, "La migración debe retirar el estado de acompañante de la campaña anterior");
@@ -211,7 +211,7 @@ assert.equal(derivedStats(meiStudent).damageReduction, 2, "Mei debe reducir el d
 assert.equal(DEBUG_CHECKPOINTS.length, 8, "El depurador debe ofrecer puntos de control para todo el flujo tutorial disponible");
 const debugCoins = canyonComplete.progression.coins;
 const missionTwoReady = applyDebugCheckpoint(canyonComplete, "mission-2-ready");
-assert.deepEqual(missionTwoReady.campaign.completedMissions, ["m01"], "El punto de control de misión 2 debe dejar solamente la misión 1 completada");
+assert.deepEqual(missionTwoReady.campaign.completedMissions, ["m01", "s01"], "El punto de control de misión 2 debe dejar solamente la misión 1 completada");
 assert.equal(campaignFlag(missionTwoReady, "banditBossMissionUnlocked"), true, "El punto de control debe desbloquear el Desfiladero");
 assert.equal(missionTwoReady.progression.coins, debugCoins, "Los puntos de control no deben entregar ni retirar monedas");
 const libraryReady = applyDebugCheckpoint(save, "library-ready");

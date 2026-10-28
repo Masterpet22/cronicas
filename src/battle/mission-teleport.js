@@ -7,7 +7,7 @@ import { BATTLE_ARENAS, HEIGHT, WIDTH, battleRuntime, sharpenTextTree } from "./
 export async function playMissionTeleport(scene, data) {
   const returning = data.direction === "toVillage" || data.direction === "toDoctorRoute";
   const mission = battleRuntime.activeMission;
-  const arena = mission.encounters?.length ? BATTLE_ARENAS[((mission.number || 1) - 1) % BATTLE_ARENAS.length].texture : "forest-road";
+  const arena = mission.encounters?.length ? BATTLE_ARENAS[((mission.arenaNumber || mission.number || 1) - 1) % BATTLE_ARENAS.length].texture : "forest-road";
   const source = returning ? arena : "village-outskirts";
   const destination = data.direction === "toDoctorRoute" ? "forest-road" : returning ? "village-outskirts" : arena;
   const background = scene.add.image(WIDTH / 2, HEIGHT / 2, source).setDisplaySize(WIDTH, HEIGHT).setDepth(0);

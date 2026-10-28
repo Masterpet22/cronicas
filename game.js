@@ -91,7 +91,8 @@ async function launchGame() {
   game.scale.resize(renderSize.width, renderSize.height);
   installPerformanceTools(game, gameRoot, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile });
   game.loop.wake();
-  game.scene.start("travel");
+  // Phaser conserva los datos de la ejecución anterior si se omite este objeto.
+  game.scene.start("travel", {});
   gameRoot.removeAttribute("aria-busy");
 }
 

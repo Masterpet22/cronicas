@@ -19,7 +19,7 @@ export class MissionTravelScene extends Phaser.Scene {
     if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", SHARED_BATTLE_ASSETS.villageOutskirtsBranches);
     if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
     if (battleRuntime.activeMission?.encounters?.length) {
-      const arena = BATTLE_ARENAS[((battleRuntime.activeMission.number || 1) - 1) % BATTLE_ARENAS.length];
+      const arena = BATTLE_ARENAS[((battleRuntime.activeMission.arenaNumber || battleRuntime.activeMission.number || 1) - 1) % BATTLE_ARENAS.length];
       if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
     }
     queuePlayerFighterTextures(this, playerFighterAppearance(battleRuntime.activeSave));
@@ -51,7 +51,7 @@ export class MissionTravelScene extends Phaser.Scene {
     const forestBackground = this.add.image(backgroundStartX, HEIGHT / 2, "forest-road")
       .setDisplaySize(WIDTH + 88, HEIGHT + 50).setDepth(0).setAlpha(beginsAtVillage ? 0 : 1);
     const arenaPreview = battleRuntime.activeMission?.encounters?.length
-      ? this.add.image(backgroundStartX, HEIGHT / 2, BATTLE_ARENAS[((battleRuntime.activeMission.number || 1) - 1) % BATTLE_ARENAS.length].texture)
+      ? this.add.image(backgroundStartX, HEIGHT / 2, BATTLE_ARENAS[((battleRuntime.activeMission.arenaNumber || battleRuntime.activeMission.number || 1) - 1) % BATTLE_ARENAS.length].texture)
         .setDisplaySize(WIDTH + 88, HEIGHT + 50).setDepth(1).setAlpha(returning ? 1 : 0).setName("travel-arena-preview")
       : null;
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x06101a, 0.12).setOrigin(0).setDepth(1);

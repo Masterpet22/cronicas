@@ -51,7 +51,7 @@ async function completeDebugMission(page, { checkpoint, missionId }) {
   await page.locator(`[data-debug-checkpoint="${checkpoint}"]`).click();
   await page.locator(".debug-tools-trigger").click();
   await page.locator(`[data-debug-mission="${missionId}"]`).click();
-  const canvas = page.locator("#game canvas");
+  const canvas = page.locator("#game > canvas");
   await expect(canvas).toHaveCount(1);
 
   await expect.poll(async () => {
@@ -97,7 +97,7 @@ test("el perfil femenino carga la marioneta femenina", async ({ page }) => {
   await page.locator('[data-mission="m01"]').click();
   await advanceDialogue(page);
   await femaleTorso;
-  await expect(page.locator("#game canvas")).toHaveCount(1);
+  await expect(page.locator("#game > canvas")).toHaveCount(1);
   await expect.poll(() => page.evaluate(() => window.Phaser?.VERSION)).toBe("4.2.1");
 });
 
@@ -130,7 +130,7 @@ test("crear partida, lanzar m01 y volver a la aldea aparca Phaser", async ({ pag
   const saveWritesBeforeLaunch = await page.evaluate(() => window.__smokeSaveWrites);
   await advanceDialogue(page);
 
-  const canvas = page.locator("#game canvas");
+  const canvas = page.locator("#game > canvas");
   await expect(canvas).toHaveCount(1);
   await expect(page.locator("#game")).toBeVisible();
   await expect(page.locator("#meta")).toBeHidden();
@@ -239,8 +239,9 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await expect(page.locator(".archive-card")).toBeVisible();
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-checkpoint="doctor-ready"]').click();
-  await page.locator('[data-debug-view="missions"]').click();
-  await page.locator("[data-secondary-mission]:not([disabled])").last().click();
+  await page.locator('[data-debug-view="headquarters"]').click();
+  await page.locator('[data-saga="saga-1"]').click();
+  await page.locator('[data-mission="s02"]').click();
   await advanceDialogue(page);
   await expect(page.locator(".doctor-route-screen")).toBeVisible({ timeout: 20_000 });
   expect(browserErrors, "No debe haber errores al recorrer las vistas meta").toEqual([]);

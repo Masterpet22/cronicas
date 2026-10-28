@@ -51,3 +51,20 @@ export function migrateSaveToV17(candidate, { missions, secondaryMissions }) {
   campaign.missionProgress = missionProgress;
   return { ...candidate, version: 17, campaign };
 }
+
+// Los IDs históricos se conservan para mantener decisiones, rutas y partidas.
+export function migrateSaveToV18(candidate, { missions, secondaryMissions }) {
+  if (!candidate || typeof candidate !== "object") return candidate;
+  const promotedIds = new Set(missions.filter((mission) => mission.legacyCategory === "secondary").map((mission) => mission.id));
+  const legacy = migrateSaveToV17(candidate, {
+    missions: missions.filter((mission) => !promotedIds.has(mission.id)),
+    secondaryMissions: [...missions, ...secondaryMissions].filter((mission) => promotedIds.has(mission.id) || mission.category === "secondary")
+  });
+
+  const campaign = { ...legacy.campaign };
+  const oldSecondary = Array.isArray(campaign.completedSecondaryMissions) ? campaign.completedSecondaryMissions : [];
+  const oldMain = Array.isArray(campaign.completedMissions) ? campaign.completedMissions : [];
+  campaign.completedMissions = [...new Set([...oldMain, ...oldSecondary.filter((id) => promotedIds.has(id))])];
+  campaign.completedSecondaryMissions = oldSecondary.filter((id) => !promotedIds.has(id));
+  return { ...legacy, version: 18, campaign };
+}

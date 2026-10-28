@@ -35,23 +35,23 @@ export class SecondaryResultsScene extends Phaser.Scene {
     const completed = outcome === "completed";
     const abandoned = outcome === "abandoned";
     const doctorMission = battleRuntime.activeMission?.type === "route-search" || data.missionType === "route-search";
-    const title = completed ? "MISIÓN SECUNDARIA COMPLETADA" : abandoned ? "MISIÓN SECUNDARIA ABANDONADA" : "MISIÓN SECUNDARIA FALLIDA";
+    const title = completed ? "MISIÓN COMPLETADA" : abandoned ? "MISIÓN ABANDONADA" : "MISIÓN FALLIDA";
     const stampText = completed ? "APROBADO" : abandoned ? "ABANDONADO" : "FALLIDA";
     const subtitle = doctorMission
       ? completed ? "Haru confió su libro a la Biblioteca." : "El rastro permanece abierto para un nuevo intento."
-      : completed ? "Las pistas revelaron una ruta verificable." : "El encargo seguirá disponible en el Tablón.";
+      : completed ? "Las pistas revelaron una ruta verificable." : "La misión seguirá disponible en el Cuartel General.";
 
     this.cameras.main.setBackgroundColor(0x1b0e08);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x1b0e08, 1).setOrigin(0).setDepth(1);
     this.add.image(WIDTH / 2, HEIGHT / 2, "results-parchment").setDisplaySize(WIDTH, HEIGHT).setDepth(2);
 
-    this.add.text(480, 76, "INFORME DE MISIÓN SECUNDARIA", {
+    this.add.text(480, 76, "INFORME DE MISIÓN", {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "10px", color: PARCHMENT_MUTED, fontStyle: "bold", letterSpacing: 3
     }).setOrigin(0.5).setDepth(5);
     this.add.text(480, 100, title, {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "22px", color: PARCHMENT_TEXT, fontStyle: "bold"
     }).setOrigin(0.5).setAlpha(0).setName("secondary-results-title").setDepth(5);
-    this.add.text(480, 127, data.missionTitle || battleRuntime.activeMission?.title || "Misión secundaria", {
+    this.add.text(480, 127, data.missionTitle || battleRuntime.activeMission?.title || "Misión", {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "14px", color: "#4d3220", fontStyle: "bold", align: "center", wordWrap: { width: 470 }
     }).setOrigin(0.5).setDepth(5);
     this.add.text(480, 149, subtitle, {
@@ -172,7 +172,7 @@ export class SecondaryResultsScene extends Phaser.Scene {
   }
 
   resultFooter(data, doctorMission, completed) {
-    if (!completed) return "Sin recompensas. Podrás retomar el encargo desde el Tablón de Misiones.";
+    if (!completed) return "Sin recompensas. Podrás retomar el encargo desde el Cuartel General.";
     if (!doctorMission) return "La ruta hacia el Desfiladero del Cuervo ha quedado registrada.";
     const rewards = data.rewards || { xp: 0, affinityXp: 0, coins: 0 };
     const supply = rewards.supplyBonus ? " · +1 suministro" : "";
