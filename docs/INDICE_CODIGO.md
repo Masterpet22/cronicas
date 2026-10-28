@@ -31,8 +31,9 @@ index.html
 
 | Archivo | Nombre funcional en español | Responsabilidad |
 | --- | --- | --- |
-| `index.html` | Entrada principal | Carga fuentes y estilos, decide si habilita la experiencia y, cuando corresponde, inicia Phaser y el módulo del juego. |
-| `game.js` | Punto de entrada | Bootstrap de Phaser y del metajuego; 121 líneas. Las escenas están bajo `src/battle/scenes/`. |
+| `index.html` | Entrada principal | Carga fuentes y estilos, decide si habilita la experiencia e inicia únicamente el metajuego. Phaser queda diferido hasta la primera misión. |
+| `game.js` | Punto de entrada | Bootstrap del metajuego y coordinador de la carga diferida del combate. Las escenas están bajo `src/battle/scenes/`. |
+| `src/asset-urls.js` | Versiones de recursos | Fuente única para la versión del metajuego y las URL compartidas de viaje, combate e investigación. |
 | `styles.css` | Estilos generales | Presentación de acceso, creación de personaje, aldea, ubicaciones, dojo, diálogos, misiones y herramientas internas. |
 | `desktop.css` | Diseño de escritorio | Adapta la interfaz al escenario lógico de escritorio y sus resoluciones. |
 | `dojo-techniques.css` | Colección y equipo de técnicas | Distribuye las ranuras visibles, el catálogo por afinidad y el detalle con acciones fijas. |
@@ -41,7 +42,14 @@ index.html
 ## Combate: `src/battle`
 
 - `scenes/`: viaje, `BattleScene`, acciones, flujo, presentación, feedback, epílogos, pausa y resultados.
-- `runtime.js`: instancia Phaser y recursos compartidos.
+- `session.js`: estado puro compartido, disponible antes de cargar Phaser.
+- `load-phaser.js`: carga única y recuperable del script local de Phaser.
+- `bundle.js`: entrada diferida de Phaser, escenas y configuración de resolución.
+- `runtime.js`: utilidades Phaser y recursos compartidos, evaluados después del motor.
+- `phaser-compat.js`: adaptadores mínimos para APIs gráficas de Phaser 4, incluido el tinte de relleno sólido.
+- `scene-lifecycle.js`: guardas reutilizables para pausar, reanudar y detener escenas según su estado real.
+- `icon-canvas-cache.js`: procesa, invalida y reutiliza plantillas Canvas de iconos mediante una caché LRU ligada al juego.
+- `render-resolution.js`: selección de perfil por capacidad y límite físico del framebuffer.
 - `battle-state.js`: contrato serializable del estado de escena.
 - `damage.js`, `turn.js`, `enemy-state.js`, `rewards.js`: reglas puras separadas de Phaser.
 - `timeline.js`: avance normalizado, umbrales 80/100, velocidad efectiva, hitos y posición de marcadores.
@@ -212,6 +220,10 @@ index.html
 | `tests/village-map.test.mjs` | Mapa y destinos de la aldea. |
 | `tests/npcs.test.mjs` | Reparto y diálogos. |
 | `tests/assets.test.mjs` | Dimensiones, transparencia y presencia de recursos. |
+| `tests/resource-versions.test.mjs` | Impide precargas iniciales de imágenes y versiones divergentes de un mismo recurso estático. |
+| `tests/scene-lifecycle.test.mjs` | Valida pausas, reanudaciones y cierres seguros para escenas activas, pausadas, dormidas o detenidas. |
+| `tests/icon-canvas-cache.test.mjs` | Comprueba reutilización, claves de variante, límite LRU y limpieza de iconos procesados. |
+| `tests/icon-cache.spec.mjs` | Verifica en navegador que una segunda entrada al combate no repita lecturas de píxeles. |
 | `tests/elements.test.mjs` | Afinidades y combinaciones elementales. |
 | `tests/battle-ui.test.mjs` | Contratos estáticos del HUD, escenas, acceso por resolución, documentación y herramientas internas. |
 | `tests/content-systems.test.mjs` | IDs consecutivos, catálogos, requisitos cruzados, ubicación de diálogos y desmontaje de vistas. |

@@ -1,5 +1,6 @@
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { mountAccessiblePause } from "../hud-accessibility.js?v=0.95.0";
+import { resumeSceneIfPaused, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
 
 export class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
@@ -36,8 +37,8 @@ export class PauseScene extends Phaser.Scene {
     this.makeVolumeControl(480, 357);
 
     this.makePauseAction(400, 454, "REANUDAR", 0x36b5e8, () => {
-      this.scene.resume("battle");
-      this.scene.stop();
+      resumeSceneIfPaused(this.scene, "battle");
+      stopSceneIfRunning(this.scene);
     }, 150);
 
     this.makePauseAction(560, 454, this.battle.mission.tutorialReplay ? "SALIR" : "ABANDONAR", 0xef665f, () => {
@@ -50,8 +51,8 @@ export class PauseScene extends Phaser.Scene {
         this.closeAbandonWarning?.();
         return;
       }
-      this.scene.resume("battle");
-      this.scene.stop();
+      resumeSceneIfPaused(this.scene, "battle");
+      stopSceneIfRunning(this.scene);
     });
     sharpenTextTree(this.children.list);
     this.pauseAccess = mountAccessiblePause(this);
@@ -109,7 +110,7 @@ export class PauseScene extends Phaser.Scene {
     const confirm = () => {
       close();
       const payload = this.battle.abandonPayload();
-      this.scene.stop("battle");
+      stopSceneIfRunning(this.scene, "battle");
       if (this.battle.mission.type === "route-combat") this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: payload });
       else this.scene.start("travel", { direction: "toVillage", result: payload });
     };

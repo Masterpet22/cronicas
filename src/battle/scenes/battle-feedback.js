@@ -4,7 +4,7 @@ import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, failMissionProgress, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
@@ -120,7 +120,7 @@ export class BattleFeedbackMethods {
       this.missionStartSave.bestiary = this.saveData.bestiary;
       this.saveData = this.mission.type === "route-combat"
         ? cancelDoctorMission(this.missionStartSave)
-        : this.missionStartSave;
+        : failMissionProgress(this.missionStartSave, this.mission.id);
       this.saveData = writeSave(this.saveData);
       battleRuntime.activeSave = this.saveData;
     }

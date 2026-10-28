@@ -18,7 +18,7 @@ Versión instalada: Phaser 4.2.1
 
 **Problema:** Phaser 4 eliminó `setTintFill()`, utilizado por la silueta de la segunda fase de los jefes.
 
-**Solución:** se reemplazó por `setTint()` junto con `setTintMode(Phaser.TintModes.FILL)`, preservando el efecto de relleno sólido.
+**Solución:** `applyFillTint()` centraliza `setTint()` junto con `setTintMode(Phaser.TintModes.FILL)`, preservando el efecto de relleno sólido e impidiendo que las transiciones recuperen la API retirada.
 
 ### 2. Sistema `postFX` eliminado
 
@@ -47,7 +47,7 @@ Versión instalada: Phaser 4.2.1
 ## Verificación
 
 - `npm test`: todas las pruebas unitarias y estructurales pasan.
-- Smoke de navegador: Phaser 4.2.1 se carga, el canvas se crea y destruye correctamente y no aparecen excepciones durante el ciclo de combate comprobado.
+- Smoke de navegador: Phaser 4.2.1 se carga, el canvas se crea y se aparca para reutilizarlo sin excepciones durante el ciclo de combate comprobado.
 - Smoke de misión `m02`: la misión termina, persiste el progreso y no genera errores visibles del navegador.
 - Búsqueda estática: no quedan referencias de aplicación a Phaser 3.90.0, `setTintFill`, `postFX` ni máscaras geométricas.
 - `git diff --check`: sin errores de espacios o formato del parche.

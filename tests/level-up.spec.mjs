@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 test("la subida animada aparece antes del informe y detalla el crecimiento", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const browserErrors = [];
   page.on("pageerror", (error) => browserErrors.push(error.message));
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator('[data-select-slot="1"]')).toBeVisible();
   const checks = await page.evaluate(async () => {
     const { LevelUpScene, shouldShowLevelUp } = await import("/src/battle/scenes/level-up-scene.js?v=0.95.0");
@@ -74,6 +76,7 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
   const browserErrors = [];
   page.on("pageerror", (error) => browserErrors.push(error.message));
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator('[data-select-slot="1"]')).toBeVisible();
   await page.evaluate(async () => {
     const { BattleFlowMethods } = await import("/src/battle/scenes/battle-flow.js?v=0.95.0");
@@ -144,8 +147,51 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
   expect(browserErrors).toEqual([]);
 });
 
+test("cerrar el combate durante el destello cancela la subida sin dejar promesas pendientes", async ({ page }) => {
+  const browserErrors = [];
+  page.on("pageerror", (error) => browserErrors.push(error.message));
+  await page.goto("/");
+  await ensurePhaser(page);
+  await page.evaluate(async () => {
+    const { BattleFlowMethods } = await import("/src/battle/scenes/battle-flow.js?v=1.5.0");
+    const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
+    const { playerFighterAppearance } = await import("/src/character.js?v=0.76.0");
+    const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.106.0");
+    const base = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female" });
+    const preview = { ...base, progression: { ...base.progression, level: 2, attributePoints: 2 } };
+    const host = document.createElement("div");
+    host.id = "interrupted-level-up-stage";
+    document.body.append(host);
+    const state = { host, game: null, resolved: false };
+    window.__interruptedLevelUp = state;
+    class InterruptedBattleScene extends window.Phaser.Scene {
+      constructor() { super("battle"); }
+      preload() { queuePlayerFighterTextures(this, playerFighterAppearance(base)); }
+      create() {
+        this.saveData = base;
+        this.hero = createPlayerFighter(this, 220, 390, playerFighterAppearance(base));
+        this.lastShownLevel = 1;
+        this.stopTurnTimeline = () => {};
+        this.accessibleHud = { suspend: () => () => {} };
+        void BattleFlowMethods.prototype.showPendingLevelUp.call(this, preview).then(() => { state.resolved = true; });
+        window.setTimeout(() => this.scene.stop(), 60);
+      }
+    }
+    state.game = new window.Phaser.Game({ type: window.Phaser.CANVAS, parent: host, width: 960, height: 540, scene: [InterruptedBattleScene] });
+  });
+  await expect.poll(() => page.evaluate(() => window.__interruptedLevelUp.resolved), { timeout: 5_000 }).toBe(true);
+  expect(await page.evaluate(() => window.__interruptedLevelUp.game.scene.isActive("battle"))).toBe(false);
+  expect(browserErrors).toEqual([]);
+  await page.evaluate(() => {
+    window.__interruptedLevelUp.game.destroy(true);
+    window.__interruptedLevelUp.host.remove();
+    delete window.__interruptedLevelUp;
+  });
+});
+
 test("abandonar advierte que se pierden recompensas y niveles provisionales", async ({ page }) => {
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator('[data-select-slot="1"]')).toBeVisible();
   await page.evaluate(async () => {
     const { PauseScene } = await import("/src/battle/scenes/pause-scene.js?v=0.95.0");

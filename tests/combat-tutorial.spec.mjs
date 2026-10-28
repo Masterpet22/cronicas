@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 async function prepare(page, { manual = false, emptyLoadout = false, completed = false, power = false } = {}) {
   await page.goto("/");
@@ -20,6 +21,7 @@ async function prepare(page, { manual = false, emptyLoadout = false, completed =
     localStorage.setItem("seal-input-mode", manual ? "manual" : "automatic");
   }, { manual, emptyLoadout, completed, power });
   await page.reload();
+  await ensurePhaser(page);
   await page.evaluate(() => {
     const Game = window.Phaser.Game;
     window.Phaser.Game = class extends Game {
@@ -114,7 +116,8 @@ test("el repaso completo con sellos manuales y equipo vacío conserva la partida
   await step(page, "complete");
   await next(page);
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  await expect(page.locator("#game canvas")).toHaveCount(0);
+  await expect(page.locator("#game canvas")).toHaveCount(1);
+  await expect(page.locator("#game")).toBeHidden();
   expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
   expect(errors).toEqual([]);
 });
@@ -144,7 +147,8 @@ test("se puede salir mientras un sello manual espera sin límite de tiempo", asy
   await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").sealPrompt?.text)).toMatch(/^PULSA/);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  await expect(page.locator("#game canvas")).toHaveCount(0);
+  await expect(page.locator("#game canvas")).toHaveCount(1);
+  await expect(page.locator("#game")).toBeHidden();
   expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
   expect(errors).toEqual([]);
 });

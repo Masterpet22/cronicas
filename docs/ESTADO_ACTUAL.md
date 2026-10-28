@@ -9,6 +9,10 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Plataforma de juego habilitada: navegador en pantalla de escritorio.
 - Guardado: tres partidas locales, esquema `SAVE_VERSION = 17`, progreso por paso y migración automática desde v16.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
+- El metajuego inicia sin descargar Phaser ni las escenas de combate. La primera misión carga ambos bajo demanda una sola vez; las entradas posteriores reutilizan los módulos y la instancia aparcada.
+- La entrada solo precarga las dos fuentes críticas. Los fondos de aldea, viaje y combate se solicitan al entrar en su vista, con versiones compartidas para evitar descargas redundantes.
+- Los tintes sólidos usan la API de Phaser 4 y las operaciones de pausa, reanudación y cierre validan el estado de la escena. Cerrar una transición de subida de nivel cancela sus continuaciones y restaura el HUD.
+- Los iconos accesibles del combate se recortan y tiñen una sola vez por variante. Una caché LRU ligada a Phaser los reutiliza entre misiones y se limpia al destruir la instancia.
 - La misión 1 enseña el combate con una guía de 11 pasos, foco visual y práctica real. Se puede omitir y repetir desde la Biblioteca, disponible como manual desde el inicio; el bestiario sigue requiriendo el libro de Haru.
 - El creador permite elegir peinado (sin cabello, corto o coleta) con vista previa y conserva la elección al cambiar de género. Incluye la sección de traje, pendiente de sus recursos gráficos. Las transiciones entre encuentros comparten la barra de recorrido de salida y regreso de misión.
 - La vista previa del creador muestra partículas de la afinidad detrás del cuerpo: brasas, gotas, fragmentos de tierra o corrientes de viento. Con movimiento reducido se mantienen estáticas.
@@ -43,7 +47,8 @@ Las principales se consultan únicamente en el **Cuartel General** y las secunda
 - `src/battle/` contiene las escenas Phaser, el estado serializable de combate y los módulos puros de daño, turnos, enemigos y recompensas.
 - Las tres arenas tienen perfiles visuales declarativos y un controlador con alternativas para Canvas, modo ligero y movimiento reducido; véase [`PERFILES_VISUALES_ARENAS.md`](PERFILES_VISUALES_ARENAS.md).
 - `src/view-runtime.js` desmonta la vista anterior, aborta sus listeners y elimina overlays antes de montar otra.
-- Al abandonar Phaser para una ubicación HTML, la instancia se destruye; no permanece un canvas oculto ejecutándose en segundo plano.
+- Al volver a una ubicación HTML, las escenas de Phaser se detienen y el bucle queda dormido; la instancia se reutiliza en la siguiente misión para conservar su caché sin ejecutar un canvas oculto en segundo plano.
+- El framebuffer usa perfiles automáticos entre 1× y 2× según memoria y núcleos disponibles; el tamaño lógico permanece en 960×540 y el perfil queda registrado en las métricas.
 - [`SISTEMA_MISIONES_DIALOGOS.md`](SISTEMA_MISIONES_DIALOGOS.md) es el contrato para añadir requisitos, mecánicas, efectos y traducciones sin condicionales por ID.
 
 ## Expansión futura
@@ -65,5 +70,6 @@ El botón **PRUEBAS** y la pantalla `renderDebugTools` se conservan durante el d
 - Diseño de la primera saga: [`saga-1-tutorial.md`](saga-1-tutorial.md).
 - Plan de producción: [`../ROADMAP.md`](../ROADMAP.md).
 - Arquitectura: [`INDICE_CODIGO.md`](INDICE_CODIGO.md).
+- Plan de reparaciones de rendimiento y ciclo de vida: [`PLAN_REPARACIONES.md`](PLAN_REPARACIONES.md).
 - Extensión de contenido: [`SISTEMA_MISIONES_DIALOGOS.md`](SISTEMA_MISIONES_DIALOGOS.md).
 - Dirección visual: [`../ART_DIRECTION.md`](../ART_DIRECTION.md).

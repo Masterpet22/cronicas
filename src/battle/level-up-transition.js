@@ -1,10 +1,23 @@
-import { HEIGHT } from "./runtime.js?v=0.91.0";
+import { HEIGHT, Phaser } from "./runtime.js?v=0.91.0";
 import { teleportDeparture } from "./teleport-transition.js?v=1.1.0";
+import { applyFillTint } from "./phaser-compat.js?v=1.0.0";
+import { isSceneActive } from "./scene-lifecycle.js?v=1.0.0";
 
-const tween = (scene, config) => new Promise((resolve) => scene.tweens.add({ ...config, onComplete: (...args) => {
-  config.onComplete?.(...args);
-  resolve();
-} }));
+const tween = (scene, config) => new Promise((resolve) => {
+  let settled = false;
+  const finish = (completed) => {
+    if (settled) return;
+    settled = true;
+    scene.events.off(Phaser.Scenes.Events.SHUTDOWN, onShutdown);
+    resolve(completed);
+  };
+  const onShutdown = () => finish(false);
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, onShutdown);
+  scene.tweens.add({
+    ...config,
+    onComplete: (...args) => { config.onComplete?.(...args); finish(true); }
+  });
+});
 
 export { teleportSmoke as playTeleportSmoke } from "./teleport-transition.js?v=1.1.0";
 
@@ -21,20 +34,20 @@ export async function playLevelUpFlash(scene, fighter) {
   const departure = teleportDeparture(scene, fighter, scene.saveData?.character?.teleportObject, { pace: "substitution" });
   const celebration = async () => {
     if (!reducedMotion && window.localStorage.getItem("flash-effects") !== "off") {
-      fighter.layers.forEach((layer) => layer.setTintFill?.(0xffffff));
-      await Promise.all([
+      fighter.layers.forEach((layer) => applyFillTint(layer, 0xffffff));
+      const completed = await Promise.all([
         tween(scene, { targets: light, alpha: 0.74, scale: 3.3, duration: 80, yoyo: true }),
         tween(scene, { targets: beam, alpha: 0.27, duration: 80, yoyo: true }),
         tween(scene, { targets: label, alpha: 1, y: y - 155, duration: 100 })
       ]);
       fighter.layers.forEach((layer) => layer.clearTint?.());
+      if (!completed.every(Boolean) || !isSceneActive(scene.scene)) return false;
     } else {
-      await tween(scene, { targets: label, alpha: 1, duration: 100 });
+      if (!await tween(scene, { targets: label, alpha: 1, duration: 100 })) return false;
     }
-    await tween(scene, { targets: label, alpha: 0, duration: 120 });
+    return tween(scene, { targets: label, alpha: 0, duration: 120 });
   };
-  await Promise.all([departure, celebration()]);
-  light.destroy();
-  beam.destroy();
-  label.destroy();
+  const [, celebrated] = await Promise.all([departure, celebration()]);
+  [light, beam, label].forEach((object) => { if (object?.scene) object.destroy(); });
+  return Boolean(celebrated && isSceneActive(scene.scene));
 }

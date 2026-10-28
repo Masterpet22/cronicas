@@ -13,10 +13,19 @@ objetos por frame, no hay panel ni temporizador de refresco. Al salir de Phaser 
 se retiran los listeners y el temporizador. Se conservan como máximo 30 muestras en memoria;
 la colección se pierde al recargar. No hay telemetría ni envío de datos.
 
+## Carga bajo demanda
+
+La selección de partida y el metajuego no descargan Phaser ni evalúan las escenas. Al iniciar
+la primera misión, una promesa compartida carga el script local de Phaser y después importa
+`src/battle/bundle.js`; las fuentes necesarias se preparan en paralelo. Las entradas posteriores
+reutilizan esa promesa resuelta, los módulos evaluados y la misma instancia aparcada. La prueba
+`tests/lazy-loading.spec.mjs` protege este contrato y comprueba una sola solicitud del motor.
+
 ## Qué se mide
 
 - Renderer efectivo, versión de Phaser y descripción gráfica cuando WebGL permite consultarla.
 - Resolución física del canvas, tamaño lógico de combate (960×540), tamaño CSS, escala de render y DPR.
+- Perfil adaptativo de resolución (`economy`, `low`, `balanced` o `high`), escala máxima y presupuesto físico de píxeles.
 - FPS medio, frame medio, mediana, p95, máximo y número de frames por encima de 33,33 ms.
 - Tiempo medio de CPU desde `prestep` hasta `postrender`.
 - Objetos residentes, emisores, partículas vivas y controladores de filtros, con valores actuales y picos por escena.
@@ -36,6 +45,11 @@ Los filtros incluyen listas internas y externas de objetos y cámaras, incluso c
 configurados en objetos ocultos. Las escenas pausadas visibles siguen apareciendo porque se renderizan.
 
 El contador añade trabajo de CPU mientras está activo; comparar siempre con el mismo protocolo.
+
+Los iconos del HUD accesible usan una caché LRU de plantillas Canvas procesadas. La primera
+variante recorta transparencia y aplica su tinte con un contexto `willReadFrequently`; las
+entradas posteriores clonan la plantilla sin repetir `getImageData()`. La caché pertenece a la
+instancia de Phaser, admite hasta 24 variantes y se libera al destruir el juego.
 
 ## Presupuestos iniciales
 
@@ -68,6 +82,15 @@ Objetivo orientativo: 60 FPS, frame medio cercano a 16,67 ms y p95 menor de 33,3
 Los FPS no son una condición rígida de CI porque dependen del equipo y del renderer del navegador.
 Los excesos de recursos, errores del navegador o muestras con menos de cinco intervalos sí
 hacen fallar el benchmark. No elevar presupuestos solo para ocultar una regresión.
+
+## Resolución adaptativa
+
+`src/battle/render-resolution.js` selecciona un perfil al entrar a Phaser mediante la memoria
+de dispositivo y los núcleos lógicos que expone el navegador. Los límites son 1× para
+`economy`, 1.25× para `low`, 1.5× para `balanced` y 2× para `high`. Si esas capacidades están
+ocultas se usa `balanced`. El perfil no cambia durante una escena: se evita reducir y aumentar
+el framebuffer como reacción a picos breves de FPS. Al iniciar otra misión se vuelve a medir
+el tamaño visible, se aplica el mismo criterio y se redimensiona la instancia reutilizada.
 
 ## Receta repetible
 

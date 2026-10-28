@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 test("los cinco impactos elementales funcionan en Canvas, WebGL y modo ligero", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
+  await ensurePhaser(page);
   const browserErrors = [];
   page.on("pageerror", (error) => browserErrors.push(error.message));
   const results = await page.evaluate(async () => {

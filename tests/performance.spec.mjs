@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import { bootPerformanceReference, preparePerformanceScenario, readPerformanceReference, disposePerformanceReference } from "./helpers/performance-harness.mjs";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 for (const renderer of ["Canvas", "WebGL"]) {
   test(`${renderer}: métricas reales, presupuestos y filtros al cambiar a modo ligero`, async ({ page }) => {
@@ -14,6 +15,8 @@ for (const renderer of ["Canvas", "WebGL"]) {
     const charged = await readPerformanceReference(page);
     expect(charged.renderer).toBe(renderer);
     expect(charged.resolution.width).toBeGreaterThanOrEqual(960);
+    expect(charged.scale.profile).not.toBeNull();
+    expect(charged.resolution.width * charged.resolution.height).toBeLessThanOrEqual(charged.scale.profile.maxPixels);
     expect(charged.timing.fpsMean).toBeGreaterThan(0);
     expect(charged.timing.frameMsP95).toBeGreaterThanOrEqual(charged.timing.frameMsMean / 2);
     expect(charged.scenes.find((scene) => scene.key === "battle").violations).toEqual([]);
@@ -73,6 +76,19 @@ for (const renderer of ["Canvas", "WebGL"]) {
   });
 }
 
+test("un equipo limitado conserva el framebuffer dentro del perfil economy", async ({ page }) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, "deviceMemory", { configurable: true, get: () => 2 });
+    Object.defineProperty(navigator, "hardwareConcurrency", { configurable: true, get: () => 2 });
+    Object.defineProperty(window, "devicePixelRatio", { configurable: true, get: () => 3 });
+  });
+  await bootPerformanceReference(page, { renderer: "Canvas" });
+  const report = await readPerformanceReference(page);
+  expect(report.scale.profile).toMatchObject({ id: "economy", maxScale: 1, maxPixels: 960 * 540 });
+  expect(report.resolution).toEqual({ width: 960, height: 540 });
+  await disposePerformanceReference(page);
+});
+
 test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver a la aldea", async ({ page }) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -92,8 +108,9 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await page.locator(".debug-tools-trigger").click();
   await expect(page.locator("[data-perf-enabled]")).not.toBeChecked();
   await page.locator("[data-perf-enabled]").check();
+  await ensurePhaser(page);
   await page.evaluate(async () => {
-    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.0.0");
+    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.5.0");
     const create = BattleScene.prototype.create;
     BattleScene.prototype.create = function (...args) {
       const result = create.apply(this, args);
@@ -115,6 +132,7 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   expect(exported.captures.length).toBeGreaterThan(0);
   expect(exported.captures.at(-1).timing.frames).toBeGreaterThan(5);
   await page.evaluate(async () => {
+    window.__parkedGameCanvas = document.querySelector("#game canvas");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     battleRuntime.releaseGameToMeta("plaza");
   });
@@ -133,5 +151,17 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
     const { performanceTools } = await import("/src/dev/performance-tools.js?v=0.99.0");
     return performanceTools.snapshot().capturedAt;
   })).toBe(lastCapture);
+  await page.locator(".debug-tools-trigger").click();
+  await page.locator('[data-debug-mission="m02"]').click();
+  await expect(page.locator(".performance-panel")).toHaveCount(1);
+  expect(await page.evaluate(() => document.querySelector("#game canvas") === window.__parkedGameCanvas)).toBe(true);
+  await expect.poll(() => page.evaluate(async () => {
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=0.99.0");
+    return performanceTools.snapshot()?.activeScenes.includes("battle");
+  }), { timeout: 30_000 }).toBe(true);
+  await page.evaluate(async () => {
+    const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
+    battleRuntime.releaseGameToMeta("plaza");
+  });
   expect(errors).toEqual([]);
 });

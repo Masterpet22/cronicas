@@ -14,7 +14,7 @@ export function normalizeMissionProgress(candidate, completedMissions, completed
     const validSteps = new Set((mission.flow || []).map((step) => step.id).filter(Boolean));
     const completedSteps = [...new Set(Array.isArray(entry.completedSteps) ? entry.completedSteps : [])].filter((id) => validSteps.has(id));
     const currentStepId = validSteps.has(entry.currentStepId) && !completedSteps.includes(entry.currentStepId) ? entry.currentStepId : null;
-    const status = completedIds.has(mission.id) ? "completed" : "in-progress";
+    const status = completedIds.has(mission.id) ? "completed" : entry.status === "failed" ? "failed" : "in-progress";
     return [[mission.id, {
       status,
       currentStepId: status === "completed" ? null : currentStepId || mission.flow.find((step) => step.id && !completedSteps.includes(step.id))?.id || null,
@@ -41,6 +41,14 @@ export function startMissionProgress(save, missionId) {
   save.campaign.missionProgress[missionId] = progress
     ? { ...progress, status: "in-progress", currentStepId: cursor, completedSteps, attempts: progress.attempts + 1 }
     : { status: "in-progress", currentStepId: cursor, completedSteps, context: {}, appliedEffects: [], attempts: 1 };
+  return save;
+}
+
+export function failMissionProgress(save, missionId) {
+  const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
+  const progress = save?.campaign?.missionProgress?.[missionId];
+  if (!mission || !progress || progress.status === "completed") return save;
+  save.campaign.missionProgress[missionId] = { ...progress, status: "failed" };
   return save;
 }
 

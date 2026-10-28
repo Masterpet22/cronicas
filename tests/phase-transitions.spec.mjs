@@ -1,10 +1,12 @@
 import { expect, test } from "@playwright/test";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 test("el cambio de fase del jefe se anuncia y devuelve la cámara al combate", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
+  await ensurePhaser(page);
   await page.evaluate(async () => {
     const { playBossPhaseTransition } = await import("/src/battle/phase-transition.js?v=0.97.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
@@ -53,6 +55,7 @@ test("al pasar al siguiente rival se muestra la fase de misión y se limpia la t
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
+  await ensurePhaser(page);
   await page.evaluate(async () => {
     const { BattleFlowMethods } = await import("/src/battle/scenes/battle-flow.js?v=0.97.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");

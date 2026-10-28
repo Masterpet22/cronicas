@@ -27,6 +27,8 @@ import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../tel
 
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
+import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=1.0.0";
+import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
 
 export class BattleFlowMethods {
   async useJutsu(jutsu) {
@@ -202,15 +204,35 @@ export class BattleFlowMethods {
     const report = levelUpReport(this.lastShownLevel, previewSave);
     if (!report) return;
     this.stopTurnTimeline?.();
-    const restoreHud = this.accessibleHud?.suspend?.();
+    const restoreHudCallback = this.accessibleHud?.suspend?.();
+    let hudRestored = false;
+    const restoreHud = () => {
+      if (hudRestored) return;
+      hudRestored = true;
+      restoreHudCallback?.();
+    };
     const arrivalAppearance = { bodyAlpha: this.hero.body.alpha, shadowAlpha: this.hero.shadow.alpha, pace: "substitution" };
-    await playLevelUpFlash(this, this.hero);
-    if (this.finished) { restoreHud?.(); return; }
+    const flashed = await playLevelUpFlash(this, this.hero);
+    if (!flashed || this.finished || !isSceneActive(this.scene)) { restoreHud(); return; }
     const teleportCover = await teleportFadeOut(this, { pace: "substitution" });
-    if (!teleportCover || this.finished) { restoreHud?.(); return; }
+    if (!teleportCover || this.finished || !isSceneActive(this.scene)) { teleportCover?.destroy?.(); restoreHud(); return; }
     await new Promise((resolve) => {
-      this.events.once(Phaser.Scenes.Events.RESUME, async () => {
-        teleportCover.destroy();
+      let settled = false;
+      const settle = () => {
+        if (settled) return;
+        settled = true;
+        this.events.off(Phaser.Scenes.Events.RESUME, onResume);
+        this.events.off(Phaser.Scenes.Events.SHUTDOWN, onShutdown);
+        resolve();
+      };
+      const onShutdown = () => {
+        teleportCover.destroy?.();
+        restoreHud();
+        settle();
+      };
+      const onResume = async () => {
+        teleportCover.destroy?.();
+        if (!isSceneActive(this.scene)) { restoreHud(); settle(); return; }
         const oldHp = this.player.maxHp;
         const oldChakra = this.player.maxChakra;
         Object.assign(this.player, derivedStats(previewSave));
@@ -219,11 +241,16 @@ export class BattleFlowMethods {
         this.lastShownLevel = report.afterLevel;
         this.refreshHud();
         await teleportArrival(this, this.hero, arrivalAppearance);
-        restoreHud?.();
-        resolve();
-      });
+        restoreHud();
+        settle();
+      };
+      this.events.once(Phaser.Scenes.Events.RESUME, onResume);
+      this.events.once(Phaser.Scenes.Events.SHUTDOWN, onShutdown);
       this.scene.launch("level-up", { result: { outcome: "completed", levelUp: report }, returnToBattle: true });
-      this.scene.pause();
+      if (!pauseSceneIfActive(this.scene)) {
+        stopSceneIfRunning(this.scene, "level-up");
+        onShutdown();
+      }
     });
   }
 
@@ -448,7 +475,7 @@ export class BattleFlowMethods {
       const overlay = document.createElement("section");
       overlay.className = "mission-investigation-overlay";
       overlay.setAttribute("aria-label", "Fase 2 de investigación");
-      overlay.innerHTML = `<img class="mission-investigation-background" src="assets/locations/kagemori.webp?v=0.63.0" alt="Aldea de Kagemori incendiada"><div class="mission-investigation-shade"></div><header class="mission-investigation-header"><p>FASE 2 · INVESTIGACIÓN</p><h2>Reconstruye la ruta de los bandidos</h2><strong data-mission-clue-count>0/${realClueCount} pistas reales</strong></header><p class="mission-investigation-log" data-mission-investigation-log>Examina la casa, la carreta, las huellas, el pozo y la puerta.</p><svg class="mission-investigation-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${regions.map((entry) => `<g class="mission-investigation-region" data-investigation-region="${entry.id}" role="button" tabindex="0" aria-label="Investigar ${entry.label}"><path d="${entry.path}"/></g>`).join("")}</svg>${regions.map((entry) => `<span class="mission-investigation-label" data-investigation-label="${entry.id}" style="--label-x:${entry.labelX}%;--label-y:${entry.labelY}%"><strong>${entry.label}</strong></span>`).join("")}<img class="mission-investigation-master" src="assets/npcs/${masterFile}" alt="${masterName}"><button class="mission-investigation-continue" type="button" disabled data-mission-investigation-continue>REÚNE ${realClueCount} PISTAS</button>`;
+      overlay.innerHTML = `<img class="mission-investigation-background" src="${SHARED_BATTLE_ASSETS.kagemori}" alt="Aldea de Kagemori incendiada"><div class="mission-investigation-shade"></div><header class="mission-investigation-header"><p>FASE 2 · INVESTIGACIÓN</p><h2>Reconstruye la ruta de los bandidos</h2><strong data-mission-clue-count>0/${realClueCount} pistas reales</strong></header><p class="mission-investigation-log" data-mission-investigation-log>Examina la casa, la carreta, las huellas, el pozo y la puerta.</p><svg class="mission-investigation-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${regions.map((entry) => `<g class="mission-investigation-region" data-investigation-region="${entry.id}" role="button" tabindex="0" aria-label="Investigar ${entry.label}"><path d="${entry.path}"/></g>`).join("")}</svg>${regions.map((entry) => `<span class="mission-investigation-label" data-investigation-label="${entry.id}" style="--label-x:${entry.labelX}%;--label-y:${entry.labelY}%"><strong>${entry.label}</strong></span>`).join("")}<img class="mission-investigation-master" src="assets/npcs/${masterFile}" alt="${masterName}"><button class="mission-investigation-continue" type="button" disabled data-mission-investigation-continue>REÚNE ${realClueCount} PISTAS</button>`;
       const container = this.game.canvas.parentElement;
       const canvas = this.game.canvas;
       const previousCanvasVisibility = canvas?.style.visibility || "";

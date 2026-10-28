@@ -1,11 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { mkdir, writeFile } from "node:fs/promises";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 const ORDER = ["departure-smoke", "object-left", "object-disappears", "screen-transition", "arrival-smoke", "character-arrives"];
 
 test("la evasión usa el objeto elegido y la salida por nivel comparte sus tiempos rápidos", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator(".save-selector")).toBeVisible();
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -67,6 +69,7 @@ test("la evasión usa el objeto elegido y la salida por nivel comparte sus tiemp
 
 test("los tres objetos cumplen el orden de seis pasos y la interrupción libera la escena", async ({ page }, testInfo) => {
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator(".save-selector")).toBeVisible();
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -130,6 +133,7 @@ test("los tres objetos cumplen el orden de seis pasos y la interrupción libera 
 for (const direction of ["toMission", "toVillage"]) {
   test(`la misión usa transportación configurada en ${direction} y conserva el resultado`, async ({ page }) => {
     await page.goto("/");
+    await ensurePhaser(page);
     await expect(page.locator(".save-selector")).toBeVisible();
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
@@ -172,6 +176,7 @@ for (const direction of ["toMission", "toVillage"]) {
 
 test("el cambio al segundo encuentro respeta su configuración de transportación", async ({ page }) => {
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator(".save-selector")).toBeVisible();
   const result = await page.evaluate(async () => {
     const { BattleFlowMethods } = await import("/src/battle/scenes/battle-flow.js?v=1.2.0");
@@ -204,6 +209,7 @@ test("el cambio al segundo encuentro respeta su configuración de transportació
 test("apariencia permite elegir el objeto y lo conserva al volver a cargar", async ({ page }) => {
   await page.setViewportSize({ width: 1360, height: 748 });
   await page.goto("/");
+  await ensurePhaser(page);
   await expect(page.locator(".save-selector")).toBeVisible();
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.94.0");

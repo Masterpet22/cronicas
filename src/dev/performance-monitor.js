@@ -1,7 +1,7 @@
 import { sceneResourceUsage } from "../battle/visual-resources.js?v=0.99.0";
 import { createFrameWindow, resourceViolations, sceneBudget } from "./performance-metrics.js?v=0.99.0";
 
-export function createPerformanceMonitor(game, { logicalWidth = 960, logicalHeight = 540, renderScale = 1 } = {}) {
+export function createPerformanceMonitor(game, { logicalWidth = 960, logicalHeight = 540, renderScale = 1, renderProfile = null } = {}) {
   const windowFrames = createFrameWindow();
   let lastFrame = null;
   let frameStart = null;
@@ -67,8 +67,8 @@ export function createPerformanceMonitor(game, { logicalWidth = 960, logicalHeig
         resolution: { width: game.canvas?.width || 0, height: game.canvas?.height || 0 },
         logicalResolution: { width: logicalWidth, height: logicalHeight },
         displaySize: { width: Math.round(bounds.width), height: Math.round(bounds.height) },
-        scale: { render: renderScale, cssX: bounds.width / (game.canvas?.width || 1), cssY: bounds.height / (game.canvas?.height || 1),
-          devicePixelRatio: window.devicePixelRatio },
+        scale: { render: renderScale, profile: renderProfile ? { id: renderProfile.id, maxScale: renderProfile.maxScale, maxPixels: renderProfile.maxPixels } : null,
+          cssX: bounds.width / (game.canvas?.width || 1), cssY: bounds.height / (game.canvas?.height || 1), devicePixelRatio: window.devicePixelRatio },
         timing: windowFrames.summary(), scenes: [...peaks.values()], activeScenes: current.map(({ key }) => key)
       };
     },

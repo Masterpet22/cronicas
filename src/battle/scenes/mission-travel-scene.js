@@ -7,16 +7,17 @@ import { missionTransitionMode } from "../../mission-transitions.js";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
 import { playMissionTeleport } from "../mission-teleport.js?v=1.1.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
+import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=1.0.0";
 
 export class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
 
   preload() {
     queueTeleportObjects(this);
-    if (!this.textures.exists("village-outskirts")) this.load.image("village-outskirts", "assets/locations/village-outskirts.webp?v=0.74.0");
-    if (!this.textures.exists("forest-road")) this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.0");
-    if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.0");
-    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", "assets/vfx/feedback/preparation-mote.png?v=0.91.0");
+    if (!this.textures.exists("village-outskirts")) this.load.image("village-outskirts", SHARED_BATTLE_ASSETS.villageOutskirts);
+    if (!this.textures.exists("forest-road")) this.load.image("forest-road", SHARED_BATTLE_ASSETS.forestRoad);
+    if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", SHARED_BATTLE_ASSETS.villageOutskirtsBranches);
+    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
     if (battleRuntime.activeMission?.encounters?.length) {
       const arena = BATTLE_ARENAS[((battleRuntime.activeMission.number || 1) - 1) % BATTLE_ARENAS.length];
       if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);

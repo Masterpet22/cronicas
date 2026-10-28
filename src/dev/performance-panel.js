@@ -21,7 +21,7 @@ export function mountPerformancePanel(root, monitor, capture, exportReport) {
     const report = monitor.snapshot();
     const t = report.timing;
     const format = (number) => number === null ? "…" : number.toFixed(1);
-    panel.querySelector("pre").textContent = `${report.renderer} · ${report.resolution.width}×${report.resolution.height} · render ×${report.scale.render.toFixed(2)}\n`
+    panel.querySelector("pre").textContent = `${report.renderer} · ${report.resolution.width}×${report.resolution.height} · render ×${report.scale.render.toFixed(2)} · perfil ${report.scale.profile?.id || "manual"}\n`
       + `CSS ${report.displaySize.width}×${report.displaySize.height} · DPR ${report.scale.devicePixelRatio}\n`
       + `FPS ${format(t.fpsMean)} · frame ${format(t.frameMsMean)} ms · p95 ${format(t.frameMsP95)} ms\n`
       + `CPU ${format(t.cpuMsMean)} ms · ${t.frames} frames · ${report.lightMode ? "ligero" : "normal"}\n`
