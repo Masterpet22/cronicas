@@ -1,30 +1,10 @@
+import { battleRuntime } from "./session.js?v=1.0.0";
+
 export const Phaser = window.Phaser;
+export { battleRuntime };
 
 export const WIDTH = 960;
 export const HEIGHT = 540;
-const MAX_RENDER_RESOLUTION = 4;
-
-export const battleRuntime = {
-  activeSave: null,
-  activeMission: null,
-  pendingSecondaryResults: null,
-  pendingVictorySave: null,
-  renderResolution: 1,
-  textTextureResolution: 2,
-  releaseGameToMeta: () => {}
-};
-
-export function configureRenderResolution(element) {
-  const bounds = element.getBoundingClientRect();
-  const cssScale = Math.min(bounds.width / WIDTH, bounds.height / HEIGHT);
-  const pixelRatio = Math.max(1, window.devicePixelRatio || 1);
-  battleRuntime.renderResolution = Math.min(MAX_RENDER_RESOLUTION, Math.max(1, cssScale * pixelRatio));
-  battleRuntime.textTextureResolution = Math.min(4, Math.max(2, Math.ceil(battleRuntime.renderResolution)));
-  return {
-    width: Math.round(WIDTH * battleRuntime.renderResolution),
-    height: Math.round(HEIGHT * battleRuntime.renderResolution)
-  };
-}
 
 export function sharpenTextTree(objects, resolution = battleRuntime.textTextureResolution) {
   objects.forEach((child) => {

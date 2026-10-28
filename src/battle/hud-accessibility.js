@@ -1,5 +1,6 @@
 import { skillFrameSvg } from "./hud-chrome.js?v=0.88.0";
 import { emptySkillInfo } from './hud-art.js?v=0.88.0';
+import { createCachedIconCanvas } from './icon-canvas-cache.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -107,42 +108,16 @@ export function mountAccessibleBattleHud(scene) {
     if (source) {
       // Phaser revokes loader blob URLs after decoding. Reuse the decoded
       // texture pixels instead of starting a second request to that dead URL.
-      const icon = document.createElement('canvas');
-      icon.width = icon.height = 192;
-      const width = source.naturalWidth || source.width;
-      const height = source.naturalHeight || source.height;
-      const scale = Math.min(icon.width / width, icon.height / height);
-      const context = icon.getContext('2d');
-      const offsetX = (192 - width * scale) / 2, offsetY = (192 - height * scale) / 2;
-      context.drawImage(source, offsetX, offsetY, width * scale, height * scale);
-      // Remove only transparent padding so differently exported icons have the
-      // same visual weight. Preserve their proportions and original artwork.
-      const alpha = context.getImageData(0, 0, 192, 192).data;
-      let left = 192, top = 192, right = -1, bottom = -1;
-      for (let row = 0; row < 192; row += 1) {
-        for (let col = 0; col < 192; col += 1) {
-          if (alpha[(row * 192 + col) * 4 + 3] > 8) {
-            left = Math.min(left, col); right = Math.max(right, col);
-            top = Math.min(top, row); bottom = Math.max(bottom, row);
-          }
-        }
-      }
-      if (right >= left && bottom >= top) {
-        const cropWidth = (right - left + 1) / scale, cropHeight = (bottom - top + 1) / scale;
-        const fit = Math.min(184 / cropWidth, 184 / cropHeight);
-        context.clearRect(0, 0, 192, 192);
-        context.drawImage(source, Math.max(0, (left - offsetX) / scale), Math.max(0, (top - offsetY) / scale), cropWidth, cropHeight,
-          (192 - cropWidth * fit) / 2, (192 - cropHeight * fit) / 2, cropWidth * fit, cropHeight * fit);
-      }
       const tint = action.id === 'strike' ? [0xd1, 0xa2, 0x5b] : action.type === 'guard' ? [0xa6, 0x41, 0x2d] : null;
-      if (tint) {
-        const pixels = context.getImageData(0, 0, 192, 192);
-        for (let pixel = 0; pixel < pixels.data.length; pixel += 4) {
-          for (let channel = 0; channel < 3; channel += 1) pixels.data[pixel + channel] *= tint[channel] / 255;
-        }
-        context.putImageData(pixels, 0, 0);
+      const icon = createCachedIconCanvas(scene.game, source, { textureKey: action.iconTexture, tint });
+      if (!icon) {
+        const seal = document.createElement('span');
+        seal.className = 'combat-skill-seal';
+        seal.textContent = '封';
+        art.append(seal);
+      } else {
+        art.append(icon);
       }
-      art.append(icon);
     } else {
       const seal = document.createElement('span');
       seal.className = 'combat-skill-seal';

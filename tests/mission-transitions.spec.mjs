@@ -1,8 +1,10 @@
 import { expect, test } from "@playwright/test";
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 async function bootTravel(page, direction, result = null, missionId = "m05") {
   // Let the app finish loading its save before the isolated scene supplies one.
   await expect(page.locator(".save-selector")).toBeVisible();
+  await ensurePhaser(page);
   await page.evaluate(async ({ direction, result, missionId }) => {
     const { MissionTravelScene } = await import("/src/battle/scenes/mission-travel-scene.js?v=0.98.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");

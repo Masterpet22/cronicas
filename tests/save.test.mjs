@@ -1,6 +1,6 @@
 import { cipherComplete, cipherHint } from "../src/puzzles/seal-cipher.js";
 import assert from "node:assert/strict";
-import { DEBUG_CHECKPOINTS, actOnDoctorCipher, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resetAttributes, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
+import { DEBUG_CHECKPOINTS, actOnDoctorCipher, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, failMissionProgress, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resetAttributes, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
 import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
@@ -86,6 +86,12 @@ const missionCursor = startedMission.campaign.missionProgress.m01.currentStepId;
 const resumedMission = startMissionProgress(startedMission, "m01");
 assert.equal(resumedMission.campaign.missionProgress.m01.currentStepId, missionCursor, "Reanudar debe conservar el primer paso pendiente");
 assert.equal(resumedMission.campaign.missionProgress.m01.attempts, 2, "Reanudar debe contar el intento sin borrar contexto ni cursor");
+const failedMission = failMissionProgress(resumedMission, "m01");
+assert.equal(failedMission.campaign.missionProgress.m01.status, "failed", "Fallar debe dejar la misión disponible para reintentar");
+assert.equal(normalizeSave(failedMission).campaign.missionProgress.m01.status, "failed", "El estado fallido debe sobrevivir una recarga");
+const retriedMission = startMissionProgress(failedMission, "m01");
+assert.equal(retriedMission.campaign.missionProgress.m01.status, "in-progress", "Reintentar debe abrir un nuevo intento activo");
+assert.equal(retriedMission.campaign.missionProgress.m01.attempts, 3, "Reintentar debe incrementar el contador de intentos");
 let secondMissionProgress = startMissionProgress(applyDebugCheckpoint(save, "mission-2-ready"), "m02");
 secondMissionProgress = advanceMissionProgress(secondMissionProgress, "m02", "canyon-assault", { encountersDefeated: 1 });
 assert.equal(secondMissionProgress.campaign.missionProgress.m02.currentStepId, "canyon-traces", "Avanzar una fase debe dejar el cursor en el próximo paso semántico");

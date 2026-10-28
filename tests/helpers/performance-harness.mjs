@@ -1,3 +1,5 @@
+import { ensurePhaser } from "./phaser-loader.mjs";
+
 // La misma receta se usa en las regresiones y en npm run performance:baseline.
 export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false, arenaIndex = 1 } = {}) {
   await page.addInitScript(() => {
@@ -6,10 +8,12 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     localStorage.setItem("dev-performance-enabled", "off");
   });
   await page.goto("/");
+  await ensurePhaser(page);
   await page.waitForFunction(() => window.Phaser && document.querySelector('[data-select-slot="1"]'));
   await page.evaluate(async ({ renderer, lightMode, arenaIndex }) => {
     const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.0.0");
-    const { battleRuntime, configureRenderResolution } = await import("/src/battle/runtime.js?v=0.91.0");
+    const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
+    const { configureRenderResolution } = await import("/src/battle/render-resolution.js?v=1.0.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");
     const { MISSIONS } = await import("/src/content/index.js");
     const { createPerformanceMonitor } = await import("/src/dev/performance-monitor.js?v=0.99.0");
@@ -33,7 +37,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     root.hidden = false;
     document.getElementById("meta").hidden = true;
     await document.fonts.ready;
-    const renderSize = configureRenderResolution(root);
+    const renderSize = configureRenderResolution(root, battleRuntime);
     const startedAt = performance.now();
     const state = { game: null, scene: null, monitor: null, ready: false, bootMs: null,
       missionId: mission.id, arena: mission.number, quality: lightMode ? "light" : "normal", showElementalImpact,
@@ -54,7 +58,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     state.game = new window.Phaser.Game({
       type: renderer === "WebGL" ? window.Phaser.WEBGL : window.Phaser.CANVAS,
       parent: root, width: renderSize.width, height: renderSize.height, scene: [ReferenceBattle], seed: ["cronicas-phase-0"],
-      callbacks: { postBoot: (game) => { state.monitor = createPerformanceMonitor(game, { renderScale: battleRuntime.renderResolution }); } },
+      callbacks: { postBoot: (game) => { state.monitor = createPerformanceMonitor(game, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile }); } },
       loader: { maxParallelDownloads: 6 },
       render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
       scale: { mode: window.Phaser.Scale.FIT, autoCenter: window.Phaser.Scale.CENTER_BOTH }

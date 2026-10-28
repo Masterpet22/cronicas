@@ -3,6 +3,8 @@ import { playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";
 import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-transition.js?v=1.1.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
+import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=1.0.0";
+import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
 
 const THEMES = Object.freeze({
   fuego: { color: 0xff914f, ink: "#ffb17d", title: "FUEGO" },
@@ -20,7 +22,7 @@ export class LevelUpScene extends Phaser.Scene {
   constructor() { super("level-up"); }
 
   preload() {
-    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", "assets/vfx/feedback/preparation-mote.png?v=0.91.0");
+    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
     queuePlayerFighterTextures(this, playerFighterAppearance(battleRuntime.activeSave));
   }
 
@@ -63,7 +65,7 @@ export class LevelUpScene extends Phaser.Scene {
       const flash = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xffffff, 0).setOrigin(0).setDepth(30).setName("level-up-flash");
       this.tweens.add({ targets: flash, alpha: 0.52, duration: 120, yoyo: true, hold: 70, onComplete: () => flash.destroy() });
       this.time.delayedCall(90, () => {
-        fighter.layers.forEach((layer) => layer.setTintFill?.(0xffffff));
+        fighter.layers.forEach((layer) => applyFillTint(layer, 0xffffff));
         this.time.delayedCall(140, () => fighter.layers.forEach((layer) => layer.clearTint?.()));
         showElementalImpact(this, { element: report.affinity, color: theme.color }, 220, 310, 1.7);
       });

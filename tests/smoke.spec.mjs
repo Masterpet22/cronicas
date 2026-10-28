@@ -101,7 +101,7 @@ test("el perfil femenino carga la marioneta femenina", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.Phaser?.VERSION)).toBe("4.2.1");
 });
 
-test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ page }) => {
+test("crear partida, lanzar m01 y volver a la aldea aparca Phaser", async ({ page }) => {
   const browserErrors = [];
   page.on("console", (message) => {
     if (message.type() === "error") browserErrors.push(`console: ${message.text()}`);
@@ -151,7 +151,7 @@ test("crear partida, lanzar m01 y volver a la aldea libera Phaser", async ({ pag
 
   await expect(page.locator("#meta")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("#game")).toBeHidden();
-  await expect(canvas).toHaveCount(0);
+  await expect(canvas).toHaveCount(1);
   expect(browserErrors, "No debe haber errores de consola ni excepciones de página").toEqual([]);
 });
 

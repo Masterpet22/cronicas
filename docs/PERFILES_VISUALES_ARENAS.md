@@ -49,8 +49,9 @@ Estos recursos se incluyen en los presupuestos de la fase 0, sin elevarlos.
 
 Cambiar de perfil o calidad destruye los objetos anteriores y libera sus texturas temporales.
 `destroy()` es idempotente y se invoca en `shutdown`/`destroy` de la escena; retira también el
-listener de movimiento reducido. El bootstrap dispone explícitamente de los controladores
-al regresar a HTML, porque `Phaser.Game.destroy()` puede quedar diferido con el bucle dormido.
+listener de movimiento reducido. El bootstrap dispone explícitamente de los controladores y
+detiene las escenas al regresar a HTML; después duerme el bucle y conserva la instancia para
+reutilizar su caché en la siguiente misión.
 
 La prueba de reinicio encontró referencias a objetos de HUD destruidos. Se reinician las
 referencias transitorias antes de reconstruirlo, para que volver a montar el combate no

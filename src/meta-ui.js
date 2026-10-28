@@ -18,9 +18,10 @@ import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
 import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.67.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
 import { createLocationStage } from "./ui/meta/location-stage.js?v=0.67.2";
+import { META_ASSET_VERSION } from "./asset-urls.js?v=1.0.0";
 export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
-const ASSET_VERSION = "0.82.5";
+const ASSET_VERSION = META_ASSET_VERSION;
 const LOCATION_BACKGROUNDS = { kagemori: "assets/locations/kagemori.webp" };
 const warmedImages = new Map();
 function warmImage(src) {
@@ -45,7 +46,6 @@ function warmLocationAssets(locationId) {
     ...(LOCATION_CAST[locationId] || []).map((id) => warmImage(`${NPCS[id].image}?v=${ASSET_VERSION}`))
   ]);
 }
-
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[char]);
 }

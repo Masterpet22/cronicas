@@ -28,6 +28,7 @@ import { BattleFlowMethods } from "./battle-flow.js?v=1.5.0";
 import { BattleActionMethods } from "./battle-actions.js?v=1.5.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=1.4.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
+import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=1.0.0";
 
 export class BattleScene extends Phaser.Scene {
   constructor() {
@@ -43,9 +44,9 @@ export class BattleScene extends Phaser.Scene {
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
     if (!this.textures.exists("timeline-ready-brush")) this.load.image("timeline-ready-brush", "assets/vfx/feedback/timeline-ready-brush.png?v=0.70.0");
     if (!this.textures.exists("preparation-ribbons")) this.load.image("preparation-ribbons", "assets/vfx/feedback/preparation-ribbons.png?v=0.70.0");
-    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", "assets/vfx/feedback/preparation-mote.png?v=0.71.0");
-    if (!this.textures.exists("forest-road")) this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.0");
-    if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.0");
+    if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
+    if (!this.textures.exists("forest-road")) this.load.image("forest-road", SHARED_BATTLE_ASSETS.forestRoad);
+    if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", SHARED_BATTLE_ASSETS.villageOutskirtsBranches);
     if (!this.textures.exists("coin-drop")) this.load.spritesheet("coin-drop", `assets/vfx/${COIN_DROP_VFX.file}?v=0.89.0`, {
       frameWidth: COIN_DROP_VFX.frameWidth,
       frameHeight: COIN_DROP_VFX.frameHeight,
@@ -99,7 +100,7 @@ export class BattleScene extends Phaser.Scene {
     });
     loadUiIcons(this);
     if (missionStep(battleRuntime.activeMission, "choice")?.relicDecision) {
-      if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", "assets/locations/kagemori.webp?v=0.62.0");
+      if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", SHARED_BATTLE_ASSETS.kagemori);
       const master = masterIdForCharacter(battleRuntime.activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
       if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.62.0`);
     }

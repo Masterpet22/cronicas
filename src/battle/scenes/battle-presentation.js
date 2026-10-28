@@ -88,6 +88,7 @@ function paintActionBackdrop(parts) {
 }
 
 import { mountArenaVisuals } from "../arena-visual-controller.js?v=1.0.0";
+import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
 
 export class BattlePresentationMethods {
   drawArena() {
@@ -377,9 +378,12 @@ export class BattlePresentationMethods {
     bg.on("pointerout", () => bg.setFillStyle(HUD_ART.ink, 0.96));
     bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));
     this.openBattlePause = () => {
-      if (this.finished || this.scene.isPaused()) return;
+      if (this.finished || !isSceneActive(this.scene)) return;
       this.scene.launch("pause");
-      this.scene.pause();
+      if (!pauseSceneIfActive(this.scene)) {
+        stopSceneIfRunning(this.scene, "pause");
+        return;
+      }
       this.refreshBattlePhase();
     };
     bg.on("pointerup", this.openBattlePause);

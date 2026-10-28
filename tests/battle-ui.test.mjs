@@ -77,6 +77,8 @@ assert.match(battle, /class ResultsScene extends Phaser\.Scene/, "Toda misión d
 assert.match(battle, /resultPayload\(won \? "completed" : "failed"\)/, "Victoria y derrota deben abrir resultados");
 assert.match(battle, /abandonPayload\(\)/, "Abandonar también debe abrir resultados");
 assert.match(battle, /this\.saveData = writeSave\(this\.missionStartSave\)/, "Abandonar debe restaurar el guardado previo y perder las recompensas de la misión");
+assert.match(battle, /failMissionProgress\(this\.missionStartSave, this\.mission\.id\)/, "Una derrota debe marcar la misión como fallida para habilitar el reintento");
+assert.match(metaUi, /progressStatus === "failed" \? "REINTENTAR"/, "El Cuartel debe distinguir una misión fallida de una misión en curso");
 assert.doesNotMatch(battle, /writeSave\(reward\.save\)/, "Los encuentros intermedios no deben persistir recompensas antes de completar la misión");
 assert.match(battle, /this\.pendingEncounterRewards\.push\(this\.enemyIndex\)/, "Las recompensas de encuentros deben permanecer pendientes hasta completar la misión");
 assert.match(battle, /if \(!won\)[\s\S]*this\.missionStartSave\.bestiary = this\.saveData\.bestiary[\s\S]*writeSave\(this\.saveData\)/, "Perder debe restaurar el progreso inicial y conservar solamente las observaciones del bestiario");
@@ -174,7 +176,7 @@ assert.match(battle, /playInvestigationPhase\(\)/, "La segunda misión principal
 assert.match(battle, /playMissionOneTutorial\(\)/, "La primera misión debe explicar explícitamente vida, chakra, velocidad, sellos y guardia");
 const missionInvestigation = battle.match(/async playInvestigationPhase\(\)[\s\S]*?(?=async playPrisonerChoice\(\))/)?.[0] || "";
 assert.match(missionInvestigation, /label: "CARRETA"[\s\S]*label: "CASA INCENDIADA"[\s\S]*label: "HUELLAS"[\s\S]*label: "POZO"[\s\S]*label: "PUERTA DEL FINAL"[\s\S]*FASE 2 · INVESTIGACIÓN/, "La investigación debe ofrecer cinco zonas integradas en el escenario");
-assert.match(missionInvestigation, /document\.createElement\("section"\)[\s\S]*assets\/locations\/kagemori\.webp/, "La fase 2 debe conservar el escenario ilustrado de Kagemori fuera del lienzo de combate");
+assert.match(missionInvestigation, /document\.createElement\("section"\)[\s\S]*SHARED_BATTLE_ASSETS\.kagemori/, "La fase 2 debe conservar el escenario ilustrado de Kagemori fuera del lienzo de combate");
 assert.match(missionInvestigation, /mission-investigation-hotspots[\s\S]*viewBox="0 0 1672 941"/, "Las zonas deben usar las coordenadas completas de la ilustración");
 assert.match(missionInvestigation, /realClueCount = regions\.filter/, "Solo tres de las cinco zonas deben contar como pistas reales");
 assert.match(missionInvestigation, /this\.game\.canvas\.parentElement[\s\S]*this\.game\.loop\.sleep\(\)[\s\S]*this\.game\.loop\.wake\(\)/, "La escena debe acceder a su contenedor y ciclo Phaser sin globals del entrypoint");
@@ -193,7 +195,7 @@ assert.match(missionData, /hpMultiplier: 0\.85/, "La intervención del teniente 
 assert.match(battle, /ANUNCIA: \$\{action\.name\.toUpperCase\(\)\}/, "Raizen debe anunciar sus ataques peligrosos");
 assert.match(save, /banditPrisonerChoice === "interrogate" \? 2 : 1/, "Interrogar debe duplicar la próxima recompensa secundaria");
 assert.match(missionData, /type: "enemy-stats"[\s\S]*stats: \{ health: 22, strength: 2, speed: 2, luck: 1 \}[\s\S]*equals: "interrogate"/, "Perdonar al teniente debe tener el coste de fortalecer a Akumori");
-assert.match(battle, /scene: \[MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene\]/, "La subida de nivel debe formar parte del flujo antes de los informes");
+assert.match(battle, /GAME_SCENES = Object\.freeze\(\[[\s\S]*MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene/, "La subida de nivel debe formar parte del flujo compartido antes de los informes");
 assert.doesNotMatch(battle, /targets: this\.hero\.targets, y: "-=4"/, "La respiración no debe hacer flotar al personaje completo");
 assert.match(battle, /startPlayerGuard\(this, this\.hero\)/, "Guardia debe adoptar la pose defensiva articulada");
 assert.match(battle, /loseHealth\(this\.player, this\.hero/, "Los impactos enemigos deben pasar por la reacción centralizada");
@@ -266,8 +268,29 @@ assert.match(battle, /this\.refreshPreparationFeedback\?\.\(\);/, "El modo liger
 assert.doesNotMatch(battle, /FURY_VISUAL_THRESHOLD|fury-mantle|refreshFuryFeedback|showFuryFeedback/, "La presentación no debe inventar un modo furia separado de la fase II");
 assert.doesNotMatch(battle, /playerTimelineTrail|enemyTimelineTrail|emitTimelineMotionParticles/, "La barra no debe recuperar estelas ni emisores geométricos persistentes");
 assert.doesNotMatch(battle, /this\.bossAura\s*=\s*this\.add\.circle/, "La fase II no debe dibujar un círculo morado alrededor del rival");
+assert.doesNotMatch(battle, /setTintFill/, "El runtime no debe recuperar la API de tinte eliminada en Phaser 4");
+assert.match(battle, /setTint\(color\)\.setTintMode\(Phaser\.TintModes\.FILL\)/, "El relleno sólido debe pasar por la API compatible de Phaser 4");
+assert.match(battle, /pauseSceneIfActive\(this\.scene\)/, "La escena de combate debe validar su estado inmediatamente antes de pausar");
+assert.match(battle, /Scenes\.Events\.SHUTDOWN[\s\S]*onShutdown/, "La subida de nivel debe resolver su continuación cuando el combate se cierra");
+assert.match(battle, /getContext\("2d", \{ willReadFrequently: true \}\)/, "El procesamiento de iconos debe optimizar los contextos que leen píxeles");
+assert.match(battle, /createCachedIconCanvas\(scene\.game, source/, "El HUD debe reutilizar plantillas de iconos ya recortadas y teñidas");
+assert.match(battle, /PROCESSED_ICON_CACHE_LIMIT = 24/, "La caché de iconos debe tener un límite explícito");
 assert.doesNotMatch(battle, /fontFamily: "Arial/, "El combate debe compartir las tipografías del metajuego");
-assert.match(html, /assets\/vendor\/phaser-4\.2\.1\.min\.js/, "Phaser 4 debe servirse localmente para evitar dependencias de terceros");
+assert.doesNotMatch(
+  html,
+  /phaser-4\.2\.1\.min\.js/,
+  "La entrada no debe cargar Phaser antes de que se inicie una misión"
+);
+assert.match(
+  battle,
+  /assets\/vendor\/phaser-4\.2\.1\.min\.js/,
+  "Phaser 4 debe servirse localmente para evitar dependencias de terceros"
+);
+assert.match(
+  battle,
+  /loadPhaser\(\)[\s\S]*import\("\.\/src\/battle\/bundle\.js\?v=1\.0\.0"\)/,
+  "Phaser debe cargarse antes de importar el paquete de combate"
+);
 assert.match(html, /class="mobile-gate"/, "Las resoluciones de teléfono deben recibir una pantalla de próximamente");
 assert.match(html, /if \(!mobileViewport\.matches \|\| compactEnabled\)/, "El modo compacto debe permitir cargar el combate desde el acceso móvil");
 assert.match(styles, /html\.mobile-viewport body > main \{ display: none; \}/, "El contenido del juego debe permanecer oculto detrás del aviso");
@@ -338,8 +361,11 @@ assert.match(desktop, /location-kagemori\.investigation-ready \.stage-characters
 assert.match(desktop, /location-stage\.location-kagemori \.stage-speech \{[\s\S]*left: 23%;[\s\S]*width: 54%;[\s\S]*max-width: 650px;/, "El diálogo de Kagemori debe quedar centrado entre ambos personajes");
 assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kurose/, "La transición no debe duplicar en Phaser los recursos de la investigación HTML");
 assert.match(travelScene, /(?:battleRuntime\.)?releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
-assert.match(battle, /function releaseGameToMeta[\s\S]*queueMicrotask\(\(\) => destroyGameInstance\(instance\)\)/, "Al volver a HTML, Phaser debe destruirse en vez de quedar oculto consumiendo recursos");
-assert.match(battle, /pendingSecondaryResults[\s\S]*scene: \[MissionTravelScene, LevelUpScene, SecondaryResultsScene\]/, "Los resultados secundarios deben poder mostrar la subida durante el regreso antes del informe");
+assert.equal((battle.match(/new Phaser\.Game\(/g) || []).length, 1, "La sesión debe crear una sola instancia reutilizable de Phaser");
+assert.match(battle, /function parkGameInstance[\s\S]*stopGameScenes\(instance\)[\s\S]*instance\.loop\.sleep\(\)/, "Al volver a HTML deben detenerse las escenas y aparcarse el bucle sin perder la caché de texturas");
+assert.match(battle, /if \(!game\)[\s\S]*createGame\(renderSize, bundle\)[\s\S]*game\.scale\.resize[\s\S]*game\.loop\.wake\(\)[\s\S]*game\.scene\.start\("travel"\)/, "Las misiones posteriores deben redimensionar y reactivar la instancia existente");
+assert.match(battle, /GAME_SCENES = Object\.freeze\(\[[\s\S]*MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene/, "La instancia compartida debe registrar recorridos principales y secundarios");
+assert.match(battle, /pendingSecondaryResults[\s\S]*void launchGame\(\)/, "Los resultados secundarios deben reutilizar la instancia y mostrar la subida durante el regreso antes del informe");
 assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
 assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
 assert.match(metaUi, /if \(!save\.campaign\.archiveUnlocked\) return/, "El bestiario permanece bloqueado, con el tutorial disponible desde el inicio");

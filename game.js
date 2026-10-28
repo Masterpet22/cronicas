@@ -1,50 +1,98 @@
 import { mountMetaUI } from "./src/meta-ui.js?v=0.107.0";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.106.0";
-import { BattleScene } from "./src/battle/scenes/battle-scene.js?v=1.5.0";
-import { MissionTravelScene } from "./src/battle/scenes/mission-travel-scene.js?v=1.5.0";
-import { MissionEpilogueScene } from "./src/battle/scenes/mission-epilogue-scene.js?v=0.95.0";
-import { LevelUpScene } from "./src/battle/scenes/level-up-scene.js?v=1.5.0";
-import { SecondaryResultsScene } from "./src/battle/scenes/secondary-results-scene.js?v=0.96.0";
-import { ResultsScene } from "./src/battle/scenes/results-scene.js?v=0.96.0";
-import { PauseScene } from "./src/battle/scenes/pause-scene.js?v=1.1.0";
-import { Phaser, battleRuntime, configureRenderResolution } from "./src/battle/runtime.js?v=0.91.0";
+import { battleRuntime } from "./src/battle/session.js?v=1.0.0";
+import { loadPhaser } from "./src/battle/load-phaser.js?v=1.0.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";
 import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=0.99.0";
 
 let game = null;
 let metaUi = null;
+let battleBundlePromise = null;
 battleRuntime.activeSave = loadSave();
 
 const metaRoot = document.getElementById("meta");
 const gameRoot = document.getElementById("game");
 let gameLaunchRevision = 0;
 
-function destroyGameInstance(instance = game) {
-  if (!instance) return;
+function loadBattleBundle() {
+  if (!battleBundlePromise) battleBundlePromise = loadPhaser()
+    .then(() => import("./src/battle/bundle.js?v=1.0.0"))
+    .catch((error) => { battleBundlePromise = null; throw error; });
+  return battleBundlePromise;
+}
+
+function stopGameScenes(instance) {
+  instance.scene.scenes.forEach((scene) => {
+    scene.arenaVisuals?.destroy();
+    if (scene.scene.isActive() || scene.scene.isPaused() || scene.scene.isSleeping()) instance.scene.stop(scene.scene.key);
+  });
+}
+
+function parkGameInstance(instance = game) {
+  if (!instance || instance !== game) return;
+  stopGameScenes(instance);
   uninstallPerformanceTools(instance);
-  // destroy() de Phaser se difiere al siguiente frame, que puede estar dormido al volver a HTML.
-  instance.scene.scenes.forEach((scene) => scene.arenaVisuals?.destroy());
-  if (game === instance) game = null;
-  try { instance.destroy(true); } catch (_) { /* La vista HTML debe recuperarse aunque Phaser ya se haya cerrado. */ }
-  gameRoot.replaceChildren();
+  instance.loop.sleep();
   gameRoot.removeAttribute("aria-busy");
 }
 
 function releaseGameToMeta(locationId = "plaza", { commitVictory = false } = {}) {
   gameLaunchRevision += 1;
   const instance = game;
-  instance?.loop.sleep();
-  uninstallPerformanceTools(instance);
   if (commitVictory) commitPendingVictory(battleRuntime, writeSave);
   else {
     if (battleRuntime.pendingVictorySave) battleRuntime.activeSave = loadSave();
     discardVictory(battleRuntime);
   }
+  // Captura las métricas mientras el canvas aún conserva su tamaño visible.
+  uninstallPerformanceTools(instance);
   metaRoot.hidden = false;
   gameRoot.hidden = true;
   if (locationId === "plaza") metaUi?.refresh(battleRuntime.activeSave);
   else metaUi?.openLocation(battleRuntime.activeSave, locationId);
-  queueMicrotask(() => destroyGameInstance(instance));
+  queueMicrotask(() => parkGameInstance(instance));
+}
+
+function createGame(renderSize, bundle) {
+  const { Phaser, GAME_SCENES } = bundle;
+  return new Phaser.Game({
+    type: Phaser.AUTO,
+    callbacks: { postBoot: (instance) => {
+      installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile });
+      gameRoot.removeAttribute("aria-busy");
+    } },
+    parent: "game", width: renderSize.width, height: renderSize.height, backgroundColor: "#101622",
+    scene: GAME_SCENES, loader: { maxParallelDownloads: 6 },
+    render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
+    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
+  });
+}
+
+async function launchGame() {
+  const launchRevision = ++gameLaunchRevision;
+  metaRoot.hidden = true;
+  gameRoot.hidden = false;
+  gameRoot.setAttribute("aria-busy", "true");
+  let bundle;
+  try {
+    [bundle] = await Promise.all([loadBattleBundle(), document.fonts.load('700 16px "Cinzel"'), document.fonts.load('700 16px "Alegreya Sans"')]);
+  } catch (error) {
+    console.error(error);
+    if (launchRevision === gameLaunchRevision) { metaRoot.hidden = false; gameRoot.hidden = true; gameRoot.removeAttribute("aria-busy"); }
+    return;
+  }
+  if (launchRevision !== gameLaunchRevision) return;
+  const renderSize = bundle.configureRenderResolution(gameRoot, battleRuntime);
+  if (!game) {
+    game = createGame(renderSize, bundle);
+    return;
+  }
+  stopGameScenes(game);
+  game.scale.resize(renderSize.width, renderSize.height);
+  installPerformanceTools(game, gameRoot, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile });
+  game.loop.wake();
+  game.scene.start("travel");
+  gameRoot.removeAttribute("aria-busy");
 }
 
 function bindGlobalOptions() {
@@ -74,59 +122,21 @@ battleRuntime.releaseGameToMeta = releaseGameToMeta;
 bindGlobalOptions();
 
 metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) => {
-  const launchRevision = ++gameLaunchRevision;
   discardVictory(battleRuntime);
+  battleRuntime.pendingSecondaryResults = null;
   battleRuntime.activeSave = mission.tutorialReplay ? structuredClone(save) : writeSave(startMissionProgress(save, mission.id));
   battleRuntime.activeMission = mission;
   document.querySelector(".game-settings")?.removeAttribute("open");
-  metaRoot.hidden = true;
-  gameRoot.hidden = false;
-  destroyGameInstance();
-  gameRoot.setAttribute("aria-busy", "true");
-  await Promise.all([
-    document.fonts.load('700 16px "Cinzel"'),
-    document.fonts.load('700 16px "Alegreya Sans"')
-  ]);
-  if (launchRevision !== gameLaunchRevision) return;
-  const renderSize = configureRenderResolution(gameRoot);
-  game = new Phaser.Game({
-    type: Phaser.AUTO,
-    callbacks: { postBoot: (instance) => installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution }) },
-    parent: "game",
-    width: renderSize.width,
-    height: renderSize.height,
-    backgroundColor: "#101622",
-    scene: [MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene],
-    loader: { maxParallelDownloads: 6 },
-    render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
-  });
-  gameRoot.removeAttribute("aria-busy");
+  await launchGame();
 }, (save, mission, result) => {
-  gameLaunchRevision += 1;
   if (result.outcome === "completed") stageVictory(battleRuntime, save);
   else {
     battleRuntime.activeSave = writeSave(save);
     discardVictory(battleRuntime);
   }
   battleRuntime.activeMission = mission;
-  destroyGameInstance();
-  metaRoot.hidden = true;
-  gameRoot.hidden = false;
   battleRuntime.pendingSecondaryResults = { ...result, missionTitle: mission.title, missionId: mission.id, missionType: mission.type };
-  const renderSize = configureRenderResolution(gameRoot);
-  game = new Phaser.Game({
-    type: Phaser.AUTO,
-    callbacks: { postBoot: (instance) => installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution }) },
-    parent: "game",
-    width: renderSize.width,
-    height: renderSize.height,
-    backgroundColor: "#101622",
-    scene: [MissionTravelScene, LevelUpScene, SecondaryResultsScene],
-    loader: { maxParallelDownloads: 4 },
-    render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
-  });
+  void launchGame();
 });
 
 

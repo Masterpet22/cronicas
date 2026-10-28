@@ -9,7 +9,7 @@ import { createCompletedMissionProgress, migrateSaveToV17 } from "./save/save-mi
 import { createSlotRepository } from "./save/slot-repository.js";
 import { teleportObject } from "./teleport-objects.js";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
-import { advanceMissionProgress as advanceCampaignMission, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
+import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
 export { attributeTrainingLimit };
 import { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
@@ -226,6 +226,10 @@ export function startMissionProgress(save, missionId) {
 
 export function advanceMissionProgress(save, missionId, completedStepId, context = {}) {
   return advanceCampaignMission(normalizeSave(save), missionId, completedStepId, context);
+}
+
+export function failMissionProgress(save, missionId) {
+  return markMissionFailed(normalizeSave(save), missionId);
 }
 
 export const DEBUG_CHECKPOINTS = Object.freeze([
