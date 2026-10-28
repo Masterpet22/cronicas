@@ -1,5 +1,17 @@
 # Fondos de ubicaciones
 
+## Estado vigente
+
+Los nueve fondos de la aldea, Kagemori, los caminos de salida y bosque y los escenarios `battle-dusk-pass.webp` y `battle-mist-marsh-water.webp` utilizan las imágenes proporcionadas por el usuario el 28 de octubre de 2026, optimizadas a WebP. Los fondos opacos nuevos conservan sus 1376 × 768 píxeles; las ramas conservan ese lienzo con transparencia real.
+
+`kagemori.webp` es el fondo activo de la investigación y del catálogo compartido. El antiguo `kagemori.png` era una copia de la fuente anterior sin referencias del juego: se eliminó para no conservar 3.182.738 bytes innecesarios. Esta limpieza reduce el espacio en disco, no la descarga de la misión, que ya utilizaba el WebP.
+
+Los formatos anteriores `battle-dusk-pass.jpg` y `battle-mist-marsh-water.png` se retiraron al actualizar sus referencias a WebP. La copia anterior `battle-mist-marsh.jpg` ya estaba eliminada. `battle-moon-shrine.jpg` sigue activo en el catálogo de combate y aún conserva el estilo anterior.
+
+Consulta los tamaños, la procedencia y las vistas integradas en [el informe de reemplazos](../../artifacts/asset-replacements/README.md).
+
+## Historial del estilo anterior
+
 Estos nueve fondos se usan en las escenas interactivas de la Aldea del Horizonte.
 
 - `archive.webp` fue proporcionado por el usuario como **Biblioteca Mística Bajo la Luna.png** y optimizado para la web.

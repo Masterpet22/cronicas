@@ -561,7 +561,7 @@ input, select, button { font: inherit; }
 }
 
 /* Búsqueda de Haru: tres decisiones reutilizan un único flujo convergente. */
-.doctor-route-screen { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 92px clamp(18px, 4vw, 58px) 50px; color: #eaf4fb; background: radial-gradient(circle at 78% 18%, rgba(47,118,137,.18), transparent 28%), linear-gradient(rgba(2,9,17,.62), rgba(2,9,17,.92)), url("assets/locations/battle-dusk-pass.jpg?v=0.20.0") center/cover; }
+.doctor-route-screen { display: flex; flex-direction: column; height: 100%; min-height: 0; padding: 92px clamp(18px, 4vw, 58px) 50px; color: #eaf4fb; background: radial-gradient(circle at 78% 18%, rgba(47,118,137,.18), transparent 28%), linear-gradient(rgba(2,9,17,.62), rgba(2,9,17,.92)), url("assets/locations/battle-dusk-pass.webp?v=0.20.1") center/cover; }
 .doctor-route-screen > header { display: flex; flex: 0 0 auto; align-items: end; justify-content: space-between; gap: 28px; width: 100%; max-width: 1180px; margin: 0 auto 8px; }
 .doctor-route-screen h2 { margin: 4px 0 7px; font-family: Cinzel, serif; color: #f4f0e8; }
 .doctor-route-screen header p:not(.eyebrow), .route-log { color: #afc2cf; }

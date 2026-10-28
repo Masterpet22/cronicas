@@ -1,0 +1,198 @@
+{
+  "baseline_commit": "af4b8a0c0a3e02c1aaa5975924001f494a4ec8d1",
+  "current_commit": "8dcaf6f26964e3daf1eea0042a7de5a12a649191",
+  "backgrounds": [
+    {
+      "old_path": "assets/locations/archive.webp",
+      "new_path": "assets/locations/archive.webp",
+      "before": 198290,
+      "now": 187130,
+      "saved": 11160,
+      "saving_percent": 5.63
+    },
+    {
+      "old_path": "assets/locations/arena.webp",
+      "new_path": "assets/locations/arena.webp",
+      "before": 245278,
+      "now": 189150,
+      "saved": 56128,
+      "saving_percent": 22.88
+    },
+    {
+      "old_path": "assets/locations/dojo.webp",
+      "new_path": "assets/locations/dojo.webp",
+      "before": 206290,
+      "now": 180636,
+      "saved": 25654,
+      "saving_percent": 12.44
+    },
+    {
+      "old_path": "assets/locations/forest-road.webp",
+      "new_path": "assets/locations/forest-road.webp",
+      "before": 388246,
+      "now": 235586,
+      "saved": 152660,
+      "saving_percent": 39.32
+    },
+    {
+      "old_path": "assets/locations/headquarters.webp",
+      "new_path": "assets/locations/headquarters.webp",
+      "before": 240606,
+      "now": 181624,
+      "saved": 58982,
+      "saving_percent": 24.51
+    },
+    {
+      "old_path": "assets/locations/inn.webp",
+      "new_path": "assets/locations/inn.webp",
+      "before": 246334,
+      "now": 204270,
+      "saved": 42064,
+      "saving_percent": 17.08
+    },
+    {
+      "old_path": "assets/locations/kagemori.webp",
+      "new_path": "assets/locations/kagemori.webp",
+      "before": 366162,
+      "now": 204228,
+      "saved": 161934,
+      "saving_percent": 44.22
+    },
+    {
+      "old_path": "assets/locations/missions.webp",
+      "new_path": "assets/locations/missions.webp",
+      "before": 251430,
+      "now": 173870,
+      "saved": 77560,
+      "saving_percent": 30.85
+    },
+    {
+      "old_path": "assets/locations/shop.webp",
+      "new_path": "assets/locations/shop.webp",
+      "before": 252524,
+      "now": 155674,
+      "saved": 96850,
+      "saving_percent": 38.35
+    },
+    {
+      "old_path": "assets/locations/tower.webp",
+      "new_path": "assets/locations/tower.webp",
+      "before": 243132,
+      "now": 192150,
+      "saved": 50982,
+      "saving_percent": 20.97
+    },
+    {
+      "old_path": "assets/locations/village-outskirts.webp",
+      "new_path": "assets/locations/village-outskirts.webp",
+      "before": 340020,
+      "now": 188800,
+      "saved": 151220,
+      "saving_percent": 44.47
+    },
+    {
+      "old_path": "assets/locations/village-outskirts-branches.webp",
+      "new_path": "assets/locations/village-outskirts-branches.webp",
+      "before": 645362,
+      "now": 411264,
+      "saved": 234098,
+      "saving_percent": 36.27
+    },
+    {
+      "old_path": "assets/village/aldea.webp",
+      "new_path": "assets/village/aldea.webp",
+      "before": 335400,
+      "now": 339048,
+      "saved": -3648,
+      "saving_percent": -1.09
+    },
+    {
+      "old_path": "assets/locations/event.webp",
+      "new_path": "assets/locations/event.webp",
+      "before": 303376,
+      "now": 194844,
+      "saved": 108532,
+      "saving_percent": 35.77
+    },
+    {
+      "old_path": "assets/locations/battle-dusk-pass.jpg",
+      "new_path": "assets/locations/battle-dusk-pass.webp",
+      "before": 784787,
+      "now": 156058,
+      "saved": 628729,
+      "saving_percent": 80.11
+    },
+    {
+      "old_path": "assets/locations/battle-mist-marsh-water.png",
+      "new_path": "assets/locations/battle-mist-marsh-water.webp",
+      "before": 2147732,
+      "now": 104110,
+      "saved": 2043622,
+      "saving_percent": 95.15
+    },
+    {
+      "old_path": "assets/locations/battle-moon-shrine.jpg",
+      "new_path": "assets/locations/battle-moon-shrine.jpg",
+      "before": 857481,
+      "now": 857481,
+      "saved": 0,
+      "saving_percent": 0.0
+    }
+  ],
+  "other_images": [
+    {
+      "name": "Golpe veloz",
+      "old_path": "assets/actions/basic-strike.webp",
+      "new_path": "assets/actions/basic-strike.webp",
+      "before": 75894,
+      "now": 65394,
+      "saved": 10500,
+      "saving_percent": 13.84
+    },
+    {
+      "name": "Guardia",
+      "old_path": "assets/actions/guard.webp",
+      "new_path": "assets/actions/guard.webp",
+      "before": 74754,
+      "now": 89212,
+      "saved": -14458,
+      "saving_percent": -19.34
+    },
+    {
+      "name": "Perrito",
+      "old_path": "assets/vfx/teleport-dog.svg",
+      "new_path": "assets/vfx/teleport-dog.webp",
+      "before": 1054,
+      "now": 44650,
+      "saved": -43596,
+      "saving_percent": -4136.24
+    },
+    {
+      "name": "Silla a Marioneta",
+      "old_path": "assets/vfx/teleport-chair.svg",
+      "new_path": "assets/vfx/teleport-puppet.webp",
+      "before": 759,
+      "now": 46050,
+      "saved": -45291,
+      "saving_percent": -5967.19
+    }
+  ],
+  "unused_removed": [
+    {
+      "path": "assets/locations/kagemori.png",
+      "before": 3182738,
+      "now": 0
+    },
+    {
+      "path": "assets/locations/battle-mist-marsh.jpg",
+      "before": 693151,
+      "now": 0
+    }
+  ],
+  "backgrounds_before": 8052450,
+  "backgrounds_now": 4155923,
+  "active_images_before": 8204911,
+  "active_images_now": 4401229,
+  "disk_before": 12080800,
+  "disk_now": 4401229
+}

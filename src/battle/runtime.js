@@ -44,8 +44,8 @@ export const HUD_THEMES = Object.freeze({
   })
 });
 export const BATTLE_ARENAS = Object.freeze([
-  Object.freeze({ texture: "travel-forest", file: "assets/locations/battle-dusk-pass.jpg?v=0.20.0" }),
-  Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh-water.png?v=0.63.0" }),
+  Object.freeze({ texture: "travel-forest", file: "assets/locations/battle-dusk-pass.webp?v=0.20.1" }),
+  Object.freeze({ texture: "bg-marsh", file: "assets/locations/battle-mist-marsh-water.webp?v=0.63.1" }),
   Object.freeze({ texture: "bg-moon", file: "assets/locations/battle-moon-shrine.jpg?v=0.20.0" })
 ]);
 export const TECHNIQUE_VFX = Object.freeze({

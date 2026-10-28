@@ -7,7 +7,7 @@
 .cipher-entry-transition .cipher-glyph { width: 140px; }
 .cipher-entry-transition h2 { font-size: 32px; }
 .cipher-entry-transition p:not(.eyebrow) { color: #b8cbd2; font-size: 18px; }
-.cipher-screen { background: radial-gradient(ellipse at 65% 55%, rgba(23,52,65,.65), rgba(2,9,17,.82) 75%), url("assets/locations/battle-dusk-pass.jpg?v=0.20.0") center/cover; }
+.cipher-screen { background: radial-gradient(ellipse at 65% 55%, rgba(23,52,65,.65), rgba(2,9,17,.82) 75%), url("assets/locations/battle-dusk-pass.webp?v=0.20.1") center/cover; }
 .cipher-screen > header { width: min(1120px, 100%); }
 .cipher-screen > header > div > p:last-child { margin-bottom: 0; }
 .cipher-workspace { display: grid; flex: 1; grid-template-columns: minmax(270px, .8fr) minmax(0, 1fr); align-items: center; gap: clamp(28px, 5vw, 78px); width: min(1120px, 100%); min-height: 0; margin: 18px auto 0; animation: cipher-enter .5s ease-out both; }

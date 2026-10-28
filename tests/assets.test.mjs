@@ -123,13 +123,14 @@ assert.equal(village.height, 937, "El mapa debe conservar su alto original");
 const locationIds = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
 await Promise.all(locationIds.map(async (id) => {
   const image = webpDimensions(await readFile(new URL(`../assets/locations/${id}.webp`, import.meta.url)), `${id}.webp`);
-  if (id !== "event") {
-    assert.deepEqual([image.width, image.height], [1376, 768], `${id} debe conservar la resolución nativa de la imagen reemplazada`);
-    return;
-  }
-  assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
-  assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
+  assert.deepEqual([image.width, image.height], [1376, 768], `${id} debe conservar la resolución nativa de la imagen reemplazada`);
 }));
+for (const asset of ["battle-dusk-pass.webp", "battle-mist-marsh-water.webp"]) {
+  const file = await readFile(new URL(`../assets/locations/${asset}`, import.meta.url));
+  const image = webpDimensions(file, asset);
+  assert.deepEqual([image.width, image.height], [1376, 768], `${asset} debe conservar el encuadre nativo del fondo nuevo`);
+  assert.ok(file.length < 250_000, `${asset} debe estar optimizado para la carga de misiones`);
+}
 const kagemori = webpDimensions(await readFile(new URL("../assets/locations/kagemori.webp", import.meta.url)), "kagemori.webp");
 assert.deepEqual([kagemori.width, kagemori.height], [1376, 768], "Kagemori debe conservar la resolución nativa de la imagen reemplazada");
 const villageOutskirts = webpDimensions(await readFile(new URL("../assets/locations/village-outskirts.webp", import.meta.url)), "village-outskirts.webp");

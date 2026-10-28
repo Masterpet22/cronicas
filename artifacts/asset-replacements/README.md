@@ -67,3 +67,19 @@ Prompt de extracción usado exclusivamente para `village-outskirts-branches.jpg`
 ```text
 Use case: background-extraction. Edit target: the supplied horizontal game foreground overlay. Remove ONLY the plain white background and all white gaps between the leaves and branches; output genuine transparent alpha. Preserve the supplied artwork faithfully: the same pine branches and needles, red maple leaves, dark twigs, shapes, colors, highlights, linework, and framing at the top, left and right edges. Keep their exact relative positions, full landscape canvas, aspect ratio and generous empty center and lower center; this overlay must register with the original 1376 by 768 canvas. DO NOT crop to the artwork bounds, rearrange, move, redraw, stylize or add branches. The branches at the canvas edges must stay at those same edges. Preserve internal light colored highlights as opaque artwork, but eliminate the white backdrop including its enclosed gaps. Clean antialiased edges without white fringe. No replacement background, no shadows, no text, no new objects.
 ```
+
+## Plaza de Eventos, Paso del Crepúsculo y Marisma
+
+Se convirtieron directamente `event.jpg`, `battle-dusk-pass.jpg` y `battle-mist-marsh-water.jpg` desde `D:/Descargas`, sin generación de imágenes ni alteraciones del encuadre, a los WebP del mismo nombre en `assets/locations/`. Se mantiene la resolución nativa de 1376 × 768, calidad 86 y metadatos eliminados.
+
+| Fondo | Archivo anterior utilizado por el juego | WebP actual |
+| --- | ---: | ---: |
+| Plaza de Eventos | 303.376 bytes | 194.844 bytes |
+| Paso del Crepúsculo | 784.787 bytes | 156.058 bytes |
+| Marisma de los Juncos | 2.147.732 bytes | 104.110 bytes |
+
+Los tres recursos pasan de **3.235.895 a 455.012 bytes**, un **85,9 % menos** que los archivos utilizados inmediatamente antes de este último cambio. Los JPG proporcionados sumaban 2.293.545 bytes. [Informe por archivo](final-backgrounds-report.json).
+
+Se actualizaron las referencias del catálogo de combate, las rutas del médico, el cifrado y las versiones de caché. Los formatos anteriores del Paso y la Marisma se retiraron después de desconectarlos. La copia antigua `battle-mist-marsh.jpg` ya figuraba eliminada por el usuario.
+
+`kagemori.webp` es el fondo activo. `kagemori.png` conservaba una fuente del estilo anterior, sin referencias en el código o CSS: se eliminó y se recuperaron **3.182.738 bytes de disco**, sin cambiar la descarga de Kagemori. `battle-moon-shrine.jpg` sigue en uso y aún conserva el estilo anterior.

@@ -7,7 +7,7 @@ const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
 
 assert.doesNotMatch(index, /<link[^>]+rel="preload"[^>]+as="image"/, "La entrada no debe anticipar imágenes que aún no se muestran");
 assert.equal((index.match(/<link[^>]+rel="preload"[^>]+as="font"/g) || []).length, 2, "Solo las dos fuentes críticas deben conservar preload");
-assert.equal(META_ASSET_VERSION, "0.82.8", "El metajuego debe compartir una única versión de recursos");
+assert.equal(META_ASSET_VERSION, "0.82.9", "El metajuego debe compartir una única versión de recursos");
 assert.deepEqual(SHARED_BATTLE_ASSETS, {
   villageOutskirts: "assets/locations/village-outskirts.webp?v=0.74.1",
   forestRoad: "assets/locations/forest-road.webp?v=0.75.1",

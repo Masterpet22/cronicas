@@ -1,0 +1,50 @@
+{
+  "assets": [
+    {
+      "source": "D:\\Descargas\\event.jpg",
+      "output": "assets\\locations\\event.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 830611,
+      "previous_runtime_bytes": 303376,
+      "output_bytes": 194844,
+      "quality": 86,
+      "psnr_db": 38.94,
+      "alpha_error": 0
+    },
+    {
+      "source": "D:\\Descargas\\battle-dusk-pass.jpg",
+      "output": "assets\\locations\\battle-dusk-pass.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 770184,
+      "previous_runtime_bytes": 784787,
+      "output_bytes": 156058,
+      "quality": 86,
+      "psnr_db": 39.95,
+      "alpha_error": 0
+    },
+    {
+      "source": "D:\\Descargas\\battle-mist-marsh-water.jpg",
+      "output": "assets\\locations\\battle-mist-marsh-water.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 692750,
+      "previous_runtime_bytes": 2147732,
+      "output_bytes": 104110,
+      "quality": 86,
+      "psnr_db": 40.43,
+      "alpha_error": 0
+    }
+  ],
+  "source_bytes": 2293545,
+  "previous_runtime_bytes": 3235895,
+  "output_bytes": 455012,
+  "unused_kagemori_png_bytes": 3182738
+}

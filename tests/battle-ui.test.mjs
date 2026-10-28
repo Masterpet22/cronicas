@@ -198,7 +198,7 @@ assert.match(battle, /createUiIcon\(this, "healthLoss"/, "La pérdida de vida de
 assert.match(battle, /ratio <= 0\.25 \? 0xe06b52 : 0x06d45a/, "La barra de vida debe conservar el jade y apagarse solamente en estado crítico");
 assert.match(battle, /\[\.\.\.this\.foe\.targets, this\.foe\.shadow\]/, "La sombra enemiga debe desvanecerse junto con el cuerpo");
 assert.match(battle, /this\.foe = createPlayerFighter\(this, 740, fighterY, this\.enemyAppearance\(\), true\)/, "El rival debe usar su apariencia registrada y mirar hacia el jugador");
-assert.match(battle, /battle-mist-marsh-water\.png/, "La marisma debe usar el fondo sin plataforma de piedra");
+assert.match(battle, /battle-mist-marsh-water\.webp/, "La marisma debe usar el fondo optimizado sin plataforma de piedra");
 assert.match(battle, /styleFighterGrounding\(fighter\)[\s\S]*profile\.grounding[\s\S]*setStrokeStyle\(ground\.strokeWidth/, "El contacto de ambos combatientes con el suelo debe proceder del perfil visual de la arena");
 assert.match(battle, /queueTeleportObjects\(this\)/, "El combate debe cargar los objetos de apariencia para la Sustitución");
 assert.match(battle, /El rival evitó \$\{jutsu\.name\} con una Sustitución/, "El enemigo debe usar Sustitución al esquivar al jugador");
