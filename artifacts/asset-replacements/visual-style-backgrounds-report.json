@@ -1,0 +1,138 @@
+{
+  "assets": [
+    {
+      "source": "D:\\Descargas\\archive.jpg",
+      "output": "assets\\locations\\archive.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 812423,
+      "output_bytes": 187130,
+      "quality": 86,
+      "psnr_db": 38.99,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\arena.jpg",
+      "output": "assets\\locations\\arena.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 820039,
+      "output_bytes": 189150,
+      "quality": 86,
+      "psnr_db": 39.07,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\dojo.jpg",
+      "output": "assets\\locations\\dojo.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 808602,
+      "output_bytes": 180636,
+      "quality": 86,
+      "psnr_db": 39.0,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\forest-road.jpg",
+      "output": "assets\\locations\\forest-road.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 896924,
+      "output_bytes": 235586,
+      "quality": 86,
+      "psnr_db": 38.72,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\inn.jpg",
+      "output": "assets\\locations\\inn.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 835973,
+      "output_bytes": 204270,
+      "quality": 86,
+      "psnr_db": 38.71,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\missions.jpg",
+      "output": "assets\\locations\\missions.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 782166,
+      "output_bytes": 173870,
+      "quality": 86,
+      "psnr_db": 39.44,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\shop.jpg",
+      "output": "assets\\locations\\shop.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 785080,
+      "output_bytes": 155674,
+      "quality": 86,
+      "psnr_db": 38.89,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\tower.jpg",
+      "output": "assets\\locations\\tower.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 817460,
+      "output_bytes": 192150,
+      "quality": 86,
+      "psnr_db": 39.04,
+      "alpha": false
+    },
+    {
+      "source": "D:\\Descargas\\village-outskirts.jpg",
+      "output": "assets\\locations\\village-outskirts.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 814858,
+      "output_bytes": 188800,
+      "quality": 86,
+      "psnr_db": 38.88,
+      "alpha": false
+    },
+    {
+      "source": "D:/Descargas/village-outskirts-branches.jpg",
+      "cutout": "C:\\Users\\epren\\.codex\\generated_images\\01a183f1-ad2c-7261-b9d9-d34bf470b9dd\\exec-369080b7-124e-4626-8f34-105192ecab3b.png",
+      "output": "assets\\locations\\village-outskirts-branches.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 587431,
+      "output_bytes": 411264,
+      "quality": 90,
+      "alpha": true,
+      "alpha_error": 0
+    }
+  ],
+  "source_bytes": 7960956,
+  "output_bytes": 2118530,
+  "reduction_percent": 73.4
+}

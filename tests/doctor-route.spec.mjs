@@ -26,6 +26,15 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await startSearch(page);
+    await expect(page.locator(".village-topbar")).toHaveCount(0);
+    await page.getByRole("button", { name: "Pausar misión" }).click();
+    const pause = page.getByRole("dialog", { name: "Misión en pausa" });
+    await expect(pause).toBeVisible();
+    await pause.getByRole("button", { name: "ABANDONAR MISIÓN", exact: true }).click();
+    await expect(page.locator(".mission-decision-overlay")).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(page.locator("#meta")).not.toHaveClass(/mission-paused/);
+    await expect(pause).toBeHidden();
     await expect(page.locator(".route-node:enabled")).toHaveCount(3);
     await expect(page.locator(".route-map-links path")).toHaveCount(16);
     await page.screenshot({ path: `artifacts/doctor-route/map-${viewport.width}.png` });
@@ -88,8 +97,19 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await expect(page.locator(".dialogue-overlay")).toContainText("Gracias por venir a buscarme");
     for (let i = 0; i < 3; i += 1) await page.locator(".dialogue-overlay button").click();
     await expect(page.locator(".cipher-screen")).toBeVisible();
+    await expect(page.locator(".village-topbar")).toHaveCount(0);
+    await page.getByRole("button", { name: "Pausar misión" }).click();
+    await expect(pause).toBeVisible();
+    await pause.getByRole("button", { name: "REANUDAR", exact: true }).click();
     await expect(page.locator(".cipher-cell")).toHaveCount(36);
     await expect(page.locator("[data-complete-doctor]")).toHaveCount(0);
+    await page.getByRole("button", { name: "Pausar misión" }).click();
+    await pause.getByRole("button", { name: "ABANDONAR MISIÓN", exact: true }).click();
+    await page.locator('[data-decision="abandon"]').click();
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).campaign.missionProgress.s02.status)).toBe("abandoned");
+    await expect(page.locator(".mission-pause-dialog[open]")).toHaveCount(0);
+    await page.reload();
+    await expect(page.locator(".village-topbar")).toBeVisible();
     expect(errors).toEqual([]);
   });
 }

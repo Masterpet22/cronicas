@@ -1,11 +1,3 @@
-const COMING_SOON_LOCATIONS = {
-  tower: { npcId: "kureha", message: "La Torre de Desafíos permanece cerrada mientras terminamos sus pruebas y reglas especiales. Próximamente podrás poner a prueba tu equipo piso por piso." },
-  shop: { npcId: "hana", message: "La Tienda de Objetos aún está preparando su inventario. Próximamente podrás comprar consumibles, herramientas y mejoras con las monedas que consigas." },
-  event: { npcId: "nao", message: "La Plaza de Eventos todavía no ha inaugurado sus actividades. Próximamente habrá festivales, visitantes y desafíos temporales." },
-  inn: { npcId: "yuna", message: "El Gremio aún está preparando sus servicios. Próximamente podrás descansar, conversar con aliados y descubrir escenas entre misiones." },
-  arena: { npcId: "goro", message: "La Arena de Combate todavía está en preparación. Próximamente podrás practicar, probar configuraciones y disputar combates sin afectar la campaña." }
-};
-
 export const VILLAGE_LOCATIONS = [
   { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
   { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", labelX: 505, labelY: 446, path: "M359 383 L389 373 L409 356 L427 348 L453 348 L468 333 L574 335 L596 348 L618 352 L629 369 L657 386 L636 399 L638 493 L662 505 L659 534 L620 534 L613 550 L403 550 L395 536 L354 535 L351 507 L375 493 L376 399 L347 388 Z" },
@@ -44,9 +36,6 @@ export function createVillageView(deps) {
   let currentState = null;
   let layout = { locationId: null };
 
-  const isComingSoon = (location, save) => Boolean(COMING_SOON_LOCATIONS[location.id])
-    || (location.id === "missions" && !save.campaign.secondaryBoardUnlocked);
-
   const welcomeDialogue = (character) => {
     const master = deps.masterForCharacter(character).name;
     return [
@@ -82,13 +71,11 @@ export function createVillageView(deps) {
       </div>` : ""}
     </section>`;
     const hotspots = VILLAGE_LOCATIONS.map((location) => {
-      const comingSoon = isComingSoon(location, save);
-      return `<g class="village-hotspot hotspot-${location.id} ${comingSoon ? "coming-soon" : ""}" ${comingSoon ? `data-coming-soon="${location.id}"` : `data-go="${location.id}"`} role="button" tabindex="0" aria-label="${deps.escapeHtml(location.name)}: ${deps.escapeHtml(comingSoon ? "Próximamente" : location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
+      return `<g class="village-hotspot hotspot-${location.id}" data-go="${location.id}" role="button" tabindex="0" aria-label="${deps.escapeHtml(location.name)}: ${deps.escapeHtml(location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
     }).join("");
     const labels = VILLAGE_LOCATIONS.map((location) => {
-      const comingSoon = isComingSoon(location, save);
       const recommended = location.id === nextObjective;
-      return `<span class="map-label ${comingSoon ? "coming-soon" : ""} ${recommended ? "recommended" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong><small>${deps.escapeHtml(recommended ? "OBJETIVO · " + location.description : comingSoon ? "PRÓXIMAMENTE · " + location.description : location.description)}</small></span></span>`;
+      return `<span class="map-label ${recommended ? "recommended" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong><small>${deps.escapeHtml(recommended ? "OBJETIVO · " + location.description : location.description)}</small></span></span>`;
     }).join("");
     currentState = { ...currentState, secondaryObjectives, unseenSecondaryObjectives };
     return `<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${deps.assetVersion}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${missionDock}</section>`;
@@ -131,32 +118,6 @@ export function createVillageView(deps) {
           trigger.focus();
         });
       }
-      root.querySelectorAll("[data-coming-soon]").forEach((hotspot) => {
-        const locationId = hotspot.getAttribute("data-coming-soon");
-        const info = COMING_SOON_LOCATIONS[locationId]
-          || (locationId === "missions" ? { npcId: "riku", message: "El Tablón todavía no está recibiendo encargos. Sayo avisará cuando exista una pista que investigar." } : null);
-        const label = root.querySelector(`[data-map-label="${locationId}"]`);
-        const showLabel = () => label?.classList.add("visible");
-        const hideLabel = () => label?.classList.remove("visible");
-        const explain = () => {
-          if (!info) return;
-          const npc = deps.npcs[info.npcId] || deps.npcs[deps.locationCast[locationId]?.[0]];
-          deps.showDialogue([[npc?.name || "Habitante de la aldea", info.message]], () => {}, "ENTENDIDO");
-        };
-        scope.listen(hotspot, "mouseenter", () => deps.warmImage(`${deps.npcs[info.npcId].image}?v=${deps.assetVersion}`), { once: true });
-        scope.listen(hotspot, "focus", () => deps.warmImage(`${deps.npcs[info.npcId].image}?v=${deps.assetVersion}`), { once: true });
-        scope.listen(hotspot, "click", (event) => { event.preventDefault(); event.stopPropagation(); explain(); });
-        scope.listen(hotspot, "mouseenter", showLabel);
-        scope.listen(hotspot, "mouseleave", hideLabel);
-        scope.listen(hotspot, "focus", showLabel);
-        scope.listen(hotspot, "blur", hideLabel);
-        scope.listen(hotspot, "keydown", (event) => {
-          if (event.key !== "Enter" && event.key !== " ") return;
-          event.preventDefault();
-          event.stopPropagation();
-          explain();
-        });
-      });
       if (!save.campaign.tutorialSeen) deps.showDialogue(welcomeDialogue(save.character), deps.onTutorialComplete, "IR AL CUARTEL", "story");
     },
     dispose() { currentState = null; }

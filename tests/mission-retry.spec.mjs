@@ -1,5 +1,25 @@
 import { expect, test } from "@playwright/test";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
+import { bootPerformanceReference } from "./helpers/performance-harness.mjs";
+
+test("la misión 3 continúa al teniente sin fase de investigación", async ({ page }) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  await bootPerformanceReference(page, { arenaIndex: 1 });
+  const state = await page.evaluate(async () => {
+    const battle = window.__performanceReference.scene;
+    battle.enemy.hp = 0;
+    await battle.resolveEnemyOutcome();
+    battle.stopTurnTimeline();
+    return { index: battle.enemyIndex, defeated: battle.defeatedEncounters,
+      pending: battle.pendingEncounterRewards, finished: battle.finished };
+  });
+  expect(state).toEqual({ index: 1, defeated: 1, pending: [0], finished: false });
+  await expect(page.locator(".mission-investigation-overlay")).toHaveCount(0);
+  await expect(page.locator(".combat-access")).toBeVisible();
+  expect(errors).toEqual([]);
+  await page.evaluate(() => window.__performanceReference.game.destroy(true));
+});
 
 async function advanceDialogue(page) {
   const overlay = page.locator(".dialogue-overlay");
@@ -134,7 +154,7 @@ test("repite solo el duelo perdido, agota dos reintentos y permite retirarse", a
   await page.evaluate(() => window.__retryGame.destroy(true));
 });
 
-test("una misión abandonada no ofrece Continuar y la tienda sigue cerrada", async ({ page }) => {
+test("una misión abandonada no ofrece Continuar y el mapa permite visitar la tienda", async ({ page }) => {
   await page.goto("/");
   await page.evaluate(async () => {
     const s = await import("/src/save.js?v=0.106.0");
@@ -146,8 +166,8 @@ test("una misión abandonada no ofrece Continuar y la tienda sigue cerrada", asy
   await page.reload();
   await expect(await openFirstMission(page)).toHaveText("INICIAR HISTORIA");
   await page.locator('.village-return [data-view="plaza"]').click();
-  await expect(page.locator('[data-coming-soon="shop"]')).toHaveCount(1);
-  await expect(page.locator('[data-go="shop"]')).toHaveCount(0);
+  await expect(page.locator('[data-coming-soon]')).toHaveCount(0);
+  await expect(page.locator('[data-go="shop"]')).toHaveCount(1);
   await expect(page.locator("[data-buy-retry]")).toHaveCount(0);
 });
 

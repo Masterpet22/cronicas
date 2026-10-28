@@ -74,6 +74,14 @@ for (const asset of ["basic-strike.webp", "guard.webp"]) {
   assert.equal(image.alpha, true, `${asset} debe conservar un canal alfa`);
 }
 
+for (const [asset, width, height] of [["teleport-dog.webp", 460, 520], ["teleport-puppet.webp", 800, 220]]) {
+  const file = await readFile(new URL(`../assets/vfx/${asset}`, import.meta.url));
+  const image = webpDimensions(file, asset);
+  assert.deepEqual([image.width, image.height], [width, height], `${asset} debe conservar las proporciones usadas por la transportación`);
+  assert.equal(image.alpha, true, `${asset} debe tener fondo transparente`);
+  assert.ok(file.length < 150_000, `${asset} debe estar optimizado para el navegador`);
+}
+
 const substitutionLog = await readFile(new URL("../assets/vfx/substitution-log-runtime.png", import.meta.url));
 assert.equal(substitutionLog.subarray(1, 4).toString("ascii"), "PNG", "El tronco de Sustitución debe ser un PNG válido");
 assert.ok(substitutionLog.readUInt32BE(16) >= 768, "El tronco de Sustitución debe conservar resolución suficiente para la animación");
@@ -115,18 +123,21 @@ assert.equal(village.height, 937, "El mapa debe conservar su alto original");
 const locationIds = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
 await Promise.all(locationIds.map(async (id) => {
   const image = webpDimensions(await readFile(new URL(`../assets/locations/${id}.webp`, import.meta.url)), `${id}.webp`);
+  if (id !== "event") {
+    assert.deepEqual([image.width, image.height], [1376, 768], `${id} debe conservar la resolución nativa de la imagen reemplazada`);
+    return;
+  }
   assert.ok(image.width >= 1500, `${id} necesita resolución panorámica suficiente`);
   assert.ok(image.height >= 900, `${id} necesita altura suficiente`);
 }));
 const kagemori = webpDimensions(await readFile(new URL("../assets/locations/kagemori.webp", import.meta.url)), "kagemori.webp");
-assert.ok(kagemori.width >= 1500, "Kagemori necesita resolución panorámica suficiente");
-assert.ok(kagemori.height >= 900, "Kagemori necesita altura suficiente");
+assert.deepEqual([kagemori.width, kagemori.height], [1376, 768], "Kagemori debe conservar la resolución nativa de la imagen reemplazada");
 const villageOutskirts = webpDimensions(await readFile(new URL("../assets/locations/village-outskirts.webp", import.meta.url)), "village-outskirts.webp");
-assert.deepEqual([villageOutskirts.width, villageOutskirts.height], [1672, 941], "El camino de salida debe conservar resolución panorámica suficiente");
+assert.deepEqual([villageOutskirts.width, villageOutskirts.height], [1376, 768], "El camino de salida debe conservar la resolución nativa del fondo nuevo");
 const forestRoad = webpDimensions(await readFile(new URL("../assets/locations/forest-road.webp", import.meta.url)), "forest-road.webp");
-assert.deepEqual([forestRoad.width, forestRoad.height], [1672, 941], "El camino del bosque debe conservar resolución panorámica suficiente");
+assert.deepEqual([forestRoad.width, forestRoad.height], [1376, 768], "El camino del bosque debe conservar la resolución nativa del fondo nuevo");
 const travelBranches = webpDimensions(await readFile(new URL("../assets/locations/village-outskirts-branches.webp", import.meta.url)), "village-outskirts-branches.webp");
-assert.deepEqual([travelBranches.width, travelBranches.height], [1672, 940], "Las ramas de parallax deben conservar su lienzo panorámico");
+assert.deepEqual([travelBranches.width, travelBranches.height], [1376, 768], "Las ramas de parallax deben conservar el encuadre panorámico de la imagen nueva");
 assert.equal(travelBranches.alpha, true, "Las ramas de parallax deben conservar transparencia real");
 const hudThemeDimensions = { ancestral: [2172, 724], lunar: [866, 288] };
 for (const theme of ["ancestral", "lunar"]) {

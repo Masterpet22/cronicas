@@ -17,6 +17,15 @@ export function createViewRuntime(root) {
     revision += 1;
     controller = new AbortController();
     const ownController = controller;
+    let paused = false;
+    const timers = new Set();
+    const schedule = (timer) => {
+      timer.started = performance.now();
+      timer.handle = setTimeout(() => timer.finish(true), timer.remaining);
+    };
+    ownController.signal.addEventListener("abort", () => {
+      timers.forEach((timer) => timer.finish(false));
+    }, { once: true });
     root.replaceChildren();
     root.insertAdjacentHTML("afterbegin", html);
     root.dataset.activeView = viewId;
@@ -24,6 +33,29 @@ export function createViewRuntime(root) {
     return {
       signal: ownController.signal,
       revision: ownRevision,
+      isPaused: () => paused,
+      setPaused(value) {
+        if (ownController.signal.aborted || paused === value) return;
+        paused = value;
+        timers.forEach((timer) => {
+          if (paused) {
+            clearTimeout(timer.handle);
+            timer.remaining = Math.max(0, timer.remaining - (performance.now() - timer.started));
+          } else schedule(timer);
+        });
+      },
+      delay(duration) {
+        return new Promise((resolve) => {
+          if (ownController.signal.aborted) { resolve(false); return; }
+          const timer = { remaining: Math.max(0, duration), finish(value) {
+            clearTimeout(timer.handle);
+            timers.delete(timer);
+            resolve(value);
+          } };
+          timers.add(timer);
+          if (!paused) schedule(timer);
+        });
+      },
       isCurrent: () => revision === ownRevision && !ownController.signal.aborted,
       guard: (callback) => (...args) => {
         if (revision === ownRevision && !ownController.signal.aborted) return callback(...args);

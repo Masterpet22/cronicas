@@ -179,16 +179,13 @@ export class BattleFlowMethods {
         await this.showPendingLevelUp(this.saveData);
         await this.finishBattle(true);
       } else {
-        const investigationStep = missionStep(this.mission, "investigation");
         const choiceStep = missionStep(this.mission, "choice");
         const resourceStep = missionStep(this.mission, "resource");
-        const interlude = investigationStep?.afterEncounter === this.enemyIndex
-          ? () => this.playInvestigationPhase()
-          : choiceStep?.afterEncounter === this.enemyIndex
-            ? () => this.playPrisonerChoice()
-            : resourceStep?.afterEncounter === "each"
-              ? () => this.playResourceChoice()
-              : null;
+        const interlude = choiceStep?.afterEncounter === this.enemyIndex
+          ? () => this.playPrisonerChoice()
+          : resourceStep?.afterEncounter === "each"
+            ? () => this.playResourceChoice()
+            : null;
         await this.advanceEncounter(interlude);
       }
       return true;
@@ -334,6 +331,7 @@ export class BattleFlowMethods {
       destroyFighter(this.foe);
 
       if (interlude) await interlude();
+      if (this.finished || !isSceneActive(this.scene)) return;
 
       this.enemyIndex += 1;
       const profile = this.encounters[this.enemyIndex];
@@ -455,87 +453,6 @@ export class BattleFlowMethods {
     await this.playBattleChoice("ALMACÉN DE LOS CUERVOS", this.missionSceneText("secret-warehouse"), [
       { value: "continue", label: "ASEGURAR EL ALMACÉN", detail: `Bonificación de misión: +${this.mission.secretBonusCoins} monedas.`, primary: true }
     ]);
-  }
-
-  async playInvestigationPhase() {
-    const restoreHud = this.accessibleHud?.suspend?.();
-    try {
-      const masterName = masterIdForCharacter(battleRuntime.activeSave.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
-      const masterFile = masterIdForCharacter(battleRuntime.activeSave.character) === "mei" ? "mei-hayate.webp" : "daichi-kazan.webp";
-      const regions = [
-        { id: "cart", label: "CARRETA", labelX: 21, labelY: 67, clue: "Cuerdas con polvo de cantera", real: true, path: "M0 360 L115 335 L232 370 L360 407 L472 468 L575 512 L690 621 L654 706 L559 751 L420 748 L310 713 L205 678 L80 666 L0 620 Z" },
-        { id: "house", label: "CASA INCENDIADA", labelX: 47, labelY: 38, clue: "Un mapa rasgado del desfiladero aparece entre las cenizas", real: true, path: "M420 273 L492 239 L554 154 L628 128 L784 133 L870 157 L927 194 L1041 220 L1083 268 L1035 302 L1024 438 L944 453 L849 439 L782 390 L721 349 L651 371 L610 329 L529 350 L469 320 Z" },
-        { id: "tracks", label: "HUELLAS", labelX: 61, labelY: 80, clue: "Carga pesada rumbo al norte", real: true, path: "M965 941 L900 884 L951 824 L923 770 L965 716 L991 648 L1072 620 L1120 670 L1081 731 L1107 786 L1056 840 L1088 908 L1058 941 Z" },
-        { id: "well", label: "POZO", labelX: 89, labelY: 64, clue: "El agua está limpia: nadie manipuló el pozo recientemente", real: false, path: "M1360 402 L1478 369 L1609 383 L1672 423 L1672 782 L1608 841 L1462 828 L1379 759 L1328 661 L1339 532 Z" },
-        { id: "gate", label: "PUERTA DEL FINAL", labelX: 75, labelY: 42, clue: "Las marcas de la puerta son antiguas y no pertenecen a los bandidos", real: false, path: "M1123 303 L1191 278 L1316 284 L1372 323 L1379 456 L1326 500 L1214 489 L1138 451 Z" }
-      ];
-      const realClueCount = regions.filter((entry) => entry.real).length;
-      const found = new Set();
-      const examined = new Set();
-      const overlay = document.createElement("section");
-      overlay.className = "mission-investigation-overlay";
-      overlay.setAttribute("aria-label", "Fase 2 de investigación");
-      overlay.innerHTML = `<img class="mission-investigation-background" src="${SHARED_BATTLE_ASSETS.kagemori}" alt="Aldea de Kagemori incendiada"><div class="mission-investigation-shade"></div><header class="mission-investigation-header"><p>FASE 2 · INVESTIGACIÓN</p><h2>Reconstruye la ruta de los bandidos</h2><strong data-mission-clue-count>0/${realClueCount} pistas reales</strong></header><p class="mission-investigation-log" data-mission-investigation-log>Examina la casa, la carreta, las huellas, el pozo y la puerta.</p><svg class="mission-investigation-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${regions.map((entry) => `<g class="mission-investigation-region" data-investigation-region="${entry.id}" role="button" tabindex="0" aria-label="Investigar ${entry.label}"><path d="${entry.path}"/></g>`).join("")}</svg>${regions.map((entry) => `<span class="mission-investigation-label" data-investigation-label="${entry.id}" style="--label-x:${entry.labelX}%;--label-y:${entry.labelY}%"><strong>${entry.label}</strong></span>`).join("")}<img class="mission-investigation-master" src="assets/npcs/${masterFile}" alt="${masterName}"><button class="mission-investigation-continue" type="button" disabled data-mission-investigation-continue>REÚNE ${realClueCount} PISTAS</button>`;
-      const container = this.game.canvas.parentElement;
-      const canvas = this.game.canvas;
-      const previousCanvasVisibility = canvas?.style.visibility || "";
-      container.append(overlay);
-      if (canvas) canvas.style.visibility = "hidden";
-      this.game.loop.sleep();
-
-      try {
-        const clueText = overlay.querySelector("[data-mission-investigation-log]");
-        const clueCount = overlay.querySelector("[data-mission-clue-count]");
-        const continueButton = overlay.querySelector("[data-mission-investigation-continue]");
-        regions.forEach((entry) => {
-          const marker = overlay.querySelector(`[data-investigation-region="${entry.id}"]`);
-          const label = overlay.querySelector(`[data-investigation-label="${entry.id}"]`);
-          const showLabel = () => label?.classList.add("visible");
-          const hideLabel = () => { if (!examined.has(entry.id)) label?.classList.remove("visible"); };
-          const inspect = () => {
-            if (examined.has(entry.id)) return;
-            examined.add(entry.id);
-            label?.classList.add("visible");
-            marker?.classList.add(entry.real ? "found" : "discarded");
-          if (!entry.real) {
-              if (label) label.querySelector("strong").textContent = `${entry.label} · SIN PISTA`;
-              clueText.textContent = `${entry.clue} · Sigue investigando.`;
-            return;
-          }
-            found.add(entry.id);
-            if (label) label.querySelector("strong").textContent = `✓ ${entry.label}`;
-            clueCount.textContent = `${found.size}/${realClueCount} pistas reales`;
-            clueText.textContent = `${entry.clue} · ${found.size}/${realClueCount} pistas reales`;
-          if (found.size === realClueCount) {
-              clueText.textContent = this.missionSceneText("investigation-complete", { master: masterName });
-              continueButton.disabled = false;
-              continueButton.textContent = "SEGUIR EL RASTRO";
-          }
-          };
-          marker?.addEventListener("mouseenter", showLabel);
-          marker?.addEventListener("mouseleave", hideLabel);
-          marker?.addEventListener("focus", showLabel);
-          marker?.addEventListener("blur", hideLabel);
-          marker?.addEventListener("click", inspect);
-          marker?.addEventListener("keydown", (event) => {
-            if (event.key !== "Enter" && event.key !== " ") return;
-            event.preventDefault();
-            inspect();
-          });
-        });
-        await new Promise((resolve) => continueButton.addEventListener("click", () => {
-          if (found.size === realClueCount) resolve();
-        }, { once: true }));
-        overlay.classList.add("leaving");
-        await new Promise((resolve) => window.setTimeout(resolve, 220));
-      } finally {
-        overlay.remove();
-        if (canvas) canvas.style.visibility = previousCanvasVisibility;
-        this.game.loop.wake();
-      }
-    } finally {
-      restoreHud?.();
-    }
   }
 
   async playPrisonerChoice() {

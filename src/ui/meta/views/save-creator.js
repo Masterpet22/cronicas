@@ -48,7 +48,7 @@ export function createSaveCreatorView(deps) {
     const affinityChoices = deps.basicElementIds.map((id, index) => `<label class="affinity-choice creator-affinity-choice" style="--affinity-color:#${deps.elements[id].color.toString(16).padStart(6, "0")}"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>Afinidad básica</small></span><b class="creator-affinity-check" aria-hidden="true">✓</b></label>`).join("");
     const affinity = deps.basicElementIds[0];
     const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;
-    const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", hair: 1 } }, "0.82.5", { backdrop: elementParticlesMarkup(affinity) });
+    const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", hair: 1 } }, "0.82.8", { backdrop: elementParticlesMarkup(affinity) });
     const hairChoices = CREATOR_HAIR_STYLES.map(({ id, label }) => `<option value="${id}" ${id === 1 ? "selected" : ""}>${label}</option>`).join("");
     return `
       <section class="dojo-card creator-card creator-customizer" style="--creator-affinity:${color}">
@@ -100,7 +100,7 @@ export function createSaveCreatorView(deps) {
       const updateGender = () => {
         preview.dataset.bodyType = gender.value;
         const affinity = form.querySelector('input[name="affinity"]:checked').value;
-        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, hair: Number(hair.value) } }, "0.82.5", { backdrop: elementParticlesMarkup(affinity) });
+        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, hair: Number(hair.value) } }, "0.82.8", { backdrop: elementParticlesMarkup(affinity) });
       };
       scope.listen(name, "input", () => { name.setCustomValidity(""); root.querySelector("[data-creator-name]").textContent = name.value.trim() || "Tu combatiente"; });
       scope.listen(gender, "change", updateGender);

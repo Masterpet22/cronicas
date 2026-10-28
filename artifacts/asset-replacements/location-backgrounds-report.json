@@ -1,0 +1,32 @@
+{
+  "assets": [
+    {
+      "source": "D:\\Descargas\\headquarters.jpg",
+      "output": "assets\\locations\\headquarters.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 815542,
+      "output_bytes": 181624,
+      "quality": 86,
+      "psnr_db": 39.03,
+      "alpha_error": 0
+    },
+    {
+      "source": "D:\\Descargas\\kagemori.jpg",
+      "output": "assets\\locations\\kagemori.webp",
+      "dimensions": [
+        1376,
+        768
+      ],
+      "source_bytes": 865915,
+      "output_bytes": 204228,
+      "quality": 86,
+      "psnr_db": 39.02,
+      "alpha_error": 0
+    }
+  ],
+  "source_bytes": 1681457,
+  "output_bytes": 385852
+}

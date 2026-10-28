@@ -16,12 +16,7 @@ export function renderDoctorCipher(route, mission, deps, save) {
 }
 
 function delay(scope, duration) {
-  return new Promise((resolve) => {
-    if (!scope.isCurrent()) { resolve(); return; }
-    const finish = () => { clearTimeout(timer); scope.signal.removeEventListener("abort", finish); resolve(); };
-    const timer = setTimeout(finish, duration);
-    scope.signal.addEventListener("abort", finish, { once: true });
-  });
+  return scope.delay(duration);
 }
 
 export function mountDoctorCipher(root, scope, state, mission, deps) {

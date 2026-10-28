@@ -172,16 +172,8 @@ assert.match(battle, /class MissionEpilogueScene extends Phaser\.Scene/, "La pri
 assert.match(battle, /Aldea de Kagemori/, "Sayo debe señalar Kagemori como el lugar donde perdió el rastro");
 assert.match(battle, /activeMission\?\.type === "investigation"/, "El viaje de investigación debe abrir la zona explorable en lugar de iniciar un combate");
 assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las investigaciones secundarias deben tener resultados propios");
-assert.match(battle, /playInvestigationPhase\(\)/, "La segunda misión principal debe incluir una fase de investigación");
+assert.doesNotMatch(battle, /playInvestigationPhase|playChakraTracking/, "La misión del desfiladero debe continuar al siguiente duelo sin la fase de investigación retirada");
 assert.match(battle, /playMissionOneTutorial\(\)/, "La primera misión debe explicar explícitamente vida, chakra, velocidad, sellos y guardia");
-const missionInvestigation = battle.match(/async playInvestigationPhase\(\)[\s\S]*?(?=async playPrisonerChoice\(\))/)?.[0] || "";
-assert.match(missionInvestigation, /label: "CARRETA"[\s\S]*label: "CASA INCENDIADA"[\s\S]*label: "HUELLAS"[\s\S]*label: "POZO"[\s\S]*label: "PUERTA DEL FINAL"[\s\S]*FASE 2 · INVESTIGACIÓN/, "La investigación debe ofrecer cinco zonas integradas en el escenario");
-assert.match(missionInvestigation, /document\.createElement\("section"\)[\s\S]*SHARED_BATTLE_ASSETS\.kagemori/, "La fase 2 debe conservar el escenario ilustrado de Kagemori fuera del lienzo de combate");
-assert.match(missionInvestigation, /mission-investigation-hotspots[\s\S]*viewBox="0 0 1672 941"/, "Las zonas deben usar las coordenadas completas de la ilustración");
-assert.match(missionInvestigation, /realClueCount = regions\.filter/, "Solo tres de las cinco zonas deben contar como pistas reales");
-assert.match(missionInvestigation, /this\.game\.canvas\.parentElement[\s\S]*this\.game\.loop\.sleep\(\)[\s\S]*this\.game\.loop\.wake\(\)/, "La escena debe acceder a su contenedor y ciclo Phaser sin globals del entrypoint");
-assert.doesNotMatch(missionInvestigation, /gameRoot|(?<!this\.)game\?\./, "La investigación no debe usar referencias globales fuera del alcance de la escena");
-assert.doesNotMatch(missionInvestigation, /this\.add\.(?:image|polygon|rectangle|text)/, "La investigación no debe seguir renderizándose dentro de la escena de combate");
 assert.match(battle, /this\.pendingActions\.player = jutsu;[\s\S]*actionNeedsPreparation\(jutsu\)/, "Las técnicas preparadas deben comprometerse en la línea temporal");
 assert.match(battle, /millisecondsToTimelineThreshold\(this\.timelineProgress\[actor\], speed, action\)/, "Cada combatiente debe calcular su siguiente llegada con su velocidad real");
 assert.match(battle, /this\.timelineProgress = \{ player: 0, enemy: 0 \}/, "La línea temporal debe mantener progreso independiente para ambos combatientes");

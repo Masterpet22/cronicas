@@ -1,0 +1,55 @@
+{
+  "assets": [
+    {
+      "source": "C:\\Users\\epren\\.codex\\generated_images\\01a183f1-ad2c-7261-b9d9-d34bf470b9dd\\exec-1d1997a4-8d79-4f72-8d27-bad28bc5074b.png",
+      "output": "assets\\actions\\basic-strike.webp",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 65394,
+      "alpha": true
+    },
+    {
+      "source": "C:\\Users\\epren\\.codex\\generated_images\\01a183f1-ad2c-7261-b9d9-d34bf470b9dd\\exec-0b3e317a-b7d0-438a-ad5c-46a3d1692a61.png",
+      "output": "assets\\actions\\guard.webp",
+      "dimensions": [
+        512,
+        512
+      ],
+      "bytes": 89212,
+      "alpha": true
+    },
+    {
+      "source": "C:\\Users\\epren\\.codex\\generated_images\\01a183f1-ad2c-7261-b9d9-d34bf470b9dd\\exec-edcf11e6-9189-4b68-9622-badf65c16111.png",
+      "output": "assets\\vfx\\teleport-dog.webp",
+      "dimensions": [
+        460,
+        520
+      ],
+      "bytes": 44650,
+      "alpha": true
+    },
+    {
+      "source": "C:\\Users\\epren\\.codex\\generated_images\\01a183f1-ad2c-7261-b9d9-d34bf470b9dd\\exec-e4f42c6b-213b-429b-990e-693f2eb04aaf.png",
+      "output": "assets\\vfx\\teleport-puppet.webp",
+      "dimensions": [
+        800,
+        220
+      ],
+      "bytes": 46050,
+      "alpha": true
+    },
+    {
+      "source": "D:\\Descargas\\aldea.jpg",
+      "output": "assets\\village\\aldea.webp",
+      "dimensions": [
+        1678,
+        937
+      ],
+      "bytes": 339048,
+      "alpha": false
+    }
+  ],
+  "total_bytes": 584354
+}

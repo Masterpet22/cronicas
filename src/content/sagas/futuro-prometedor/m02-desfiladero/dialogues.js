@@ -12,8 +12,5 @@ export const dialogues = {
   ],
   "mission.m02.prisoner-eliminate": [
     { speaker: "narrator", text: "Pierdes la información y un posible aliado, pero Akumori no recibirá refuerzos." }
-  ],
-  "mission.m02.investigation-complete": [
-    { speaker: "master", text: "{master}: «El rastro converge en la vieja cantera. Sigamos.»" }
   ]
 };

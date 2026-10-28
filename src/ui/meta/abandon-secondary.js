@@ -1,4 +1,4 @@
-export function confirmSecondaryAbandon(showMissionDecision, onConfirm) {
+export function confirmSecondaryAbandon(showMissionDecision, onConfirm, onCancel = () => {}) {
   showMissionDecision({
     eyebrow: "CONFIRMAR RETIRADA",
     title: "¿Abandonar la misión?",
@@ -7,5 +7,5 @@ export function confirmSecondaryAbandon(showMissionDecision, onConfirm) {
       { id: "continue", label: "Seguir jugando", description: "Conservar el progreso de esta misión.", primary: true },
       { id: "abandon", label: "Abandonar misión", description: "Descartar recompensas y niveles provisionales." }
     ]
-  }, (choice) => { if (choice === "abandon") onConfirm(); });
+  }, (choice) => { if (choice === "abandon") onConfirm(); else onCancel(); });
 }

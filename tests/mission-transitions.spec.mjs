@@ -66,7 +66,7 @@ test("el viaje a la misión usa parallax, cámara, partículas y llegada context
       zooming: scene.cameras.main.zoom > 1
     };
   });
-  expect(during).toEqual({ particles: true, arenaPreview: true, label: "MISIÓN 05 · RANGO D", arrival: "EL ENCUENTRO SE ACERCA", zooming: true });
+  expect(during).toEqual({ particles: true, arenaPreview: true, label: "MISIÓN 07 · RANGO D", arrival: "EL ENCUENTRO SE ACERCA", zooming: true });
   await expect.poll(() => page.evaluate(() => window.__missionTravelTest.game.scene.getScene("travel").children.getByName("travel-arrival")?.alpha)).toBeGreaterThan(0.9);
   await page.locator("#mission-travel-test-stage canvas").screenshot({ path: "test-results/mission-transition-preview.png" });
   await expect.poll(() => page.evaluate(() => window.__missionTravelTest.reached)).toBe("battle");
@@ -102,7 +102,7 @@ test("el regreso reducido llega al informe con el resultado intacto", async ({ p
 
 for (const { missionId, reducedMotion, destination, arenaAlpha } of [
   { missionId: "m05", reducedMotion: "no-preference", destination: "results", arenaAlpha: 1 },
-  { missionId: "s01", reducedMotion: "reduce", destination: "secondary-results", arenaAlpha: undefined }
+  { missionId: "s01", reducedMotion: "reduce", destination: "results", arenaAlpha: undefined }
 ]) {
   test(`el regreso de ${missionId} rellena la ruta hacia la izquierda sin rebasar sus extremos`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion });

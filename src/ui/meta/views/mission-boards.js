@@ -165,8 +165,6 @@ export function createMissionBoardsView(deps) {
       }
       if (state.view === "kagemori" && !deps.missionState(secondaryByType("investigation"), getSave()).completed) {
         let conclusionQueued = false;
-        let conclusionTimer = 0;
-        scope.onCleanup(() => window.clearTimeout(conclusionTimer));
         root.querySelectorAll("[data-clue]").forEach((area) => {
           const label = root.querySelector(`[data-clue-label="${area.dataset.clue}"]`);
           const showLabel = () => label?.classList.add("visible");
@@ -181,11 +179,11 @@ export function createMissionBoardsView(deps) {
             root.querySelector("[data-investigation-log]").textContent = clue.text;
             if (state.investigatedClues.size !== KAGEMORI_CLUES.length || conclusionQueued) return;
             conclusionQueued = true;
-            conclusionTimer = window.setTimeout(() => deps.showDialogue([
+            void scope.delay(420).then(() => { if (scope.isCurrent()) deps.showDialogue([
               ["Iori Kagemori", "Las tres señales coinciden. No vinieron a saquear al azar: reunieron comida, herramientas y mapas para abastecer un campamento."],
               ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
               ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Informa en el Cuartel General; el rastro continúa en la vieja cantera."]
-            ], () => deps.onCompleteInvestigation(getSave(), secondaryByType("investigation"), KAGEMORI_CLUES.length), "REGISTRAR HALLAZGO", "story"), 420);
+            ], () => deps.onCompleteInvestigation(getSave(), secondaryByType("investigation"), KAGEMORI_CLUES.length), "REGISTRAR HALLAZGO", "story"); });
           };
           scope.listen(area, "mouseenter", showLabel);
           scope.listen(area, "mouseleave", hideLabel);

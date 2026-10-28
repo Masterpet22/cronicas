@@ -18,7 +18,7 @@ for (const key of missionKeys) {
   const [, missionId, sceneId] = key.split(".");
   assert.ok(missionIds.has(missionId), `${key} debe pertenecer a una misión existente`);
   const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
-  assert.ok(sceneId === "briefing" ? mission.dialogueId === key : mission.flow.some((step) => step.id === sceneId) || missionId === "m01" && sceneId === "combat-tutorial" || missionId === "m02" && (sceneId.startsWith("prisoner-") || sceneId === "investigation-complete") || missionId === "m03" && sceneId === "secret-warehouse" || missionId === "m04" && ["resource-choice", "hideout-discovery", "revelation-documents", "revelation-prisoners"].includes(sceneId) || missionId === "m05" && sceneId === "lieutenant-intervention", `${key} debe tener un punto de uso en el flujo de la misión`);
+  assert.ok(sceneId === "briefing" ? mission.dialogueId === key : mission.flow.some((step) => step.id === sceneId) || missionId === "m01" && sceneId === "combat-tutorial" || missionId === "m02" && sceneId.startsWith("prisoner-") || missionId === "m03" && sceneId === "secret-warehouse" || missionId === "m04" && ["resource-choice", "hideout-discovery", "revelation-documents", "revelation-prisoners"].includes(sceneId) || missionId === "m05" && sceneId === "lieutenant-intervention", `${key} debe tener un punto de uso en el flujo de la misión`);
   for (const line of DIALOGUE_CATALOGS.es[key]) {
     assert.ok(validSpeakers.has(line.speaker), `${key} usa un speaker existente`);
     for (const [, variable] of line.text.matchAll(/\{([a-z0-9_]+)\}/gi)) assert.equal(variable, "master", `${key} usa una variable soportada`);
@@ -86,5 +86,19 @@ events.dispatchEvent(new Event("ping"));
 assert.equal(calls, 1, "Cambiar de vista debe abortar los listeners de la anterior");
 assert.equal(overlay.isConnected, false, "Cambiar de vista debe desmontar overlays transitorios");
 assert.equal(root.dataset.activeView, "second", "Solo una vista debe quedar marcada como activa");
+
+const pausedView = runtime.replace("paused", "<p>Pausa</p>");
+pausedView.setPaused(true);
+let delayFinished = false;
+const pendingDelay = pausedView.delay(0).then((completed) => { delayFinished = completed; });
+await new Promise((resolve) => setTimeout(resolve, 10));
+assert.equal(delayFinished, false, "Los eventos pendientes de una vista pausada no deben ejecutarse");
+pausedView.setPaused(false);
+await pendingDelay;
+assert.equal(delayFinished, true, "Reanudar debe liberar los eventos pendientes");
+pausedView.setPaused(true);
+const cancelledDelay = pausedView.delay(50);
+runtime.replace("after-pause", "<p>Otra vista</p>");
+assert.equal(await cancelledDelay, false, "Desmontar una vista pausada debe cancelar sus esperas sin dejar promesas pendientes");
 
 console.log("Pruebas de catálogos, diálogos y ciclo de vistas superadas.");

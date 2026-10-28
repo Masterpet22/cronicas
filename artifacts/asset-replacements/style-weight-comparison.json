@@ -1,0 +1,340 @@
+{
+  "baseline_commit": "af4b8a0c0a3e02c1aaa5975924001f494a4ec8d1",
+  "changed": [
+    {
+      "name": "archive",
+      "path": "assets/locations/archive.webp",
+      "before": 198290,
+      "now": 187130,
+      "delta": -11160,
+      "change_percent": -5.63,
+      "old_dimensions": [
+        1678,
+        937
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "arena",
+      "path": "assets/locations/arena.webp",
+      "before": 245278,
+      "now": 189150,
+      "delta": -56128,
+      "change_percent": -22.88,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "dojo",
+      "path": "assets/locations/dojo.webp",
+      "before": 206290,
+      "now": 180636,
+      "delta": -25654,
+      "change_percent": -12.44,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "forest-road",
+      "path": "assets/locations/forest-road.webp",
+      "before": 388246,
+      "now": 235586,
+      "delta": -152660,
+      "change_percent": -39.32,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "headquarters",
+      "path": "assets/locations/headquarters.webp",
+      "before": 240606,
+      "now": 181624,
+      "delta": -58982,
+      "change_percent": -24.51,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "inn",
+      "path": "assets/locations/inn.webp",
+      "before": 246334,
+      "now": 204270,
+      "delta": -42064,
+      "change_percent": -17.08,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "kagemori",
+      "path": "assets/locations/kagemori.webp",
+      "before": 366162,
+      "now": 204228,
+      "delta": -161934,
+      "change_percent": -44.22,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "missions",
+      "path": "assets/locations/missions.webp",
+      "before": 251430,
+      "now": 173870,
+      "delta": -77560,
+      "change_percent": -30.85,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "shop",
+      "path": "assets/locations/shop.webp",
+      "before": 252524,
+      "now": 155674,
+      "delta": -96850,
+      "change_percent": -38.35,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "tower",
+      "path": "assets/locations/tower.webp",
+      "before": 243132,
+      "now": 192150,
+      "delta": -50982,
+      "change_percent": -20.97,
+      "old_dimensions": [
+        1672,
+        940
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "village-outskirts",
+      "path": "assets/locations/village-outskirts.webp",
+      "before": 340020,
+      "now": 188800,
+      "delta": -151220,
+      "change_percent": -44.47,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "village-outskirts-branches",
+      "path": "assets/locations/village-outskirts-branches.webp",
+      "before": 645362,
+      "now": 411264,
+      "delta": -234098,
+      "change_percent": -36.27,
+      "old_dimensions": [
+        1672,
+        940
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ]
+    },
+    {
+      "name": "aldea",
+      "path": "assets/village/aldea.webp",
+      "before": 335400,
+      "now": 339048,
+      "delta": 3648,
+      "change_percent": 1.09,
+      "old_dimensions": [
+        1678,
+        937
+      ],
+      "new_dimensions": [
+        1678,
+        937
+      ]
+    }
+  ],
+  "pending_active_backgrounds": [
+    {
+      "path": "assets/locations/event.webp",
+      "bytes": 303376,
+      "dimensions": [
+        1672,
+        941
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "assets/locations/battle-dusk-pass.jpg",
+      "bytes": 784787,
+      "dimensions": [
+        1376,
+        768
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "assets/locations/battle-mist-marsh-water.png",
+      "bytes": 2147732,
+      "dimensions": [
+        1678,
+        937
+      ],
+      "mode": "RGB"
+    },
+    {
+      "path": "assets/locations/battle-moon-shrine.jpg",
+      "bytes": 857481,
+      "dimensions": [
+        1376,
+        768
+      ],
+      "mode": "RGB"
+    }
+  ],
+  "before_bytes": 3959074,
+  "now_bytes": 2843430,
+  "old_rgba_bytes": 81792400,
+  "new_rgba_bytes": 57014008,
+  "pending_bytes": 4093376,
+  "active_before_bytes": 8052450,
+  "active_now_bytes": 6936806,
+  "scenarios": [
+    {
+      "name": "Mapa de la aldea",
+      "before_bytes": 335400,
+      "now_bytes": 339048,
+      "before_10mbps_seconds": 0.268,
+      "now_10mbps_seconds": 0.271
+    },
+    {
+      "name": "Abrir el Cuartel (solo fondo)",
+      "before_bytes": 240606,
+      "now_bytes": 181624,
+      "before_10mbps_seconds": 0.192,
+      "now_10mbps_seconds": 0.145
+    },
+    {
+      "name": "Kagemori (solo fondo)",
+      "before_bytes": 366162,
+      "now_bytes": 204228,
+      "before_10mbps_seconds": 0.293,
+      "now_10mbps_seconds": 0.163
+    },
+    {
+      "name": "Salida y bosque: tres capas",
+      "before_bytes": 1373628,
+      "now_bytes": 835650,
+      "before_10mbps_seconds": 1.099,
+      "now_10mbps_seconds": 0.669
+    },
+    {
+      "name": "Primera misi\u00f3n: viaje y escenario",
+      "before_bytes": 2158415,
+      "now_bytes": 1620437,
+      "before_10mbps_seconds": 1.727,
+      "now_10mbps_seconds": 1.296
+    },
+    {
+      "name": "Desfiladero: viaje y marisma",
+      "before_bytes": 3521360,
+      "now_bytes": 2983382,
+      "before_10mbps_seconds": 2.817,
+      "now_10mbps_seconds": 2.387
+    }
+  ],
+  "all_active_before_rgba_bytes": 102829096,
+  "all_active_now_rgba_bytes": 78050704,
+  "other_changed_images": [
+    {
+      "name": "Golpe veloz",
+      "before_path": "assets/actions/basic-strike.webp",
+      "now_path": "assets/actions/basic-strike.webp",
+      "before": 75894,
+      "now": 65394,
+      "change_percent": -13.8
+    },
+    {
+      "name": "Guardia",
+      "before_path": "assets/actions/guard.webp",
+      "now_path": "assets/actions/guard.webp",
+      "before": 74754,
+      "now": 89212,
+      "change_percent": 19.3
+    },
+    {
+      "name": "Perrito",
+      "before_path": "assets/vfx/teleport-dog.svg",
+      "now_path": "assets/vfx/teleport-dog.webp",
+      "before": 1054,
+      "now": 44650,
+      "change_percent": 4136.2
+    },
+    {
+      "name": "Silla a Marioneta",
+      "before_path": "assets/vfx/teleport-chair.svg",
+      "now_path": "assets/vfx/teleport-puppet.webp",
+      "before": 759,
+      "now": 46050,
+      "change_percent": 5967.2
+    }
+  ],
+  "all_changed_images_before_bytes": 4111535,
+  "all_changed_images_now_bytes": 3088736
+}

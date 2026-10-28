@@ -75,14 +75,14 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
       view = "debug";
       render();
     },
-    onAbandonSecondary(currentView, currentSave) {
+    onAbandonSecondary(currentView, currentSave, onCancel) {
       confirmSecondaryAbandon(showMissionDecision, () => {
         const type = currentView === "doctor-route" ? "route-search" : "investigation";
         const mission = secondaryMissionByType(type, ALL_MISSIONS);
         const routeStats = { ...currentSave.campaign.doctorRoute };
         save = writeSave(abandonMissionProgress(currentView === "doctor-route" ? cancelDoctorMission(currentSave) : currentSave, mission.id));
         onFinishSecondaryMission(save, mission, { outcome: "abandoned", clues: investigatedClues.size, routeStats }); if (type === "investigation") investigatedClues.clear();
-      });
+      }, onCancel);
     }
   });
   const stageView = createLocationStage({

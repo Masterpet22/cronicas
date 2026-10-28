@@ -6,7 +6,6 @@ export const M02 = {
     flow: [
       { type: "dialogue" },
       { type: "combat", id: "canyon-assault" },
-      { type: "investigation", id: "canyon-traces", afterEncounter: 0 },
       {
         type: "choice", id: "lieutenant-fate", afterEncounter: 1, relicDecision: true,
         modifiers: [{

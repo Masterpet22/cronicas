@@ -94,8 +94,13 @@ assert.equal(retriedMission.campaign.missionProgress.m01.status, "in-progress", 
 assert.equal(retriedMission.campaign.missionProgress.m01.attempts, 3, "Reintentar debe incrementar el contador de intentos");
 let secondMissionProgress = startMissionProgress(applyDebugCheckpoint(save, "mission-2-ready"), "m02");
 secondMissionProgress = advanceMissionProgress(secondMissionProgress, "m02", "canyon-assault", { encountersDefeated: 1 });
-assert.equal(secondMissionProgress.campaign.missionProgress.m02.currentStepId, "canyon-traces", "Avanzar una fase debe dejar el cursor en el próximo paso semántico");
-assert.equal(startMissionProgress(secondMissionProgress, "m02").campaign.missionProgress.m02.currentStepId, "canyon-traces", "Reanudar debe recuperar el paso pendiente guardado");
+assert.equal(secondMissionProgress.campaign.missionProgress.m02.currentStepId, "lieutenant-fate", "Tras el asalto, el próximo paso debe ser la decisión del teniente sin investigación intermedia");
+assert.equal(startMissionProgress(secondMissionProgress, "m02").campaign.missionProgress.m02.currentStepId, "lieutenant-fate", "Reanudar debe recuperar el paso pendiente guardado");
+const retiredInvestigation = structuredClone(secondMissionProgress);
+retiredInvestigation.campaign.missionProgress.m02.currentStepId = "canyon-traces";
+const resumedWithoutInvestigation = normalizeSave(retiredInvestigation).campaign.missionProgress.m02;
+assert.equal(resumedWithoutInvestigation.currentStepId, "lieutenant-fate", "Una partida detenida en la investigación retirada debe continuar al próximo paso válido");
+assert.equal(resumedWithoutInvestigation.context.encountersDefeated, 1, "Retirar la investigación no debe borrar el contexto del progreso guardado");
 const beforeCombat = startMissionProgress(applyDebugCheckpoint(save, "mission-3-ready"), "m03");
 assert.equal(beforeCombat.campaign.missionProgress.m03.currentStepId, "hideout-entry", "La decisión previa al combate debe ser el primer paso de m03");
 const knownHideout = normalizeSave({ ...beforeCombat, campaign: { ...beforeCombat.campaign, hideoutEntryChoice: "main" } });

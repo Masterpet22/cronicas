@@ -72,8 +72,8 @@ test("al pasar al siguiente rival se muestra la fase de misión y se limpia la t
     class EncounterScene extends window.Phaser.Scene {
       constructor() { super("encounter-test"); }
       preload() {
-        this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.0");
-        this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.0");
+        this.load.image("forest-road", "assets/locations/forest-road.webp?v=0.75.1");
+        this.load.image("village-outskirts-branches", "assets/locations/village-outskirts-branches.webp?v=0.74.1");
         queuePlayerFighterTextures(this, appearance);
       }
       create() {

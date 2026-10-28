@@ -30,7 +30,7 @@ La subida de nivel durante un combate comparte con la Sustitución su animación
 
 ## Objeto de apariencia
 
-Se elige en **Dojo → Apariencia → Transportación**. La selección se guarda en `character.teleportObject`, de forma independiente en cada partida, y se usa tanto al sustituir al jugador durante una evasión en combate como al salir para subir de nivel o viajar por transportación. Los rivales conservan su propio objeto predeterminado. Las partidas anteriores usan `log` (tronco). Valores disponibles: `log`, `dog` (perrito), `chair` (silla).
+Se elige en **Dojo → Apariencia → Transportación**. La selección se guarda en `character.teleportObject`, de forma independiente en cada partida, y se usa tanto al sustituir al jugador durante una evasión en combate como al salir para subir de nivel o viajar por transportación. Los rivales conservan su propio objeto predeterminado. Las partidas anteriores usan `log` (tronco). Valores disponibles: `log`, `dog` (perrito), `puppet` (marioneta). El valor anterior `chair` se convierte automáticamente en `puppet` al cargar la partida.
 
 Para añadir otro objeto, se añade su archivo y una entrada en `src/teleport-objects.js` con ID, nombre, textura, archivo, ancho y alto. El selector de apariencia y la carga de texturas leen ese catálogo.
 

@@ -29,7 +29,7 @@ test("la evasión usa el objeto elegido y la salida por nivel comparte sus tiemp
           this.floatLabel = () => {};
           void (async () => {
             const results = [];
-            for (const entry of [{ object: "log" }, { object: "dog" }, { object: "chair" }, { object: undefined }, { object: "dog", enemy: true }, { object: "dog", levelUp: true }]) {
+            for (const entry of [{ object: "log" }, { object: "dog" }, { object: "puppet" }, { object: undefined }, { object: "dog", enemy: true }, { object: "dog", levelUp: true }]) {
               this.saveData.character.teleportObject = entry.object;
               const target = entry.enemy ? this.foe : this.hero;
               const started = this.time.now;
@@ -106,7 +106,7 @@ test("los tres objetos cumplen el orden de seis pasos y la interrupción libera 
       game = new window.Phaser.Game({ type: window.Phaser.CANVAS, parent: host, width: 960, height: 540, scene: [TeleportScene] });
     });
     const results = [];
-    for (const object of ["log", "dog", "chair", "cancel"]) results.push(await render(object));
+    for (const object of ["log", "dog", "puppet", "cancel"]) results.push(await render(object));
     return results;
   });
   for (const result of results.slice(0, 3)) {
@@ -189,7 +189,7 @@ test("el cambio al segundo encuentro respeta su configuración de transportació
         preload() { queuePlayerFighterTextures(this, { bodyType: "male", hair: 1 }); queueTeleportObjects(this); }
         create() {
           this.mission = { transitions: { betweenEncounters: { 2: "teleport" } } };
-          this.saveData = { character: { teleportObject: "chair" } };
+          this.saveData = { character: { teleportObject: "puppet" } };
           this.enemyIndex = 1;
           this.hero = createPlayerFighter(this, 220, 372, { bodyType: "male", hair: 1 });
           const stages = [];
@@ -206,7 +206,7 @@ test("el cambio al segundo encuentro respeta su configuración de transportació
   expect(result).toEqual({ stages: ORDER, hero: 1, noRoute: true });
 });
 
-test("apariencia permite elegir el objeto y lo conserva al volver a cargar", async ({ page }) => {
+test("apariencia permite elegir el objeto y lo conserva al volver a cargar", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1360, height: 748 });
   await page.goto("/");
   await ensurePhaser(page);
@@ -232,6 +232,10 @@ test("apariencia permite elegir el objeto y lo conserva al volver a cargar", asy
   await openAppearance();
   await expect(value).toHaveText("Perrito");
   await page.locator('[data-cosmetic-step="teleportObject"][data-direction="1"]').click();
-  await expect(value).toHaveText("Silla");
-  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).character.teleportObject)).toBe("chair");
+  await expect(value).toHaveText("Marioneta");
+  await expect(value.locator("img")).toHaveAttribute("src", /teleport-puppet\.webp/);
+  expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).character.teleportObject)).toBe("puppet");
+  await openAppearance();
+  await expect(value).toHaveText("Marioneta");
+  await page.screenshot({ path: testInfo.outputPath("marioneta-dojo.png") });
 });

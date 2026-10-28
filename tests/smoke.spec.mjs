@@ -58,14 +58,6 @@ async function completeDebugMission(page, { checkpoint, missionId }) {
     const tutorialSkip = page.locator("[data-tutorial-skip]");
     if (await tutorialSkip.isVisible().catch(() => false)) await tutorialSkip.click();
     if (await page.locator(".level-up-accessible").isVisible().catch(() => false)) await page.keyboard.press("Enter");
-    const investigation = page.locator(".mission-investigation-overlay");
-    if (await investigation.isVisible().catch(() => false)) {
-      for (const region of ["cart", "house", "tracks"]) {
-        await investigation.locator(`[data-investigation-region="${region}"]`).click({ force: true });
-      }
-      await investigation.locator("[data-mission-investigation-continue]").click();
-    }
-
     const box = await canvas.boundingBox().catch(() => null);
     if (box) {
       await clickCanvasPoint(page, box, 480 / 960, 340 / 540);
@@ -245,6 +237,29 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await advanceDialogue(page);
   await expect(page.locator(".doctor-route-screen")).toBeVisible({ timeout: 20_000 });
   expect(browserErrors, "No debe haber errores al recorrer las vistas meta").toEqual([]);
+});
+
+test("las nueve localidades abren desde el mapa desde el inicio de la partida", async ({ page }, testInfo) => {
+  const errors = [];
+  page.on("pageerror", (error) => errors.push(error.message));
+  page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
+  await createFreshCharacter(page, "Visitante");
+  await page.locator('.village-return [data-view="plaza"]').click();
+  const locations = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
+  await expect(page.locator(".village-hotspot[data-go]")).toHaveCount(9);
+  await expect(page.locator("[data-coming-soon]")).toHaveCount(0);
+  for (const id of locations) {
+    await page.locator(`.village-hotspot[data-go="${id}"]`).click();
+    await expect(page.locator(`[data-location-stage="${id}"]`)).toBeVisible();
+    const next = page.locator("[data-stage-speech]:not(.leaving) [data-stage-next]");
+    for (let i = 0; i < 10 && await next.isVisible(); i++) await next.click();
+    await expect(page.locator("[data-stage-options]")).toBeVisible();
+    if (["dojo", "archive"].includes(id)) await page.screenshot({ path: testInfo.outputPath(`nuevo-fondo-${id}.png`) });
+    await page.locator('.village-return [data-view="plaza"]').click();
+    await expect(page.locator(".village-map")).toBeVisible();
+  }
+  await page.locator(".village-map").screenshot({ path: testInfo.outputPath("aldea-actualizada.png") });
+  expect(errors).toEqual([]);
 });
 
 test("la primera visita al dojo muestra la configuración sin quedar bloqueada", async ({ page }) => {

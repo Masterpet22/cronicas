@@ -1,3 +1,5 @@
+import { mountMissionPause } from "./mission-pause.js";
+
 export function createMetaShell(deps) {
   return {
     id: "meta-shell",
@@ -6,10 +8,12 @@ export function createMetaShell(deps) {
       const currentLocation = deps.locations.find((location) => location.id === view)
         || (view === "kagemori" ? { name: "Aldea de Kagemori" } : view === "doctor-route" ? { name: "Caminos del Norte" } : view === "debug" ? { name: "Herramientas de pruebas" } : null);
       const isSecondaryField = view === "kagemori" || view === "doctor-route";
-      const navigation = view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button ${isSecondaryField ? "data-abandon-secondary" : "data-view=\"plaza\""}>← ${isSecondaryField ? "Abandonar misión" : "Volver al mapa"}</button><span>${deps.escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
+      const navigation = isSecondaryField
+        ? `<button type="button" class="mission-pause-trigger secondary-button" data-mission-pause aria-label="Pausar misión" aria-haspopup="dialog" aria-expanded="false"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 4v12M14 4v12"/></svg><span>Pausa</span></button>`
+        : view === "plaza" ? "" : `<nav class="village-nav village-return" aria-label="Navegación de la aldea"><button data-view="plaza">← Volver al mapa</button><span>${deps.escapeHtml(currentLocation?.name || "Aldea del Horizonte")}</span></nav>`;
       return `
-        <div class="village-shell">
-          <section class="village-topbar">
+        <div class="village-shell${isSecondaryField ? " mission-field-shell" : ""}">
+          ${isSecondaryField ? "" : `<section class="village-topbar">
             <div class="profile-heading">
               <span class="avatar-swatch" style="--avatar:${character.appearance}"></span>
               <div class="profile-copy"><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${deps.escapeHtml(character.name)}</h2></div>
@@ -24,7 +28,7 @@ export function createMetaShell(deps) {
                 <img src="assets/ui/hud-icons/settings-shuriken.webp?v=0.83.0" alt="" aria-hidden="true">
               </button>
             </div>
-          </section>
+          </section>`}
           <!-- RELEASE-BLOCKER 1.0: eliminar este acceso y todo renderDebugTools antes de publicar la versión final. -->
           <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas"><span>DEV</span> PRUEBAS</button>
           ${navigation}
@@ -32,6 +36,7 @@ export function createMetaShell(deps) {
         </div>`;
     },
     mount(root, scope, { save, view }) {
+      mountMissionPause(root, scope, (onCancel) => deps.onAbandonSecondary(view, save, onCancel));
       const closeGlobalSettings = () => document.querySelector(".game-settings")?.removeAttribute("open");
       const settingsDetails = document.querySelector(".game-settings");
       const settingsTrigger = root.querySelector(".player-settings-trigger");
@@ -75,7 +80,6 @@ export function createMetaShell(deps) {
         closeGlobalSettings();
         deps.onDebug(save);
       });
-      scope.listen(root.querySelector("[data-abandon-secondary]"), "click", () => deps.onAbandonSecondary(view, save));
       root.querySelectorAll("[data-go]").forEach((button) => {
         const openLocation = () => deps.onNavigate(button.dataset.go);
         scope.listen(button, "click", openLocation);

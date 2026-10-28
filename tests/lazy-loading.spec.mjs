@@ -38,8 +38,8 @@ test("Phaser y las escenas se cargan solamente al iniciar una misión", async ({
   expect(loaded.filter((url) => url.includes("phaser-4.2.1.min.js"))).toHaveLength(1);
   expect(loaded.some((url) => url.includes("/src/battle/bundle.js"))).toBe(true);
   expect(loaded.some((url) => url.includes("/src/battle/scenes/battle-scene.js"))).toBe(true);
-  expect(loaded.some((url) => url.includes("village-outskirts.webp?v=0.74.0"))).toBe(true);
-  expect(loaded.some((url) => url.includes("forest-road.webp?v=0.75.0"))).toBe(true);
+  expect(loaded.some((url) => url.includes("village-outskirts.webp?v=0.74.1"))).toBe(true);
+  expect(loaded.some((url) => url.includes("forest-road.webp?v=0.75.1"))).toBe(true);
   for (const asset of ["village-outskirts.webp", "forest-road.webp", "village-outskirts-branches.webp", "preparation-mote.png"]) {
     expect(loaded.filter((url) => url.includes(asset))).toHaveLength(1);
   }

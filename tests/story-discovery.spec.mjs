@@ -23,16 +23,17 @@ async function dialogue(page) {
   for (let i = 0; i < 12 && await overlay.isVisible(); i++) await overlay.locator("button").click();
 }
 
-test("el Cuartel muestra solo la primera misión al comenzar", async ({ page }) => {
+test("el Cuartel muestra solo la primera misión al comenzar", async ({ page }, testInfo) => {
   await seed(page);
   await openHeadquarters(page);
   await expect(page.locator(".mission-card")).toHaveCount(1);
   await expect(page.locator(".mission-board")).toContainText("Tras las huellas del gato");
   await expect(page.locator(".mission-board")).not.toContainText(/Kagemori|Desfiladero|Haru|Raizen|BLOQUEADA/);
   await expect(page.locator('[data-mission="s01"]')).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath("cuartel-actualizado.png") });
 });
 
-test("Kagemori se inicia y completa como principal desde el Cuartel", async ({ page }) => {
+test("Kagemori se inicia y completa como principal desde el Cuartel", async ({ page }, testInfo) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await seed(page, "kagemori-ready");
@@ -45,10 +46,32 @@ test("Kagemori se inicia y completa como principal desde el Cuartel", async ({ p
   expect(errors).toEqual([]);
   const next = page.locator("[data-stage-speech]:not(.leaving) [data-stage-next]");
   for (let i = 0; i < 10 && await next.isVisible(); i++) await next.click();
+  await expect(page.locator(".village-topbar")).toHaveCount(0);
+  await expect(page.locator(".village-return")).toHaveCount(0);
+  await page.getByRole("button", { name: "Pausar misión" }).click();
+  const pause = page.getByRole("dialog", { name: "Misión en pausa" });
+  await expect(pause).toBeVisible();
+  await pause.locator("summary").click();
+  await pause.locator('[data-mission-setting="music-enabled"]').check();
+  await expect(page.locator("#music-enabled")).toBeChecked();
+  await pause.locator('[data-mission-setting="music-enabled"]').uncheck();
+  await page.keyboard.press("Escape");
+  await expect(pause).toBeHidden();
+  await expect(page.getByRole("button", { name: "Pausar misión" })).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(pause).toBeVisible();
+  await pause.getByRole("button", { name: "REANUDAR", exact: true }).click();
+  await page.screenshot({ path: testInfo.outputPath("kagemori-actualizada.png") });
   for (const [index, id] of ["cart", "hall", "well"].entries()) {
     await page.locator(`[data-clue="${id}"]`).click();
     await expect(page.locator("[data-clue-count]")).toHaveText(`${index + 1}/3 pistas`);
   }
+  await page.getByRole("button", { name: "Pausar misión" }).click();
+  await expect(pause).toBeVisible();
+  await page.waitForTimeout(600);
+  await expect(page.locator(".dialogue-overlay")).toHaveCount(0);
+  await page.screenshot({ path: testInfo.outputPath("kagemori-pausa.png") });
+  await pause.getByRole("button", { name: "REANUDAR", exact: true }).click();
   await dialogue(page);
   await expect.poll(async () => {
     const completed = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).campaign.completedMissions.includes("s01"));
