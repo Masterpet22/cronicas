@@ -1,10 +1,19 @@
 import assert from "node:assert/strict";
 import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "../src/content/index.js";
+import { JUTSU_LIBRARY, SEALS } from "../src/data.js";
 import { DIALOGUE_CATALOGS, getDialogue, getMissionSceneDialogue, validateDialogueReferences } from "../src/dialogues.js";
+import { basicRequirements } from "../src/elements.js";
 import { missionHasStep, missionState, missionsForBoard, requirementMet, validateMissionCatalog } from "../src/mission-system.js";
 import { secondaryMissionCardModel } from "../src/secondary-missions.js";
 import { completeSecondaryMission, createDefaultSave } from "../src/save.js";
 import { createViewRuntime } from "../src/view-runtime.js";
+
+assert.equal(Object.keys(SEALS).length, 12, "Deben existir los doce sellos de constelaciones");
+assert.deepEqual([...new Set(Object.values(SEALS).map((seal) => seal.frame))].sort((a, b) => a - b), Array.from({ length: 12 }, (_, index) => index), "Cada constelación debe ocupar un cuadro único");
+for (const jutsu of JUTSU_LIBRARY) {
+  const affinities = basicRequirements(jutsu.element);
+  assert.ok(jutsu.seals.every((id) => SEALS[id] && affinities.includes(SEALS[id].element)), `${jutsu.id} solo debe usar constelaciones de sus afinidades básicas`);
+}
 
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "Las misiones principales deben seguir el orden narrativo conservando sus IDs");
 assert.ok(MISSIONS.every((mission) => mission.category === "main" && mission.board === "headquarters"), "Las principales deben pertenecer exclusivamente al Cuartel");

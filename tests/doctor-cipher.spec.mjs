@@ -54,7 +54,7 @@ test("Haru agradece, explica los sellos y da paso al tablero con una transición
   await expect(page.locator(".cipher-cell")).toHaveCount(36);
   await expect(page.locator("[data-cipher-progress]")).toHaveText("0/36");
   const backgrounds = await page.locator(".cipher-glyph").first().evaluate((element) => getComputedStyle(element).backgroundImage);
-  expect(backgrounds).toContain("sellos-originales.webp");
+  expect(backgrounds).toContain("sellos-constelaciones.png");
   await page.screenshot({ path: "artifacts/doctor-cipher/tablero-inicial.png" });
   await playHint(page);
   const cipher = await storedCipher(page);

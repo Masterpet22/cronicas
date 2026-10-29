@@ -48,6 +48,10 @@ const experienceSheet = await readFile(new URL("../assets/vfx/experience-spin-sp
 assert.deepEqual([experienceSheet.readUInt32BE(16), experienceSheet.readUInt32BE(20)], [1280, 512], "Los diez emblemas de experiencia deben formar una cuadrícula normalizada de 5 × 2");
 assert.equal(experienceSheet[25], 6, "El spritesheet de experiencia debe conservar transparencia alfa");
 
+const constellationSeals = await readFile(new URL("../assets/sellos-constelaciones.png", import.meta.url));
+assert.deepEqual([constellationSeals.readUInt32BE(16), constellationSeals.readUInt32BE(20)], [1536, 2048], "Los doce sellos deben formar una cuadrícula de 3 × 4");
+assert.equal(constellationSeals[25], 6, "Los sellos de constelaciones deben conservar transparencia alfa");
+
 const shortHairPortrait = await readFile(new URL("../assets/modular/hair/head_corto.png", import.meta.url));
 assert.deepEqual([shortHairPortrait.readUInt32BE(16), shortHairPortrait.readUInt32BE(20)], [260, 400], "El retrato de cabello corto debe conservar la composición aprobada de cabeza y cabello");
 assert.equal(shortHairPortrait[25], 6, "El retrato de cabello corto debe conservar transparencia alfa real");

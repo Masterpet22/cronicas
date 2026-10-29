@@ -20,7 +20,7 @@
 .cipher-guidance p strong { color: #e1cc9c; }
 .cipher-seal-legend { display: flex; justify-content: space-between; gap: 7px; margin: 20px 0; }
 .cipher-seal-legend > span { display: grid; justify-items: center; gap: 5px; }
-.cipher-glyph { display: block; width: 72%; aspect-ratio: 688 / 512; background-image: url("assets/sellos-originales.webp?v=0.20.0"); background-size: 400% 300%; background-repeat: no-repeat; mix-blend-mode: screen; }
+.cipher-glyph { display: block; width: 72%; aspect-ratio: 1; background-image: url("assets/sellos-constelaciones.png?v=1.0.1"); background-size: 300% 400%; background-repeat: no-repeat; mix-blend-mode: screen; }
 .cipher-seal-legend .cipher-glyph { width: 37px; }
 .cipher-seal-legend small { color: var(--seal-color); font-size: 12px; }
 .cipher-type-0 { --seal-color: #ffd044; --seal-tint: rgba(255,208,68,.32); }

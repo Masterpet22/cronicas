@@ -3,7 +3,7 @@ export const S02 = {
     requirements: [{ type: "main-completed", id: "m02" }],
     dialogueId: "mission.s02.briefing", routeMode: "convergent",
     flow: [{ type: "dialogue" }, { type: "route", id: "doctor-search" }, { type: "dialogue", id: "doctor-lesson" }, { type: "investigation", id: "map-decipher" }, { type: "dialogue", id: "doctor-farewell" }],
-    cipher: { speaker: "Haru Takamine", lessonScene: "doctor-lesson", farewellScene: "doctor-farewell", seals: ["pajaro", "liebre", "caballo", "rata", "tigre"] },
+    cipher: { speaker: "Haru Takamine", lessonScene: "doctor-lesson", farewellScene: "doctor-farewell", seals: ["ara", "cetus", "bootes", "aquila", "phoenix"] },
     reward: { xp: 45, coins: 30 },
     routeEvents: [
       { id: "elevated", label: "Camino elevado", type: "dialogue", description: "Una ruta segura y lenta donde los viajeros ofrecen consejos útiles." },
