@@ -105,7 +105,7 @@ docs/METRICAS.md          Línea base final de arquitectura y calidad
 docs/saga-1-tutorial.md  Diseño de las siete misiones de la primera saga
 tests/rules.test.mjs     Pruebas de reglas puras
 tests/save.test.mjs      Pruebas de guardado y progresión
-assets/sellos-originales.webp      Hoja WebP optimizada de doce símbolos
+assets/sellos-constelaciones.png   Hoja optimizada de doce sellos agrupados por elemento
 assets/village/aldea.webp          Mapa WebP interactivo de la Aldea del Horizonte
 assets/npcs/             Doce retratos WebP transparentes del reparto y Kagemori
 assets/locations/        Nueve fondos WebP panorámicos para las escenas de cada destino

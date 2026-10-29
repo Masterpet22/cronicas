@@ -34,9 +34,9 @@ maestros normalizados y verificar su correspondencia y orden de dibujo en Dojo y
 
 ## Vocabulario de sellos
 
-Las doce posiciones se denominan: Alba, Pulso, Vínculo, Umbral, Flujo, Espiral, Sendero, Nexo, Estallido, Eco, Ruptura y Horizonte. Sus teclas conservan la cuadrícula `QWER / ASDF / ZXCV`.
+Los doce sellos son constelaciones agrupadas por afinidad: Ara, Fornex y Phoenix para Fuego; Cetus, Delphinus y Eridanus para Agua; Bootes, Ursa Major y Virgo para Tierra; Aquila, Cygnus y Pegasus para Viento. Sus teclas conservan el conjunto `QWER / ASDF / ZXCV`.
 
-La hoja optimizada `assets/sellos-originales.webp` procede del recurso proporcionado por el usuario. Antes de una publicación comercial o de volver público el repositorio se debe conservar evidencia de autoría o licencia de esa hoja.
+La hoja optimizada `assets/sellos-constelaciones.png` procede de los recursos proporcionados por el usuario en carpetas separadas por elemento. Antes de una publicación comercial o de volver público el repositorio se debe conservar evidencia de autoría o licencia de esas imágenes.
 
 ## Interfaz y tipografía
 
