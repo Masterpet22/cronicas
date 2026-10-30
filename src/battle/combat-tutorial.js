@@ -1,4 +1,4 @@
-import { masterIdForCharacter } from "../save.js?v=0.119.0";
+import { masterIdForCharacter } from "../save.js?v=0.123.0";
 
 // The guide observes real combat actions; it never awards progress or simulates hits.
 export function mountCombatTutorial(scene, { onReplayExit } = {}) {

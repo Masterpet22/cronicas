@@ -1,6 +1,6 @@
-import { skillFrameSvg } from "./hud-chrome.js?v=0.119.0";
-import { mountBattleInventory } from "./battle-inventory.js?v=0.122.0";
-import { emptySkillInfo } from './hud-art.js?v=0.119.0';
+import { skillFrameSvg } from "./hud-chrome.js?v=0.123.0";
+import { mountBattleInventory } from "./battle-inventory.js?v=0.123.0";
+import { emptySkillInfo } from './hud-art.js?v=0.123.0';
 import { createCachedIconCanvas } from './icon-canvas-cache.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens

@@ -5,7 +5,7 @@ import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 22, "La versión debe incluir el espacio personal persistente");
+assert.equal(SAVE_VERSION, 23, "La versión debe incluir la participación en eventos");
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
 assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");

@@ -1,5 +1,6 @@
 import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
 import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.119.0";
+import { defaultEventState, normalizeEventState } from "./plaza-events.js?v=0.123.0";
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.114.0";
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
 import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.114.0";
@@ -22,7 +23,7 @@ export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/chara
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 22;
+export const SAVE_VERSION = 23;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", seal: "seal_wind", accessory: "chakra_charm", companion: null };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
@@ -42,6 +43,7 @@ export function createDefaultSave() {
     equipment: { ...DEFAULT_EQUIPMENT },
     inventory: { items: {}, extraAffinityUnlocked: false },
     guild: defaultGuildState(),
+    events: defaultEventState(),
     loadout: [],
     campaign: {
       completedMissions: [],
@@ -108,6 +110,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     equipment: { ...DEFAULT_EQUIPMENT },
     inventory: starterInventory({ hair: normalizeHairStyle(hair) }),
     guild: defaultGuildState(),
+    events: defaultEventState(),
     loadout: initialLoadout(cleanAffinity),
     campaign: { ...createDefaultSave().campaign }
   };
@@ -190,6 +193,7 @@ export function normalizeSave(candidate) {
     },
     inventory,
     guild: normalizeGuildState(candidate.guild, { campaign: { completedMissions, completedSecondaryMissions, rank: candidate.campaign?.rank } }),
+    events: normalizeEventState(candidate.events),
     loadout: candidate.character ? loadout : [],
     campaign: {
       completedMissions,

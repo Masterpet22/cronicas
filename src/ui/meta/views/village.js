@@ -1,6 +1,7 @@
 import { createShopView } from "./shop.js?v=0.114.0";
 import { createGuildView } from "./guild.js?v=0.119.0";
-import { createArenaView } from "./arena.js?v=0.122.0";
+import { createArenaView } from "./arena.js?v=0.123.0";
+import { createEventsView } from "./events.js?v=0.123.0";
 
 export const VILLAGE_LOCATIONS = [
   { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
@@ -16,7 +17,6 @@ export const VILLAGE_LOCATIONS = [
 
 const VILLAGE_SERVICES = {
   tower: { eyebrow: "DESAFÍO", title: "Torre de Desafíos", text: "Una futura serie de combates consecutivos con reglas especiales y recompensas por cada piso superado.", items: ["Nueve pisos temáticos", "Dificultad creciente", "Recompensas exclusivas"] },
-  event: { eyebrow: "PLAZA CENTRAL", title: "Escenario de Eventos", text: "Este espacio se activará para festivales, comerciantes y desafíos de duración limitada.", items: ["Festivales de la aldea", "Personajes visitantes", "Eventos temporales"] }
 };
 
 function activeMissionObjectives(save) {
@@ -41,6 +41,7 @@ export function createVillageView(deps) {
   const shopView = createShopView(deps);
   const guildView = createGuildView(deps);
   const arenaView = createArenaView(deps);
+  const eventsView = createEventsView(deps);
   let currentState = null;
   let layout = { locationId: null };
 
@@ -100,10 +101,11 @@ export function createVillageView(deps) {
     render(state) {
       currentState = state;
       layout = { locationId: state.view === "plaza" ? null : state.view };
-      return state.view === "arena" ? arenaView.render(state) : state.view === "inn" ? guildView.render(state) : state.view === "shop" ? shopView.render(state) : state.view === "plaza" ? renderPlaza(state.save) : renderService(state.view);
+      return state.view === "event" ? eventsView.render(state) : state.view === "arena" ? arenaView.render(state) : state.view === "inn" ? guildView.render(state) : state.view === "shop" ? shopView.render(state) : state.view === "plaza" ? renderPlaza(state.save) : renderService(state.view);
     },
     getLayout() { return layout; },
     mount(root, scope) {
+      if (currentState?.view === "event") return eventsView.mount(root, scope);
       if (currentState?.view === "arena") return arenaView.mount(root, scope);
       if (currentState?.view === "inn") return guildView.mount(root, scope);
       if (currentState?.view === "shop") return shopView.mount(root, scope);
@@ -131,7 +133,7 @@ export function createVillageView(deps) {
       }
       if (!save.campaign.tutorialSeen) deps.showDialogue(welcomeDialogue(save.character), deps.onTutorialComplete, "IR AL CUARTEL", "story");
     },
-    dispose() { currentState = null; shopView.dispose(); guildView.dispose(); arenaView.dispose(); }
+    dispose() { currentState = null; shopView.dispose(); guildView.dispose(); arenaView.dispose(); eventsView.dispose(); }
   };
 }
 

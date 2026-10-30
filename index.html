@@ -54,6 +54,7 @@
   <link rel="stylesheet" href="guild.css?v=0.120.0">
   <link rel="stylesheet" href="dojo-host.css?v=0.121.0">
   <link rel="stylesheet" href="arena.css?v=0.122.0">
+  <link rel="stylesheet" href="events.css?v=0.123.0">
 </head>
 <body>
   <section class="mobile-gate" aria-labelledby="mobile-gate-title">
@@ -124,7 +125,7 @@
     document.documentElement.classList.toggle('compact-game-enabled', compactEnabled);
 
     if (!mobileViewport.matches || compactEnabled) {
-      await import("./game.js?v=1.23.0");
+      await import("./game.js?v=1.24.0");
     }
   </script>
 </body>

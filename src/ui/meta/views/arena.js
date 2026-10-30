@@ -1,4 +1,4 @@
-import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.122.0";
+import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.123.0";
 import { JUTSU_LIBRARY } from "../../../data.js?v=0.114.0";
 
 export function createArenaView(deps) {

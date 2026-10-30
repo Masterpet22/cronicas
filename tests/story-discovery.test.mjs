@@ -31,7 +31,7 @@ previous.campaign.missionProgress.s02 = { status: "in-progress", currentStepId: 
 const original = structuredClone(previous);
 const migrated = normalizeSave(previous);
 assert.deepEqual(previous, original, "Migrar no debe modificar la partida original");
-assert.equal(migrated.version, 22);
+assert.equal(migrated.version, 23);
 assert.deepEqual(migrated.campaign.completedMissions, ["m01", "m02", "s01"]);
 assert.deepEqual(migrated.campaign.completedSecondaryMissions, []);
 assert.equal(migrated.campaign.doctorRoute.active, true);

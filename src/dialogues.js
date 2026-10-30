@@ -86,13 +86,13 @@ const es = {
     { speaker: "riku", text: "El Dojo te permite ajustar técnicas y equipo antes de partir." }
   ],
   "npc.nao.intro": [
-    { speaker: "nao", text: "¡Nao Matsuri abre la plaza! Hoy está tranquila; mañana podría albergar un torneo o un mercader errante." },
-    { speaker: "nao", text: "Este escenario está reservado para actividades temporales que no alteren la campaña principal." }
+    { speaker: "nao", text: "¡Nao Matsuri abre la plaza! Revisa el calendario mensual para conocer los festivales, las visitas y los eventos temporales de la aldea." },
+    { speaker: "nao", text: "Cuando un evento esté en curso, la plaza lo mostrará directamente. El contador te indica cuántos días faltan para el próximo." }
   ],
   "npc.nao.guide": [
-    { speaker: "nao", text: "Los eventos futuros tendrán duración y recompensas claramente indicadas." },
+    { speaker: "nao", text: "Las fechas marcadas del calendario indican qué actividad se celebra y cuánto dura." },
     { speaker: "nao", text: "Nunca necesitarás participar en ellos para terminar la historia principal." },
-    { speaker: "nao", text: "Por ahora, considera la plaza un adelanto del contenido posterior." }
+    { speaker: "nao", text: "Tu participación se guarda por personaje y por edición. Puedes consultar otros meses sin perder tus avances." }
   ],
   "npc.iori.intro": [
     { speaker: "iori", text: "Llegaste desde la Aldea del Horizonte... Soy Iori. Los bandidos atacaron al caer la noche y se llevaron cuanto pudieron cargar." },
