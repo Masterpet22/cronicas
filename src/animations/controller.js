@@ -19,7 +19,7 @@ function worldPoint(target) {
 }
 
 export class PuppetAnimationController {
-  constructor(scene, fighter, clips = PUPPET_ANIMATION_CLIPS) {
+  constructor(scene, fighter, clips = fighter.animationClips || PUPPET_ANIMATION_CLIPS) {
     this.scene = scene;
     this.fighter = fighter;
     this.clips = clips;

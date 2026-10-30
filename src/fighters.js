@@ -1,5 +1,8 @@
-import { DEFAULT_IDLE_CLIP } from "./animations/clips.js?v=0.115.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.115.0";
+import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
+import { colorizeFighterTextures } from "./battle/skin-textures.js?v=0.119.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.119.0";
+import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.119.0";
 import {
   CHARACTER_HAIR,
   CHARACTER_RIGS,
@@ -35,12 +38,19 @@ function puppetVariant(appearance) {
   return PUPPET_VARIANTS[appearance?.bodyType === "female" ? "female" : "male"];
 }
 
-function puppetSpriteKey(variant, id) {
-  return `player-${variant.id}-${id}`;
+function puppetSpriteKey(variant, id, selectedTone) {
+  return `player-${variant.id}-${normalizeSkinTone(selectedTone)}-${id}`;
 }
 
 export function fighterPuppetTextureKey(appearance, id) {
-  return puppetSpriteKey(puppetVariant(appearance), id);
+  return puppetSpriteKey(puppetVariant(appearance), id, appearance?.skinTone);
+}
+
+export function useFighterTextureRendering(image) {
+  // Phaser 4 puede mezclar los vértices de piezas con texturas distintas.
+  // El nodo individual evita recortes sin cambiar el batching del resto del HUD.
+  image.setRenderNodeRole?.("BatchHandler", "BatchHandlerQuadSingle");
+  return image;
 }
 
 function hairTextureKey(style) {
@@ -69,10 +79,33 @@ export function fighterHairPortraitLayout(style, width, height, flipped = false,
   };
 }
 
+export function fighterCombatPortraitLayout(appearance, flipped = false, radius = 28) {
+  const part = puppetVariant(appearance).byId.cabeza;
+  const width = part.width * (part.scaleX || 1) / (part.height * (part.scaleY || part.scaleX || 1));
+  const head = { x: 0, y: 0, width, height: 1 };
+  const hair = fighterHairPortraitLayout(appearance?.hair, width, 1, flipped, appearance?.bodyType);
+  const layers = [head, hair].filter(Boolean);
+  const left = Math.min(...layers.map(layer => layer.x - layer.width / 2));
+  const right = Math.max(...layers.map(layer => layer.x + layer.width / 2));
+  const top = Math.min(...layers.map(layer => layer.y - layer.height / 2));
+  const bottom = Math.max(...layers.map(layer => layer.y + layer.height / 2));
+  // Inscribir la caja de cabeza + cabello evita recortar barbilla o coleta.
+  const scale = radius * 2 / Math.hypot(right - left, bottom - top);
+  const fit = layer => layer && ({ x: (layer.x - (left + right) / 2) * scale,
+    y: (layer.y - (top + bottom) / 2) * scale, width: layer.width * scale, height: layer.height * scale });
+  return { head: fit(head), hair: fit(hair) };
+}
+
+export function preparePlayerFighterTextures(scene, appearance) {
+  const variant = puppetVariant(appearance);
+  const keys = variant.layers.map(({ id }) => fighterPuppetTextureKey(appearance, id));
+  colorizeFighterTextures(scene, keys, appearance?.skinTone);
+}
+
 export function queuePlayerFighterTextures(scene, appearance) {
   const variant = puppetVariant(appearance);
   variant.layers.forEach(({ id, assetId = id }) => {
-    const key = puppetSpriteKey(variant, id);
+    const key = puppetSpriteKey(variant, id, appearance?.skinTone);
     if (!scene.textures.exists(key)) scene.load.image(key, `${variant.root}/${assetId}.png?v=0.108.0`);
   });
   const hair = CHARACTER_HAIR[appearance?.hair];
@@ -91,7 +124,8 @@ function createJoint(scene, parent, name, point, parentPoint = { x: 0, y: 0 }) {
 
 function addPart(scene, parent, variant, id, parentPoint = { x: 0, y: 0 }) {
   const part = variant.byId[id];
-  const image = scene.add.image(part.x - parentPoint.x, part.y - parentPoint.y, puppetSpriteKey(variant, id));
+  const image = scene.add.image(part.x - parentPoint.x, part.y - parentPoint.y, puppetSpriteKey(variant, id, variant.skinTone));
+  useFighterTextureRendering(image);
   if (part.scaleX || part.scaleY) image.setScale(part.scaleX || 1, part.scaleY || part.scaleX || 1);
   if (part.restRotation) image.setAngle(part.restRotation);
   image.name = id;
@@ -229,7 +263,8 @@ export async function playEarthWallCast(scene, fighter) {
 }
 
 export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
-  const variant = puppetVariant(appearance);
+  preparePlayerFighterTextures(scene, appearance);
+  const variant = { ...puppetVariant(appearance), skinTone: normalizeSkinTone(appearance?.skinTone) };
   const spriteJoints = variant.joints;
   const shadow = scene.add.ellipse(x, y + MAN_SPRITE_SHADOW_OFFSET, 158, 22, 0x000000, 0.4).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);
@@ -237,7 +272,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   const rig = scene.add.container(variant.combat.x, variant.combat.y).setScale(variant.combat.scale);
   body.add(rig);
   const linear = globalThis.Phaser?.Textures?.FilterMode?.LINEAR ?? 0;
-  variant.layers.forEach(({ id }) => scene.textures.get(puppetSpriteKey(variant, id)).setFilter(linear));
+  variant.layers.forEach(({ id }) => scene.textures.get(puppetSpriteKey(variant, id, variant.skinTone)).setFilter(linear));
 
   const joints = {};
   const layers = [];
@@ -284,11 +319,14 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
     const key = hairTextureKey(appearance.hair);
     hair = scene.add.image(hairConfig.x, hairConfig.y, key).setDisplaySize(hairConfig.width, hairConfig.height);
     hair.name = `hair-${hairConfig.id}`;
+    useFighterTextureRendering(hair);
     joints.neck.add(hair);
     layers.push(hair);
   }
 
-  const fighter = { shadow, body, head, hair, rig, joints, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
+  const animationClips = { ...PUPPET_ANIMATION_CLIPS,
+    "prepare-technique": preparationClipForRig(PUPPET_ANIMATION_CLIPS["prepare-technique"], variant) };
+  const fighter = { shadow, body, head, hair, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
   fighter.animations = createPuppetAnimationController(scene, fighter);
   startPlayerBreathing(scene, fighter);
   return fighter;

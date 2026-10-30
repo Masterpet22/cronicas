@@ -1,3 +1,4 @@
+import { normalizeSkinTone, skinTone } from "./skin-tones.js?v=0.119.0";
 const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
 export const HAIR_STYLE_LABELS = Object.freeze(["Sin cabello", "Corto", "Coleta"]);
 const RASTER_HAIR = Object.freeze({
@@ -14,6 +15,7 @@ export function playerFighterAppearance(save) {
   const character = save.character;
   return {
     ...character,
+    skinTone: normalizeSkinTone(character.skinTone),
     weapon: save.equipment?.weapon === null ? "none" : WEAPON_MAP[save.equipment?.weapon] || "kunai",
     clothColor: character.appearance,
     accentColor: "#25344d"
@@ -25,6 +27,7 @@ export function playerFighterAppearance(save) {
 export function enemyFighterAppearance(profile, enemyId = "enemy") {
   return {
     bodyType: "male",
+    skinTone: normalizeSkinTone(profile?.skinTone),
     weapon: profile?.boss ? "sword" : "kunai",
     clothColor: profile?.colors?.cloth ?? 0x53684b,
     accentColor: profile?.colors?.accent ?? 0x1d2b20,
@@ -46,6 +49,7 @@ export function resolveFighterAppearance(appearance = {}) {
   const hair = requestedHair === 0 || requestedHair === 1 || requestedHair === 4 ? requestedHair : 1;
   return {
     bodyType: appearance.bodyType === "female" ? "female" : "male",
+    skinTone: normalizeSkinTone(appearance.skinTone),
     face: clampVariant(appearance.face, 3),
     hair,
     top: clampVariant(appearance.top, 3),
@@ -55,7 +59,7 @@ export function resolveFighterAppearance(appearance = {}) {
     cloth: colorHex(appearance.clothColor ?? appearance.cloth, "#3f6ea8"),
     accent: colorHex(appearance.accentColor ?? appearance.accent, "#25344d"),
     hairColor: HAIR_COLORS[Math.max(0, hair - 1)],
-    skin: appearance.bodyType === "female" ? "#efbd94" : "#e5ad82",
+    skin: skinTone(appearance.skinTone).color,
     ink: "#111722"
   };
 }

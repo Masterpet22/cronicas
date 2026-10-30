@@ -1,8 +1,8 @@
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.114.0"; import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./content/index.js?v=0.114.0";
-import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.114.0";
+import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.122.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.114.0";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.114.0";
-import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.114.0";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.122.0";
+import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.119.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementIconParts, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.114.0";
@@ -10,14 +10,14 @@ import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.114.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.114.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.115.0";
-import { createDojoView } from "./ui/meta/views/dojo.js?v=0.115.0";
+import { createDojoView } from "./ui/meta/views/dojo.js?v=0.119.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.114.0";
-import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.114.0";
-import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.115.0";
+import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.122.0";
+import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.119.0";
 import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
-import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.114.0";
+import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.119.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
-import { createLocationStage } from "./ui/meta/location-stage.js?v=0.67.2";
+import { createLocationStage } from "./ui/meta/location-stage.js?v=0.121.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
@@ -121,7 +121,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     mainMissions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS,
     missionState, nextAvailableMission, secondaryMissionByType, masterForCharacter, escapeHtml,
     assetVersion: ASSET_VERSION, onPersist(next) { save = writeSave(next); return save; },
-    npcs: NPCS, locationCast: LOCATION_CAST, warmImage,
+    npcs: NPCS, locationCast: LOCATION_CAST, warmImage, onStartMission, onNavigate(next) { view = next; render(); }, elementIcon,
     showDialogue: (...args) => showDialogue(...args),
     onMissionNoticesSeen(ids) { save = writeSave({ ...save, campaign: { ...save.campaign, seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...ids])] } }); return save; },
     onTutorialComplete() { save = writeSave({ ...save, campaign: { ...save.campaign, tutorialSeen: true } }); view = "headquarters"; introducedViews.add("headquarters"); render(); }
@@ -229,7 +229,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     viewScope = viewRuntime.replace(view, shellView.render({ save, view }, content));
     shellView.mount(root, viewScope, { save, view });
   };
-  const locationStage = (locationId, content) => stageView.render(locationId, content);
+  const locationStage = (locationId, content, options) => stageView.render(locationId, content, options);
   const bindLocationStage = (locationId) => stageView.mount(root, viewScope, locationId);
 
   const renderVillageView = () => {
@@ -259,7 +259,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const renderDoctorRoute = renderMissionBoardView;
 
   const renderDojo = () => {
-    shell(locationStage("dojo", dojoView.render({ save, activeDojoTab })));
+    shell(locationStage("dojo", dojoView.render({ save, activeDojoTab }), { cast: [masterIdForCharacter(save.character)] }));
     dojoView.mount(root, viewScope);
     bindLocationStage("dojo");
   };

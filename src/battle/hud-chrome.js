@@ -1,4 +1,4 @@
-import { HUD_ART } from './hud-art.js?v=0.114.0';
+import { HUD_ART } from './hud-art.js?v=0.119.0';
 
 // Shared scrollwork for the Canvas frames and the projected native skill rail.
 const SCROLLS = [

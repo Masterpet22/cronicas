@@ -1,10 +1,10 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.115.0";
-import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.114.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.122.0";
+import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.119.0";
 import { battleRuntime } from "./src/battle/session.js?v=1.0.0";
 import { loadPhaser } from "./src/battle/load-phaser.js?v=1.0.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";
 import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=0.99.0";
-import { bindRenderSettings } from "./src/render-settings.js?v=0.114.0";
+import { bindRenderSettings } from "./src/render-settings.js?v=0.119.0";
 
 let game = null;
 let metaUi = null;
@@ -17,7 +17,7 @@ let gameLaunchRevision = 0;
 
 function loadBattleBundle() {
   if (!battleBundlePromise) battleBundlePromise = loadPhaser()
-    .then(() => import("./src/battle/bundle.js?v=0.115.0"))
+    .then(() => import("./src/battle/bundle.js?v=0.122.0"))
     .catch((error) => { battleBundlePromise = null; throw error; });
   return battleBundlePromise;
 }
@@ -38,6 +38,7 @@ function parkGameInstance(instance = game) {
 }
 
 function releaseGameToMeta(locationId = "plaza", { commitVictory = false } = {}) {
+  if (battleRuntime.activeMission?.exhibition) battleRuntime.activeSave = loadSave();
   gameLaunchRevision += 1;
   const instance = game;
   if (commitVictory) commitPendingVictory(battleRuntime, writeSave);
@@ -55,7 +56,7 @@ function releaseGameToMeta(locationId = "plaza", { commitVictory = false } = {})
 }
 
 function createGame(renderSize, bundle) {
-  const { Phaser, GAME_SCENES } = bundle;
+  const { Phaser } = bundle;
   return new Phaser.Game({
     type: Phaser.AUTO,
     callbacks: { postBoot: (instance) => {
@@ -64,7 +65,7 @@ function createGame(renderSize, bundle) {
       renderSettings.refresh();
     } },
     parent: "game", width: renderSize.width, height: renderSize.height, backgroundColor: "#101622",
-    scene: GAME_SCENES, loader: { maxParallelDownloads: 6 },
+    scene: bundle.scenesForMission(battleRuntime.activeMission), loader: { maxParallelDownloads: 6 },
     render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
     scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
   });
@@ -94,7 +95,7 @@ async function launchGame() {
   installPerformanceTools(game, gameRoot, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile });
   game.loop.wake();
   // Phaser conserva los datos de la ejecución anterior si se omite este objeto.
-  game.scene.start("travel", {});
+  game.scene.start(battleRuntime.activeMission.exhibition ? "battle" : "travel", {});
   gameRoot.removeAttribute("aria-busy");
   renderSettings.refresh();
 }
@@ -131,7 +132,7 @@ const renderSettings = bindRenderSettings(gameRoot, battleRuntime, () => game, i
 metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) => {
   discardVictory(battleRuntime);
   battleRuntime.pendingSecondaryResults = null;
-  battleRuntime.activeSave = mission.tutorialReplay ? structuredClone(save) : writeSave(startMissionProgress(save, mission.id));
+  battleRuntime.activeSave = mission.tutorialReplay || mission.exhibition ? structuredClone(save) : writeSave(startMissionProgress(save, mission.id));
   battleRuntime.activeMission = mission;
   document.querySelector(".game-settings")?.removeAttribute("open");
   await launchGame();
@@ -145,5 +146,3 @@ metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) =
   battleRuntime.pendingSecondaryResults = { ...result, missionTitle: mission.title, missionId: mission.id, missionType: mission.type };
   void launchGame();
 });
-
-

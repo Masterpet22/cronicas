@@ -1,0 +1,133 @@
+.guild-hall { position:absolute; inset:100px 20px 16px; display:flex; flex-direction:column; gap:10px; padding:18px 22px; min-height:0; border:1px solid #b4945c; border-radius:12px; background:linear-gradient(#07111aeb,#07111af5),var(--guild-background) center/cover; color:#ece2ce; box-shadow:inset 0 0 0 3px #07111a,inset 0 0 0 4px #846c3b66; font-family:"Alegreya Sans",sans-serif; }
+.guild-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+.guild-heading .eyebrow,.guild-catalog .eyebrow { margin:0 0 5px; font-size:11px; letter-spacing:.1em; color:#c8a769; }
+.guild-heading h2 { margin:0; color:#f2dfb6; font:700 clamp(18px,2vw,26px) Cinzel,Georgia,serif; }
+.guild-personal-tag { padding:8px 12px; border:1px solid #886d42; border-radius:5px; color:#c6b58d; font-size:11px; letter-spacing:.06em; }
+.guild-tabs { display:flex; gap:8px; border-bottom:1px solid #826b4144; padding-bottom:9px; }
+.guild-hall button,.guild-hall select,.guild-hall input { box-sizing:border-box; font:inherit; }
+.guild-hall button,.guild-hall select { border:1px solid #80683f; border-radius:5px; background:#0d1a28; color:#e9d4ad; }
+.guild-hall button { padding:7px 12px; min-height:36px; cursor:pointer; }
+.guild-hall button:hover:not(:disabled) { background-color:#243843; border-color:#e0bf7b; }
+.guild-hall button:disabled { opacity:.5; cursor:default; }
+.guild-hall :focus-visible { outline:2px solid #ffe3a5; outline-offset:2px; }
+.guild-tabs button { min-width:140px; font-weight:700; }
+.guild-tabs button[aria-selected=true],.guild-hall button[aria-pressed=true]:not(.room-decoration) { border-color:#dab56d; background-color:#572b39; color:#ffe4b1; }
+.guild-tabs small { margin-left:9px; color:#bdaf98; font-size:11px; font-weight:400; }
+.guild-message { min-height:18px; margin:0; color:#bdcbbf; font-size:13px; }
+.guild-body { flex:1; min-height:0; overflow:auto; scrollbar-color:#8c7047 #0b1924; padding:2px; }
+.guild-room-layout { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:18px; height:100%; min-height:0; }
+.guild-room-main { display:flex; flex-direction:column; gap:9px; min-width:0; min-height:0; }
+.guild-finishes { display:flex; align-items:center; gap:22px; padding:9px 14px; border:1px solid #5b6c6544; border-radius:7px; background:#14252c; }
+.guild-hall fieldset { border:0; padding:0; margin:0; min-width:0; }
+.guild-hall legend,.guild-hall label { color:#d2c7ad; font-size:12px; }
+.guild-finishes fieldset>div { display:flex; gap:7px; margin-top:5px; }
+.guild-hall .guild-swatch { width:28px; min-height:28px; padding:0; background:var(--swatch); border-radius:50%; border:2px solid #c1b18d77; box-shadow:inset 0 0 0 2px #0003; color:#fff3c9; }
+.guild-hall .guild-swatch[aria-pressed=true],.guild-hall .guild-swatch:hover:not(:disabled) { background:var(--swatch); border-color:#f8dda3; }
+.guild-hall select { padding:6px 9px; min-height:34px; width:100%; margin-top:4px; }
+.guild-finishes>label { min-width:110px; }
+.guild-room-count { margin-left:auto; color:#e6cd9d; font:700 20px Cinzel,Georgia,serif; text-align:right; }
+.guild-room-count small { display:block; color:#95aaac; font:10px "Alegreya Sans",sans-serif; letter-spacing:.05em; }
+.guild-room-surround { flex:1; min-height:220px; display:grid; place-items:center; container-type:size; background:radial-gradient(ellipse,#314d4655,#09131b); border:1px solid #7d694447; border-radius:8px; overflow:hidden; }
+.guild-room-canvas { position:relative; width:min(100cqw,calc(100cqh * 1.5625)); aspect-ratio:25/16; isolation:isolate; }
+.guild-room-canvas>svg { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+.guild-room-canvas.is-placing { cursor:crosshair; }
+.guild-room-sign { position:absolute; left:50%; top:5%; transform:translateX(-50%); max-width:48%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; padding:3px 10px; background:#3b2823; border:1px solid #c39d68; color:#e7c78f; font-size:clamp(9px,.8vw,12px); pointer-events:none; }
+.guild-hall .room-decoration { position:absolute; transform:translate(-50%,-50%); min-height:0; padding:0; border:1px solid transparent; border-radius:4px; background:transparent; touch-action:none; cursor:grab; filter:drop-shadow(2px 4px 2px #0004); }
+.guild-hall .room-decoration:hover:not(:disabled) { background:#ffe4ae0c; border-color:#ead19a77; }
+.guild-hall .room-decoration.selected { border-color:#ffe0a2; background:#e8bf6b14; outline:1px dashed #ffe0a2; outline-offset:3px; }
+.room-decoration svg { width:100%; height:100%; display:block; pointer-events:none; }
+.guild-room-inspector { display:flex; gap:8px; align-items:center; flex-wrap:wrap; min-height:48px; padding:8px 10px; border:1px solid #77664155; border-radius:6px; background:#101f2a; }
+.guild-room-inspector strong { margin-right:auto; font-size:13px; }
+.guild-room-inspector p { margin:0; color:#acb8b6; font-size:13px; }
+.guild-room-inspector label { display:flex; gap:6px; align-items:center; }
+.guild-room-inspector select { width:95px; margin:0; }
+.guild-move-controls { display:flex; gap:3px; }
+.guild-move-controls button { padding:3px 8px; }
+.guild-hall [data-room-remove] { color:#e5a997; }
+.guild-room-help { color:#8fa6ab; font-size:11px; }
+.guild-catalog { display:flex; flex-direction:column; min-height:0; gap:10px; padding:14px; border:1px solid #74603d88; border-radius:8px; background:#101c27; }
+.guild-catalog h3,.guild-clan-layout h3 { margin:0; color:#ead3a6; font:700 17px Cinzel,Georgia,serif; }
+.guild-filters { display:grid; grid-template-columns:repeat(4,1fr); gap:4px; }
+.guild-filters button { min-height:30px; padding:4px 2px; font-size:12px; }
+.guild-decor-catalog { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:max-content; align-content:start; gap:8px; overflow-y:auto; min-height:0; flex:1; padding:2px; }
+.guild-hall .guild-catalog-item { display:flex; flex-direction:column; align-items:center; padding:8px 6px; text-align:center; gap:5px; min-height:132px; }
+.guild-decor-art { display:block; flex-shrink:0; height:60px; width:84px; }
+.guild-decor-art svg { width:100%; height:100%; }
+.guild-catalog-item strong { font-size:12px; font-weight:700; }
+.guild-catalog-item small { font-size:11px; color:#a6bab0; }
+.guild-place-actions { display:flex; gap:5px; }
+.guild-place-actions button:first-child { flex:1; background:#572b39; font-weight:700; }
+.guild-clan-layout { display:grid; grid-template-columns:minmax(0,1.6fr) minmax(290px,1fr); gap:20px; }
+.guild-clan-designer { display:grid; grid-template-columns:minmax(160px,.65fr) minmax(0,1fr); gap:22px; padding:20px; background:#14252ceb; border:1px solid #846b4688; border-radius:8px; }
+.guild-clan-preview { text-align:center; padding-top:12px; overflow-wrap:anywhere; }
+.guild-clan-emblem { width:min(100%,210px); margin:0 auto 18px; }
+.guild-clan-emblem svg { width:100%; }
+.guild-clan-preview small { color:#c6aa70; letter-spacing:.1em; }
+.guild-clan-preview h3 { margin-top:8px; }
+.guild-clan-preview p,.guild-clan-designer form>p { color:#a5b6b7; font-size:13px; line-height:1.4; }
+.guild-clan-designer form { display:grid; gap:12px; align-content:start; }
+.guild-clan-designer form .eyebrow { margin:0; color:#b89d66; font-size:11px; letter-spacing:.1em; }
+.guild-clan-designer form>p { margin:0; }
+.guild-clan-names { display:grid; grid-template-columns:1fr 72px; gap:10px; }
+.guild-clan-designer label { display:grid; gap:4px; }
+.guild-hall input { width:100%; min-height:36px; border:1px solid #64716c; border-radius:4px; background:#071722; color:#edddbd; padding:7px 10px; }
+.guild-emblem-options { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; margin-top:6px; }
+.guild-emblem-options button { min-width:0; padding:4px 2px; font-size:10px; }
+.guild-emblem-options svg { width:100%; height:42px; display:block; margin-bottom:3px; }
+.guild-hall [data-clan-save] { background:#572b39; border-color:#c3a063; font-weight:700; }
+.guild-online-panel { padding:20px; border:1px solid #73613e77; border-radius:8px; background:#0f1b26; }
+.guild-coming-soon { display:inline-block; font-size:10px; letter-spacing:.09em; color:#d4ba83; padding:5px 9px; border:1px solid #917648; border-radius:12px; margin-bottom:13px; }
+.guild-online-panel p { color:#a4b5b7; font-size:13px; line-height:1.4; }
+.guild-online-actions { display:flex; gap:8px; flex-wrap:wrap; margin:18px 0; }
+.guild-online-panel h4 { color:#dbc18c; margin:20px 0 10px; font-size:14px; }
+.guild-online-panel table { width:100%; border-collapse:collapse; font-size:12px; text-align:left; }
+.guild-online-panel th { color:#b4c2be; padding:8px 4px; border-bottom:1px solid #6a614555; }
+.guild-online-panel td { padding:16px 4px; color:#8ca2a8; }
+.guild-online-panel .guild-local-note { border-top:1px solid #6a614555; padding-top:13px; font-size:12px; }
+.location-inn .stage-options { position:absolute; top:100px; right:18px; bottom:18px; left:auto; width:72%; max-height:none; margin:0; padding:0; overflow:visible; scrollbar-gutter:auto; }
+.location-inn .guild-hall { inset:0; padding:16px 18px; }
+.location-stage.location-inn .stage-character { left:0; width:26%; height:80%; bottom:0; }
+.location-inn .guild-room-layout { grid-template-columns:minmax(0,1fr) 220px; gap:12px; }
+.location-inn .guild-catalog { padding:10px; }
+.location-inn .guild-room-inspector strong { flex-basis:100%; }
+.location-inn .guild-finishes { gap:12px; padding:8px 10px; }
+.location-inn .guild-finishes>label { min-width:90px; }
+.location-inn .guild-room-count { font-size:16px; }
+.location-inn .guild-room-count small { font-size:9px; }
+.location-inn .stage-ambient { left:2%; top:104px; bottom:auto; height:auto; width:23%; box-sizing:border-box; padding:13px; font-size:13px; }
+.location-inn .stage-ambient::before { left:30px; top:auto; bottom:-18px; transform:rotate(-90deg); }
+@media (max-height:780px) and (min-width:1101px) {
+  .guild-hall { inset:90px 16px 10px; padding:14px 18px; gap:7px; }
+  .guild-heading h2 { font-size:20px; }
+  .guild-tabs { padding-bottom:6px; }
+  .guild-finishes { padding:6px 10px; }
+  .guild-room-surround { min-height:180px; }
+  .guild-room-inspector { padding:5px 7px; }
+  .location-inn .stage-options { top:92px; bottom:12px; right:14px; }
+}
+@media (max-width:1100px) {
+  .guild-room-layout,.guild-clan-layout { grid-template-columns:1fr; height:auto; }
+  .guild-room-main { min-height:490px; }
+  .guild-catalog { min-height:350px; }
+  .guild-decor-catalog { grid-template-columns:repeat(4,minmax(0,1fr)); max-height:320px; }
+  .location-inn .guild-room-layout { grid-template-columns:1fr; }
+  .location-inn .guild-clan-layout,.location-inn .guild-clan-designer { grid-template-columns:1fr; }
+}
+@media (max-width:700px) {
+  .guild-hall { position:relative; inset:auto; margin-top:15px; padding:14px; }
+  .guild-personal-tag { display:none; }
+  .guild-heading h2 { font-size:19px; }
+  .guild-tabs button { min-width:0; flex:1; }
+  .guild-tabs small { display:block; margin-left:0; }
+  .guild-room-main { min-height:350px; }
+  .guild-finishes { flex-wrap:wrap; gap:10px; padding:8px; }
+  .guild-room-count { font-size:15px; }
+  .guild-clan-designer { grid-template-columns:1fr; padding:15px; }
+  .guild-clan-emblem { max-width:130px; }
+  .guild-decor-catalog { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .location-stage.location-inn { min-height:1200px; }
+  .location-stage.location-inn .stage-character { width:35%; height:240px; bottom:auto; top:0; }
+  .location-inn .stage-options { position:relative; inset:auto; width:96%; margin:250px auto 14px; }
+  .location-inn .guild-hall { position:relative; inset:auto; margin:0; }
+  .location-inn .stage-ambient { left:36%; top:25px; width:60%; }
+}

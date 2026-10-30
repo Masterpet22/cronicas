@@ -243,10 +243,10 @@ test("la tienda y el equipo comprado caben en una ventana de 1280 × 720", async
 test("una poción usa el turno y sigue gastada después de retirarse", async ({ page }) => {
   await equipBattleStock(page);
   await page.screenshot({ path: "test-results/shop/combate.png" });
-  await page.getByRole("button", { name: "Abrir mochila de misión" }).click();
+  await page.getByRole("button", { name: "Abrir objetos de misión" }).click();
   await page.screenshot({ path: "test-results/shop/mochila.png" });
   await page.locator('[data-use-item="health_potion"]').click();
-  await expect(page.getByRole("dialog", { name: "Mochila de misión" })).toHaveCount(0);
+  await expect(page.getByRole("dialog", { name: "Objetos de misión" })).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.round)).toBe(2);
   const state = await page.evaluate(() => {
     const scene = window.__performanceReference.scene;
@@ -259,9 +259,9 @@ test("una poción usa el turno y sigue gastada después de retirarse", async ({ 
   expect(state.count).toBe(1);
   expect(state.baseline).toBe(1);
   expect(state.turnReady).toBe(false);
-  await page.getByRole("button", { name: "Abrir mochila de misión" }).click();
+  await page.getByRole("button", { name: "Abrir objetos de misión" }).click();
   await expect(page.locator('[data-use-item="health_potion"]')).toBeDisabled();
-  await page.getByRole("button", { name: "Cerrar mochila" }).click();
+  await page.getByRole("button", { name: "Cerrar objetos" }).click();
   await page.evaluate(() => window.__performanceReference.scene.abandonPayload());
   expect((await stored(page)).inventory.items.health_potion).toBe(1);
 });

@@ -42,6 +42,18 @@ import { validateAnimationCatalog } from "../src/animations/schema.js";
 import { animationClipDuration, sampleAnimationPose } from "../src/animations/runtime.js";
 import { createPlayerFighter, fighterHairPortraitLayout, fighterPuppetTextureKey, MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, WOMAN_SPRITE_JOINTS, WOMAN_SPRITE_LAYERS, playEarthWallCast, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
+import { fighterCombatPortraitLayout } from "../src/fighters.js";
+
+for (const bodyType of ["male", "female"]) for (const hair of [0, 1, 4]) for (const flipped of [false, true]) {
+  const layout = fighterCombatPortraitLayout({ bodyType, hair }, flipped);
+  const part = CHARACTER_RIGS[bodyType].byId.cabeza;
+  assert.ok(Math.abs(layout.head.width / layout.head.height - part.width / part.height) < .0001, "El retrato debe conservar la proporción de la cabeza");
+  for (const layer of [layout.head, layout.hair].filter(Boolean)) {
+    for (const sx of [-1, 1]) for (const sy of [-1, 1]) {
+      assert.ok(Math.hypot(layer.x + sx * layer.width / 2, layer.y + sy * layer.height / 2) <= 28.001, "Cabeza y peinado deben quedar dentro del círculo de vida");
+    }
+  }
+}
 
 const playerSave = {
   character: { name: "Akio", appearance: "#e64c3c", bodyType: "male", face: 2, hair: 1, top: 1, bottom: 2, shoes: 1 },
@@ -71,7 +83,7 @@ assert.deepEqual(
   "La coleta debe conservar su posición en retratos reflejados"
 );
 assert.equal(fighterHairPortraitLayout(0, 42, 64), null, "El retrato sin peinado no debe crear una capa de cabello");
-assert.equal(fighterPuppetTextureKey({ bodyType: "female" }, "cabeza"), "player-woman-cabeza", "Los retratos femeninos deben usar su propia cabeza");
+assert.equal(fighterPuppetTextureKey({ bodyType: "female" }, "cabeza"), "player-woman-claro-cabeza", "Los retratos femeninos deben usar su propia cabeza y tono");
 assert.deepEqual(
   Object.fromEntries(Object.entries(fighterHairPortraitLayout(1, 42, 64, false, "female")).map(([key, value]) => [key, Number(value.toFixed(2))])),
   { x: -2.47, y: -14.58, width: 47.65, height: 37.39 },
@@ -80,8 +92,8 @@ assert.deepEqual(
 const shortHairLoaded = [];
 queuePlayerFighterTextures({ textures: { exists: (key) => shortHairLoaded.includes(key) }, load: { image: (key) => shortHairLoaded.push(key) } }, { ...playerApp, hair: 1, bodyType: "female" });
 assert.ok(shortHairLoaded.includes("player-hair-corto"), "Corto debe cargarse también para el cuerpo femenino");
-assert.ok(shortHairLoaded.includes("player-woman-torso"), "El perfil femenino debe cargar la marioneta femenina");
-assert.ok(!shortHairLoaded.includes("player-man-torso"), "El perfil femenino no debe cargar el torso masculino");
+assert.ok(shortHairLoaded.includes("player-woman-claro-torso"), "El perfil femenino debe cargar la marioneta femenina");
+assert.ok(!shortHairLoaded.includes("player-man-claro-torso"), "El perfil femenino no debe cargar el torso masculino");
 const ponytailLoaded = [];
 queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.includes(key) }, load: { image: (key) => ponytailLoaded.push(key) } }, { ...playerApp, hair: 4, bodyType: "male" });
 assert.ok(ponytailLoaded.includes("player-hair-coleta"), "Coleta debe cargarse también para el cuerpo masculino");

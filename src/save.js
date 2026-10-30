@@ -1,3 +1,5 @@
+import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
+import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.119.0";
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.114.0";
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
 import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.114.0";
@@ -20,7 +22,7 @@ export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/chara
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 20;
+export const SAVE_VERSION = 22;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", seal: "seal_wind", accessory: "chakra_charm", companion: null };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
@@ -39,6 +41,7 @@ export function createDefaultSave() {
     },
     equipment: { ...DEFAULT_EQUIPMENT },
     inventory: { items: {}, extraAffinityUnlocked: false },
+    guild: defaultGuildState(),
     loadout: [],
     campaign: {
       completedMissions: [],
@@ -92,7 +95,7 @@ function normalizeHairStyle(value) {
   return hair === 0 || hair === 1 || hair === 4 ? hair : 1;
 }
 
-export function createCharacter(save, { name, affinity, appearance, bodyType, hair, teleportObject: selectedObject }) {
+export function createCharacter(save, { name, affinity, appearance, bodyType, hair, skinTone, teleportObject: selectedObject }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
   const cleanAffinity = BASIC_ELEMENT_IDS.includes(affinity) ? affinity : "fuego";
   const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
@@ -100,10 +103,11 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
+    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", skinTone: normalizeSkinTone(skinTone), masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     inventory: starterInventory({ hair: normalizeHairStyle(hair) }),
+    guild: defaultGuildState(),
     loadout: initialLoadout(cleanAffinity),
     campaign: { ...createDefaultSave().campaign }
   };
@@ -161,6 +165,7 @@ export function normalizeSave(candidate) {
       affinityXp,
       appearance: /^#[0-9a-f]{6}$/i.test(candidate.character.appearance || "") ? candidate.character.appearance : "#e8edf5",
       bodyType,
+      skinTone: normalizeSkinTone(candidate.character.skinTone),
       masterId,
       face: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.face) || 1))),
       hair: normalizeHairStyle(candidate.character.hair),
@@ -184,6 +189,7 @@ export function normalizeSave(candidate) {
       accessory: validEquipment("accessory", candidate.equipment?.accessory, inventory)
     },
     inventory,
+    guild: normalizeGuildState(candidate.guild, { campaign: { completedMissions, completedSecondaryMissions, rank: candidate.campaign?.rank } }),
     loadout: candidate.character ? loadout : [],
     campaign: {
       completedMissions,

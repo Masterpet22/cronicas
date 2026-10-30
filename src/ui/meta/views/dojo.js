@@ -1,6 +1,6 @@
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.115.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.119.0";
 import { createDojoTechniques } from "../dojo-techniques.js?v=0.107.0";
-import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.114.0";
+import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.119.0";
 import { affinityScrollRequirement, countItem, equipItem } from "../../../inventory.js?v=0.114.0";
 import { mountDojoAffinityScroll } from "../dojo-affinity-scroll.js?v=0.114.0";
 const ATTRIBUTE_DEFINITIONS = Object.freeze([

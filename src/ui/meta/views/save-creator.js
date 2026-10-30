@@ -1,4 +1,5 @@
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.115.0";
+import { skinToneControlMarkup } from "../../skin-tone-control.js?v=0.119.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.119.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([
@@ -65,6 +66,7 @@ export function createSaveCreatorView(deps) {
           <div class="creator-controls">
             <label class="creator-name-control" for="creator-name"><span>NOMBRE</span><input id="creator-name" name="name" maxlength="18" value="Akio" autocomplete="off" spellcheck="false" required><small>Hasta 18 caracteres.</small></label>
             <div class="cosmetic-control creator-gender-control"><label class="cosmetic-label" for="creator-gender">Género</label><div class="cosmetic-stepper"><button type="button" data-creator-gender-step="-1" aria-label="Género anterior">‹</button><select id="creator-gender" name="bodyType" aria-describedby="creator-gender-note"><option value="male">Masculino</option><option value="female">Femenino</option></select><button type="button" data-creator-gender-step="1" aria-label="Género siguiente">›</button></div><small id="creator-gender-note">Esta elección queda fija para esta partida.</small></div>
+            ${skinToneControlMarkup("claro")}
             <fieldset class="creator-affinity-control"><legend>AFINIDAD INICIAL</legend><div class="creator-affinity-grid">${affinityChoices}</div><p>Comienzas con una afinidad básica. La segunda se obtiene por progreso; la tercera requiere un pergamino, rango Guardián y nivel 10.</p></fieldset>
             <input name="appearance" type="hidden" value="${color}">
             <div class="creator-actions"><button class="primary-button" type="submit">CREAR PERSONAJE</button><button class="secondary-button" type="button" data-back-to-slots>VOLVER A PARTIDAS</button></div>
@@ -100,7 +102,7 @@ export function createSaveCreatorView(deps) {
       const updateGender = () => {
         preview.dataset.bodyType = gender.value;
         const affinity = form.querySelector('input[name="affinity"]:checked').value;
-        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, hair: Number(hair.value) } }, "0.108.0", { backdrop: elementParticlesMarkup(affinity) });
+        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, hair: Number(hair.value), skinTone: form.querySelector('[name="skinTone"]:checked').value } }, "0.108.0", { backdrop: elementParticlesMarkup(affinity) });
       };
       scope.listen(name, "input", () => { name.setCustomValidity(""); root.querySelector("[data-creator-name]").textContent = name.value.trim() || "Tu combatiente"; });
       scope.listen(gender, "change", updateGender);
@@ -115,6 +117,7 @@ export function createSaveCreatorView(deps) {
         updateGender();
       }));
       scope.listen(form, "change", (event) => {
+        if (event.target.name === "skinTone") { updateGender(); return; }
         if (event.target.name !== "affinity") return;
         const affinity = event.target.value;
         const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;

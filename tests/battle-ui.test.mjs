@@ -66,7 +66,7 @@ assert.match(battle, /enemyRankStar = this\.createLevelBadge/, "El enemigo debe 
 assert.match(battle, /createCombatPortrait\(900, 50, this\.enemyAppearance\(\), true\)/, "El retrato enemigo debe mirar hacia el campo de batalla");
 assert.match(fighters, /fighterHairPortraitLayout\(style, width, height, flipped = false, bodyType = "male"\)/, "Los retratos deben calcular el cabello desde la geometría compartida del combatiente");
 assert.doesNotMatch(fighters, /player-head-corto/, "Los retratos no deben sustituir la cabeza y el peinado por una composición distinta");
-assert.match(battle, /fighterPuppetTextureKey\(appearance, "cabeza"\)[\s\S]*fighterHairPortraitLayout\(appearance\?\.hair, 42, 64, flipped, appearance\?\.bodyType\)/, "El retrato principal debe usar el cuerpo elegido y superponer el peinado con su geometría");
+assert.match(battle, /fighterCombatPortraitLayout\(appearance, flipped\)[\s\S]*fighterPuppetTextureKey\(appearance, "cabeza"\)[\s\S]*const hairLayout = layout\.hair/, "El retrato principal debe encuadrar juntos cabeza y peinado sin deformarlos");
 assert.match(battle, /fighterHairPortraitLayout\(markerHairStyle, 22, 34, false, this\.playerAppearance\(\)\?\.bodyType\)/, "El icono de orden de turno debe escalar la misma composición del personaje");
 assert.match(characterRigs, /1: \{ id: "corto", width: 295, height: 229, x: -26, y: -273 \}/, "El cabello corto debe coincidir con la posición del Dojo en el cuerpo de combate");
 assert.match(characterRigs, /4: \{ id: "coleta", width: 392, height: 314, x: -59, y: -246 \}/, "La coleta debe coincidir con la posición del Dojo en el cuerpo de combate");
@@ -354,7 +354,7 @@ assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kuro
 assert.match(travelScene, /(?:battleRuntime\.)?releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.equal((battle.match(/new Phaser\.Game\(/g) || []).length, 1, "La sesión debe crear una sola instancia reutilizable de Phaser");
 assert.match(battle, /function parkGameInstance[\s\S]*stopGameScenes\(instance\)[\s\S]*instance\.loop\.sleep\(\)/, "Al volver a HTML deben detenerse las escenas y aparcarse el bucle sin perder la caché de texturas");
-assert.match(battle, /if \(!game\)[\s\S]*createGame\(renderSize, bundle\)[\s\S]*game\.scale\.resize[\s\S]*game\.loop\.wake\(\)[\s\S]*game\.scene\.start\("travel", \{\}\)/, "Las misiones posteriores deben redimensionar y reactivar la instancia existente");
+assert.match(battle, /if \(!game\)[\s\S]*createGame\(renderSize, bundle\)[\s\S]*game\.scale\.resize[\s\S]*game\.loop\.wake\(\)[\s\S]*game\.scene\.start\(battleRuntime\.activeMission\.exhibition \? "battle" : "travel", \{\}\)/, "La instancia existente debe reactivarse con combate directo para exhibición y viaje para misiones");
 assert.match(battle, /GAME_SCENES = Object\.freeze\(\[[\s\S]*MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene/, "La instancia compartida debe registrar recorridos principales y secundarios");
 assert.match(battle, /pendingSecondaryResults[\s\S]*void launchGame\(\)/, "Los resultados secundarios deben reutilizar la instancia y mostrar la subida durante el regreso antes del informe");
 assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");

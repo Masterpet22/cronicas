@@ -21,6 +21,10 @@ test("la calidad manual se guarda sin activar Phaser ni el modo ligero", async (
   });
   await page.reload();
   await page.getByRole("button", { name: "Abrir ajustes", exact: true }).click();
+  await expect(page.locator('.game-settings [data-render-quality="economy"]')).toHaveText("960 * 540");
+  await expect(page.locator('.game-settings [data-render-quality="low"]')).toHaveText("1200 * 675");
+  await expect(page.locator('.game-settings [data-render-quality="balanced"]')).toHaveText("1440 * 810");
+  await expect(page.locator('.game-settings [data-render-quality="high"]')).toHaveText("1920 * 1080");
   await page.locator('.game-settings [data-render-quality="high"]').click();
   await page.locator('.game-settings [data-render-quality="high"]').press("Home");
   await expect(page.locator("#render-quality")).toHaveValue("auto");
@@ -67,7 +71,7 @@ test("la pausa cambia la resolución real sin reiniciar la batalla ni imponer el
   });
   await page.locator('.combat-pause-access [data-render-quality="high"]').click();
   await expect.poll(() => page.locator("#game > canvas").evaluate(canvas => [canvas.width, canvas.height])).toEqual([1920, 1080]);
-  await expect(page.locator(".combat-pause-access [data-render-quality-status]")).toContainText("1920 × 1080");
+  await expect(page.locator(".combat-pause-access [data-render-quality-status]")).toContainText("1920 * 1080");
   await page.evaluate(() => {
     window.__lightChanges = [];
     document.getElementById("light-mode").addEventListener("change", event => window.__lightChanges.push(event.target.checked));

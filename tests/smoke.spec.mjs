@@ -135,9 +135,9 @@ test("crear partida, lanzar m01 y volver a la aldea aparca Phaser", async ({ pag
   await page.waitForTimeout(500);
   await page.keyboard.press("Escape");
   await page.waitForTimeout(250);
-  await clickCanvasPoint(page, canvasBox, 560 / 960, 454 / 540);
+  await page.getByRole("button", { name: "ABANDONAR", exact: true }).click();
   await expect(page.locator("#game [role='alertdialog']")).toBeVisible();
-  await clickCanvasPoint(page, canvasBox, 600 / 960, 354 / 540);
+  await page.getByRole("button", { name: "Abandonar misión y perder recompensas", exact: true }).click();
   await page.waitForTimeout(2_700);
   await clickCanvasPoint(page, canvasBox, 625 / 960, 485 / 540);
 
@@ -183,7 +183,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await expect(page.locator(".equipment-columns")).toBeVisible();
   const equipmentPanelHeight = (await page.locator(".dojo-main-panel").boundingBox())?.height;
   const equipmentMenuHeight = (await page.locator(".location-dojo .stage-options").boundingBox())?.height;
-  await expect(page.locator(".companion-slot")).toBeDisabled();
+  await expect(page.locator('[data-gear-slot="companion"]')).toBeEnabled();
   await page.locator("[data-open-master]").click();
   await expect(page.locator(".master-modal")).toBeVisible();
   await expect(page.locator(".master-modal [data-master]")).toHaveCount(2);
@@ -199,17 +199,17 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await page.locator("[data-dojo-tab='appearance']").click();
   await expect(page.locator("#dojo-panel-appearance .puppet-preview-rig")).toBeVisible();
   await expect(page.locator('[data-cosmetic-step="face"]').first()).toBeDisabled();
-  await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("TIPO 02");
-  await expect(page.locator('button[data-cosmetic-control="outfit"]')).toBeDisabled();
-  await expect(page.locator('button[data-cosmetic-control="outfit"] .cosmetic-label')).toHaveText("Traje");
-  await expect(page.locator('button[data-cosmetic-control="outfit"]')).toContainText("BLOQUEADO");
+  await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("Peinado corto");
+  await expect(page.locator('[data-cosmetic-control="outfit"] [data-cosmetic-step]').first()).toBeDisabled();
+  await expect(page.locator('[data-cosmetic-control="outfit"] .cosmetic-label')).toHaveText("Traje completo");
+  await expect(page.locator('[data-cosmetic-control="outfit"]')).toContainText("Sin traje completo");
   await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveAttribute("src", /hair_corto\.png/);
   await expect(page.locator("#dojo-panel-appearance .raster-character-floor")).toHaveCount(0);
   expect((await page.locator(".dojo-main-panel").boundingBox())?.height).toBe(equipmentPanelHeight);
   expect((await page.locator(".location-dojo .stage-options").boundingBox())?.height).toBe(equipmentMenuHeight);
   await page.locator('[data-cosmetic-step="hair"][data-direction="1"]').click();
-  await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("TIPO 03");
-  await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveAttribute("src", /hair_coleta\.png/);
+  await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("Sin cabello");
+  await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveCount(0);
   await page.locator("[data-dojo-tab='techniques']").click();
   await page.locator("[data-skill-select='fire_breath']").click();
   await expect(page.locator(".technique-detail h3")).toHaveText("Aliento de brasa");
@@ -253,7 +253,7 @@ test("las nueve localidades abren desde el mapa desde el inicio de la partida", 
     await expect(page.locator(`[data-location-stage="${id}"]`)).toBeVisible();
     const next = page.locator("[data-stage-speech]:not(.leaving) [data-stage-next]");
     for (let i = 0; i < 10 && await next.isVisible(); i++) await next.click();
-    await expect(page.locator("[data-stage-options]")).toBeVisible();
+    await expect(page.locator(id === "inn" ? ".guild-room-canvas" : "[data-stage-options]")).toBeVisible();
     if (["dojo", "archive"].includes(id)) await page.screenshot({ path: testInfo.outputPath(`nuevo-fondo-${id}.png`) });
     await page.locator('.village-return [data-view="plaza"]').click();
     await expect(page.locator(".village-map")).toBeVisible();

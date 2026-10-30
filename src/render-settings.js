@@ -28,7 +28,7 @@ export function bindRenderSettings(element, runtime, getGame, onResize) {
         });
         onResize?.(game);
       }
-      status.textContent = `Resolución actual: ${size.width} × ${size.height} px.`;
+      status.textContent = `Resolución actual: ${size.width} * ${size.height} px.`;
     }
     document.dispatchEvent(new Event(updateEvent));
   };
@@ -59,7 +59,7 @@ function wireQualityButtons(control, original) {
   choices.className = "render-quality-options";
   choices.setAttribute("role", "radiogroup");
   choices.setAttribute("aria-label", "Resolución de combate");
-  const labels = { auto: "Auto", economy: "540p", low: "675p", balanced: "810p", high: "1080p" };
+  const labels = { auto: "Auto", economy: "960 * 540", low: "1200 * 675", balanced: "1440 * 810", high: "1920 * 1080" };
   [...original.options].forEach(option => {
     const button = document.createElement("button");
     button.type = "button";

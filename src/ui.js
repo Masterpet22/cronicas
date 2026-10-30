@@ -1,4 +1,4 @@
-import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.114.0";
+import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.119.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";
 import { createResourceLayer } from "./battle/resource-bar.js?v=0.114.0";
 

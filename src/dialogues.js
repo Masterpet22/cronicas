@@ -51,12 +51,12 @@ const es = {
   ],
   "npc.goro.intro": [
     { speaker: "goro", text: "¡Goro Tetsugan! Aquí los errores no cuestan una campaña; cuestan orgullo." },
-    { speaker: "goro", text: "La Arena servirá para practicar rotaciones, medir daño y probar equipos sin alterar tu historia." }
+    { speaker: "goro", text: "Elige un rival y una dificultad para una exhibición contra la IA. PvP y combates clasificatorios llegarán con el modo online." }
   ],
   "npc.goro.guide": [
     { speaker: "goro", text: "Compara la afinidad principal de ambos combatientes antes de gastar chakra." },
     { speaker: "goro", text: "Los enfriamientos impiden repetir la misma técnica continuamente: prepara una segunda opción." },
-    { speaker: "goro", text: "La práctica completa llegará en una fase posterior; el recinto ya está reservado." }
+    { speaker: "goro", text: "En exhibición empiezas con vida y chakra completos. No se gastan consumibles ni se entregan PX, monedas o puntos de clasificación." }
   ],
   "npc.hana.intro": [
     { speaker: "hana", text: "Hana Kogane, a tu servicio. Una bolsa llena no gana batallas, pero una compra inteligente sí puede hacerlo." },
@@ -69,12 +69,12 @@ const es = {
   ],
   "npc.yuna.intro": [
     { speaker: "yuna", text: "Bienvenido. Soy Yuna Ametsuki. Incluso un ninja necesita un lugar donde bajar la guardia." },
-    { speaker: "yuna", text: "El Gremio reunirá conversaciones con aliados y escenas que ocurren entre misiones." }
+    { speaker: "yuna", text: "Te he reservado Mi espacio. Puedes decorar sus paredes y suelos y exhibir los recuerdos de tus misiones. También puedes preparar el emblema de tu futuro clan." }
   ],
   "npc.yuna.guide": [
     { speaker: "yuna", text: "Tu progreso se guarda automáticamente en este navegador." },
     { speaker: "yuna", text: "Regresar a la aldea después de un combate permite cambiar equipo y técnicas sin perder avances." },
-    { speaker: "yuna", text: "Las bonificaciones de descanso y escenas de aliados se añadirán más adelante." }
+    { speaker: "yuna", text: "Selecciona una decoración y colócala en tu espacio. Puedes arrastrarla, cambiar su tamaño o retirarla; todo queda guardado en tu partida." }
   ],
   "npc.riku.intro": [
     { speaker: "riku", text: "Riku Senda, explorador de rutas. Yo convierto rumores en contratos que puedas sobrevivir." },

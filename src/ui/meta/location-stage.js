@@ -1,12 +1,10 @@
 export function createLocationStage(deps) {
   return {
     id: "location-stage",
-    render(locationId, content) {
-      const cast = deps.locationCast[locationId] || [];
-      // El dojo rediseñado no usa la presentación con retratos: su CSS oculta
-      // deliberadamente ese diálogo para dedicar todo el escenario al panel.
-      // Tratarlo como una ubicación ya presentada evita dejar el panel oculto
-      // e inaccesible durante la primera visita.
+    render(locationId, content, options = {}) {
+      const cast = options.cast || deps.locationCast[locationId] || [];
+      // El Dojo abre directamente la configuración y mantiene al maestro activo
+      // disponible para consultas, sin bloquear los controles con la bienvenida.
       const introduced = locationId === "dojo" || deps.introducedViews.has(locationId);
       const locationName = deps.locations.find((location) => location.id === locationId)?.name || (locationId === "kagemori" ? "Aldea de Kagemori" : locationId);
       const background = deps.locationBackgrounds[locationId] || `assets/locations/${locationId}.webp`;
@@ -26,7 +24,7 @@ export function createLocationStage(deps) {
     mount(root, scope, locationId) {
       const stage = root.querySelector(`[data-location-stage="${locationId}"]`);
       if (!stage) return;
-      const cast = deps.locationCast[locationId] || [];
+      const cast = [...stage.querySelectorAll("[data-stage-npc]")].map(button => button.dataset.stageNpc);
       const lines = deps.locationDialogue(locationId, "intro");
       const speech = stage.querySelector("[data-stage-speech]");
       const options = stage.querySelector("[data-stage-options]");
@@ -39,7 +37,7 @@ export function createLocationStage(deps) {
 
       const activateSpeaker = (speaker) => {
         const activeIndex = cast.findIndex((id) => deps.npcs[id]?.name === speaker);
-        const speakerOnRight = locationId === "dojo" ? activeIndex === 0 : activeIndex > 0;
+        const speakerOnRight = activeIndex > 0;
         stage.classList.toggle("speaker-left", !speakerOnRight);
         stage.classList.toggle("speaker-right", speakerOnRight);
         stage.querySelectorAll("[data-stage-npc]").forEach((button) => button.classList.toggle("active", deps.npcs[button.dataset.stageNpc]?.name === speaker));
@@ -82,7 +80,7 @@ export function createLocationStage(deps) {
         speech.querySelector("[data-stage-next]").textContent = lineIndex === lines.length - 1 ? "VER OPCIONES" : "SIGUIENTE";
         activateSpeaker(speaker);
       };
-      if (!deps.introducedViews.has(locationId) && lines.length) {
+      if (!speech.hidden && lines.length) {
         drawLine();
         scope.listen(speech.querySelector("[data-stage-next]"), "click", () => {
           if (lineIndex < lines.length - 1) { lineIndex += 1; drawLine(); return; }
@@ -93,8 +91,9 @@ export function createLocationStage(deps) {
       }
       stage.querySelectorAll("[data-stage-npc]").forEach((button) => scope.listen(button, "click", () => {
         if (!options.hidden) {
-          const guide = deps.npcs[button.dataset.stageNpc]?.guide || [];
-          showTip(guide[Math.floor(Math.random() * guide.length)], button.dataset.stageNpc);
+          const character = deps.npcs[button.dataset.stageNpc];
+          const guide = deps.locationDialogue(locationId, "guide").filter(([speaker]) => speaker === character?.name).map(([, text]) => text);
+          if (guide.length) showTip(guide[Math.floor(Math.random() * guide.length)], button.dataset.stageNpc);
         }
       }));
       stage.querySelectorAll("[data-comment]").forEach((control) => {

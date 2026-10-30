@@ -1,15 +1,15 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.114.0";
-import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.114.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.119.0";
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.119.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, destroyFighter, fighterHairPortraitLayout, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.115.0";
-import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.114.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.114.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
+import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.119.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.119.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.114.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.122.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
 import { createEnemyState } from "../enemy-state.js?v=0.114.0";
@@ -98,6 +98,8 @@ export class BattlePresentationMethods {
   }
 
   createHud() {
+    preparePlayerFighterTextures(this, this.playerAppearance());
+    preparePlayerFighterTextures(this, this.enemyAppearance());
     const firstHudChild = this.children.list.length;
     const healthFrameY = 49;
     const chakraFrameY = 72;
@@ -181,12 +183,15 @@ export class BattlePresentationMethods {
   createCombatPortrait(x, y, appearance, flipped) {
     const shadow = this.add.circle(x, y + 2, 34, 0x02050a, 0.9).setDepth(23);
     const wash = this.add.circle(x, y, 30, 0x182536, 0.96).setDepth(24);
-    const head = this.add.image(x, y + 8, fighterPuppetTextureKey(appearance, "cabeza")).setDisplaySize(42, 64).setFlipX(flipped).setDepth(25);
+    const layout = fighterCombatPortraitLayout(appearance, flipped);
+    const head = this.add.image(x + layout.head.x, y + layout.head.y, fighterPuppetTextureKey(appearance, "cabeza")).setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25);
+    useFighterTextureRendering(head);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[appearance?.hair];
-    const hairLayout = fighterHairPortraitLayout(appearance?.hair, 42, 64, flipped, appearance?.bodyType);
+    const hairLayout = layout.hair;
     const hair = hairKey && this.textures.exists(hairKey)
-      ? this.add.image(x + hairLayout.x, y + 8 + hairLayout.y, hairKey).setDisplaySize(hairLayout.width, hairLayout.height).setFlipX(flipped).setDepth(26)
+      ? this.add.image(x + hairLayout.x, y + hairLayout.y, hairKey).setDisplaySize(hairLayout.width, hairLayout.height).setFlipX(flipped).setDepth(26)
       : null;
+    if (hair) useFighterTextureRendering(hair);
     const frame = this.add.graphics().setDepth(27);
     const side = flipped ? 1 : -1;
     chromePath(frame, [['M', 0, 8], ['L', 10, -3], ['L', 7, 7], ['L', 16, 12], ['L', 5, 10], ['Z']], { x: x + side * 31, y: y - 31, sx: side, fill: 0x8e3420, width: .9 });
@@ -319,11 +324,13 @@ export class BattlePresentationMethods {
     const markerHairStyle = this.playerAppearance()?.hair;
     this.playerTurnMarker = this.add.image(start, trackY, fighterPuppetTextureKey(this.playerAppearance(), "cabeza")).setDisplaySize(22, 34);
     this.enemyTurnMarker = this.add.image(start, trackY, fighterPuppetTextureKey(this.enemyAppearance(), "cabeza")).setDisplaySize(21, 32).setFlipX(false);
+    [this.playerTurnMarker, this.enemyTurnMarker].forEach(useFighterTextureRendering);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[markerHairStyle];
     this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34, false, this.playerAppearance()?.bodyType);
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
       ? this.add.image(start + this.playerMarkerHairLayout.x, trackY + this.playerMarkerHairLayout.y, hairKey).setDisplaySize(this.playerMarkerHairLayout.width, this.playerMarkerHairLayout.height)
       : null;
+    if (this.playerMarkerHair) useFighterTextureRendering(this.playerMarkerHair);
     const tag = (name) => {
       const bg = this.add.graphics().setPosition(start, 518);
       drawBeveledTag(bg);
@@ -364,10 +371,10 @@ export class BattlePresentationMethods {
   }
 
   createPauseButton() {
-    const bg = this.add.circle(480, 67, 18, HUD_ART.wine, 0.96).setStrokeStyle(1.1, HUD_ART.gold, 1)
+    const bg = this.add.circle(430, 67, 18, HUD_ART.wine, 0.96).setStrokeStyle(1.1, HUD_ART.gold, 1)
       .setDepth(25).setInteractive({ useHandCursor: true });
     const label = this.add.graphics().setDepth(26);
-    label.fillStyle(HUD_ART.light, 1).fillRect(475.5, 61, 3, 13).fillRect(481.5, 61, 3, 13);
+    label.fillStyle(HUD_ART.light, 1).fillRect(425.5, 61, 3, 13).fillRect(431.5, 61, 3, 13);
     bg.on("pointerover", () => bg.setFillStyle(0x722b32, 1));
     bg.on("pointerout", () => bg.setFillStyle(HUD_ART.wine, 0.96));
     bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));

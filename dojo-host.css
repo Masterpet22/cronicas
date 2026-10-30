@@ -1,0 +1,47 @@
+/* El maestro activo comparte la escena con la configuración, como los demás guías. */
+.location-stage.location-dojo .stage-character:first-child { left:0; right:auto; width:26%; height:80%; bottom:0; }
+.location-stage.location-dojo .stage-character span { font-size:13px; }
+.location-stage.location-dojo .stage-ambient { left:2%; right:auto; top:104px; bottom:auto; height:auto; width:23%; box-sizing:border-box; padding:13px; font-size:13px; }
+.location-stage.location-dojo .stage-ambient::before { left:30px; top:auto; bottom:-18px; transform:rotate(-90deg); }
+@media (min-width:651px) {
+  .location-dojo .stage-options { position:absolute; left:auto; right:18px; top:100px; bottom:18px; width:72%; height:auto; max-height:none; margin:0; padding:13px; box-sizing:border-box; }
+  .location-dojo .dojo-topbar { grid-template-columns:minmax(0,1fr) auto auto; gap:10px; }
+  .location-dojo .dojo-tabs [role=tab] { min-width:90px; padding:9px 8px; }
+  .location-dojo .dojo-title { gap:8px; }
+  .location-dojo .dojo-title-mark { width:38px; height:38px; flex-shrink:0; }
+  .location-dojo .dojo-title .eyebrow { font-size:16px; }
+  .location-dojo .dojo-main-panel { min-width:0; }
+  .location-dojo .dojo-technique-layout { grid-template-columns:minmax(220px,.75fr) minmax(0,1.4fr); gap:10px; }
+  .location-dojo .statistics-layout { grid-template-columns:minmax(165px,.55fr) minmax(0,1.45fr); gap:10px; }
+  .location-dojo .statistics-content { display:flex; flex-direction:column; overflow-y:auto; padding-right:4px; }
+  .location-dojo .statistics-content>.attribute-distribution-wrap,.location-dojo .statistics-radar-card { flex:0 0 auto; }
+  .location-dojo .statistics-radar-card { min-height:240px; }
+  .location-dojo .statistics-layout .stat-radar-wrap { grid-template-columns:minmax(150px,.7fr) minmax(0,1fr); }
+  .location-dojo .statistics-layout .attribute-list.radar-controls { grid-template-columns:minmax(0,1fr); }
+  .location-dojo .statistics-layout .attribute-list.radar-controls button:last-child { grid-column:auto; }
+}
+@media (min-width:651px) and (max-width:1450px) {
+  .location-dojo .dojo-topbar { grid-template-columns:minmax(0,1fr) auto; gap:6px; }
+  .location-dojo .dojo-tabs { grid-column:1/-1; justify-content:space-between; }
+  .location-dojo .dojo-tabs [role=tab] { flex:1; }
+  .location-dojo .dojo-level { display:grid; }
+  .location-dojo .equipment-columns { grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; }
+  .location-dojo .equipment-column { padding:7px; }
+  .location-dojo .skill-path { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-height:780px) and (min-width:651px) {
+  .location-dojo .stage-options { top:92px; bottom:12px; right:14px; }
+}
+@media (min-width:651px) and (max-width:1000px) {
+  .location-dojo .stage-options { width:73%; padding:9px; overflow-y:auto; }
+  .location-dojo .dojo-topbar { grid-template-columns:minmax(0,1fr); }
+  .location-dojo .dojo-level { display:none; }
+  .location-dojo .dojo-tabs { flex-wrap:wrap; }
+  .location-dojo .dojo-tabs [role=tab] { flex-basis:40%; }
+  .location-dojo .dojo-technique-layout,.location-dojo .statistics-layout,.location-dojo .xenoverse-appearance { grid-template-columns:1fr; }
+}
+@media (max-width:650px) {
+  .location-stage.location-dojo .stage-character:first-child { width:35%; height:240px; top:0; bottom:auto; }
+  .location-dojo .stage-options { width:calc(100% - 24px); margin:250px 12px 18px; }
+  .location-stage.location-dojo .stage-ambient { top:25px; left:36%; width:60%; }
+}

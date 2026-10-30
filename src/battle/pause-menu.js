@@ -1,4 +1,4 @@
-import { mountRenderQualityControl } from "../render-settings.js?v=0.114.0";
+import { mountRenderQualityControl } from "../render-settings.js?v=0.119.0";
 
 const SETTINGS = [
   ["manual-seals", "Sellos manuales", "Completa las secuencias con el teclado."],
@@ -18,12 +18,12 @@ export function mountPauseMenu(scene) {
   root.setAttribute("aria-modal", "true");
   root.setAttribute("aria-labelledby", "combat-pause-title");
   root.innerHTML = `<div class="combat-pause-panel">
-    <header class="pause-heading"><span class="pause-crest" aria-hidden="true">Ⅱ</span><p class="pause-kicker">CRÓNICAS DEL SELLO</p><h2 id="combat-pause-title">MISIÓN EN PAUSA</h2><p>El combate continuará donde lo dejaste.</p></header>
+    <header class="pause-heading"><span class="pause-crest" aria-hidden="true">Ⅱ</span><p class="pause-kicker">CRÓNICAS DEL SELLO</p><h2 id="combat-pause-title">${scene.battle.mission.exhibition ? "EXHIBICIÓN EN PAUSA" : "MISIÓN EN PAUSA"}</h2><p>El combate continuará donde lo dejaste.</p></header>
     <div class="pause-settings-grid">
       <section class="pause-settings-section"><h3><span aria-hidden="true">一</span> COMBATE</h3><div data-pause-combat></div></section>
       <section class="pause-settings-section"><h3><span aria-hidden="true">二</span> IMAGEN Y SONIDO</h3><div data-pause-quality></div><div data-pause-effects></div><label class="pause-volume"><span>Volumen <output></output></span><input type="range" min="0" max="100" aria-label="Volumen"></label></section>
     </div>
-    <footer class="pause-actions"><button type="button" class="pause-resume" data-pause-resume>REANUDAR <kbd aria-hidden="true">Esc</kbd></button><button type="button" class="pause-leave" data-pause-leave>${scene.battle.mission.tutorialReplay ? "SALIR" : "ABANDONAR"}</button></footer>
+    <footer class="pause-actions"><button type="button" class="pause-resume" data-pause-resume>REANUDAR <kbd aria-hidden="true">Esc</kbd></button><button type="button" class="pause-leave" data-pause-leave>${scene.battle.mission.exhibition ? "VOLVER A LA ARENA" : scene.battle.mission.tutorialReplay ? "SALIR" : "ABANDONAR"}</button></footer>
   </div>`;
   ["pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "touchend"].forEach(type => {
     root.addEventListener(type, event => event.stopPropagation());
@@ -64,7 +64,8 @@ export function mountPauseMenu(scene) {
   document.getElementById("game-volume").addEventListener("input", sync, { signal: controller.signal });
   root.querySelector("[data-pause-resume]").addEventListener("click", () => scene.resumeMission());
   root.querySelector("[data-pause-leave]").addEventListener("click", () => {
-    if (scene.battle.mission.tutorialReplay) scene.battle.exitTutorialReplay();
+    if (scene.battle.mission.exhibition) scene.battle.leaveExhibition();
+    else if (scene.battle.mission.tutorialReplay) scene.battle.exitTutorialReplay();
     else scene.showAbandonWarning();
   });
   const removeQuality = mountRenderQualityControl(root.querySelector("[data-pause-quality]"));

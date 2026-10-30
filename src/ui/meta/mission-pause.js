@@ -1,4 +1,4 @@
-import { mountRenderQualityControl } from "../../render-settings.js?v=0.114.0";
+import { mountRenderQualityControl } from "../../render-settings.js?v=0.119.0";
 
 const SETTINGS = [
   ["manual-seals", "Sellos manuales"], ["camera-effects", "Sacudida de cámara"],

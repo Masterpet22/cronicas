@@ -31,7 +31,11 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 
 ## Controles
 
-- Crea un personaje eligiendo nombre, género y afinidad inicial, con la misma vista previa de Apariencia. El peinado se ajusta después en el Dojo.
+- Crea un personaje eligiendo nombre, género, peinado, tono de piel y afinidad inicial, con la misma vista previa de Apariencia. Los tonos naturales Claro y Moreno se pueden cambiar gratis en **Dojo → Apariencia** y se conservan por partida, en los retratos y en todas las escenas del combatiente. La piel conserva sombras y contornos sin teñir el cabello; las partidas anteriores comienzan con Claro.
+- **Gremio → Mi espacio:** sala personal con cinco colores de pared, cuatro pisos y un catálogo gratuito de cuadros, faroles, muebles e insignias. Coloca con clic o con el botón Colocar; mueve arrastrando o con las flechas, cambia el tamaño y el orden o retira objetos con Suprimir. Se guardan automáticamente hasta 24 decoraciones por partida. Las medallas y trofeos requieren progreso real, y las partidas anteriores reciben una sala inicial.
+- **Gremio → Clanes:** editor local de nombre, sigla, lema, emblema y color con guardado de borrador por partida. Crear/unirse, miembros y clasificaciones compartidas están señalados como próximos hasta disponer de servidor. No se generan puntuaciones ni clanes ficticios.
+- **Arena → Local:** exhibiciones contra cuatro rivales de IA por afinidad, con dificultades Iniciación, Equilibrado y Desafío adaptadas al personaje y su equipo. Usa las técnicas del Dojo; comienza con vida y chakra completos, sin consumibles ni recompensas, y conserva campaña, inventario, bestiario y decoración. Al terminar puedes pedir revancha o volver a preparar otro duelo. Goro sigue presente como encargado.
+- **Arena → Multijugador:** entradas para PvP amistoso, combates clasificatorios y tabla de rangos, señaladas como próximas hasta disponer de servidor. Las exhibiciones locales no generan puntos competitivos.
 - Recorre la aldea desde un mapa ilustrado con nueve destinos interactivos. Cada edificio usa una silueta SVG precisa que se resalta al pasar el cursor o enfocarla con el teclado.
 - Cada destino abre como una escena ilustrada: el personaje presenta el lugar mediante un bocadillo y, al terminar, aparecen sus opciones.
 - Los habitantes explican controles al explorar las opciones, hacen comentarios ocasionales y pueden recibir un clic para repetir consejos.

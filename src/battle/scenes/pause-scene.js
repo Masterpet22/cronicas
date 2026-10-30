@@ -1,5 +1,5 @@
 import { HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
-import { mountAccessiblePause } from "../hud-accessibility.js?v=0.114.0";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=0.122.0";
 import { resumeSceneIfPaused, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
 
 export class PauseScene extends Phaser.Scene {

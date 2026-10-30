@@ -103,10 +103,10 @@
 .combat-access:not(.compact) .combat-access-actions button[aria-pressed=true]::before { content: ''; position: absolute; left: -.9cqw; top: calc(50% - .55cqw); width: 0; height: 0; border-block: .55cqw solid transparent; border-right: .8cqw solid #f2cb7b; filter: drop-shadow(-1px 1px 1px #000); }
 .combat-access:not(.compact) .combat-access-pause {
   position: absolute;
-  top: 8.8%;
-  left: 47.9%;
-  width: 4.2%;
-  height: 7.5%;
+  top: 9.074%;
+  left: 42.917%;
+  width: 3.75%;
+  height: 6.667%;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -130,7 +130,7 @@ html.mobile-viewport.compact-game-enabled .mobile-gate { display: none; }
 .compact .combat-access-status label:nth-of-type(2) progress::-webkit-progress-value { background: linear-gradient(#42c6ff, #1375c5); }
 .compact progress::-moz-progress-bar { background: #269be5; }
 .compact small { display: block; font-size: 12px; line-height: 1.2; margin-top: 3px; }
-.compact .combat-access-phase { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 12px; height: 44px; }
+.compact .combat-access-phase { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) 44px 100px; align-items: center; gap: 8px; height: 44px; }
 .compact .combat-access-phase > strong { padding: 6px 14px; font: 700 13px Cinzel, Georgia, serif; border: 1px solid var(--hud-gold); border-radius: 15px; background: #58151d; text-align: center; }
 .compact .combat-access-pause { width: 44px; height: 44px; border: 1px solid var(--hud-gold); border-radius: 50%; background: var(--hud-ink); color: #a6e1ff; font-size: 23px; }
 .compact .combat-access-scene { aspect-ratio: 16 / 9; margin-inline: -10px; }

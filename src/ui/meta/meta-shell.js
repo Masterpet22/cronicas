@@ -1,4 +1,4 @@
-import { mountMissionPause } from "./mission-pause.js?v=0.114.0";
+import { mountMissionPause } from "./mission-pause.js?v=0.119.0";
 
 export function createMetaShell(deps) {
   return {
