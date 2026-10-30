@@ -213,7 +213,11 @@ test("apariencia permite elegir el objeto y lo conserva al volver a cargar", asy
   await expect(page.locator(".save-selector")).toBeVisible();
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.94.0");
-    const save = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego" });
+    let save = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego" });
+    const { purchaseItem } = await import("/src/inventory.js?v=1.1.0");
+    save.progression.coins = 1000;
+    save = purchaseItem(save, "substitution_dog").save;
+    save = purchaseItem(save, "substitution_puppet").save;
     save.campaign.tutorialSeen = true;
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
@@ -226,16 +230,16 @@ test("apariencia permite elegir el objeto y lo conserva al volver a cargar", asy
   };
   await openAppearance();
   const value = page.locator('[data-cosmetic-value="teleportObject"]');
-  await expect(value).toHaveText("Tronco");
+  await expect(value).toHaveText("Tronco de sustitución");
   await page.locator('[data-cosmetic-step="teleportObject"][data-direction="1"]').click();
-  await expect(value).toHaveText("Perrito");
+  await expect(value).toHaveText("Perrito de sustitución");
   await openAppearance();
-  await expect(value).toHaveText("Perrito");
+  await expect(value).toHaveText("Perrito de sustitución");
   await page.locator('[data-cosmetic-step="teleportObject"][data-direction="1"]').click();
-  await expect(value).toHaveText("Marioneta");
+  await expect(value).toHaveText("Marioneta de sustitución");
   await expect(value.locator("img")).toHaveAttribute("src", /teleport-puppet\.webp/);
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).character.teleportObject)).toBe("puppet");
   await openAppearance();
-  await expect(value).toHaveText("Marioneta");
+  await expect(value).toHaveText("Marioneta de sustitución");
   await page.screenshot({ path: testInfo.outputPath("marioneta-dojo.png") });
 });

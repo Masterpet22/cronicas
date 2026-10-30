@@ -1,3 +1,5 @@
+import { createShopView } from "./shop.js?v=0.114.0";
+
 export const VILLAGE_LOCATIONS = [
   { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
   { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", labelX: 505, labelY: 446, path: "M359 383 L389 373 L409 356 L427 348 L453 348 L468 333 L574 335 L596 348 L618 352 L629 369 L657 386 L636 399 L638 493 L662 505 L659 534 L620 534 L613 550 L403 550 L395 536 L354 535 L351 507 L375 493 L376 399 L347 388 Z" },
@@ -11,7 +13,6 @@ export const VILLAGE_LOCATIONS = [
 ];
 
 const VILLAGE_SERVICES = {
-  shop: { eyebrow: "DISTRITO COMERCIAL", title: "Tienda de Objetos", text: "El inventario está preparándose. Este espacio alojará consumibles, armas y mejoras adquiribles con monedas.", items: ["Pociones y restauradores", "Kunais y herramientas", "Pergaminos de mejora"] },
   tower: { eyebrow: "DESAFÍO", title: "Torre de Desafíos", text: "Una futura serie de combates consecutivos con reglas especiales y recompensas por cada piso superado.", items: ["Nueve pisos temáticos", "Dificultad creciente", "Recompensas exclusivas"] },
   arena: { eyebrow: "CAMPO DE PRUEBAS", title: "Arena de Combate", text: "La arena quedará reservada para entrenamientos, pruebas de composiciones y duelos sin alterar la campaña.", items: ["Combate de práctica", "Pruebas de daño", "Duelos futuros"] },
   inn: { eyebrow: "ZONA DE DESCANSO", title: "Gremio", text: "Un lugar tranquilo para conversaciones, compañeros y futuros eventos narrativos entre misiones.", items: ["Encuentros con aliados", "Escenas de historia", "Bonificaciones de descanso"] },
@@ -29,10 +30,15 @@ function activeMissionObjectives(save) {
   if (storyMission) {
     objectives.push({ id: `story:${storyMission.id}`, type: "MISIÓN PRINCIPAL", title: storyMission.title, detail: `${storyMission.location} · ${storyMission.duration}`, destination: "Cuartel General", view: "headquarters" });
   }
+  for (const mission of deps.secondaryMissions) {
+    const state = deps.missionState(mission, save);
+    if (state.unlocked && !state.completed) objectives.push({ id: `contract:${mission.id}`, type: "CONTRATO", title: mission.title, detail: mission.rewardLabel, destination: "Tablón de Misiones", view: "missions" });
+  }
   return objectives;
 }
 
 export function createVillageView(deps) {
+  const shopView = createShopView(deps);
   let currentState = null;
   let layout = { locationId: null };
 
@@ -92,10 +98,11 @@ export function createVillageView(deps) {
     render(state) {
       currentState = state;
       layout = { locationId: state.view === "plaza" ? null : state.view };
-      return state.view === "plaza" ? renderPlaza(state.save) : renderService(state.view);
+      return state.view === "shop" ? shopView.render(state) : state.view === "plaza" ? renderPlaza(state.save) : renderService(state.view);
     },
     getLayout() { return layout; },
     mount(root, scope) {
+      if (currentState?.view === "shop") return shopView.mount(root, scope);
       if (!currentState || currentState.view !== "plaza") return;
       const { save, secondaryObjectives, unseenSecondaryObjectives } = currentState;
       const menu = root.querySelector(".secondary-mission-menu");
@@ -120,7 +127,7 @@ export function createVillageView(deps) {
       }
       if (!save.campaign.tutorialSeen) deps.showDialogue(welcomeDialogue(save.character), deps.onTutorialComplete, "IR AL CUARTEL", "story");
     },
-    dispose() { currentState = null; }
+    dispose() { currentState = null; shopView.dispose(); }
   };
 }
 

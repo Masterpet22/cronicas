@@ -37,6 +37,7 @@ test("las técnicas de tiers superiores reutilizan los iconos básicos", async (
     save.character.knownAffinities = ["viento", "fuego", "agua"];
     save.character.affinityXp = { viento: 1000, fuego: 1000, agua: 1000, tierra: 0 };
     save.campaign.elementRank = 3;
+    save.inventory.extraAffinityUnlocked = true;
     save.loadout = ["storm_domain"];
     writeSave(save);
   });

@@ -1,6 +1,8 @@
 import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.102.0";
 import { createDojoTechniques } from "../dojo-techniques.js?v=0.107.0";
-import { TELEPORT_OBJECTS } from "../../../teleport-objects.js";
+import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.114.0";
+import { affinityScrollRequirement, countItem, equipItem } from "../../../inventory.js?v=0.114.0";
+import { mountDojoAffinityScroll } from "../dojo-affinity-scroll.js?v=0.114.0";
 const ATTRIBUTE_DEFINITIONS = Object.freeze([
   { key: "health", label: "Vida", short: "VID", hint: "+10 PV", stat: "maxHp", cap: 200 },
   { key: "strength", label: "Fuerza", short: "FUE", hint: "+1 daño", stat: "strength", cap: 25 },
@@ -52,32 +54,6 @@ function statRadarMarkup(stats) {
   return `<div class="stat-radar" role="img" aria-label="Pentagrama de habilidades: ${ATTRIBUTE_DEFINITIONS.map((definition, index) => `${definition.label} ${values[index]}`).join(", ")}"><svg viewBox="45 23 230 244" aria-hidden="true"><g class="radar-grid">${grid}${axes}</g><polygon class="radar-area" points="${areaPoints.join(" ")}"/>${areaPoints.map((point) => `<circle class="radar-dot" cx="${point.split(",")[0]}" cy="${point.split(",")[1]}" r="3.5"/>`).join("")}${axisLabels}</svg></div><div class="stat-readouts">${readouts}</div>`;
 }
 
-const COSMETIC_DEFINITIONS = Object.freeze([
-  { key: "face", label: "Rostro", values: [1, 2, 3], disabled: true },
-  { key: "hair", label: "Cabello", values: [0, 1, 4], names: ["Sin cabello", "Corto", "Coleta"] },
-  { key: "teleportObject", label: "Transportación", values: TELEPORT_OBJECTS.map(object => object.id), names: TELEPORT_OBJECTS.map(object => object.name), showName: true, previews: TELEPORT_OBJECTS.map(object => object.file), detail: "Objeto que dejas al transportarte" },
-  { key: "top", label: "Parte superior", values: [1, 2, 3], disabled: true },
-  { key: "bottom", label: "Parte inferior", values: [1, 2, 3], disabled: true },
-  { key: "shoes", label: "Calzado", values: [1, 2], disabled: true },
-  { key: "outfit", label: "Traje", values: [], locked: true, detail: "No hay trajes completos disponibles" }
-]);
-
-const variantNumber = (value) => String(Number(value) || 1).padStart(2, "0");
-const cosmeticIndex = (definition, current) => Math.max(0, definition.values.indexOf(typeof definition.values[0] === "number" ? Number(current) : current));
-
-const cosmeticValueMarkup = (definition, index) => definition.showName
-  ? `<img class="teleport-object-preview" src="${definition.previews[index]}" alt="" width="30" height="30">${definition.names[index]}`
-  : `TIPO ${variantNumber(index + 1)}`;
-
-function cosmeticControlMarkup(definition, current) {
-  if (definition.locked) {
-    return `<button class="cosmetic-control cosmetic-outfit-control unavailable" type="button" data-cosmetic-control="${definition.key}" disabled aria-label="${definition.label}: bloqueado. ${definition.detail}"><span class="cosmetic-label">${definition.label}</span><span class="cosmetic-lock-state"><b aria-hidden="true">⌾</b> BLOQUEADO</span><small data-cosmetic-detail="${definition.key}">${definition.detail}</small></button>`;
-  }
-  const index = cosmeticIndex(definition, current);
-  const detail = definition.disabled ? definition.detail || "Gráfico compatible pendiente" : definition.detail || definition.names[index];
-  return `<div class="cosmetic-control ${definition.disabled ? "unavailable" : ""}" data-cosmetic-control="${definition.key}"><span class="cosmetic-label">${definition.label}</span><div class="cosmetic-stepper"><button type="button" data-cosmetic-step="${definition.key}" data-direction="-1" aria-label="${definition.label} anterior" ${definition.disabled ? "disabled" : ""}>‹</button><output data-cosmetic-value="${definition.key}">${cosmeticValueMarkup(definition, index)}</output><button type="button" data-cosmetic-step="${definition.key}" data-direction="1" aria-label="${definition.label} siguiente" ${definition.disabled ? "disabled" : ""}>›</button></div><small data-cosmetic-detail="${definition.key}">${detail}</small></div>`;
-}
-
 export function createDojoView(deps) {
   let currentState = null;
   let renderModel = null;
@@ -93,7 +69,7 @@ export function createDojoView(deps) {
       const { progression, character } = save;
       const elementRank = save.campaign.elementRank;
       const affinities = character.affinities;
-      const activeAffinitySlots = deps.availableAffinitySlots(progression.level, elementRank);
+      const activeAffinitySlots = deps.availableAffinitySlots(progression.level, elementRank, save.inventory.extraAffinityUnlocked, save.campaign.rank);
       const currentMasterId = deps.masterIdForCharacter(character);
       const masterSelectionUnlocked = campaignFlag(save, "masterSelectionUnlocked");
       const masters = MASTER_DEFINITIONS.map((definition) => ({ ...definition, npc: deps.npcs[definition.npcId] }));
@@ -105,7 +81,11 @@ export function createDojoView(deps) {
         const id = affinities[index];
         const slotConfig = deps.affinityConfig.slots[index];
         const unlocked = activeAffinitySlots >= slotRank;
-        if (!unlocked) return `<div class="affinity-slot locked"><span class="slot-index">${slotRank}</span><span><strong>Ranura bloqueada</strong><small>Nivel ${slotConfig.level} y rango de historia ${slotConfig.storyRank}</small></span><span class="slot-lock" aria-hidden="true">⌾</span></div>`;
+        if (!unlocked) {
+          const scrolls = countItem(save, "affinity_scroll");
+          if (slotRank === 3 && scrolls && !affinityScrollRequirement(save)) return `<button class="affinity-slot unlockable" type="button" data-dojo-affinity-scroll aria-haspopup="dialog"><span class="slot-index">3</span><span><strong>Desbloquear tercera afinidad</strong><small>Usar pergamino de afinidad · Tienes ${scrolls}</small></span><span class="slot-lock" aria-hidden="true">+</span></button>`;
+          return `<div class="affinity-slot locked"><span class="slot-index">${slotRank}</span><span><strong>Ranura bloqueada</strong><small>${slotRank === 3 ? affinityScrollRequirement(save) || (scrolls ? "Usa tu pergamino de afinidad" : "Consigue un pergamino de afinidad en la tienda") : `Nivel ${slotConfig.level} y rango de historia ${slotConfig.storyRank}`}</small></span><span class="slot-lock" aria-hidden="true">⌾</span></div>`;
+        }
         if (!id) {
           const choices = character.knownAffinities.filter((known) => !affinities.includes(known)).map((known) => `<button type="button" data-affinity-choice="${known}"><img src="${deps.elementIcon(known)}" alt="" width="512" height="512">${deps.elementName(known)}</button>`).join("");
           return `<div class="affinity-slot empty"><span class="slot-index">${slotRank}</span><span><strong>Elige afinidad</strong><small>${choices ? "El orden define su peso" : "Aprende otra afinidad durante la historia"}</small>${choices ? `<span class="affinity-slot-choices">${choices}</span>` : ""}</span></div>`;
@@ -113,8 +93,8 @@ export function createDojoView(deps) {
         return `<div class="affinity-slot selected"><span class="slot-index">${slotRank}</span><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>${character.affinityXp[id]} PX de afinidad</small></span><span class="slot-lock" title="Solo puede cambiarse con un objeto especial" aria-hidden="true">⌾</span></div>`;
       }).join("");
       const techniqueMarkup = techniquePanel.render(save);
-      const gearIcons = { weapon: "⚔", armor: "◈", accessory: "◇" };
-      const gearTitles = { weapon: "Arma", armor: "Protector", accessory: "Accesorio" };
+      const gearIcons = { weapon: "⚔", seal: "◈", accessory: "◇", companion: "♟" };
+      const gearTitles = { weapon: "Arma", seal: "Sello", accessory: "Accesorio", companion: "Compañero" };
       const gearSlotState = (type, source = save) => {
         const id = source.equipment[type];
         const item = deps.equipment[type].find((entry) => entry.id === id);
@@ -122,23 +102,23 @@ export function createDojoView(deps) {
       };
       const gearSlotContents = (type, source = save) => {
         const { item } = gearSlotState(type, source);
-        return `<span class="gear-icon" aria-hidden="true">${gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${item?.description || "Pulsa para equipar"}</em></span><span class="gear-action" aria-hidden="true">+</span>`;
+        return `<span class="gear-icon" aria-hidden="true">${item?.image ? `<img src="${item.image}" alt="" width="36" height="36">` : gearIcons[type]}</span><span class="gear-copy"><small>${gearTitles[type]}</small><strong>${item?.name || "Nada equipado"}</strong><em>${item?.description || (type === "companion" ? "Consigue invocaciones mediante contratos" : "Pulsa para equipar")}</em></span><span class="gear-action" aria-hidden="true">+</span>`;
       };
       const equipmentSlot = (type) => {
         const { id, item } = gearSlotState(type);
         return `<button class="gear-slot ${id ? "equipped" : "empty"}" type="button" data-gear-slot="${type}" aria-label="${gearTitles[type]}: ${item?.name || "nada equipado"}">${gearSlotContents(type)}</button>`;
       };
-      const companionSlot = `<button class="gear-slot companion-slot locked" type="button" disabled aria-label="Compañero: ranura bloqueada"><span class="gear-icon" aria-hidden="true">♟</span><span class="gear-copy"><small>Compañero</small><strong>Ranura bloqueada</strong><em>Se desbloqueará al avanzar en la historia.</em></span><span class="gear-action" aria-hidden="true">⌾</span></button>`;
+
       const attributeMarkup = (source = save) => attributeDistributionMarkup(deps.derivedStats(source), source.progression.attributes, source.progression.attributePoints, deps.attributeTrainingLimit(source.progression.level));
       const radarMarkup = (source = save) => statRadarMarkup(deps.derivedStats(source));
       const characterPreviewMarkup = (source = save) => rasterCharacterPreviewMarkup(source, deps.assetVersion);
       renderModel = { gearIcons, gearTitles, gearSlotState, gearSlotContents, attributeMarkup, radarMarkup, characterPreviewMarkup };
       const preview = (className = "") => `<div class="character-preview ${className}" data-raster-character-preview>${characterPreviewMarkup()}</div>`;
-      const cosmeticControls = COSMETIC_DEFINITIONS.map((definition) => cosmeticControlMarkup(definition, character[definition.key])).join("");
+      const cosmeticControls = appearanceControlsMarkup(save);
       const xpForNext = deps.xpForNextLevel(progression.level);
       return `<div class="dojo-layout dojo-rework">
         <header class="dojo-topbar"><div class="dojo-title"><span class="dojo-title-mark" aria-hidden="true">✦</span><div><p class="eyebrow">CONFIGURACIÓN DE COMBATE</p><h2>${deps.elementRankLabels[elementRank]}</h2><small>Personaliza tus técnicas, mejora tus atributos y forja tu estilo de combate.</small></div></div><div class="dojo-level"><strong>NIVEL ${progression.level}</strong><span>${progression.xp}/${xpForNext} PX</span><i><b style="width:${Math.min(100, progression.xp / xpForNext * 100)}%"></b></i></div><nav class="dojo-tabs" role="tablist" aria-label="Secciones de configuración"><button type="button" role="tab" data-dojo-tab="equipment" aria-controls="dojo-panel-equipment">♧ <span>Equipo</span></button><button type="button" role="tab" data-dojo-tab="techniques" aria-controls="dojo-panel-techniques">⚔ <span>Técnicas</span></button><button type="button" role="tab" data-dojo-tab="statistics" aria-controls="dojo-panel-statistics">⌁ <span>Estadísticas</span></button><button type="button" role="tab" data-dojo-tab="appearance" aria-controls="dojo-panel-appearance">◈ <span>Apariencia</span></button></nav></header>
-        <section class="dojo-main-panel"><div id="dojo-panel-equipment" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="equipment"><div class="equipment-columns"><section class="dojo-section equipment-column affinity-column"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>Tres espacios que crecen con tu nivel y rango.</p></div><span>${affinities.length}/${activeAffinitySlots}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ Principal 100 % · Secundaria 50 % · Tercera 25 %.</p></section><section class="dojo-section equipment-column loadout-column"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Configura tus recursos de combate.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("accessory")}${companionSlot}</div></section><section class="dojo-section equipment-column master-column"><div class="dojo-section-heading"><div><h3>Maestro</h3><p>Ventaja pasiva para tu estilo de combate.</p></div></div>${masterSummary}</section></div></div>
+        <section class="dojo-main-panel"><div id="dojo-panel-equipment" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="equipment"><div class="equipment-columns"><section class="dojo-section equipment-column affinity-column"><div class="dojo-section-heading"><div><h3>Afinidades</h3><p>Dos afinidades por progreso; la tercera con pergamino.</p></div><span>${affinities.length}/${activeAffinitySlots}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ Principal 100 % · Secundaria 50 % · Tercera 25 %.</p></section><section class="dojo-section equipment-column loadout-column"><div class="dojo-section-heading"><div><h3>Equipamiento</h3><p>Configura tus recursos de combate.</p></div></div><div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("seal")}${equipmentSlot("accessory")}${equipmentSlot("companion")}</div></section><section class="dojo-section equipment-column master-column"><div class="dojo-section-heading"><div><h3>Maestro</h3><p>Ventaja pasiva para tu estilo de combate.</p></div></div>${masterSummary}</section></div></div>
         <div id="dojo-panel-techniques" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="techniques">${techniqueMarkup}</div>
         <div id="dojo-panel-statistics" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="statistics"><section class="dojo-attributes"><header><p class="eyebrow">DISTRIBUCIÓN DE PUNTOS DE ESTADÍSTICAS</p><div class="dojo-attribute-actions"><strong><b data-attribute-points>${progression.attributePoints}</b> PUNTOS DISPONIBLES</strong></div></header><div class="statistics-layout">${preview("statistics-character-preview")}<div class="statistics-content"><div class="attribute-distribution-wrap">${attributeMarkup()}</div><section class="statistics-radar-card"><div class="stat-radar-wrap" data-stat-radar>${radarMarkup()}</div></section></div></div></section></div>
           <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance"><section class="appearance-panel xenoverse-appearance"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3></div></div><div class="appearance-customizer">${preview()}<div class="cosmetic-menu" aria-label="Opciones de apariencia">${cosmeticControls}</div></div></section></div><p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
@@ -149,6 +129,7 @@ export function createDojoView(deps) {
     mount(root, scope) {
       if (!currentState || !renderModel) return;
       const getSave = () => currentState.save;
+      mountDojoAffinityScroll(root, scope, { getSave, persist: deps.onPersist, rerender: deps.onRerender });
       const persistDojo = (next) => { currentState.save = deps.onPersist(next); syncDojo(); };
       const selectDojoTab = (tabId, moveFocus = false) => {
         currentState.activeDojoTab = tabId;
@@ -183,13 +164,7 @@ export function createDojoView(deps) {
           button.setAttribute("aria-label", `${renderModel.gearTitles[type]}: ${item?.name || "nada equipado"}`);
           button.innerHTML = renderModel.gearSlotContents(type, save);
         });
-        COSMETIC_DEFINITIONS.forEach((definition) => {
-          const index = cosmeticIndex(definition, save.character[definition.key]);
-          const output = root.querySelector(`[data-cosmetic-value="${definition.key}"]`);
-          const detail = root.querySelector(`[data-cosmetic-detail="${definition.key}"]`);
-          if (output) output.innerHTML = cosmeticValueMarkup(definition, index);
-          if (detail) detail.textContent = definition.locked ? definition.detail : definition.disabled ? definition.detail || "Gráfico compatible pendiente" : definition.detail || definition.names[index];
-        });
+        refreshDojoAppearance(root, save);
         techniquePanel.refresh(save);
       };
       techniquePanel.mount(root.querySelector("#dojo-panel-techniques"), scope, { getSave, onPersist: persistDojo });
@@ -227,7 +202,7 @@ export function createDojoView(deps) {
         const save = getSave();
         equipmentReturnScroll = stageOptions?.scrollTop || 0;
         activeGearType = type;
-        const options = [{ id: "", name: "Nada", description: "Dejar esta ranura vacía" }, ...deps.equipment[type]];
+        const options = [{ id: "", name: "Nada", description: "Dejar esta ranura vacía" }, ...deps.equipment[type].filter(item => countItem(save, item.id) > 0)];
         equipmentModalTitle.textContent = `Equipar ${renderModel.gearTitles[type].toLowerCase()}`;
         equipmentModalOptions.innerHTML = options.map((item) => `<button type="button" class="equipment-option ${save.equipment[type] === (item.id || null) ? "selected" : ""}" data-equipment-type="${type}" data-equipment-id="${item.id}"><span class="gear-icon" aria-hidden="true">${item.id ? renderModel.gearIcons[type] : "∅"}</span><span><strong>${item.name}</strong><small>${item.description}</small></span>${save.equipment[type] === (item.id || null) ? "<em>Equipado</em>" : ""}</button>`).join("");
         equipmentModal.hidden = false;
@@ -238,8 +213,8 @@ export function createDojoView(deps) {
       scope.listen(equipmentModal, "click", (event) => {
         const option = event.target.closest("[data-equipment-type]");
         if (option) {
-          getSave().equipment[option.dataset.equipmentType] = option.dataset.equipmentId || null;
-          persistDojo(getSave());
+          const result = equipItem(getSave(), option.dataset.equipmentType, option.dataset.equipmentId || null);
+          if (result.ok) persistDojo(result.save);
           closeEquipmentModal();
         } else if (event.target === equipmentModal) closeEquipmentModal();
       });
@@ -261,19 +236,7 @@ export function createDojoView(deps) {
       scope.listen(masterModal, "click", (event) => {
         if (event.target === masterModal) closeMasterModal();
       });
-      scope.listen(root.querySelector(".cosmetic-menu"), "click", (event) => {
-        const button = event.target.closest("[data-cosmetic-step]");
-        if (!button) return;
-        const definition = COSMETIC_DEFINITIONS.find(({ key }) => key === button.dataset.cosmeticStep);
-        if (!definition || definition.disabled) return;
-        const currentIndex = cosmeticIndex(definition, getSave().character[definition.key]);
-        const direction = Number(button.dataset.direction) < 0 ? -1 : 1;
-        const nextIndex = (currentIndex + direction + definition.values.length) % definition.values.length;
-        getSave().character[definition.key] = definition.values[nextIndex];
-        persistDojo(getSave());
-        const message = root.querySelector("#dojo-message");
-        if (message) message.textContent = `${definition.label}: ${definition.showName ? definition.names[nextIndex] : `tipo ${variantNumber(nextIndex + 1)}`}. Cambio guardado.`;
-      });
+      mountDojoAppearance(root, scope, { getSave, persist: persistDojo });
       root.querySelectorAll("[data-master]").forEach((button) => scope.listen(button, "click", () => {
         if (!campaignFlag(getSave(), "masterSelectionUnlocked")) return;
         currentState.save = deps.onPersist(deps.selectMaster(getSave(), button.dataset.master));
@@ -285,5 +248,5 @@ export function createDojoView(deps) {
     dispose() { currentState = null; renderModel = null; techniquePanel.dispose(); }
   };
 }
-import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
+import { campaignFlag } from "../../../mission-system.js?v=0.114.0";
 

@@ -144,7 +144,7 @@ test("repite solo el duelo perdido, agota dos reintentos y permite retirarse", a
       window.__retryPromise = b.finishBattle(false);
     });
   }
-  await expect(dialog.getByRole("button", { name: "REINTENTAR (0)", exact: true })).toBeDisabled();
+  await expect(dialog.getByRole("button", { name: "SIN REINTENTOS", exact: true })).toBeDisabled();
   await dialog.getByRole("button", { name: "RETIRADA", exact: true }).click();
   await expect.poll(() => page.evaluate(() => window.__retryResult?.outcome)).toBe("abandoned");
   expect(await page.evaluate(() => {

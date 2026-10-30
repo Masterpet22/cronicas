@@ -81,7 +81,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
     expect(saved.character).toMatchObject({ name: "Mika", bodyType: "female", affinity: "agua", affinities: ["agua"], hair: 4, appearance: "#55bfff" });
-    expect(saved.character).not.toHaveProperty("outfit");
+    expect(saved.character.outfit).toBeNull();
     const dialogue = page.locator(".dialogue-overlay");
     for (let i = 0; i < 6 && await dialogue.isVisible(); i += 1) await dialogue.locator("button").click();
     await page.locator(".debug-tools-trigger").click();

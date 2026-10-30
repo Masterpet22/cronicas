@@ -1,19 +1,20 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.114.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.93.0";
+import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.114.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.114.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.67.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
-import { resolveDamage } from "../damage.js?v=0.68.0";
-import { createEnemyState } from "../enemy-state.js?v=0.93.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.93.0";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, visibleRewardCountForEncounter } from "../rewards.js?v=0.91.0";
+import { missionStep } from "../../mission-system.js?v=0.114.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.114.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { resolveDamage } from "../damage.js?v=0.114.0";
+import { createEnemyState } from "../enemy-state.js?v=0.114.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, visibleRewardCountForEncounter } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { encounterRecovery } from "../../progression-balance.js?v=0.94.0";
@@ -33,6 +34,7 @@ import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-
 export class BattleFlowMethods {
   async useJutsu(jutsu) {
     if (this.busy || this.finished || !this.turnReady) return;
+    if (jutsu.type === "item" && itemUseReason(this, jutsu.itemId)) return;
     if (this.combatTutorial && !this.combatTutorial.canUse(jutsu)) return;
     if (jutsu.type === "guard" && this.player.guarding) {
       this.setMessage("La Guardia ya está preparada.", "#f0c77c");
@@ -83,7 +85,8 @@ export class BattleFlowMethods {
     if (actor === "player") {
       const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
       if (this.finished) return;
-      if (action.type === "guard") await this.playerGuard();
+      if (action.type === "item") await applyBattleConsumable(this, action.itemId);
+      else if (action.type === "guard") await this.playerGuard();
       else await this.playerAttack(action, casting);
       if (this.finished) return;
       this.finishCombatantTurn(this.player);
@@ -155,7 +158,7 @@ export class BattleFlowMethods {
       }
       // Las recompensas se calculan para informar al jugador, pero no se
       // incorporan al guardado hasta completar toda la misión.
-      const firstClear = !this.missionStartSave.campaign.completedMissions.includes(this.mission.id);
+      const firstClear = !this.missionStartSave.campaign[this.mission.category === "secondary" ? "completedSecondaryMissions" : "completedMissions"].includes(this.mission.id);
       const reward = awardEncounter(this.rewardPreviewSave, this.encounterIds[this.enemyIndex], { firstClear });
       this.rewardPreviewSave = reward.save;
       this.pendingEncounterRewards.push(this.enemyIndex);

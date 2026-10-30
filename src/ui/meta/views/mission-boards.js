@@ -1,7 +1,7 @@
 import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
-import { campaignFlag } from "../../../mission-system.js?v=0.67.0";
+import { campaignFlag } from "../../../mission-system.js?v=0.114.0";
 import { renderDoctorRouteMap } from "../doctor-route-map.js";
-import { mountDoctorCipher, renderDoctorCipher } from "../doctor-cipher.js";
+import { mountDoctorCipher, renderDoctorCipher } from "../doctor-cipher.js?v=0.114.0";
 
 export function createMissionBoardsView(deps) {
   let currentState = null;
@@ -70,7 +70,7 @@ export function createMissionBoardsView(deps) {
 
   function renderSecondaryBoard(state) {
     const { save } = state;
-    if (!save.campaign.secondaryBoardUnlocked || !deps.secondaryMissions.length) return `<section class="stage-panel mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>0 disponibles</strong></div><div class="development-note"><strong>Sin encargos publicados.</strong><br>La historia principal se consulta en el Cuartel General. Aquí aparecerán encargos opcionales.</div></section>`;
+    if (!deps.secondaryMissions.length) return `<section class="stage-panel mission-board"><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>0 disponibles</strong></div><div class="development-note"><strong>Sin encargos publicados.</strong><br>Compra un contrato en la tienda para comenzar un encargo.</div></section>`;
     boardMissions = deps.missionsForBoard(deps.secondaryMissions, "missions", save);
     const cardModels = boardMissions.map(({ mission }) => deps.secondaryMissionCardModel(mission, save)).filter((model) => model?.visible);
     const choiceBonus = save.campaign.banditPrisonerChoice === "interrogate"
@@ -78,7 +78,7 @@ export function createMissionBoardsView(deps) {
       : save.campaign.banditPrisonerChoice === "eliminate" ? `<div class="notice-card"><strong>Ventaja táctica</strong><span>Akumori no recibió refuerzos; se perdieron la entrada secreta y el aliado futuro.</span></div>` : "";
     const availableCount = cardModels.filter(({ state: missionStatus }) => missionStatus.unlocked && !missionStatus.completed).length;
     const cards = cardModels.map(({ mission, state: missionStatus, disabled, detail, actionLabel }) => `<article class="mission-card ${missionStatus.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${mission.rank}</p><h3>${deps.escapeHtml(mission.title)}</h3><p>${deps.escapeHtml(detail)}</p></div><button type="button" data-secondary-mission="${deps.escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button></article>`).join("");
-    return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Los encargos opcionales revelan pistas y rutas que pueden abrir nuevas misiones de historia.</p>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
+    return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Compra contratos en la tienda para conseguir objetos especiales e invocaciones. Sus recompensas se entregan una sola vez.</p>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
   }
 
   function renderKagemori(state) {
@@ -117,6 +117,12 @@ export function createMissionBoardsView(deps) {
       const state = currentState;
       const getSave = () => state.save;
       const launchFieldMission = (mission) => {
+        if (mission.contractItem) {
+          const status = deps.missionState(mission, getSave());
+          if (!status.unlocked || status.completed) return;
+          deps.showDialogue(briefingForMission(mission, getSave()), () => deps.onStartMission(getSave(), mission), "COMENZAR MISIÓN", "story");
+          return;
+        }
         if (mission.type === "route-search" && getSave().campaign.doctorRoute.active) {
           deps.onStartDoctorRoute(getSave(), mission);
           return;

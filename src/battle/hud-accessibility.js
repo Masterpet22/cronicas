@@ -1,5 +1,6 @@
-import { skillFrameSvg } from "./hud-chrome.js?v=0.88.0";
-import { emptySkillInfo } from './hud-art.js?v=0.88.0';
+import { skillFrameSvg } from "./hud-chrome.js?v=0.114.0";
+import { mountBattleInventory } from "./battle-inventory.js?v=0.114.0";
+import { emptySkillInfo } from './hud-art.js?v=0.114.0';
 import { createCachedIconCanvas } from './icon-canvas-cache.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
@@ -45,6 +46,7 @@ export function mountAccessibleBattleHud(scene) {
   pause.textContent = 'Ⅱ';
   pause.addEventListener('click', () => scene.openBattlePause());
   phase.append(phaseText, pause);
+  const inventory = mountBattleInventory(scene, phase);
   summary.append(phase);
   const spacer = document.createElement('div');
   spacer.className = 'combat-access-scene';
@@ -228,6 +230,7 @@ export function mountAccessibleBattleHud(scene) {
   const statusText = unit => [...(unit.guarding ? [{ label: 'Guardia' }] : []), ...(unit.statuses || []), ...(unit.soak?.stacks ? [{ label: `Empapado ×${unit.soak.stacks}`, duration: unit.soak.turns }] : [])]
     .map(s => `${s.label || s.type}${s.duration ? ` (${s.duration})` : ''}`).join(' · ');
   const refresh = () => {
+    inventory.refresh();
     refreshVisibility();
     for (const [ui, unit, name] of [[player, scene.player, scene.saveData.character.name], [enemy, scene.enemy, scene.encounters[scene.enemyIndex].name]]) {
       put(ui.name, name.toUpperCase());
@@ -304,62 +307,4 @@ export function mountAccessibleBattleHud(scene) {
   } };
 }
 
-export function mountAccessiblePause(scene) {
-  const battleHud = scene.game.canvas.parentElement.querySelector('.combat-access');
-  if (battleHud) battleHud.inert = true;
-  const root = document.createElement('section');
-  root.className = 'combat-pause-access';
-  root.setAttribute('role', 'dialog');
-  root.setAttribute('aria-modal', 'true');
-  root.setAttribute('aria-label', 'Misión en pausa');
-  const title = document.createElement('h2');
-  title.textContent = 'MISIÓN EN PAUSA';
-  const preferences = document.createElement('p');
-  preferences.className = 'combat-pause-preferences';
-  const updatePreferences = () => {
-    preferences.textContent = `Volumen ${document.getElementById('game-volume').value}%`;
-  };
-  updatePreferences();
-  root.append(title, preferences);
-  const controls = scene.children.list.filter(part => part.input?.enabled).map(part => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.style.setProperty('--x', `${(part.x - part.width / 2) / 9.6}%`);
-    button.style.setProperty('--y', `${(part.y - part.height / 2) / 5.4}%`);
-    button.style.setProperty('--w', `${part.width / 9.6}%`);
-    button.style.setProperty('--h', `${part.height / 5.4}%`);
-    const label = () => {
-      const texts = scene.children.list.filter(child => typeof child.text === 'string' && child.y === part.y && Math.abs(child.x - part.x) <= part.width / 2);
-      let text = texts.map(child => child.text).join(' · ');
-      if (part.y === 357) text = part.x < 480 ? 'Bajar volumen' : 'Subir volumen';
-      button.textContent = text;
-    };
-    label();
-    button.addEventListener('click', () => {
-      part.emit('pointerup');
-      controls.forEach(control => control.label());
-      updatePreferences();
-    });
-    root.append(button);
-    return { button, label };
-  });
-  scene.game.canvas.parentElement.append(root);
-  root.addEventListener('keydown', event => {
-    if (event.key !== 'Tab') return;
-    const first = controls[0]?.button;
-    const last = controls.at(-1)?.button;
-    if (event.shiftKey && document.activeElement === first) {
-      event.preventDefault(); last?.focus();
-    } else if (!event.shiftKey && document.activeElement === last) {
-      event.preventDefault(); first?.focus();
-    }
-  });
-  controls[0]?.button.focus({ preventScroll: true });
-  scene.events.once('shutdown', () => {
-    if (battleHud) battleHud.inert = false;
-    scene.battle.accessibleHud?.refresh();
-    root.remove();
-    if (!battleHud?.hidden) scene.game.canvas.parentElement?.querySelector('.combat-access-pause')?.focus({ preventScroll: true });
-  });
-  return { root };
-}
+export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=0.114.0";

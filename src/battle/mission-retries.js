@@ -19,7 +19,7 @@ export function restoreDuel(battle) {
   battle.turnReady = false;
 }
 
-export function showRetryDialog(scene, count) {
+export function showRetryDialog(scene, count, scrolls = 0) {
   const restoreHud = scene.accessibleHud?.suspend?.();
   const dialog = document.createElement("dialog");
   dialog.className = "mission-retry-dialog";
@@ -34,8 +34,9 @@ export function showRetryDialog(scene, count) {
   retreat.textContent = "RETIRADA";
   const retry = document.createElement("button");
   retry.className = "primary-button";
-  retry.textContent = `REINTENTAR (${count})`;
-  retry.disabled = count === 0;
+  retry.textContent = count > 0 ? `REINTENTAR (${count})` : scrolls > 0 ? `USAR PERGAMINO Y REINTENTAR (${scrolls})` : "SIN REINTENTOS";
+  retry.disabled = count === 0 && scrolls === 0;
+  if (scrolls > 0) message.textContent += ` Llevas ${scrolls} pergamino(s); se consumen solo cuando no quedan reintentos gratuitos.`;
   for (const button of [retreat, retry]) {
     button.type = "button";
     button.style.cssText = "margin:8px;padding:14px 22px;font:inherit";
@@ -59,6 +60,6 @@ export function showRetryDialog(scene, count) {
     retreat.addEventListener("click", () => finish("retreat"));
     retry.addEventListener("click", () => { if (!retry.disabled) finish("retry"); });
     dialog.showModal();
-    (count > 0 ? retry : retreat).focus();
+    (count > 0 || scrolls > 0 ? retry : retreat).focus();
   });
 }

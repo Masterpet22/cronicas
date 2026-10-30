@@ -1,25 +1,27 @@
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.93.0";
+import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
-import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.114.0";
+import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.114.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.67.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
-import { resolveDamage } from "../damage.js?v=0.68.0";
-import { createEnemyState } from "../enemy-state.js?v=0.93.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.93.0";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
+import { missionStep } from "../../mission-system.js?v=0.114.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.114.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { resolveDamage } from "../damage.js?v=0.114.0";
+import { createEnemyState } from "../enemy-state.js?v=0.114.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
-import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js";
+import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
+import { countItem } from "../../inventory.js?v=0.114.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.114.0";
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {
@@ -121,12 +123,12 @@ export class BattleFeedbackMethods {
       this.busy = true;
       this.setButtonsEnabled(false);
       this.refreshHud();
-      const choice = await showRetryDialog(this, availableRetries(this.freeRetries));
+      const choice = await showRetryDialog(this, availableRetries(this.freeRetries), countItem(this.saveData, "retry_scroll"));
       if (!choice) return;
       if (choice === "retry") {
         const consumed = consumeRetry(this.freeRetries);
-        if (consumed === null) return;
-        this.freeRetries = consumed;
+        if (consumed === null) { if (!consumeBattleItem(this, "retry_scroll").ok) return; }
+        else this.freeRetries = consumed;
         this.clearGuard();
         this.stopFighterFlash(this.hero);
         this.stopFighterFlash(this.foe);
@@ -247,20 +249,19 @@ export class BattleFeedbackMethods {
   updateHealthBar(bar, hp, maxHp) {
     const ratio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
     const previousRatio = bar.currentRatio;
+    // Estados, chakra y otros datos pueden refrescar el HUD tras el impacto.
+    // Si la vida no cambió, la estela debe continuar su animación actual.
+    if (ratio === previousRatio) return;
     if (bar.ghost) {
       this.tweens.killTweensOf(bar.ghost);
       if (previousRatio !== null && ratio < previousRatio) {
-        const previousWidth = bar.width * previousRatio;
-        const previousX = bar.direction === "rtl" ? bar.x + bar.width - previousWidth : bar.x;
+        const previousWidth = Math.max(bar.ghost.fillWidth, bar.width * previousRatio);
         const nextWidth = bar.width * ratio;
-        const nextX = bar.direction === "rtl" ? bar.x + bar.width - nextWidth : bar.x;
-        bar.ghost.width = previousWidth;
-        bar.ghost.setX(previousX);
-        this.tweens.add({ targets: bar.ghost, width: nextWidth, x: nextX, delay: 260, duration: 720, ease: "Cubic.out" });
+        bar.ghost.setFillWidth(previousWidth);
+        this.tweens.add({ targets: bar.ghost, fillWidth: nextWidth, delay: 260, duration: 720, ease: "Cubic.out" });
       } else {
         const width = bar.width * ratio;
-        bar.ghost.width = width;
-        bar.ghost.setX(bar.direction === "rtl" ? bar.x + bar.width - width : bar.x);
+        bar.ghost.setFillWidth(width);
       }
     }
     this.setBarRatio(bar, ratio);
@@ -289,18 +290,7 @@ export class BattleFeedbackMethods {
 
   setBarRatio(bar, ratio) {
     const fillWidth = bar.width * Phaser.Math.Clamp(ratio, 0, 1);
-    const fillX = bar.direction === "rtl" ? bar.x + bar.width - fillWidth : bar.x;
-    bar.fill.width = fillWidth;
-    bar.fill.setX(fillX);
-    bar.lustre?.setX(fillX).setScale(bar.width > 0 ? fillWidth / bar.width : 0, 1);
-    if (bar.shade) {
-      bar.shade.width = fillWidth;
-      bar.shade.setX(fillX);
-    }
-    if (bar.sheen) {
-      bar.sheen.width = fillWidth;
-      bar.sheen.setX(fillX);
-    }
+    bar.fill.setFillWidth(fillWidth);
   }
 
   setMessage(text, color = "#edf7fd") {

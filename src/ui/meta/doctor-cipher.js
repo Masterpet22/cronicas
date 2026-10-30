@@ -1,4 +1,4 @@
-import { SEALS } from "../../data.js?v=0.93.0";
+import { SEALS } from "../../data.js?v=0.114.0";
 import { CIPHER_SIZE, cipherComplete, cipherHint } from "../../puzzles/seal-cipher.js";
 
 const sealGlyph = (id) => {

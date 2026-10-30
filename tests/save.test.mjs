@@ -5,7 +5,7 @@ import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 18, "La versión debe incluir el progreso idempotente por misión");
+assert.equal(SAVE_VERSION, 20, "La versión debe incluir el inventario persistente");
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
 assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
@@ -126,7 +126,7 @@ assert.equal(corrupt.character.affinity, "fuego", "Las afinidades inválidas deb
 assert.equal(corrupt.loadout.length, 2, "Una selección corrupta debe restaurar las dos técnicas iniciales");
 assert.deepEqual(
   { bodyType: corrupt.character.bodyType, face: corrupt.character.face, hair: corrupt.character.hair, top: corrupt.character.top, bottom: corrupt.character.bottom, shoes: corrupt.character.shoes },
-  { bodyType: "male", face: 1, hair: 1, top: 1, bottom: 1, shoes: 1 },
+  { bodyType: "male", face: 1, hair: 0, top: 1, bottom: 1, shoes: 1 },
   "Los valores inválidos deben normalizarse a una apariencia modular válida"
 );
 
@@ -235,18 +235,18 @@ affinityChoice = selectNextAffinity(affinityChoice, "agua");
 assert.deepEqual(affinityChoice.character.affinities, ["viento", "agua"], "Una afinidad conocida debe poder elegirse cuando nivel e historia abren la ranura");
 assert.deepEqual(selectNextAffinity(affinityChoice, "agua").character.affinities, ["viento", "agua"], "No debe poder elegirse dos veces la misma afinidad");
 
-const tripleAffinity = normalizeSave({ ...fullCampaign, progression: { ...fullCampaign.progression, level: 35 }, character: { ...fullCampaign.character, affinities: ["viento", "fuego", "agua"], affinityXp: { viento: 300, fuego: 300, agua: 300, tierra: 0 } }, campaign: { ...fullCampaign.campaign, elementRank: 3 }, loadout: ["storm_domain"] });
+const tripleAffinity = normalizeSave({ ...fullCampaign, inventory: { ...fullCampaign.inventory, extraAffinityUnlocked: true }, progression: { ...fullCampaign.progression, level: 35 }, character: { ...fullCampaign.character, affinities: ["viento", "fuego", "agua"], affinityXp: { viento: 300, fuego: 300, agua: 300, tierra: 0 } }, campaign: { ...fullCampaign.campaign, elementRank: 3 }, loadout: ["storm_domain"] });
 assert.equal(tripleAffinity.character.affinities.length, 3, "El rango 3 debe conservar tres afinidades básicas");
 assert.ok(tripleAffinity.loadout.includes("storm_domain"), "Combinar Viento, Fuego y Agua debe habilitar técnicas de Tormenta");
 
-const emptyBuild = normalizeSave({ ...save, equipment: { weapon: null, armor: null, accessory: null }, loadout: [] });
+const emptyBuild = normalizeSave({ ...save, equipment: { weapon: null, seal: null, accessory: null, companion: null }, loadout: [] });
 assert.deepEqual(emptyBuild.loadout, [], "Debe ser posible desequipar todas las técnicas");
 assert.equal(emptyBuild.equipment.weapon, null, "Debe ser posible dejar una ranura de equipo vacía");
 
 const repairedAppearance = normalizeSave({ ...save, character: { ...save.character, face: 99, hair: -3, top: "3", bottom: 0, shoes: 8 } });
 assert.deepEqual(
   { face: repairedAppearance.character.face, hair: repairedAppearance.character.hair, top: repairedAppearance.character.top, bottom: repairedAppearance.character.bottom, shoes: repairedAppearance.character.shoes },
-  { face: 3, hair: 1, top: 3, bottom: 1, shoes: 2 },
+  { face: 1, hair: 0, top: 1, bottom: 1, shoes: 1 },
   "Las piezas modulares fuera de rango deben repararse"
 );
 

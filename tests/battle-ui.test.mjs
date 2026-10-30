@@ -52,7 +52,7 @@ assert.match(battle, /const healthBarWidth = 202/, "Las barras de vida deben per
 assert.match(battle, /healthBarWidth, 14, HUD_ART.health/, "La vida debe usar el verde de referencia en el marco ornamental");
 assert.match(battle, /chakraBarWidth, 14, HUD_ART.chakra/, "El chakra debe compartir altura con la vida");
 assert.match(battle, /enemyHealthX[\s\S]*direction: "rtl"/, "La vida enemiga debe quedar anclada a la derecha y vaciarse desde el centro");
-assert.match(battle, /fillX = bar\.direction === "rtl" \? bar\.x \+ bar\.width - fillWidth : bar\.x/, "El relleno invertido debe reposicionarse al cambiar de ancho");
+assert.match(battle, /cropX = direction === "rtl" \? width \* density - pixels : 0/, "El relleno invertido debe usar el fotograma del extremo correcto sin deformar la cápsula");
 assert.match(battle, /enemyChakraBar = createBar/, "El enemigo debe mostrar una barra de chakra simétrica");
 assert.match(battle, /enemyChakraBar\.valueText\.setText/, "El chakra enemigo debe mostrar su cantidad real");
 assert.doesNotMatch(battle, /enemyChakraLock = this\.createOfudaSeal/, "El chakra enemigo debe quedar libre de sellos decorativos");
@@ -85,9 +85,9 @@ assert.match(battle, /this\.missionStartSave\.bestiary = this\.saveData\.bestiar
 assert.match(battle, /outcome === "completed" \? \{ \.\.\.battleRewards \} : \{ xp: 0, affinityXp: 0, coins: 0 \}/, "Derrota y abandono deben informar cero recompensas");
 assert.match(battle, /VIDA RESTANTE/, "Resultados debe mostrar la vida restante");
 assert.match(battle, /class PauseScene extends Phaser\.Scene/, "Debe existir una escena de pausa independiente");
-assert.match(battle, /makePauseAction\([^\n]+"ABANDONAR"/, "La pausa debe permitir abandonar la misión");
-assert.match(battle, /makePauseToggle\(480, 172 \+ index \* 33[\s\S]*makeVolumeControl\(480, 357\)[\s\S]*makePauseAction\(400, 454, "REANUDAR"/, "El menú de pausa debe separar ajustes, selectores y acciones en filas sin superposición");
-assert.match(battle, /const value = this\.add\.text\(x \+ 45, y, `\$\{input\.value\}%`[\s\S]*makePauseAction\(x - 32, y, "−"[\s\S]*makePauseAction\(x \+ 112, y, "\+"/, "El control de volumen debe reservar una columna independiente para su etiqueta");
+assert.match(battle, /data-pause-leave/, "La pausa debe permitir abandonar la misión");
+assert.match(battle, /pause-settings-grid[\s\S]*data-pause-quality[\s\S]*pause-actions/, "La pausa debe integrar ajustes y calidad en un panel con acciones separadas");
+assert.match(battle, /pause-volume[\s\S]*<output>[\s\S]*type="range"/, "El volumen debe usar un deslizador y una lectura independiente");
 assert.match(battle, /index < 6/, "La barra debe conservar siempre seis espacios de acción");
 assert.match(battle, /this\.actions\[index\] \|\| null/, "Los espacios sin técnica deben renderizarse vacíos");
 assert.match(battle, /Array\.from\(\{ length: 4 \}/, "La barra debe reservar cuatro ranuras configurables entre las acciones fijas");
@@ -280,7 +280,7 @@ assert.match(
 );
 assert.match(
   battle,
-  /loadPhaser\(\)[\s\S]*import\("\.\/src\/battle\/bundle\.js\?v=1\.0\.0"\)/,
+  /loadPhaser\(\)[\s\S]*import\("\.\/src\/battle\/bundle\.js\?v=[\d.]+"\)/,
   "Phaser debe cargarse antes de importar el paquete de combate"
 );
 assert.match(html, /class="mobile-gate"/, "Las resoluciones de teléfono deben recibir una pantalla de próximamente");
@@ -311,7 +311,7 @@ assert.match(metaUi, /(?:deps\.)?getDialogue\(mission\.dialogueId[\s\S]*(?:deps\
 assert.match(metaUi, /NPCS\[masterIdForCharacter\(character\)\]/, "La interfaz debe respetar el maestro persistido de la partida");
 assert.match(metaUi, /data-master="\$\{id\}"/, "Equipo debe mostrar la elección de maestro");
 assert.match(metaUi, /class="equipment-columns"/, "Equipo debe distribuir afinidades, equipamiento y maestro en columnas");
-assert.match(metaUi, /companion-slot locked/, "Equipo debe reservar una ranura bloqueada para el compañero");
+assert.match(metaUi, /equipmentSlot\("companion"\)/, "Equipo permite seleccionar invocaciones poseídas");
 assert.match(metaUi, /data-open-master/, "La tarjeta del maestro debe abrir el selector dedicado");
 assert.match(metaUi, /master-modal-options/, "El selector de maestros debe admitir un catálogo ampliable");
 assert.doesNotMatch(metaUi, /master-unlock-note|La elección se desbloquea al completar la saga 1/, "La tarjeta del maestro no debe repetir una nota de desbloqueo fuera de su contenido");
@@ -322,7 +322,6 @@ assert.match(metaUi, /data-technique-toggle/, "El detalle debe ofrecer una acci�
 assert.doesNotMatch(metaUi, /El pentagrama resume el perfil|PENTAGRAMA DE HABILIDADES/, "Estadísticas debe aprovechar el espacio sin encabezados descriptivos redundantes");
 assert.match(metaUi, /statistics-character-preview/, "Estadísticas debe mostrar la marioneta junto a los atributos y el pentagrama");
 assert.match(metaUi, /puppet-preview-rig/, "Apariencia debe usar la marioneta raster del combate en lugar de la vista vectorial");
-assert.match(metaUi, /values: \[0, 1, 4\]/, "Apariencia debe ofrecer Sin cabello como TIPO 01 antes de Corto y Coleta");
 assert.match(metaUi, /hair_corto[\s\S]*hair_coleta|hair_coleta[\s\S]*hair_corto/, "Apariencia debe limitar los peinados con gráfico a Corto y Coleta");
 assert.match(metaUi, /hair_corto", x: female \? -17\.39144 : -26, y: female \? -521\.65808 : -588, width: female \? 259\.6 : 295, height: female \? 201\.52 : 229/, "El Dojo debe alinear el cabello corto con cada rig");
 assert.match(metaUi, /hair_coleta", x: female \? -46\.43144 : -59, y: female \? -497\.89808 : -561, width: female \? 344\.96 : 392, height: female \? 276\.32 : 314/, "El Dojo debe alinear la coleta con cada rig");
@@ -333,7 +332,6 @@ assert.doesNotMatch(metaUi, /hair_0[1-5]_(?:front|rear)/, "Apariencia no debe ca
 assert.doesNotMatch(metaUi, /raster-character-floor/, "La vista de la marioneta no debe conservar la sombra elíptica del suelo");
 assert.doesNotMatch(styles, /\.puppet-preview-rig \{[^}]*drop-shadow/, "La marioneta del Dojo no debe aplicar una segunda sombra al conjunto");
 assert.match(metaUi, /data-cosmetic-step/, "Apariencia debe usar controles numéricos por variante");
-assert.match(metaUi, /key: "outfit", label: "Traje", values: \[\], locked: true/, "Apariencia debe reservar una opción bloqueada para trajes completos");
 assert.match(metaUi, /data-clue="\$\{clue\.id\}"/, "Kagemori debe ofrecer puntos de investigación interactivos");
 assert.match(metaUi, /class="clue-hotspots" viewBox="0 0 1672 941"[\s\S]*class="clue-shape" d="\$\{clue\.path\}"/, "Kagemori debe superponer áreas SVG ajustadas a los elementos de la escena");
 assert.doesNotMatch(metaUi, /class="clue-hotspot[^>]+<span[^>]*>[?✓]/, "Las pistas de Kagemori no deben conservar círculos ni signos de interrogación");

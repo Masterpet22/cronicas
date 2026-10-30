@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { purchaseItem, equipCosmetic } from "../src/inventory.js";
 import { missionTransitionMode, validateMissionTransitions } from "../src/mission-transitions.js";
 import { createCharacter, createDefaultSave, normalizeSave } from "../src/save.js";
 
@@ -17,12 +18,15 @@ for (const transitions of [{ departure: "typo" }, { unknown: "route" }, { betwee
   assert.ok(validateMissionTransitions({ ...mission, transitions }).length, "La configuración inválida debe detectarse antes de jugar");
 }
 for (const object of ["log", "dog", "puppet"]) {
-  const save = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", teleportObject: object });
+  let save = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego" });
+  save.progression.coins = 1000;
+  if (object !== "log") save = purchaseItem(save, `substitution_${object}`).save;
+  save = equipCosmetic(save, `substitution_${object}`).save;
   assert.equal(normalizeSave(save).character.teleportObject, object);
 }
 const old = createCharacter(createDefaultSave(), { name: "Anterior" });
 delete old.character.teleportObject;
 assert.equal(normalizeSave(old).character.teleportObject, "log");
 assert.equal(normalizeSave({ ...old, character: { ...old.character, teleportObject: "unknown" } }).character.teleportObject, "log");
-assert.equal(normalizeSave({ ...old, character: { ...old.character, teleportObject: "chair" } }).character.teleportObject, "puppet", "Las partidas con la silla deben conservar la selección como marioneta");
+assert.equal(normalizeSave({ ...old, version: 19, character: { ...old.character, teleportObject: "chair" } }).character.teleportObject, "puppet", "Las partidas con la silla deben conservar la selección como marioneta");
 console.log("Configuración de transiciones y objetos de transportación verificada.");

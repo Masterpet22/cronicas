@@ -9,6 +9,13 @@ export const RENDER_PROFILES = Object.freeze({
 
 const positiveNumber = (value) => Number.isFinite(Number(value)) && Number(value) > 0 ? Number(value) : null;
 
+export function renderQualityPreference(storage) {
+  try {
+    const value = (storage ?? globalThis.localStorage)?.getItem("render-quality");
+    return Object.hasOwn(RENDER_PROFILES, value) ? value : "auto";
+  } catch (_) { return "auto"; }
+}
+
 export function selectRenderProfile({ deviceMemory, hardwareConcurrency } = {}) {
   const memory = positiveNumber(deviceMemory);
   const cores = positiveNumber(hardwareConcurrency);
@@ -18,13 +25,13 @@ export function selectRenderProfile({ deviceMemory, hardwareConcurrency } = {}) 
   return RENDER_PROFILES.balanced;
 }
 
-export function calculateRenderResolution({ width, height, devicePixelRatio = 1, profile = RENDER_PROFILES.balanced }) {
+export function calculateRenderResolution({ width, height, devicePixelRatio = 1, profile = RENDER_PROFILES.balanced, fixed = false }) {
   const cssWidth = positiveNumber(width) || LOGICAL_RENDER_SIZE.width;
   const cssHeight = positiveNumber(height) || LOGICAL_RENDER_SIZE.height;
   const cssScale = Math.min(cssWidth / LOGICAL_RENDER_SIZE.width, cssHeight / LOGICAL_RENDER_SIZE.height);
   const pixelRatio = Math.max(1, positiveNumber(devicePixelRatio) || 1);
   const desiredScale = Math.max(1, cssScale * pixelRatio);
-  const scale = Math.floor(Math.min(profile.maxScale, desiredScale) * 100) / 100;
+  const scale = fixed ? profile.maxScale : Math.floor(Math.min(profile.maxScale, desiredScale) * 100) / 100;
   return {
     width: Math.round(LOGICAL_RENDER_SIZE.width * scale),
     height: Math.round(LOGICAL_RENDER_SIZE.height * scale),
@@ -37,11 +44,14 @@ export function calculateRenderResolution({ width, height, devicePixelRatio = 1,
 
 export function configureRenderResolution(element, runtime, environment = {}) {
   const navigatorInfo = environment.navigator || globalThis.navigator || {};
-  const profile = environment.profile || selectRenderProfile(navigatorInfo);
+  const preference = environment.preference ?? renderQualityPreference(environment.storage);
+  const manualProfile = Object.hasOwn(RENDER_PROFILES, preference) ? RENDER_PROFILES[preference] : null;
+  const profile = environment.profile || manualProfile || selectRenderProfile(navigatorInfo);
   const result = calculateRenderResolution({
     ...element.getBoundingClientRect(),
     devicePixelRatio: environment.devicePixelRatio ?? globalThis.devicePixelRatio ?? 1,
-    profile
+    profile,
+    fixed: !environment.profile && Boolean(manualProfile)
   });
   runtime.renderResolution = result.scale;
   runtime.textTextureResolution = Math.min(3, Math.max(2, Math.ceil(result.scale)));

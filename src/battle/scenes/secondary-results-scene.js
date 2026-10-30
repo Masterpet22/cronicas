@@ -1,6 +1,6 @@
 import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.81.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { secondaryMissionGrade } from "../rewards.js?v=0.82.6";
+import { secondaryMissionGrade } from "../rewards.js?v=0.114.0";
 import { returnToVillage } from "../return-to-village.js?v=0.96.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 

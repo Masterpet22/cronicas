@@ -1,4 +1,4 @@
-import { applyMissionEffects, missionState } from "./mission-system.js?v=0.66.0";
+import { applyMissionEffects, missionState } from "./mission-system.js?v=0.114.0";
 import { createCompletedMissionProgress } from "./save/save-migrations.js";
 
 export function secondaryMissionByType(type, missions) {
@@ -26,6 +26,9 @@ const CARD_PRESENTERS = Object.freeze({
 export function secondaryMissionCardModel(mission, save) {
   const state = missionState(mission, save);
   const present = CARD_PRESENTERS[mission.type];
+  if (!present && mission.contractItem) return { mission, state, visible: state.completed || state.unlocked,
+    disabled: state.completed || !state.unlocked, detail: `${mission.location} · Nivel recomendado ${mission.recommendedLevel} · ${mission.rewardLabel}`,
+    actionLabel: state.completed ? "COMPLETADA" : "INICIAR CONTRATO" };
   if (!present) return null;
   return { mission, state, disabled: state.completed || !state.unlocked, ...present(mission, state, save) };
 }

@@ -1,3 +1,5 @@
+import { mountRenderQualityControl } from "../../render-settings.js?v=0.114.0";
+
 const SETTINGS = [
   ["manual-seals", "Sellos manuales"], ["camera-effects", "Sacudida de cámara"],
   ["flash-effects", "Destellos de pantalla"], ["music-enabled", "Música"], ["light-mode", "Modo ligero"]
@@ -15,6 +17,7 @@ export function mountMissionPause(root, scope, onAbandon) {
     <button type="button" class="secondary-button" data-mission-abandon>ABANDONAR MISIÓN</button>
     <p class="mission-pause-shortcut">Esc · Reanudar</p>`;
   root.append(dialog);
+  const removeQualityControl = mountRenderQualityControl(dialog.querySelector(".mission-pause-settings > div"));
   const animations = new Set();
   const content = root.querySelector(".village-shell");
   let confirming = false;
@@ -93,5 +96,5 @@ export function mountMissionPause(root, scope, onAbandon) {
       input.dispatchEvent(new Event(type, { bubbles: true }));
     });
   });
-  scope.onCleanup(() => { resume(false); dialog.remove(); });
+  scope.onCleanup(() => { resume(false); removeQualityControl(); dialog.remove(); });
 }

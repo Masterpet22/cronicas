@@ -1,15 +1,18 @@
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.93.0";
-import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
-import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.67.0";
+import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.114.0";
+import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
+import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.114.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
-import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.93.0";
+import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, normalizeAffinityOrder } from "./affinity-system.js?v=0.114.0";
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.100.0";
-import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.66.0";
+import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.114.0";
 import { createCompletedMissionProgress, migrateSaveToV18 } from "./save/save-migrations.js";
 import { createSlotRepository } from "./save/slot-repository.js";
 import { teleportObject } from "./teleport-objects.js";
+import { ITEMS } from "./items.js?v=0.114.0";
+import { LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
+import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.114.0";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
-import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js";
+import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js?v=0.114.0";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
 export { attributeTrainingLimit };
 import { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
@@ -17,9 +20,9 @@ export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/chara
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 18;
+export const SAVE_VERSION = 20;
 
-const DEFAULT_EQUIPMENT = { weapon: "kunai", armor: "light_vest", accessory: "chakra_charm" };
+const DEFAULT_EQUIPMENT = { weapon: "kunai", seal: "seal_wind", accessory: "chakra_charm", companion: null };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
 const ALL_MISSIONS = [...MISSIONS, ...SECONDARY_MISSIONS];
 
@@ -35,6 +38,7 @@ export function createDefaultSave() {
       attributes: { health: 0, strength: 0, speed: 0, chakra: 0, luck: 0 }
     },
     equipment: { ...DEFAULT_EQUIPMENT },
+    inventory: { items: {}, extraAffinityUnlocked: false },
     loadout: [],
     campaign: {
       completedMissions: [],
@@ -99,17 +103,19 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
+    inventory: starterInventory({ hair: normalizeHairStyle(hair) }),
     loadout: initialLoadout(cleanAffinity),
     campaign: { ...createDefaultSave().campaign }
   };
 }
 
-function validEquipment(type, id) {
+function validEquipment(type, id, inventory) {
   if (id === null) return null;
-  return EQUIPMENT[type].some((item) => item.id === id) ? id : DEFAULT_EQUIPMENT[type];
+  return EQUIPMENT[type]?.some((item) => item.id === id) && inventory.items[id] > 0 ? id : null;
 }
 
 export function normalizeSave(candidate) {
+  const inventory = normalizeInventory(candidate);
   candidate = migrateSaveToV18(candidate, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
   const defaults = createDefaultSave();
   if (!candidate || typeof candidate !== "object") return defaults;
@@ -126,10 +132,11 @@ export function normalizeSave(candidate) {
     .filter((id) => SECONDARY_MISSIONS.some((mission) => mission.id === id));
   const elementRank = Math.min(3, Math.max(1, Math.floor(Number(candidate.campaign?.elementRank) || 1)));
   const requestedAffinities = Array.isArray(candidate.character?.affinities) ? candidate.character.affinities : [candidate.character?.affinity];
-  const affinities = normalizeAffinityOrder(requestedAffinities).slice(0, availableAffinitySlots(level, elementRank));
+  const slots = availableAffinitySlots(level, elementRank, inventory.extraAffinityUnlocked, candidate.campaign?.rank);
+  const affinities = normalizeAffinityOrder(requestedAffinities).slice(0, slots);
   if (!affinities.length) affinities.push("fuego");
   const affinity = affinities[0];
-  const knownAffinities = [...new Set([...(candidate.character?.knownAffinities || []), ...affinities])].filter((id) => BASIC_ELEMENT_IDS.includes(id));
+  const knownAffinities = [...new Set([...(candidate.character?.knownAffinities || []), ...affinities, ...(slots >= 2 ? BASIC_ELEMENT_IDS : [])])].filter((id) => BASIC_ELEMENT_IDS.includes(id));
   const affinityXp = Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => {
     const stored = Number(candidate.character?.affinityXp?.[id]);
     return [id, Number.isFinite(stored) ? Math.max(0, Math.floor(stored)) : (id === affinity ? 50 : 0)];
@@ -160,20 +167,23 @@ export function normalizeSave(candidate) {
       teleportObject: teleportObject(candidate.character.teleportObject).id,
       top: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.top) || 1))),
       bottom: Math.min(3, Math.max(1, Math.floor(Number(candidate.character.bottom) || 1))),
-      shoes: Math.min(2, Math.max(1, Math.floor(Number(candidate.character.shoes) || 1)))
+      shoes: Math.min(2, Math.max(1, Math.floor(Number(candidate.character.shoes) || 1))),
+      ...normalizeAppearance(candidate.character, inventory)
     } : null,
     progression: {
       level,
       xp: Math.max(0, Math.floor(Number(progression.xp) || 0)),
-      coins: Math.max(0, Math.floor(Number(progression.coins) || 0)),
+      coins: Number.isFinite(Number(progression.coins)) ? Math.max(0, Math.min(9999999, Math.floor(Number(progression.coins) || 0))) : 0,
       attributePoints: Math.max(0, Math.floor(Number(progression.attributePoints) || 0)) + excessTraining,
       attributes: balancedAttributes
     },
     equipment: {
-      weapon: validEquipment("weapon", candidate.equipment?.weapon),
-      armor: validEquipment("armor", candidate.equipment?.armor),
-      accessory: validEquipment("accessory", candidate.equipment?.accessory)
+      weapon: validEquipment("weapon", candidate.equipment?.weapon, inventory),
+      seal: validEquipment("seal", candidate.equipment?.seal ?? LEGACY_SEALS[candidate.equipment?.armor], inventory),
+      companion: validEquipment("companion", candidate.equipment?.companion, inventory),
+      accessory: validEquipment("accessory", candidate.equipment?.accessory, inventory)
     },
+    inventory,
     loadout: candidate.character ? loadout : [],
     campaign: {
       completedMissions,
@@ -324,7 +334,7 @@ export function awardEncounter(save, enemyId, { firstClear = true } = {}) {
 
 export function completeMission(save, missionId) {
   const result = normalizeSave(save);
-  const mission = MISSIONS.find((entry) => entry.id === missionId);
+  const mission = ALL_MISSIONS.find((entry) => entry.id === missionId);
   if (mission?.type) return completeSecondaryMission(result, mission);
   const state = mission ? missionState(mission, result) : null;
   if (!mission || state.completed || !state.unlocked) {
@@ -341,7 +351,9 @@ export function completeMission(save, missionId) {
   result.progression.coins += gainedCoins;
   const affinityXp = Math.max(10, Math.round(gainedXp * 0.35));
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
-  result.campaign.completedMissions.push(missionId);
+  result.campaign[mission.category === "secondary" ? "completedSecondaryMissions" : "completedMissions"].push(missionId);
+  for (const [id, quantity] of Object.entries(mission.reward.items || {})) if (ITEMS[id]) result.inventory.items[id] = Math.min(ITEMS[id].stackLimit, (result.inventory.items[id] || 0) + quantity);
+  if (mission.contractItem) delete result.inventory.items[mission.contractItem];
   applyMissionEffects(result, mission.completionEffects, { secretBonusAwarded: secretBonus > 0 });
   result.campaign.missionProgress[missionId] = createCompletedMissionProgress(mission);
   let levelsGained = 0;
@@ -497,7 +509,7 @@ export function learnAffinity(save, affinityId) {
 
 export function selectNextAffinity(save, affinityId) {
   const result = normalizeSave(save);
-  const availableSlots = availableAffinitySlots(result.progression.level, result.campaign.elementRank);
+  const availableSlots = availableAffinitySlots(result.progression.level, result.campaign.elementRank, result.inventory.extraAffinityUnlocked, result.campaign.rank);
   if (!result.character.knownAffinities.includes(affinityId)
     || result.character.affinities.includes(affinityId)
     || result.character.affinities.length >= availableSlots
@@ -525,10 +537,11 @@ export function derivedStats(save) {
     xpBonus: 0,
     damageReduction: 0
   };
-  Object.entries(normalized.equipment).forEach(([type, id]) => {
-    const item = EQUIPMENT[type]?.find((entry) => entry.id === id);
+  const equipmentItems = Object.entries(normalized.equipment).map(([type, id]) => EQUIPMENT[type]?.find(entry => entry.id === id));
+  equipmentItems.push(ITEMS[normalized.character?.outfit]);
+  equipmentItems.forEach(item => {
     Object.entries(item?.bonuses || {}).forEach(([stat, value]) => {
-      const statMap = { maxHp: "health", maxChakra: "chakra", damageBonus: "strength", speed: "speed" };
+      const statMap = { maxHp: "health", maxChakra: "chakra", damageBonus: "strength", speed: "speed", luck: "luck" };
       if (statMap[stat]) baseStats[statMap[stat]] += value;
       else if (stat === "evasion") utility.equipmentEvasion += value;
       else utility[stat] += value;

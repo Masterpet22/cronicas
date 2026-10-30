@@ -1,5 +1,6 @@
-import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.88.0";
+import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.114.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";
+import { createResourceLayer } from "./battle/resource-bar.js?v=0.114.0";
 
 export function createBar(scene, x, y, width, height, color, {
   direction = "ltr",
@@ -8,18 +9,10 @@ export function createBar(scene, x, y, width, height, color, {
   edgeColor = 0xc29a53
 } = {}) {
   const radius = Math.min(height / 2, 8);
-  const bg = scene.add.rectangle(x, y, width, height, 0x03070d, 0.98)
-    .setOrigin(0, 0.5);
-  const slot = scene.add.rectangle(x, y, width, height, slotColor, 0.98)
-    .setOrigin(0, 0.5);
-  const ghost = ghostColor === null ? null : scene.add.rectangle(x, y, width, height, ghostColor, 0.92)
-    .setOrigin(0, 0.5);
-  const fill = scene.add.rectangle(x, y, width, height, color, 1)
-    .setOrigin(0, 0.5);
-  const shade = scene.add.rectangle(x, y + height / 3, width, Math.max(2, Math.ceil(height / 2)), 0x183328, 0.2)
-    .setOrigin(0, 0.5);
-  const sheen = scene.add.rectangle(x, y - height / 4, width, Math.max(2, Math.floor(height / 3)), 0xffffff, 0.13)
-    .setOrigin(0, 0.5);
+  const bg = createResourceLayer(scene, x, y, width, height, 0x03070d, .98);
+  const slot = createResourceLayer(scene, x, y, width, height, slotColor, .98);
+  const ghost = ghostColor === null ? null : createResourceLayer(scene, x, y, width, height, ghostColor, .92, { direction });
+  const fill = createResourceLayer(scene, x, y, width, height, color, 1, { direction, gloss: true });
   const edge = scene.add.graphics({ x, y });
   edge.lineStyle(1, edgeColor, 0.86).strokeRoundedRect(0, -height / 2, width, height, radius);
   const valueText = scene.add.text(x + width / 2, y, "", {
@@ -30,7 +23,7 @@ export function createBar(scene, x, y, width, height, color, {
     stroke: "#080706",
     strokeThickness: 3
   }).setOrigin(0.5);
-  return { bg, slot, ghost, fill, shade, sheen, edge, valueText, width, height, x, direction, currentRatio: null };
+  return { bg, slot, ghost, fill, edge, valueText, width, height, x, direction, currentRatio: null };
 }
 
 export function actionLines(action) {

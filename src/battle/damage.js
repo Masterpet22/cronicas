@@ -1,4 +1,4 @@
-import { finalAffinityDamage } from "../affinity-system.js?v=0.93.0";
+import { finalAffinityDamage } from "../affinity-system.js?v=0.114.0";
 
 export function attackBaseDamage(techniqueDamage, strength) {
   const technique = Math.max(0, Number(techniqueDamage) || 0);

@@ -1,5 +1,5 @@
-import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "../affinity-system.js?v=0.93.0";
-import { activeCombatModifiers } from "../combat-modifiers.js?v=0.67.0";
+import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "../affinity-system.js?v=0.114.0";
+import { activeCombatModifiers } from "../combat-modifiers.js?v=0.114.0";
 
 function targetsProfile(modifier, profile) {
   return !modifier.target || modifier.target === "all" || (modifier.target === "boss" && profile.boss);

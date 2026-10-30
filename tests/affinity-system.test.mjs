@@ -58,7 +58,8 @@ assert.equal(validateAffinityOrder(["fuego", "agua", "tierra", "viento"]), false
 assert.deepEqual(normalizeAffinityOrder(["fuego", "fuego", "agua", "tierra", "viento"]), ["fuego", "agua", "tierra"], "La normalización debe eliminar repetidas y limitar a tres");
 assert.equal(availableAffinitySlots(14, 3), 1, "El nivel debe bloquear la segunda afinidad aunque la historia haya avanzado");
 assert.equal(availableAffinitySlots(15, 2), 2, "Nivel e historia deben desbloquear juntos la segunda afinidad");
-assert.equal(availableAffinitySlots(35, 3), 3, "Nivel e historia deben desbloquear juntos la tercera afinidad");
+assert.equal(availableAffinitySlots(35, 3), 2, "El progreso natural solo debe abrir dos afinidades");
+assert.equal(availableAffinitySlots(35, 3, true), 3, "El pergamino debe abrir la tercera afinidad");
 
 for (const attacker of ["fuego", "viento", "tierra", "agua"]) assert.equal(affinityCycleModifier(attacker, attacker), 0, "Una afinidad no debe aventajarse a sí misma");
 assert.equal(affinityCycleModifier("fuego", "viento"), 0.20, "Fuego debe vencer a Viento");

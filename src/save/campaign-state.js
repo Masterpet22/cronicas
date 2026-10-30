@@ -1,5 +1,5 @@
-import { MISSIONS, SECONDARY_MISSIONS } from "../content/index.js";
-import { missionState } from "../mission-system.js?v=0.67.0";
+import { MISSIONS, SECONDARY_MISSIONS } from "../content/index.js?v=0.114.0";
+import { missionState } from "../mission-system.js?v=0.114.0";
 import { createCompletedMissionProgress } from "./save-migrations.js";
 
 const ALL_MISSIONS = [...MISSIONS, ...SECONDARY_MISSIONS];

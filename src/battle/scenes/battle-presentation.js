@@ -1,20 +1,20 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.88.0";
-import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.88.0";
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.93.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.114.0";
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.114.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, destroyFighter, fighterHairPortraitLayout, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.81.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.92.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.94.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.114.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.114.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.67.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.67.0";
-import { resolveDamage } from "../damage.js?v=0.68.0";
-import { createEnemyState } from "../enemy-state.js?v=0.93.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.93.0";
-import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.68.0";
+import { missionStep } from "../../mission-system.js?v=0.114.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.114.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { resolveDamage } from "../damage.js?v=0.114.0";
+import { createEnemyState } from "../enemy-state.js?v=0.114.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
+import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
 
@@ -140,12 +140,6 @@ export class BattlePresentationMethods {
     [this.playerHpBar, this.chakraBar, this.enemyHpBar, this.enemyChakraBar].forEach((bar) => {
       bar.bg.setDepth(21); bar.slot.setDepth(21);
       bar.ghost?.setDepth(22); bar.fill.setDepth(22);
-      bar.shade.setDepth(23).setAlpha(0);
-      bar.sheen.setDepth(23).setAlpha(0);
-      const blue = bar === this.chakraBar || bar === this.enemyChakraBar;
-      bar.lustre = this.add.graphics().setPosition(bar.x, bar.bg.y).setDepth(23);
-      bar.lustre.fillGradientStyle(0xeafff5, 0xeafff5, blue ? 0x001b39 : 0x00240e, blue ? 0x001b39 : 0x00240e, .24, .24, .38, .38)
-        .fillRect(0, -bar.height / 2, bar.width, bar.height);
       bar.edge.setDepth(24);
       bar.edge.lineStyle(.6, 0xe7fbd4, .55).lineBetween(8, -5, bar.width - 8, -5);
       const mirrored = bar.direction === "rtl";
@@ -370,12 +364,12 @@ export class BattlePresentationMethods {
   }
 
   createPauseButton() {
-    const bg = this.add.circle(480, 67, 18, HUD_ART.ink, 0.96).setStrokeStyle(1.1, 0x8adeee, 1)
+    const bg = this.add.circle(480, 67, 18, HUD_ART.wine, 0.96).setStrokeStyle(1.1, HUD_ART.gold, 1)
       .setDepth(25).setInteractive({ useHandCursor: true });
     const label = this.add.graphics().setDepth(26);
-    label.fillStyle(0x99dff8, 1).fillRect(475.5, 61, 3, 13).fillRect(481.5, 61, 3, 13);
-    bg.on("pointerover", () => bg.setFillStyle(0x23415b, 1));
-    bg.on("pointerout", () => bg.setFillStyle(HUD_ART.ink, 0.96));
+    label.fillStyle(HUD_ART.light, 1).fillRect(475.5, 61, 3, 13).fillRect(481.5, 61, 3, 13);
+    bg.on("pointerover", () => bg.setFillStyle(0x722b32, 1));
+    bg.on("pointerout", () => bg.setFillStyle(HUD_ART.wine, 0.96));
     bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));
     this.openBattlePause = () => {
       if (this.finished || !isSceneActive(this.scene)) return;

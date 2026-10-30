@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { RENDER_PROFILES, calculateRenderResolution, configureRenderResolution, selectRenderProfile } from "../src/battle/render-resolution.js";
+import { RENDER_PROFILES, calculateRenderResolution, configureRenderResolution, selectRenderProfile, renderQualityPreference } from "../src/battle/render-resolution.js";
 
 assert.equal(selectRenderProfile({ deviceMemory: 2, hardwareConcurrency: 8 }).id, "economy");
 assert.equal(selectRenderProfile({ deviceMemory: 8, hardwareConcurrency: 2 }).id, "economy");
@@ -25,5 +25,18 @@ assert.deepEqual({ width: configured.width, height: configured.height, scale: co
 assert.equal(runtime.renderResolution, 2);
 assert.equal(runtime.textTextureResolution, 2);
 assert.equal(runtime.renderProfile.id, "high");
+
+const manual = configureRenderResolution({ getBoundingClientRect: () => ({ width: 960, height: 540 }) }, {}, {
+  preference: "high", devicePixelRatio: 1, navigator: { deviceMemory: 2, hardwareConcurrency: 2 }
+});
+assert.deepEqual([manual.width, manual.height, manual.profile.id], [1920, 1080, "high"], "La elección manual debe prevalecer incluso en equipos limitados");
+const storage = { getItem: () => "balanced" };
+assert.equal(renderQualityPreference(storage), "balanced");
+assert.equal(renderQualityPreference({ getItem: () => "inexistente" }), "auto");
+assert.equal(renderQualityPreference({ getItem() { throw new Error("blocked"); } }), "auto");
+const saved = configureRenderResolution({ getBoundingClientRect: () => ({ width: 1920, height: 1080 }) }, {}, {
+  storage, navigator: { deviceMemory: 2 }, devicePixelRatio: 2
+});
+assert.deepEqual([saved.width, saved.height], [1440, 810], "La preferencia guardada debe reutilizarse al iniciar otra misión");
 
 console.log("Perfiles adaptativos de resolución verificados.");

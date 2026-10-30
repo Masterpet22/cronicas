@@ -8,22 +8,23 @@
 .mission-pause-dialog {
   position: fixed; inset: 0; box-sizing: border-box; width: min(440px, calc(100vw - 32px));
   max-height: calc(100dvh - 32px); margin: auto; padding: clamp(20px, 3vw, 32px);
-  overflow-y: auto; border: 1px solid #65bce9; border-radius: 12px;
-  background: #081725; color: #eef5f7; box-shadow: 0 20px 80px #000a;
+  overflow-y: auto; border: 1px solid #d7a857; border-radius: 12px;
+  background: linear-gradient(145deg, #142034, #060c18); color: #f5e1af; box-shadow: 0 20px 80px #000a;
   font: 400 17px "Alegreya Sans", sans-serif;
 }
 .mission-pause-dialog[open] { display: grid; gap: 16px; }
 .mission-pause-dialog::backdrop { background: #02070dc9; backdrop-filter: blur(4px); }
-.mission-pause-dialog .eyebrow { margin: 0; color: #7bcce9; font-size: 13px; }
+.mission-pause-dialog .eyebrow { margin: 0; color: #d7a857; font-size: 13px; }
 .mission-pause-dialog h2 { margin: 0; font: 700 25px Cinzel, Georgia, serif; color: #f5e7c9; }
 .mission-pause-dialog .mission-pause-note { margin: 0 0 4px; color: #afc2cf; }
 .mission-pause-dialog button { width: 100%; min-height: 46px; font-size: 14px; }
 .mission-pause-dialog [data-mission-abandon] { color: #ffd0c6; border-color: #9d605a; }
-.mission-pause-settings { border: 1px solid #35556a; border-radius: 6px; }
+.mission-pause-settings { border: 1px solid #77613d; border-radius: 6px; }
 .mission-pause-settings summary { padding: 12px; cursor: pointer; color: #e6d4b1; font-weight: 700; }
 .mission-pause-settings > div { display: grid; gap: 12px; padding: 4px 12px 16px; }
 .mission-pause-settings label { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 28px; }
-.mission-pause-settings input { accent-color: #65bce9; }
+.mission-pause-settings input { accent-color: #d7a857; }
+.mission-pause-settings .render-quality-control { display: grid; gap: 6px; margin: 0; }
 .mission-pause-settings input[type="checkbox"] { width: 19px; height: 19px; }
 .mission-pause-settings input[type="range"] { width: 150px; }
 .mission-pause-shortcut { margin: 0; text-align: center; font-size: 14px; color: #94acbc; }
@@ -36,3 +37,5 @@
   .mission-pause-dialog { padding: 18px; }
   .mission-pause-dialog[open] { gap: 10px; }
 }
+
+.mission-pause-dialog .primary-button { border: 1px solid #d7a857; background: linear-gradient(#722b32, #481720); color: #ffe7b5; }

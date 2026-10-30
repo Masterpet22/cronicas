@@ -5,7 +5,8 @@ import { createCharacter, createDefaultSave, normalizeSave } from "../src/save.j
 import { createMissionBoardsView } from "../src/ui/meta/views/mission-boards.js";
 import { createArchiveView } from "../src/ui/meta/views/archive.js";
 
-assert.deepEqual(SECONDARY_MISSIONS, []);
+assert.equal(SECONDARY_MISSIONS.length, 2);
+assert.ok(SECONDARY_MISSIONS.every(mission => mission.contractItem));
 assert.deepEqual(MISSIONS.map(({ number }) => number), [1, 2, 3, 4, 5, 6, 7]);
 assert.ok(MISSIONS.every(({ category, board }) => category === "main" && board === "headquarters"));
 let save = createCharacter(createDefaultSave(), { name: "Historia", affinity: "fuego" });
@@ -30,7 +31,7 @@ previous.campaign.missionProgress.s02 = { status: "in-progress", currentStepId: 
 const original = structuredClone(previous);
 const migrated = normalizeSave(previous);
 assert.deepEqual(previous, original, "Migrar no debe modificar la partida original");
-assert.equal(migrated.version, 18);
+assert.equal(migrated.version, 20);
 assert.deepEqual(migrated.campaign.completedMissions, ["m01", "m02", "s01"]);
 assert.deepEqual(migrated.campaign.completedSecondaryMissions, []);
 assert.equal(migrated.campaign.doctorRoute.active, true);

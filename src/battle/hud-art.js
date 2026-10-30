@@ -1,4 +1,4 @@
-import { loadoutSlotsForLevel } from '../save.js?v=0.94.0';
+import { loadoutSlotsForLevel } from '../save.js?v=0.114.0';
 
 // Derive presentation requirements from the game's existing loadout rule.
 const SLOT_LEVELS = Array.from({ length: 4 }, (_, slot) =>

@@ -41,9 +41,15 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Los viajes de cada misión muestran su destino y el resultado del regreso con parallax, partículas ambientales y movimiento de cámara de Phaser 4. Al volver, el personaje, el escenario y la ruta avanzan de derecha a izquierda. Entre rivales aparece la siguiente fase de la misión, y los jefes anuncian sus cambios de fase antes de reanudar el combate. El informe se funde antes de volver a la aldea; con movimiento reducido se usa una transición más breve.
 - Kagemori y la búsqueda de Haru forman parte de la historia principal del Cuartel. Las misiones futuras permanecen ocultas hasta descubrirse; el Tablón se reserva para encargos opcionales.
 - Este contenido forma la primera saga; el plan es ampliarlo con nuevas sagas y misiones más adelante.
-- En el dojo, equipa o desequipa un arma, un protector y un accesorio.
-- La afinidad principal se elige al crear el personaje. La historia permite conocer otras y el nivel y rango elemental abren hasta tres espacios ponderados.
-- Cada una de las tres partidas fija el tipo de cuerpo al crear al personaje; el Dojo muestra la marioneta usada en combate y permite alternar en tiempo real entre Sin cabello, Corto y Coleta. Rostro, prendas y calzado permanecen visibles pero bloqueados hasta contar con gráficos compatibles.
+- La tienda permite comprar y vender armas, sellos, accesorios, apariencias, sustituciones, consumibles, pergaminos y contratos. La venta devuelve la mitad del precio unitario, redondeada hacia abajo; exige desequipar primero y no permite vender contratos durante su misión.
+- **Dojo → Equipo** contiene arma, sello, accesorio y compañero. Solo ofrece objetos poseídos. Las antiguas protecciones se convierten en sellos; las compras de trajes anteriores conservan su apariencia y reciben el sello equivalente.
+- **Dojo → Apariencia** gestiona rostro, peinado, sustitución, parte superior, inferior, calzado y traje completo, usando las compras del personaje. La ropa común es cosmética. Los trajes especiales indican su efecto: el ceremonial del canalizador añade 15 de chakra. Los gráficos de prendas y rostros siguen pendientes y se indica en el catálogo; los peinados y objetos de sustitución usan los recursos existentes.
+- Los objetos de **Sustitución** (tronco, perrito y marioneta) son selecciones permanentes: no se gastan al usarlos. El tronco es gratuito y las demás opciones se compran.
+- La segunda afinidad se abre por progreso en nivel 15/rango elemental 2, o al ser **Guardián con nivel 10**. El **pergamino de afinidad** requiere Guardián, al menos nivel 10 y dos afinidades activas para elegir la tercera. Las partidas antiguas conservan su tercera afinidad.
+- Los contratos de la tienda aparecen en el **Tablón de Misiones**. **El sello extraviado** entrega el Sello del guardián; **El pacto del sabueso** desbloquea al Sabueso del horizonte, una invocación equipable que aporta +3 precisión y +2 suerte. La licencia se consume al completar el contrato; las recompensas se entregan una sola vez y se guardan al confirmar la victoria.
+- En combate, abre **Mochila** durante tu turno para usar pociones de vida/chakra, un tónico purificador o un elixir. Usar un consumible gasta el turno; no se consume si no tiene efecto. Los objetos gastados no reaparecen al retirarte o reintentar y no adelantan el cobro de recompensas.
+- Cada misión conserva dos reintentos gratuitos. Al agotarlos, un **pergamino de reintento** permite repetir el duelo perdido con ambos combatientes recuperados.
+- Las compras y ventas se guardan por personaje. El equipo inicial vendido no reaparece al recargar. El tipo de cuerpo se fija al crear cada partida.
 - Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
 - Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
@@ -70,7 +76,8 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Cada enemigo concede experiencia y monedas según su dificultad en la primera victoria de la misión. Repetirla no vuelve a dar experiencia ni monedas.
 - Si la experiencia de un rival alcanza el siguiente nivel, el personaje destella con luz blanca y pasa entre humo a una ventana con los atributos anteriores y nuevos. Al aceptar, el humo devuelve al combate si quedan rivales. Los aumentos dependen de la afinidad principal y se aplican provisionalmente; experiencia, monedas y niveles sólo se guardan al cerrar el informe y llegar a la aldea. Abandonar pide confirmación y descarta esas recompensas.
 - Al finalizar aparece un botón para volver a la aldea y ajustar la estrategia.
-- **Modo ligero** desactiva sacudidas y destellos de combatientes para equipos modestos.
+- **Resolución de combate**, en Ajustes y en Pausa, permite elegir Automática, 540p, 675p, 810p o 1080p. La elección manual se guarda y cambia el lienzo al instante sin reiniciar la batalla. Automática ajusta la resolución al equipo y al tamaño de la ventana.
+- **Modo ligero** reduce efectos, sacudidas y destellos de forma independiente de la resolución; puede activarse o desactivarse desde la pausa.
 - La música ambiental sintetizada puede desactivarse independientemente de los demás efectos.
 
 ## Estructura

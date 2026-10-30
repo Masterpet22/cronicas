@@ -1,5 +1,5 @@
-import { requirementMet } from "./mission-system.js?v=0.66.0";
-import { MISSION_DIALOGUES } from "./content/index.js";
+import { requirementMet } from "./mission-system.js?v=0.114.0";
+import { MISSION_DIALOGUES } from "./content/index.js?v=0.114.0";
 
 export const DEFAULT_LOCALE = "es";
 

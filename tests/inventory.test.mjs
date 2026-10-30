@@ -1,0 +1,97 @@
+import assert from "node:assert/strict";
+import { createCharacter, createDefaultSave, normalizeSave, derivedStats, writeSave, loadSave, selectSaveSlot } from "../src/save.js";
+import { availableAffinitySlots } from "../src/affinity-system.js";
+import { countItem, purchaseItem, equipItem, missionItemEffect, unlockAffinityWithScroll } from "../src/inventory.js";
+import { consumeBattleItem } from "../src/battle/battle-inventory.js";
+import { stageVictory, commitVictory } from "../src/battle/victory-transaction.js";
+
+let save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "fuego", bodyType: "male" });
+save.progression.coins = 2000;
+assert.equal(countItem(save, "seal_wind"), 1);
+assert.equal(countItem(save, "hair_short"), 1);
+const untouched = structuredClone(save);
+for (const [id, quantity] of [["missing", 1], ["__proto__", 1], ["constructor", 1], ["health_potion", -1], ["health_potion", 1.5], ["health_potion", Infinity], ["axe", 2]]) {
+  assert.equal(purchaseItem(save, id, quantity).ok, false);
+  assert.deepEqual(save, untouched);
+}
+assert.equal(equipItem(save, "weapon", "axe").ok, false);
+let result = purchaseItem(save, "health_potion", 2);
+assert.equal(result.ok, true);
+save = result.save;
+assert.equal(save.progression.coins, 1964);
+assert.equal(countItem(save, "health_potion"), 2);
+assert.equal(purchaseItem(save, "health_potion", 98).ok, false);
+assert.equal(purchaseItem({ ...save, progression: { ...save.progression, coins: 0 } }, "axe").ok, false);
+save = purchaseItem(save, "axe").save;
+assert.equal(purchaseItem(save, "axe").ok, false);
+const before = derivedStats(save);
+save = equipItem(save, "weapon", "axe").save;
+assert.equal(normalizeSave(save).equipment.weapon, "axe");
+assert.ok(derivedStats(save).strength > before.strength);
+assert.ok(derivedStats(save).speed < before.speed);
+assert.equal(equipItem(save, "seal", "axe").ok, false);
+assert.equal(equipItem(save, "weapon", null).save.equipment.weapon, null);
+
+const player = { hp: 90, maxHp: 100, chakra: 5, maxChakra: 100, statuses: [{ type: "poison" }] };
+assert.deepEqual(missionItemEffect("health_potion", player), { ok: true, hp: 10, chakra: 0, cleanse: false });
+assert.equal(missionItemEffect("health_potion", { ...player, hp: 100 }).ok, false);
+assert.equal(missionItemEffect("health_potion", { ...player, hp: 0 }).ok, false);
+assert.deepEqual(missionItemEffect("restorative_elixir", player), { ok: true, hp: 10, chakra: 50, cleanse: false });
+assert.equal(missionItemEffect("purifying_tonic", player).cleanse, true);
+assert.equal(missionItemEffect("retry_scroll", player).ok, false);
+
+save = purchaseItem(save, "affinity_scroll").save;
+assert.equal(unlockAffinityWithScroll(save, "agua").ok, false);
+assert.equal(countItem(save, "affinity_scroll"), 1);
+save.progression.level = 15;
+save.campaign.elementRank = 2;
+save.character.affinities = ["fuego", "viento"];
+save.character.knownAffinities = ["fuego", "viento"];
+assert.equal(availableAffinitySlots(35, 3), 2);
+assert.equal(unlockAffinityWithScroll(save, "fuego").ok, false);
+save.campaign.rank = "Guardián";
+result = unlockAffinityWithScroll(save, "agua");
+assert.equal(result.ok, true);
+save = normalizeSave(result.save);
+assert.deepEqual(save.character.affinities, ["fuego", "viento", "agua"]);
+assert.equal(save.inventory.extraAffinityUnlocked, true);
+assert.equal(countItem(save, "affinity_scroll"), 0);
+assert.equal(purchaseItem(save, "affinity_scroll").ok, false);
+assert.equal(availableAffinitySlots(15, 2, true), 3);
+
+const legacy = structuredClone(save);
+legacy.version = 18;
+delete legacy.inventory;
+legacy.progression.level = 35;
+legacy.campaign.elementRank = 3;
+legacy.equipment.weapon = "staff";
+const migrated = normalizeSave(legacy);
+assert.equal(migrated.version, 20);
+assert.equal(migrated.inventory.extraAffinityUnlocked, true);
+assert.equal(migrated.character.affinities.length, 3);
+assert.equal(countItem(migrated, "staff"), 1);
+assert.equal(migrated.equipment.weapon, "staff");
+const modern = normalizeSave({ ...legacy, version: 20, inventory: { items: {}, extraAffinityUnlocked: false } });
+assert.equal(modern.character.affinities.length, 2);
+assert.equal(modern.equipment.weapon, null);
+assert.equal(normalizeSave({ ...save, inventory: { items: { health_potion: Infinity, unknown: 99, retry_scroll: -2 } } }).inventory.items.health_potion, undefined);
+
+const storage = { data: new Map(), getItem(key) { return this.data.get(key) || null; }, setItem(key, value) { this.data.set(key, value); } };
+selectSaveSlot(1, storage); writeSave(save, storage);
+selectSaveSlot(2, storage); writeSave(createCharacter(createDefaultSave(), { name: "Otro", affinity: "agua" }), storage);
+assert.equal(countItem(loadSave(storage, 2), "health_potion"), 0);
+assert.equal(countItem(loadSave(storage, 1), "health_potion"), 2);
+
+const battle = { saveData: structuredClone(save), missionStartSave: structuredClone(save), rewardPreviewSave: structuredClone(save) };
+battle.rewardPreviewSave.progression.coins += 500;
+let persisted;
+assert.equal(consumeBattleItem(battle, "health_potion", value => { persisted = normalizeSave(value); return persisted; }).ok, true);
+assert.equal(countItem(persisted, "health_potion"), 1);
+assert.equal(persisted.progression.coins, save.progression.coins, "Consumir no debe cobrar por adelantado recompensas pendientes");
+assert.equal(countItem(battle.rewardPreviewSave, "health_potion"), 1);
+assert.equal(countItem(battle.missionStartSave, "health_potion"), 1, "La retirada no debe devolver consumibles");
+const runtime = {};
+stageVictory(runtime, battle.rewardPreviewSave);
+assert.equal(countItem(commitVictory(runtime, normalizeSave), "health_potion"), 1, "La victoria no debe devolver consumibles");
+assert.equal(consumeBattleItem(battle, "retry_scroll", () => { throw new Error("No debe guardar un gasto inválido"); }).ok, false);
+console.log("Inventario: compras, propiedad, equipos, consumibles, afinidad, migración, ranuras y gastos de misión verificados.");

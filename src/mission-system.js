@@ -1,9 +1,9 @@
-import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js";
+import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
 import { validateMissionTransitions } from "./mission-transitions.js";
 
 export const MISSION_CATEGORIES = Object.freeze({ MAIN: "main", SECONDARY: "secondary" });
 export const MISSION_STEP_TYPES = Object.freeze(["dialogue", "combat", "investigation", "route", "choice", "resource", "consequence"]);
-export const MISSION_REQUIREMENT_TYPES = Object.freeze(["main-completed", "secondary-completed", "flag", "level", "all", "any"]);
+export const MISSION_REQUIREMENT_TYPES = Object.freeze(["main-completed", "secondary-completed", "flag", "item-owned", "level", "all", "any"]);
 export const MISSION_EFFECT_TYPES = Object.freeze(["set-flag", "sum-flags", "context-flag"]);
 export const MISSION_MODIFIER_TYPES = Object.freeze(["enemy-stats", "enemy-opening", "enemy-defense", "encounter-route", "field-supplies"]);
 
@@ -46,6 +46,7 @@ export function requirementMet(requirement, save) {
       if (Object.hasOwn(requirement, "equals")) return campaignFlag(save, requirement.id) === requirement.equals;
       return campaignFlag(save, requirement.id) === (requirement.value ?? true);
     }
+    case "item-owned": return (Number(save?.inventory?.items?.[requirement.id]) || 0) > 0;
     case "level": return (Number(save?.progression?.level) || 1) >= requirement.minimum;
     case "all": return requirement.requirements.every((entry) => requirementMet(entry, save));
     case "any": return requirement.requirements.some((entry) => requirementMet(entry, save));
@@ -117,7 +118,7 @@ export function validateMissionCatalog(missions, sagas = []) {
       (requirement.requirements || []).forEach((entry) => validateRequirement(entry, missionId));
       return;
     }
-    if (["flag", "main-completed", "secondary-completed"].includes(requirement.type) && !requirement.id) {
+    if (["flag", "item-owned", "main-completed", "secondary-completed"].includes(requirement.type) && !requirement.id) {
       errors.push(`${missionId}: requisito ${requirement.type} sin ID`);
     }
     if (requirement.type === "level" && !Number.isFinite(requirement.minimum)) errors.push(`${missionId}: requisito de nivel inválido`);

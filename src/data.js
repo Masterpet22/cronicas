@@ -119,12 +119,22 @@ export const EQUIPMENT = {
   weapon: [
     { id: "kunai", name: "Kunai equilibrado", description: "+2 daño", bonuses: { damageBonus: 2 } },
     { id: "tanto", name: "Tanto veloz", description: "+2 velocidad", bonuses: { speed: 2 } },
+    { id: "steel_kunai", name: "Kunai de acero", description: "+4 fuerza, +2 precisión", bonuses: { damageBonus: 4, accuracy: 2 } },
+    { id: "sword", name: "Espada del horizonte", description: "+6 fuerza, -1 velocidad", bonuses: { damageBonus: 6, speed: -1 } },
+    { id: "axe", name: "Hacha de combate", description: "+9 fuerza, -3 velocidad", bonuses: { damageBonus: 9, speed: -3 } },
     { id: "staff", name: "Bastón de chakra", description: "-2 coste de chakra", bonuses: { costReduction: 2 } }
   ],
-  armor: [
-    { id: "light_vest", name: "Chaleco ligero", description: "+4 evasión", bonuses: { evasion: 4 } },
-    { id: "iron_vest", name: "Protector reforzado", description: "+15 PV, -1 velocidad", bonuses: { maxHp: 15, speed: -1 } },
-    { id: "focus_wrap", name: "Vendas de enfoque", description: "+4 precisión", bonuses: { accuracy: 4 } }
+  seal: [
+    { id: "seal_wind", name: "Sello del viento", description: "+4 evasión", bonuses: { evasion: 4 } },
+    { id: "seal_vitality", name: "Sello de vitalidad", description: "+15 PV, -1 velocidad", bonuses: { maxHp: 15, speed: -1 } },
+    { id: "seal_precision", name: "Sello de precisión", description: "+4 precisión", bonuses: { accuracy: 4 } },
+    { id: "seal_traveler", name: "Sello del viajero", description: "+12 PV, +1 velocidad", bonuses: { maxHp: 12, speed: 1 } },
+    { id: "seal_shadow", name: "Sello de la sombra", description: "+5 evasión, +2 velocidad", bonuses: { evasion: 5, speed: 2 } },
+    { id: "seal_channeler", name: "Sello del canalizador", description: "+30 chakra, -1 coste de técnicas", bonuses: { maxChakra: 30, costReduction: 1 } },
+    { id: "seal_guardian", name: "Sello del guardián", description: "+18 PV, +2 precisión", bonuses: { maxHp: 18, accuracy: 2 } }
+  ],
+  companion: [
+    { id: "companion_hound", name: "Sabueso del horizonte", description: "Invocación pasiva: +3 precisión, +2 suerte", image: "assets/vfx/teleport-dog.webp?v=1.1.0", bonuses: { accuracy: 3, luck: 2 } }
   ],
   accessory: [
     { id: "chakra_charm", name: "Amuleto de chakra", description: "+20 chakra", bonuses: { maxChakra: 20 } },

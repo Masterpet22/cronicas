@@ -1,9 +1,10 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.107.0";
-import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.106.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.114.0";
+import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.114.0";
 import { battleRuntime } from "./src/battle/session.js?v=1.0.0";
 import { loadPhaser } from "./src/battle/load-phaser.js?v=1.0.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";
 import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=0.99.0";
+import { bindRenderSettings } from "./src/render-settings.js?v=0.114.0";
 
 let game = null;
 let metaUi = null;
@@ -16,7 +17,7 @@ let gameLaunchRevision = 0;
 
 function loadBattleBundle() {
   if (!battleBundlePromise) battleBundlePromise = loadPhaser()
-    .then(() => import("./src/battle/bundle.js?v=1.0.0"))
+    .then(() => import("./src/battle/bundle.js?v=0.114.0"))
     .catch((error) => { battleBundlePromise = null; throw error; });
   return battleBundlePromise;
 }
@@ -60,6 +61,7 @@ function createGame(renderSize, bundle) {
     callbacks: { postBoot: (instance) => {
       installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile });
       gameRoot.removeAttribute("aria-busy");
+      renderSettings.refresh();
     } },
     parent: "game", width: renderSize.width, height: renderSize.height, backgroundColor: "#101622",
     scene: GAME_SCENES, loader: { maxParallelDownloads: 6 },
@@ -82,7 +84,7 @@ async function launchGame() {
     return;
   }
   if (launchRevision !== gameLaunchRevision) return;
-  const renderSize = bundle.configureRenderResolution(gameRoot, battleRuntime);
+  const renderSize = bundle.configureRenderResolution(gameRoot, battleRuntime, { preference: document.getElementById("render-quality").value });
   if (!game) {
     game = createGame(renderSize, bundle);
     return;
@@ -94,6 +96,7 @@ async function launchGame() {
   // Phaser conserva los datos de la ejecución anterior si se omite este objeto.
   game.scene.start("travel", {});
   gameRoot.removeAttribute("aria-busy");
+  renderSettings.refresh();
 }
 
 function bindGlobalOptions() {
@@ -121,6 +124,9 @@ function bindGlobalOptions() {
 
 battleRuntime.releaseGameToMeta = releaseGameToMeta;
 bindGlobalOptions();
+const renderSettings = bindRenderSettings(gameRoot, battleRuntime, () => game, instance => {
+  installPerformanceTools(instance, gameRoot, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile });
+});
 
 metaUi = mountMetaUI(metaRoot, battleRuntime.activeSave, async (save, mission) => {
   discardVictory(battleRuntime);

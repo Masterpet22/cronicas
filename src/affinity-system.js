@@ -54,10 +54,11 @@ export function normalizeAffinityOrder(affinities) {
   return [...new Set(affinities.filter((id) => AFFINITY_IDS.includes(id)))].slice(0, AFFINITY_CONFIG.maxAffinities);
 }
 
-export function availableAffinitySlots(level, storyRank) {
+export function availableAffinitySlots(level, storyRank, extraAffinityUnlocked = false, rank = "Novicio") {
   const safeLevel = Math.max(1, Math.floor(finite(level, 1)));
   const safeStoryRank = Math.max(1, Math.floor(finite(storyRank, 1)));
-  return AFFINITY_CONFIG.slots.filter((slot) => safeLevel >= slot.level && safeStoryRank >= slot.storyRank).length;
+  const natural = AFFINITY_CONFIG.slots.slice(0, 2).filter((slot) => safeLevel >= slot.level && safeStoryRank >= slot.storyRank).length;
+  return extraAffinityUnlocked ? 3 : rank === "Guardián" && safeLevel >= 10 ? 2 : natural;
 }
 
 export function affinityStatModifiers(affinities) {

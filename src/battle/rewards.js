@@ -57,7 +57,7 @@ export function createBattleResult({ outcome, mission, player, defeatedEncounter
     missionId: mission.parentMissionId || mission.id,
     missionType: mission.parentType || mission.type,
     rewards: outcome === "completed" ? { ...battleRewards } : { xp: 0, affinityXp: 0, coins: 0 },
-    item: outcome === "completed" && combatFeatures.relicDecision ? mission.relic : null,
+    item: outcome === "completed" ? combatFeatures.relicDecision ? mission.relic : mission.rewardLabel || null : null,
     decision: outcome === "completed" && combatFeatures.relicDecision ? campaign.banditPrisonerChoice : null
   };
 }

@@ -1,0 +1,60 @@
+.location-shop .stage-options { width: 76%; max-height: calc(100% - 120px); margin: 100px 18px 20px auto; padding: 0 8px 8px; }
+.shop-panel { padding: 22px; border: 1px solid #b89154; border-radius: 10px; background: linear-gradient(125deg, #142035f5, #070e1bf7); box-shadow: 0 14px 50px #0009, inset 0 0 0 3px #080d16, inset 0 0 0 4px #c39c5644; color: #eee4ce; }
+.shop-heading { display: flex; gap: 20px; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.shop-heading h2 { margin: 5px 0; color: #f7e4ba; font: 700 clamp(18px, 1.8vw, 25px) Cinzel, Georgia, serif; }
+.shop-heading p:not(.eyebrow) { margin: 0; color: #aeb9c2; font-size: 14px; }
+.shop-wallet { display: grid; justify-items: center; gap: 3px; flex: 0 0 auto; min-width: 88px; padding: 12px; border: 1px solid #84693d; border-radius: 7px; background: #271b1b; color: #efd08d; font-size: 25px; font-variant-numeric: tabular-nums; }
+.shop-wallet small { font: 700 10px "Alegreya Sans", sans-serif; letter-spacing: .12em; }
+.shop-categories { display: flex; flex-wrap: wrap; gap: 6px; }
+.shop-categories button { min-height: 38px; padding: 7px 14px; border: 1px solid #786242; border-radius: 5px; background: #080f1c; color: #b8c1c7; font: 700 14px "Alegreya Sans", sans-serif; cursor: pointer; }
+.shop-categories button[aria-pressed=true] { border-color: #d8af63; background: #571f2a; color: #ffe8b4; }
+.shop-categories { margin-bottom: 16px; }
+.shop-categories button { min-height: 32px; padding: 5px 11px; font-size: 13px; }
+.shop-feedback, .inventory-feedback { min-height: 20px; margin: 10px 0; color: #e5c281; font-size: 15px; }
+.shop-items, .inventory-items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.item-card { display: flex; flex-direction: column; gap: 9px; min-width: 0; margin: 0; padding: 15px; border: 1px solid #76603b; border-radius: 7px; background: linear-gradient(145deg, #17243b, #080f1e); box-shadow: inset 0 0 0 2px #050b16; }
+.item-card-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.item-art { display: grid; place-items: center; flex: 0 0 auto; width: 46px; height: 46px; border: 1px solid #9f7d43; border-radius: 9px; background: radial-gradient(#5c2530, #1c1723); color: #e5bf78; }
+.item-art svg { width: 31px; height: 31px; }
+.item-price { color: #f0cd85; font-size: 20px; font-weight: 700; }
+.item-price small { display: block; color: #a6a99d; font-size: 11px; font-weight: 400; }
+.item-card h3 { display: block; margin: 0; color: #eee3cc; font: 700 17px "Alegreya Sans", sans-serif; text-transform: none; letter-spacing: 0; }
+.item-card p { flex: 1; margin: 0; color: #adb9c5; font-size: 14px; line-height: 1.4; }
+.item-card button, .affinity-scroll-choice button { min-height: 38px; padding: 8px 12px; border: 1px solid #b58b4b; border-radius: 4px; background: linear-gradient(#682630, #411924); color: #f3dca7; font: 700 14px "Alegreya Sans", sans-serif; cursor: pointer; }
+.item-card button:disabled { background: #101827; border-color: #46464a; color: #8e969c; cursor: default; }
+.shop-purchase { display: flex; justify-content: space-between; align-items: end; gap: 8px; }
+.shop-purchase button { flex: 1; }
+.shop-purchase label { display: grid; gap: 3px; color: #a7b1bb; font-size: 11px; }
+.shop-purchase input { width: 58px; min-height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #7b6b50; border-radius: 4px; background: #080f1e; color: #f3e0b7; font: 700 15px "Alegreya Sans", sans-serif; }
+.shop-stock, .inventory-use-note { color: #a3afa6; font-size: 12px; line-height: 1.4; }
+.inventory-empty { grid-column: 1 / -1; padding: 30px; border: 1px dashed #8a734c; border-radius: 7px; color: #b9c3ca; }
+.player-inventory-dialog { box-sizing: border-box; width: min(900px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: 26px; border: 1px solid #cda65f; border-radius: 12px; background: linear-gradient(140deg, #172338, #060d19); color: #eae3d4; box-shadow: 0 22px 90px #000c; font-family: "Alegreya Sans", sans-serif; }
+.player-inventory-dialog::backdrop { background: #02060dbb; backdrop-filter: blur(4px); }
+.player-inventory-dialog > header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-bottom: 14px; border-bottom: 1px solid #a9814744; }
+.player-inventory-dialog h2 { margin: 5px 0 0; color: #f1dfb9; font-family: Cinzel, Georgia, serif; }
+.player-inventory-dialog > header button { width: 38px; height: 38px; flex: 0 0 auto; border: 1px solid #a9844e; border-radius: 50%; background: #251821; color: #e6c184; font-size: 24px; cursor: pointer; }
+.affinity-scroll-choice { margin-top: 18px; padding: 18px; border: 1px solid #cfa359; border-radius: 7px; background: #0b1627; }
+.affinity-scroll-choice[hidden] { display: none; }
+.affinity-scroll-choice h3 { margin-top: 0; color: #e8c581; }
+.affinity-scroll-choice > div { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.affinity-scroll-choice button { display: inline-flex; align-items: center; gap: 8px; }
+.affinity-scroll-choice img { width: 34px; height: 34px; object-fit: contain; }
+.combat-access-inventory { display: inline-flex; gap: 5px; align-items: center; justify-content: center; min-height: 36px; border: 1px solid #bd9652; border-radius: 6px; background: #111726; color: #e7c786; font: 700 13px "Alegreya Sans", sans-serif; cursor: pointer; }
+.combat-access-inventory svg { width: 20px; height: 20px; }
+.combat-access:not(.compact) .combat-access-inventory { position: absolute; left: 53%; top: 9.1%; width: 8.2%; height: 7%; min-height: 0; padding: 4px; font-size: 1.2cqw; }
+.combat-access-inventory:disabled { opacity: .5; cursor: default; }
+.shop-panel :focus-visible, .player-inventory-dialog :focus-visible, .combat-access-inventory:focus-visible { outline: 2px solid #f3d08b; outline-offset: 3px; }
+@media (max-width: 1150px) { .shop-items, .inventory-items { grid-template-columns: repeat(2, minmax(0, 1fr)); } .location-shop .stage-options { width: 88%; } }
+@media (max-width: 700px) { .shop-items, .inventory-items { grid-template-columns: 1fr; } .shop-heading { align-items: start; } .shop-panel, .player-inventory-dialog { padding: 16px; } }
+.location-dojo .affinity-slot.unlockable { width: 100%; text-align: left; font: inherit; color: #eee3cc; cursor: pointer; border-color: #cba35b; background: linear-gradient(120deg, #4c202d, #0b182a); }
+.location-dojo .affinity-slot.unlockable:hover, .location-dojo .affinity-slot.unlockable:focus-visible { outline: 2px solid #e1bb70; outline-offset: 2px; }
+@media (min-width: 981px) { body:has(#meta:not([hidden])) .village-topbar { width: min(700px, calc(100% - 36px)); grid-template-columns: minmax(300px, 1fr) minmax(230px, .8fr) auto; } }
+
+.shop-tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 0; border-block: 1px solid #846b4044; }
+.shop-tabs button { min-height: 38px; padding: 7px 18px; border: 1px solid #927445; border-radius: 5px; background: #0b1422; color: #dfc696; cursor: pointer; font: 700 15px "Alegreya Sans", sans-serif; }
+.shop-tabs button[aria-pressed=true] { background: #571f2a; border-color: #d9af65; }
+.shop-tabs span { flex: 1; min-width: 180px; color: #aeb9c2; font-size: 13px; }
+.item-art img { width: 38px; height: 38px; object-fit: contain; }
+.cosmetic-stepper output { min-width: 0; overflow-wrap: anywhere; }
+
+.gear-icon img { width: 36px; height: 36px; object-fit: contain; }
