@@ -71,7 +71,7 @@ export class BattleScene extends Phaser.Scene {
       if (practice) { this.battleLoadout[0] = practice.id; this.practiceTechnique = true; }
     }
     const needsSealSheet = this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
-    if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-originales.webp?v=0.20.0");
+    if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-constelaciones.png?v=1.0.1");
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
       if (!this.battleLoadout.includes(jutsuId)) return;
       if (effect.creationFile) {
@@ -394,12 +394,12 @@ export class BattleScene extends Phaser.Scene {
 
   makeSealFrames() {
     const texture = this.textures.get("sealSheet");
-    for (let row = 0; row < 3; row += 1) {
-      for (let col = 0; col < 4; col += 1) {
-        const index = row * 4 + col;
+    for (let row = 0; row < 4; row += 1) {
+      for (let col = 0; col < 3; col += 1) {
+        const index = row * 3 + col;
         // La textura sobrevive al reinicio de la escena. Registrar los mismos
         // fotogramas otra vez deja la escena incompleta en algunas versiones.
-        if (!texture.has(index)) texture.add(index, 0, col * 688, row * 512, 688, 512);
+        if (!texture.has(index)) texture.add(index, 0, col * 512, row * 512, 512, 512);
       }
     }
   }

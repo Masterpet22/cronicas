@@ -3,7 +3,7 @@ import { CIPHER_SIZE, cipherComplete, cipherHint } from "../../puzzles/seal-ciph
 
 const sealGlyph = (id) => {
   const frame = SEALS[id].frame;
-  return `<span class="cipher-glyph" style="background-position:${frame % 4 / 3 * 100}% ${Math.floor(frame / 4) / 2 * 100}%" aria-hidden="true"></span>`;
+  return `<span class="cipher-glyph" style="background-position:${frame % 3 / 2 * 100}% ${Math.floor(frame / 3) / 3 * 100}%" aria-hidden="true"></span>`;
 };
 const sceneLines = (mission, scene, deps, save) => deps.getMissionSceneDialogue(mission.id, scene, { save }).map((line) => line.text);
 
