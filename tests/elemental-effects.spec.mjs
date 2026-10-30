@@ -1,5 +1,34 @@
 import { expect, test } from "@playwright/test";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
+import { bootPerformanceReference } from "./helpers/performance-harness.mjs";
+
+for (const renderer of ["Canvas", "WebGL"]) {
+  test(`los iconos compuestos funcionan en combate ${renderer} sin imágenes de tiers superiores`, async ({ page }) => {
+    const failures = [], errors = [];
+    page.on("response", response => { if (response.status() >= 400 && response.url().includes("/assets/")) failures.push(response.url()); });
+    page.on("pageerror", error => errors.push(error.message));
+    await bootPerformanceReference(page, { renderer, loadout: ["storm_domain", "fire_embers"] });
+    const result = await page.evaluate(async () => {
+      const scene = window.__performanceReference.scene;
+      const texture = scene.textures.get("element-tormenta");
+      const pixels = texture.context.getImageData(0, 0, 512, 512).data;
+      const before = texture;
+      const { composeElementIcons } = await import("/src/battle/element-icons.js?v=1.0.0");
+      composeElementIcons(scene, ["tormenta"]);
+      return {
+        action: scene.actions.find(action => action?.id === "storm_domain")?.iconTexture,
+        basic: ["viento", "fuego", "agua"].every(id => scene.textures.exists(`element-${id}`)),
+        visible: pixels.some((value, index) => index % 4 === 3 && value > 0),
+        cached: before === scene.textures.get("element-tormenta"),
+        advancedRequests: performance.getEntriesByType("resource").filter(entry => /assets\/elements\/tier-[234]\//.test(entry.name)).length
+      };
+    });
+    expect(result).toEqual({ action: "element-tormenta", basic: true, visible: true, cached: true, advancedRequests: 0 });
+    expect(failures).toEqual([]);
+    expect(errors).toEqual([]);
+    await page.screenshot({ path: `test-results/element-icons/combat-${renderer}.png` });
+  });
+}
 
 test("los cinco impactos elementales funcionan en Canvas, WebGL y modo ligero", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });

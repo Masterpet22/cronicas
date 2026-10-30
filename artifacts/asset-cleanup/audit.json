@@ -1,0 +1,502 @@
+{
+  "baseline": "Archivos presentes al iniciar esta limpieza, con el catálogo elemental original; excluye las dos referencias previamente eliminadas por el usuario.",
+  "beforeFiles": 228,
+  "beforeBytes": 79112978,
+  "removed": [
+    {
+      "path": "assets/modular/man_sprite_layers.psd",
+      "bytes": 7771034,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/preview.png",
+      "bytes": 531596,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/npcs/iori-kagemori.png",
+      "bytes": 2619560,
+      "reason": "Original PNG duplicado; el juego carga la versión WebP"
+    },
+    {
+      "path": "assets/npcs/nami-kurose.png",
+      "bytes": 2025280,
+      "reason": "Original PNG duplicado; el juego carga la versión WebP"
+    },
+    {
+      "path": "assets/ui/battle-hud-overlay-v1.png",
+      "bytes": 1066107,
+      "reason": "Interfaz anterior sin referencias de carga"
+    },
+    {
+      "path": "assets/vfx/earth-fist-spritesheet.png",
+      "bytes": 1686279,
+      "reason": "Efecto reemplazado por los spritesheets activos"
+    },
+    {
+      "path": "assets/vfx/water-bullet-spritesheet.png",
+      "bytes": 769692,
+      "reason": "Efecto reemplazado por los spritesheets activos"
+    },
+    {
+      "path": "assets/vfx/water-whip-spritesheet.png",
+      "bytes": 1970242,
+      "reason": "Efecto reemplazado por los spritesheets activos"
+    },
+    {
+      "path": "assets/vfx/feedback/timeline-crest.png",
+      "bytes": 22009,
+      "reason": "Interfaz anterior sin referencias de carga"
+    },
+    {
+      "path": "assets/vfx/feedback/timeline-enemy-shuriken.png",
+      "bytes": 1191632,
+      "reason": "Interfaz anterior sin referencias de carga"
+    },
+    {
+      "path": "assets/vfx/feedback/timeline-player-shuriken.png",
+      "bytes": 1083376,
+      "reason": "Interfaz anterior sin referencias de carga"
+    },
+    {
+      "path": "assets/ui/hud-themes/ancestral.png",
+      "bytes": 1017444,
+      "reason": "Original PNG duplicado; el juego carga la versión WebP"
+    },
+    {
+      "path": "assets/ui/hud-themes/lunar.png",
+      "bytes": 189776,
+      "reason": "Original PNG duplicado; el juego carga la versión WebP"
+    },
+    {
+      "path": "assets/modular/body/body_female.png",
+      "bytes": 300593,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/body/body_male.png",
+      "bytes": 299604,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/bottom/bottom_01.png",
+      "bytes": 146964,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/bottom/bottom_02.png",
+      "bytes": 151761,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/bottom/bottom_03.png",
+      "bytes": 182691,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/face/face_01.png",
+      "bytes": 18004,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/face/face_02.png",
+      "bytes": 16806,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/face/face_03.png",
+      "bytes": 18722,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_01_front.png",
+      "bytes": 105521,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_01_rear.png",
+      "bytes": 2417,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_02_front.png",
+      "bytes": 171646,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_02_rear.png",
+      "bytes": 2417,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_03_front.png",
+      "bytes": 119207,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_03_rear.png",
+      "bytes": 2417,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_04_front.png",
+      "bytes": 176536,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_04_rear.png",
+      "bytes": 2417,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_05_front.png",
+      "bytes": 131507,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/hair_05_rear.png",
+      "bytes": 2417,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/hair/head_corto.png",
+      "bytes": 123261,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/shoes/shoes_01.png",
+      "bytes": 75643,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/shoes/shoes_02.png",
+      "bytes": 74278,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/source/body-atlas.png",
+      "bytes": 1396332,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/source/clothing-atlas.png",
+      "bytes": 841467,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/source/face-weapon-atlas.png",
+      "bytes": 1258242,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/source/hair-atlas.png",
+      "bytes": 808877,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/top/top_01.png",
+      "bytes": 178071,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/top/top_02.png",
+      "bytes": 173885,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/top/top_03.png",
+      "bytes": 180817,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/weapon/weapon_dagger.png",
+      "bytes": 57193,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/weapon/weapon_kunai.png",
+      "bytes": 46200,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/weapon/weapon_staff.png",
+      "bytes": 50787,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/weapon/weapon_sword.png",
+      "bytes": 66054,
+      "reason": "Sistema modular experimental reemplazado por los rigs activos"
+    },
+    {
+      "path": "assets/modular/woman_sprites/woman_sprite.psd",
+      "bytes": 3442311,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/antebrazo_derecho.png",
+      "bytes": 141885,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/antebrazo_izquierdo.png",
+      "bytes": 135099,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/brazo_derecho.png",
+      "bytes": 110880,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/brazo_izquierdo.png",
+      "bytes": 118834,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/cabeza.png",
+      "bytes": 193794,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/mano_derecha.png",
+      "bytes": 114804,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/mano_izquierda.png",
+      "bytes": 108560,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/muslo_derecho.png",
+      "bytes": 159503,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/muslo_izquierdo.png",
+      "bytes": 156497,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/pierna_derecha.png",
+      "bytes": 125566,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/pierna_izquierda.png",
+      "bytes": 122969,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/pie_derecho.png",
+      "bytes": 106344,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/pie_izquierdo.png",
+      "bytes": 115787,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/woman_sprites/ExportedLayers/torso.png",
+      "bytes": 314818,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/antebrazo_derecho.png",
+      "bytes": 116898,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/antebrazo_izquierdo.png",
+      "bytes": 124440,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/brazo_derecho.png",
+      "bytes": 146279,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/brazo_izquierdo.png",
+      "bytes": 154410,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/cabeza.png",
+      "bytes": 188389,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/mano_derecha.png",
+      "bytes": 115994,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/mano_izquierda.png",
+      "bytes": 110717,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/muslo_derecho.png",
+      "bytes": 158492,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/muslo_izquierdo.png",
+      "bytes": 149025,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/pierna_derecha.png",
+      "bytes": 136828,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/pierna_izquierda.png",
+      "bytes": 136082,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/pie_derecho.png",
+      "bytes": 104447,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/pie_izquierdo.png",
+      "bytes": 110536,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/modular/man_sprites/ExportedLayers/torso.png",
+      "bytes": 320790,
+      "reason": "Fuente de edición; las capas recortadas runtime son las utilizadas"
+    },
+    {
+      "path": "assets/elements/tier-1/tier-1-sheet.png",
+      "bytes": 880106,
+      "reason": "Atlas de revisión; el juego solo carga iconos individuales"
+    },
+    {
+      "path": "assets/elements/tier-2/arena.webp",
+      "bytes": 81112,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-2/hielo.webp",
+      "bytes": 77790,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-2/magma.webp",
+      "bytes": 72278,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-2/planta.webp",
+      "bytes": 90058,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-2/rayo.webp",
+      "bytes": 85344,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-2/tier-2-sheet.png",
+      "bytes": 1667593,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-2/vapor.webp",
+      "bytes": 88190,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/ceniza.webp",
+      "bytes": 95224,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/cristal.webp",
+      "bytes": 99532,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/escarcha.webp",
+      "bytes": 116656,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/metal.webp",
+      "bytes": 95436,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/raiz.webp",
+      "bytes": 99052,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/tier-3-sheet.png",
+      "bytes": 2321488,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/tormenta.webp",
+      "bytes": 111720,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/veneno.webp",
+      "bytes": 94766,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-3/vidrio.webp",
+      "bytes": 106830,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-4/espora.webp",
+      "bytes": 112552,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-4/niebla.webp",
+      "bytes": 106994,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-4/obsidiana.webp",
+      "bytes": 107200,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-4/plasma.webp",
+      "bytes": 111834,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    },
+    {
+      "path": "assets/elements/tier-4/tier-4-sheet.png",
+      "bytes": 1315895,
+      "reason": "Iconos avanzados sustituidos por composición de afinidades básicas"
+    }
+  ],
+  "afterFiles": 132,
+  "afterBytes": 34506645,
+  "removedFiles": 96,
+  "removedBytes": 44605409,
+  "netSavedBytes": 44606333,
+  "netReductionPercent": 56.38307914537106,
+  "metadataDeltaBytes": -924,
+  "checks": [
+    "npm test: 33 suites superadas",
+    "Playwright: Dojo y carga diferida (9 casos), combate de iconos compuestos Canvas/WebGL e impactos elementales (3 casos)",
+    "Rutas literales del código activo revisadas antes de eliminar; rutas dinámicas de personajes, fondos y efectos comprobadas",
+    "Los 96 archivos eliminados están versionados y se pueden recuperar desde Git"
+  ],
+  "loadImpact": "El ahorro principal afecta al disco y al paquete distribuido. Los archivos huérfanos no se descargaban al jugar, por lo que no implican una mejora proporcional en segundos de carga. Las combinaciones ahora cargan/reutilizan únicamente las imágenes básicas necesarias y se componen en memoria.",
+  "baselineAdjustmentApplied": true
+}

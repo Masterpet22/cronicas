@@ -4,7 +4,7 @@ import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvaila
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.66.0";
 import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.106.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
-import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementName } from "./elements.js?v=0.20.0";
+import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementIconParts, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.93.0";
 import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro-prometedor/s02-medico/routes.js";
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.66.0";
@@ -182,7 +182,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     affinityConfig: AFFINITY_CONFIG, elements: ELEMENTS, elementRankLabels: ELEMENT_RANK_LABELS,
     equipment: EQUIPMENT, jutsus: JUTSU_LIBRARY, npcs: NPCS,
     affinityXpForElement, availableAffinitySlots, basicRequirements, canAccessElement, derivedStats,
-    elementIcon, elementName, isTechniqueLearned, loadoutSlotsForLevel,
+    elementIcon, elementIconParts, elementName, isTechniqueLearned, loadoutSlotsForLevel,
     attributeTrainingLimit, masterIdForCharacter, resetAttributes, selectMaster, selectNextAffinity, spendAttribute, xpForNextLevel,
     onPersist(next) { save = writeSave(next); return save; },
     onTabSelected(tabId) { activeDojoTab = tabId; },

@@ -2,6 +2,9 @@ Add-Type -AssemblyName System.Drawing
 
 $AssetRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\assets\modular"))
 $SourceRoot = Join-Path $AssetRoot "source"
+if (-not (Test-Path -LiteralPath (Join-Path $SourceRoot "body-atlas.png"))) {
+  throw "El sistema experimental fue retirado de assets. Restaura sus atlas desde Git antes de usar este generador histórico; los personajes activos usan las carpetas runtime."
+}
 $CanvasSize = 768
 
 function New-Canvas {

@@ -8,7 +8,16 @@
       "before": 198290,
       "now": 187130,
       "saved": 11160,
-      "saving_percent": 5.63
+      "saving_percent": 5.63,
+      "old_dimensions": [
+        1678,
+        937
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Biblioteca"
     },
     {
       "old_path": "assets/locations/arena.webp",
@@ -16,7 +25,16 @@
       "before": 245278,
       "now": 189150,
       "saved": 56128,
-      "saving_percent": 22.88
+      "saving_percent": 22.88,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Arena de la aldea"
     },
     {
       "old_path": "assets/locations/dojo.webp",
@@ -24,7 +42,16 @@
       "before": 206290,
       "now": 180636,
       "saved": 25654,
-      "saving_percent": 12.44
+      "saving_percent": 12.44,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Dojo"
     },
     {
       "old_path": "assets/locations/forest-road.webp",
@@ -32,7 +59,16 @@
       "before": 388246,
       "now": 235586,
       "saved": 152660,
-      "saving_percent": 39.32
+      "saving_percent": 39.32,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Camino del bosque"
     },
     {
       "old_path": "assets/locations/headquarters.webp",
@@ -40,7 +76,16 @@
       "before": 240606,
       "now": 181624,
       "saved": 58982,
-      "saving_percent": 24.51
+      "saving_percent": 24.51,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Cuartel General"
     },
     {
       "old_path": "assets/locations/inn.webp",
@@ -48,7 +93,16 @@
       "before": 246334,
       "now": 204270,
       "saved": 42064,
-      "saving_percent": 17.08
+      "saving_percent": 17.08,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Gremio"
     },
     {
       "old_path": "assets/locations/kagemori.webp",
@@ -56,7 +110,16 @@
       "before": 366162,
       "now": 204228,
       "saved": 161934,
-      "saving_percent": 44.22
+      "saving_percent": 44.22,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Kagemori"
     },
     {
       "old_path": "assets/locations/missions.webp",
@@ -64,7 +127,16 @@
       "before": 251430,
       "now": 173870,
       "saved": 77560,
-      "saving_percent": 30.85
+      "saving_percent": 30.85,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Tabl\u00f3n de Misiones"
     },
     {
       "old_path": "assets/locations/shop.webp",
@@ -72,7 +144,16 @@
       "before": 252524,
       "now": 155674,
       "saved": 96850,
-      "saving_percent": 38.35
+      "saving_percent": 38.35,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Tienda"
     },
     {
       "old_path": "assets/locations/tower.webp",
@@ -80,7 +161,16 @@
       "before": 243132,
       "now": 192150,
       "saved": 50982,
-      "saving_percent": 20.97
+      "saving_percent": 20.97,
+      "old_dimensions": [
+        1672,
+        940
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Torre"
     },
     {
       "old_path": "assets/locations/village-outskirts.webp",
@@ -88,7 +178,16 @@
       "before": 340020,
       "now": 188800,
       "saved": 151220,
-      "saving_percent": 44.47
+      "saving_percent": 44.47,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Salida de la aldea"
     },
     {
       "old_path": "assets/locations/village-outskirts-branches.webp",
@@ -96,7 +195,16 @@
       "before": 645362,
       "now": 411264,
       "saved": 234098,
-      "saving_percent": 36.27
+      "saving_percent": 36.27,
+      "old_dimensions": [
+        1672,
+        940
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Ramas transparentes"
     },
     {
       "old_path": "assets/village/aldea.webp",
@@ -104,7 +212,16 @@
       "before": 335400,
       "now": 339048,
       "saved": -3648,
-      "saving_percent": -1.09
+      "saving_percent": -1.09,
+      "old_dimensions": [
+        1678,
+        937
+      ],
+      "new_dimensions": [
+        1678,
+        937
+      ],
+      "name": "Mapa de la aldea"
     },
     {
       "old_path": "assets/locations/event.webp",
@@ -112,7 +229,16 @@
       "before": 303376,
       "now": 194844,
       "saved": 108532,
-      "saving_percent": 35.77
+      "saving_percent": 35.77,
+      "old_dimensions": [
+        1672,
+        941
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Plaza de Eventos"
     },
     {
       "old_path": "assets/locations/battle-dusk-pass.jpg",
@@ -120,7 +246,16 @@
       "before": 784787,
       "now": 156058,
       "saved": 628729,
-      "saving_percent": 80.11
+      "saving_percent": 80.11,
+      "old_dimensions": [
+        1376,
+        768
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Paso del Crep\u00fasculo"
     },
     {
       "old_path": "assets/locations/battle-mist-marsh-water.png",
@@ -128,7 +263,16 @@
       "before": 2147732,
       "now": 104110,
       "saved": 2043622,
-      "saving_percent": 95.15
+      "saving_percent": 95.15,
+      "old_dimensions": [
+        1678,
+        937
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Marisma de los Juncos"
     },
     {
       "old_path": "assets/locations/battle-moon-shrine.jpg",
@@ -136,7 +280,16 @@
       "before": 857481,
       "now": 857481,
       "saved": 0,
-      "saving_percent": 0.0
+      "saving_percent": 0.0,
+      "old_dimensions": [
+        1376,
+        768
+      ],
+      "new_dimensions": [
+        1376,
+        768
+      ],
+      "name": "Santuario de la Luna (sin reemplazar)"
     }
   ],
   "other_images": [
@@ -194,5 +347,65 @@
   "active_images_before": 8204911,
   "active_images_now": 4401229,
   "disk_before": 12080800,
-  "disk_now": 4401229
+  "disk_now": 4401229,
+  "old_backgrounds_rgba_bytes": 102829096,
+  "new_backgrounds_rgba_bytes": 73922296,
+  "metrics": {
+    "backgrounds": {
+      "before": 8052450,
+      "now": 4155923,
+      "saved": 3896527,
+      "saving_percent": 48.39
+    },
+    "other_images": {
+      "before": 152461,
+      "now": 245306,
+      "saved": -92845,
+      "saving_percent": -60.9
+    },
+    "active_images": {
+      "before": 8204911,
+      "now": 4401229,
+      "saved": 3803682,
+      "saving_percent": 46.36
+    },
+    "disk": {
+      "before": 12080800,
+      "now": 4401229,
+      "saved": 7679571,
+      "saving_percent": 63.57
+    }
+  },
+  "download_estimates": [
+    {
+      "name": "Primera misi\u00f3n: fondos del viaje y escenario",
+      "before_bytes": 2158415,
+      "now_bytes": 991708,
+      "before_seconds_at_10mbps": 1.726732,
+      "now_seconds_at_10mbps": 0.7933664
+    },
+    {
+      "name": "Desfiladero: fondos del viaje y marisma",
+      "before_bytes": 3521360,
+      "now_bytes": 939760,
+      "before_seconds_at_10mbps": 2.817088,
+      "now_seconds_at_10mbps": 0.751808
+    },
+    {
+      "name": "Suma de las 21 im\u00e1genes activas",
+      "before_bytes": 8204911,
+      "now_bytes": 4401229,
+      "before_seconds_at_10mbps": 6.5639288,
+      "now_seconds_at_10mbps": 3.5209832
+    }
+  ],
+  "entire_image_library": {
+    "before_count": 210,
+    "now_count": 208,
+    "before_bytes": 76097601,
+    "now_bytes": 68418038,
+    "saved_bytes": 7679563,
+    "saving_percent": 10.09,
+    "scope": "Todos los archivos de imagen de assets/, incluidos recursos sin cambios y fuentes conservadas. Excluye capturas e informes en artifacts/ y fuentes externas."
+  }
 }

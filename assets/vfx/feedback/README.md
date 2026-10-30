@@ -5,7 +5,6 @@ partículas geométricas por señales breves con textura de tinta y pincel.
 
 | Recurso | Tamaño | Uso |
 | --- | ---: | --- |
-| `timeline-crest.png` | 160×156 | Marcador tintable de jugador y rival en la línea temporal. |
 | `timeline-ready-brush.png` | 480×192 | Pincelada de una sola ejecución al llegar al 80 %. |
 | `preparation-ribbons.png` | 432×259 | Cintas caligráficas alrededor de las manos durante 80–100 %. |
 | `preparation-mote.png` | 96×96 | Mota orgánica tintable usada por los emisores reales de preparación. |
@@ -18,9 +17,6 @@ las dimensiones de ejecución indicadas arriba conservando el canal alfa.
 
 Dirección de los prompts:
 
-- Cresta: marcador de interfaz angular e irregular, tinta sumi-e, mezcla de
-  shuriken y sello de papel, blanco/plata/pergamino neutro para permitir tintado;
-  sin borde circular, texto ni brillo genérico.
 - Pincelada: golpe horizontal sumi-e de una sola pasada, fibras secas, impacto
   central compacto y motas asimétricas; sin anillos ni líneas geométricas.
 - Preparación: dos cintas caligráficas asimétricas alrededor de manos vacías,

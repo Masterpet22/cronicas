@@ -14,7 +14,7 @@ Los diez retratos de la aldea usan un lienzo común de 1145×1374 px aproximadam
 | `yuna-ametsuki.webp` | Yuna Ametsuki | Anfitriona del Gremio | Generado para el proyecto |
 | `riku-senda.webp` | Riku Senda | Coordinador de misiones | Generado para el proyecto |
 | `nao-matsuri.webp` | Nao Matsuri | Maestre de festivales | Generado para el proyecto |
-| `iori-kagemori.webp` | Iori Takeda | Superviviente de Kagemori | Generado para el proyecto; fuente PNG conservada |
-| `nami-kurose.webp` | Nami Kurose | Superviviente de Kagemori | Generado para el proyecto; fuente PNG conservada |
+| `iori-kagemori.webp` | Iori Takeda | Superviviente de Kagemori | Generado para el proyecto; versión WebP usada por el juego |
+| `nami-kurose.webp` | Nami Kurose | Superviviente de Kagemori | Generado para el proyecto; versión WebP usada por el juego |
 
 Los diez personajes nuevos se generaron como retratos completos independientes, con estética anime-fantasía pictórica guiada por las dos referencias del usuario. Las restricciones comunes fueron: un solo personaje, cuerpo completo, fondo realmente transparente, sin escenario, texto, logotipos ni marcas de agua.

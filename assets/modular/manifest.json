@@ -1,85 +1,87 @@
 {
-    "shoes":  [
-                  1,
-                  2
-              ],
-    "source":  "OpenAI built-in image generation, derived from the project technical reference",
-    "anchors":  {
-                    "NECK":  [
-                                 384,
-                                 235
-                             ],
-                    "SHOULDER_L":  [
-                                       292,
-                                       270
-                                   ],
-                    "FOOT_L":  [
-                                   310,
-                                   730
-                               ],
-                    "SHOULDER_R":  [
-                                       476,
-                                       270
-                                   ],
-                    "HAND_L":  [
-                                   225,
-                                   445
-                               ],
-                    "FOOT_R":  [
-                                   458,
-                                   730
-                               ],
-                    "WAIST":  [
-                                  384,
-                                  425
-                              ],
-                    "WEAPON_HAND":  [
-                                        543,
-                                        445
-                                    ],
-                    "HAND_R":  [
-                                   543,
-                                   445
-                               ],
-                    "HEAD":  [
-                                 384,
-                                 145
-                             ]
-                },
-    "bottoms":  [
-                    1,
-                    2,
-                    3
-                ],
-    "hair":  [
-                 1,
-                 2,
-                 3,
-                 4,
-                 5
-             ],
-    "tops":  [
-                 1,
-                 2,
-                 3
-             ],
-    "faces":  [
-                  1,
-                  2,
-                  3
-              ],
-    "weapons":  [
-                    "kunai",
-                    "sword",
-                    "staff",
-                    "dagger"
-                ],
-    "body":  [
-                 "male",
-                 "female"
-             ],
-    "canvas":  [
-                   768,
-                   768
-               ]
+  "shoes": [
+    1,
+    2
+  ],
+  "source": "OpenAI built-in image generation, derived from the project technical reference",
+  "anchors": {
+    "NECK": [
+      384,
+      235
+    ],
+    "SHOULDER_L": [
+      292,
+      270
+    ],
+    "FOOT_L": [
+      310,
+      730
+    ],
+    "SHOULDER_R": [
+      476,
+      270
+    ],
+    "HAND_L": [
+      225,
+      445
+    ],
+    "FOOT_R": [
+      458,
+      730
+    ],
+    "WAIST": [
+      384,
+      425
+    ],
+    "WEAPON_HAND": [
+      543,
+      445
+    ],
+    "HAND_R": [
+      543,
+      445
+    ],
+    "HEAD": [
+      384,
+      145
+    ]
+  },
+  "bottoms": [
+    1,
+    2,
+    3
+  ],
+  "hair": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "tops": [
+    1,
+    2,
+    3
+  ],
+  "faces": [
+    1,
+    2,
+    3
+  ],
+  "weapons": [
+    "kunai",
+    "sword",
+    "staff",
+    "dagger"
+  ],
+  "body": [
+    "male",
+    "female"
+  ],
+  "canvas": [
+    768,
+    768
+  ],
+  "status": "retired-experimental-catalog",
+  "note": "Metadatos históricos de proporciones. Las imágenes experimentales y fuentes sin uso se retiraron; runtime/ y hair_corto/hair_coleta son los recursos activos."
 }

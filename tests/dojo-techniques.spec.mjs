@@ -25,6 +25,31 @@ async function enterDojo(page) {
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
 
+test("las técnicas de tiers superiores reutilizan los iconos básicos", async ({ page }) => {
+  const failures = [];
+  page.on("response", response => { if (response.status() >= 400 && response.url().includes("/assets/")) failures.push(response.url()); });
+  await openDojo(page);
+  await page.evaluate(async () => {
+    const { loadSave, writeSave } = await import("/src/save.js?v=0.106.0");
+    const save = loadSave();
+    save.progression.level = 35;
+    save.character.affinities = ["viento", "fuego", "agua"];
+    save.character.knownAffinities = ["viento", "fuego", "agua"];
+    save.character.affinityXp = { viento: 1000, fuego: 1000, agua: 1000, tierra: 0 };
+    save.campaign.elementRank = 3;
+    save.loadout = ["storm_domain"];
+    writeSave(save);
+  });
+  await enterDojo(page);
+  await page.locator('[data-skill-select="storm_domain"]').click();
+  await expect(page.locator(".technique-element-art .element-composition img")).toHaveCount(3);
+  const images = await page.locator(".element-composition img").evaluateAll(images => images.map(img => ({ src: img.getAttribute("src"), loaded: img.complete && img.naturalWidth > 0 })));
+  expect(images.every(image => image.src.startsWith("assets/elements/tier-1/") && image.loaded)).toBe(true);
+  expect(await page.evaluate(() => performance.getEntriesByType("resource").filter(entry => /assets\/elements\/tier-[234]\//.test(entry.name)).length)).toBe(0);
+  expect(failures).toEqual([]);
+  await page.screenshot({ path: "test-results/dojo-techniques/elementos-combinados.png" });
+});
+
 test("nivel 3 explica la capacidad y permite reemplazar una equipada por una aprendida", async ({ page }) => {
   await page.setViewportSize({ width: 1360, height: 748 });
   const errors = [];

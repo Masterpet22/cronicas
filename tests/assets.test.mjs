@@ -2,30 +2,6 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { webpDimensions } from "./webp.mjs";
 
-const manifest = JSON.parse((await readFile(new URL("../assets/modular/manifest.json", import.meta.url), "utf8")).replace(/^\uFEFF/, ""));
-assert.deepEqual(manifest.canvas, [768, 768], "Todas las piezas deben compartir un lienzo de 768×768");
-assert.deepEqual(manifest.body, ["male", "female"], "Deben existir ambos cuerpos base");
-assert.equal(manifest.hair.length, 5, "Deben existir cinco peinados");
-assert.equal(manifest.faces.length, 3, "Deben existir tres rostros");
-
-const assets = [
-  ...manifest.body.map((id) => `body/body_${id}.png`),
-  ...manifest.faces.map((id) => `face/face_0${id}.png`),
-  ...manifest.hair.flatMap((id) => [`hair/hair_0${id}_rear.png`, `hair/hair_0${id}_front.png`]),
-  ...manifest.tops.map((id) => `top/top_0${id}.png`),
-  ...manifest.bottoms.map((id) => `bottom/bottom_0${id}.png`),
-  ...manifest.shoes.map((id) => `shoes/shoes_0${id}.png`),
-  ...manifest.weapons.map((id) => `weapon/weapon_${id}.png`)
-];
-
-await Promise.all(assets.map(async (asset) => {
-  const png = await readFile(new URL(`../assets/modular/${asset}`, import.meta.url));
-  assert.equal(png.readUInt32BE(16), 768, `${asset} debe medir 768 px de ancho`);
-  assert.equal(png.readUInt32BE(20), 768, `${asset} debe medir 768 px de alto`);
-  assert.equal(png[25], 6, `${asset} debe conservar un canal alfa`);
-}));
-assert.equal(assets.length, 27, "El conjunto modular debe contener 27 capas intercambiables");
-
 for (const asset of ["hair_corto.png", "hair_coleta.png"]) {
   const png = await readFile(new URL(`../assets/modular/hair/${asset}`, import.meta.url));
   assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `${asset} debe ser un PNG válido`);
@@ -47,10 +23,6 @@ assert.equal(coinSheet[25], 6, "El spritesheet de monedas debe conservar transpa
 const experienceSheet = await readFile(new URL("../assets/vfx/experience-spin-spritesheet.png", import.meta.url));
 assert.deepEqual([experienceSheet.readUInt32BE(16), experienceSheet.readUInt32BE(20)], [1280, 512], "Los diez emblemas de experiencia deben formar una cuadrícula normalizada de 5 × 2");
 assert.equal(experienceSheet[25], 6, "El spritesheet de experiencia debe conservar transparencia alfa");
-
-const shortHairPortrait = await readFile(new URL("../assets/modular/hair/head_corto.png", import.meta.url));
-assert.deepEqual([shortHairPortrait.readUInt32BE(16), shortHairPortrait.readUInt32BE(20)], [260, 400], "El retrato de cabello corto debe conservar la composición aprobada de cabeza y cabello");
-assert.equal(shortHairPortrait[25], 6, "El retrato de cabello corto debe conservar transparencia alfa real");
 
 const puppetRuntimeLayers = [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
@@ -142,8 +114,6 @@ assert.deepEqual([travelBranches.width, travelBranches.height], [1376, 768], "La
 assert.equal(travelBranches.alpha, true, "Las ramas de parallax deben conservar transparencia real");
 const hudThemeDimensions = { ancestral: [2172, 724], lunar: [866, 288] };
 for (const theme of ["ancestral", "lunar"]) {
-  const png = await readFile(new URL(`../assets/ui/hud-themes/${theme}.png`, import.meta.url));
-  assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `El tema ${theme} debe ser un PNG válido`);
   const runtimeImage = webpDimensions(await readFile(new URL(`../assets/ui/hud-themes/${theme}.webp`, import.meta.url)), `${theme}.webp`);
   assert.deepEqual([runtimeImage.width, runtimeImage.height], hudThemeDimensions[theme], `El tema optimizado ${theme} no debe recortarse`);
   assert.equal(runtimeImage.alpha, true, `El tema optimizado ${theme} debe conservar transparencia`);
@@ -163,9 +133,6 @@ await Promise.all(Object.entries(battleInterfaceAssets).map(async ([asset, expec
 }));
 
 const feedbackAssets = {
-  "timeline-crest.png": [160, 156],
-  "timeline-player-shuriken.png": [1254, 1254],
-  "timeline-enemy-shuriken.png": [1310, 1201],
   "timeline-ready-brush.png": [480, 192],
   "preparation-ribbons.png": [432, 259],
   "preparation-mote.png": [96, 96]

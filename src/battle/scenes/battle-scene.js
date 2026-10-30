@@ -9,7 +9,7 @@ import { createPlayerFighter, destroyFighter, playFighterDamageReaction, prepare
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.88.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.106.0";
-import { elementIcon } from "../../elements.js?v=0.20.0";
+import { queueElementIcons, composeElementIcons } from "../element-icons.js?v=1.0.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.67.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.66.0";
@@ -115,14 +115,12 @@ export class BattleScene extends Phaser.Scene {
       const key = `action-${action.id}`;
       if (!this.textures.exists(key)) this.load.image(key, action.icon);
     });
-    this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean).forEach((element) => {
-      const key = `element-${element}`;
-      if (!this.textures.exists(key)) this.load.image(key, elementIcon(element));
-    });
+    queueElementIcons(this, this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean));
     queuePlayerFighterTextures(this, this.playerAppearance());
   }
 
   create() {
+    composeElementIcons(this, this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean));
     // Los objetos del HUD anterior ya están destruidos cuando Phaser reinicia la escena.
     this.actionSlots = [];
     this.buttons = [];

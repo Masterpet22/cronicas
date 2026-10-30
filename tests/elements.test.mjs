@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { basicRequirements, canAccessElement } from "../src/elements.js";
+import { ELEMENTS, basicRequirements, canAccessElement, elementIconParts } from "../src/elements.js";
 import { webpDimensions } from "./webp.mjs";
 
 const root = new URL("../assets/elements/", import.meta.url);
@@ -11,26 +11,28 @@ assert.deepEqual(manifest.tiers.map(({ elements }) => elements.length), [4, 6, 8
 
 const ids = new Set();
 for (const tier of manifest.tiers) {
-  assert.equal(tier.grid[0] * tier.grid[1], tier.elements.length, `La cuadrícula del nivel ${tier.id} debe coincidir con sus elementos`);
-  const sheet = await readFile(new URL(tier.sheet, root));
-  assert.equal(sheet.readUInt32BE(16), tier.grid[0] * 512, `La hoja del nivel ${tier.id} debe conservar el ancho de sus celdas`);
-  assert.equal(sheet.readUInt32BE(20), tier.grid[1] * 512, `La hoja del nivel ${tier.id} debe conservar el alto de sus celdas`);
-  assert.equal(sheet[25], 6, `La hoja del nivel ${tier.id} debe conservar transparencia alfa`);
-
+  assert.equal(tier.sheet, undefined, "No deben distribuirse atlas que el juego no carga");
   for (const element of tier.elements) {
     assert.ok(!ids.has(element.id), `${element.id} no puede repetirse`);
     ids.add(element.id);
     if (tier.id === 2) assert.equal(element.parents.length, 2, `${element.id} debe combinar dos básicos`);
     if (tier.id === 3) assert.equal(element.parents.length, 2, `${element.id} debe combinar un secundario y un básico`);
     if (tier.id === 4) assert.equal(element.parents.length, 2, `${element.id} debe combinar dos secundarios`);
-    const icon = webpDimensions(await readFile(new URL(element.icon, root)), element.icon);
-    assert.equal(icon.width, 512, `${element.id} debe medir 512 px de ancho`);
-    assert.equal(icon.height, 512, `${element.id} debe medir 512 px de alto`);
-    assert.equal(icon.alpha, true, `${element.id} debe conservar transparencia alfa`);
+    assert.deepEqual(element.parents, ELEMENTS[element.id].parents);
+    const parts = elementIconParts(element.id);
+    assert.deepEqual(parts.map(part => part.id), basicRequirements(element.id));
+    assert.equal(element.icon, tier.id === 1 ? `tier-1/${element.id}.webp` : undefined);
+    for (const part of parts) {
+      assert.equal(ELEMENTS[part.id].tier, 1, "Cada combinación debe reutilizar imágenes básicas");
+      const icon = webpDimensions(await readFile(new URL(part.icon, new URL("../", import.meta.url))), part.icon);
+      assert.deepEqual([icon.width, icon.height, icon.alpha], [512, 512, true]);
+      assert.ok(part.x >= 0 && part.y >= 0 && part.x + part.size <= 512 && part.y + part.size <= 512);
+    }
   }
 }
 
 assert.equal(ids.size, 22, "El sistema debe contener exactamente 22 elementos únicos");
+assert.deepEqual(elementIconParts("desconocido"), []);
 assert.equal(canAccessElement("vapor", ["agua", "fuego"], 2), true, "Dos afinidades deben habilitar una combinación secundaria");
 assert.equal(canAccessElement("vapor", ["agua", "fuego"], 1), false, "El rango 1 no debe habilitar combinaciones secundarias");
 assert.deepEqual(basicRequirements("tormenta").sort(), ["agua", "fuego", "viento"], "Una técnica terciaria debe exigir tres afinidades básicas");
