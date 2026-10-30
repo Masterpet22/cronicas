@@ -1,4 +1,4 @@
-import { createPlayerFighter, destroyFighter } from "../fighters.js?v=0.81.0";
+import { createPlayerFighter, destroyFighter } from "../fighters.js?v=0.115.0";
 import { playerFighterAppearance } from "../character.js?v=0.76.0";
 import { missionTravelPresentation } from "./mission-travel-presentation.js?v=0.96.0";
 import { playTeleportTransition } from "./teleport-transition.js?v=1.1.0";

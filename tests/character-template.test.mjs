@@ -11,6 +11,17 @@ for (const variant of report.variants) {
   assert.ok(variant.supportedClips.includes("prepare-technique"));
   assert.ok(variant.supportedClips.includes("punch-release"));
 }
+const originalPlacement = {
+  male: { top: -694.684, bottom: 800.316, centerX: 17.142 },
+  female: { top: -615.98, bottom: 692.07, centerX: 22.98605 }
+};
+for (const bodyType of ["male", "female"]) {
+  const bounds = report.variants.find((variant) => variant.bodyType === bodyType && variant.hair === 0).bodyBounds;
+  const expected = originalPlacement[bodyType];
+  assert.ok(Math.abs(bounds.top - expected.top) < 0.001, `${bodyType}: debe conservar la altura superior original en los menus`);
+  assert.ok(Math.abs(bounds.bottom - expected.bottom) < 0.001, `${bodyType}: debe conservar la linea de suelo original en los menus`);
+  assert.ok(Math.abs((bounds.left + bounds.right) / 2 - expected.centerX) < 0.001, `${bodyType}: debe conservar el centro visual original en los menus`);
+}
 assert.equal(report.productionApproval.approved, false, "La integridad del rig no debe aprobar automáticamente el arte definitivo");
 assert.ok(report.productionApproval.reasons.length > 0);
 

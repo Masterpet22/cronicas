@@ -1,18 +1,6 @@
-export const PUPPET_JOINTS = Object.freeze({
-  neck: { x: 0, y: -315 },
-  shoulderRight: { x: -207, y: -310 },
-  elbowRight: { x: -305, y: -38 },
-  wristRight: { x: -304, y: 169 },
-  shoulderLeft: { x: 139, y: -310 },
-  elbowLeft: { x: 232, y: -57 },
-  wristLeft: { x: 319, y: 134 },
-  hipRight: { x: -94, y: 142 },
-  kneeRight: { x: -124, y: 407 },
-  ankleRight: { x: -153, y: 674 },
-  hipLeft: { x: 112, y: 142 },
-  kneeLeft: { x: 139, y: 401 },
-  ankleLeft: { x: 151, y: 670 }
-});
+import { MAN_SPRITE_JOINTS } from "../character-rigs.js?v=0.115.0";
+
+export const PUPPET_JOINTS = MAN_SPRITE_JOINTS;
 
 export const PUPPET_JOINT_PARENTS = Object.freeze({
   neck: null,

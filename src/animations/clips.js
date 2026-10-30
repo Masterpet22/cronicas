@@ -1,4 +1,4 @@
-import { assertValidAnimationCatalog } from "./schema.js";
+import { assertValidAnimationCatalog } from "./schema.js?v=0.115.0";
 
 export const ANIMATION_STATES = Object.freeze({
   IDLE: "idle",

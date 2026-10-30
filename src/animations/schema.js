@@ -1,4 +1,4 @@
-import { PUPPET_TARGETS } from "./rig.js";
+import { PUPPET_TARGETS } from "./rig.js?v=0.115.0";
 import { TRANSFORM_PROPERTIES } from "./runtime.js";
 
 const STATUSES = new Set(["draft", "integrated"]);

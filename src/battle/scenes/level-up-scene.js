@@ -1,9 +1,9 @@
-import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.81.0";
+import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.115.0";
 import { playerFighterAppearance } from "../../character.js?v=0.76.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";
 import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-transition.js?v=1.1.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
-import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=1.0.0";
+import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
 
 const THEMES = Object.freeze({
