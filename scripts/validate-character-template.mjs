@@ -2,9 +2,10 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
-import { runInNewContext } from "node:vm";
 import { createPlayerFighter, queuePlayerFighterTextures, MAN_SPRITE_JOINTS, WOMAN_SPRITE_JOINTS } from "../src/fighters.js";
 import { PUPPET_ANIMATION_CLIPS } from "../src/animations/clips.js";
+import { CHARACTER_RIGS } from "../src/character-rigs.js";
+import { rasterCharacterPreviewMarkup } from "../src/ui/meta/character-preview.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const round = (n) => Math.round(n * 10000) / 10000;
@@ -45,25 +46,14 @@ export function validateTemplateContract(contract) {
   if (!contract.exportRules?.artReviewRequired || contract.status !== "technical-candidate-art-pending") errors.push("art-review-must-not-be-assumed");
   return errors;
 }
-function arrayFromSource(source, name) {
-  const start = source.indexOf(`const ${name} = Object.freeze(`);
-  const arrayStart = source.indexOf("[", start);
-  const end = source.indexOf("\n]);", arrayStart);
-  if (start < 0 || end < 0) throw new Error(`No se encuentra el catálogo del Dojo: ${name}`);
-  // Evalúa únicamente el literal local del catálogo, sin imports, DOM ni acceso a Node.
-  return runInNewContext(`(${source.slice(arrayStart, end+2)})`, Object.create(null), { timeout: 2000 });
-}
-function dojoLayers(source, character) {
-  const context = { PUPPET_PREVIEW_LAYERS: arrayFromSource(source,"PUPPET_PREVIEW_LAYERS"), FEMALE_PUPPET_PREVIEW_LAYERS: arrayFromSource(source,"FEMALE_PUPPET_PREVIEW_LAYERS") };
-  const start = source.indexOf("function rasterCharacterPreviewMarkup(");
-  const end = source.length;
-  if (start < 0 || end < 0) throw new Error("No se encuentra la vista raster del Dojo");
-  const render = runInNewContext(`(${source.slice(start,end)})`, context, { timeout: 2000 });
+function dojoLayers(character) {
+  const render = rasterCharacterPreviewMarkup;
+  const rigLayers = CHARACTER_RIGS[character.bodyType === "female" ? "female" : "male"].layers;
   return [...render({ character }, "validation").matchAll(/<img\b[^>]+>/g)].map(([tag]) => {
     const src = tag.match(/src="([^"]+)"/)[1].split("?")[0];
     const value = (name) => Number(tag.match(new RegExp(`--puppet-${name}:([-\\d.]+)`))?.[1] || 0);
     const id = tag.includes("puppet-preview-hair") ? `hair-${character.hair === 1 ? "corto" : "coleta"}`
-      : context[character.bodyType === "female" ? "FEMALE_PUPPET_PREVIEW_LAYERS" : "PUPPET_PREVIEW_LAYERS"][value("z")].id;
+      : rigLayers[value("z")].id;
     return { id, asset: src, width: value("w")*11, height: value("h")*16,
       matrix: transform(value("x")*11-550,value("y")*16-800,value("rotation")) };
   });
@@ -99,16 +89,24 @@ async function assemble(character, images) {
     part.children.forEach((child)=>visit(child,m));
   };
   fighter.rig.children.forEach((child)=>visit(child));
-  return {layers,joints:character.bodyType === "female" ? WOMAN_SPRITE_JOINTS : MAN_SPRITE_JOINTS,
+  const preview = CHARACTER_RIGS[character.bodyType === "female" ? "female" : "male"].preview;
+  const previewLayers = layers.map((part) => ({
+    ...part,
+    width: part.width * preview.scale,
+    height: part.height * preview.scale,
+    matrix: [part.matrix[0], part.matrix[1], part.matrix[2], part.matrix[3], preview.x + part.matrix[4] * preview.scale, preview.y + part.matrix[5] * preview.scale]
+  }));
+  const sourceJoints = character.bodyType === "female" ? WOMAN_SPRITE_JOINTS : MAN_SPRITE_JOINTS;
+  const joints = Object.fromEntries(Object.entries(sourceJoints).map(([id, point]) => [id, { x: preview.x + point.x * preview.scale, y: preview.y + point.y * preview.scale }]));
+  return {layers:previewLayers,joints,
     supportedClips:Object.values(PUPPET_ANIMATION_CLIPS).filter((clip)=>fighter.animations.supports(clip.id)).map(({id})=>id)};
 }
 export async function analyzeCharacterTemplate() {
   const contract = JSON.parse(await readFile(resolve(root,"assets/reference/character-template-v1.json"),"utf8"));
-  const source = await readFile(resolve(root,"src/ui/meta/character-preview.js"),"utf8");
   const manifest = JSON.parse((await readFile(resolve(root,"assets/modular/manifest.json"),"utf8")).replace(/^\uFEFF/,""));
   const images=new Map(), variants=[];
   for (const bodyType of ["male","female"]) for (const hair of [0,1,4]) {
-    const runtime=await assemble({bodyType,hair},images), dojo=dojoLayers(source,{bodyType,hair});
+    const runtime=await assemble({bodyType,hair},images), dojo=dojoLayers({bodyType,hair});
     const differences=compareLayerGeometry(runtime.layers,dojo,contract.tolerances.dojoTransformPx);
     const bodyBounds=bounds(runtime.layers.filter(({id})=>!id.startsWith("hair-")));
     const head=runtime.layers.find(({id})=>id==="cabeza");

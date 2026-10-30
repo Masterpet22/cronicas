@@ -1,4 +1,4 @@
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.102.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.108.0";
 import { createDojoTechniques } from "../dojo-techniques.js?v=0.107.0";
 import { TELEPORT_OBJECTS } from "../../../teleport-objects.js";
 const ATTRIBUTE_DEFINITIONS = Object.freeze([

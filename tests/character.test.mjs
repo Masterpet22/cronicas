@@ -53,19 +53,19 @@ assert.equal(loaded.length, 15, "Deben cargarse las catorce partes del cuerpo y 
 assert.ok(!loaded.includes("player-head-corto"), "El retrato debe dibujar el cabello con la misma capa que el combatiente");
 assert.deepEqual(
   Object.fromEntries(Object.entries(fighterHairPortraitLayout(1, 42, 64)).map(([key, value]) => [key, Number(value.toFixed(2))])),
-  { x: -2.47, y: -14.58, width: 47.65, height: 37.39 },
+  { x: -4.44, y: -34.7, width: 47.65, height: 37.39 },
   "El cabello corto debe conservar en el retrato la posición relativa que tiene sobre el combatiente"
 );
 assert.deepEqual(
   Object.fromEntries(Object.entries(fighterHairPortraitLayout(4, 42, 64, true)).map(([key, value]) => [key, Number(value.toFixed(2))])),
-  { x: 7.8, y: -10.17, width: 63.32, height: 51.27 },
+  { x: 9.77, y: -30.29, width: 63.32, height: 51.27 },
   "La coleta debe conservar su posición en retratos reflejados"
 );
 assert.equal(fighterHairPortraitLayout(0, 42, 64), null, "El retrato sin peinado no debe crear una capa de cabello");
 assert.equal(fighterPuppetTextureKey({ bodyType: "female" }, "cabeza"), "player-woman-cabeza", "Los retratos femeninos deben usar su propia cabeza");
 assert.deepEqual(
   Object.fromEntries(Object.entries(fighterHairPortraitLayout(1, 42, 64, false, "female")).map(([key, value]) => [key, Number(value.toFixed(2))])),
-  { x: -2.47, y: -14.58, width: 47.65, height: 37.39 },
+  { x: -4.44, y: -34.7, width: 47.65, height: 37.39 },
   "El cabello debe conservar su encaje relativo al pasar al rig femenino"
 );
 const shortHairLoaded = [];
@@ -85,11 +85,11 @@ assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
 ].sort(), "La composición debe incluir todas las capas exportadas");
 assert.deepEqual(WOMAN_SPRITE_LAYERS.map(({ id }) => id).sort(), MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), "La marioneta femenina debe cubrir el mismo esqueleto articulado");
-assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho").assetId, "antebrazo_derecho", "La exportación femenina debe corregir el intercambio de brazo y antebrazo");
-assert.deepEqual(WOMAN_SPRITE_JOINTS.neck, { x: 0, y: -292.2 }, "El cuerpo femenino debe usar el cuello calibrado en Kinetra");
-assert.deepEqual(WOMAN_SPRITE_JOINTS.ankleRight, { x: -136.24, y: 556.99 }, "El tobillo femenino debe conservar el anclaje de Kinetra");
-assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "torso").scaleX, 0.88, "Las piezas femeninas deben conservar la escala de Kinetra");
-assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho").restRotation, -12, "El brazo femenino debe conservar su rotación de reposo");
+assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho").assetId, undefined, "El rig nuevo debe usar el nombre anatomico correcto sin intercambiar recursos");
+assert.deepEqual(WOMAN_SPRITE_JOINTS.neck, { x: -21.784863, y: -261.418351 }, "El cuerpo femenino debe usar el cuello calibrado en Kinetra");
+assert.deepEqual(WOMAN_SPRITE_JOINTS.ankleRight, { x: -147.047822, y: 567.512689 }, "El tobillo femenino debe conservar el anclaje de Kinetra");
+assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "mano_derecha").scaleX, 0.9, "La mano femenina debe conservar la escala de Kinetra");
+assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho").restRotation, undefined, "El rig nuevo debe conservar la pose neutra exportada");
 const puppetNode = (x = 0, y = 0, key = null) => ({
   x, y, key, angle: 0, scaleX: 1, scaleY: 1, children: [],
   add(child) { this.children.push(child); return this; },
@@ -107,13 +107,16 @@ const assemblyScene = {
 };
 const assembledWoman = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "female", hair: 0 });
 assert.deepEqual({ x: assembledWoman.joints.neck.x, y: assembledWoman.joints.neck.y }, WOMAN_SPRITE_JOINTS.neck, "El constructor debe aplicar las articulaciones femeninas");
-assert.deepEqual({ x: assembledWoman.sprite.x, y: assembledWoman.sprite.y, scaleX: assembledWoman.sprite.scaleX }, { x: -22, y: -56.32, scaleX: 0.88 }, "El torso debe usar centro y escala de Kinetra");
-assert.equal(assembledWoman.joints.shoulderRight.children[0].angle, -12, "La pose ensamblada debe aplicar la rotación de reposo del brazo");
+assert.deepEqual({ x: assembledWoman.rig.x, y: assembledWoman.rig.y, scale: assembledWoman.rig.scaleX }, { x: 5.958584, y: -52.269376, scale: 0.153583112 }, "El cuerpo femenino debe recuperar la altura, suelo y centro visual anteriores sin deformarse");
+const assembledMan = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "male", hair: 0 });
+assert.deepEqual({ x: assembledMan.rig.x, y: assembledMan.rig.y, scale: assembledMan.rig.scaleX }, { x: 5.777497, y: -61.562716, scale: 0.1649537 }, "El cuerpo masculino debe recuperar la altura, suelo y centro visual anteriores sin deformarse");
+assert.deepEqual({ x: assembledWoman.sprite.x, y: assembledWoman.sprite.y, scaleX: assembledWoman.sprite.scaleX }, { x: -29.576222, y: -21.737617, scaleX: 1 }, "El torso debe usar centro y escala de Kinetra");
+assert.equal(assembledWoman.joints.shoulderRight.children[0].angle, 0, "La pose ensamblada debe aplicar la rotacion de reposo del brazo");
 const rightUpperArm = MAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho");
 const leftUpperArm = MAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_izquierdo");
 assert.ok(rightUpperArm.x < 0 && leftUpperArm.x > 0, "Los brazos deben nombrarse desde la anatomía del personaje, no desde la pantalla");
-assert.equal(rightUpperArm.assetId, "brazo_izquierdo", "El alias debe corregir el PNG superior derecho mal exportado");
-assert.equal(leftUpperArm.assetId, "brazo_derecho", "El alias debe corregir el PNG superior izquierdo mal exportado");
+assert.equal(rightUpperArm.assetId, undefined, "El PNG superior derecho nuevo debe respetar su nombre anatomico");
+assert.equal(leftUpperArm.assetId, undefined, "El PNG superior izquierdo nuevo debe respetar su nombre anatomico");
 assert.ok(MAN_SPRITE_JOINTS.shoulderRight.x < 0 && MAN_SPRITE_JOINTS.hipRight.x < 0, "Las articulaciones derechas deben coincidir con brazo, mano y pierna derechos");
 assert.ok(MAN_SPRITE_SHADOW_OFFSET > 0 && MAN_SPRITE_SHADOW_OFFSET <= 82, "La sombra debe permanecer cerca de los pies de la marioneta modular");
 assert.match(readFileSync(new URL("../src/fighters.js", import.meta.url), "utf8"), /FilterMode\?\.LINEAR/, "Las ilustraciones modulares deben usar filtrado lineal y no pixel art");
