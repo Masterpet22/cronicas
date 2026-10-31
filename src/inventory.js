@@ -1,6 +1,8 @@
-import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.114.0";
+import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.126.0";
 import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
 import { AFFINITY_IDS } from "./affinity-system.js?v=0.114.0";
+import { GUILD_STARTER_ITEMS, GUILD_INVENTORY_VERSION, guildInventoryGrants } from "./guild-catalog.js?v=0.126.0";
+import { placedDecorationCount } from "./guild.js?v=0.126.0";
 
 export const countItem = (save, id) => {
   const count = Number(save?.inventory?.items?.[id]);
@@ -8,6 +10,7 @@ export const countItem = (save, id) => {
 };
 export const starterInventory = (character = {}) => ({ items: Object.fromEntries([
   ...Object.values(STARTER_EQUIPMENT).filter(Boolean),
+  ...GUILD_STARTER_ITEMS,
   ...Object.values(ITEMS).filter(item => item.kind === "cosmetic" && (item.price === 0 || item.cosmeticSlot === "hair" && item.value === (character.hair ?? 1))).map(item => item.id)
 ].map(id => [id, 1])), extraAffinityUnlocked: false });
 
@@ -30,6 +33,10 @@ export function normalizeInventory(save) {
     }
   }
   if (save?.character) for (const item of Object.values(ITEMS)) if (item.kind === "cosmetic" && item.price === 0) items[item.id] = 1;
+  if (save?.character) {
+    if (Number(save.version || 0) < GUILD_INVENTORY_VERSION) for (const [id, count] of Object.entries(guildInventoryGrants(save))) items[id] = Math.max(items[id] || 0, count);
+    for (const item of Object.values(ITEMS)) if (item.kind === "decoration" && item.price === 0) items[item.id] = 1;
+  }
   const legacyThird = Number(save?.version || 0) < 19 && save?.character?.affinities?.length >= 3 && save.progression?.level >= 35 && save.campaign?.elementRank >= 3;
   return { items, extraAffinityUnlocked: source?.extraAffinityUnlocked === true || Boolean(legacyThird) };
 }
@@ -62,15 +69,23 @@ export function equipItem(save, slot, id) {
 export function saleBlockReason(save, id) {
   const item = Object.hasOwn(ITEMS, id) ? ITEMS[id] : null;
   if (!save?.character || !item || !countItem(save, id) || !sellPrice(item)) return "Este objeto no se puede vender.";
+  if (item.kind === "decoration" && !sellableItemCount(save, id)) return item.guildSurface === "decor" ? "Retíralo de Mi espacio antes de venderlo." : "Cambia este acabado en el Gremio antes de venderlo.";
   if (Object.values(save.equipment || {}).includes(id) || item.kind === "cosmetic" && save.character[item.cosmeticSlot] === item.value) return "Desequípalo en el Dojo antes de venderlo.";
   if (item.kind === "contract" && save.campaign.missionProgress[item.missionId]?.status === "in-progress") return "Termina o abandona la misión antes de vender su contrato.";
   return "";
 }
 
+export function sellableItemCount(save, id) {
+  const item = ITEMS[id], count = countItem(save, id);
+  if (item?.kind !== "decoration") return count;
+  if (item.guildSurface === "decor") return Math.max(0, count - placedDecorationCount(save, item.value));
+  return save?.guild?.room?.[item.guildSurface] === item.value ? 0 : count;
+}
+
 export function sellItem(save, id, quantity = 1) {
   const reason = saleBlockReason(save, id);
   if (reason) return failure(save, reason);
-  if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > countItem(save, id)) return failure(save, "La cantidad no es válida.");
+  if (!Number.isSafeInteger(quantity) || quantity < 1 || quantity > sellableItemCount(save, id)) return failure(save, ITEMS[id].kind === "decoration" ? "Solo puedes vender las unidades que no estén colocadas en Mi espacio." : "La cantidad no es válida.");
   const next = clone(save), total = sellPrice(ITEMS[id]) * quantity;
   if (!Number.isSafeInteger(next.progression.coins) || next.progression.coins + total > 9999999) return failure(save, "No puedes guardar más monedas.");
   next.inventory.items[id] -= quantity;
@@ -100,7 +115,7 @@ export const affinityScrollRequirement = save => save?.campaign?.rank !== "Guard
   : save.character.affinities.length !== 2 ? "Necesitas dos afinidades activas." : "";
 
 export function removeItem(save, id) {
-  if (!ITEMS[id] || countItem(save, id) < 1 || ITEMS[id].kind === "equipment") return failure(save, "No tienes ese objeto.");
+  if (!ITEMS[id] || countItem(save, id) < 1 || ["equipment", "decoration"].includes(ITEMS[id].kind)) return failure(save, "No tienes un objeto utilizable de ese tipo.");
   const next = clone(save), remaining = countItem(next, id) - 1;
   if (remaining) next.inventory.items[id] = remaining;
   else delete next.inventory.items[id];

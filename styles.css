@@ -857,6 +857,18 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .stage-speech.leaving, .stage-ambient.leaving { animation: stage-bubble-out .18s ease both; }
 .stage-ambient { top: auto; bottom: 24%; left: 3.2%; width: 29%; padding: 14px 16px; font-size: .82rem; line-height: 1.45; pointer-events: none; }
 .stage-ambient strong, .stage-ambient span { display: block; }
+.stage-ambient.has-actions { pointer-events: auto; }
+.stage-ambient-actions { display:grid; gap:6px; margin-top:10px; }
+.stage-ambient-actions[hidden] { display:none; }
+.stage-ambient-actions button { width:100%; min-height:34px; padding:6px 9px; border:1px solid #8daec1; border-radius:5px; background:linear-gradient(#17394f,#0c2435); color:#f4e3bd; font:700 13px "Alegreya Sans",sans-serif; cursor:pointer; }
+.stage-ambient-actions button:hover:not(:disabled) { background:#25526b; border-color:#eed295; }
+.stage-ambient-actions button:focus-visible { outline:2px solid #f1ca7c; outline-offset:2px; }
+.stage-ambient-actions button:disabled { opacity:.5; cursor:default; }
+.stage-ambient.has-many-actions [data-ambient-text] { max-height:2.9em; overflow-y:auto; scrollbar-width:thin; scrollbar-color:#83a6b9 transparent; }
+.stage-ambient.has-many-actions [data-ambient-text]:focus-visible { outline:1px solid #a8d4e9; outline-offset:2px; }
+.stage-ambient.has-many-actions .stage-ambient-actions { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.stage-ambient.has-many-actions .stage-ambient-actions button { padding:6px; font-size:12px; line-height:1.2; }
+.stage-ambient.has-many-actions .stage-ambient-actions button:last-child:nth-child(odd) { grid-column:1/-1; }
 .stage-ambient::before { top: -22px; bottom: auto; left: 62%; transform: rotate(90deg); }
 .location-stage.speaker-right .stage-ambient { right: 3.2%; left: auto; }
 .location-stage.speaker-right .stage-ambient::before { right: auto; left: 38%; transform: rotate(90deg); }
@@ -2502,7 +2514,7 @@ button:focus-visible {
 }
 
 /* Dojo: vista de configuración con técnicas, detalle y puntos siempre visibles. */
-.location-dojo .stage-speech { display: none !important; }
+
 .location-dojo .stage-options {
   width: min(calc(100% - 36px), 1280px);
   max-height: calc(100% - 28px);
@@ -2790,3 +2802,6 @@ button:focus-visible {
   pointer-events: none;
   filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .72));
 }
+
+/* La presentación y las opciones respetan su visibilidad incluso en el Dojo. */
+.location-stage [data-stage-speech][hidden], .location-stage [data-stage-options][hidden], .location-stage [data-stage-ambient][hidden] { display: none !important; }

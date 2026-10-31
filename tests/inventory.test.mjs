@@ -66,7 +66,7 @@ legacy.progression.level = 35;
 legacy.campaign.elementRank = 3;
 legacy.equipment.weapon = "staff";
 const migrated = normalizeSave(legacy);
-assert.equal(migrated.version, 23);
+assert.equal(migrated.version, 26);
 assert.equal(migrated.inventory.extraAffinityUnlocked, true);
 assert.equal(migrated.character.affinities.length, 3);
 assert.equal(countItem(migrated, "staff"), 1);

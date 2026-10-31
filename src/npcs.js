@@ -1,4 +1,4 @@
-import { getDialogue } from "./dialogues.js?v=0.123.0";
+import { getDialogue } from "./dialogues.js?v=0.131.0";
 
 const npc = (id, name, title, image) => Object.freeze({
   id, name, title, image,

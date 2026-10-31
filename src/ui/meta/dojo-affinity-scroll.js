@@ -1,4 +1,4 @@
-import { affinityScrollRequirement, countItem, unlockAffinityWithScroll } from "../../inventory.js?v=0.114.0";
+import { affinityScrollRequirement, countItem, unlockAffinityWithScroll } from "../../inventory.js?v=0.126.0";
 import { BASIC_ELEMENT_IDS, elementIcon, elementName } from "../../elements.js?v=0.20.0";
 
 export function mountDojoAffinityScroll(root, scope, { getSave, persist, rerender }) {

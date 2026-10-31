@@ -1,4 +1,4 @@
-import { ARENA_DIFFICULTIES } from "../arena.js?v=0.123.0";
+import { ARENA_DIFFICULTIES } from "../arena.js?v=0.131.0";
 
 export function showExhibitionResult(scene, won) {
   const host = scene.game.canvas.parentElement, hud = host.querySelector(".combat-access");
@@ -7,7 +7,7 @@ export function showExhibitionResult(scene, won) {
   dialog.className = "arena-result-dialog";
   dialog.setAttribute("aria-labelledby", "arena-result-title");
   const difficulty = ARENA_DIFFICULTIES.find(entry => entry.id === scene.mission.arenaSettings.difficulty);
-  dialog.innerHTML = `<p class="eyebrow">ARENA DEL HORIZONTE · EXHIBICIÓN LOCAL</p><h2 id="arena-result-title">${won ? "Victoria" : "Derrota"}</h2><p>${won ? "Has superado al rival de entrenamiento." : "Ajusta tus técnicas y vuelve a intentarlo."}</p><div class="arena-result-stats"><span>Rival<strong></strong></span><span>Dificultad<strong>${difficulty.name}</strong></span><span>Turnos resueltos<strong>${Math.max(1, scene.round)}</strong></span><span>Vida restante<strong>${Math.max(0, Math.round(scene.player.hp))}/${scene.player.maxHp}</strong></span></div><p class="arena-practice-note">La exhibición no entrega PX, monedas ni puntos de clasificación. Tu campaña, tus objetos y tu bestiario se conservan.</p><footer><button type="button" data-arena-rematch>Revancha</button><button type="button" data-arena-return>Volver a la Arena</button></footer>`;
+  dialog.innerHTML = `<p class="eyebrow">${scene.mission.tower ? "TORRE DE DESAFÍOS · MINIJEFE ELEMENTAL" : "ARENA DEL HORIZONTE · EXHIBICIÓN LOCAL"}</p><h2 id="arena-result-title">${won ? "Victoria" : "Derrota"}</h2><p>${won ? (scene.mission.tower ? "Has superado al minijefe elemental." : "Has superado al rival de entrenamiento.") : "Ajusta tus técnicas y vuelve a intentarlo."}</p><div class="arena-result-stats"><span>Rival<strong></strong></span><span>Dificultad<strong>${difficulty.name}</strong></span><span>Turnos resueltos<strong>${Math.max(1, scene.round)}</strong></span><span>Vida restante<strong>${Math.max(0, Math.round(scene.player.hp))}/${scene.player.maxHp}</strong></span></div><p class="arena-practice-note">${scene.mission.tower ? "La victoria se registra en esta edición al volver a la Torre. Este desafío no entrega PX ni monedas." : "La exhibición no entrega PX, monedas ni puntos de clasificación. Tu campaña, tus objetos y tu bestiario se conservan."}</p><footer><button type="button" data-arena-rematch>Revancha</button><button type="button" data-arena-return>Volver a la ${scene.mission.tower ? "Torre" : "Arena"}</button></footer>`;
   dialog.querySelector(".arena-result-stats strong").textContent = scene.encounters[0].name;
   const close = () => { dialog.close(); dialog.remove(); if (hud) hud.inert = false; };
   dialog.querySelector("[data-arena-rematch]").addEventListener("click", () => { close(); scene.scene.restart(); });

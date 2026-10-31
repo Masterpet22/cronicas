@@ -1,4 +1,5 @@
-import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.123.0";
+import { plazaSchedule, worldDate } from "../../../plaza-events.js?v=0.130.0";
+import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.131.0";
 import { JUTSU_LIBRARY } from "../../../data.js?v=0.114.0";
 
 export function createArenaView(deps) {
@@ -29,7 +30,7 @@ export function createArenaView(deps) {
     id: "arena",
     render(state) {
       save = state.save;
-      return `<section class="arena-panel" aria-label="Arena de Combate"><header class="arena-heading"><p class="eyebrow">GORO TETSUGAN · ARENA DEL HORIZONTE</p><h2>Demuestra tu técnica</h2><p>Prepara un duelo, prueba tu equipo y aprende de cada combate.</p></header><nav role="tablist" class="arena-tabs" aria-label="Modos de la Arena"><button type="button" id="arena-tab-local" role="tab" data-arena-tab="local" aria-controls="arena-mode-panel" aria-selected="${tab === "local"}" tabindex="${tab === "local" ? 0 : -1}">Local <small>Contra la IA</small></button><button type="button" id="arena-tab-online" role="tab" data-arena-tab="online" aria-controls="arena-mode-panel" aria-selected="${tab === "online"}" tabindex="${tab === "online" ? 0 : -1}">Multijugador <small>Próximamente</small></button></nav><p class="arena-feedback" role="status"></p><div class="arena-mode-panel" role="tabpanel" id="arena-mode-panel" aria-labelledby="arena-tab-${tab}">${tab === "local" ? localContents() : multiplayerContents()}</div></section>`;
+      return `<section class="arena-panel" aria-label="Arena de Combate"><header class="arena-heading"><h2>Demuestra tu técnica</h2><p>Prepara un duelo, prueba tu equipo y aprende de cada combate.</p></header>${plazaSchedule(worldDate()).active.some(event => event.id === "elemental-festival") ? '<aside class="arena-event-banner"><strong>Festival elemental</strong><p>Combates especiales pendientes de definir. Las exhibiciones habituales siguen disponibles.</p></aside>' : ""}<nav role="tablist" class="arena-tabs" aria-label="Modos de la Arena"><button type="button" id="arena-tab-local" role="tab" data-arena-tab="local" aria-controls="arena-mode-panel" aria-selected="${tab === "local"}" tabindex="${tab === "local" ? 0 : -1}">Local <small>Contra la IA</small></button><button type="button" id="arena-tab-online" role="tab" data-arena-tab="online" aria-controls="arena-mode-panel" aria-selected="${tab === "online"}" tabindex="${tab === "online" ? 0 : -1}">Multijugador <small>Próximamente</small></button></nav><p class="arena-feedback" role="status"></p><div class="arena-mode-panel" role="tabpanel" id="arena-mode-panel" aria-labelledby="arena-tab-${tab}">${tab === "local" ? localContents() : multiplayerContents()}</div></section>`;
     },
     mount(root, scope) {
       host = root.querySelector(".arena-panel");

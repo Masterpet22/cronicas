@@ -1,5 +1,5 @@
-import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.123.0";
-import { mountCombatTutorial } from "../combat-tutorial.js?v=0.123.0";
+import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.131.0";
+import { mountCombatTutorial } from "../combat-tutorial.js?v=0.131.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
@@ -7,12 +7,12 @@ import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.123.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.123.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
 import { queueElementIcons, composeElementIcons } from "../element-icons.js?v=1.0.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.123.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
 import { createEnemyState } from "../enemy-state.js?v=0.114.0";
@@ -23,10 +23,10 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.123.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.123.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.123.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.123.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.131.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.131.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.131.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.131.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { FREE_MISSION_RETRIES } from "../mission-retries.js?v=0.114.0";

@@ -15,12 +15,12 @@ const es = {
   ],
   "npc.kureha.intro": [
     { speaker: "kureha", text: "Me llaman Kureha Tsukikage. La Torre no mide fuerza: revela cuánto tardas en perder el control." },
-    { speaker: "kureha", text: "Sus nueve pisos abrirán cuando la campaña principal haya templado tus fundamentos." }
+    { speaker: "kureha", text: "Los días 5, 12, 19 y 26 te esperan minijefes de agua, tierra, fuego y aire. Consulta el calendario para preparar tu visita." }
   ],
   "npc.kureha.guide": [
-    { speaker: "kureha", text: "La Torre será una cadena de combates sin descanso completo entre pisos." },
-    { speaker: "kureha", text: "Cada nivel cambiará una regla: afinidades, recuperación, velocidad o estados alterados." },
-    { speaker: "kureha", text: "Todavía está en preparación; vuelve cuando el sello de acceso esté activo." }
+    { speaker: "kureha", text: "Los desafíos elementales se abren únicamente en su fecha. Tu victoria queda registrada al volver a la Torre." },
+    { speaker: "kureha", text: "Cada custodio tiene su propia afinidad. Prepara tu equipo y tus técnicas en el Dojo antes del combate." },
+    { speaker: "kureha", text: "Puedes repetir un desafío durante su día. Por ahora no entrega PX, monedas ni objetos y no consume tus recursos de misión." }
   ],
   "npc.sayo.intro": [
     { speaker: "sayo", text: "Soy Sayo Kisaragi. Aquí una misión no termina al cobrar la recompensa: se convierte en memoria." },
@@ -60,12 +60,12 @@ const es = {
   ],
   "npc.hana.intro": [
     { speaker: "hana", text: "Hana Kogane, a tu servicio. Una bolsa llena no gana batallas, pero una compra inteligente sí puede hacerlo." },
-    { speaker: "hana", text: "Aquí se venderán herramientas, consumibles y mejoras usando las monedas de las misiones." }
+    { speaker: "hana", text: "Puedes comprar y vender equipo, objetos, apariencia y decoraciones usando las monedas de tus misiones." }
   ],
   "npc.hana.guide": [
     { speaker: "hana", text: "Las monedas se obtienen al vencer enemigos y al completar una misión por primera vez." },
-    { speaker: "hana", text: "Armas, protectores y accesorios modifican estadísticas diferentes; compara el efecto antes del precio." },
-    { speaker: "hana", text: "El inventario comercial todavía está en preparación." }
+    { speaker: "hana", text: "Armas, sellos, accesorios y compañeros se equipan en el Dojo; compara su efecto antes del precio." },
+    { speaker: "hana", text: "Compro a mitad de precio. Las decoraciones se colocan en el Gremio y los contratos se juegan en el tablón." }
   ],
   "npc.yuna.intro": [
     { speaker: "yuna", text: "Bienvenido. Soy Yuna Ametsuki. Incluso un ninja necesita un lugar donde bajar la guardia." },
@@ -74,7 +74,7 @@ const es = {
   "npc.yuna.guide": [
     { speaker: "yuna", text: "Tu progreso se guarda automáticamente en este navegador." },
     { speaker: "yuna", text: "Regresar a la aldea después de un combate permite cambiar equipo y técnicas sin perder avances." },
-    { speaker: "yuna", text: "Selecciona una decoración y colócala en tu espacio. Puedes arrastrarla, cambiar su tamaño o retirarla; todo queda guardado en tu partida." }
+    { speaker: "yuna", text: "Compra colores, suelos y decoraciones en la Tienda y colócalos aquí. Cada mueble ocupa una unidad; al retirarlo queda disponible para volver a usarlo. Todo queda guardado en tu partida." }
   ],
   "npc.riku.intro": [
     { speaker: "riku", text: "Riku Senda, explorador de rutas. Yo convierto rumores en contratos que puedas sobrevivir." },
@@ -87,10 +87,10 @@ const es = {
   ],
   "npc.nao.intro": [
     { speaker: "nao", text: "¡Nao Matsuri abre la plaza! Revisa el calendario mensual para conocer los festivales, las visitas y los eventos temporales de la aldea." },
-    { speaker: "nao", text: "Cuando un evento esté en curso, la plaza lo mostrará directamente. El contador te indica cuántos días faltan para el próximo." }
+    { speaker: "nao", text: "Selecciona una fecha para ver sus actividades junto al calendario. El contador te indica cuántos días faltan para el próximo evento." }
   ],
   "npc.nao.guide": [
-    { speaker: "nao", text: "Las fechas marcadas del calendario indican qué actividad se celebra y cuánto dura." },
+    { speaker: "nao", text: "La semana empieza en domingo. Puedes elegir tu día y mes de cumpleaños con el botón Mi cumpleaños." },
     { speaker: "nao", text: "Nunca necesitarás participar en ellos para terminar la historia principal." },
     { speaker: "nao", text: "Tu participación se guarda por personaje y por edición. Puedes consultar otros meses sin perder tus avances." }
   ],

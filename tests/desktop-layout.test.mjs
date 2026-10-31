@@ -40,7 +40,7 @@ assert.match(desktopCss, /\.location-dojo \.stage-options \{[\s\S]*?height: calc
 assert.match(desktopCss, /\.dojo-layout\.dojo-rework \{[\s\S]*?min-height: 0;[\s\S]*?grid-template-rows: auto minmax\(0, 1fr\);/, "El contenido del Dojo debe repartir la altura entre cabecera y panel activo");
 assert.match(css, /\.puppet-preview-rig \{[^}]*width: auto;[^}]*height: min\(calc\(100% - 28px\), 500px\);[^}]*aspect-ratio: 11 \/ 16;/, "La marioneta debe escalarse por la altura disponible para no quedar recortada");
 assert.match(css, /#dojo-panel-statistics \.dojo-attributes \{[\s\S]*?height: 100%;[\s\S]*?grid-template-rows: auto minmax\(0, 1fr\);/, "Estadísticas debe ajustarse a la altura común sin alargar el marco exterior");
-assert.match(locationStageSource, /locationId === ["']dojo["'] \|\| deps\.introducedViews\.has\(locationId\)/, "El Dojo debe mostrar su configuración también en la primera visita");
+assert.match(locationStageSource, /hasIntroduction\(deps\.getSave\(\), locationId, cast\)/, "El Dojo presenta al maestro activo antes de mostrar las opciones por primera vez");
 assert.match(desktopCss, /\.location-dojo \.skill-path \{[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)[\s\S]*overflow: visible/, "El árbol del Dojo debe distribuir técnicas en filas sin desplazamiento horizontal");
 assert.match(desktopCss, /font-size: max\(\.75rem, 12px\)/, "La información útil debe conservar un suelo de 12 px");
 assert.match(desktopCss, /--text-caption: max\(\.8125rem, 13px\)/, "El texto auxiliar visible debe conservar un suelo accesible de 13 px");

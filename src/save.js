@@ -1,6 +1,8 @@
+import { normalizeBirthday } from "./birthday.js?v=0.127.0";
+import { normalizeIntroductions } from "./location-conversations.js?v=0.131.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
-import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.119.0";
-import { defaultEventState, normalizeEventState } from "./plaza-events.js?v=0.123.0";
+import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.126.0";
+import { defaultEventState, normalizeEventState } from "./plaza-events.js?v=0.130.0";
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.114.0";
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
 import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.114.0";
@@ -11,9 +13,9 @@ import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCo
 import { createCompletedMissionProgress, migrateSaveToV18 } from "./save/save-migrations.js";
 import { createSlotRepository } from "./save/slot-repository.js";
 import { teleportObject } from "./teleport-objects.js";
-import { ITEMS } from "./items.js?v=0.114.0";
+import { ITEMS } from "./items.js?v=0.126.0";
 import { LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
-import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.114.0";
+import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.126.0";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
 import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js?v=0.114.0";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
@@ -23,7 +25,7 @@ export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/chara
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 23;
+export const SAVE_VERSION = 26;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", seal: "seal_wind", accessory: "chakra_charm", companion: null };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
@@ -52,6 +54,7 @@ export function createDefaultSave() {
       rank: "Novicio",
       elementRank: 1,
       tutorialSeen: false,
+      npcIntroductions: [],
       sayoEncounterSeen: false,
       secondaryBoardUnlocked: false,
       banditPrisonerChoice: null,
@@ -97,7 +100,7 @@ function normalizeHairStyle(value) {
   return hair === 0 || hair === 1 || hair === 4 ? hair : 1;
 }
 
-export function createCharacter(save, { name, affinity, appearance, bodyType, hair, skinTone, teleportObject: selectedObject }) {
+export function createCharacter(save, { name, affinity, appearance, bodyType, hair, skinTone, birthday, teleportObject: selectedObject }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
   const cleanAffinity = BASIC_ELEMENT_IDS.includes(affinity) ? affinity : "fuego";
   const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
@@ -105,7 +108,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", skinTone: normalizeSkinTone(skinTone), masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
+    character: { birthday: normalizeBirthday(birthday), name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", skinTone: normalizeSkinTone(skinTone), masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT },
     inventory: starterInventory({ hair: normalizeHairStyle(hair) }),
@@ -161,6 +164,7 @@ export function normalizeSave(candidate) {
   return {
     version: SAVE_VERSION,
     character: candidate.character ? {
+      birthday: normalizeBirthday(candidate.character.birthday),
       name: String(candidate.character.name || "Akio").trim().slice(0, 18) || "Akio",
       affinity,
       affinities,
@@ -192,7 +196,7 @@ export function normalizeSave(candidate) {
       accessory: validEquipment("accessory", candidate.equipment?.accessory, inventory)
     },
     inventory,
-    guild: normalizeGuildState(candidate.guild, { campaign: { completedMissions, completedSecondaryMissions, rank: candidate.campaign?.rank } }),
+    guild: candidate.character ? normalizeGuildState(candidate.guild, { inventory }) : defaultGuildState(),
     events: normalizeEventState(candidate.events),
     loadout: candidate.character ? loadout : [],
     campaign: {
@@ -202,6 +206,7 @@ export function normalizeSave(candidate) {
       rank: candidate.campaign?.rank === "Guardián" ? "Guardián" : "Novicio",
       elementRank,
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
+      npcIntroductions: normalizeIntroductions(candidate.campaign?.npcIntroductions),
       sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),
       secondaryBoardUnlocked: Boolean(candidate.campaign?.secondaryBoardUnlocked),
       banditPrisonerChoice: ["interrogate", "eliminate"].includes(candidate.campaign?.banditPrisonerChoice) ? candidate.campaign.banditPrisonerChoice : null,

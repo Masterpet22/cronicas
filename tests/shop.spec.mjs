@@ -12,7 +12,7 @@ async function seedShop(page) {
     save.progression.level = 15;
     save.campaign.elementRank = 2;
     save.campaign.rank = "Guardián";
-    save.campaign.tutorialSeen = true;
+    save.campaign.tutorialSeen = true; save.campaign.npcIntroductions = ["dojo:mei"];
     save.character.affinities = ["fuego", "viento"];
     save.character.knownAffinities = ["fuego", "viento"];
     writeSave(save);

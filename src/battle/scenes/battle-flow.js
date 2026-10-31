@@ -1,15 +1,15 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
-import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.123.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.131.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.123.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.123.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.123.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
 import { createEnemyState } from "../enemy-state.js?v=0.114.0";
@@ -75,6 +75,8 @@ export class BattleFlowMethods {
 
   async executeTimelineAction(actor, action) {
     if (this.finished) return;
+    const playerAtStart = this.player;
+    const current = () => !this.finished && this.player === playerAtStart && (this.scene?.isActive?.() !== false || this.scene?.isPaused?.());
     this.clearPreparationFeedback(actor);
     this.stopTurnTimeline();
     this.timelinePaused = true;
@@ -84,11 +86,11 @@ export class BattleFlowMethods {
 
     if (actor === "player") {
       const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
-      if (this.finished) return;
+      if (!current()) return;
       if (action.type === "item") await applyBattleConsumable(this, action.itemId);
       else if (action.type === "guard") await this.playerGuard();
       else await this.playerAttack(action, casting);
-      if (this.finished) return;
+      if (!current()) return;
       this.finishCombatantTurn(this.player);
       this.pendingActions.player = null;
       this.timelineProgress.player = 0;
@@ -96,10 +98,11 @@ export class BattleFlowMethods {
       this.updateTimelineMarkers();
 
       await this.combatTutorial?.afterAction();
-      if (this.finished) return;
+      if (!current()) return;
 
       if (await this.resolveEnemyOutcome()) return;
       await this.resolveCombatantStatusTick(this.player, this.hero);
+      if (!current()) return;
       if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
       if (this.player.hp <= 0) return this.finishBattle(false);
       if (await this.resolveEnemyOutcome()) return;
@@ -109,6 +112,7 @@ export class BattleFlowMethods {
       this.round += 1;
     } else {
       await this.executeEnemyAction(action);
+      if (!current()) return;
       if (this.player.guarding) this.clearGuard();
       this.pendingActions.enemy = null;
       this.timelineProgress.enemy = 0;
@@ -118,6 +122,7 @@ export class BattleFlowMethods {
       if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
       if (this.player.hp <= 0) return this.finishBattle(false);
       await this.resolveCombatantStatusTick(this.enemy, this.foe);
+      if (!current()) return;
       if (await this.resolveEnemyOutcome()) return;
     }
 

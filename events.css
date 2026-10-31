@@ -5,6 +5,43 @@
 .location-event .stage-ambient::before { left:30px; top:auto; bottom:-18px; transform:rotate(-90deg); }
 .events-plaza { box-sizing:border-box; height:100%; min-height:0; display:flex; flex-direction:column; gap:10px; padding:18px; border:1px solid #c3a36b; border-radius:12px; background:linear-gradient(145deg,#0c1d2cf5,#050e18f5); color:#ebdfc6; box-shadow:inset 0 0 0 3px #06101a,inset 0 0 0 4px #9a794c66; font-family:"Alegreya Sans",sans-serif; }
 .events-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.events-heading-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
+.event-pending { display:block; color:#cfb584; font-size:11px; margin-top:5px; letter-spacing:0; }
+.event-day-marks { position:relative; }
+.event-day-marks>small { position:absolute; right:0; top:-20px; color:#d0b88a; font-size:9px; }
+.event-announcement { display:grid; justify-items:start; gap:12px; margin:auto 0; padding:15px; border:1px solid #92784c55; border-radius:8px; background:#071b2788; }
+.event-announcement>span { color:var(--event-color); font:36px serif; }
+.event-announcement h3 { margin:0; color:#e5ce9e; font-size:18px; }
+.event-announcement p { margin:0; color:#b3c9ca; font-size:14px; line-height:1.5; }
+.birthday-dialog { width:min(90vw,440px); border:1px solid #c5a263; border-radius:12px; padding:24px; background:#0b1b29; color:#e8d9bd; font-family:"Alegreya Sans",sans-serif; }
+.birthday-dialog::backdrop { background:#020913c9; }
+.birthday-dialog h2 { margin:0; color:#efd9a8; font:22px Cinzel,serif; }
+.birthday-dialog p { line-height:1.4; color:#abc1c7; }
+.birthday-dialog form>div { display:flex; gap:16px; margin:18px 0; }
+.birthday-dialog label { display:grid; gap:5px; }
+.birthday-dialog input,.birthday-dialog select { color:#e5d4ae; background:#102637; padding:9px; border:1px solid #917746; border-radius:5px; font:16px "Alegreya Sans",sans-serif; }
+.birthday-dialog input { width:65px; }
+.birthday-dialog small { display:block; color:#b7c4c2; line-height:1.4; }
+.birthday-dialog footer { display:flex; flex-wrap:wrap; gap:7px; margin-top:18px; }
+.location-tower .stage-options { position:absolute; top:100px; right:18px; bottom:18px; left:auto; width:72%; max-height:none; margin:0; padding:0; overflow:auto; }
+.location-stage.location-tower .stage-character:first-child { left:0; width:26%; height:80%; bottom:0; }
+.location-tower .stage-ambient { left:2%; top:104px; bottom:auto; height:auto; width:23%; box-sizing:border-box; padding:13px; font-size:13px; }
+.tower-panel { box-sizing:border-box; min-height:100%; padding:24px; background:linear-gradient(145deg,#0c1d2cf5,#050e18f5); border:1px solid #b69560; border-radius:12px; color:#e6d6b7; font-family:"Alegreya Sans",sans-serif; }
+.tower-panel h2 { color:#f1d8a5; font:700 25px Cinzel,serif; margin:8px 0; }
+.tower-panel header>p,.tower-note { color:#a5bdc3; line-height:1.45; }
+.tower-panel .eyebrow { color:#c2a068; font-size:12px; }
+.tower-challenges { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:18px 0; }
+.tower-challenges article { padding:16px; border:1px solid #8f774e88; border-radius:8px; background:#102635; }
+.tower-challenges img { float:left; margin-right:14px; }
+.tower-challenges small { color:#a8bdc5; }
+.tower-challenges h3 { color:#ebd2a0; margin:5px 0 10px; }
+.tower-challenges p { color:#b2c4c4; font-size:14px; }
+.tower-panel button { min-height:38px; color:#ead4a3; background:#572d3e; border:1px solid #b3975f; padding:8px 13px; border-radius:5px; cursor:pointer; font:700 14px "Alegreya Sans",sans-serif; }
+.tower-panel button:disabled { background:#10212c; opacity:.5; cursor:default; }
+.tower-message { color:#d9b49a; }
+.arena-event-banner { display:flex; align-items:center; gap:12px; padding:7px 12px; border:1px solid #b4965a; border-radius:7px; color:#ead39e; background:#512b3c77; }
+.arena-event-banner strong { flex-shrink:0; }
+.arena-event-banner p { margin:0; color:#c1c8bb; font-size:12px; }
 .events-heading .eyebrow,.events-agenda .eyebrow,.event-live-info .eyebrow { margin:0 0 5px; color:#c4a46d; font-size:11px; letter-spacing:.09em; }
 .events-heading h2 { margin:0; color:#f3ddb2; font:700 clamp(20px,2vw,27px) Cinzel,Georgia,serif; }
 .events-plaza button { box-sizing:border-box; min-height:36px; border:1px solid #876f45; border-radius:5px; padding:7px 11px; background:#0b1c2b; color:#e4d2ae; font:700 13px "Alegreya Sans",sans-serif; cursor:pointer; }
@@ -29,17 +66,28 @@
 .events-calendar th { padding:3px 0; color:#a8babc; font-size:12px; font-weight:700; }
 .events-calendar td { padding:0; vertical-align:top; height:52px; }
 .events-calendar td.event-empty-day { background:#0b1a2588; border-radius:5px; }
-.events-calendar td button { position:relative; display:flex; flex-direction:column; gap:4px; width:100%; height:100%; min-height:52px; padding:5px; border-color:#49616f66; text-align:left; background:#0d2331; }
+.events-calendar td button { position:relative; display:flex; flex-direction:column; gap:2px; width:100%; height:100%; min-height:52px; padding:3px; border-color:#49616f66; text-align:left; background:#0d2331; }
 .events-calendar button[aria-pressed=true] { border-color:#e8bb6b; background:#4f2b3d; box-shadow:inset 0 0 0 1px #e8bb6b66; }
 .events-calendar button[aria-current=date]::after { content:""; position:absolute; right:5px; top:7px; width:5px; height:5px; border-radius:50%; background:#7bd7d5; box-shadow:0 0 5px #7bd7d5aa; }
-.event-day-number { font-size:14px; color:#e7d6b4; }
-.event-day-marks { display:grid; gap:2px; width:100%; }
-.event-day-marks>span { display:block; border-left:3px solid var(--event-color); padding-left:3px; font-size:10px; font-weight:700; line-height:1.2; color:var(--event-color); overflow:hidden; text-overflow:ellipsis; }
+.event-day-number { font-size:13px; line-height:14px; color:#e7d6b4; }
+.event-day-marks { display:grid; gap:1px; width:100%; }
+.event-day-marks>span { display:block; white-space:nowrap; border-left:3px solid var(--event-color); padding-left:3px; font-size:10px; font-weight:700; line-height:10px; color:var(--event-color); overflow:hidden; text-overflow:ellipsis; }
 .events-legend { display:flex; gap:15px; align-items:center; flex-wrap:wrap; padding:3px 5px; }
 .events-legend span { display:flex; gap:6px; align-items:center; color:#aec2c6; font-size:12px; }
 .events-legend i { width:8px; height:8px; border-radius:2px; background:var(--event-color); }
 .events-calendar-note { color:#839fa8; font-size:11px; padding-left:5px; }
 .events-agenda { min-height:0; overflow-y:auto; padding:13px; border:1px solid #8f764b66; border-radius:8px; background:#102532aa; }
+.events-agenda .event-announcement { margin:12px 0; padding:10px; gap:9px; }
+.events-agenda .event-announcement>span { font-size:26px; }
+.events-agenda .event-announcement h4 { margin:0; text-transform:none; color:#e5ce9e; font-size:14px; }
+.events-agenda .event-announcement button { width:100%; }
+.events-agenda .event-guest { display:flex; flex-direction:column; gap:8px; margin:14px 0; }
+.events-agenda .event-guest img { width:100%; height:135px; object-fit:contain; object-position:center bottom; }
+.events-agenda .event-guest h3 { margin:7px 0; }
+.events-agenda .event-guest button { width:100%; }
+.events-agenda .event-activity-progress { margin:12px 0; }
+.events-overlap button { width:100%; text-align:left; }
+.events-overlap button[aria-pressed=true] { border-color:#e8bb6b; background:#4f2b3d; }
 .events-agenda h3 { margin:0 0 8px; color:#e8d1a5; font:700 15px Cinzel,Georgia,serif; }
 .events-agenda h4 { margin:17px 0 10px; color:#c9ad7a; font-size:13px; text-transform:capitalize; }
 .event-free-day,.events-agenda p { color:#a3bbc4; font-size:13px; line-height:1.4; }
@@ -109,6 +157,7 @@
   .events-calendar-card { min-height:420px; }
   .events-agenda,.event-live-info { overflow:visible; }
   .event-live-stage { min-height:360px; }
+  .tower-challenges { grid-template-columns:1fr; }
 }
 @media (max-width:650px) {
   .location-stage.location-event { min-height:1500px; }
@@ -120,4 +169,8 @@
   .events-calendar td button { padding:4px; }
   .event-day-marks>span { font-size:9px; padding-left:2px; }
   .event-guest { grid-template-columns:100px minmax(0,1fr); }
+  .location-stage.location-tower { min-height:1500px; }
+  .location-stage.location-tower .stage-character:first-child { width:35%; height:240px; top:0; bottom:auto; }
+  .location-tower .stage-options { position:relative; inset:auto; width:96%; margin:250px auto 14px; }
+  .location-tower .stage-ambient { left:36%; top:25px; width:60%; }
 }

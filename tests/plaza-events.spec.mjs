@@ -1,108 +1,198 @@
 import { test, expect } from "@playwright/test";
-
+import { ensurePhaser } from "./helpers/phaser-loader.mjs";
+const withIntroductions = (save, ...ids) => ({ ...save, campaign: { ...save.campaign, npcIntroductions: [...save.campaign.npcIntroductions, ...ids] } });
 const read = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
-async function enterPlaza(page) {
-  await page.locator('[data-go="event"]').click();
-  const next = page.locator('.location-event [data-stage-speech]:not(.leaving) [data-stage-next]');
-  for (let i = 0; i < 5 && await next.isVisible(); i++) await next.click();
-  await expect(page.locator(".events-plaza")).toBeVisible();
+async function dismiss(page) {
+  const next = page.locator('[data-stage-speech]:not(.leaving) [data-stage-next]');
+  for (let i = 0; i < 8 && await next.isVisible(); i++) await next.click();
 }
+async function enterPlaza(page) { await page.locator('[data-go="event"]').click(); await dismiss(page); await expect(page.locator(".events-plaza")).toBeVisible(); }
 async function seed(page, time, bodyType = "male") {
-  await page.clock.install({ time: new Date(time) });
-  await page.goto("/");
+  await page.clock.install({ time: new Date(time) }); await page.goto("/");
   await page.evaluate(async bodyType => {
-    const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.123.0");
+    const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.127.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType });
-    save.campaign.tutorialSeen = true; save.progression.coins = 75; save.guild.room.wall = "plum"; save.inventory.items.health_potion = 2;
+    save.campaign.tutorialSeen = true; save.progression.coins = 75; save.inventory.items.health_potion = 2;
     writeSave(save); sessionStorage.setItem("cronicas-save-slot-selected", "1");
+    localStorage.setItem("music-enabled", "off"); localStorage.setItem("seal-input-mode", "automatic");
   }, bodyType);
   await page.reload(); await enterPlaza(page);
 }
-
-for (const viewport of [{ width: 1600, height: 900 }, { width: 1280, height: 720 }]) test(`calendario mensual completo, fechas marcadas y contador a ${viewport.width}×${viewport.height}`, async ({ page }, testInfo) => {
-  await page.setViewportSize(viewport); await seed(page, "2026-11-05T16:00:00Z");
-  const baseline = await read(page);
+for (const viewport of [{ width: 1600, height: 900 }, { width: 1280, height: 720 }]) test(`calendario anual con domingos y todas las fechas a ${viewport.width}×${viewport.height}`, async ({ page }, testInfo) => {
+  await page.setViewportSize(viewport); await seed(page, "2026-11-03T16:00:00Z"); const baseline = await read(page);
   await expect(page.getByRole("button", { name: "Hablar con Nao Matsuri" })).toBeVisible();
-  await expect(page.locator(".events-calendar")).toBeVisible();
+  await expect(page.locator(".events-calendar th").first()).toHaveText("Dom");
+  await expect(page.locator(".events-calendar tbody td").first().locator("button")).toHaveAttribute("data-event-day", "2026-11-01");
   await expect(page.locator("[data-event-day]")).toHaveCount(30);
-  await expect(page.locator('[data-event-day="2026-11-06"]')).toContainText("Festival");
-  await expect(page.locator('[data-event-day="2026-11-15"]')).toContainText("Visita");
-  await expect(page.locator('[data-event-day="2026-11-24"]')).toContainText("Temporal");
-  await expect(page.locator('[data-event-day="2026-11-05"]')).toHaveAttribute("aria-current", "date");
-  await expect(page.locator("[data-event-countdown]>strong")).toHaveText(/1\s*día/);
+  for (const [day, title] of [[5, "Día de Agua"], [11, "Bitsfury"], [12, "Día de Tierra"], [13, "segundo viernes"], [19, "Día de Fuego"], [26, "Día de Aire"], [27, "último viernes"], [28, "Festival elemental"], [30, "Fin de Aki"]]) await expect(page.locator(`[data-event-day="2026-11-${String(day).padStart(2, "0")}"]`)).toHaveAttribute("aria-label", new RegExp(title));
+  await expect(page.locator("[data-event-countdown]>strong")).toHaveText(/2\s*días/);
+  await page.locator('[data-event-day="2026-11-13"]').focus(); await page.locator('[data-event-day="2026-11-13"]').press("ArrowRight");
+  await expect(page.locator('[data-event-day="2026-11-14"]')).toBeFocused();
   const layout = await page.locator(".events-plaza").evaluate(panel => {
-    const bounds = panel.getBoundingClientRect(), person = document.querySelector('[data-stage-npc="nao"]').getBoundingClientRect();
-    const calendar = panel.querySelector(".events-calendar").getBoundingClientRect();
-    return { separate: person.right < bounds.left, fits: bounds.bottom <= innerHeight && bounds.right <= innerWidth && calendar.bottom <= bounds.bottom, overflow: panel.scrollWidth - panel.clientWidth };
+    const box = panel.getBoundingClientRect(), calendar = panel.querySelector(".events-calendar").getBoundingClientRect();
+    return { fits: box.right <= innerWidth && box.bottom <= innerHeight && calendar.bottom <= box.bottom, overflow: panel.scrollWidth > panel.clientWidth };
   });
-  expect(layout).toEqual({ separate: true, fits: true, overflow: 0 });
-  await page.screenshot({ path: testInfo.outputPath("calendario-completo.png") });
+  expect(layout).toEqual({ fits: true, overflow: false });
+  await page.screenshot({ path: testInfo.outputPath("calendario-anual.png") });
   await page.getByRole("button", { name: "Mes siguiente", exact: true }).click();
-  await expect(page.locator(".events-month-nav h3")).toContainText("diciembre de 2026");
-  await expect(page.locator("[data-event-day]")).toHaveCount(31);
-  await page.getByRole("button", { name: "Mes siguiente", exact: true }).click();
-  await expect(page.locator(".events-month-nav h3")).toContainText("enero de 2027");
-  await page.getByRole("button", { name: "Hoy", exact: true }).click();
-  await page.locator('[data-event-day="2026-11-06"]').click();
-  await expect(page.locator(".event-detail h3")).toHaveText("Festival de los faroles");
-  await expect(page.locator("[data-open-live]")).toHaveCount(0);
+  await expect(page.locator('[data-event-day="2026-12-01"]')).toHaveAttribute("aria-label", /Inicio de Fuyu/);
+  await expect(page.locator('[data-event-day="2026-12-25"]')).toHaveAttribute("aria-label", /Navidad/);
+  await expect(page.locator('[data-event-day="2026-12-31"]')).toHaveAttribute("aria-label", /Fin de año/);
   expect(await read(page)).toEqual(baseline);
   expect(await page.evaluate(() => Boolean(window.Phaser))).toBe(false);
 });
-
-test("el festival reemplaza automáticamente al calendario y guarda los faroles hasta que termine", async ({ page }, testInfo) => {
-  await seed(page, "2026-11-05T16:00:00Z");
-  const before = await read(page);
-  await page.clock.setSystemTime(new Date("2026-11-06T04:00:00Z"));
-  await page.clock.runFor(31000);
-  await expect(page.locator('[data-live-event="lantern-festival"]')).toBeVisible();
-  await expect(page.locator(".events-calendar")).toHaveCount(0);
-  await page.locator('[data-light-lantern="0"]').click(); await page.locator('[data-light-lantern="2"]').click();
-  await page.screenshot({ path: testInfo.outputPath("festival-activo.png") });
-  await page.reload(); await enterPlaza(page);
-  await expect(page.locator('[data-light-lantern="0"]')).toBeDisabled();
-  await expect(page.locator('[data-light-lantern="2"]')).toBeDisabled();
-  await page.locator('[data-light-lantern="1"]').click();
-  await expect(page.locator(".event-completed")).toBeVisible();
-  const after = await read(page);
-  expect(after.events.participation["lantern-festival@2026-11-06"].steps).toEqual([0, 1, 2]);
-  expect({ ...after, events: before.events }).toEqual(before);
-  await page.getByRole("button", { name: "Consultar calendario" }).click();
+test("Nao comenta la fecha seleccionada con ratón y teclado sin cerrar el calendario", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await seed(page, "2026-11-03T16:00:00Z"); const before = await read(page);
+  const bubble = page.locator(".location-event [data-stage-ambient]"), speech = bubble.locator("[data-ambient-text]");
+  await page.locator('[data-event-day="2026-11-05"]').click();
+  await expect(bubble).toBeVisible();
+  await expect(bubble.locator("[data-ambient-speaker]")).toContainText("Nao Matsuri");
+  await expect(speech).toContainText("Día de Agua"); await expect(speech).toContainText("Torre de Desafíos");
+  await page.locator('[data-event-day="2026-11-11"]').click();
+  await expect(speech).toContainText("Bitsfury Arena"); await expect(speech).toContainText("servidor");
+  await page.locator('[data-event-day="2026-11-11"]').focus();
+  await page.locator('[data-event-day="2026-11-11"]').press("ArrowRight");
+  await expect(page.locator('[data-event-day="2026-11-12"]')).toBeFocused();
+  await expect(speech).toContainText("Día de Tierra");
+  await page.locator('[data-event-day="2026-11-14"]').click();
+  await expect(speech).toContainText("no hay actividades programadas");
+  await page.locator('[data-event-day="2026-11-30"]').click();
+  await expect(speech).toContainText("Festival elemental"); await expect(speech).toContainText("Fin de Aki");
+  await page.clock.runFor(7000); await expect(bubble).toBeVisible();
+  const boxes = await bubble.evaluate(element => { const bubble = element.getBoundingClientRect(), calendar = document.querySelector(".events-plaza").getBoundingClientRect(); return { separate: bubble.right < calendar.left, fits: bubble.bottom < innerHeight }; });
+  expect(boxes).toEqual({ separate: true, fits: true });
   await expect(page.locator(".events-calendar")).toBeVisible();
-  await page.getByRole("button", { name: "Volver al evento en curso" }).click();
-  await expect(page.locator('[data-live-event="lantern-festival"]')).toBeVisible();
-  await page.clock.setSystemTime(new Date("2026-11-09T04:00:00Z")); await page.clock.runFor(31000);
-  await expect(page.locator(".events-calendar")).toBeVisible();
-  await expect(page.locator("[data-live-event]")).toHaveCount(0);
-  await expect(page.locator("[data-event-countdown]>strong")).toHaveText(/6\s*días/);
+  await page.screenshot({ path: testInfo.outputPath("nao-actividades-del-dia.png") });
+  await page.getByRole("button", { name: "Mes siguiente", exact: true }).click();
+  await expect(speech).toContainText("Inicio de Fuyu");
+  await page.getByRole("button", { name: "Hoy", exact: true }).click();
+  await expect(speech).toContainText("Hoy no hay actividades programadas");
+  expect(await read(page)).toEqual(before);
 });
 
-test("la visita muestra al personaje y conserva al maestro y la campaña", async ({ page }, testInfo) => {
-  await seed(page, "2026-11-15T16:00:00Z", "female");
-  const before = await read(page);
-  await expect(page.locator('[data-live-event="mei-visit"]')).toBeVisible();
-  await expect(page.locator(".event-guest img")).toHaveAttribute("alt", "Mei Hayate");
+test("el bocadillo de Nao ofrece accesos para una o varias actividades", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await seed(page, "2026-11-03T16:00:00Z"); const before = await read(page);
+  const bubble = page.locator(".location-event [data-stage-ambient]");
+  await page.getByRole("button", { name: "Mes anterior", exact: true }).click();
+  await page.locator('[data-event-day="2026-10-05"]').click();
+  await expect(bubble).toContainText("Esa fecha ya pasó");
+  await expect(bubble.locator("[data-stage-action]")).toHaveCount(1);
+  await bubble.getByRole("button", { name: "Ir a la Torre de Desafíos", exact: true }).click(); await dismiss(page);
+  await expect(page.locator(".tower-panel")).toBeVisible();
+  await expect(page.locator("[data-start-tower]:enabled")).toHaveCount(0);
+  await page.getByRole("button", { name: "← Volver al mapa" }).click();
+  await page.clock.setSystemTime(new Date("2027-02-26T16:00:00Z")); await enterPlaza(page);
+  await page.locator('[data-event-day="2027-02-26"]').click();
+  await expect(bubble.locator("[data-stage-action]")).toHaveCount(3);
+  await expect(bubble.getByRole("button", { name: "Ir a la Torre de Desafíos", exact: true })).toBeEnabled();
+  await expect(bubble.getByRole("button", { name: "Ir a la Arena de Combate", exact: true })).toBeEnabled();
+  await bubble.getByRole("button", { name: "Ver visita del último viernes", exact: true }).click();
+  await expect(page.locator('[data-event-detail="last-friday-visit"]')).toBeVisible();
+  await expect(page.getByRole("button", { name: "Conversar con Daichi Kazan" })).toBeFocused();
+  await expect(page.getByRole("button", { name: "Conversar con Daichi Kazan" })).toBeInViewport();
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  const fits = await bubble.evaluate(element => { const box = element.getBoundingClientRect(), calendar = document.querySelector(".events-plaza").getBoundingClientRect(); return box.bottom <= innerHeight && box.right < calendar.left; });
+  expect(fits).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath("nao-accesos-actividades.png") });
+  await bubble.getByRole("button", { name: "Ir a la Arena de Combate", exact: true }).click(); await dismiss(page);
+  await expect(page.locator(".arena-panel")).toBeVisible();
+  await expect(page.locator(".arena-event-banner")).toContainText("Festival elemental");
+  await page.getByRole("button", { name: "← Volver al mapa" }).click(); await enterPlaza(page);
+  await page.locator('[data-event-day="2027-02-15"]').click();
+  await expect(bubble.locator("[data-stage-action]")).toHaveCount(0);
+  await page.locator('[data-event-day="2027-02-11"]').click();
+  await expect(bubble.getByRole("button", { name: "Bitsfury Arena · Pendiente de servidor" })).toBeDisabled();
+  expect(await read(page)).toEqual(withIntroductions(before, "tower:kureha", "arena:goro"));
+});
+
+test("cumpleaños personal editable, validado y conservado al recargar", async ({ page }) => {
+  await seed(page, "2026-11-03T16:00:00Z"); const baseline = await read(page);
+  await page.getByRole("button", { name: "Mi cumpleaños", exact: true }).click();
+  const dialog = page.locator("[data-birthday-dialog]");
+  await dialog.locator("select").selectOption("2"); await dialog.locator("input").fill("31");
+  await dialog.getByRole("button", { name: "Guardar fecha" }).click(); await expect(dialog).toBeVisible();
+  expect((await read(page)).character.birthday).toBeNull();
+  await dialog.locator("input").fill("29"); await dialog.getByRole("button", { name: "Guardar fecha" }).click();
+  await expect(dialog).not.toBeVisible(); const saved = await read(page);
+  expect(saved.character.birthday).toEqual({ month: 2, day: 29 });
+  expect({ ...saved, character: { ...saved.character, birthday: null } }).toEqual(baseline);
+  for (let i = 0; i < 3; i++) await page.getByRole("button", { name: "Mes siguiente", exact: true }).click();
+  await expect(page.locator('[data-event-day="2027-02-28"]')).toHaveAttribute("aria-label", /Cumpleaños de Akio/);
+  await page.reload(); await enterPlaza(page); expect((await read(page)).character.birthday).toEqual(saved.character.birthday);
+});
+test("visita del segundo viernes con diálogo y participación por edición", async ({ page }) => {
+  await seed(page, "2026-11-13T16:00:00Z", "female"); const before = await read(page);
+  await expect(page.locator('[data-event-detail="second-friday-visit"]')).toBeVisible();
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  await page.locator('[data-event-day="2026-11-14"]').click();
+  await expect(page.locator("[data-event-talk]")).toHaveCount(0);
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  await page.locator('[data-event-day="2026-11-13"]').click();
   await page.getByRole("button", { name: "Conversar con Mei Hayate" }).click();
   const dialogue = page.locator(".dialogue-overlay");
   for (let i = 0; i < 5 && await dialogue.isVisible(); i++) await dialogue.locator("button").click();
-  await expect(page.locator(".event-completed")).toBeVisible();
-  const after = await read(page);
-  expect(after.events.participation["mei-visit@2026-11-15"].steps).toEqual([0]);
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  await expect(page.locator(".event-completed")).toBeVisible(); const after = await read(page);
+  expect(after.events.participation["second-friday-visit@2026-11-13"].steps).toEqual([0]);
   expect({ ...after, events: before.events }).toEqual(before);
   expect(after.character.masterId).toBe("daichi");
-  await page.screenshot({ path: testInfo.outputPath("visita-mei.png") });
 });
-
-test("el evento temporal permite corregir respuestas y cada edición comienza de nuevo", async ({ page }, testInfo) => {
-  await seed(page, "2026-11-24T16:00:00Z");
-  await expect(page.locator('[data-live-event="elemental-trial"]')).toBeVisible();
-  await page.locator('[data-event-answer="fuego"]').click();
-  await expect(page.locator(".events-feedback")).toContainText("intentarlo");
-  for (const answer of ["agua", "tierra", "viento"]) await page.locator(`[data-event-answer="${answer}"]`).click();
-  await expect(page.locator(".event-quiz-complete")).toBeVisible();
-  await page.screenshot({ path: testInfo.outputPath("desafio-temporal.png") });
-  await page.clock.setSystemTime(new Date("2026-12-24T16:00:00Z")); await page.clock.runFor(31000);
-  await expect(page.locator(".event-quiz>small")).toHaveText("PREGUNTA 1 DE 3");
-  expect((await read(page)).events.participation["elemental-trial@2026-11-24"].steps).toEqual([0, 1, 2]);
-  expect((await read(page)).events.participation["elemental-trial@2026-12-24"]).toBeUndefined();
+test("visita Bitsfury pendiente y festival simultáneo al fin de Aki", async ({ page }, testInfo) => {
+  await seed(page, "2026-11-11T16:00:00Z"); const baseline = await read(page);
+  await expect(page.locator('[data-event-detail="bitsfury-visit"]')).toContainText("Pendiente de servidor");
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Requiere conexión al servidor" })).toBeDisabled();
+  await expect(page.locator(".event-activity-progress")).toHaveCount(0);
+  await page.clock.setSystemTime(new Date("2026-11-30T16:00:00Z")); await page.clock.runFor(31000);
+  await page.getByRole("button", { name: "Festival elemental", exact: true }).click();
+  await expect(page.locator('[data-event-detail="elemental-festival"]')).toContainText("Combates especiales por definir");
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  await expect(page.locator('[data-event-day="2026-11-30"]')).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "Fin de Aki", exact: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath("festival-estacion.png") });
+  await page.getByRole("button", { name: "Ver Arena de Combate" }).click(); await dismiss(page);
+  await expect(page.locator(".arena-event-banner")).toContainText("pendientes de definir");
+  expect(await read(page)).toEqual(withIntroductions(baseline, "arena:goro"));
+  await page.getByRole("button", { name: "← Volver al mapa" }).click();
+  await page.clock.setSystemTime(new Date("2027-02-26T16:00:00Z")); await enterPlaza(page);
+  await expect(page.locator(".events-overlap [data-select-event]")).toHaveCount(3);
+  for (const name of ["Día de Aire", "Visita del último viernes", "Festival elemental"]) {
+    await page.getByRole("button", { name, exact: true }).click();
+    await expect(page.locator(".event-detail>h3")).toHaveText(name);
+    await expect(page.locator(".events-calendar")).toBeVisible();
+  }
+});
+test("el día elemental abre un minijefe real y guarda solo la victoria de su edición", async ({ page }, testInfo) => {
+  test.setTimeout(120000); const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await seed(page, "2026-11-04T16:00:00Z"); const baseline = await read(page);
+  await page.clock.setSystemTime(new Date("2026-11-05T16:00:00Z")); await page.clock.runFor(31000);
+  await expect(page.locator('[data-event-detail="element-day-agua"]')).toBeVisible();
+  await expect(page.locator(".events-calendar")).toBeVisible();
+  await page.getByRole("button", { name: "Ir a la Torre de Desafíos" }).click(); await dismiss(page);
+  await expect(page.getByRole("button", { name: "Hablar con Kureha Tsukikage" })).toBeVisible();
+  await expect(page.locator("[data-start-tower]:enabled")).toHaveCount(1);
+  await expect(page.locator(".location-tower [data-stage-options]")).toHaveCSS("opacity", "1");
+  await page.screenshot({ path: testInfo.outputPath("torre-elemental.png") });
+  await ensurePhaser(page);
+  await page.evaluate(() => { const Original = Phaser.Game; Phaser.Game = class extends Original { constructor(config) { super(config); window.__towerGame = this; } }; });
+  await page.locator("[data-start-tower]:enabled").click();
+  await page.waitForFunction(() => window.__towerGame?.scene.isActive("battle") && window.__towerGame.scene.getScene("battle").accessibleHud, null, { timeout: 40000 });
+  expect(await page.evaluate(() => { const scene = window.__towerGame.scene.getScene("battle"); scene.stopTurnTimeline(); return { affinity: scene.enemy.primaryAffinity, boss: scene.enemy.boss, background: scene.textures.exists("elemental-tower") }; })).toEqual({ affinity: "agua", boss: true, background: true });
+  expect(await page.evaluate(async () => { const scene = window.__towerGame.scene.getScene("battle"); scene.busy = false; scene.turnReady = true; await scene.useJutsu(scene.actions[0]); scene.stopTurnTimeline(); return scene.round; })).toBeGreaterThanOrEqual(2);
+  await page.screenshot({ path: testInfo.outputPath("minijefe-combate.png") });
+  await page.evaluate(async () => { const scene = window.__towerGame.scene.getScene("battle"); scene.enemy.hp = 0; await scene.finishBattle(true); });
+  await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Volver a la Torre", exact: true }).click();
+  await expect(page.locator(".tower-panel")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Repetir desafío" })).toBeEnabled();
+  const after = await read(page); expect(after.events.participation["element-day-agua@2026-11-05"].steps).toEqual([0]);
+  expect({ ...after, events: baseline.events }).toEqual(withIntroductions(baseline, "tower:kureha"));
+  await page.getByRole("button", { name: "Repetir desafío" }).click();
+  await page.waitForFunction(() => window.__towerGame.scene.isActive("battle") && !window.__towerGame.scene.getScene("battle").finished);
+  await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
+  await page.getByRole("button", { name: "VOLVER A LA TORRE", exact: true }).click();
+  await expect(page.locator(".tower-panel")).toBeVisible(); expect(await read(page)).toEqual(after);
+  expect(errors).toEqual([]);
 });

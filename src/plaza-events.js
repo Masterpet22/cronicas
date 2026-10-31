@@ -1,6 +1,6 @@
-import { PLAZA_EVENTS } from "./content/plaza-events.js?v=0.123.0";
-import { AFFINITY_IDS, affinityCycleModifier } from "./affinity-system.js?v=0.114.0";
-export { PLAZA_EVENTS, EVENT_TYPES } from "./content/plaza-events.js?v=0.123.0";
+import { PLAZA_EVENTS } from "./content/plaza-events.js?v=0.130.0";
+import { normalizeBirthday } from "./birthday.js?v=0.127.0";
+export { PLAZA_EVENTS, EVENT_TYPES } from "./content/plaza-events.js?v=0.130.0";
 export const EVENT_TIME_ZONE = "America/La_Paz";
 const DAY = 86400000;
 const pad = value => String(value).padStart(2, "0");
@@ -31,7 +31,7 @@ export const monthLength = monthKey => {
 };
 export function calendarMonth(monthKey) {
   const first = `${monthKey}-01`, length = monthLength(monthKey);
-  const offset = (new Date(dateNumber(first) * DAY).getUTCDay() + 6) % 7;
+  const offset = new Date(dateNumber(first) * DAY).getUTCDay();
   return Array.from({ length: 42 }, (_, index) => index >= offset && index < offset + length ? `${monthKey}-${pad(index - offset + 1)}` : null);
 }
 export const monthLabel = monthKey => new Intl.DateTimeFormat("es-BO", { timeZone: "UTC", month: "long", year: "numeric" }).format(new Date(dateNumber(`${monthKey}-01`) * DAY));
@@ -43,10 +43,20 @@ function occurrence(event, monthKey) {
   let start = event.schedule?.start, end = event.schedule?.end || start;
   if (recurring) {
     if (recurring.months && !recurring.months.includes(Number(monthKey.slice(5)))) return null;
-    if (recurring.from > monthLength(monthKey)) return null;
-    start = `${monthKey}-${pad(recurring.from)}`;
-    const endMonth = recurring.to < recurring.from ? shiftMonth(monthKey, 1) : monthKey;
-    end = `${endMonth}-${pad(Math.min(recurring.to, monthLength(endMonth)))}`;
+    const length = monthLength(monthKey);
+    let from = recurring.from, to = recurring.to ?? from;
+    if (recurring.lastDays) { from = length - recurring.lastDays + 1; to = length; }
+    else if (Number.isInteger(recurring.weekday)) {
+      const firstWeekday = new Date(dateNumber(`${monthKey}-01`) * DAY).getUTCDay();
+      from = recurring.ordinal === -1 ? length - ((new Date(dateNumber(`${monthKey}-${pad(length)}`) * DAY).getUTCDay() - recurring.weekday + 7) % 7) : 1 + (recurring.weekday - firstWeekday + 7) % 7 + (recurring.ordinal - 1) * 7;
+      to = from;
+    }
+    from = from < 0 ? length + from + 1 : from; to = to < 0 ? length + to + 1 : to;
+    if (recurring.clampDay) { from = Math.min(from, length); to = Math.min(to, length); }
+    if (from < 1 || from > length) return null;
+    start = `${monthKey}-${pad(from)}`;
+    const endMonth = to < from ? shiftMonth(monthKey, 1) : monthKey;
+    end = `${endMonth}-${pad(Math.min(to, monthLength(endMonth)))}`;
   }
   const startDay = dateNumber(start), endDay = dateNumber(end);
   if (!Number.isFinite(startDay) || !Number.isFinite(endDay) || endDay < startDay) return null;
@@ -103,36 +113,58 @@ export function normalizeEventState(candidate) {
     const event = eventByKey(key);
     if (!event || !Array.isArray(record?.steps)) continue;
     let steps = [...new Set(record.steps.filter(step => Number.isInteger(step) && step >= 0 && step < event.steps))].sort((a, b) => a - b);
-    if (event.activity === "quiz") steps = steps.filter((step, index) => step === index);
     participation[key] = { steps };
   }
   return { participation };
 }
 export function eventProgress(save, event) {
   const steps = normalizeEventState(save.events).participation[event.key]?.steps || [];
-  return { steps, count: steps.length, required: event.steps, completed: steps.length >= event.steps };
+  return { steps, count: steps.length, required: event.steps || 0, completed: Boolean(event.steps && steps.length >= event.steps) };
 }
-export function eventQuizQuestion(index) {
-  const target = ["fuego", "agua", "tierra"][index];
-  return target && { target, answer: AFFINITY_IDS.find(id => affinityCycleModifier(id, target) > 0), options: AFFINITY_IDS };
+export function eventCatalog(save) {
+  const birthday = normalizeBirthday(save?.character?.birthday);
+  if (!birthday) return PLAZA_EVENTS;
+  return [...PLAZA_EVENTS, { id: "player-birthday", title: `Cumpleaños de ${save.character.name}`, shortLabel: "Cumpleaños", type: "birthday", activity: "announcement",
+    schedule: { monthly: { from: birthday.day, to: birthday.day, months: [birthday.month], clampDay: true } },
+    summary: "La aldea celebra tu cumpleaños.", description: "Has elegido esta fecha para tu personaje. Puedes cambiarla desde Mi cumpleaños." }];
+}
+export function calendarDayActions(save, day) {
+  return eventsBetween(day, day, eventCatalog(save)).flatMap(event => {
+    if (event.destination === "tower") return [{ label: "Ir a la Torre de Desafíos", destination: "tower", eventKey: event.key }];
+    if (event.destination === "arena") return [{ label: "Ir a la Arena de Combate", destination: "arena", eventKey: event.key }];
+    if (event.pending === "server") return [{ label: "Bitsfury Arena · Pendiente de servidor", disabled: true, eventKey: event.key }];
+    if (event.activity === "conversation") return [{ label: `Ver ${event.title.toLowerCase()}`, eventKey: event.key }];
+    return [];
+  });
+}
+export function calendarDayComment(save, day, today = worldDate()) {
+  if (!Number.isFinite(dateNumber(day))) return "Selecciona una fecha válida en el calendario.";
+  const events = eventsBetween(day, day, eventCatalog(save));
+  const when = day === today ? "Hoy" : `El ${dateLabel(day)}`;
+  if (!events.length) return `${when} no hay actividades programadas. Puedes consultar otra fecha en el calendario.`;
+  const descriptions = events.map(event => {
+    if (event.pending === "server") return "Visita especial de Bitsfury Arena: pendiente de la conexión al servidor.";
+    if (event.pending === "details") return "Festival elemental: combates especiales en la Arena, todavía por definir.";
+    if (event.activity === "tower") return `${event.title}: un minijefe te espera en la Torre de Desafíos.`;
+    if (event.activity === "conversation") return event.summary;
+    if (event.type === "season") return `${event.title}.`;
+    if (event.type === "birthday") return `${event.title}. ¡Una fecha para celebrar en la aldea!`;
+    return `${event.title}. ${event.summary}`;
+  });
+  const status = day < today ? " Esa fecha ya pasó." : day > today ? " Esta fecha aún no ha llegado." : "";
+  return `${when}: ${descriptions.join(" ")}${status}`;
 }
 export function actOnPlazaEvent(save, key, action, value, today = worldDate()) {
-  const event = eventByKey(key), day = dateNumber(today);
+  const event = eventByKey(key, eventCatalog(save)), day = dateNumber(today);
   const fail = message => ({ ok: false, save, message });
   if (!event || !Number.isFinite(day) || day < event.startDay || day > event.endDay) return fail("Este evento no está activo. Consulta las próximas fechas del calendario.");
   const progress = eventProgress(save, event);
   if (progress.completed) return fail("Ya completaste esta edición del evento.");
-  let step;
-  if (event.activity === "lanterns" && action === "light" && Number.isInteger(value) && value >= 0 && value < event.steps) step = value;
-  else if (event.activity === "conversation" && action === "talk") step = 0;
-  else if (event.activity === "quiz" && action === "answer") {
-    if (value !== eventQuizQuestion(progress.count)?.answer) return fail("Esa afinidad no tiene ventaja contra el objetivo. Puedes intentarlo de nuevo.");
-    step = progress.count;
-  } else return fail("Actividad no disponible.");
-  if (progress.steps.includes(step)) return fail("Ese farol ya está encendido.");
+  if (!(event.activity === "conversation" && action === "talk" || event.activity === "tower" && action === "victory")) return fail("Actividad no disponible.");
+  const step = 0;
   const events = normalizeEventState(save.events);
   events.participation[key] = { steps: [...progress.steps, step].sort((a, b) => a - b) };
   const completed = events.participation[key].steps.length >= event.steps;
   return { ok: true, save: { ...save, events }, completed,
-    message: completed ? "¡Participación completada! Tu participación en esta edición queda guardada." : event.activity === "quiz" ? "Respuesta correcta. Continúa con la siguiente pregunta." : "Farol encendido. Tu participación se ha guardado." };
+    message: "¡Participación completada! Tu participación en esta edición queda guardada." };
 }

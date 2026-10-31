@@ -1,8 +1,8 @@
-import { ITEMS } from "../items.js?v=0.114.0";
-import { countItem, missionItemEffect, removeItem } from "../inventory.js?v=0.114.0";
-import { writeSave } from "../save.js?v=0.123.0";
+import { ITEMS } from "../items.js?v=0.126.0";
+import { countItem, missionItemEffect, removeItem } from "../inventory.js?v=0.126.0";
+import { writeSave } from "../save.js?v=0.131.0";
 import { battleRuntime } from "./session.js?v=1.0.0";
-import { itemIcon } from "../ui/item-icons.js?v=0.114.0";
+import { itemIcon } from "../ui/item-icons.js?v=0.126.0";
 
 // Los gastos se guardan contra el inicio de misión, nunca contra las recompensas
 // provisionales. Se sincronizan todas las copias para que ni retirada ni victoria

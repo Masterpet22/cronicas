@@ -3,12 +3,12 @@ import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.123.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.123.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.123.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { attackBaseDamage, resolveDamage, splitDamageAcrossHits } from "../damage.js?v=0.114.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";

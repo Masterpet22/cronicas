@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
 
+async function finishIntro(page) {
+  const next = page.locator('[data-stage-speech]:not(.leaving) [data-stage-next]');
+  for (let i = 0; i < 4 && await next.isVisible(); i++) await next.click();
+  await expect(page.locator('[data-stage-speech]')).toBeHidden();
+}
 async function seedDojo(page, bodyType, unlocked = false) {
   await page.goto("/");
   await page.evaluate(async ({ bodyType, unlocked }) => {
@@ -12,7 +17,7 @@ async function seedDojo(page, bodyType, unlocked = false) {
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
   }, { bodyType, unlocked });
   await page.reload();
-  await page.locator('[data-go="dojo"]').click();
+  await page.locator('[data-go="dojo"]').click(); await finishIntro(page);
 }
 
 for (const { viewport, bodyType, master } of [
@@ -63,12 +68,12 @@ test("cambiar de maestro actualiza el retrato lateral y lo conserva al recargar"
   await expect(page.locator('.location-dojo [data-stage-npc="mei"]')).toBeVisible();
   await page.locator('[data-dojo-tab="equipment"]').click();
   await page.locator("[data-open-master]").click();
-  await page.locator('.master-modal [data-master="daichi"]').click();
+  await page.locator('.master-modal [data-master="daichi"]').click(); await finishIntro(page);
   await expect(page.locator('.location-dojo [data-stage-npc="daichi"]')).toBeVisible();
   await expect(page.locator('.location-dojo [data-stage-npc="mei"]')).toHaveCount(0);
   await expect(page.locator(".master-summary-card")).toContainText("Daichi Kazan");
   expect(await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).character.masterId)).toBe("daichi");
   await page.reload();
-  await page.locator('[data-go="dojo"]').click();
+  await page.locator('[data-go="dojo"]').click(); await finishIntro(page);
   await expect(page.locator('.location-dojo [data-stage-npc="daichi"]')).toBeVisible();
 });

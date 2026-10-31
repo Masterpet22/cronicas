@@ -2,7 +2,7 @@ import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  testMatch: ["plaza-events.spec.mjs", "arena.spec.mjs", "dojo-host.spec.mjs", "guild.spec.mjs", "skin-tones.spec.mjs", "smoke.spec.mjs", "preparation-pose.spec.mjs", "shop.spec.mjs", "render-settings.spec.mjs", "hud-resources.spec.mjs", "mission-retry.spec.mjs", "story-discovery.spec.mjs", "lazy-loading.spec.mjs", "icon-cache.spec.mjs", "dojo-techniques.spec.mjs", "transportation.spec.mjs", "combat-tutorial.spec.mjs", "character-creator.spec.mjs", "doctor-route.spec.mjs", "doctor-cipher.spec.mjs", "elemental-effects.spec.mjs", "level-up.spec.mjs", "mission-transitions.spec.mjs", "phase-transitions.spec.mjs", "performance.spec.mjs", "arena-visuals.spec.mjs"],
+  testMatch: ["location-conversations.spec.mjs", "guild-shop.spec.mjs", "plaza-events.spec.mjs", "arena.spec.mjs", "dojo-host.spec.mjs", "guild.spec.mjs", "skin-tones.spec.mjs", "smoke.spec.mjs", "preparation-pose.spec.mjs", "shop.spec.mjs", "render-settings.spec.mjs", "hud-resources.spec.mjs", "mission-retry.spec.mjs", "story-discovery.spec.mjs", "lazy-loading.spec.mjs", "icon-cache.spec.mjs", "dojo-techniques.spec.mjs", "transportation.spec.mjs", "combat-tutorial.spec.mjs", "character-creator.spec.mjs", "doctor-route.spec.mjs", "doctor-cipher.spec.mjs", "elemental-effects.spec.mjs", "level-up.spec.mjs", "mission-transitions.spec.mjs", "phase-transitions.spec.mjs", "performance.spec.mjs", "arena-visuals.spec.mjs"],
   timeout: 90_000,
   expect: { timeout: 8_000 },
   fullyParallel: false,
