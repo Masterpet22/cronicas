@@ -1,0 +1,46 @@
+/* Selección discreta sobre el dibujo original, con la misma luz para ratón y teclado. */
+.village-map .village-hotspot .hotspot-shape,
+.village-map .village-hotspot:is(:hover, :focus-visible, .is-highlighted, .is-entering) .hotspot-shape {
+  fill: transparent; stroke: transparent; filter: none;
+}
+.hotspot-shape { pointer-events: all; }
+.hotspot-contour {
+  fill: none; stroke: #f6d585; stroke-width: 1.7px; stroke-linejoin: round;
+  vector-effect: non-scaling-stroke; opacity: 0;
+  filter: drop-shadow(0 0 3px #d9a04b) drop-shadow(0 0 7px rgba(255, 194, 83, .45));
+  transition: opacity 160ms ease;
+}
+.hotspot-lighting { opacity: 0; transition: opacity 180ms ease; mix-blend-mode: screen; }
+.hotspot-windows { fill: rgba(255, 220, 139, .45); filter: drop-shadow(0 0 6px #ffc363); }
+.village-building-light { opacity: 0; transition: opacity 180ms ease; pointer-events: none; }
+.village-building-light image { filter: brightness(1.22) saturate(1.08); }
+.village-building-light.visible { opacity: .6; }
+.is-highlighted .hotspot-contour, .is-highlighted .hotspot-lighting { opacity: 1; }
+.village-map .map-label {
+  opacity: 0; max-width: 190px; transform: translate(-50%, 5px); animation: none;
+}
+.village-map .map-label.visible { opacity: 1; transform: translate(-50%, 0); }
+.village-map .map-label-box {
+  padding: 5px 10px; border: 1px solid rgba(241, 197, 111, .7); border-radius: 6px;
+  background: rgba(5, 14, 24, .94); box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
+}
+.village-map .map-label-box strong { color: #ffe4a9; font-size: 13px; white-space: normal; }
+.hotspot-entry { opacity: 0; }
+.hotspot-entry-ring { fill: none; stroke: #ffe2a0; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.village-entry-shade { position: absolute; z-index: 5; inset: 0; background: #030a12; opacity: 0; pointer-events: none; }
+.village-map.is-entering .village-hotspots, .village-map.is-entering .hotspot-shape { pointer-events: none; }
+.village-map.is-entering .map-label { opacity: 0; }
+.village-map.is-entering .village-hotspot.is-entering .hotspot-entry { animation: village-door-flash 380ms ease-out both; }
+.village-map.is-entering .village-entry-shade { animation: village-entry-fade 380ms ease-in both; }
+.village-arrival { animation: village-arrival 260ms ease-out both; }
+@keyframes village-door-flash {
+  0% { opacity: 0; transform: scale(.65); }
+  35% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.8); }
+}
+@keyframes village-entry-fade { 0%, 25% { opacity: 0; } 100% { opacity: .95; } }
+@keyframes village-arrival { from { opacity: .12; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .village-map .hotspot-contour, .village-map .hotspot-lighting, .village-building-light, .village-map .map-label { transition: none; }
+  .village-map.is-entering .village-hotspot.is-entering .hotspot-entry, .village-map.is-entering .village-entry-shade, .village-arrival { animation: none; }
+}

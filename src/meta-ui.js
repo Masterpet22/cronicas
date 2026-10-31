@@ -12,10 +12,10 @@ import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.114.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.115.0";
 import { createDojoView } from "./ui/meta/views/dojo.js?v=0.126.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.114.0";
-import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.131.0";
+import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.133.0";
 import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.119.0";
 import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
-import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.119.0";
+import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.132.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
 import { createLocationStage } from "./ui/meta/location-stage.js?v=0.131.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
@@ -125,7 +125,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     mainMissions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS,
     missionState, nextAvailableMission, secondaryMissionByType, masterForCharacter, escapeHtml,
     assetVersion: ASSET_VERSION, onPersist: persist,
-    npcs: NPCS, locationCast: LOCATION_CAST, warmImage, onStartMission: startLocationMission, onNavigate(next) { view = next; render(); }, elementIcon,
+    npcs: NPCS, locationCast: LOCATION_CAST, warmImage, warmLocationAssets, onStartMission: startLocationMission, onNavigate(next) { view = next; render(); }, elementIcon,
     showDialogue: (...args) => showDialogue(...args), onCalendarComment(text, actions) { stageView.speak("event", text, "nao", { persistent: true, actions }); },
     onMissionNoticesSeen(ids) { save = writeSave({ ...save, campaign: { ...save.campaign, seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...ids])] } }); return save; },
     onTutorialComplete() { persist(rememberIntroduction({ ...save, campaign: { ...save.campaign, tutorialSeen: true } }, "headquarters", ["ren"])); view = "headquarters"; introducedViews.add("headquarters"); render(); }

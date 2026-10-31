@@ -80,24 +80,8 @@ export function createMetaShell(deps) {
         closeGlobalSettings();
         deps.onDebug(save);
       });
-      root.querySelectorAll("[data-go]").forEach((button) => {
-        const openLocation = () => deps.onNavigate(button.dataset.go);
-        scope.listen(button, "click", openLocation);
-        if (!button.classList.contains("village-hotspot")) return;
-        scope.listen(button, "mouseenter", () => deps.warmLocationAssets(button.dataset.go), { once: true });
-        scope.listen(button, "focus", () => deps.warmLocationAssets(button.dataset.go), { once: true });
-        const label = root.querySelector(`[data-map-label="${button.dataset.go}"]`);
-        const showLabel = () => label?.classList.add("visible");
-        const hideLabel = () => label?.classList.remove("visible");
-        scope.listen(button, "mouseenter", showLabel);
-        scope.listen(button, "mouseleave", hideLabel);
-        scope.listen(button, "focus", showLabel);
-        scope.listen(button, "blur", hideLabel);
-        scope.listen(button, "keydown", (event) => {
-          if (event.key !== "Enter" && event.key !== " ") return;
-          event.preventDefault();
-          openLocation();
-        });
+      root.querySelectorAll("[data-go]:not(.village-hotspot)").forEach(button => {
+        scope.listen(button, "click", () => deps.onNavigate(button.dataset.go));
       });
     },
     dispose() {}

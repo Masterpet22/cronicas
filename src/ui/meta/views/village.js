@@ -1,3 +1,4 @@
+import { villageMapHotspots, mountVillageMap } from "../village-map.js?v=0.133.0";
 import { createTowerView } from "./tower.js?v=0.131.0";
 import { createShopView } from "./shop.js?v=0.131.0";
 import { createGuildView } from "./guild.js?v=0.131.0";
@@ -5,7 +6,7 @@ import { createArenaView } from "./arena.js?v=0.131.0";
 import { createEventsView } from "./events.js?v=0.131.0";
 
 export const VILLAGE_LOCATIONS = [
-  { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M812 24 L843 30 L844 61 L907 58 L948 83 L948 126 L1008 159 L970 178 L1011 203 L969 220 L982 238 L946 249 L1002 274 L963 291 L1047 327 L1004 348 L1048 365 L1021 380 L1027 444 L966 444 L954 429 L727 429 L718 445 L668 445 L671 373 L642 362 L679 347 L650 329 L738 287 L702 277 L750 251 L714 242 L783 213 L738 203 L766 185 L729 172 L806 137 L815 112 Z" },
+  { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M826 25 Q833 21 838 27 L840 48 L915 61 L915 117 C941 129 974 146 995 163 L974 157 L985 170 L966 163 L987 195 L960 179 L944 163 L941 169 Q937 183 913 190 L904 193 L904 208 Q941 230 968 219 Q965 234 941 243 L935 246 L935 261 Q976 288 995 271 Q996 283 977 290 L971 294 L971 315 Q1027 339 1047 323 Q1048 334 1026 344 L1026 404 L1048 404 L1052 439 L968 439 L960 430 L737 430 L730 440 L665 440 L668 409 L654 409 L654 344 Q636 340 630 327 Q644 338 661 335 L662 316 L674 316 L674 299 Q654 290 673 275 Q682 288 704 285 L732 278 L731 263 L733 257 Q713 249 709 237 Q700 234 700 222 Q710 234 729 231 L759 220 L759 206 L766 203 L766 190 Q739 184 733 179 Q725 173 725 165 Q737 179 758 173 L797 154 L802 145 L802 125 Q801 116 807 110 Q815 103 819 113 L821 120 L823 72 L816 71 L816 65 L823 65 L822 48 L815 47 L815 40 L824 40 Z" },
   { id: "dojo", name: "Dojo", description: "Entrenamiento, jutsus y equipo", labelX: 505, labelY: 446, path: "M359 383 L389 373 L409 356 L427 348 L453 348 L468 333 L574 335 L596 348 L618 352 L629 369 L657 386 L636 399 L638 493 L662 505 L659 534 L620 534 L613 550 L403 550 L395 536 L354 535 L351 507 L375 493 L376 399 L347 388 Z" },
   { id: "archive", name: "Biblioteca", description: "Crónicas y progreso de campaña", labelX: 167, labelY: 427, path: "M33 282 L47 268 L74 264 L82 256 L101 265 L110 251 L133 267 L223 267 L238 258 L252 267 L259 282 L313 329 L300 344 L303 466 L326 482 L324 514 L279 515 L273 530 L49 530 L42 517 L0 519 L0 340 L31 321 Z" },
   { id: "shop", name: "Tienda", description: "Suministros, apariencia y decoración", labelX: 1227, labelY: 455, path: "M1103 366 L1125 353 L1157 351 L1168 339 L1298 341 L1314 351 L1341 355 L1352 369 L1375 386 L1358 399 L1365 489 L1385 503 L1382 535 L1353 536 L1347 554 L1112 554 L1106 540 L1075 539 L1076 510 L1090 493 L1092 399 L1069 385 Z" },
@@ -57,7 +58,6 @@ export function createVillageView(deps) {
   };
 
   function renderPlaza(save) {
-    const nextObjective = save.campaign.doctorBookDeliveryPending ? "archive" : "headquarters";
     const missionObjectives = activeMissionObjectives(save, deps);
     const storyObjective = missionObjectives.find((objective) => objective.id.startsWith("story:"));
     const secondaryObjectives = missionObjectives.filter((objective) => !objective.id.startsWith("story:"));
@@ -81,15 +81,13 @@ export function createVillageView(deps) {
         </section>
       </div>` : ""}
     </section>`;
-    const hotspots = VILLAGE_LOCATIONS.map((location) => {
-      return `<g class="village-hotspot hotspot-${location.id}" data-go="${location.id}" role="button" tabindex="0" aria-label="${deps.escapeHtml(location.name)}: ${deps.escapeHtml(location.description)}"><path class="hotspot-shape" d="${location.path}"/></g>`;
-    }).join("");
+    const mapImage = `assets/village/aldea.webp?v=${deps.assetVersion}`;
+    const hotspots = villageMapHotspots(VILLAGE_LOCATIONS, mapImage, deps.escapeHtml);
     const labels = VILLAGE_LOCATIONS.map((location) => {
-      const recommended = location.id === nextObjective;
-      return `<span class="map-label ${recommended ? "recommended" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong><small>${deps.escapeHtml(recommended ? "OBJETIVO · " + location.description : location.description)}</small></span></span>`;
+      return `<span class="map-label" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong></span></span>`;
     }).join("");
     currentState = { ...currentState, secondaryObjectives, unseenSecondaryObjectives };
-    return `<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="assets/village/aldea.webp?v=${deps.assetVersion}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}</figure>${missionDock}</section>`;
+    return `<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="${mapImage}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}<div class="village-entry-shade" aria-hidden="true"></div></figure>${missionDock}</section>`;
   }
 
   function renderService(serviceId) {
@@ -113,6 +111,7 @@ export function createVillageView(deps) {
       if (currentState?.view === "inn") return guildView.mount(root, scope);
       if (currentState?.view === "shop") return shopView.mount(root, scope);
       if (!currentState || currentState.view !== "plaza") return;
+      mountVillageMap(root, scope, deps);
       const { save, secondaryObjectives, unseenSecondaryObjectives } = currentState;
       const menu = root.querySelector(".secondary-mission-menu");
       const trigger = root.querySelector(".secondary-mission-trigger");

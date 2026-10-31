@@ -1,4 +1,4 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.131.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.133.0";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.131.0";
 import { battleRuntime } from "./src/battle/session.js?v=1.0.0";
 import { loadPhaser } from "./src/battle/load-phaser.js?v=1.0.0";
