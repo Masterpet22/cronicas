@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { VILLAGE_LOCATIONS } from "../src/meta-ui.js";
+import { villageMapHotspots } from "../src/ui/meta/village-map.js";
 
 const expected = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
 assert.equal(VILLAGE_LOCATIONS.length, 9, "El mapa debe exponer sus nueve destinos");
@@ -13,5 +14,11 @@ VILLAGE_LOCATIONS.forEach((location) => {
   assert.match(location.path, /^M[\d\s.,A-Z-]+Z$/, `${location.id} necesita una silueta SVG cerrada`);
   assert.ok(location.path.split(/[A-Z]/).join(" ").trim().split(/\s+/).length >= 16, `${location.id} necesita un contorno detallado`);
 });
+
+const missionMarkup = villageMapHotspots(VILLAGE_LOCATIONS, "aldea.webp", String, ["headquarters", "archive"]);
+assert.match(missionMarkup, /data-mission-light="headquarters"/, "El destino principal debe recibir una capa de brillo");
+assert.match(missionMarkup, /data-mission-light="archive"/, "Una entrega pendiente debe poder iluminar otro edificio");
+assert.equal((missionMarkup.match(/data-mission-target/g) || []).length, 2, "Solo los destinos requeridos deben marcarse como objetivos");
+assert.doesNotMatch(missionMarkup, /data-mission-light="dojo"/, "Los edificios ajenos a la misión no deben iluminarse");
 
 console.log("Pruebas del mapa de la aldea superadas.");

@@ -14,8 +14,18 @@ const ids = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn",
 
 for (const width of [1280, 1600]) test(`iluminación y etiqueta compacta siguen los nueve edificios a ${width}`, async ({ page }, testInfo) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 }); await seed(page);
   await expect(page.locator(".map-label.visible")).toHaveCount(0);
+  const missionLight = page.locator('[data-mission-light="headquarters"]');
+  await expect(missionLight).toHaveCount(1);
+  await expect(page.locator('.village-hotspot[data-go="headquarters"]')).toHaveAttribute("data-mission-target", "");
+  await expect(missionLight).toHaveCSS("animation-name", "village-mission-pulse");
+  await expect(page.locator('.village-hotspot[data-go="headquarters"] .hotspot-contour')).toHaveCSS("animation-name", "village-mission-contour-pulse");
+  await expect(page.locator('.village-hotspot[data-go="headquarters"] .hotspot-lighting')).toHaveCSS("animation-name", "village-mission-lighting-pulse");
+  const pulseDuration = Number.parseFloat(await missionLight.evaluate(element => getComputedStyle(element).animationDuration)) * 1000;
+  expect(pulseDuration).toBeGreaterThanOrEqual(2400);
+  expect(pulseDuration).toBeLessThanOrEqual(2800);
   for (const id of ids) {
     const hotspot = page.locator(`.village-hotspot[data-go="${id}"]`);
     await hotspot.focus();
@@ -66,6 +76,15 @@ test("los bordes visibles excluyen el paisaje que rodea los edificios", async ({
   }
 });
 
+test("el texto de la misión actual abre directamente el edificio objetivo", async ({ page }) => {
+  await seed(page);
+  const mission = page.locator(".story-mission-current");
+  await expect(mission).toHaveAttribute("data-view", "headquarters");
+  await expect(mission).toContainText("IR A: CUARTEL GENERAL");
+  await mission.click();
+  await expect(page.locator('[data-location-stage="headquarters"]')).toBeVisible();
+});
+
 test("el destello respeta la elección, evita entradas dobles y se puede cancelar", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" }); await seed(page);
   const dojo = page.locator('.village-hotspot[data-go="dojo"]'), map = page.locator(".village-map");
@@ -85,6 +104,7 @@ test("el destello respeta la elección, evita entradas dobles y se puede cancela
 
 test("con movimiento reducido todos los destinos abren sin esperar al destello", async ({ page }) => {
   await seed(page);
+  await expect(page.locator('[data-mission-light="headquarters"]')).toHaveCSS("animation-name", "none");
   for (const id of ids) {
     const hotspot = page.locator(`.village-hotspot[data-go="${id}"]`);
     await hotspot.focus();

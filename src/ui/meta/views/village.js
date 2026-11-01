@@ -1,4 +1,4 @@
-import { villageMapHotspots, mountVillageMap } from "../village-map.js?v=0.133.0";
+import { villageMapHotspots, mountVillageMap } from "../village-map.js?v=0.134.0";
 import { createTowerView } from "./tower.js?v=0.131.0";
 import { createShopView } from "./shop.js?v=0.131.0";
 import { createGuildView } from "./guild.js?v=0.131.0";
@@ -67,10 +67,10 @@ export function createVillageView(deps) {
       ? secondaryObjectives.map((objective) => `<button class="secondary-mission-item" type="button" data-view="${objective.view}"><span>${deps.escapeHtml(objective.type)}</span><strong>${deps.escapeHtml(objective.title)}</strong><small class="mission-destination">IR A: ${deps.escapeHtml(objective.destination)}</small><small>${deps.escapeHtml(objective.detail)}</small></button>`).join("")
       : `<p class="secondary-mission-empty">No hay misiones secundarias pendientes.</p>`;
     const missionDock = `<section class="mission-dock" aria-label="Misión actual">
-      <div class="story-mission-current" title="${deps.escapeHtml(storyObjective?.detail || "La historia disponible ha sido completada.")}">
+      <button class="story-mission-current" type="button" title="${deps.escapeHtml(storyObjective?.detail || "La historia disponible ha sido completada.")}"${storyObjective ? ` data-view="${storyObjective.view}" aria-label="Ir a ${deps.escapeHtml(storyObjective.destination)}: ${deps.escapeHtml(storyObjective.title)}"` : " disabled"}>
         <strong>${deps.escapeHtml(storyObjective?.title || "Sin misión principal activa")}</strong>
         ${storyObjective ? `<span>IR A: ${deps.escapeHtml(storyObjective.destination)}</span>` : ""}
-      </div>
+      </button>
       ${secondaryObjectives.length ? `<div class="secondary-mission-menu ${unseenSecondaryObjectives.length ? "has-unseen" : ""}">
         <button class="secondary-mission-trigger" type="button" aria-expanded="false" aria-controls="secondary-mission-panel" aria-label="Misiones secundarias${unseenSecondaryObjectives.length ? `, ${unseenSecondaryObjectives.length} sin revisar` : ""}">
           <span class="mission-target-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="11"/><circle cx="16" cy="16" r="5"/><path d="M16 1v6M16 25v6M1 16h6M25 16h6"/><circle cx="16" cy="16" r="1.5"/></svg></span>
@@ -82,7 +82,8 @@ export function createVillageView(deps) {
       </div>` : ""}
     </section>`;
     const mapImage = `assets/village/aldea.webp?v=${deps.assetVersion}`;
-    const hotspots = villageMapHotspots(VILLAGE_LOCATIONS, mapImage, deps.escapeHtml);
+    const missionTargetIds = [...new Set(missionObjectives.map((objective) => objective.view))];
+    const hotspots = villageMapHotspots(VILLAGE_LOCATIONS, mapImage, deps.escapeHtml, missionTargetIds);
     const labels = VILLAGE_LOCATIONS.map((location) => {
       return `<span class="map-label" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong></span></span>`;
     }).join("");
