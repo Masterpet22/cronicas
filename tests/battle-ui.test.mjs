@@ -395,6 +395,7 @@ assert.match(battle, /hideOnComplete: !effect\.projectile/, "El proyectil debe c
 assert.match(battle, /await Promise\.all\([\s\S]*duration: 560[\s\S]*if \(!missed\) this\.createImpact[\s\S]*alpha: 0,[\s\S]*duration: 160[\s\S]*sprite\.destroy\(\)/, "Ascuas veloces debe llegar al objetivo antes de desvanecerse");
 assert.match(metaUi, /function activeMissionObjectives\(save\)/, "El HUD debe reunir los objetivos activos en un solo diario");
 assert.match(metaUi, /class="mission-dock"[\s\S]*class="story-mission-current"[\s\S]*storyObjective\?\.title/, "La misión principal actual debe permanecer visible en la barra inferior");
+assert.match(metaUi, /class="story-mission-current"[\s\S]*data-view="\$\{storyObjective\.view\}"[\s\S]*aria-label="Ir a/, "La misión actual debe abrir directamente su edificio objetivo");
 assert.match(metaUi, /secondaryObjectives = missionObjectives\.filter[\s\S]*class="secondary-mission-menu[^\n]+has-unseen/, "El desplegable debe contener solo objetivos secundarios y avisar cuando haya novedades");
 assert.match(metaUi, /class="mission-target-icon"[\s\S]*<circle cx="16" cy="16" r="11"/, "El acceso a misiones secundarias debe usar un icono de blanco de tiro");
 assert.doesNotMatch(metaUi, /<span>Secundarias<\/span>|<b>\$\{secondaryObjectives\.length\}<\/b>/, "El botón de misiones secundarias debe mostrar únicamente el blanco de tiro");
@@ -403,6 +404,7 @@ assert.doesNotMatch(metaUi, /const storyNotice|class="notice-card story-objectiv
 assert.match(styles, /\.secondary-mission-menu\.has-unseen \.mission-target-icon \{[\s\S]*animation: mission-target-pulse/, "El blanco de tiro naranja debe parpadear mientras haya misiones secundarias nuevas");
 assert.match(styles, /\.mission-dock \{[\s\S]*min-height: 36px;[\s\S]*background: transparent/, "La barra inferior debe ser compacta y mayormente transparente");
 assert.match(styles, /\.story-mission-current \{[\s\S]*background: rgba\(3, 13, 25, \.68\)/, "El título principal debe conservar un fondo semitransparente legible");
+assert.match(styles, /\.story-mission-current:hover,[\s\S]*\.story-mission-current:focus-visible/, "El destino de la misión debe comunicar que es interactivo con ratón y teclado");
 assert.match(metaUi, /id: `story:\$\{storyMission\.id\}`[\s\S]*destination: "Cuartel General"/, "Todas las misiones de la saga deben dirigir al Cuartel General");
 assert.match(metaUi, /class="mission-destination">IR A:/, "Las misiones secundarias deben mostrar visualmente su destino");
 assert.match(styles, /\.story-mission-current span \{[\s\S]*color: #f09a3e;[\s\S]*font-size: \.57rem;/, "El destino de la misión principal debe verse en naranja y con una fuente menor");

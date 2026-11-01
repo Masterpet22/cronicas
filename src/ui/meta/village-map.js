@@ -13,13 +13,18 @@ export const VILLAGE_LIGHTING = Object.freeze({
   event: { windows: "", lamps: [[775,614,21,28],[982,615,21,28]], entrance: [862,655,30,16] }
 });
 
-export function villageMapHotspots(locations, imageUrl, escapeHtml) {
+export function villageMapHotspots(locations, imageUrl, escapeHtml, missionTargetIds = []) {
+  const missionTargets = new Set(missionTargetIds);
   const clips = locations.map(place => `<clipPath id="village-clip-${place.id}"><path d="${VILLAGE_CONTOURS[place.id]}"/></clipPath>`).join("");
   return `<defs>${clips}<radialGradient id="village-lamp-glow"><stop stop-color="#fff3b8" stop-opacity=".85"/><stop offset=".3" stop-color="#ffc75a" stop-opacity=".52"/><stop offset="1" stop-color="#ffb337" stop-opacity="0"/></radialGradient></defs>
     <g class="village-building-light" data-building-light aria-hidden="true" pointer-events="none"><image href="${imageUrl}" width="1678" height="937" preserveAspectRatio="none"/></g>
+    ${locations.filter(place => missionTargets.has(place.id)).map(place => `<g class="village-mission-light" data-mission-light="${place.id}" clip-path="url(#village-clip-${place.id})" aria-hidden="true" pointer-events="none"><image href="${imageUrl}" width="1678" height="937" preserveAspectRatio="none"/></g>`).join("")}
     ${locations.map(place => {
       const light = VILLAGE_LIGHTING[place.id], [x, y, rx, ry] = light.entrance;
-      return `<g class="village-hotspot hotspot-${place.id}" data-go="${place.id}" role="button" tabindex="0" aria-label="${escapeHtml(place.name)}: ${escapeHtml(place.description)}"><path class="hotspot-shape" d="${place.path}"/><g class="hotspot-lighting" aria-hidden="true" pointer-events="none"><path class="hotspot-windows" d="${light.windows}"/>${light.lamps.map(([lx, ly, lrx, lry]) => `<ellipse cx="${lx}" cy="${ly}" rx="${lrx}" ry="${lry}" fill="url(#village-lamp-glow)"/>`).join("")}</g><path class="hotspot-contour" d="${VILLAGE_CONTOURS[place.id]}" aria-hidden="true" pointer-events="none"/><g class="hotspot-entry" aria-hidden="true" pointer-events="none" style="transform-origin:${x}px ${y}px"><ellipse class="hotspot-entry-flash" cx="${x}" cy="${y}" rx="${rx * 2}" ry="${ry * 2}" fill="url(#village-lamp-glow)"/><ellipse class="hotspot-entry-ring" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></g></g>`;
+      const isMissionTarget = missionTargets.has(place.id);
+      const targetClass = isMissionTarget ? " is-mission-target" : "";
+      const targetLabel = isMissionTarget ? ". Destino de misión pendiente" : "";
+      return `<g class="village-hotspot hotspot-${place.id}${targetClass}" data-go="${place.id}"${isMissionTarget ? " data-mission-target" : ""} role="button" tabindex="0" aria-label="${escapeHtml(place.name)}: ${escapeHtml(place.description)}${targetLabel}"><path class="hotspot-shape" d="${place.path}"/><g class="hotspot-lighting" aria-hidden="true" pointer-events="none"><path class="hotspot-windows" d="${light.windows}"/>${light.lamps.map(([lx, ly, lrx, lry]) => `<ellipse cx="${lx}" cy="${ly}" rx="${lrx}" ry="${lry}" fill="url(#village-lamp-glow)"/>`).join("")}</g><path class="hotspot-contour" d="${VILLAGE_CONTOURS[place.id]}" aria-hidden="true" pointer-events="none"/><g class="hotspot-entry" aria-hidden="true" pointer-events="none" style="transform-origin:${x}px ${y}px"><ellipse class="hotspot-entry-flash" cx="${x}" cy="${y}" rx="${rx * 2}" ry="${ry * 2}" fill="url(#village-lamp-glow)"/><ellipse class="hotspot-entry-ring" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></g></g>`;
     }).join("")}`;
 }
 

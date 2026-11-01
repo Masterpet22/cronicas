@@ -15,6 +15,19 @@
 .village-building-light { opacity: 0; transition: opacity 180ms ease; pointer-events: none; }
 .village-building-light image { filter: brightness(1.22) saturate(1.08); }
 .village-building-light.visible { opacity: .6; }
+.village-mission-light {
+  opacity: .2; pointer-events: none; mix-blend-mode: screen;
+  animation: village-mission-pulse 2.6s ease-in-out infinite;
+}
+.village-mission-light image {
+  filter: brightness(1.38) saturate(1.16) drop-shadow(0 0 8px rgba(255, 196, 88, .72));
+}
+.is-mission-target:not(.is-highlighted) .hotspot-contour {
+  animation: village-mission-contour-pulse 2.6s ease-in-out infinite;
+}
+.is-mission-target:not(.is-highlighted) .hotspot-lighting {
+  animation: village-mission-lighting-pulse 2.6s ease-in-out infinite;
+}
 .is-highlighted .hotspot-contour, .is-highlighted .hotspot-lighting { opacity: 1; }
 .village-map .map-label {
   opacity: 0; max-width: 190px; transform: translate(-50%, 5px); animation: none;
@@ -40,7 +53,22 @@
 }
 @keyframes village-entry-fade { 0%, 25% { opacity: 0; } 100% { opacity: .95; } }
 @keyframes village-arrival { from { opacity: .12; } to { opacity: 1; } }
+@keyframes village-mission-pulse {
+  0%, 100% { opacity: .18; }
+  50% { opacity: .68; }
+}
+@keyframes village-mission-contour-pulse {
+  0%, 100% { opacity: .18; stroke-width: 1.7px; }
+  50% { opacity: 1; stroke-width: 2.5px; }
+}
+@keyframes village-mission-lighting-pulse {
+  0%, 100% { opacity: .18; }
+  50% { opacity: 1; }
+}
 @media (prefers-reduced-motion: reduce) {
   .village-map .hotspot-contour, .village-map .hotspot-lighting, .village-building-light, .village-map .map-label { transition: none; }
   .village-map.is-entering .village-hotspot.is-entering .hotspot-entry, .village-map.is-entering .village-entry-shade, .village-arrival { animation: none; }
+  .village-mission-light { animation: none; opacity: .45; }
+  .is-mission-target:not(.is-highlighted) .hotspot-contour,
+  .is-mission-target:not(.is-highlighted) .hotspot-lighting { animation: none; opacity: .65; }
 }
