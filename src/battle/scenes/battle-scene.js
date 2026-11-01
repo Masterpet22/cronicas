@@ -1,4 +1,5 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.136.0";
+import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
 import { mountCombatTutorial } from "../combat-tutorial.js?v=0.131.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
@@ -189,7 +190,7 @@ export class BattleScene extends Phaser.Scene {
     this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
-    const selectedJutsus = this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean)
+    const selectedJutsus = this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean).map(jutsu => upgradedTechnique(battleRuntime.activeSave, jutsu))
       .map((jutsu) => ({ ...jutsu, iconTexture: `element-${jutsu.element}` }));
     // La barra tiene un contrato estable: Golpe siempre ocupa 1, las cuatro
     // técnicas configurables viven en 2–5 y Guardia siempre ocupa 6.

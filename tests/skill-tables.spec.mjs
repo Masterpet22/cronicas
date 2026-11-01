@@ -11,6 +11,42 @@ async function boot(page) {
   });
 }
 
+test("las mejoras de Resonancia llegan a las acciones y estadísticas del combate", async ({ page }) => {
+  await bootPerformanceReference(page,{ loadout:["fire_embers"], investments:{ fire_embers:2,physical_0:1 } });
+  const result = await page.evaluate(async () => {
+    const scene = window.__performanceReference.scene;
+    const { derivedStats } = await import("/src/save.js");
+    const base = derivedStats({ ...scene.saveData,progression:{ ...scene.saveData.progression,resonance:{ investments:{} } } });
+    return { damage:scene.actions[1].damage,hpGain:scene.player.maxHp-base.maxHp };
+  });
+  expect(result).toEqual({ damage:18,hpGain:5 });
+});
+
+test("los taijutsus equipados ocupan 4 y 5 de la tabla física y se pagan con vida", async ({ page }) => {
+  const errors = []; page.on("pageerror",error => errors.push(error.message));
+  await bootPerformanceReference(page,{ investments:{ physical_0:1,physical_1:1,physical_2:1 },taijutsuLoadout:["physical_1","physical_2"] });
+  await page.evaluate(() => {
+    const s = window.__performanceReference.scene;
+    s.busy=false; s.turnReady=true; s.player.hp=30; s.player.chakra=0;
+    window.__taijutsuUsed=[];
+    s.executeTimelineAction = async (actor,action) => window.__taijutsuUsed.push(action.id);
+    s.refreshHud();
+  });
+  await page.getByRole("button",{ name:"Cambiar a habilidades físicas",exact:true }).click();
+  await expect(button(page,4)).toContainText("Puño de hierro");
+  await expect(button(page,4)).toContainText("8 PV");
+  await expect(button(page,5)).toContainText("Paso fugaz");
+  await expect(button(page,5)).toContainText("5 PV");
+  await button(page,4).click();
+  expect(await page.evaluate(() => ({ used:window.__taijutsuUsed,hp:window.__performanceReference.scene.player.hp,chakra:window.__performanceReference.scene.player.chakra }))).toEqual({ used:["physical_1"],hp:22,chakra:0 });
+  await page.evaluate(() => { const s=window.__performanceReference.scene; s.busy=false; s.turnReady=true; s.player.hp=5; s.refreshHud(); });
+  await expect(button(page,5)).toHaveAttribute("aria-disabled","true");
+  await page.evaluate(() => { const s=window.__performanceReference.scene; s.player.hp=20; s.refreshHud(); });
+  await button(page,5).click();
+  expect(await page.evaluate(() => ({ used:window.__taijutsuUsed,hp:window.__performanceReference.scene.player.hp }))).toEqual({ used:["physical_1","physical_2"],hp:15 });
+  expect(errors).toEqual([]);
+});
+
 for (const width of [1280, 1600]) test(`las dos tablas conservan 1 y 6 y el equipo elemental a ${width}`, async ({ page }, testInfo) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 }); await boot(page);

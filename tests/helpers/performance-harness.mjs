@@ -1,7 +1,7 @@
 import { ensurePhaser } from "./phaser-loader.mjs";
 
 // La misma receta se usa en las regresiones y en npm run performance:baseline.
-export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false, arenaIndex = 1, skinTone = "claro", bodyType = "male", loadout = ["fire_embers", "fire_breath", "fire_arc", "fire_brand"] } = {}) {
+export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false, arenaIndex = 1, skinTone = "claro", bodyType = "male", investments = {}, taijutsuLoadout = [null,null], loadout = ["fire_embers", "fire_breath", "fire_arc", "fire_brand"] } = {}) {
   await page.addInitScript(() => {
     sessionStorage.setItem("compact-combat-enabled", "1");
     localStorage.setItem("music-enabled", "off");
@@ -10,7 +10,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
   await page.goto("/");
   await ensurePhaser(page);
   await page.waitForFunction(() => window.Phaser && document.querySelector('[data-select-slot="1"]'));
-  await page.evaluate(async ({ renderer, lightMode, arenaIndex, loadout, skinTone, bodyType }) => {
+  await page.evaluate(async ({ renderer, lightMode, arenaIndex, loadout, skinTone, bodyType, investments, taijutsuLoadout }) => {
     const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.0.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { configureRenderResolution } = await import("/src/battle/render-resolution.js?v=1.0.0");
@@ -28,6 +28,8 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     const mission = MISSIONS.filter((mission) => mission.encounters)[arenaIndex];
     const save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType, skinTone });
     save.progression.level = 8;
+    save.progression.resonance = { investments };
+    save.taijutsuLoadout = taijutsuLoadout;
     save.character.affinityXp.fuego = 1000;
     save.loadout = loadout;
     save.campaign.completedMissions = [mission.id];
@@ -63,7 +65,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
       render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
       scale: { mode: window.Phaser.Scale.FIT, autoCenter: window.Phaser.Scale.CENTER_BOTH }
     });
-  }, { renderer, lightMode, arenaIndex, loadout, skinTone, bodyType });
+  }, { renderer, lightMode, arenaIndex, loadout, skinTone, bodyType, investments, taijutsuLoadout });
   await page.waitForFunction(() => window.__performanceReference?.ready, null, { timeout: 30_000 });
 }
 

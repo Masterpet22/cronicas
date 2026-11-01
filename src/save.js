@@ -1,4 +1,6 @@
 import { normalizeBirthday } from "./birthday.js?v=0.127.0";
+import { normalizeResonance, resonanceBonuses } from "./skills/progression.js?v=1.0.0";
+import { normalizeTaijutsuLoadout } from "./skills/taijutsu.js?v=1.0.0";
 import { normalizeIntroductions } from "./location-conversations.js?v=0.131.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
 import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.126.0";
@@ -40,6 +42,7 @@ export function createDefaultSave() {
       xp: 0,
       coins: 0,
       attributePoints: 0,
+      resonance: { investments: {} },
       attributes: { health: 0, strength: 0, speed: 0, chakra: 0, luck: 0 }
     },
     equipment: { ...DEFAULT_EQUIPMENT },
@@ -47,6 +50,7 @@ export function createDefaultSave() {
     guild: defaultGuildState(),
     events: defaultEventState(),
     loadout: [],
+    taijutsuLoadout: [null,null],
     campaign: {
       completedMissions: [],
       completedSecondaryMissions: [],
@@ -115,6 +119,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     guild: defaultGuildState(),
     events: defaultEventState(),
     loadout: initialLoadout(cleanAffinity),
+    taijutsuLoadout: [null,null],
     campaign: { ...createDefaultSave().campaign }
   };
 }
@@ -132,6 +137,7 @@ export function normalizeSave(candidate) {
   const progression = candidate.progression || {};
   const attributes = progression.attributes || {};
   const level = Math.max(1, Math.floor(Number(progression.level) || 1));
+  const resonance = normalizeResonance(progression.resonance,level);
   const trainingLimit = attributeTrainingLimit(level);
   const trainedAttributes = Object.fromEntries(["health", "strength", "speed", "chakra", "luck"].map((id) => [id, Math.max(0, Math.floor(Number(attributes[id]) || 0))]));
   const excessTraining = Object.values(trainedAttributes).reduce((sum, points) => sum + Math.max(0, points - trainingLimit), 0);
@@ -187,6 +193,7 @@ export function normalizeSave(candidate) {
       xp: Math.max(0, Math.floor(Number(progression.xp) || 0)),
       coins: Number.isFinite(Number(progression.coins)) ? Math.max(0, Math.min(9999999, Math.floor(Number(progression.coins) || 0))) : 0,
       attributePoints: Math.max(0, Math.floor(Number(progression.attributePoints) || 0)) + excessTraining,
+      resonance,
       attributes: balancedAttributes
     },
     equipment: {
@@ -199,6 +206,7 @@ export function normalizeSave(candidate) {
     guild: candidate.character ? normalizeGuildState(candidate.guild, { inventory }) : defaultGuildState(),
     events: normalizeEventState(candidate.events),
     loadout: candidate.character ? loadout : [],
+    taijutsuLoadout: candidate.character ? normalizeTaijutsuLoadout({ progression:{ level,resonance } },candidate.taijutsuLoadout) : [null,null],
     campaign: {
       completedMissions,
       completedSecondaryMissions,
@@ -552,6 +560,11 @@ export function derivedStats(save) {
     xpBonus: 0,
     damageReduction: 0
   };
+  Object.entries(resonanceBonuses(normalized)).forEach(([stat, value]) => {
+    if (Object.hasOwn(baseStats, stat)) baseStats[stat] += value;
+    else if (stat === "evasion") utility.equipmentEvasion += value;
+    else if (Object.hasOwn(utility, stat)) utility[stat] += value;
+  });
   const equipmentItems = Object.entries(normalized.equipment).map(([type, id]) => EQUIPMENT[type]?.find(entry => entry.id === id));
   equipmentItems.push(ITEMS[normalized.character?.outfit]);
   equipmentItems.forEach(item => {

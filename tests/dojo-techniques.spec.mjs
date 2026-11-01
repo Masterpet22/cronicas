@@ -25,6 +25,118 @@ async function enterDojo(page) {
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
 
+test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar taijutsus", async ({ page }) => {
+  await page.setViewportSize({ width:1280,height:720 });
+  const errors = []; page.on("pageerror",error => errors.push(error.message));
+  await openDojo(page);
+  const original = await loadout(page);
+  const physical = () => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).taijutsuLoadout);
+  await expect(page.locator(".taijutsu-loadout-slot")).toHaveCount(2);
+  await expect(page.locator("[data-taijutsu-count]")).toHaveText("0/2 EQUIPADOS");
+  await page.locator('[data-taijutsu-choose="0"]').click();
+  await expect(page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="0"]')).toBeDisabled();
+  for (const id of ["physical_0","physical_1","physical_2"]) {
+    await page.locator(`[data-skill-select="${id}"]`).click();
+    await page.locator(`[data-skill-invest="${id}"]`).click();
+    if (id !== "physical_0") await page.locator(`[data-taijutsu-equip="${id}"][data-taijutsu-target="${id === "physical_1" ? 0 : 1}"]`).click();
+  }
+  await expect(page.locator("[data-taijutsu-count]")).toHaveText("2/2 EQUIPADOS");
+  expect(await physical()).toEqual(["physical_1","physical_2"]);
+  expect(await loadout(page)).toEqual(original);
+  await page.mouse.move(10,10);
+  await page.screenshot({ path:"test-results/dojo-techniques/taijutsus-1280.png" });
+  await enterDojo(page);
+  await expect(page.locator('[data-taijutsu-choose="0"]')).toContainText("Puño de hierro");
+  await expect(page.locator('[data-taijutsu-choose="1"]')).toContainText("Paso fugaz");
+  await expect(page.locator('[data-skill-select="physical_1"] .skill-state')).toHaveText("EN COMBATE · TAIJUTSU 1");
+  await page.locator('[data-taijutsu-choose="0"]').click();
+  await page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="1"]').click();
+  expect(await physical()).toEqual(["physical_2","physical_1"]);
+  await page.locator('[data-taijutsu-remove="0"]').click();
+  expect(await physical()).toEqual([null,"physical_1"]);
+  expect(await loadout(page)).toEqual(original);
+  expect(errors).toEqual([]);
+});
+
+test("los puntos desbloquean especializaciones físicas, mejoran técnicas y persisten", async ({ page }) => {
+  await openDojo(page);
+  await expect(page.locator("[data-resonance-points]")).toHaveText("7");
+  const stats = () => page.evaluate(async () => {
+    const { loadSave,derivedStats } = await import("/src/save.js");
+    return derivedStats(loadSave());
+  });
+  const original = await stats();
+  await page.locator('[data-skill-select="physical_1"]').click();
+  await expect(page.locator('[data-skill-invest="physical_1"]')).toBeDisabled();
+  await page.locator('[data-skill-select="physical_0"]').click();
+  await page.locator('[data-skill-invest="physical_0"]').click();
+  await expect(page.locator("[data-resonance-points]")).toHaveText("6");
+  expect((await stats()).maxHp).toBe(original.maxHp+5);
+  await expect(page.locator('[data-skill-select="physical_0"]')).toHaveAttribute("data-state","unlocked");
+  await page.locator('[data-skill-select="fire_embers"]').click();
+  await page.locator('[data-skill-invest="fire_embers"]').click();
+  await expect(page.locator("[data-resonance-points]")).toHaveText("5");
+  await expect(page.locator(".technique-metrics")).toContainText("16");
+  await expect(page.locator('[data-skill-select="fire_embers"]')).toHaveAttribute("data-state","upgraded");
+  await enterDojo(page);
+  expect((await stats()).maxHp).toBe(original.maxHp+5);
+  await expect(page.locator("[data-resonance-points]")).toHaveText("5");
+  expect(await loadout(page)).toEqual(["fire_embers","fire_breath"]);
+});
+
+test("el árbol permite zoom anclado, arrastre, ajuste y navegación por teclado", async ({ page }) => {
+  await openDojo(page);
+  const canvas = page.locator("[data-tree-canvas]");
+  const initial = await canvas.getAttribute("viewBox");
+  await page.getByRole("button",{ name:"Acercar árbol",exact:true }).click();
+  const zoomed = await canvas.getAttribute("viewBox");
+  expect(Number(zoomed.split(" ")[2])).toBeLessThan(Number(initial.split(" ")[2]));
+  const box = await canvas.boundingBox();
+  await page.mouse.move(box.x+box.width*.15,box.y+box.height*.3);
+  await page.mouse.down();
+  await page.mouse.move(box.x+box.width*.15+45,box.y+box.height*.3+30,{ steps:6 });
+  await page.mouse.up();
+  expect(await canvas.getAttribute("viewBox")).not.toBe(zoomed);
+  await page.getByRole("button",{ name:"Mostrar árbol completo",exact:true }).click();
+  expect(await canvas.getAttribute("viewBox")).toBe(initial);
+  const node = page.locator('[data-skill-select="physical_0"]');
+  await node.focus(); await page.keyboard.press("Enter");
+  await expect(page.locator(".technique-detail h3")).toHaveText("Disciplina del cuerpo");
+  await page.keyboard.press("+");
+  expect(await canvas.getAttribute("viewBox")).not.toBe(initial);
+  await page.keyboard.press("Home");
+  expect(await canvas.getAttribute("viewBox")).toBe(initial);
+  await page.locator("[data-tree-core]").click();
+  await expect(page.locator(".technique-detail h3")).toHaveText("Núcleo de Resonancia");
+});
+
+test("tres afinidades revelan sus ocho celdas, puentes híbridos y técnicas avanzadas", async ({ page }) => {
+  await openDojo(page);
+  await page.evaluate(async () => {
+    const { loadSave,writeSave } = await import("/src/save.js");
+    const save = loadSave(); save.progression.level=35;
+    save.character.affinities=["agua","tierra","fuego"];
+    save.character.affinityXp={ agua:1000,tierra:1000,fuego:1000,viento:0 };
+    save.campaign.elementRank=3; save.inventory.extraAffinityUnlocked=true;
+    writeSave(save);
+  });
+  await enterDojo(page);
+  for (let slot=0;slot<3;slot++) await expect(page.locator(`[data-category="affinity"][data-slot="${slot}"]`)).toHaveCount(8);
+  const regionColors = await page.locator("[data-region]").evaluateAll(regions => regions.map(region => region.dataset.regionColor));
+  expect(regionColors).toEqual(["#bca0ff","#55bfff","#b78a55","#ff783d"]);
+  expect(new Set(regionColors).size).toBe(4);
+  for (const border of await page.locator(".resonance-region-border").all()) expect(await border.evaluate(path => parseFloat(getComputedStyle(path).strokeWidth))).toBeGreaterThanOrEqual(6);
+  await expect(page.locator('[data-category="physical"]')).toHaveCount(8);
+  expect(await page.locator('[data-category="hybrid"]').count()).toBeGreaterThanOrEqual(9);
+  await page.locator('[data-skill-select="hybrid_agua_tierra_1"]').click();
+  await expect(page.locator(".resonance-requirements")).toContainText("Aqua Shuriken");
+  await expect(page.locator(".resonance-requirements")).toContainText("Puño de roca");
+  await page.locator('[data-skill-invest="hybrid_agua_tierra_1"]').click();
+  await expect(page.locator('[data-skill-select="hybrid_agua_tierra_1"]')).toHaveAttribute("data-state","unlocked");
+  await page.mouse.move(10,10);
+  await page.screenshot({ path:"test-results/dojo-techniques/panal-tres-afinidades.png" });
+});
+
 test("las técnicas de tiers superiores reutilizan los iconos básicos", async ({ page }) => {
   const failures = [];
   page.on("response", response => { if (response.status() >= 400 && response.url().includes("/assets/")) failures.push(response.url()); });
@@ -125,6 +237,8 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
   test(`el detalle y sus acciones quedan dentro del panel a ${viewport.width}×${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openDojo(page);
+    await page.locator('[data-skill-select="fire_embers"]').click();
+    await page.mouse.move(10,10);
     const layout = await page.locator("#dojo-panel-techniques").evaluate(panel => {
       const outer = panel.getBoundingClientRect();
       const detail = panel.querySelector(".technique-detail").getBoundingClientRect();
@@ -136,7 +250,8 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
       return { detail: contained(detail, outer), actions: contained(actions, detail), equip: contained(equip, actions), loadout: contained(loadout, outer), catalog: contained(catalog, outer), outerOverflow: panel.scrollHeight - panel.clientHeight, actionVisible: equip.height >= 44 };
     });
     expect(layout).toEqual({ detail: true, actions: true, equip: true, loadout: true, catalog: true, outerOverflow: 0, actionVisible: true });
-    expect((await page.locator(".skill-branch > header").first().boundingBox()).height).toBeGreaterThanOrEqual(28);
+    await expect(page.locator("[data-tree-canvas]")).toBeVisible();
+    await expect(page.locator("[data-skill-select]")).toHaveCount(41);
     await page.screenshot({ path: `test-results/dojo-techniques/panel-${viewport.width}.png` });
   });
 }

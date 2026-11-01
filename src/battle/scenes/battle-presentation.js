@@ -824,9 +824,13 @@ export class BattlePresentationMethods {
     }
 
     this.actionCanvasParts = this.children.list.slice(firstActionChild).filter(part => part.depth < 58);
+    // Phaser can deliver the same native event again before clearing its queue.
+    // A physical key press must only activate its action once.
+    const handledShortcutEvents = new WeakSet();
     this.onActionShortcut = (event) => {
       const index = Number(event.key) - 1;
-      if (index < 0 || index >= this.actions.length) return;
+      if (!Number.isInteger(index) || index < 0 || index >= this.actions.length || handledShortcutEvents.has(event)) return;
+      handledShortcutEvents.add(event);
       if (this.accessibleHud?.activateAction) { this.accessibleHud.activateAction(index); return; }
       const jutsu = this.actions[index];
       if (this.actionSlots[index]?.available) this.selectHudAction(index);

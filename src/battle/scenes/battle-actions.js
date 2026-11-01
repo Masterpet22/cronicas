@@ -205,7 +205,7 @@ export class BattleActionMethods {
     const chance = hitChance(this.player, { ...this.enemy, evasion: this.combatantEvasion(this.enemy) }, jutsu);
     const originX = this.hero.body.x;
     const originShadowX = this.hero.shadow.x;
-    const usesPuppetPunch = jutsu.id === "strike" && this.hero.joints?.shoulderRight;
+    const usesPuppetPunch = (jutsu.id === "strike" || jutsu.type === "taijutsu") && this.hero.joints?.shoulderRight;
     const usesFireEmbersProjectile = jutsu.id === "fire_embers";
     const usesWaterShurikenProjectile = jutsu.id === "water_bullet";
     const usesWindPalmProjectile = jutsu.id === "wind_palm";
