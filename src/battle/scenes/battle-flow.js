@@ -1,5 +1,6 @@
+import { actionHealthCost } from "../skill-tables.js?v=0.135.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
-import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.131.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.136.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
@@ -44,6 +45,8 @@ export class BattleFlowMethods {
       this.setMessage(`${jutsu.name} sigue en enfriamiento.`, "#ff9d8d");
       return;
     }
+    const healthCost = actionHealthCost(jutsu);
+    if (healthCost && this.player.hp <= healthCost) { this.setMessage("No tienes suficiente vida para esa técnica física.", "#ff9d8d"); return; }
     const cost = this.actionCost(jutsu);
     if (this.player.chakra < cost) {
       this.setMessage("No tienes suficiente chakra para esa técnica.", "#ff9d8d");
@@ -56,6 +59,7 @@ export class BattleFlowMethods {
     this.turnReady = false;
     this.timelinePaused = true;
     this.player.chakra -= cost;
+    this.player.hp -= healthCost;
     if (jutsu.cooldown) this.cooldowns[jutsu.id] = jutsu.cooldown + 1;
     this.pendingActions.player = jutsu;
     this.refreshHud();

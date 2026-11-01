@@ -784,7 +784,9 @@ export class BattlePresentationMethods {
       entry.tooltip.layer.setVisible(false);
       entry.hoverRing.setVisible(Boolean(entry.selected));
     };
+    this.selectedHudActionId = this.actions[0]?.id;
     this.selectHudAction = (index) => {
+      this.selectedHudActionId = this.actions[index]?.id;
       this.buttons.forEach((entry) => {
         entry.selected = entry === this.actionSlots[index];
         entry.hoverRing.setVisible(entry.selected);
@@ -825,6 +827,7 @@ export class BattlePresentationMethods {
     this.onActionShortcut = (event) => {
       const index = Number(event.key) - 1;
       if (index < 0 || index >= this.actions.length) return;
+      if (this.accessibleHud?.activateAction) { this.accessibleHud.activateAction(index); return; }
       const jutsu = this.actions[index];
       if (this.actionSlots[index]?.available) this.selectHudAction(index);
       if (jutsu) this.useJutsu(jutsu);

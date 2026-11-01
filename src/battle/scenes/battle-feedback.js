@@ -21,7 +21,7 @@ import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, 
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.126.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.131.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.136.0";
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {

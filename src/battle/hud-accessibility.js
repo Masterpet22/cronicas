@@ -1,7 +1,9 @@
 import { skillFrameSvg } from "./hud-chrome.js?v=0.131.0";
-import { mountBattleInventory } from "./battle-inventory.js?v=0.131.0";
+import { mountBattleInventory } from "./battle-inventory.js?v=0.136.0";
 import { emptySkillInfo } from './hud-art.js?v=0.131.0';
-import { createCachedIconCanvas } from './icon-canvas-cache.js?v=1.0.0';
+import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
+import { mountSkillTableControl } from './skill-table-control.js?v=0.135.0';
+import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.135.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -56,6 +58,7 @@ export function mountAccessibleBattleHud(scene) {
   // Native CSS perspective transforms artwork, type and hit targets together.
   // Keep tooltips in the untransformed overlay so their text remains readable.
   actions.innerHTML = skillFrameSvg();
+  let tables = null;
   let frontSkill = null;
   let activeTooltip = null;
   let tooltipTimeout = null;
@@ -86,7 +89,7 @@ export function mountAccessibleBattleHud(scene) {
     frontSkill = null;
   };
   const faceSkill = (row, button, slot) => {
-    if (root.classList.contains('compact') || root.hidden || root.inert) return;
+    if (root.classList.contains('compact') || root.hidden || root.inert || scene.skillTableSwitching) return;
     if (frontSkill?.button !== button) restorePerspective();
     const style = getComputedStyle(actions);
     const [originX, originY] = style.transformOrigin.split(' ').map(parseFloat);
@@ -126,33 +129,8 @@ export function mountAccessibleBattleHud(scene) {
     const availability = document.createElement('span');
     availability.className = 'combat-skill-availability';
     const action = scene.actions[index];
-    const source = action?.iconTexture && scene.textures.get(action.iconTexture)?.getSourceImage();
-    if (source) {
-      // Phaser revokes loader blob URLs after decoding. Reuse the decoded
-      // texture pixels instead of starting a second request to that dead URL.
-      const tint = action.id === 'strike' ? [0xd1, 0xa2, 0x5b] : action.type === 'guard' ? [0xa6, 0x41, 0x2d] : null;
-      const icon = createCachedIconCanvas(scene.game, source, { textureKey: action.iconTexture, tint });
-      if (!icon) {
-        const seal = document.createElement('span');
-        seal.className = 'combat-skill-seal';
-        seal.textContent = '封';
-        art.append(seal);
-      } else {
-        art.append(icon);
-      }
-    } else {
-      const seal = document.createElement('span');
-      seal.className = 'combat-skill-seal';
-      seal.textContent = '封';
-      art.append(seal);
-    }
-    const mark = ({ fire_embers: '火', fire_breath: '炎', fire_ring: '輪', fire_phoenix: '鳳' })[action?.id];
-    if (mark) {
-      const glyph = document.createElement('span');
-      glyph.className = 'combat-skill-mark';
-      glyph.textContent = mark;
-      art.append(glyph);
-    }
+    paintBattleSkillArt(scene, art, action, { index });
+    let artKey = `elemental:${action?.id || "empty"}`;
     art.append(availability);
     art.setAttribute('aria-hidden', 'true');
     shortcut.setAttribute('aria-hidden', 'true');
@@ -163,13 +141,13 @@ export function mountAccessibleBattleHud(scene) {
     if (action) button.dataset.actionId = action.id;
     button.append(shortcut, art, info);
     const focus = () => {
-      if (root.classList.contains('compact')) return;
-      showTooltip(slot);
+      if (root.classList.contains('compact') || scene.skillTableSwitching) return;
+      showTooltip(tables?.slotAt(index) || slot);
     };
     const blur = () => {
-      if (activeTooltip === slot) hideTooltip();
+      if (activeTooltip === (tables?.slotAt(index) || slot)) hideTooltip();
     };
-    row.addEventListener('pointerenter', () => { faceSkill(row, button, slot); focus(); });
+    row.addEventListener('pointerenter', () => { faceSkill(row, button, tables?.slotAt(index) || slot); focus(); });
     row.addEventListener('pointerleave', () => {
       if (frontSkill?.button === button) restorePerspective();
       blur();
@@ -177,13 +155,19 @@ export function mountAccessibleBattleHud(scene) {
     button.addEventListener('focus', focus);
     button.addEventListener('blur', blur);
     button.addEventListener('click', () => {
-      if (!scene.scene.isActive() || scene.finished) return;
-      if (slot.available) slot.hit.emit('pointerdown');
+      tables?.activate(index);
     });
     row.addEventListener('click', event => { if (event.target === row) button.click(); });
     row.append(button);
     actions.append(row);
-    return { button, name, cost, availability, slot, index };
+    return { button, name, cost, art, availability, index,
+      get slot() { return tables?.slotAt(index) || slot; },
+      paint(action, physical) {
+        const key = `${physical ? "physical" : "elemental"}:${action?.id || "empty"}`;
+        if (key === artKey || index === 0 || index === 5) return;
+        artKey = key; paintBattleSkillArt(scene, art, action, { physical, index }); art.append(availability);
+      }
+    };
   });
   const progress = document.createElement('div');
   progress.className = 'combat-access-progress';
@@ -211,6 +195,7 @@ export function mountAccessibleBattleHud(scene) {
     if (hidden) restorePerspective();
     root.hidden = Boolean(hidden);
     root.inert = Boolean(hidden);
+    tables?.refresh();
   };
   const suspend = () => {
     hideTooltip();
@@ -243,23 +228,31 @@ export function mountAccessibleBattleHud(scene) {
     }
     put(phaseText, scene.phaseLabel.text);
     put(message, scene.lastBattleMessage?.text || '');
-    controls.forEach(({ button, name, cost, availability, slot, index }) => {
-      const action = scene.actions[index];
-      const empty = action ? null : emptySkillInfo(scene, index);
+    controls.forEach(control => {
+      const { button, name, cost, availability, slot, index } = control;
+      const action = tables ? tables.actionAt(index) : scene.actions[index];
+      const physical = Boolean(tables?.physical && index > 0 && index < 5);
+      const empty = action ? null : physical ? tables.emptyAt(index) : emptySkillInfo(scene, index);
       const cooldown = action ? scene.cooldowns[action.id] || 0 : 0;
-      const affordable = action && scene.player.chakra >= scene.actionCost(action);
-      const requirement = action ? `${scene.actionCost(action)} CH${cooldown ? ` · CD ${cooldown}` : !affordable ? ' · Sin chakra' : ''}` : empty.requirement;
+      const health = actionHealthCost(action);
+      const affordable = action && scene.player.hp > health && scene.player.chakra >= scene.actionCost(action);
+      const resource = action ? skillResourceLabel(scene, action, physical) : empty.requirement;
+      const requirement = action ? `${resource}${cooldown ? ` · CD ${cooldown}` : !affordable ? health ? ' · Sin vida suficiente' : ' · Sin chakra' : ''}` : empty.requirement;
+      control.paint(action, physical);
+      button.classList.toggle('is-empty', !action);
+      if (action) button.dataset.actionId = action.id; else delete button.dataset.actionId;
       put(name, action?.name || empty.name);
-      put(cost, root.classList.contains('compact') ? requirement : action ? `${scene.actionCost(action)} CH` : empty.requirement);
-      put(availability, action ? cooldown ? `CD ${cooldown}` : !affordable ? 'SIN CH' : '' : '');
+      put(cost, root.classList.contains('compact') ? requirement : resource);
+      put(availability, action ? cooldown ? `CD ${cooldown}` : !affordable ? health ? 'SIN PV' : 'SIN CH' : '' : '');
       button.dataset.resourceState = action && !affordable ? 'insufficient' : cooldown ? 'cooldown' : 'normal';
-      button.setAttribute('aria-label', `${index + 1}. ${name.textContent}, ${requirement}`);
-      button.setAttribute('aria-disabled', String(!slot.available));
-      button.setAttribute('aria-pressed', String(Boolean(slot.selected)));
-      button.title = action ? `${action.name}: ${requirement}` : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
+      button.setAttribute('aria-label', `${index + 1}. ${name.textContent}${action?.equipmentName ? `, ${action.equipmentName}` : ''}, ${requirement}`);
+      button.setAttribute('aria-disabled', String(Boolean(!slot.available || scene.skillTableSwitching && index > 0 && index < 5)));
+      button.setAttribute('aria-pressed', String(Boolean(action && action.id === scene.selectedHudActionId)));
+      button.title = action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement}` : physical ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
     });
     markers.forEach(({ name, actor }) => put(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
+  tables = mountSkillTableControl(scene, { root, actions, restorePerspective, refresh });
   const query = window.matchMedia('(max-width: 980px)');
   // The existing Phaser actions remain the execution contract; the native layer
   // supplies the projected presentation and pointer geometry at every size.
@@ -275,10 +268,12 @@ export function mountAccessibleBattleHud(scene) {
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
     if (query.matches) scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
     if (query.matches) [...scene.playerStatusSlots, ...scene.enemyStatusSlots].forEach(slot => slot.detail.setVisible(false));
+    tables.layout();
     refresh();
   };
   query.addEventListener('change', layout);
   const resizeObserver = new ResizeObserver(() => {
+    tables.layout();
     if (frontSkill) faceSkill(frontSkill.row, frontSkill.button, frontSkill.slot);
   });
   resizeObserver.observe(actions);
@@ -289,6 +284,7 @@ export function mountAccessibleBattleHud(scene) {
   scene.events.on('sleep', onSleep);
   scene.events.on('wake', onWake);
   const remove = () => {
+    tables.destroy();
     hideTooltip();
     query.removeEventListener('change', layout);
     resizeObserver.disconnect();
@@ -302,7 +298,7 @@ export function mountAccessibleBattleHud(scene) {
   scene.events.once('shutdown', remove);
   layout();
   refresh();
-  return { refresh, suspend, updateProgress(values) {
+  return { refresh, suspend, getAction: tables.actionAt, activateAction: tables.activate, updateProgress(values) {
     markers.forEach(({ actor, meter }) => { meter.value = Math.max(0, Math.min(1, values[actor])); });
   } };
 }

@@ -217,3 +217,35 @@ body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; as
 @media (prefers-reduced-motion: reduce) {
   .combat-access *, .combat-access *::before, .combat-access *::after { transition: none !important; }
 }
+
+/* Tablas de habilidades: solo giran las ranuras configurables 2–5. */
+.combat-table-tools { position:absolute; inset:0; z-index:8; pointer-events:none; }
+.combat-table-heading { position:absolute; transform:translateX(-50%); border:1px solid #d7a8579c; border-radius:6px; padding:3px 8px; background:#071221f5; color:#f3d398; font:700 clamp(10px,.75cqw,13px) Cinzel,Georgia,serif; letter-spacing:.05em; white-space:nowrap; }
+.combat-table-switch { position:absolute; transform:translate(-50%,-50%); display:grid; place-items:center; width:clamp(36px,3.2cqw,54px); height:clamp(40px,3.6cqw,58px); border:1.5px solid #e1b564; border-radius:45%; background:linear-gradient(145deg,#581b25,#230d19); color:#f8d78b; box-shadow:inset 0 0 0 3px #071221,0 3px 9px #0009; pointer-events:auto; cursor:pointer; padding:7px; }
+.combat-table-switch svg { width:100%; height:100%; }
+.combat-table-switch:hover:not(:disabled), .combat-table-switch:focus-visible { color:#fff0c6; background:linear-gradient(145deg,#78313a,#401724); outline:2px solid #ffdd9a; outline-offset:3px; }
+.combat-table-switch:disabled { opacity:.45; cursor:default; }
+.combat-table-switch-label { display:none; }
+.combat-table-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
+.combat-physical-art { width:70%; height:70%; color:#edc477; filter:drop-shadow(0 1px 2px #000); }
+[data-skill-table=physical] .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) .combat-skill-cost { color:#f2c38e; }
+.combat-skill-row { transform-origin:center; }
+.combat-access:not(.compact) .combat-access-actions.is-turning-out .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) { animation:combat-table-out 160ms ease-in both; }
+.combat-access:not(.compact) .combat-access-actions.is-turning-in .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) { animation:combat-table-in 160ms ease-out both; }
+.compact .combat-table-tools { position:static; display:flex; justify-content:space-between; align-items:center; gap:12px; pointer-events:auto; }
+.compact .combat-table-heading { position:static; transform:none; font-size:12px; padding:7px 10px; }
+.compact .combat-table-switch { position:static; transform:none; display:flex; align-items:center; gap:8px; width:auto; height:44px; border-radius:8px; padding:8px 12px; font:700 14px 'Alegreya Sans',sans-serif; }
+.compact .combat-table-switch svg { width:22px; height:22px; }
+.compact .combat-table-switch-label { display:inline; }
+.compact .combat-access-actions.is-turning-out .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) button { animation:combat-table-out 160ms ease-in both; }
+.compact .combat-access-actions.is-turning-in .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) button { animation:combat-table-in 160ms ease-out both; }
+@keyframes combat-table-out { from { transform:rotateY(0deg); opacity:1; } to { transform:rotateY(-90deg); opacity:.25; } }
+@keyframes combat-table-in { from { transform:rotateY(90deg); opacity:.25; } to { transform:rotateY(0deg); opacity:1; } }
+@media (prefers-reduced-motion:reduce) {
+  .combat-access:not(.compact) .combat-access-actions.is-turning-out .combat-skill-row,
+  .combat-access:not(.compact) .combat-access-actions.is-turning-in .combat-skill-row,
+  .compact .combat-access-actions.is-turning-out .combat-skill-row button,
+  .compact .combat-access-actions.is-turning-in .combat-skill-row button { animation:none; }
+}
+
+.combat-access[data-skill-table=physical] .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) button[data-resource-state=insufficient] .combat-skill-cost { color:#ff998d; }

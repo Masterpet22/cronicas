@@ -51,12 +51,20 @@ export function mountBattleInventory(scene, parent) {
   button.innerHTML = `${itemIcon({ category: "consumables" })}<span>Objetos</span>`;
   parent.append(button);
   let dialog = null;
+  const restoreFocus = () => {
+    if (!dialog && button.isConnected) button.focus({ preventScroll: true });
+  };
   const close = () => {
     if (!dialog) return;
-    dialog.close(); dialog.remove(); dialog = null;
+    const current = dialog;
+    dialog = null;
+    if (current.open) current.close();
+    current.remove();
     scene.inventoryDialogOpen = false;
-    if (scene.scene.isPaused()) scene.scene.resume();
-    button.focus({ preventScroll: true });
+    // Encolar también resume si pause aún no se ha procesado: abrir y cerrar
+    // en el mismo fotograma no debe dejar la batalla pausada sin ventana.
+    scene.events.once("resume", restoreFocus);
+    scene.scene.resume();
   };
   const open = () => {
     if (dialog || !scene.scene.isActive() || scene.finished || scene.busy) return;
@@ -71,6 +79,12 @@ export function mountBattleInventory(scene, parent) {
     }).join("") || '<p class="inventory-empty">No llevas consumibles. Puedes comprarlos en la tienda de la aldea.</p>'}</div><p class="inventory-use-note">Pergaminos de reintento: ${countItem(scene.saveData, "retry_scroll")}. Se ofrecen al perder un duelo después de los reintentos gratuitos.</p>`;
     scene.game.canvas.parentElement.append(dialog);
     scene.scene.pause();
+    const current = dialog;
+    dialog.addEventListener("close", () => { if (dialog === current) close(); });
+    dialog.addEventListener("keydown", event => {
+      if (event.key !== "Escape") return;
+      event.preventDefault(); event.stopPropagation(); close();
+    });
     dialog.addEventListener("cancel", event => { event.preventDefault(); close(); });
     dialog.addEventListener("click", event => {
       if (event.target.closest("[data-bag-close]")) return close();
@@ -85,6 +99,9 @@ export function mountBattleInventory(scene, parent) {
     dialog.querySelector("[data-bag-close]").focus();
   };
   button.addEventListener("click", open);
-  scene.events.once("shutdown", () => { dialog?.remove(); dialog = null; scene.inventoryDialogOpen = false; });
+  scene.events.once("shutdown", () => {
+    dialog?.remove(); dialog = null; scene.inventoryDialogOpen = false;
+    scene.events.off("resume", restoreFocus);
+  });
   return { refresh() { button.disabled = Boolean(scene.mission.exhibition || scene.finished || scene.busy); }, button };
 }

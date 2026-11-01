@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
+// La primera visita a Sayo se guarda; repetir la guía no cambia el resto de la partida.
+const afterArchiveIntroduction = raw => {
+  const save = JSON.parse(raw);
+  save.campaign.npcIntroductions = [...new Set([...save.campaign.npcIntroductions, "archive:sayo"])];
+  return JSON.stringify(save);
+};
+
 async function prepare(page, { manual = false, emptyLoadout = false, completed = false, power = false } = {}) {
   await page.goto("/");
   await page.evaluate(async ({ manual, emptyLoadout, completed, power }) => {
@@ -118,7 +125,7 @@ test("el repaso completo con sellos manuales y equipo vacío conserva la partida
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
   await expect(page.locator("#game canvas")).toHaveCount(1);
   await expect(page.locator("#game")).toBeHidden();
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
   expect(errors).toEqual([]);
 });
 
@@ -133,7 +140,7 @@ test("la biblioteca ofrece la guía desde el inicio y salir no añade progreso",
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
   await expect(page.locator(".combat-tutorial")).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
 });
 
 test("se puede salir mientras un sello manual espera sin límite de tiempo", async ({ page }) => {
@@ -149,7 +156,7 @@ test("se puede salir mientras un sello manual espera sin límite de tiempo", asy
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
   await expect(page.locator("#game canvas")).toHaveCount(1);
   await expect(page.locator("#game")).toBeHidden();
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
   expect(errors).toEqual([]);
 });
 
@@ -181,6 +188,6 @@ test("el repaso también se completa con sellos automáticos", async ({ page }) 
     await next(page);
   }
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
   expect(errors).toEqual([]);
 });

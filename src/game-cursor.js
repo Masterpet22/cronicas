@@ -27,6 +27,15 @@ export function installGameCursor(root = document.querySelector("main")) {
   let frame = 0;
   let disposed = false;
 
+  // Un dialog modal vive por encima de cualquier z-index del documento.
+  // El cursor debe pertenecer a ese dialog mientras esté abierto.
+  const syncCursorLayer = () => {
+    const dialogs = [...root.querySelectorAll("dialog[open]")].filter(dialog => dialog.matches(":modal"));
+    const focused = document.activeElement?.closest("dialog[open]");
+    const host = dialogs.includes(focused) ? focused : dialogs.at(-1) || document.body;
+    if (cursor.parentElement !== host) host.append(cursor);
+  };
+
   const draw = () => {
     frame = 0;
     cursor.style.transform = `translate3d(${x - 1}px, ${y - 1}px, 0)`;
@@ -38,7 +47,11 @@ export function installGameCursor(root = document.querySelector("main")) {
     if (!frame) frame = requestAnimationFrame(draw);
   };
   const hide = () => cursor.classList.remove("is-visible");
-  const refreshBusyState = () => cursor.classList.toggle("is-loading", hasVisibleBusyState(root));
+  const refreshBusyState = () => {
+    const busy = hasVisibleBusyState(root);
+    if (cursor.classList.contains("is-loading") !== busy) cursor.classList.toggle("is-loading", busy);
+    syncCursorLayer();
+  };
   const burst = event => {
     if (event.button !== 0) return;
     const effect = document.createElement("img");
@@ -51,7 +64,7 @@ export function installGameCursor(root = document.querySelector("main")) {
     effect.setAttribute("aria-hidden", "true");
     effect.style.left = `${event.clientX}px`;
     effect.style.top = `${event.clientY}px`;
-    document.body.append(effect);
+    (cursor.parentElement || document.body).append(effect);
     const remove = () => effect.remove();
     effect.addEventListener("animationend", remove, { once: true });
     window.setTimeout(remove, 500);
@@ -61,10 +74,13 @@ export function installGameCursor(root = document.querySelector("main")) {
   root.addEventListener("pointerenter", move, { passive: true });
   root.addEventListener("pointerleave", hide, { passive: true });
   root.addEventListener("pointerdown", burst, { passive: true });
+  root.addEventListener("focusin", syncCursorLayer);
   window.addEventListener("blur", hide);
 
-  const observer = new MutationObserver(refreshBusyState);
-  observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-busy", "hidden", "class", "style"] });
+  const observer = new MutationObserver(records => {
+    if (records.some(record => !record.target.closest?.(".game-cursor, .game-cursor-click"))) refreshBusyState();
+  });
+  observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["aria-busy", "hidden", "class", "style", "open"] });
   refreshBusyState();
 
   return () => {
@@ -76,6 +92,7 @@ export function installGameCursor(root = document.querySelector("main")) {
     root.removeEventListener("pointerenter", move);
     root.removeEventListener("pointerleave", hide);
     root.removeEventListener("pointerdown", burst);
+    root.removeEventListener("focusin", syncCursorLayer);
     window.removeEventListener("blur", hide);
     cursor.remove();
     document.documentElement.classList.remove("has-game-cursor");
