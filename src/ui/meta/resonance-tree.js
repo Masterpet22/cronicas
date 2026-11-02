@@ -1,4 +1,5 @@
-import { PHYSICAL_COLOR, SKILL_REGION_COLORS, axialToPixel, buildSkillTree, hexDistance } from "../../skills/definitions.js?v=1.0.0";
+import { LOCKED_SKILL_COLOR, characterCoreColors, skillRegionColor } from "../../skills/colors.js?v=1.0.0";
+import { axialToPixel, buildSkillTree, hexDistance } from "../../skills/definitions.js?v=1.0.0";
 import { resonancePoints, skillLevel, skillState, skillTreeNodes } from "../../skills/progression.js?v=1.0.0";
 
 import { hexBoundarySegments } from "../../skills/hex-boundaries.js?v=1.0.0";
@@ -36,16 +37,18 @@ export function resonanceTreeMarkup(save,deps,selectedId,view) {
   const allNodes = skillTreeNodes(save);
   const cells = allNodes.filter(node => node.id===node.cellId);
   const selected = allNodes.find(node => node.id===selectedId);
-  const colorOf = cell => cell.category === "physical" ? PHYSICAL_COLOR : cell.category === "affinity"
-    ? SKILL_REGION_COLORS.affinities[cell.slot] : SKILL_REGION_COLORS.bridges[cell.bridge];
+  const colorOf = cell => skillRegionColor(save,cell);
   const nodes = cells.map(cell => selected?.cellId===cell.id ? { ...selected,category:cell.category,slot:cell.slot,bridge:cell.bridge,cellId:cell.id } : cell);
   const bounds = treeBounds(cells);
+  const regionColors = new Map();
   const regions = [
     { id:"physical",nodes:cells.filter(node => node.category === "physical") },
     ...[0,1,2].map(slot => ({ id:`affinity-${slot+1}`,nodes:cells.filter(node => node.category === "affinity" && node.slot===slot) })),
     ...SKILL_LAYOUT_BRIDGES.map(id => ({ id,nodes:cells.filter(node => node.bridge===id),hybrid:true }))
   ].map(region => {
-    const color = colorOf(region.nodes[0]);
+    const active=region.nodes.some(node => skillState(save,node)!=="locked");
+    const color = active ? colorOf(region.nodes[0]) : LOCKED_SKILL_COLOR;
+    regionColors.set(region.id,color);
     const outline = hexBoundarySegments(region.nodes).map(e => `M${e.x1},${e.y1}L${e.x2},${e.y2}`).join(" ");
     return `<g class="resonance-region ${region.hybrid ? "is-hybrid-region" : ""}" ${region.hybrid ? "data-bridge-region" : "data-region"}="${region.id}" data-region-color="${color}" style="--region-color:${color}" aria-hidden="true"><path class="resonance-region-shadow" d="${outline}"/><path class="resonance-region-border" d="${outline}"/></g>`;
   }).join("");
@@ -57,23 +60,24 @@ export function resonanceTreeMarkup(save,deps,selectedId,view) {
   })).join("");
   const renderedCells = nodes.map(node => {
     const cell = cells.find(cell => cell.id===node.cellId);
-    const { x,y }=axialToPixel(node.q,node.r), color=colorOf(cell);
     const state=skillState(save,node), level=skillLevel(save,node);
+    const { x,y }=axialToPixel(node.q,node.r), color=state === "locked" ? LOCKED_SKILL_COLOR : colorOf(cell);
     const physicalSlot=(save.taijutsuLoadout || []).indexOf(node.id), slot=save.loadout.indexOf(node.id);
     const equipped=physicalSlot>=0 || slot>=0;
     const status=physicalSlot>=0 ? `EN COMBATE · TAIJUTSU ${physicalSlot+1}` : slot>=0 ? `EN COMBATE · RANURA ${slot+1}` : labels[state];
     const stamps=node.affinityIds.map((id,i) => `<image class="resonance-element-stamp" href="${deps.elementIcon(id)}" x="${node.affinityIds.length>1 ? -17+i*14 : -8}" y="-31" width="16" height="16" aria-hidden="true"/>`).join("");
     const linked=allNodes.filter(other => other.cellId===cell.id).length-1;
-    return `<g class="resonance-node is-${state} ${cell.category === "hybrid" ? "is-hybrid" : ""} ${selected?.cellId===cell.id ? "is-selected" : ""}" transform="translate(${x} ${y})" style="--node-color:${color}" role="button" tabindex="0" aria-pressed="${selected?.cellId===cell.id}" aria-label="${escape(node.name)}. ${status}. Nivel ${level} de ${node.maxLevel}${linked ? `. ${linked} técnicas vinculadas en la ficha` : ""}" data-skill-select="${node.id}" data-cell-id="${cell.id}" data-q="${node.q}" data-r="${node.r}" data-category="${cell.category}" data-slot="${cell.slot ?? ""}" data-bridge="${cell.bridge || ""}" data-state="${state}"><title>${escape(node.name)} · ${status}</title><polygon class="resonance-hex-outline" points="${hexPoints(44)}"/><polygon class="resonance-hex" points="${hexPoints()}" stroke="${color}"/><polygon class="resonance-hex-inset" points="${hexPoints(35)}"/>${stamps}<path class="resonance-glyph" d="${PATHS[node.icon] || PATHS.seal}" stroke="${color}"/>${state === "locked" ? '<g class="resonance-lock" transform="translate(17 15)"><rect x="-5" y="0" width="10" height="9" rx="1"/><path d="M-3 0v-3a3 3 0 0 1 6 0v3"/></g>' : `<text class="resonance-level" x="0" y="28" text-anchor="middle">${level ? `${level}/${node.maxLevel}` : "+"}</text>`}${equipped ? '<circle class="resonance-equipped" cx="25" cy="-19" r="5"/>' : ""}${linked ? `<text class="resonance-linked-count" x="-24" y="21">+${linked}</text>` : ""}<text class="skill-state" aria-hidden="true">${escape(status)}</text></g>`;
+    return `<g class="resonance-node is-${state} ${cell.category === "hybrid" ? "is-hybrid" : ""} ${selected?.cellId===cell.id ? "is-selected" : ""}" transform="translate(${x} ${y})" style="--node-color:${color}" role="button" tabindex="0" aria-pressed="${selected?.cellId===cell.id}" aria-label="${escape(node.name)}. ${status}. Nivel ${level} de ${node.maxLevel}${linked ? `. ${linked} técnicas vinculadas en la ficha` : ""}" data-skill-select="${node.id}" data-cell-id="${cell.id}" data-q="${node.q}" data-r="${node.r}" data-category="${cell.category}" data-slot="${cell.slot ?? ""}" data-bridge="${cell.bridge || ""}" data-state="${state}" data-node-color="${color}"><title>${escape(node.name)} · ${status}</title><polygon class="resonance-hex-outline" points="${hexPoints(44)}"/><polygon class="resonance-hex" points="${hexPoints()}" stroke="${color}"/><polygon class="resonance-hex-inset" points="${hexPoints(35)}"/>${stamps}<path class="resonance-glyph" d="${PATHS[node.icon] || PATHS.seal}" stroke="${color}"/>${state === "locked" ? '<g class="resonance-lock" transform="translate(17 15)"><rect x="-5" y="0" width="10" height="9" rx="1"/><path d="M-3 0v-3a3 3 0 0 1 6 0v3"/></g>' : `<text class="resonance-level" x="0" y="28" text-anchor="middle">${level ? `${level}/${node.maxLevel}` : "+"}</text>`}${equipped ? '<circle class="resonance-equipped" cx="25" cy="-19" r="5"/>' : ""}${linked ? `<text class="resonance-linked-count" x="-24" y="21">+${linked}</text>` : ""}<text class="skill-state" aria-hidden="true">${escape(status)}</text></g>`;
   }).join("");
   const identity=characterResonanceSymbol(save.character);
+  const coreColors=characterCoreColors(save.character);
   const emblem=identity.month ? `<text class="resonance-month-kanji ${identity.symbol.length>1 ? "is-double" : ""}" text-anchor="middle" y="12" data-core-kanji>${identity.symbol}</text>`
     : '<g class="resonance-yinyang" aria-hidden="true"><circle class="yin-disc" r="22"/><path class="yin-dark" d="M0-22A22 22 0 0 1 0 22Z"/><circle class="yin-dark" cy="-11" r="11"/><circle class="yin-light" cy="11" r="11"/><circle class="yin-light" cy="-11" r="3"/><circle class="yin-dark" cy="11" r="3"/></g>';
-  const core=`<g class="resonance-core ${selectedId === "core" ? "is-selected" : ""}" role="button" tabindex="0" aria-label="Núcleo de ${escape(save.character.name)}. ${escape(identity.label)}. Centrar el árbol" data-tree-core data-character-symbol="${identity.symbol}"><title>${escape(save.character.name)} · ${escape(identity.label)}</title><polygon points="${hexPoints(44)}"/>${emblem}<text class="resonance-core-label" text-anchor="middle" y="33">PERSONAJE</text></g>`;
+  const core=`<g class="resonance-core ${selectedId === "core" ? "is-selected" : ""}" role="button" tabindex="0" aria-label="Núcleo de ${escape(save.character.name)}. ${escape(identity.label)}. Centrar el árbol" data-tree-core data-core-color="${coreColors.fill}" style="--core-color:${coreColors.fill};--core-ink:${coreColors.ink}" data-character-symbol="${identity.symbol}"><title>${escape(save.character.name)} · ${escape(identity.label)}</title><polygon points="${hexPoints(44)}"/>${emblem}<text class="resonance-core-label" text-anchor="middle" y="33">PERSONAJE</text></g>`;
   const categories=[
-    [PHYSICAL_COLOR,"Físicas"],
-    ...[0,1,2].map(slot => [SKILL_REGION_COLORS.affinities[slot],`A${slot+1}${save.character.affinities[slot] ? ` · ${deps.elementName(save.character.affinities[slot])}` : ""}`]),
-    ...SKILL_LAYOUT_BRIDGES.map(id => [SKILL_REGION_COLORS.bridges[id],id.replace("affinity-", "A").replace("-"," + A")])
+    [regionColors.get("physical"),"Físicas"],
+    ...[0,1,2].map(slot => [regionColors.get(`affinity-${slot+1}`),`A${slot+1}${save.character.affinities[slot] ? ` · ${deps.elementName(save.character.affinities[slot])}` : ""}`]),
+    ...SKILL_LAYOUT_BRIDGES.map(id => [regionColors.get(id),id.replace("affinity-", "A").replace("-"," + A")])
   ].map(([color,label]) => `<span><i style="background:${color}"></i>${escape(label)}</span>`).join("");
   const developed=nodes.filter(n => skillLevel(save,n)>0 && skillState(save,n)!=="locked").length;
   return `<section class="resonance-tree skill-tree" aria-label="Árbol de habilidades de Resonancia"><header class="resonance-heading"><div><p class="eyebrow">EL CAMINO DEL SHINOBI</p><h3>Núcleo de Resonancia</h3></div><span class="resonance-points"><b data-resonance-points>${resonancePoints(save)}</b><span>PUNTOS<br>DISPONIBLES</span></span></header><div class="resonance-viewport"><svg class="resonance-canvas" viewBox="${viewBox(view || bounds)}" aria-label="Panal de 39 celdas. Tab recorre, Enter selecciona, flechas desplazan y más o menos amplían." data-tree-canvas><g aria-hidden="true">${lines}</g>${regions}${renderedCells}${core}</svg><nav class="resonance-controls" aria-label="Navegación del árbol"><button type="button" data-tree-zoom="out" aria-label="Alejar árbol">−</button><button type="button" data-tree-zoom="in" aria-label="Acercar árbol">+</button><button type="button" data-tree-fit aria-label="Mostrar árbol completo">⛶</button><button type="button" data-tree-center aria-label="Centrar en Resonancia">◎</button></nav><span class="resonance-navigation-hint">Arrastra para explorar · Rueda para ampliar</span></div><footer><div class="resonance-category-legend">${categories}</div><div class="resonance-legend"><span><i class="locked"></i>Bloqueada</span><span><i class="available"></i>Disponible</span><span><i class="unlocked"></i>Aprendida</span><span><i class="upgraded"></i>Mejorada</span><small>${developed}/38 habilidades · Personaje central</small></div></footer></section>`;

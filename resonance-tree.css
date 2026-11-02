@@ -29,13 +29,13 @@
 .resonance-node.is-locked .resonance-hex { stroke:var(--node-color); stroke-opacity:.55; fill:#111613; }
 .resonance-node.is-locked .resonance-glyph { opacity:.22; }
 .resonance-element-stamp { pointer-events:none; }
-.resonance-node.is-locked .resonance-element-stamp { opacity:.25; }
+.resonance-node.is-locked .resonance-element-stamp { opacity:.25; filter:grayscale(1); }
 .resonance-node.is-locked .resonance-hex-outline { stroke:var(--node-color); stroke-opacity:.7; }
 .resonance-node.is-available .resonance-hex { fill:color-mix(in srgb,var(--node-color) 9%,#141a18); }
 .resonance-node.is-available .resonance-glyph { opacity:.75; }
 .resonance-node.is-unlocked .resonance-hex,.resonance-node.is-upgraded .resonance-hex { fill:color-mix(in srgb,var(--node-color) 20%,#151b18); stroke-width:2.4; }
 .resonance-node.is-upgraded .resonance-hex-inset { stroke:var(--node-color); opacity:.55; }
-.resonance-node.is-hybrid:not(.is-locked) .resonance-hex-outline { stroke:#bdaa6b; }
+.resonance-node.is-hybrid:not(.is-locked) .resonance-hex-outline { stroke:var(--node-color); stroke-width:2; }
 .resonance-node:hover .resonance-hex-outline,.resonance-node.is-selected .resonance-hex-outline,.resonance-node:focus-visible .resonance-hex-outline { stroke:#ffe5a2; stroke-width:3; }
 .resonance-node:hover .resonance-hex,.resonance-node.is-selected .resonance-hex { fill:color-mix(in srgb,var(--node-color) 28%,#151b18); }
 .resonance-node:focus-visible .resonance-hex-outline { stroke:#fff; stroke-dasharray:4 2; }
@@ -52,13 +52,13 @@
 .resonance-core circle:not(:first-of-type) { fill:#1c211c; }
 .resonance-core text { fill:#d1b47a; font:700 7px "Cinzel",serif; letter-spacing:1px; pointer-events:none; paint-order:stroke; stroke:#111713; stroke-width:2px; }
 .resonance-core:hover polygon,.resonance-core:focus-visible polygon,.resonance-core.is-selected polygon { stroke:#fff1c9; stroke-width:4; }
-.resonance-core polygon { fill:#ffe35c; stroke:#10140f; stroke-width:4; }
-.resonance-core .resonance-core-label { fill:#171b15; stroke:none; font-size:6px; letter-spacing:.7px; }
-.resonance-core .resonance-month-kanji { fill:#171b15; stroke:none; font:38px "Yu Mincho","MS Mincho",SimSun,serif; letter-spacing:0; }
+.resonance-core polygon { fill:var(--core-color,#e8edf5); stroke:var(--core-ink,#171b15); stroke-width:4; }
+.resonance-core .resonance-core-label { fill:var(--core-ink,#171b15); stroke:none; font-size:6px; letter-spacing:.7px; }
+.resonance-core .resonance-month-kanji { fill:var(--core-ink,#171b15); stroke:none; font:38px "Yu Mincho","MS Mincho",SimSun,serif; letter-spacing:0; }
 .resonance-core .resonance-month-kanji.is-double { font-size:27px; }
-.resonance-core .resonance-yinyang .yin-disc { fill:#ffe35c; stroke:#171b15; stroke-width:1; }
-.resonance-core .resonance-yinyang .yin-dark { fill:#171b15; stroke:none; }
-.resonance-core .resonance-yinyang .yin-light { fill:#ffe35c; stroke:none; }
+.resonance-core .resonance-yinyang .yin-disc { fill:var(--core-color,#e8edf5); stroke:var(--core-ink,#171b15); stroke-width:1; }
+.resonance-core .resonance-yinyang .yin-dark { fill:var(--core-ink,#171b15); stroke:none; }
+.resonance-core .resonance-yinyang .yin-light { fill:var(--core-color,#e8edf5); stroke:none; }
 .resonance-linked-count { fill:#c9c4ac; font:8px "Alegreya Sans",sans-serif; pointer-events:none; }
 .resonance-linked-chooser { display:grid; gap:4px; color:#bfccb9; font-size:11px; }
 .resonance-linked-chooser select { width:100%; min-width:0; min-height:34px; border:1px solid #7e8c76; border-radius:4px; background:#102017; color:#e5e9d9; font-size:12px; }

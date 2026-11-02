@@ -3,20 +3,23 @@
 El Dojo → Técnicas reproduce exactamente el plano de 39 hexágonos suministrado
 por el usuario: 38 celdas de habilidades y una del personaje en `(0,0)`.
 
-| Grupo | Celdas | Posición | Color representativo |
+| Grupo | Celdas | Posición | Color |
 |---|---:|---|---|
-| Afinidad 1 | 8 | Izquierda | Rojo |
-| Afinidad 2 | 7 | Abajo | Marrón |
-| Afinidad 3 | 8 | Derecha | Verde |
+| Afinidad 1 | 8 | Izquierda | Elemento equipado en A1 |
+| Afinidad 2 | 7 | Abajo | Elemento equipado en A2 |
+| Afinidad 3 | 8 | Derecha | Elemento equipado en A3 |
 | Físicas | 6 | Arriba | Azul |
-| Afinidad 1 + 2 | 3 | Inferior izquierda | Cian |
-| Afinidad 2 + 3 | 3 | Inferior derecha | Amarillo |
-| Afinidad 1 + 3 | 3 | Cima y dos extremos superiores separados | Morado |
-| Personaje | 1 | Centro | Fondo amarillo y borde negro |
+| Afinidad 1 + 2 | 3 | Inferior izquierda | Mezcla de A1 y A2 |
+| Afinidad 2 + 3 | 3 | Inferior derecha | Mezcla de A2 y A3 |
+| Afinidad 1 + 3 | 3 | Cima y dos extremos superiores separados | Mezcla de A1 y A3 |
+| Personaje | 1 | Centro | Color elegido por el jugador |
 
-Las nueve columnas contienen `2,3,5,6,7,6,5,3,2` hexágonos. Los colores identifican
-los grupos del esquema; las técnicas e iconos corresponden a los elementos
-equipados. No aparecen hexágonos adicionales al progresar o cambiar de vista.
+Las nueve columnas contienen `2,3,5,6,7,6,5,3,2` hexágonos. Los colores, técnicas e iconos corresponden a los elementos equipados. Una rama
+bloqueada o sin asignar se muestra gris; las habilidades bloqueadas también.
+Los pares quedan grises si falta o está bloqueada cualquiera de sus afinidades.
+La mezcla usa aportes RGB iguales: rojo `#ff0000` + azul `#0000ff` da morado
+`#800080`. El núcleo toma `character.appearance`; su borde, kanji e yin yang
+adaptan el contraste para colores claros y oscuros. No aparecen hexágonos adicionales al progresar o cambiar de vista.
 
 El catálogo conserva sus habilidades, mejoras y requisitos anteriores. Las que
 exceden las posiciones del plano quedan vinculadas a una celda existente y se
@@ -34,6 +37,7 @@ calendario actualiza el símbolo al volver al Dojo. No se guarda otra copia del 
   elemento, y los de híbridas del par ordenado, nunca de la ranura equipada.
 - `src/skills/progression.js`: niveles, requisitos, transacciones de puntos,
   normalización, modificadores pasivos y mejoras del daño de técnicas.
+- `src/skills/colors.js`: colores de afinidades, mezclas, bloqueos y contraste del núcleo.
 - `src/skills/character-symbol.js`: símbolo del núcleo derivado del cumpleaños.
 - `src/skills/taijutsu.js`: desbloqueo, dos ranuras físicas independientes,
   intercambio de posiciones y conversión del nivel a una acción de combate.
@@ -68,11 +72,15 @@ al seleccionar una habilidad vinculada.
 El personaje dispone de **3 puntos de Resonancia iniciales y 2 por nivel ganado**,
 independientes de los puntos de atributos. Los puntos disponibles se calculan a
 partir del nivel y de las inversiones; recargar o cambiar de vista no los duplica.
-Cada nodo define su coste por nivel y un máximo de tres niveles.
+Cada nodo define su coste por nivel y un máximo de cinco niveles.
 
 Las técnicas existentes mantienen su aprendizaje por nivel y PX de afinidad.
 Aprender una técnica concede su primer nivel; cada mejora comprada añade dos
-puntos de daño base a esa técnica. Las especializaciones pasivas se desbloquean
+puntos de daño base y reduce el consumo un 5 % del coste original. Al nivel 5,
+la reducción alcanza el 20 % y la técnica usa un sello menos. Cada sello suma
+300 ms de preparación a velocidad 10; la velocidad del personaje escala ese
+tiempo. El Dojo muestra el daño, coste efectivo y número de sellos del nivel
+actual. Las especializaciones pasivas se desbloquean
 y mejoran con puntos, y sus efectos se aplican en `derivedStats` al crear al
 combatiente. Los híbridos requieren progreso en ambas afinidades y, cuando está
 definida, la técnica híbrida anterior.

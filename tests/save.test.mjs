@@ -5,7 +5,7 @@ import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 26, "La versión debe recordar las presentaciones de los encargados");
+assert.equal(SAVE_VERSION, 27, "La versión debe incorporar la ranura y el shuriken inicial");
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
 assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
@@ -48,7 +48,7 @@ const initialStats = derivedStats(save);
 assert.equal(initialStats.damageBonus, 15, "La fuerza base, Daichi y el kunai inicial deben acumularse");
 assert.equal(initialStats.damageReduction, 0, "Daichi no debe conceder la ventaja defensiva de Mei");
 assert.equal(initialStats.maxHp, 88, "Viento principal debe penalizar 12 % la vida");
-assert.equal(initialStats.maxChakra, 144, "Viento principal debe potenciar 20 % el chakra base equipado");
+assert.equal(initialStats.maxChakra, 96, "Viento principal debe potenciar 20 % los 60 CH base y 20 del amuleto");
 
 save.progression.attributePoints = 5;
 for (const attribute of ["health", "strength", "speed", "chakra", "luck"]) save = spendAttribute(save, attribute);
@@ -58,7 +58,7 @@ const trainedStats = derivedStats(save);
 assert.equal(trainedStats.maxHp, 97, "Vida debe aumentar los PV antes de aplicar la penalización de Viento");
 assert.equal(trainedStats.damageBonus, 16, "Fuerza debe aumentar el daño, además de la base, el equipo y Daichi");
 assert.equal(trainedStats.speed, 11, "Velocidad debe acelerar el avance desde la base fija");
-assert.equal(trainedStats.maxChakra, 150, "Chakra debe aumentar la reserva antes del bono de Viento");
+assert.equal(trainedStats.maxChakra, 102, "Chakra debe aumentar la reserva antes del bono de Viento");
 assert.equal(trainedStats.evasion, 18, "Suerte base, entrenamiento y chaleco deben modificar la evasión");
 assert.equal(trainedStats.criticalChance, 13, "Suerte debe mejorar el crítico sin volverlo demasiado frecuente");
 const resetTraining = resetAttributes(save);

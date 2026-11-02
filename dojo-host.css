@@ -1,4 +1,5 @@
 /* El maestro activo comparte la escena con la configuración, como los demás guías. */
+.location-dojo .loadout-column .equipment-grid { min-height:0; overflow-y:auto; padding-right:3px; }
 .location-stage.location-dojo .stage-character:first-child { left:0; right:auto; width:26%; height:80%; bottom:0; }
 .location-stage.location-dojo .stage-character span { font-size:13px; }
 .location-stage.location-dojo .stage-ambient { left:2%; right:auto; top:104px; bottom:auto; height:auto; width:23%; box-sizing:border-box; padding:13px; font-size:13px; }

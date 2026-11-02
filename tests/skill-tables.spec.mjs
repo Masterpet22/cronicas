@@ -58,8 +58,8 @@ for (const width of [1280, 1600]) test(`las dos tablas conservan 1 y 6 y el equi
   await expect(button(page, 2)).toContainText("Golpe de arma");
   await expect(button(page, 2)).toContainText("0 PV");
   await expect(button(page, 2)).toHaveAttribute("aria-label", /Kunai/);
-  await expect(button(page, 3)).toContainText("Arma arrojadiza");
-  await expect(button(page, 3)).toHaveAttribute("aria-disabled", "true");
+  await expect(button(page, 3)).toContainText("Shuriken");
+  await expect(button(page, 3)).toHaveAttribute("aria-disabled", "true"); // The reference scene is still busy.
   for (const index of [4, 5]) { await expect(button(page, index)).toContainText("Sin taijutsu"); await expect(button(page, index)).not.toContainText("NV"); }
   expect(await page.evaluate(() => window.__fixedSkills.every((node, index) => node === document.querySelector(`[data-combat-action="${index ? 6 : 1}"]`)))).toBe(true);
   expect(await page.evaluate(() => { const s = window.__performanceReference.scene; return { hp: s.player.hp, ch: s.player.chakra, round: s.round, loadout: s.saveData.loadout, pending: s.pendingActions.player, timeline: s.timelineProgress }; })).toEqual(initial);
@@ -82,9 +82,9 @@ test("teclas 2–5 usan solo la tabla visible y el arma no gasta chakra", async 
   await page.getByRole("button", { name: "Cambiar a habilidades físicas", exact: true }).click();
   await expect(button(page, 2)).toHaveAttribute("aria-disabled", "false");
   for (const key of ["2", "3", "4", "5"]) await page.keyboard.press(key);
-  expect(await page.evaluate(() => window.__skillCalls)).toEqual(["weapon_strike"]);
+  expect(await page.evaluate(() => window.__skillCalls)).toEqual(["weapon_strike", "throwable_strike"]);
   await page.keyboard.press("1"); await page.keyboard.press("6");
-  expect(await page.evaluate(() => window.__skillCalls)).toEqual(["weapon_strike", "strike", "guard"]);
+  expect(await page.evaluate(() => window.__skillCalls)).toEqual(["weapon_strike", "throwable_strike", "strike", "guard"]);
   await page.getByRole("button", { name: "Cambiar a habilidades elementales", exact: true }).click();
   await page.evaluate(() => { const s = window.__performanceReference.scene; s.player.chakra = s.player.maxChakra; s.cooldowns.fire_embers = 0; s.refreshHud(); });
   await page.keyboard.press("2");

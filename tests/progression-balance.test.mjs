@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { AFFINITY_IDS, affinityCycleModifier, applyAffinityStatModifiers } from "../src/affinity-system.js";
 import { attackBaseDamage, resolveDamage } from "../src/battle/damage.js";
+import { resolveEnemyProfileForBattle } from "../src/battle/enemy-state.js";
 import { MISSIONS } from "../src/content/index.js";
 import { ENEMY_ROSTER, JUTSU_LIBRARY } from "../src/data.js";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, encounterRecovery, experienceForNextLevel, levelStatBonus } from "../src/progression-balance.js";
@@ -36,7 +37,7 @@ for (const affinity of AFFINITY_IDS) {
     const starterTechnique = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1 && jutsu.damage > 0)
       .sort((left, right) => right.damage - left.damage)[0];
     for (const enemyId of mission.encounters) {
-      const enemy = ENEMY_ROSTER[enemyId];
+      const enemy = resolveEnemyProfileForBattle(ENEMY_ROSTER[enemyId], mission, affinity);
       const enemyHp = applyAffinityStatModifiers(enemy.stats, [enemy.affinity]).stats.health;
       const damage = resolveDamage({
         baseDamage: attackBaseDamage(starterTechnique.damage, statsBefore.baseStrength),

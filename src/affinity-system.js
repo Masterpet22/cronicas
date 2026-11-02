@@ -1,3 +1,5 @@
+import { CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
+
 export const AFFINITY_IDS = Object.freeze(["fuego", "agua", "tierra", "viento"]);
 export const COMBAT_STAT_IDS = Object.freeze(["health", "strength", "speed", "chakra", "luck"]);
 
@@ -5,7 +7,7 @@ export const AFFINITY_CONFIG = Object.freeze({
   maxAffinities: 3,
   // Todo personaje comienza desde una base legible y comparable. Afinidad,
   // entrenamiento, equipo y maestro se aplican después sobre estos valores.
-  baseStats: Object.freeze({ health: 100, strength: 10, speed: 10, chakra: 100, luck: 10 }),
+  baseStats: Object.freeze({ health: 100, strength: 10, speed: 10, chakra: CHAKRA_BALANCE.baseReserve, luck: 10 }),
   attributeGains: Object.freeze({ health: 10, strength: 1, speed: 1, chakra: 5, luck: 1 }),
   derived: Object.freeze({ baseEvasion: 3, baseCriticalChance: 5, luckCriticalScale: 0.8, criticalChanceCap: 25 }),
   slots: Object.freeze([

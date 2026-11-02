@@ -1,7 +1,14 @@
 import { createCachedIconCanvas } from "./icon-canvas-cache.js?v=1.0.0";
+import { WEAPON_ASSETS } from "../weapon-assets.js?v=1.0.0";
 
 export function paintBattleSkillArt(scene, art, action, { physical = false, index = 0 } = {}) {
   art.replaceChildren();
+  if (physical && action && ["kunai", "steel_kunai", "shuriken"].includes(action.weaponId)) {
+    const image = document.createElement("img");
+    image.src = WEAPON_ASSETS[action.weaponId === "steel_kunai" ? "kunai" : action.weaponId];
+    image.alt = ""; image.className = "combat-physical-asset";
+    art.append(image); return;
+  }
   if (physical && index > 0 && index < 5) {
     const weapon = action?.weaponId;
     const path = index === 2 ? "M12 2 14 8 22 12 16 14 12 22 10 16 2 12 8 10Z M12 10a2 2 0 1 0 0 4 2 2 0 0 0 0-4"

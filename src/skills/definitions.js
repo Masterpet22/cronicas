@@ -1,11 +1,8 @@
 import { JUTSU_LIBRARY } from "../data.js?v=0.114.0";
+import { TECHNIQUE_MASTERY } from "./technique-mastery.js?v=1.0.0";
 import { ELEMENTS, BASIC_ELEMENT_IDS, basicRequirements } from "../elements.js?v=0.20.0";
-// Diagram colors identify progression categories; equipped elements supply skills/icons.
+// Physical skills keep their own color; affinity and mixed colors are derived.
 export const PHYSICAL_COLOR = "#657fff";
-export const SKILL_REGION_COLORS = Object.freeze({
-  physical:PHYSICAL_COLOR, affinities:["#ff4b55","#ba701c","#2f9b68"],
-  bridges:{ "affinity-1-2":"#19c3ed", "affinity-2-3":"#e1df27", "affinity-1-3":"#a33df1" }
-});
 
 /**
  * @typedef {Object} SkillDefinition
@@ -56,15 +53,15 @@ export const effectText = effect => `+${effect.amount} ${STAT_LABELS[effect.stat
 const path = [[], [0], [0], [1], [1], [2], [3,4], [5,6]];
 
 function passive(id, name, category, affinityIds, index, effect, prerequisites = []) {
-  return { id, name, category, affinityIds, description: `Entrenamiento permanente. ${effectText(effect)}. Se aplica mientras sus afinidades estén equipadas.`, icon: ICONS[index % 8], type: "Pasiva", maxLevel: 3, cost: index >= 6 ? 2 : 1, prerequisites, effect };
+  return { id, name, category, affinityIds, description: `Entrenamiento permanente. ${effectText(effect)}. Se aplica mientras sus afinidades estén equipadas.`, icon: ICONS[index % 8], type: "Pasiva", maxLevel: TECHNIQUE_MASTERY.maxLevel, cost: index >= 6 ? 2 : 1, prerequisites, effect };
 }
 
 function techniqueNode(jutsu, category, index) {
   return {
     id: jutsu.id, name: jutsu.name, category, affinityIds: basicRequirements(jutsu.element),
     description: jutsu.status ? `Inflige daño y aplica ${jutsu.status.label.toLowerCase()} durante ${jutsu.status.duration} turno(s).` : "Concentra la afinidad en un impacto elemental directo.",
-    icon: ICONS[index % 8], type: jutsu.cinematic ? "Definitiva" : jutsu.status ? "Ataque · Estado" : jutsu.speedMod >= 4 ? "Ataque veloz" : "Ataque directo",
-    maxLevel: 3, cost: jutsu.cinematic ? 2 : 1, prerequisites: [], jutsuId: jutsu.id, element: jutsu.element,
+    icon: ICONS[index % 8], type: jutsu.cinematic ? "Definitiva" : jutsu.status ? "Ataque · Estado" : jutsu.seals.length <= 2 ? "Ataque veloz" : "Ataque directo",
+    maxLevel: TECHNIQUE_MASTERY.maxLevel, cost: jutsu.cinematic ? 2 : 1, prerequisites: [], jutsuId: jutsu.id, element: jutsu.element,
     unlockLevel: jutsu.unlockLevel, affinityXpRequired: jutsu.affinityXpRequired
   };
 }
@@ -147,7 +144,7 @@ export function buildSkillTree(affinities = [],rank = 1) {
     const id = affinities[slot];
     const branch = id ? affinitySkills(id) : Array.from({ length:8 },(_,i) => ({
       id:`empty_${slot}_${i}`,name:`Afinidad ${slot+1} por descubrir`,description:"Equipa una afinidad en esta ranura del Dojo para revelar sus habilidades.",
-      category:"affinity",affinityIds:[],icon:"seal",type:"Sin afinidad",maxLevel:3,cost:1,prerequisites:[],placeholder:true
+      category:"affinity",affinityIds:[],icon:"seal",type:"Sin afinidad",maxLevel:TECHNIQUE_MASTERY.maxLevel,cost:1,prerequisites:[],placeholder:true
     }));
     const cells = place(branch,SKILL_LAYOUT.affinities[slot],{ slot });
     cells.at(-1).linkedSkills.push(...branch.slice(cells.length));
@@ -159,7 +156,7 @@ export function buildSkillTree(affinities = [],rank = 1) {
     const ids = [affinities[a],affinities[b]];
     const branch = ids.every(Boolean) ? pairSkills(ids) : cells.map((_,i) => ({
       id:`empty_hybrid_${a}_${b}_${i}`,name:`Afinidad ${a+1} + Afinidad ${b+1}`,category:"hybrid",affinityIds:ids.filter(Boolean),
-      description:"Equipa ambas afinidades y desarrolla sus habilidades de entrada.",icon:"bind",type:"Confluencia",maxLevel:3,cost:1,prerequisites:[],placeholder:true
+      description:"Equipa ambas afinidades y desarrolla sus habilidades de entrada.",icon:"bind",type:"Confluencia",maxLevel:TECHNIQUE_MASTERY.maxLevel,cost:1,prerequisites:[],placeholder:true
     }));
     const bridge = place(branch,cells,{ bridge:`affinity-${a+1}-${b+1}`,pair:[a,b] });
     bridge.at(-1).linkedSkills.push(...branch.slice(cells.length));

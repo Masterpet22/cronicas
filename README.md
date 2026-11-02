@@ -65,18 +65,19 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Desactiva **Sellos manuales** sobre el juego para ejecutar las secuencias automáticamente; la preferencia queda guardada en el navegador.
 - El modo manual no tiene límite de tiempo. Las técnicas ya vistas reproducen sus sellos más rápidamente.
 - Puedes regular el volumen y desactivar el movimiento de cámara o los destellos.
-- Los jutsus consumen chakra; el personaje recupera 8 puntos al completar una acción propia.
+- La reserva base es de 60 de chakra antes de equipo y afinidad. El personaje recupera 5 puntos al completar una acción propia; las técnicas iniciales cuestan 30–42 y las más potentes hasta 72 en nivel 1. Cada mejora añade +2 de daño y descuenta un 5 % del coste original (hasta −20 %). Los descuentos de equipo conservan como mínimo la mitad del coste de la técnica ya mejorada.
+- Las habilidades llegan hasta nivel 5. Al máximo, una técnica elemental usa un sello menos. Cada sello requiere 300 ms de preparación a velocidad 10: más sellos hacen más lento el tramo 80–100 %, y una mayor velocidad del personaje lo acelera.
 - Jugador y enemigo avanzan de forma independiente por una línea temporal según su velocidad efectiva.
 - Al llegar al 80 % se habilita la acción; las técnicas con preparación recorren el tramo 80–100 % mientras el rival sigue avanzando.
 - La elección del jugador usa modo de espera: la línea temporal se pausa en el 80 % y vuelve a correr al confirmar la acción.
 - La barra responde con crestas y pinceladas ilustradas; la preparación cambia la postura, respeta la profundidad de las manos y genera motas caligráficas con emisores reales. La fase II del jefe se distingue mediante una silueta animada, sin círculos ni un modo furia inventado.
-- **Guardia** recupera 12 puntos de chakra y reduce el siguiente impacto un 50 %.
+- **Guardia** funciona como descanso: recupera 25 puntos de chakra en total, en lugar de los 5 habituales, y reduce un 50 % el daño del próximo ataque enemigo.
 - Los jutsus tienen enfriamientos visibles y no pueden repetirse continuamente.
 - Fuego causa quemadura, viento abre una herida y relámpago aturde; el enemigo puede aplicar veneno.
 - Las técnicas elementales muestran impactos propios de fuego, agua, tierra, viento y rayo; en WebGL añaden brillo de Phaser 4 y en modo ligero o con movimiento reducido conservan una versión simple.
 - Cada ataque compara su precisión con la evasión del objetivo y puede fallar.
 - El estado **Sellado** reduce en 15 puntos la precisión mientras permanece activo.
-- Cada enemigo tiene debilidad, resistencia y patrón de acciones propios.
+- Cada enemigo tiene debilidad, resistencia y patrón de acciones propios. Varek, el primer jefe del tutorial, siempre es débil frente a tu afinidad principal: fuego→viento, agua→fuego, tierra→agua y viento→tierra.
 - Al derrotar un enemigo se recupera el 22 % de los PV máximos y el 18 % del chakra máximo antes del siguiente encuentro (mínimo 12 de cada recurso).
 - La técnica especial utiliza una presentación cinematográfica oscura.
 - Cada enemigo concede experiencia y monedas según su dificultad en la primera victoria de la misión. Repetirla no vuelve a dar experiencia ni monedas.

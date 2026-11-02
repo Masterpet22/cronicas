@@ -25,6 +25,70 @@ async function enterDojo(page) {
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
 
+test("maestría cinco: comprar mejoras actualiza daño, chakra, sellos y guardado", async ({ page }) => {
+  await openDojo(page);
+  await page.locator('[data-skill-select="fire_embers"]').click();
+  const detail = page.locator(".technique-detail");
+  const metrics = detail.locator(".technique-metrics strong");
+  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 1 / 5");
+  await expect(metrics).toHaveText(["14", "30 CH", "1 turnos", "2"]);
+  for (const [level, cost, damage, seals] of [[2,29,16,2],[3,27,18,2],[4,26,20,2],[5,24,22,1]]) {
+    await page.locator('[data-skill-invest="fire_embers"]').click();
+    await expect(detail.locator(".resonance-rank strong")).toHaveText(`NIVEL ${level} / 5`);
+    await expect(metrics).toHaveText([String(damage), `${cost} CH`, "1 turnos", String(seals)]);
+  }
+  await expect(page.locator('[data-skill-invest="fire_embers"]')).toBeDisabled();
+  await expect(detail).toContainText("NIVEL MÁXIMO");
+  await enterDojo(page);
+  await page.locator('[data-skill-select="fire_embers"]').click();
+  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 5 / 5");
+  await expect(metrics).toHaveText(["22", "24 CH", "1 turnos", "1"]);
+});
+
+test("el núcleo sigue el color del jugador y mantiene legible el kanji", async ({ page }) => {
+  await openDojo(page);
+  for (const [color,ink] of [["#143078","rgb(245, 243, 235)"],["#ffe35c","rgb(23, 27, 21)"]]) {
+    await page.evaluate(async color => {
+      const { loadSave,writeSave }=await import("/src/save.js");
+      const save=loadSave(); save.character.appearance=color; save.character.birthday={ month:12,day:1 }; writeSave(save);
+    },color);
+    await enterDojo(page);
+    await expect(page.locator("[data-tree-core]")).toHaveAttribute("data-core-color",color);
+    expect(await page.locator("[data-tree-core] > polygon").evaluate(p => getComputedStyle(p).fill)).toBe(color === "#143078" ? "rgb(20, 48, 120)" : "rgb(255, 227, 92)");
+    expect(await page.locator("[data-core-kanji]").evaluate(p => getComputedStyle(p).fill)).toBe(ink);
+    await expect(page.locator("[data-core-kanji]")).toHaveText("十二");
+    await expect(page.locator("[data-skill-select]")).toHaveCount(38);
+  }
+});
+
+test("las afinidades inactivas son grises y los pares mezclan los colores equipados", async ({ page }) => {
+  await openDojo(page);
+  const gray="#707984";
+  for (const id of ["affinity-2","affinity-3"]) await expect(page.locator(`[data-region="${id}"]`)).toHaveAttribute("data-region-color",gray);
+  for (const region of await page.locator("[data-bridge-region]").all()) await expect(region).toHaveAttribute("data-region-color",gray);
+  for (const cell of await page.locator('.resonance-node.is-locked').all()) await expect(cell).toHaveAttribute("data-node-color",gray);
+  await page.mouse.move(10,10);
+  await page.locator(".resonance-tree").screenshot({ path:"test-results/dojo-techniques/panal-afinidades-bloqueadas.png" });
+  await page.evaluate(async () => {
+    const { loadSave,writeSave }=await import("/src/save.js");
+    const save=loadSave(); save.progression.level=15; save.campaign.elementRank=2;
+    save.character.affinities=["fuego","agua"]; save.character.affinityXp={ fuego:1000,agua:1000,tierra:0,viento:0 }; writeSave(save);
+  });
+  await enterDojo(page);
+  await expect(page.locator('[data-region="affinity-1"]')).toHaveAttribute("data-region-color","#ff783d");
+  await expect(page.locator('[data-region="affinity-2"]')).toHaveAttribute("data-region-color","#55bfff");
+  await expect(page.locator('[data-region="affinity-3"]')).toHaveAttribute("data-region-color",gray);
+  await expect(page.locator('[data-bridge-region="affinity-1-2"]')).toHaveAttribute("data-region-color","#aa9c9e");
+  await expect(page.locator('[data-bridge="affinity-1-2"]').first()).toHaveAttribute("data-node-color","#aa9c9e");
+  const positions=await page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(n => n.getAttribute("transform")));
+  await page.evaluate(async () => { const { loadSave,writeSave }=await import("/src/save.js"); const save=loadSave(); save.character.affinities=["agua","fuego"]; writeSave(save); });
+  await enterDojo(page);
+  await expect(page.locator('[data-region="affinity-1"]')).toHaveAttribute("data-region-color","#55bfff");
+  await expect(page.locator('[data-region="affinity-2"]')).toHaveAttribute("data-region-color","#ff783d");
+  await expect(page.locator('[data-bridge-region="affinity-1-2"]')).toHaveAttribute("data-region-color","#aa9c9e");
+  expect(await page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(n => n.getAttribute("transform")))).toEqual(positions);
+});
+
 test("las técnicas vinculadas no añaden ni mueven ninguna de las 39 celdas", async ({ page }) => {
   await openDojo(page);
   const positions=() => page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(n => [n.dataset.cellId,n.dataset.q,n.dataset.r]));
@@ -149,6 +213,7 @@ test("tres afinidades conservan el plano exacto de 39 celdas y sus tres combinac
     const { loadSave,writeSave } = await import("/src/save.js");
     const save = loadSave(); save.progression.level=35;
     save.character.affinities=["fuego","agua","tierra"];
+    save.character.appearance="#b8578f";
     save.character.affinityXp={ agua:1000,tierra:1000,fuego:1000,viento:0 };
     save.campaign.elementRank=3; save.inventory.extraAffinityUnlocked=true;
     save.progression.resonance.investments = {
@@ -163,7 +228,7 @@ test("tres afinidades conservan el plano exacto de 39 celdas y sus tres combinac
   await enterDojo(page);
   for (let slot=0;slot<3;slot++) await expect(page.locator(`[data-category="affinity"][data-slot="${slot}"]`)).toHaveCount([8,7,8][slot]);
   const regionColors = await page.locator("[data-region]").evaluateAll(regions => regions.map(region => region.dataset.regionColor));
-  expect(regionColors).toEqual(["#657fff","#ff4b55","#ba701c","#2f9b68"]);
+  expect(regionColors).toEqual(["#657fff","#ff783d","#55bfff","#b78a55"]);
   expect(new Set(regionColors).size).toBe(4);
   for (const border of await page.locator("[data-region] .resonance-region-border").all()) expect(await border.evaluate(path => parseFloat(getComputedStyle(path).strokeWidth))).toBeGreaterThanOrEqual(6);
   await expect(page.locator('[data-category="physical"]')).toHaveCount(6);

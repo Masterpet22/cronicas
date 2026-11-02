@@ -6,6 +6,26 @@ import { buildSkillTree, hexDistance, SKILL_CATALOG, SKILLS_BY_ID } from "../src
 import { investResonance, resonancePoints, skillLevel, skillState, upgradedTechnique } from "../src/skills/progression.js";
 import { createCharacter, createDefaultSave, derivedStats, normalizeSave } from "../src/save.js";
 import { hexBoundarySegments } from "../src/skills/hex-boundaries.js";
+import { LOCKED_SKILL_COLOR, affinitySlotColor, characterCoreColors, mixSkillColors, skillRegionColor } from "../src/skills/colors.js";
+
+assert.equal(mixSkillColors("#ff0000","#0000ff"),"#800080","Red and blue combine into purple");
+assert.equal(mixSkillColors("#123456","#123456"),"#123456");
+assert.equal(mixSkillColors("#55bfff","#ff783d"),mixSkillColors("#ff783d","#55bfff"));
+assert.equal(mixSkillColors(null,"#0000ff"),LOCKED_SKILL_COLOR);
+assert.deepEqual(characterCoreColors({ appearance:"#ABCDEF" }),{ fill:"#abcdef",ink:"#171b15" });
+assert.equal(characterCoreColors({ appearance:"#000000" }).ink,"#f5f3eb");
+assert.equal(characterCoreColors({ appearance:"invalid" }).fill,"#e8edf5");
+const colorSave={ character:{ affinities:["fuego","agua","tierra"] },progression:{ level:1 },campaign:{ elementRank:1 },inventory:{} };
+assert.equal(affinitySlotColor(colorSave,0),"#ff783d");
+assert.equal(affinitySlotColor(colorSave,1),LOCKED_SKILL_COLOR,"Assigned but still locked slots are gray");
+colorSave.progression.level=15; colorSave.campaign.elementRank=2;
+assert.equal(affinitySlotColor(colorSave,1),"#55bfff");
+assert.equal(affinitySlotColor(colorSave,2),LOCKED_SKILL_COLOR);
+assert.equal(skillRegionColor(colorSave,{ category:"hybrid",pair:[0,2] }),LOCKED_SKILL_COLOR);
+assert.equal(skillRegionColor(colorSave,{ category:"hybrid",pair:[0,1] }),"#aa9c9e");
+colorSave.inventory.extraAffinityUnlocked=true;
+assert.equal(affinitySlotColor(colorSave,2),"#b78a55");
+assert.equal(affinitySlotColor({},0),LOCKED_SKILL_COLOR,"Unassigned slots have no elemental color");
 
 assert.equal(hexBoundarySegments([{ q:0,r:0 }]).length,6);
 assert.equal(hexBoundarySegments([{ q:0,r:0 },{ q:1,r:0 }]).length,10,"Shared interior edge is removed from the outline");
@@ -74,7 +94,7 @@ assert.equal(jutsu.damage,14,"Catalog remains immutable");
 save = investResonance(save,jutsu.id);
 assert.equal(resonancePoints(save),0);
 assert.equal(skillLevel(save,SKILLS_BY_ID.get(jutsu.id)),3);
-assert.equal(investResonance(save,jutsu.id),save,"Maximum rank cannot be exceeded");
+assert.equal(investResonance(save,jutsu.id),save,"No overspending before the new maximum");
 assert.equal(investResonance(save,"physical_1"),save,"No overspending");
 assert.deepEqual(normalizeSave(JSON.parse(JSON.stringify(save))).progression.resonance,save.progression.resonance);
 assert.deepEqual(derivedStats(normalizeSave(save)),derivedStats(save),"Saving does not change bonuses");
@@ -83,7 +103,7 @@ assert.equal(resonancePoints(save),2,"Leveling grants the configured points with
 const forged = normalizeSave({ ...save,progression:{ ...save.progression,resonance:{ investments:{ physical_0:Infinity,unknown:99,physical_1:-10,fire_embers:200,physical_2:200 } } } });
 assert.ok(resonancePoints(forged)>=0);
 assert.equal(forged.progression.resonance.investments.unknown,undefined);
-assert.ok((forged.progression.resonance.investments.fire_embers || 0)<=2);
+assert.ok((forged.progression.resonance.investments.fire_embers || 0)<=4);
 
 let dual = normalizeSave({ ...save, progression:{ ...save.progression,level:15 },campaign:{ ...save.campaign,elementRank:2 },character:{ ...save.character,affinities:["agua","tierra"],affinityXp:{ agua:0,tierra:0 } } });
 const hybrid = buildSkillTree(dual.character.affinities,2).find(n => n.id === "hybrid_agua_tierra_1");

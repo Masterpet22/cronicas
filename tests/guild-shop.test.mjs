@@ -72,7 +72,7 @@ legacy.guild.room = { wall: "ivory", floor: "walnut", nextId: 7, decorations: [
   { id: "decor-3", type: "table", x: 500, y: 510, scale: 1 }
 ] };
 const migrated = normalizeSave(legacy);
-assert.equal(migrated.version, 26);
+assert.equal(migrated.version, 27);
 assert.equal(countItem(migrated, "guild_decor_landscape"), 2);
 assert.equal(countItem(migrated, "guild_decor_table"), 1);
 assert.equal(countItem(migrated, "guild_wall_ivory"), 1);

@@ -8,14 +8,18 @@ const afterArchiveIntroduction = raw => {
   return JSON.stringify(save);
 };
 
-async function prepare(page, { manual = false, emptyLoadout = false, completed = false, power = false } = {}) {
+async function prepare(page, { manual = false, emptyLoadout = false, completed = false, power = false, affinity = "fuego", mastered = false } = {}) {
   await page.goto("/");
-  await page.evaluate(async ({ manual, emptyLoadout, completed, power }) => {
+  await page.evaluate(async ({ manual, emptyLoadout, completed, power, affinity, mastered }) => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.94.0");
     localStorage.clear();
     sessionStorage.clear();
-    const save = createCharacter(createDefaultSave(), { name: "Aprendiz", affinity: "fuego", bodyType: "male", appearance: "#315f87" });
+    const save = createCharacter(createDefaultSave(), { name: "Aprendiz", affinity, bodyType: "male", appearance: "#315f87" });
     save.campaign.tutorialSeen = true;
+    if (mastered) {
+      save.progression.level = 3;
+      save.progression.resonance.investments = { fire_embers: 4 };
+    }
     if (emptyLoadout) save.loadout = [];
     if (completed) save.campaign.completedMissions = ["m01"];
     if (power) {
@@ -26,7 +30,7 @@ async function prepare(page, { manual = false, emptyLoadout = false, completed =
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off");
     localStorage.setItem("seal-input-mode", manual ? "manual" : "automatic");
-  }, { manual, emptyLoadout, completed, power });
+  }, { manual, emptyLoadout, completed, power, affinity, mastered });
   await page.reload();
   await ensurePhaser(page);
   await page.evaluate(() => {
@@ -64,6 +68,79 @@ const next = page => page.locator("[data-tutorial-next]").click();
 async function intro(page) {
   for (const id of ["welcome", "health", "chakra", "timeline"]) { await step(page, id); await next(page); }
 }
+
+for (const [affinity, weak] of Object.entries({ fuego: "viento", agua: "fuego", tierra: "agua", viento: "tierra" })) {
+  test(`balance aplicado: ${affinity}, jefe favorable y chakra real`, async ({ page }) => {
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await prepare(page, { affinity });
+    await launch(page);
+    await next(page); await next(page);
+    await step(page, "chakra");
+    await expect(page.locator("#tutorial-copy")).toContainText("5 CH");
+    await expect(page.locator("#tutorial-copy")).toContainText("25 CH en total");
+    const boss = await page.evaluate(() => {
+      const s = window.__tutorialGame.scene.getScene("battle");
+      const profile = s.encounters[s.encounterIds.indexOf("boss_varek")];
+      return { profile: profile.affinity, effective: s.createEnemyState(profile).primaryAffinity, maxChakra: s.player.maxChakra };
+    });
+    expect(boss).toEqual({ profile: weak, effective: weak, maxChakra: { fuego: 80, agua: 80, tierra: 70, viento: 96 }[affinity] });
+    await page.locator("[data-tutorial-skip]").click();
+    await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+    const round = await page.evaluate(async () => {
+      const s = window.__tutorialGame.scene.getScene("battle");
+      s.player.chakra = 40; s.refreshHud();
+      const round = s.round;
+      await s.useJutsu(s.actions[1]);
+      return round;
+    });
+    await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round), { timeout: 20000 }).toBe(round + 1);
+    expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.chakra)).toBe(15);
+    await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+    await page.locator('[data-combat-action="6"]').click();
+    await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round)).toBe(round + 2);
+    expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.chakra)).toBe(40);
+    await expect(page.locator('[data-combat-action="1"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+    const blocked = await page.evaluate(async () => {
+      const s = window.__tutorialGame.scene.getScene("battle");
+      s.player.chakra = 29; s.refreshHud();
+      await s.useJutsu(s.actions[1]);
+      return { chakra: s.player.chakra, pending: Boolean(s.pendingActions.player), round: s.round };
+    });
+    expect(blocked).toEqual({ chakra: 29, pending: false, round: round + 2 });
+    expect(errors).toEqual([]);
+  });
+}
+
+test("maestría cinco: combate usa el coste reducido y prepara un solo sello", async ({ page }) => {
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await prepare(page, { mastered: true });
+  await launch(page);
+  const mastery = await page.evaluate(async () => {
+    const scene = window.__tutorialGame.scene.getScene("battle");
+    const action = scene.actions[1];
+    const { millisecondsToTimelineThreshold } = await import("/src/battle/timeline.js?v=0.69.0");
+    const speed = scene.combatantSpeed(scene.player);
+    return { level: action.techniqueLevel, damage: action.damage, cost: scene.actionCost(action), seals: action.seals.length,
+      preparation: millisecondsToTimelineThreshold(.8, speed, action),
+      novicePreparation: millisecondsToTimelineThreshold(.8, speed, { ...action, seals: action.baseSeals }) };
+  });
+  expect(mastery).toMatchObject({ level: 5, damage: 22, cost: 24, seals: 1 });
+  expect(mastery.preparation).toBeCloseTo(mastery.novicePreparation / 2, 8);
+  await page.locator("[data-tutorial-skip]").click();
+  await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+  const round = await page.evaluate(async () => {
+    const scene = window.__tutorialGame.scene.getScene("battle");
+    scene.player.chakra = 40;
+    scene.enemy.hp = scene.enemy.maxHp = 1000;
+    const round = scene.round;
+    await scene.useJutsu(scene.actions[1]);
+    return round;
+  });
+  await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round), { timeout: 20000 }).toBe(round + 1);
+  expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.chakra)).toBe(21);
+  expect(errors).toEqual([]);
+});
 
 test("la misión enseña sobre el HUD real y omitir permite combatir y pausar", async ({ page }) => {
   const errors = [];

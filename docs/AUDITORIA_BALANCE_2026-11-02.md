@@ -2,6 +2,8 @@
 
 Fecha: 2 de noviembre de 2026. Código local del proyecto, paquete 0.45.1, guardado v26.
 
+**Referencia histórica anterior a los ajustes:** posteriormente se adaptó Varek a la debilidad frente al jugador, se bajó la reserva base de chakra a 60, se fijaron 5 CH de recuperación normal y 25 CH totales con Guardia, y se elevaron los costes de técnicas. Las reglas actuales están en `BALANCE_COMBATE.md`; este informe y `artifacts/balance-audit.json` conservan el diagnóstico previo. El script usa las reglas vigentes y el resultado posterior está en `artifacts/balance-current.json`.
+
 **Diagnóstico: la base matemática es comprensible y está probada, pero el balance global todavía no está cerrado.** Hay incoherencias entre acciones y descripciones, desbloqueos que el contenido actual no permite alcanzar y nuevas fuentes de poder que no entran en las pruebas antiguas de balance. Conviene resolver eso antes de ajustar la vida de todos los enemigos o ampliar la campaña.
 
 No se modificaron fórmulas, catálogos ni partidas. Esta auditoría añade un script y sus resultados para reproducir los cálculos.

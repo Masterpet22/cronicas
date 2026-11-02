@@ -1,3 +1,5 @@
+import { resolveEnemyProfileForBattle } from "../../../battle/enemy-state.js?v=0.114.0";
+
 export function createArchiveView(deps) {
   let currentState = null;
 
@@ -19,7 +21,8 @@ export function createArchiveView(deps) {
       const crowBandits = new Set(deps.missions.flatMap((mission) => mission.encounters || []));
       const affiliationFor = (id) => crowBandits.has(id) ? "Bandidos del Cuervo" : "Combatiente hostil";
       const bestiaryEntries = Object.entries(save.bestiary.entries).map(([id, entry]) => {
-        const enemy = deps.enemyRoster[id];
+        const mission = deps.missions.find(mission => mission.encounters?.includes(id));
+        const enemy = resolveEnemyProfileForBattle(deps.enemyRoster[id], mission, save.character.affinity);
         const bossDataHidden = enemy.boss && entry.encounters < 2 && entry.documents < 1;
         const techniques = entry.techniques.length ? entry.techniques.map((actionId) => deps.enemyActions[actionId]?.name).filter(Boolean).join(", ") : "Ninguna observada";
         const weakness = entry.vulnerabilities.length ? entry.vulnerabilities.map(deps.elementName).join(", ") : "Sin descubrir";

@@ -27,9 +27,9 @@ export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/chara
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 26;
+export const SAVE_VERSION = 27;
 
-const DEFAULT_EQUIPMENT = { weapon: "kunai", seal: "seal_wind", accessory: "chakra_charm", companion: null };
+const DEFAULT_EQUIPMENT = { weapon: "kunai", throwable: "shuriken", seal: "seal_wind", accessory: "chakra_charm", companion: null };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
 const ALL_MISSIONS = [...MISSIONS, ...SECONDARY_MISSIONS];
 
@@ -198,6 +198,7 @@ export function normalizeSave(candidate) {
     },
     equipment: {
       weapon: validEquipment("weapon", candidate.equipment?.weapon, inventory),
+      throwable: validEquipment("throwable", candidate.equipment?.throwable === undefined && Number(candidate.version || 0) < 27 && candidate.character ? "shuriken" : candidate.equipment?.throwable, inventory),
       seal: validEquipment("seal", candidate.equipment?.seal ?? LEGACY_SEALS[candidate.equipment?.armor], inventory),
       companion: validEquipment("companion", candidate.equipment?.companion, inventory),
       accessory: validEquipment("accessory", candidate.equipment?.accessory, inventory)

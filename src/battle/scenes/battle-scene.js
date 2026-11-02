@@ -1,4 +1,4 @@
-import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.136.0";
+import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.137.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
 import { mountCombatTutorial } from "../combat-tutorial.js?v=0.131.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
@@ -16,7 +16,7 @@ import { missionStep } from "../../mission-system.js?v=0.114.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState } from "../enemy-state.js?v=0.114.0";
+import { createEnemyState, resolveEnemyProfileForBattle } from "../enemy-state.js?v=0.114.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
@@ -31,6 +31,7 @@ import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.136.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { FREE_MISSION_RETRIES } from "../mission-retries.js?v=0.114.0";
+import { queueWeaponTextures } from "../weapon-effects.js?v=1.0.0";
 
 export class BattleScene extends Phaser.Scene {
   constructor() {
@@ -39,6 +40,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   preload() {
+    queueWeaponTextures(this);
     queueTeleportObjects(this);
     const arenaIndex = ((battleRuntime.activeMission?.arenaNumber || battleRuntime.activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
     const arena = BATTLE_ARENAS[arenaIndex];
@@ -62,7 +64,7 @@ export class BattleScene extends Phaser.Scene {
 
     // An empty loadout must not prevent learning seals. The loaned technique
     // exists only in this battle and never changes the player's saved loadout.
-    this.battleLoadout = [...battleRuntime.activeSave.loadout];
+    this.battleLoadout = this.battleLoadoutForMission();
     this.practiceTechnique = false;
     this.tutorialRequested = combatFeatures(battleRuntime.activeMission, battleRuntime.activeSave.campaign).tutorial
       && (battleRuntime.activeMission.tutorialReplay || !battleRuntime.activeSave.campaign.completedMissions.includes(battleRuntime.activeMission.id));
@@ -119,6 +121,8 @@ export class BattleScene extends Phaser.Scene {
     queueElementIcons(this, this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean));
     queuePlayerFighterTextures(this, this.playerAppearance());
   }
+
+  battleLoadoutForMission() { return [...battleRuntime.activeSave.loadout]; }
 
   create() {
     composeElementIcons(this, this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean));
@@ -187,7 +191,7 @@ export class BattleScene extends Phaser.Scene {
     }
     this.mission = battleRuntime.activeMission;
     this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
-    this.encounters = this.encounterIds.map((id) => ENEMY_ROSTER[id]);
+    this.encounters = this.encounterIds.map((id) => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], this.mission, this.saveData.character.affinity));
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
     const selectedJutsus = this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean).map(jutsu => upgradedTechnique(battleRuntime.activeSave, jutsu))
@@ -354,7 +358,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   createEnemyState(profile) {
-    return createEnemyState(profile, this.mission, this.saveData.campaign);
+    return createEnemyState(profile, this.mission, this.saveData.campaign, this.saveData.character.affinity);
   }
 
   combatantSpeed(combatant) {

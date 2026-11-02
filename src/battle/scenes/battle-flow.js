@@ -1,4 +1,5 @@
 import { actionHealthCost } from "../skill-tables.js?v=0.135.0";
+import { actionChakraRecovery } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
 import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.136.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
@@ -96,6 +97,9 @@ export class BattleFlowMethods {
       else await this.playerAttack(action, casting);
       if (!current()) return;
       this.finishCombatantTurn(this.player);
+      // Una sola recuperación por acción, también si este golpe cierra el duelo.
+      this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + actionChakraRecovery(action));
+      this.refreshHud();
       this.pendingActions.player = null;
       this.timelineProgress.player = 0;
       this.setTimelineMarkerState("player", "charging");
@@ -112,7 +116,6 @@ export class BattleFlowMethods {
       if (await this.resolveEnemyOutcome()) return;
 
       this.advanceCooldowns();
-      this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 8);
       this.round += 1;
     } else {
       await this.executeEnemyAction(action);

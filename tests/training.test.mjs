@@ -1,0 +1,28 @@
+import assert from "node:assert/strict";
+import { createTraining, trainingActions } from "../src/training.js";
+import { createDefaultSave, createCharacter } from "../src/save.js";
+
+const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
+save.loadout = [];
+save.progression.level = 20;
+save.character.affinityXp.fuego = 10000;
+save.progression.resonance.investments = { physical_1: 1, physical_2: 1, fire_embers: 2 };
+save.taijutsuLoadout = [null, null];
+const baseline = JSON.stringify(save);
+const actions = trainingActions(save);
+assert(actions.some(action => action.id === "fire_embers"));
+assert(actions.some(action => action.id === "physical_1"));
+assert(actions.some(action => action.id === "physical_2"));
+assert(!actions.some(action => action.element === "agua"));
+assert.equal(actions[0].id, "strike");
+assert.equal(actions.at(-1).id, "guard");
+assert.equal(new Set(actions.map(action => action.id)).size, actions.length);
+assert.equal(JSON.stringify(save), baseline, "Practice must not change equipment or progress");
+assert.equal(createTraining().trainingOrigin, "dojo");
+assert.equal(createTraining().exhibition, true);
+save.progression.level = 1;
+save.character.affinityXp.fuego = 0;
+save.progression.resonance.investments = {};
+assert(!trainingActions(save).some(action => action.id === "physical_1"));
+assert(!trainingActions(save).some(action => action.id === "fire_breath"));
+console.log("Catálogo y aislamiento del entrenamiento verificados.");

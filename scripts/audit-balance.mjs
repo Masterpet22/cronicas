@@ -18,6 +18,8 @@ import { createCipherState } from "../src/puzzles/seal-cipher.js";
 import { arenaPreview } from "../src/arena.js";
 import { investResonance, earnedResonancePoints } from "../src/skills/progression.js";
 import { TAIJUTSU_ACTIONS } from "../src/skills/definitions.js";
+import { CHAKRA_BALANCE, actionChakraCost, actionChakraRecovery } from "../src/chakra-balance.js";
+import { TECHNIQUE_MASTERY, techniqueAtLevel } from "../src/skills/technique-mastery.js";
 
 const round = x => Math.round(x * 100) / 100;
 const fresh = (affinity = "fuego", bodyType = "male") => createCharacter(createDefaultSave(), { name: "Auditoría", affinity, bodyType });
@@ -81,7 +83,7 @@ function attackMetrics(save, action, target) {
   const preparationMs = action.seals?.length ? millisecondsToTimelineThreshold(.8, speed, action) : 0;
   return { id: action.id, damage, rawHits: Math.ceil(target.hp / damage),
     cycleMs: round(readyMs + preparationMs), rawDamagePerTimelineSecond: round(damage / ((readyMs + preparationMs) / 1000)),
-    cost: Math.max(0, action.cost - p.costReduction), netCostAfterNormalAction: Math.max(0, action.cost - p.costReduction) - 8 };
+    cost: actionChakraCost(action, p.costReduction), netCostAfterNormalAction: actionChakraCost(action, p.costReduction) - actionChakraRecovery(action) };
 }
 
 // Ejecuta el flujo real sin Phaser ni animaciones para observar orden de cierre,
@@ -147,7 +149,15 @@ const arena = AFFINITY_IDS.map(affinity => {
   return { rival: affinity, playerHp: player.maxHp, playerChakra: player.maxChakra, enemyHp: enemy.maxHp,
     enemyChakra: enemy.maxChakra, enemySpeed: combatantSpeed(enemy), enemyStrength: enemy.strength };
 });
-const report = { schema: 1, method: "Reglas puras, liquidación de recompensas y sondas del flujo real. Sin estimación de victorias ni duración de animaciones.",
+const report = { schema: 2, method: "Reglas puras, liquidación de recompensas y sondas del flujo real. Sin estimación de victorias ni duración de animaciones.",
+  chakraRules: CHAKRA_BALANCE,
+  techniqueMastery: { rules: TECHNIQUE_MASTERY, example: Array.from({ length: 5 }, (_, i) => {
+    const action = techniqueAtLevel(JUTSU_LIBRARY.find(j => j.id === "fire_embers"), i + 1);
+    return { level: i + 1, damage: action.damage, cost: action.cost, netCost: action.cost - actionChakraRecovery(action),
+      seals: action.seals.length, preparationMsAtSpeed10: millisecondsToTimelineThreshold(.8, 10, action) };
+  }) },
+  tutorialBossAffinities: Object.fromEntries(AFFINITY_IDS.map(affinity => [affinity,
+    createEnemyState(ENEMY_ROSTER.boss_varek, MISSIONS[0], {}, affinity).primaryAffinity])),
   paths, starters, raizen, resonance, arena, taijutsu: TAIJUTSU_ACTIONS.map(a => ({ id: a.id, speedMod: a.speedMod,
     actualCycleMsAtSpeed10: millisecondsToTimelineThreshold(0, 10), damage: a.damage, healthCost: a.healthCost })),
   runtimeProbes: { guardChakraGained: guardScene.player.chakra - 30,

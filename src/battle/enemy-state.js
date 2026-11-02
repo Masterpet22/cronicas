@@ -1,11 +1,19 @@
-import { AFFINITY_CONFIG, applyAffinityStatModifiers } from "../affinity-system.js?v=0.114.0";
+import { AFFINITY_CONFIG, AFFINITY_IDS, affinityCycleModifier, applyAffinityStatModifiers } from "../affinity-system.js?v=0.114.0";
 import { activeCombatModifiers } from "../combat-modifiers.js?v=0.114.0";
+import { missionStep } from "../mission-system.js?v=0.114.0";
+
+export function resolveEnemyProfileForBattle(profile, mission, playerAffinity) {
+  if (!profile.boss || !missionStep(mission, "combat")?.tutorial) return profile;
+  const affinity = AFFINITY_IDS.find(id => affinityCycleModifier(playerAffinity, id) > 0);
+  return affinity ? { ...profile, affinity } : profile;
+}
 
 function targetsProfile(modifier, profile) {
   return !modifier.target || modifier.target === "all" || (modifier.target === "boss" && profile.boss);
 }
 
-export function createEnemyState(profile, mission, campaign = {}) {
+export function createEnemyState(profile, mission, campaign = {}, playerAffinity = null) {
+  profile = resolveEnemyProfileForBattle(profile, mission, playerAffinity);
   const statModifiers = activeCombatModifiers(mission, campaign, "enemy-stats").filter((modifier) => targetsProfile(modifier, profile));
   const statBonus = statModifiers.reduce((total, modifier) => {
     Object.entries(modifier.stats || {}).forEach(([stat, value]) => { total[stat] = (total[stat] || 0) + value; });

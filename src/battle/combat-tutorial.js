@@ -1,4 +1,5 @@
 import { masterIdForCharacter } from "../save.js?v=0.131.0";
+import { CHAKRA_BALANCE } from "../chakra-balance.js?v=1.0.0";
 
 // The guide observes real combat actions; it never awards progress or simulates hits.
 export function mountCombatTutorial(scene, { onReplayExit } = {}) {
@@ -129,8 +130,8 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   const intro = [
     { id: "welcome", number: 1, title: "Tu primer combate, paso a paso", copy: "Te acompañaré sobre el campo de batalla. Primero conocerás la interfaz; después practicarás un golpe, una guardia y una técnica con sellos.", hint: "Durante la práctica nadie cae. Puedes omitir con el botón o Escape y repetir la guía en la Biblioteca.", button: "Comenzar tutorial" },
     { id: "health", number: 2, target: "health", title: "Vida · resiste hasta el final", copy: "Esta es tu vida (PV). Cada impacto recibido la reduce. Si llega a cero, fallas la misión. La barra del lado derecho pertenece al rival: vacíala para vencerlo." },
-    { id: "chakra", number: 3, target: "chakra", title: "Chakra · el coste de tus técnicas", copy: "La barra azul muestra tu chakra (CH). Cada técnica indica su coste: si no tienes suficiente, no podrás usarla. Golpe veloz y Guardia cuestan 0 CH. Al terminar tu acción recuperas 8 CH; Guardia añade otros 12 CH." },
-    { id: "timeline", number: 4, target: "timeline", title: "Velocidad · quién actúa primero", copy: "Los dos retratos avanzan por esta barra según la velocidad de cada combatiente. Al alcanzar el 80 %, eliges tu acción y el tiempo se detiene para decidir. Golpe veloz y Guardia se ejecutan entonces; una técnica con sellos debe completar el tramo del 80 al 100 %.", hint: "Observa ahora cómo avanzan los retratos. Te avisaré cuando puedas elegir.", button: "Observar la barra" }
+    { id: "chakra", number: 3, target: "chakra", title: "Chakra · el coste de tus técnicas", copy: `La barra azul muestra tu chakra (CH). Cada técnica indica su coste: si no tienes suficiente, no podrás usarla. Golpe veloz y Guardia cuestan 0 CH. Al terminar una acción recuperas ${CHAKRA_BALANCE.turnRecovery} CH; descansar con Guardia recupera ${CHAKRA_BALANCE.guardRecovery} CH en total.` },
+    { id: "timeline", number: 4, target: "timeline", title: "Velocidad · quién actúa primero", copy: "Los dos retratos avanzan por esta barra según la velocidad de cada combatiente. Al alcanzar el 80 %, eliges tu acción y el tiempo se detiene para decidir. Golpe veloz y Guardia se ejecutan entonces; una técnica con sellos debe completar el tramo del 80 al 100 %. Cuantos más sellos necesite, más tiempo tardará en prepararse.", hint: "Observa ahora cómo avanzan los retratos. Te avisaré cuando puedas elegir.", button: "Observar la barra" }
   ];
   const outro = [
     { id: "cooldowns", number: 10, target: `action:${techniqueSlot}`, title: "Enfriamiento, afinidades y estados", copy: "CD indica cuántos turnos faltan para reutilizar una técnica. Los elementos pueden aprovechar una debilidad o causar estados como quemadura o sellado; los iconos bajo las barras permiten consultar esos efectos. En el Dojo puedes preparar hasta cuatro técnicas, según tu nivel." },
@@ -164,7 +165,7 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
       const step = phase === "strike"
         ? { id: "strike", number: 5, title: "Prueba Golpe veloz", copy: "Has alcanzado el 80 %. Elige el golpe resaltado o pulsa 1: no consume chakra ni requiere sellos y se ejecuta sin preparación." }
         : phase === "guard"
-          ? { id: "guard", number: 6, title: "Ahora prepara Guardia", copy: "Elige Guardia o pulsa 6. Reduce a la mitad el próximo impacto y recupera 12 CH adicionales. Es una forma de resistir mientras recuperas recursos." }
+          ? { id: "guard", number: 6, title: "Ahora prepara Guardia", copy: `Elige Guardia o pulsa 6. Reduce a la mitad el daño del próximo ataque enemigo y recupera ${CHAKRA_BALANCE.guardRecovery} CH en total. Usa este descanso para volver a cargar tus técnicas.` }
           : { id: "technique", number: 7, title: "Usa una técnica elemental", copy: `Elige ${action.name} o pulsa ${slot}. Consume ${scene.actionCost(action)} CH. Después de elegirla, tu retrato recorrerá la zona de preparación; el rival puede actuar antes de que termines.${scene.practiceTechnique ? " Te presto esta técnica para la práctica: tu equipo se conserva." : ""}` };
       show({ ...step, target: `action:${slot}`, hint: "Práctica guiada: usa la acción resaltada. También puedes omitir la guía.", button: `Usar ${action.name}` }, () => scene.useJutsu(action));
     },

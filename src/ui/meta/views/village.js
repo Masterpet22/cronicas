@@ -2,7 +2,7 @@ import { villageMapHotspots, mountVillageMap } from "../village-map.js?v=0.134.0
 import { createTowerView } from "./tower.js?v=0.131.0";
 import { createShopView } from "./shop.js?v=0.131.0";
 import { createGuildView } from "./guild.js?v=0.131.0";
-import { createArenaView } from "./arena.js?v=0.131.0";
+import { createArenaView } from "./arena.js?v=0.137.0";
 import { createEventsView } from "./events.js?v=0.131.0";
 
 export const VILLAGE_LOCATIONS = [

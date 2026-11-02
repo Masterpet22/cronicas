@@ -4,12 +4,12 @@ import { TELEPORT_OBJECTS } from "./teleport-objects.js";
 import { CONTRACT_MISSIONS } from "./content/store-contracts.js?v=0.114.0";
 import { GUILD_ITEMS } from "./guild-catalog.js?v=0.126.0";
 
-export const STARTER_EQUIPMENT = Object.freeze({ weapon: "kunai", seal: "seal_wind", accessory: "chakra_charm", companion: null });
-const prices = { kunai: 30, steel_kunai: 85, tanto: 80, sword: 130, axe: 160, staff: null,
+export const STARTER_EQUIPMENT = Object.freeze({ weapon: "kunai", throwable: "shuriken", seal: "seal_wind", accessory: "chakra_charm", companion: null });
+const prices = { kunai: 30, shuriken: 25, steel_kunai: 85, tanto: 80, sword: 130, axe: 160, staff: null,
   seal_wind: 35, seal_vitality: 95, seal_precision: 75, seal_traveler: 65, seal_shadow: 125, seal_channeler: 145, seal_guardian: 240,
   chakra_charm: 60, hawk_eye: 70, scholar_mark: 120 };
 const equipment = Object.entries(EQUIPMENT).flatMap(([slot, entries]) => entries.map(item => ({ ...item, slot,
-  category: slot === "seal" ? "seals" : slot === "companion" ? "companions" : slot === "weapon" ? "weapons" : "accessories",
+  category: slot === "seal" ? "seals" : slot === "companion" ? "companions" : slot === "throwable" ? "throwables" : slot === "weapon" ? "weapons" : "accessories",
   price: prices[item.id] ?? null, purchasable: !["seal_guardian", "companion_hound"].includes(item.id), stackLimit: 1, kind: "equipment" })));
 const consumables = [
   { id: "health_potion", name: "Poción de vida", description: "Recupera un 35 % de tus PV máximos. Consume tu turno.", price: 18, effect: { health: .35 } },
@@ -23,6 +23,6 @@ export const ITEMS = Object.freeze(Object.fromEntries([...equipment, ...consumab
   { id: "retry_scroll", name: "Pergamino de reintento", description: "Repite el duelo perdido después de agotar los dos reintentos gratuitos.", price: 90, category: "scrolls", kind: "retry", stackLimit: 99 },
   { id: "affinity_scroll", name: "Pergamino de afinidad", description: "Desbloquea una tercera afinidad a elección. Requiere Guardián, nivel 10 y dos afinidades activas.", price: 600, category: "scrolls", kind: "affinity", stackLimit: 1 }
 ].map(item => [item.id, Object.freeze(item)])));
-export const ITEM_CATEGORIES = Object.freeze({ all: "Todos", weapons: "Armas", seals: "Sellos", accessories: "Accesorios", appearance: "Apariencia", substitution: "Sustitución", consumables: "Consumibles", scrolls: "Pergaminos", contracts: "Misiones", decorations: "Decoraciones" });
+export const ITEM_CATEGORIES = Object.freeze({ all: "Todos", weapons: "Armas", throwables: "Armas arrojadizas", seals: "Sellos", accessories: "Accesorios", appearance: "Apariencia", substitution: "Sustitución", consumables: "Consumibles", scrolls: "Pergaminos", contracts: "Misiones", decorations: "Decoraciones" });
 export const SHOP_ITEMS = Object.freeze(Object.values(ITEMS).filter(item => (item.price > 0 || item.kind === "decoration") && item.purchasable !== false));
 export const sellPrice = item => Number.isFinite(item?.price) ? Math.floor(item.price / 2) : 0;

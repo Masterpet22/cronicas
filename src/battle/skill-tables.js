@@ -8,22 +8,27 @@ export function actionHealthCost(action) {
 export function physicalSkillActions(save, elementalActions) {
   const weapon = ITEMS[save.equipment.weapon];
   const owned = weapon?.slot === "weapon" && save.inventory.items[weapon.id] > 0;
-  // Conserva las estadísticas del golpe actual: el arma ya aporta sus bonos al luchador.
-  // Los movimientos específicos de cada arma se incorporarán con sus animaciones.
+  // Equipment bonuses already contribute to the fighter's derived statistics.
   const weaponStrike = owned ? { ...elementalActions[0], id: "weapon_strike", name: "Golpe de arma", type: "weapon",
     weaponId: weapon.id, equipmentName: weapon.name, iconTexture: null, cost: 0, healthCost: 0,
     description: `Ataca con ${weapon.name}, el arma que llevas equipada.` } : null;
   const taijutsus = normalizeTaijutsuLoadout(save).map(id => taijutsuAction(save,id));
-  return [elementalActions[0], weaponStrike, null, ...taijutsus, elementalActions[5]];
+  const throwable = ITEMS[save.equipment.throwable];
+  const thrownStrike = throwable?.slot === "throwable" && save.inventory.items[throwable.id] > 0
+    ? { ...elementalActions[0], id: "throwable_strike", name: throwable.name, type: "throwable", weaponId: throwable.id,
+      equipmentName: throwable.name, iconTexture: null, cost: 0, healthCost: 0,
+      description: "Lanza el shuriken equipado contra el rival. Es reutilizable y no consume vida ni chakra." } : null;
+  return [elementalActions[0], weaponStrike, thrownStrike, ...taijutsus, elementalActions[5]];
 }
 
 export function physicalEmptySkill(index) {
   if (index === 1) return { name: "Golpe de arma", requirement: "SIN ARMA", locked: false, description: "Necesitas llevar un arma equipada en el Dojo." };
-  if (index === 2) return { name: "Arma arrojadiza", requirement: "SIN EQUIPO", locked: false, description: "Ranura reservada para el arma arrojadiza equipada." };
+  if (index === 2) return { name: "Arma arrojadiza", requirement: "SIN EQUIPO", locked: false, description: "Equipa un arma arrojadiza en el Dojo para poder lanzarla." };
   return { name: "Sin taijutsu", requirement: "LIBRE", locked: false, description: "Equipa un taijutsu en el Dojo. Consume vida en lugar de chakra." };
 }
 
 export function physicalActionAvailable(scene, action) {
+  if (scene.mission?.training) return Boolean(action && !scene.busy && !scene.finished && scene.turnReady && !scene.scene.isPaused());
   return Boolean(action && !scene.busy && !scene.finished && scene.turnReady && !scene.scene.isPaused()
     && scene.player.hp > actionHealthCost(action) && scene.player.chakra >= scene.actionCost(action)
     && !(scene.cooldowns[action.id] > 0) && (action.type !== "guard" || !scene.player.guarding));

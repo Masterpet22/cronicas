@@ -12,6 +12,7 @@ import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { attackBaseDamage, resolveDamage, splitDamageAcrossHits } from "../damage.js?v=0.114.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";
+import { holdKunai, throwShuriken } from "../weapon-effects.js?v=1.0.0";
 import { playCombatSubstitution } from "../teleport-transition.js?v=1.1.0";
 import { createEnemyState } from "../enemy-state.js?v=0.114.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
@@ -205,125 +206,132 @@ export class BattleActionMethods {
     const chance = hitChance(this.player, { ...this.enemy, evasion: this.combatantEvasion(this.enemy) }, jutsu);
     const originX = this.hero.body.x;
     const originShadowX = this.hero.shadow.x;
-    const usesPuppetPunch = (jutsu.id === "strike" || jutsu.type === "taijutsu") && this.hero.joints?.shoulderRight;
+    const usesWeapon = jutsu.type === "weapon";
+    const usesThrowable = jutsu.type === "throwable";
+    const usesPuppetPunch = (jutsu.id === "strike" || jutsu.type === "taijutsu" || usesWeapon) && this.hero.joints?.shoulderRight;
     const usesFireEmbersProjectile = jutsu.id === "fire_embers";
     const usesWaterShurikenProjectile = jutsu.id === "water_bullet";
     const usesWindPalmProjectile = jutsu.id === "wind_palm";
     const usesWindBladeMultiHit = jutsu.id === "wind_blade";
-    const usesHandProjectile = usesFireEmbersProjectile || usesWaterShurikenProjectile;
+    const usesHandProjectile = usesFireEmbersProjectile || usesWaterShurikenProjectile || usesThrowable;
     const usesCastPose = usesHandProjectile && this.hero.animations?.supports("punch-release");
     const usesEarthWallCast = jutsu.id === "earth_wall" && this.hero.animations?.supports("earth-wall-cast");
     const usesEarthFistProjectile = jutsu.id === "earth_fist";
-    if (usesPuppetPunch) {
-      await preparePlayerPunch(this, this.hero);
-      const strikeX = this.foe.body.x - 105;
-      await Promise.all([
-        this.tween({ targets: this.hero.body, x: strikeX, duration: 250, ease: "Cubic.out" }),
-        this.tween({ targets: this.hero.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
-      ]);
-      await releasePlayerPunch(this, this.hero);
-    } else if (usesHandProjectile) {
-      if (usesCastPose) {
+    const removeWeapon = usesWeapon && ["kunai", "steel_kunai"].includes(jutsu.weaponId) ? holdKunai(this) : null;
+    try {
+      if (usesPuppetPunch) {
         await preparePlayerPunch(this, this.hero);
+        const strikeX = this.foe.body.x - 105;
+        await Promise.all([
+          this.tween({ targets: this.hero.body, x: strikeX, duration: 250, ease: "Cubic.out" }),
+          this.tween({ targets: this.hero.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
+        ]);
         await releasePlayerPunch(this, this.hero);
-      } else await this.delay(125);
-    } else if (usesEarthWallCast) {
-      await playEarthWallCast(this, this.hero);
-    } else if (usesEarthFistProjectile) {
-      await this.delay(90);
-    } else {
-      this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
-      await this.delay(125);
-    }
+      } else if (usesHandProjectile) {
+        if (usesCastPose) {
+          await preparePlayerPunch(this, this.hero);
+          await releasePlayerPunch(this, this.hero);
+        } else await this.delay(125);
+      } else if (usesEarthWallCast) {
+        await playEarthWallCast(this, this.hero);
+      } else if (usesEarthFistProjectile) {
+        await this.delay(90);
+      } else {
+        this.tweens.add({ targets: this.hero.targets, x: "+=62", duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
+        await this.delay(125);
+      }
 
-    if (!this.rollHit(chance)) {
-      if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(true);
-      else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true);
-      else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true);
-      else if (usesWindPalmProjectile) await this.playWindPalmProjectile();
-      this.tone(205, 0.08);
-      this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
-      const substitution = this.playSubstitution(this.foe);
+      if (!this.rollHit(chance)) {
+        if (usesThrowable) await throwShuriken(this, true);
+        else if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(true);
+        else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true);
+        else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true);
+        else if (usesWindPalmProjectile) await this.playWindPalmProjectile();
+        this.tone(205, 0.08);
+        this.setMessage(`El rival evitó ${jutsu.name} con una Sustitución.`, "#d7dce5");
+        const substitution = this.playSubstitution(this.foe);
+        if (usesPuppetPunch) {
+          await Promise.all([
+            substitution,
+            recoverPlayerPunch(this, this.hero),
+            this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
+            this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
+          ]);
+        } else if (usesCastPose) await Promise.all([substitution, recoverPlayerPunch(this, this.hero)]);
+        else await substitution;
+        if (this.finished) return;
+        await this.delay(120);
+        this.hero.body.x = originX;
+        this.hero.shadow.x = originShadowX;
+        return;
+      }
+
+      const critical = this.rollHit(this.player.criticalChance);
+      const { damage } = resolveDamage({
+        baseDamage: baseDamageInput,
+        strengthModifier: this.player.strengthModifier,
+        cycleModifier,
+        furyBonus,
+        critical,
+        criticalMultiplier: AFFINITY_CONFIG.damage.criticalMultiplier,
+        damageReduction: this.enemy.damageReduction || 0
+      });
+      let amount = 0;
+      let reaction = Promise.resolve(false);
+      if (usesWindBladeMultiHit) {
+        const hitDamages = splitDamageAcrossHits(damage, 3);
+        const reactions = [];
+        if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, "CRÍTICO", 0xf5c96b);
+        await this.playWindBladeEffect((hitIndex) => {
+          showElementalImpact(this, jutsu, this.foe.body.x, this.foe.body.y - 26, 0.65);
+          this.tone(128, 0.08);
+          this.shake(90, 0.004);
+          const hit = this.loseHealth(this.enemy, this.foe, hitDamages[hitIndex], {
+            react: hitIndex === hitDamages.length - 1,
+            yOffset: -112 - hitIndex * 26
+          });
+          amount += hit.amount;
+          reactions.push(hit.reaction);
+        });
+        reaction = Promise.all(reactions);
+      } else {
+        if (usesThrowable) await throwShuriken(this);
+        else if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false);
+        else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false);
+        else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
+        else if (usesWindPalmProjectile) await this.playWindPalmProjectile();
+        else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
+        else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
+        this.tone(jutsu.cinematic ? 92 : 128, 0.12);
+        this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
+        showElementalImpact(this, jutsu, this.foe.body.x, this.foe.body.y - 26, jutsu.cinematic ? 1.25 : 1);
+        if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 156, "CRÍTICO", 0xf5c96b);
+        ({ amount, reaction } = this.loseHealth(this.enemy, this.foe, damage));
+      }
+      const appliedSoak = this.applyWaterPassive(this.player, this.enemy);
+      if (appliedSoak) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, `EMPAPADO ×${appliedSoak.stacks}`, 0x63cfff);
+      if (jutsu.status && this.enemy.hp > 0) {
+        applyStatus(this.enemy, jutsu.status);
+        this.refreshHud();
+      }
+      const statusNote = jutsu.status && this.enemy.hp > 0 ? ` · ${jutsu.status.label}` : "";
+      const elementNote = affinityLabel(1 + cycleModifier);
+      if (cycleModifier > 0 && this.player.primaryAffinity) this.recordEnemyObservation({ vulnerability: this.player.primaryAffinity });
+      this.setMessage(`${jutsu.name}: ${damage} de daño${critical ? " · CRÍTICO" : ""}${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
       if (usesPuppetPunch) {
         await Promise.all([
-          substitution,
+          reaction,
           recoverPlayerPunch(this, this.hero),
           this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
           this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
         ]);
-      } else if (usesCastPose) await Promise.all([substitution, recoverPlayerPunch(this, this.hero)]);
-      else await substitution;
-      if (this.finished) return;
-      await this.delay(120);
+      } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, this.hero)]);
+      else await reaction;
+      await this.applyEarthReprisal(this.enemy, this.player, this.hero, amount);
+      await this.delay(usesPuppetPunch || usesCastPose || usesEarthWallCast || usesEarthFistProjectile ? 150 : 430);
       this.hero.body.x = originX;
       this.hero.shadow.x = originShadowX;
-      return;
-    }
-
-    const critical = this.rollHit(this.player.criticalChance);
-    const { damage } = resolveDamage({
-      baseDamage: baseDamageInput,
-      strengthModifier: this.player.strengthModifier,
-      cycleModifier,
-      furyBonus,
-      critical,
-      criticalMultiplier: AFFINITY_CONFIG.damage.criticalMultiplier,
-      damageReduction: this.enemy.damageReduction || 0
-    });
-    let amount = 0;
-    let reaction = Promise.resolve(false);
-    if (usesWindBladeMultiHit) {
-      const hitDamages = splitDamageAcrossHits(damage, 3);
-      const reactions = [];
-      if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, "CRÍTICO", 0xf5c96b);
-      await this.playWindBladeEffect((hitIndex) => {
-        showElementalImpact(this, jutsu, this.foe.body.x, this.foe.body.y - 26, 0.65);
-        this.tone(128, 0.08);
-        this.shake(90, 0.004);
-        const hit = this.loseHealth(this.enemy, this.foe, hitDamages[hitIndex], {
-          react: hitIndex === hitDamages.length - 1,
-          yOffset: -112 - hitIndex * 26
-        });
-        amount += hit.amount;
-        reactions.push(hit.reaction);
-      });
-      reaction = Promise.all(reactions);
-    } else {
-      if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false);
-      else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false);
-      else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false);
-      else if (usesWindPalmProjectile) await this.playWindPalmProjectile();
-      else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id);
-      else this.createImpact(this.foe.body.x, this.foe.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
-      this.tone(jutsu.cinematic ? 92 : 128, 0.12);
-      this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
-      showElementalImpact(this, jutsu, this.foe.body.x, this.foe.body.y - 26, jutsu.cinematic ? 1.25 : 1);
-      if (critical) this.floatLabel(this.foe.body.x, this.foe.body.y - 156, "CRÍTICO", 0xf5c96b);
-      ({ amount, reaction } = this.loseHealth(this.enemy, this.foe, damage));
-    }
-    const appliedSoak = this.applyWaterPassive(this.player, this.enemy);
-    if (appliedSoak) this.floatLabel(this.foe.body.x, this.foe.body.y - 178, `EMPAPADO ×${appliedSoak.stacks}`, 0x63cfff);
-    if (jutsu.status && this.enemy.hp > 0) {
-      applyStatus(this.enemy, jutsu.status);
-      this.refreshHud();
-    }
-    const statusNote = jutsu.status && this.enemy.hp > 0 ? ` · ${jutsu.status.label}` : "";
-    const elementNote = affinityLabel(1 + cycleModifier);
-    if (cycleModifier > 0 && this.player.primaryAffinity) this.recordEnemyObservation({ vulnerability: this.player.primaryAffinity });
-    this.setMessage(`${jutsu.name}: ${damage} de daño${critical ? " · CRÍTICO" : ""}${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
-    if (usesPuppetPunch) {
-      await Promise.all([
-        reaction,
-        recoverPlayerPunch(this, this.hero),
-        this.tween({ targets: this.hero.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
-        this.tween({ targets: this.hero.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
-      ]);
-    } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, this.hero)]);
-    else await reaction;
-    await this.applyEarthReprisal(this.enemy, this.player, this.hero, amount);
-    await this.delay(usesPuppetPunch || usesCastPose || usesEarthWallCast || usesEarthFistProjectile ? 150 : 430);
-    this.hero.body.x = originX;
-    this.hero.shadow.x = originShadowX;
+    } finally { removeWeapon?.(); }
   }
 
   playTechniqueEffect(jutsuId) {
@@ -541,7 +549,6 @@ export class BattleActionMethods {
   async playerGuard() {
     this.player.guarding = true;
     startPlayerGuard(this, this.hero);
-    this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + 12);
     this.guardAura = this.add.circle(this.hero.body.x, this.hero.body.y - 18, 72, 0xf5c96b, 0.12)
       .setStrokeStyle(5, 0xf5c96b, 0.8).setDepth(8);
     this.tweens.add({ targets: this.guardAura, scale: 1.08, alpha: 0.35, duration: 420, yoyo: true, repeat: -1 });

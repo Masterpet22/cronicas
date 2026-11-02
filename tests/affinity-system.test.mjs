@@ -21,17 +21,17 @@ import {
 
 assert.deepEqual(
   AFFINITY_CONFIG.baseStats,
-  { health: 100, strength: 10, speed: 10, chakra: 100, luck: 10 },
+  { health: 100, strength: 10, speed: 10, chakra: 60, luck: 10 },
   "Todos los personajes deben partir de estadísticas base fijas y legibles"
 );
 assert.deepEqual(
   applyAffinityStatModifiers(AFFINITY_CONFIG.baseStats, ["fuego"]).stats,
-  { health: 100, strength: 12, speed: 9, chakra: 100, luck: 10 },
+  { health: 100, strength: 12, speed: 9, chakra: 60, luck: 10 },
   "Fuego debe modificar fuerza y velocidad sobre la base fija"
 );
 assert.deepEqual(
   applyAffinityStatModifiers(AFFINITY_CONFIG.baseStats, ["tierra"]).stats,
-  { health: 120, strength: 10, speed: 10, chakra: 88, luck: 10 },
+  { health: 120, strength: 10, speed: 10, chakra: 53, luck: 10 },
   "Tierra debe modificar vida y chakra sobre la base fija"
 );
 

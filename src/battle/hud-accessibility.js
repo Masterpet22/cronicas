@@ -232,10 +232,10 @@ export function mountAccessibleBattleHud(scene) {
       const { button, name, cost, availability, slot, index } = control;
       const action = tables ? tables.actionAt(index) : scene.actions[index];
       const physical = Boolean(tables?.physical && index > 0 && index < 5);
-      const empty = action ? null : physical ? tables.emptyAt(index) : emptySkillInfo(scene, index);
+      const empty = action ? null : physical || scene.mission.training ? tables.emptyAt(index) : emptySkillInfo(scene, index);
       const cooldown = action ? scene.cooldowns[action.id] || 0 : 0;
       const health = actionHealthCost(action);
-      const affordable = action && scene.player.hp > health && scene.player.chakra >= scene.actionCost(action);
+      const affordable = action && (scene.mission.training || scene.player.hp > health && scene.player.chakra >= scene.actionCost(action));
       const resource = action ? skillResourceLabel(scene, action, physical) : empty.requirement;
       const requirement = action ? `${resource}${cooldown ? ` · CD ${cooldown}` : !affordable ? health ? ' · Sin vida suficiente' : ' · Sin chakra' : ''}` : empty.requirement;
       control.paint(action, physical);
@@ -248,7 +248,7 @@ export function mountAccessibleBattleHud(scene) {
       button.setAttribute('aria-label', `${index + 1}. ${name.textContent}${action?.equipmentName ? `, ${action.equipmentName}` : ''}, ${requirement}`);
       button.setAttribute('aria-disabled', String(Boolean(!slot.available || scene.skillTableSwitching && index > 0 && index < 5)));
       button.setAttribute('aria-pressed', String(Boolean(action && action.id === scene.selectedHudActionId)));
-      button.title = action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement}` : physical ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
+      button.title = action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement}` : physical || scene.mission.training ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
     });
     markers.forEach(({ name, actor }) => put(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
@@ -262,7 +262,7 @@ export function mountAccessibleBattleHud(scene) {
     restorePerspective();
     root.classList.toggle('compact', query.matches);
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
-    scene.timelineLayer.setVisible(!query.matches);
+    scene.timelineLayer.setVisible(!query.matches && !scene.mission.training);
     scene.pauseButton.bg.setVisible(!query.matches);
     scene.pauseButton.label.setVisible(!query.matches);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
@@ -303,4 +303,4 @@ export function mountAccessibleBattleHud(scene) {
   } };
 }
 
-export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=0.127.0";
+export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=0.137.0";

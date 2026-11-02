@@ -2,6 +2,7 @@ export const TIMELINE_READY = 0.8;
 export const TIMELINE_COMPLETE = 1;
 export const TIMELINE_BASE_SPEED = 10;
 export const TIMELINE_BASE_READY_MS = 1200;
+export const TIMELINE_PREPARATION_MS_PER_SEAL = 300;
 
 const finite = (value, fallback = 0) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 const clamp = (value, minimum, maximum) => Math.min(maximum, Math.max(minimum, value));
@@ -11,6 +12,13 @@ export function actionNeedsPreparation(action) {
 }
 
 export function timelineRate(speed, action = null) {
+  // En el tramo 80–100 %, cada sello suma el mismo tiempo de preparación.
+  // La velocidad del personaje lo modifica; el antiguo speedMod del jutsu no.
+  if (action?.seals?.length) {
+    const effectiveSpeed = Math.max(1, finite(speed, TIMELINE_BASE_SPEED));
+    return ((TIMELINE_COMPLETE - TIMELINE_READY) / (action.seals.length * TIMELINE_PREPARATION_MS_PER_SEAL))
+      * (effectiveSpeed / TIMELINE_BASE_SPEED);
+  }
   const actionModifier = action ? finite(action.speedMod) : 0;
   const effectiveSpeed = Math.max(1, finite(speed, TIMELINE_BASE_SPEED) + actionModifier);
   return (TIMELINE_READY / TIMELINE_BASE_READY_MS) * (effectiveSpeed / TIMELINE_BASE_SPEED);

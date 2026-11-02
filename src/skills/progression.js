@@ -1,5 +1,6 @@
 import { buildSkillTree, SKILLS_BY_ID, SKILL_CATALOG } from "./definitions.js?v=1.0.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
+import { techniqueAtLevel } from "./technique-mastery.js?v=1.0.0";
 
 const integer = value => Number.isFinite(Number(value)) ? Math.max(0,Math.floor(Number(value))) : 0;
 // Separate from attribute points: three initial points, two per character level.
@@ -86,6 +87,6 @@ export function resonanceBonuses(save) {
 
 export function upgradedTechnique(save,jutsu) {
   const node = SKILLS_BY_ID.get(jutsu.id);
-  const bonus = node && skillState(save,node) !== "locked" ? purchasedRanks(save,jutsu.id) * 2 : 0;
-  return bonus ? { ...jutsu, damage: jutsu.damage + bonus } : jutsu;
+  const level = node && skillState(save,node) !== "locked" ? skillLevel(save,node) : 1;
+  return techniqueAtLevel(jutsu, level);
 }

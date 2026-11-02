@@ -1,4 +1,5 @@
 import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.131.0";
+import { CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";
 import { createResourceLayer } from "./battle/resource-bar.js?v=0.114.0";
 
@@ -27,7 +28,7 @@ export function createBar(scene, x, y, width, height, color, {
 }
 
 export function actionLines(action) {
-  if (action.type === "guard") return ["Recupera 12 chakra", "Reduce 50%", "Vel. 20"];
+  if (action.type === "guard") return [`Recupera ${CHAKRA_BALANCE.guardRecovery} chakra`, "Reduce 50%", "Descanso"];
 
   const speed = action.subtitle.match(/(?:^|·)\s*V(\d+)/)?.[1];
   const accuracy = action.subtitle.match(/(?:^|·)\s*P(\d+)/)?.[1];

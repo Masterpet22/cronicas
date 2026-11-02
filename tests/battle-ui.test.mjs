@@ -156,7 +156,7 @@ assert.match(battle, /usesHandProjectile = usesFireEmbersProjectile \|\| usesWat
 assert.match(battle, /playWaterShurikenProjectile\(missed = false\)[\s\S]*const origin = this\.playerHandPosition\(\)[\s\S]*creation\.play\(creationAnimation\)[\s\S]*angle: 1440[\s\S]*duration: 560/, "Aqua Shuriken debe formarse en la mano y girar rápidamente hasta el rival");
 assert.match(ui, /const sealGlyph = scene\.add\.text\(x, y, "封"/, "Los espacios bloqueados deben usar un sello ofuda visible");
 assert.match(battle, /action-strike/, "El golpe básico debe cargar su propio icono");
-assert.match(battle, /\(jutsu\.id === "strike" \|\| jutsu\.type === "taijutsu"\) && this\.hero\.joints\?\.shoulderRight/, "Golpe veloz y los taijutsus deben activar el puñetazo articulado");
+assert.match(battle, /\(jutsu\.id === "strike" \|\| jutsu\.type === "taijutsu" \|\| usesWeapon\) && this\.hero\.joints\?\.shoulderRight/, "Golpe veloz y los taijutsus deben activar el puñetazo articulado");
 assert.match(battle, /preparePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe preparar el brazo antes de avanzar");
 assert.match(battle, /releasePlayerPunch\(this, this\.hero\)/, "Golpe veloz debe extender el brazo al atacar");
 assert.match(battle, /recoverPlayerPunch\(this, this\.hero\)/, "El brazo debe regresar a la pose neutral después del golpe");

@@ -228,6 +228,7 @@ body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; as
 .combat-table-switch-label { display:none; }
 .combat-table-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); }
 .combat-physical-art { width:70%; height:70%; color:#edc477; filter:drop-shadow(0 1px 2px #000); }
+.combat-physical-asset { width:75%; height:75%; object-fit:contain; filter:drop-shadow(0 2px 3px #000); }
 [data-skill-table=physical] .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) .combat-skill-cost { color:#f2c38e; }
 .combat-skill-row { transform-origin:center; }
 .combat-access:not(.compact) .combat-access-actions.is-turning-out .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) { animation:combat-table-out 160ms ease-in both; }

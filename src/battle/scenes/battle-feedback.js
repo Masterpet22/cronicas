@@ -1,3 +1,4 @@
+import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
@@ -305,7 +306,7 @@ export class BattleFeedbackMethods {
   }
 
   actionCost(action) {
-    return Math.max(0, action.cost - this.player.costReduction);
+    return actionChakraCost(action, this.player.costReduction);
   }
 
   playerAppearance() {

@@ -8,6 +8,18 @@ import { stageVictory, commitVictory } from "../src/battle/victory-transaction.j
 let save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "fuego", bodyType: "male" });
 save.progression.coins = 2000;
 assert.equal(countItem(save, "seal_wind"), 1);
+assert.equal(countItem(save, "shuriken"), 1);
+assert.equal(save.equipment.throwable, "shuriken");
+const beforeThrowables = structuredClone(save);
+const unequipped = equipItem(save, "throwable", null).save;
+assert.equal(normalizeSave(unequipped).equipment.throwable, null, "Desequipar debe persistir");
+assert.equal(equipItem(save, "throwable", "kunai").ok, false);
+const oldSave = structuredClone(save); oldSave.version = 26;
+delete oldSave.equipment.throwable; delete oldSave.inventory.items.shuriken;
+const withStarter = normalizeSave(oldSave);
+assert.equal(withStarter.equipment.throwable, "shuriken");
+assert.equal(countItem(withStarter, "shuriken"), 1, "Las partidas previas reciben el shuriken");
+assert.deepEqual(save, beforeThrowables);
 assert.equal(countItem(save, "hair_short"), 1);
 const untouched = structuredClone(save);
 for (const [id, quantity] of [["missing", 1], ["__proto__", 1], ["constructor", 1], ["health_potion", -1], ["health_potion", 1.5], ["health_potion", Infinity], ["axe", 2]]) {
@@ -66,7 +78,7 @@ legacy.progression.level = 35;
 legacy.campaign.elementRank = 3;
 legacy.equipment.weapon = "staff";
 const migrated = normalizeSave(legacy);
-assert.equal(migrated.version, 26);
+assert.equal(migrated.version, 27);
 assert.equal(migrated.inventory.extraAffinityUnlocked, true);
 assert.equal(migrated.character.affinities.length, 3);
 assert.equal(countItem(migrated, "staff"), 1);

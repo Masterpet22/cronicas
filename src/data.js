@@ -1,3 +1,5 @@
+import { WEAPON_ASSETS } from "./weapon-assets.js?v=1.0.0";
+import { balanceTechniqueChakra, CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
 export const SEALS = {
   ara:       { frame: 0, label: "ARA", key: "Q", element: "fuego" },
   fornex:    { frame: 1, label: "FORNEX", key: "W", element: "fuego" },
@@ -42,7 +44,7 @@ function elementalSealSequence(jutsu) {
 
 export const BASE_ACTIONS = [
   { id: "strike", element: "physical", icon: "assets/actions/basic-strike.webp?v=1.1.0", name: "Golpe veloz", subtitle: "0CH · V16 · P93", cost: 0, damage: 9, speedMod: 4, accuracyMod: 3, cooldown: 0, seals: [], color: 0xd7dce5 },
-  { id: "guard", element: "none", icon: "assets/actions/guard.webp?v=1.1.0", type: "guard", name: "Guardia", subtitle: "-50% · +12CH · V20", cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
+  { id: "guard", element: "none", icon: "assets/actions/guard.webp?v=1.1.0", type: "guard", name: "Guardia", subtitle: `-50% · +${CHAKRA_BALANCE.guardRecovery}CH · V20`, cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
 ];
 
 const AFFINITY_XP_REQUIREMENTS = {
@@ -110,19 +112,22 @@ export const JUTSU_LIBRARY = [
   { id: "lightning_heaven", unlockLevel: 3, element: "rayo", name: "Juicio del cielo", subtitle: "36CH · V5 · P78 · CD4", cost: 36, damage: 44, speedMod: -7, accuracyMod: -12, cooldown: 4, seals: sealSlots(4), color: 0x3f78df, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } },
   ...EXTRA_ELEMENT_TECHNIQUES
 ].map((jutsu) => ({
-  ...jutsu,
+  ...balanceTechniqueChakra(jutsu),
   seals: elementalSealSequence(jutsu),
   affinityXpRequired: AFFINITY_XP_REQUIREMENTS[jutsu.id] ?? 0
 }));
 
 export const EQUIPMENT = {
   weapon: [
-    { id: "kunai", name: "Kunai equilibrado", description: "+2 daño", bonuses: { damageBonus: 2 } },
+    { id: "kunai", name: "Kunai equilibrado", image: WEAPON_ASSETS.kunai, description: "+2 daño", bonuses: { damageBonus: 2 } },
     { id: "tanto", name: "Tanto veloz", description: "+2 velocidad", bonuses: { speed: 2 } },
     { id: "steel_kunai", name: "Kunai de acero", description: "+4 fuerza, +2 precisión", bonuses: { damageBonus: 4, accuracy: 2 } },
     { id: "sword", name: "Espada del horizonte", description: "+6 fuerza, -1 velocidad", bonuses: { damageBonus: 6, speed: -1 } },
     { id: "axe", name: "Hacha de combate", description: "+9 fuerza, -3 velocidad", bonuses: { damageBonus: 9, speed: -3 } },
     { id: "staff", name: "Bastón de chakra", description: "-2 coste de chakra", bonuses: { costReduction: 2 } }
+  ],
+  throwable: [
+    { id: "shuriken", name: "Shuriken", description: "Arma arrojadiza reutilizable. Habilita su lanzamiento en la tabla física, sin gastar vida ni chakra.", image: WEAPON_ASSETS.shuriken, bonuses: {} }
   ],
   seal: [
     { id: "seal_wind", name: "Sello del viento", description: "+4 evasión", bonuses: { evasion: 4 } },

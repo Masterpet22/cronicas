@@ -1,0 +1,16 @@
+.training-entry { min-height:42px; padding:8px 14px; border:1px solid #cfaa65; border-radius:6px; color:#ffe1a4; background:linear-gradient(135deg,#503523,#192d35); font:700 14px "Alegreya Sans",sans-serif; cursor:pointer; }
+.training-entry small { display:block; color:#bdc9c5; font-size:11px; font-weight:400; }
+.location-dojo .training-entry { grid-column:2; grid-row:1; }
+.location-dojo .dojo-level { grid-column:3; grid-row:1; }
+.location-dojo .dojo-tabs { grid-column:1/-1; }
+.training-entry:focus-visible { outline:2px solid #ffe1a4; outline-offset:2px; }
+.training-mode .combat-access-progress { display:none; }
+.training-table-heading { display:flex; align-items:center; gap:5px; pointer-events:auto; letter-spacing:0; }
+.training-table-pages { position:absolute; display:inline-flex; align-items:center; gap:3px; color:#ffe1a4; font:12px "Alegreya Sans",sans-serif; pointer-events:auto; }
+.training-table-pages[hidden] { display:none; }
+.training-table-pages button { width:26px; min-height:28px; padding:0; border:1px solid #a98750; border-radius:4px; background:#102332; color:#ffe1a4; font-size:20px; cursor:pointer; }
+.training-table-pages button:disabled { opacity:.4; cursor:default; }
+.training-table-pages button:focus-visible { outline:2px solid #ffe1a4; outline-offset:2px; }
+.training-mode .compact .combat-table-tools { flex-wrap:wrap; }
+.compact .training-table-pages { position:static; }
+@media(max-width:650px) { .location-dojo .training-entry { grid-column:auto; grid-row:auto; } }

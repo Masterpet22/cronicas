@@ -34,6 +34,7 @@ export function normalizeInventory(save) {
   }
   if (save?.character) for (const item of Object.values(ITEMS)) if (item.kind === "cosmetic" && item.price === 0) items[item.id] = 1;
   if (save?.character) {
+    if (Number(save.version || 0) < 27) items.shuriken = 1;
     if (Number(save.version || 0) < GUILD_INVENTORY_VERSION) for (const [id, count] of Object.entries(guildInventoryGrants(save))) items[id] = Math.max(items[id] || 0, count);
     for (const item of Object.values(ITEMS)) if (item.kind === "decoration" && item.price === 0) items[item.id] = 1;
   }
