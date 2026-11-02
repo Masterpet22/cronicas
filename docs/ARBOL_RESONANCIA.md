@@ -1,16 +1,31 @@
 # Árbol de Resonancia
 
-El Dojo → Técnicas muestra un panal axial con cuatro direcciones: físicas arriba,
-primera afinidad a la izquierda, segunda a la derecha y tercera abajo. El contorno
-principal reproduce las celdas de la referencia visual del 2 de noviembre:
-siete columnas escalonadas y simétricas, un hueco sobre el núcleo, seis celdas
-físicas, cinco en cada abanico lateral, seis abajo y cuatro puentes diagonales
-de dos celdas. Los números escritos en la referencia son orientativos.
+El Dojo → Técnicas reproduce exactamente el plano de 39 hexágonos suministrado
+por el usuario: 38 celdas de habilidades y una del personaje en `(0,0)`.
 
-El catálogo conserva ocho habilidades por afinidad y ocho físicas. Las adicionales
-aparecen al activar **Avanzadas**; regresar a **Panal principal** restaura exactamente
-el contorno de referencia. Las ranuras sin afinidad conservan su lugar
-con celdas bloqueadas; no asignan elementos que el personaje todavía no posee.
+| Grupo | Celdas | Posición | Color representativo |
+|---|---:|---|---|
+| Afinidad 1 | 8 | Izquierda | Rojo |
+| Afinidad 2 | 7 | Abajo | Marrón |
+| Afinidad 3 | 8 | Derecha | Verde |
+| Físicas | 6 | Arriba | Azul |
+| Afinidad 1 + 2 | 3 | Inferior izquierda | Cian |
+| Afinidad 2 + 3 | 3 | Inferior derecha | Amarillo |
+| Afinidad 1 + 3 | 3 | Cima y dos extremos superiores separados | Morado |
+| Personaje | 1 | Centro | Fondo amarillo y borde negro |
+
+Las nueve columnas contienen `2,3,5,6,7,6,5,3,2` hexágonos. Los colores identifican
+los grupos del esquema; las técnicas e iconos corresponden a los elementos
+equipados. No aparecen hexágonos adicionales al progresar o cambiar de vista.
+
+El catálogo conserva sus habilidades, mejoras y requisitos anteriores. Las que
+exceden las posiciones del plano quedan vinculadas a una celda existente y se
+consultan en su ficha con **Técnicas de esta celda**. Las ranuras sin afinidad
+mantienen sus celdas bloqueadas.
+
+El núcleo usa la numeración japonesa del mes de nacimiento: `一` a `十`, `十一` y
+`十二`. Sin fecha válida muestra yin yang. Cambiar o quitar el cumpleaños en el
+calendario actualiza el símbolo al volver al Dojo. No se guarda otra copia del mes.
 
 ## Datos, progreso y representación
 
@@ -19,11 +34,12 @@ con celdas bloqueadas; no asignan elementos que el personaje todavía no posee.
   elemento, y los de híbridas del par ordenado, nunca de la ranura equipada.
 - `src/skills/progression.js`: niveles, requisitos, transacciones de puntos,
   normalización, modificadores pasivos y mejoras del daño de técnicas.
+- `src/skills/character-symbol.js`: símbolo del núcleo derivado del cumpleaños.
 - `src/skills/taijutsu.js`: desbloqueo, dos ranuras físicas independientes,
   intercambio de posiciones y conversión del nivel a una acción de combate.
 - `src/skills/hex-boundaries.js`: contornos por las aristas exteriores del grupo.
   Los bordes de afinidad siguen su color incluso al estar bloqueados; las físicas
-  utilizan el violeta exclusivo definido en `PHYSICAL_COLOR`.
+  utilizan el azul definido en `PHYSICAL_COLOR`.
 - `src/ui/meta/resonance-tree.js`: representación SVG, vecindad hexagonal y
   controles de navegación. No contiene definiciones de habilidades.
 - `src/ui/meta/dojo-techniques.js`: ficha contextual, inversiones y equipamiento.
@@ -37,15 +53,15 @@ celdas vecinas: ninguna línea atraviesa artificialmente el espacio entre ramas.
 Los requisitos efectivos figuran en la ficha; todos los requisitos de un nodo
 deben cumplirse. Desarrollar una rama no obliga a comprar todos sus nodos.
 
-Los puentes superiores combinan físicas con la primera y segunda afinidad. Los
-inferiores combinan primera + tercera y segunda + tercera. Sus contornos mezclan
-ambos colores. Las dos combinaciones físicas de cada elemento requieren progreso
-en el cuerpo y en el elemento, y añaden fuerza o reducción de daño.
+Los pares 1+2 y 2+3 ocupan sus tres celdas inferiores. El par 1+3 ocupa
+exactamente `(0,-3)`, `(-2,-1)` y `(2,-3)`, sin unirlas ni desplazarlas a una franja.
+Las técnicas de tres elementos, las maestrías físicas y los cruces físicos de
+versiones anteriores se conservan como técnicas vinculadas, sin alterar el plano.
 
-La combinación primera + segunda, las técnicas restantes y las combinaciones
-triples se conservan en Avanzadas. Al reordenar las afinidades, los cruces físicos
-de la tercera afinidad también quedan accesibles allí. Las extensiones ocupan
-celdas axiales libres sin superponer nodos; nunca ocupan el hueco sobre Resonancia.
+`buildSkillTree` devuelve solo las 38 celdas de habilidades, cada una con sus
+`linkedSkills`. `skillTreeNodes` expone las habilidades y sus niveles con un
+`cellId` compartido. El renderizado mantiene una sola celda por `cellId`, también
+al seleccionar una habilidad vinculada.
 
 ## Economía y compatibilidad
 
@@ -96,9 +112,10 @@ los controles para equipar, quitar y reemplazar una ranura de combate.
   Inicio ajusta el panal completo.
 - La cámara se conserva durante inversiones y cambios de equipo.
 
-Para añadir habilidades, define sus requisitos y efectos en el catálogo y añade
-celdas a `SKILL_LAYOUT` para las ramas iniciales. Las técnicas avanzadas se
-distribuyen automáticamente. Mantén IDs persistentes para conservar partidas.
+Para añadir habilidades, define sus requisitos y efectos en el catálogo y
+vincúlalas a una celda existente. El plano `SKILL_LAYOUT` es un contrato fijo;
+ninguna ampliación automática agrega hexágonos. Mantén IDs persistentes para
+conservar partidas.
 Los efectos pasivos admitidos son vida, fuerza, velocidad, chakra, precisión,
 evasión, reducción de daño y reducción del coste de chakra. Añadir una mecánica
 nueva requiere implementar su efecto en combate y describirlo en la ficha.

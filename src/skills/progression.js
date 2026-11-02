@@ -20,7 +20,8 @@ export function skillLevel(save,node) {
 /** @returns {import('./definitions.js').SkillNode[]} */
 export function skillTreeNodes(save) {
   return buildSkillTree(save?.character?.affinities || [],save?.campaign?.elementRank || 1)
-    .map(node => ({ ...node,level:skillLevel(save,node) }));
+    .flatMap(cell => [cell,...cell.linkedSkills].map(node => ({ ...node,q:cell.q,r:cell.r,cellId:cell.id,
+      slot:cell.slot,bridge:cell.bridge,level:skillLevel(save,node) })));
 }
 
 export function normalizeResonance(resonance, level) {

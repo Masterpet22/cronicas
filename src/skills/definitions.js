@@ -1,6 +1,11 @@
 import { JUTSU_LIBRARY } from "../data.js?v=0.114.0";
 import { ELEMENTS, BASIC_ELEMENT_IDS, basicRequirements } from "../elements.js?v=0.20.0";
-export const PHYSICAL_COLOR = "#bca0ff";
+// Diagram colors identify progression categories; equipped elements supply skills/icons.
+export const PHYSICAL_COLOR = "#657fff";
+export const SKILL_REGION_COLORS = Object.freeze({
+  physical:PHYSICAL_COLOR, affinities:["#ff4b55","#ba701c","#2f9b68"],
+  bridges:{ "affinity-1-2":"#19c3ed", "affinity-2-3":"#e1df27", "affinity-1-3":"#a33df1" }
+});
 
 /**
  * @typedef {Object} SkillDefinition
@@ -18,19 +23,21 @@ export const PHYSICAL_COLOR = "#bca0ff";
  */
 /** @typedef {SkillDefinition & { level: number }} SkillNode Runtime projection of definition + player progression. */
 
-// Main silhouette traced from the reference: seven staggered columns,
-// six upper physical cells, two five-cell side fans, six lower cells,
-// and four two-cell diagonal bridges. The upper central recess stays empty.
+// Exact 39-cell blueprint from the user's diagram, including the character at 0,0.
+// The three 1+3 cells are deliberately scattered; never infer their placement.
 export const HEX_GRID_SIZE = 47;
 export const SKILL_LAYOUT = Object.freeze({
-  physical: [[0,-2],[-1,-1],[1,-2],[-1,-2],[1,-3],[0,-3]],
-  affinities: [
-    [[-2,1],[-2,0],[-3,0],[-3,1],[-3,2]],
-    [[2,-1],[2,-2],[3,-3],[3,-2],[3,-1]],
-    [[0,1],[-1,2],[1,1],[0,2],[-1,3],[1,2]]
+  physical:[[0,-1],[-1,-1],[1,-2],[-1,-2],[1,-3],[0,-2]],
+  affinities:[
+    [[-1,0],[-2,1],[-2,0],[-3,1],[-3,0],[-4,1],[-4,2],[-3,2]],
+    [[0,1],[-1,2],[1,1],[0,2],[-1,3],[1,2],[0,3]],
+    [[1,-1],[2,-1],[2,-2],[3,-2],[3,-3],[4,-3],[4,-2],[3,-1]]
   ],
-  physicalBridges: [[[-1,0],[-2,-1]],[[1,-1],[2,-3]]],
-  affinityBridges: [[[-1,1],[-2,2]],[[1,0],[2,0]]]
+  affinityBridges:[
+    { slots:[0,1],cells:[[-1,1],[-2,2],[-2,3]] },
+    { slots:[1,2],cells:[[1,0],[2,0],[2,1]] },
+    { slots:[0,2],cells:[[0,-3],[-2,-1],[2,-3]] }
+  ]
 });
 
 const ICONS = ["strike", "burst", "shield", "seal", "flame", "step", "bind", "crown"];
@@ -71,7 +78,7 @@ export const PHYSICAL_SKILLS = PHYSICAL.map(([name, stat, amount, type, icon], i
 export const TAIJUTSU_ACTIONS = [
   { id:"physical_1", name:"Puño de hierro", description:"Un impacto físico potente, sin sellos ni gasto de chakra.", damage:22, healthCost:8, speedMod:-1, accuracyMod:2, cooldown:1 },
   { id:"physical_2", name:"Paso fugaz", description:"Un golpe rápido que adelanta tu acción en la línea de combate.", damage:15, healthCost:5, speedMod:6, accuracyMod:5, cooldown:1 }
-].map(action => ({ ...action, type:"taijutsu", cost:0, seals:[], color:0xbca0ff, iconTexture:null }));
+].map(action => ({ ...action, type:"taijutsu", cost:0, seals:[], color:0x657fff, iconTexture:null }));
 export const TAIJUTSUS_BY_ID = new Map(TAIJUTSU_ACTIONS.map(action => [action.id,action]));
 
 export function affinitySkills(elementId) {
@@ -128,51 +135,38 @@ export const SKILL_CATALOG = [
 ];
 export const SKILLS_BY_ID = new Map(SKILL_CATALOG.map(node => [node.id, node]));
 
-function place(nodes, cells) { return nodes.map((node,i) => ({ ...node, q: cells[i][0], r: cells[i][1] })); }
+function place(nodes,cells,metadata = {}) {
+  return nodes.slice(0,cells.length).map((node,i) => ({ ...node,...metadata,q:cells[i][0],r:cells[i][1],linkedSkills:[] }));
+}
 
-export function buildSkillTree(affinities = [], rank = 1) {
-  const nodes = place(PHYSICAL_SKILLS.slice(0,SKILL_LAYOUT.physical.length), SKILL_LAYOUT.physical);
-  const overflow = PHYSICAL_SKILLS.slice(SKILL_LAYOUT.physical.length);
-  for (let slot = 0; slot < 3; slot++) {
-    const elementId = affinities[slot];
-    const branch = elementId ? affinitySkills(elementId) : Array.from({ length: 8 }, (_,i) => ({
-      id: `empty_${slot}_${i}`, name: `Afinidad ${slot+1} por descubrir`, description: "Equipa una afinidad en esta ranura del Dojo para revelar sus habilidades.",
-      category: "affinity", affinityIds: [], icon: "seal", type: "Sin afinidad", maxLevel: 3, cost: 1, prerequisites: [], placeholder: true
+export function buildSkillTree(affinities = [],rank = 1) {
+  const physical = place(PHYSICAL_SKILLS,SKILL_LAYOUT.physical);
+  physical.at(-1).linkedSkills.push(...PHYSICAL_SKILLS.slice(SKILL_LAYOUT.physical.length));
+  const nodes = [...physical];
+  for (let slot=0;slot<3;slot++) {
+    const id = affinities[slot];
+    const branch = id ? affinitySkills(id) : Array.from({ length:8 },(_,i) => ({
+      id:`empty_${slot}_${i}`,name:`Afinidad ${slot+1} por descubrir`,description:"Equipa una afinidad en esta ranura del Dojo para revelar sus habilidades.",
+      category:"affinity",affinityIds:[],icon:"seal",type:"Sin afinidad",maxLevel:3,cost:1,prerequisites:[],placeholder:true
     }));
-    nodes.push(...place(branch.slice(0,SKILL_LAYOUT.affinities[slot].length), SKILL_LAYOUT.affinities[slot]).map(node => ({ ...node, slot })));
-    overflow.push(...branch.slice(SKILL_LAYOUT.affinities[slot].length).map(node => ({ ...node, slot })));
+    const cells = place(branch,SKILL_LAYOUT.affinities[slot],{ slot });
+    cells.at(-1).linkedSkills.push(...branch.slice(cells.length));
+    // Keep existing physical/elemental mastery reachable without adding any cells.
+    if (id) cells.at(-1).linkedSkills.push(...physicalAffinitySkills(id));
+    nodes.push(...cells);
   }
-  const emptyBridge = (id,affinityIds,description,physicalHybrid = false) => Array.from({ length:2 },(_,i) => ({
-    id:`${id}_${i}`,name:"Confluencia por descubrir",category:"hybrid",affinityIds,description,
-    icon:"bind",type:physicalHybrid ? "Físicas + Afinidad" : "Afinidad + Afinidad",maxLevel:3,cost:1,prerequisites:[],placeholder:true,physicalHybrid
-  }));
-  [0,1].forEach(slot => {
-    const elementId = affinities[slot];
-    const branch = elementId ? physicalAffinitySkills(elementId) : emptyBridge(`empty_physical_${slot}`,[],"Equipa esta afinidad y desarrolla tu disciplina física para revelar el puente.",true);
-    nodes.push(...place(branch,SKILL_LAYOUT.physicalBridges[slot]).map(node => ({ ...node,bridge:`physical-affinity-${slot+1}` })));
-  });
-  [[0,2],[1,2]].forEach(([a,b],index) => {
+  for (const { slots:[a,b],cells } of SKILL_LAYOUT.affinityBridges) {
     const ids = [affinities[a],affinities[b]];
-    const branch = ids.every(Boolean) ? pairSkills(ids) : emptyBridge(`empty_hybrid_${index}`,ids.filter(Boolean),"Equipa ambas afinidades y desarrolla sus nodos de entrada para activar este puente.");
-    nodes.push(...place(branch.slice(0,2),SKILL_LAYOUT.affinityBridges[index]).map(node => ({ ...node,bridge:`affinity-${a+1}-${b+1}`,pair:[a,b] })));
-    overflow.push(...branch.slice(2));
-  });
-  // The first/second affinity combination remains available in the advanced view.
-  if (affinities[0] && affinities[1]) overflow.push(...pairSkills([affinities[0],affinities[1]]));
-  // Reordering affinities never hides an already developed physical combination.
-  affinities.slice(2).forEach(id => overflow.push(...physicalAffinitySkills(id)));
-  // Existing advanced techniques remain reachable. New seasons can add data
-  // without changing the renderer: reserve the nearest unoccupied axial cells.
-  overflow.push(...SKILL_CATALOG.filter(node => node.affinityIds.length === 3 && rank >= ELEMENTS[node.element].tier && node.affinityIds.every(id => affinities.includes(id))));
-  const occupied = new Set(["0,0","0,-1", ...nodes.map(n => `${n.q},${n.r}`)]);
-  const candidates = [];
-  const radius = Math.max(5,Math.ceil(Math.sqrt(nodes.length + overflow.length)));
-  for (let q = -radius; q <= radius; q++) for (let r = -radius; r <= radius; r++) {
-    if (!occupied.has(`${q},${r}`)) candidates.push({ q,r, distance: Math.max(Math.abs(q),Math.abs(r),Math.abs(q+r)) });
+    const branch = ids.every(Boolean) ? pairSkills(ids) : cells.map((_,i) => ({
+      id:`empty_hybrid_${a}_${b}_${i}`,name:`Afinidad ${a+1} + Afinidad ${b+1}`,category:"hybrid",affinityIds:ids.filter(Boolean),
+      description:"Equipa ambas afinidades y desarrolla sus habilidades de entrada.",icon:"bind",type:"Confluencia",maxLevel:3,cost:1,prerequisites:[],placeholder:true
+    }));
+    const bridge = place(branch,cells,{ bridge:`affinity-${a+1}-${b+1}`,pair:[a,b] });
+    bridge.at(-1).linkedSkills.push(...branch.slice(cells.length));
+    if (a===0 && b===2) bridge.at(-1).linkedSkills.push(...SKILL_CATALOG.filter(node =>
+      node.affinityIds.length===3 && rank >= ELEMENTS[node.element].tier && node.affinityIds.every(id => affinities.includes(id))));
+    nodes.push(...bridge);
   }
-  const radiusSquared = cell => cell.q*cell.q + cell.q*cell.r + cell.r*cell.r;
-  candidates.sort((a,b) => a.distance - b.distance || radiusSquared(a)-radiusSquared(b) || a.r-b.r || a.q-b.q);
-  overflow.forEach((node,i) => nodes.push({ ...node, q: candidates[i].q, r: candidates[i].r, advanced: true }));
   return nodes;
 }
 

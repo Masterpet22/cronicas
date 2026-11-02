@@ -1,7 +1,9 @@
-import { PHYSICAL_COLOR, axialToPixel, buildSkillTree, hexDistance } from "../../skills/definitions.js?v=1.0.0";
+import { PHYSICAL_COLOR, SKILL_REGION_COLORS, axialToPixel, buildSkillTree, hexDistance } from "../../skills/definitions.js?v=1.0.0";
 import { resonancePoints, skillLevel, skillState, skillTreeNodes } from "../../skills/progression.js?v=1.0.0";
 
 import { hexBoundarySegments } from "../../skills/hex-boundaries.js?v=1.0.0";
+
+import { characterResonanceSymbol } from "../../skills/character-symbol.js?v=1.0.0";
 
 const PATHS = {
   strike: "M-13 12 10-11M2-13l12 1-1 12M-14-1l15 15M-9 4l-5 10 10-5",
@@ -16,84 +18,72 @@ const PATHS = {
   eye: "M-19 0S-11-12 0-12 19 0 19 0 11 12 0 12-19 0-19 0ZM6 0A6 6 0 1 1-6 0 6 6 0 0 1 6 0"
 };
 export const hexPoints = (radius = 41) => Array.from({ length: 6 }, (_,i) => `${Math.cos(i*Math.PI/3)*radius},${Math.sin(i*Math.PI/3)*radius}`).join(" ");
-const colorFor = (deps,id) => id ? `#${deps.elements[id].color.toString(16).padStart(6,"0")}` : "#68727d";
+const SKILL_LAYOUT_BRIDGES = ["affinity-1-2","affinity-2-3","affinity-1-3"];
 const labels = { locked: "BLOQUEADA", available: "DISPONIBLE", unlocked: "APRENDIDA", upgraded: "MEJORADA" };
 
 export function treeBounds(nodes) {
   const positions = nodes.map(n => axialToPixel(n.q,n.r));
-  const left = Math.min(-330,Math.min(...positions.map(p => p.x))-60);
-  const right = Math.max(330,Math.max(...positions.map(p => p.x))+60);
-  const top = Math.min(...positions.map(p => p.y))-90;
-  const bottom = Math.max(...positions.map(p => p.y))+100;
+  const left = Math.min(...positions.map(p => p.x))-56;
+  const right = Math.max(...positions.map(p => p.x))+56;
+  const top = Math.min(...positions.map(p => p.y))-56;
+  const bottom = Math.max(...positions.map(p => p.y))+76;
   return { x:left, y:top, width:right-left, height:bottom-top };
 }
 export const viewBox = view => `${view.x} ${view.y} ${view.width} ${view.height}`;
 
-export function resonanceTreeMarkup(save, deps, selectedId, view, { expanded = false } = {}) {
+export function resonanceTreeMarkup(save,deps,selectedId,view) {
   const escape = deps.escapeHtml;
-  const affinities = save.character.affinities;
   const allNodes = skillTreeNodes(save);
-  const nodes = expanded ? allNodes : allNodes.filter(node => !node.advanced);
-  const extensionCount = allNodes.filter(node => node.advanced).length;
-  const bounds = treeBounds(nodes);
-  const colors = node => node.physicalHybrid ? [PHYSICAL_COLOR,colorFor(deps,node.affinityIds[0])] : node.category === "physical" ? [PHYSICAL_COLOR,PHYSICAL_COLOR] : [colorFor(deps,node.affinityIds[0]),colorFor(deps,node.affinityIds[1] || node.affinityIds[0])];
-  const bridgeIds = [...new Set(nodes.map(node => node.bridge).filter(Boolean))];
-  const bridgeGradients = bridgeIds.map(id => {
-    const [a,b] = colors(nodes.find(node => node.bridge === id));
-    return `<linearGradient id="res-bridge-${id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
-  }).join("");
-  const gradients = nodes.map(node => {
-    const [a,b] = colors(node);
-    return `<linearGradient id="res-${node.id}" x1="0" y1="0" x2="1" y2="1"><stop stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient>`;
-  }).join("");
+  const cells = allNodes.filter(node => node.id===node.cellId);
+  const selected = allNodes.find(node => node.id===selectedId);
+  const colorOf = cell => cell.category === "physical" ? PHYSICAL_COLOR : cell.category === "affinity"
+    ? SKILL_REGION_COLORS.affinities[cell.slot] : SKILL_REGION_COLORS.bridges[cell.bridge];
+  const nodes = cells.map(cell => selected?.cellId===cell.id ? { ...selected,category:cell.category,slot:cell.slot,bridge:cell.bridge,cellId:cell.id } : cell);
+  const bounds = treeBounds(cells);
   const regions = [
-    { id:"physical", color:PHYSICAL_COLOR, nodes:nodes.filter(node => node.category === "physical") },
-    ...Array.from({ length:3 },(_,slot) => ({ id:`affinity-${slot+1}`, color:colorFor(deps,affinities[slot]), nodes:nodes.filter(node => node.category === "affinity" && node.slot === slot) })),
-    ...bridgeIds.map(id => ({ id,color:`url(#res-bridge-${id})`,nodes:nodes.filter(node => node.bridge === id),hybrid:true }))
+    { id:"physical",nodes:cells.filter(node => node.category === "physical") },
+    ...[0,1,2].map(slot => ({ id:`affinity-${slot+1}`,nodes:cells.filter(node => node.category === "affinity" && node.slot===slot) })),
+    ...SKILL_LAYOUT_BRIDGES.map(id => ({ id,nodes:cells.filter(node => node.bridge===id),hybrid:true }))
   ].map(region => {
-    const edges = hexBoundarySegments(region.nodes);
-    const outline = edges.map(edge => `M${edge.x1},${edge.y1}L${edge.x2},${edge.y2}`).join(" ");
-    return `<g class="resonance-region ${region.hybrid ? "is-hybrid-region" : ""}" ${region.hybrid ? "data-bridge-region" : "data-region"}="${region.id}" data-region-color="${region.color}" style="--region-color:${region.color}" aria-hidden="true"><path class="resonance-region-shadow" d="${outline}"/><path class="resonance-region-border" d="${outline}"/></g>`;
+    const color = colorOf(region.nodes[0]);
+    const outline = hexBoundarySegments(region.nodes).map(e => `M${e.x1},${e.y1}L${e.x2},${e.y2}`).join(" ");
+    return `<g class="resonance-region ${region.hybrid ? "is-hybrid-region" : ""}" ${region.hybrid ? "data-bridge-region" : "data-region"}="${region.id}" data-region-color="${color}" style="--region-color:${color}" aria-hidden="true"><path class="resonance-region-shadow" d="${outline}"/><path class="resonance-region-border" d="${outline}"/></g>`;
   }).join("");
-  const graph = [{ id:"core", q:0,r:0 }, ...nodes];
-  const lines = graph.flatMap((node,i) => graph.slice(i+1).filter(other => hexDistance(node,other) === 1).map(other => {
-    const a = axialToPixel(node.q,node.r), b = axialToPixel(other.q,other.r);
-    const developed = (node.id === "core" || skillLevel(save,node)) && skillLevel(save,other);
-    const available = [node,other].some(n => n.id !== "core" && skillState(save,n) === "available");
-    return `<line class="resonance-link ${developed ? "is-developed" : available ? "is-available" : ""}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
+  const graph = [{ id:"core",q:0,r:0 },...nodes];
+  const lines = graph.flatMap((node,i) => graph.slice(i+1).filter(other => hexDistance(node,other)===1).map(other => {
+    const a=axialToPixel(node.q,node.r), b=axialToPixel(other.q,other.r);
+    const developed=(node.id === "core" || skillLevel(save,node)) && skillLevel(save,other);
+    return `<line class="resonance-link ${developed ? "is-developed" : ""}" x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}"/>`;
   })).join("");
-  const cells = nodes.map(node => {
-    const { x,y } = axialToPixel(node.q,node.r);
-    const state = skillState(save,node), level = skillLevel(save,node);
-    const physicalSlot = (save.taijutsuLoadout || []).indexOf(node.id);
-    const equippedSlot = physicalSlot >= 0 ? physicalSlot : save.loadout.indexOf(node.id);
-    const status = physicalSlot >= 0 ? `EN COMBATE · TAIJUTSU ${physicalSlot+1}` : equippedSlot >= 0 ? `EN COMBATE · RANURA ${equippedSlot+1}` : labels[state];
-    const [a] = colors(node);
-    const stamps = node.affinityIds.map((id,i) => `<image class="resonance-element-stamp" href="${deps.elementIcon(id)}" x="${node.affinityIds.length > 1 ? -17+i*14 : -8}" y="-31" width="16" height="16" aria-hidden="true"/>`).join("");
-    return `<g class="resonance-node is-${state} ${node.category === "hybrid" ? "is-hybrid" : ""} ${selectedId === node.id ? "is-selected" : ""}" transform="translate(${x} ${y})" style="--node-color:${a}" role="button" tabindex="0" aria-pressed="${selectedId === node.id}" aria-label="${escape(node.name)}. ${status}. Nivel ${level} de ${node.maxLevel}" data-skill-select="${node.id}" data-category="${node.category}" data-slot="${node.slot ?? ""}" data-state="${state}"><title>${escape(node.name)} · ${status}</title><polygon class="resonance-hex-outline" points="${hexPoints(44)}"/><polygon class="resonance-hex" points="${hexPoints()}" stroke="url(#res-${node.id})"/><polygon class="resonance-hex-inset" points="${hexPoints(35)}"/>${stamps}<path class="resonance-glyph" d="${PATHS[node.icon] || PATHS.seal}" stroke="url(#res-${node.id})"/>${state === "locked" ? '<g class="resonance-lock" transform="translate(17 15)"><rect x="-5" y="0" width="10" height="9" rx="1"/><path d="M-3 0v-3a3 3 0 0 1 6 0v3"/></g>' : `<text class="resonance-level" x="0" y="28" text-anchor="middle">${level ? `${level}/${node.maxLevel}` : "+"}</text>`}${equippedSlot >= 0 ? '<circle class="resonance-equipped" cx="25" cy="-19" r="5"/>' : ""}<text class="skill-state" aria-hidden="true">${escape(status)}</text></g>`;
+  const renderedCells = nodes.map(node => {
+    const cell = cells.find(cell => cell.id===node.cellId);
+    const { x,y }=axialToPixel(node.q,node.r), color=colorOf(cell);
+    const state=skillState(save,node), level=skillLevel(save,node);
+    const physicalSlot=(save.taijutsuLoadout || []).indexOf(node.id), slot=save.loadout.indexOf(node.id);
+    const equipped=physicalSlot>=0 || slot>=0;
+    const status=physicalSlot>=0 ? `EN COMBATE · TAIJUTSU ${physicalSlot+1}` : slot>=0 ? `EN COMBATE · RANURA ${slot+1}` : labels[state];
+    const stamps=node.affinityIds.map((id,i) => `<image class="resonance-element-stamp" href="${deps.elementIcon(id)}" x="${node.affinityIds.length>1 ? -17+i*14 : -8}" y="-31" width="16" height="16" aria-hidden="true"/>`).join("");
+    const linked=allNodes.filter(other => other.cellId===cell.id).length-1;
+    return `<g class="resonance-node is-${state} ${cell.category === "hybrid" ? "is-hybrid" : ""} ${selected?.cellId===cell.id ? "is-selected" : ""}" transform="translate(${x} ${y})" style="--node-color:${color}" role="button" tabindex="0" aria-pressed="${selected?.cellId===cell.id}" aria-label="${escape(node.name)}. ${status}. Nivel ${level} de ${node.maxLevel}${linked ? `. ${linked} técnicas vinculadas en la ficha` : ""}" data-skill-select="${node.id}" data-cell-id="${cell.id}" data-q="${node.q}" data-r="${node.r}" data-category="${cell.category}" data-slot="${cell.slot ?? ""}" data-bridge="${cell.bridge || ""}" data-state="${state}"><title>${escape(node.name)} · ${status}</title><polygon class="resonance-hex-outline" points="${hexPoints(44)}"/><polygon class="resonance-hex" points="${hexPoints()}" stroke="${color}"/><polygon class="resonance-hex-inset" points="${hexPoints(35)}"/>${stamps}<path class="resonance-glyph" d="${PATHS[node.icon] || PATHS.seal}" stroke="${color}"/>${state === "locked" ? '<g class="resonance-lock" transform="translate(17 15)"><rect x="-5" y="0" width="10" height="9" rx="1"/><path d="M-3 0v-3a3 3 0 0 1 6 0v3"/></g>' : `<text class="resonance-level" x="0" y="28" text-anchor="middle">${level ? `${level}/${node.maxLevel}` : "+"}</text>`}${equipped ? '<circle class="resonance-equipped" cx="25" cy="-19" r="5"/>' : ""}${linked ? `<text class="resonance-linked-count" x="-24" y="21">+${linked}</text>` : ""}<text class="skill-state" aria-hidden="true">${escape(status)}</text></g>`;
   }).join("");
-  const mainPositions = nodes.filter(node => !node.advanced).map(n => axialToPixel(n.q,n.r));
-  const topLabel = Math.min(...mainPositions.map(p => p.y))-65;
-  const bottomLabel = Math.max(...mainPositions.map(p => p.y))+65;
-  const caption = (x,y,title,subtitle,color) => `<g class="resonance-caption" style="fill:${color}" transform="translate(${x} ${y})"><text text-anchor="middle">${escape(title)}</text><text class="resonance-caption-sub" text-anchor="middle" y="18">${escape(subtitle)}</text></g>`;
-  const captions = [
-    caption(0,topLabel,"FÍSICAS","CUERPO · DISCIPLINA",PHYSICAL_COLOR),
-    ...[0,1,2].map(i => {
-      const id = affinities[i];
-      const [x,y] = [[-245,-185],[245,-185],[0,bottomLabel]][i];
-      return caption(x,y,`AFINIDAD ${i+1}`,id ? deps.elementName(id).toUpperCase() : "POR DESCUBRIR",colorFor(deps,id));
-    }),
-    ...[[0,-200,-255,"FÍSICAS + F1"],[1,200,-255,"FÍSICAS + F2"],[0,-245,150,"F1 + F3"],[1,245,150,"F2 + F3"]].map(([slot,x,y,label]) => `<g class="resonance-bridge-caption" transform="translate(${x} ${y})"><text text-anchor="middle" style="fill:${colorFor(deps,affinities[slot])}">${label}</text></g>`)
-  ].join("");
-  const developed = nodes.filter(n => skillLevel(save,n)>0 && skillState(save,n) !== "locked").length;
-  return `<section class="resonance-tree skill-tree" aria-label="Árbol de habilidades de Resonancia"><header class="resonance-heading"><div><p class="eyebrow">EL CAMINO DEL SHINOBI</p><h3>Núcleo de Resonancia</h3></div><div class="resonance-heading-actions"><button type="button" class="resonance-extensions-toggle" data-tree-extensions aria-pressed="${expanded}">${expanded ? "Panal principal" : `Avanzadas · ${extensionCount}`}</button><span class="resonance-points"><b data-resonance-points>${resonancePoints(save)}</b><span>PUNTOS<br>DISPONIBLES</span></span></div></header><div class="resonance-viewport"><svg class="resonance-canvas" viewBox="${viewBox(view || bounds)}" aria-label="Panal de habilidades. Usa Tab para recorrer, Enter para seleccionar; flechas para desplazar y más o menos para ampliar." data-tree-canvas><defs>${gradients}${bridgeGradients}<radialGradient id="res-core"><stop stop-color="#5f5139"/><stop offset="1" stop-color="#171917"/></radialGradient></defs><g class="resonance-guides" aria-hidden="true"><circle r="63"/><circle r="224"/><path d="M0-340V340M-310 0H310"/></g><g aria-hidden="true">${lines}</g>${regions}${cells}<g class="resonance-core ${selectedId === "core" ? "is-selected" : ""}" role="button" tabindex="0" aria-label="Núcleo de Resonancia. Centrar el árbol" data-tree-core><polygon points="${hexPoints(49)}"/><circle r="30"/><path d="M0-22a22 22 0 0 1 0 44A11 11 0 0 1 0 0a11 11 0 0 0 0-22Z"/><circle cy="-11" r="3"/><circle cy="11" r="3"/><text text-anchor="middle" y="35">RESONANCIA</text></g>${captions}</svg><nav class="resonance-controls" aria-label="Navegación del árbol"><button type="button" data-tree-zoom="out" aria-label="Alejar árbol">−</button><button type="button" data-tree-zoom="in" aria-label="Acercar árbol">+</button><button type="button" data-tree-fit aria-label="Mostrar árbol completo" title="Mostrar árbol completo">⛶</button><button type="button" data-tree-center aria-label="Centrar en Resonancia" title="Centrar en Resonancia">◎</button></nav><span class="resonance-navigation-hint">Arrastra para explorar · Rueda para ampliar</span></div><footer class="resonance-legend"><span><i class="locked"></i>Bloqueada</span><span><i class="available"></i>Disponible</span><span><i class="unlocked"></i>Aprendida</span><span><i class="upgraded"></i>Mejorada</span><small>${developed}/${nodes.length} nodos</small></footer></section>`;
+  const identity=characterResonanceSymbol(save.character);
+  const emblem=identity.month ? `<text class="resonance-month-kanji ${identity.symbol.length>1 ? "is-double" : ""}" text-anchor="middle" y="12" data-core-kanji>${identity.symbol}</text>`
+    : '<g class="resonance-yinyang" aria-hidden="true"><circle class="yin-disc" r="22"/><path class="yin-dark" d="M0-22A22 22 0 0 1 0 22Z"/><circle class="yin-dark" cy="-11" r="11"/><circle class="yin-light" cy="11" r="11"/><circle class="yin-light" cy="-11" r="3"/><circle class="yin-dark" cy="11" r="3"/></g>';
+  const core=`<g class="resonance-core ${selectedId === "core" ? "is-selected" : ""}" role="button" tabindex="0" aria-label="Núcleo de ${escape(save.character.name)}. ${escape(identity.label)}. Centrar el árbol" data-tree-core data-character-symbol="${identity.symbol}"><title>${escape(save.character.name)} · ${escape(identity.label)}</title><polygon points="${hexPoints(44)}"/>${emblem}<text class="resonance-core-label" text-anchor="middle" y="33">PERSONAJE</text></g>`;
+  const categories=[
+    [PHYSICAL_COLOR,"Físicas"],
+    ...[0,1,2].map(slot => [SKILL_REGION_COLORS.affinities[slot],`A${slot+1}${save.character.affinities[slot] ? ` · ${deps.elementName(save.character.affinities[slot])}` : ""}`]),
+    ...SKILL_LAYOUT_BRIDGES.map(id => [SKILL_REGION_COLORS.bridges[id],id.replace("affinity-", "A").replace("-"," + A")])
+  ].map(([color,label]) => `<span><i style="background:${color}"></i>${escape(label)}</span>`).join("");
+  const developed=nodes.filter(n => skillLevel(save,n)>0 && skillState(save,n)!=="locked").length;
+  return `<section class="resonance-tree skill-tree" aria-label="Árbol de habilidades de Resonancia"><header class="resonance-heading"><div><p class="eyebrow">EL CAMINO DEL SHINOBI</p><h3>Núcleo de Resonancia</h3></div><span class="resonance-points"><b data-resonance-points>${resonancePoints(save)}</b><span>PUNTOS<br>DISPONIBLES</span></span></header><div class="resonance-viewport"><svg class="resonance-canvas" viewBox="${viewBox(view || bounds)}" aria-label="Panal de 39 celdas. Tab recorre, Enter selecciona, flechas desplazan y más o menos amplían." data-tree-canvas><g aria-hidden="true">${lines}</g>${regions}${renderedCells}${core}</svg><nav class="resonance-controls" aria-label="Navegación del árbol"><button type="button" data-tree-zoom="out" aria-label="Alejar árbol">−</button><button type="button" data-tree-zoom="in" aria-label="Acercar árbol">+</button><button type="button" data-tree-fit aria-label="Mostrar árbol completo">⛶</button><button type="button" data-tree-center aria-label="Centrar en Resonancia">◎</button></nav><span class="resonance-navigation-hint">Arrastra para explorar · Rueda para ampliar</span></div><footer><div class="resonance-category-legend">${categories}</div><div class="resonance-legend"><span><i class="locked"></i>Bloqueada</span><span><i class="available"></i>Disponible</span><span><i class="unlocked"></i>Aprendida</span><span><i class="upgraded"></i>Mejorada</span><small>${developed}/38 habilidades · Personaje central</small></div></footer></section>`;
 }
 
 export function mountResonanceNavigation(host,scope,callbacks) {
   let drag = null;
   let dragged = false;
   const svg = () => host.querySelector("[data-tree-canvas]");
-  const bounds = () => treeBounds(buildSkillTree(callbacks.getSave().character.affinities,callbacks.getSave().campaign.elementRank).filter(node => callbacks.getExpanded() || !node.advanced));
+  const bounds = () => treeBounds(buildSkillTree(callbacks.getSave().character.affinities,callbacks.getSave().campaign.elementRank));
   const current = () => callbacks.getView() || bounds();
   const update = view => { callbacks.setView(view); svg()?.setAttribute("viewBox",viewBox(view)); };
   const point = event => {

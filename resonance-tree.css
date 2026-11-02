@@ -8,9 +8,6 @@
 .resonance-points { display:flex; align-items:center; gap:8px; padding:4px 8px; border:1px solid #d7b86d55; background:#c6a9660d; color:#d7b86d; }
 .resonance-points b { font:700 26px "Cinzel",Georgia,serif; }
 .resonance-points span { font-size:9px; line-height:1.3; letter-spacing:1px; }
-.resonance-heading-actions { display:flex; align-items:center; gap:7px; }
-.resonance-extensions-toggle { padding:6px 8px; border:1px solid #a28b5c; border-radius:3px; background:#132131; color:#e3cf9f; font-size:10px; cursor:pointer; white-space:nowrap; }
-.resonance-extensions-toggle[aria-pressed="true"] { border-color:#dcc183; background:#3c3221; }
 .resonance-viewport { position:relative; min-height:0; overflow:hidden; }
 .resonance-canvas { display:block; width:100%; height:100%; touch-action:none; user-select:none; cursor:grab; }
 .resonance-canvas:active { cursor:grabbing; }
@@ -55,8 +52,21 @@
 .resonance-core circle:not(:first-of-type) { fill:#1c211c; }
 .resonance-core text { fill:#d1b47a; font:700 7px "Cinzel",serif; letter-spacing:1px; pointer-events:none; paint-order:stroke; stroke:#111713; stroke-width:2px; }
 .resonance-core:hover polygon,.resonance-core:focus-visible polygon,.resonance-core.is-selected polygon { stroke:#fff1c9; stroke-width:4; }
+.resonance-core polygon { fill:#ffe35c; stroke:#10140f; stroke-width:4; }
+.resonance-core .resonance-core-label { fill:#171b15; stroke:none; font-size:6px; letter-spacing:.7px; }
+.resonance-core .resonance-month-kanji { fill:#171b15; stroke:none; font:38px "Yu Mincho","MS Mincho",SimSun,serif; letter-spacing:0; }
+.resonance-core .resonance-month-kanji.is-double { font-size:27px; }
+.resonance-core .resonance-yinyang .yin-disc { fill:#ffe35c; stroke:#171b15; stroke-width:1; }
+.resonance-core .resonance-yinyang .yin-dark { fill:#171b15; stroke:none; }
+.resonance-core .resonance-yinyang .yin-light { fill:#ffe35c; stroke:none; }
+.resonance-linked-count { fill:#c9c4ac; font:8px "Alegreya Sans",sans-serif; pointer-events:none; }
+.resonance-linked-chooser { display:grid; gap:4px; color:#bfccb9; font-size:11px; }
+.resonance-linked-chooser select { width:100%; min-width:0; min-height:34px; border:1px solid #7e8c76; border-radius:4px; background:#102017; color:#e5e9d9; font-size:12px; }
+.resonance-category-legend { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px 12px; padding:7px; border-top:1px solid #b49b6333; background:#101611c9; }
+.resonance-category-legend > span { display:flex; align-items:center; gap:4px; color:#bdc5b3; font-size:11px; }
+.resonance-category-legend i { width:8px; height:8px; border-radius:2px; }
 .resonance-caption { fill:#d8c898; pointer-events:none; font:700 17px "Cinzel",Georgia,serif; letter-spacing:1.7px; }
-.resonance-caption.physical { fill:#bca0ff; }
+.resonance-caption.physical { fill:#657fff; }
 .resonance-caption-sub { fill:#9b9c83; font:12px "Alegreya Sans",sans-serif; letter-spacing:1.3px; }
 .resonance-bridge-caption { pointer-events:none; font:700 14px "Alegreya Sans",sans-serif; letter-spacing:.5px; }
 .resonance-controls { position:absolute; right:10px; bottom:10px; display:flex; gap:4px; }
@@ -104,7 +114,7 @@
 .resonance-effects p,.resonance-requirements p { margin:0 0 5px; color:#adbba9; font-size:12px; line-height:1.4; }
 .resonance-requirements .is-missing { color:#d9a087; }
 .resonance-requirements .is-met { color:#87c9a0; }
-.resonance-physical-mark { font-size:30px; color:#bca0ff; }
+.resonance-physical-mark { font-size:30px; color:#657fff; }
 .resonance-detail-emblem { align-self:center; color:#e4ce97; font-size:76px; }
 #dojo-panel-techniques .resonance-core-detail p:not(.eyebrow) { color:#b9c2b1; font-size:13px; line-height:1.5; margin:0; }
 #dojo-panel-techniques .technique-detail-actions { padding:9px; gap:6px; border-color:#74634888; background:#101a15; }
@@ -112,18 +122,18 @@
 .resonance-invest-button { width:100%; min-height:38px; padding:8px; border:1px solid #cfb77a; border-radius:4px; color:#f6e4bc; background:#64502b; font:700 12px "Cinzel",Georgia,serif; cursor:pointer; }
 .resonance-invest-button:disabled { background:#252a20; border-color:#65664d; color:#949a87; cursor:default; }
 #dojo-panel-techniques .technique-equip-button { min-height:44px; font-size:11px; background:#253d30; border-color:#60866b; color:#d3e5c8; }
-.taijutsu-loadout { min-width:0; padding-top:6px; border-top:1px solid #bca0ff66; }
-.taijutsu-loadout > header { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:5px; color:#bca0ff; }
+.taijutsu-loadout { min-width:0; padding-top:6px; border-top:1px solid #657fff66; }
+.taijutsu-loadout > header { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:5px; color:#657fff; }
 .taijutsu-loadout h4 { margin:0; font:700 11px "Cinzel",Georgia,serif; }
 .taijutsu-loadout > header span { font-size:10px; }
 .taijutsu-loadout-slots,.taijutsu-equip-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
-.taijutsu-loadout-slot { position:relative; min-width:0; border:1px dashed #bca0ff99; border-radius:5px; background:#231c32; }
-.taijutsu-loadout-slot.is-equipped { border-style:solid; border-color:#bca0ff; }
+.taijutsu-loadout-slot { position:relative; min-width:0; border:1px dashed #657fff99; border-radius:5px; background:#231c32; }
+.taijutsu-loadout-slot.is-equipped { border-style:solid; border-color:#657fff; }
 .taijutsu-loadout-slot > button:first-child { display:grid; gap:2px; width:100%; min-height:36px; padding:5px 21px 5px 6px; border:0; background:transparent; text-align:left; color:#ece1ff; cursor:pointer; }
 .taijutsu-loadout-slot small { font-size:9px; color:#c6b0ff; }
 .taijutsu-loadout-slot strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
 .taijutsu-remove { position:absolute; top:2px; right:2px; width:20px; height:23px; padding:0; border:0; border-radius:3px; background:#443458; color:#e4d7ff; cursor:pointer; }
-.taijutsu-equip-actions button { min-height:38px; padding:6px 3px; border:1px solid #bca0ff; border-radius:4px; background:#423057; color:#eadeff; font-size:11px; cursor:pointer; }
+.taijutsu-equip-actions button { min-height:38px; padding:6px 3px; border:1px solid #657fff; border-radius:4px; background:#423057; color:#eadeff; font-size:11px; cursor:pointer; }
 .taijutsu-equip-actions button:disabled { opacity:.55; cursor:default; }
 @media (min-width:981px) and (max-width:1300px) {
   #dojo-panel-techniques .dojo-technique-workspace { grid-template-columns:minmax(0,1fr) 230px; gap:8px; }

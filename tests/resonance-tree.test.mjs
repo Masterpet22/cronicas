@@ -1,3 +1,4 @@
+import { BIRTH_MONTH_KANJI, characterResonanceSymbol } from "../src/skills/character-symbol.js";
 import assert from "node:assert/strict";
 import { BASIC_ELEMENT_IDS } from "../src/elements.js";
 import { JUTSU_LIBRARY } from "../src/data.js";
@@ -18,41 +19,37 @@ for (const category of ["physical",0,1,2]) {
   assert.ok([...degrees.values()].every(degree => degree===2),"Each branch contour closes exactly, without gaps or interior lines");
 }
 
+const expectedGroups = {
+  physical:["0,-1","-1,-1","1,-2","-1,-2","1,-3","0,-2"],
+  a1:["-1,0","-2,1","-2,0","-3,1","-3,0","-4,1","-4,2","-3,2"],
+  a2:["0,1","-1,2","1,1","0,2","-1,3","1,2","0,3"],
+  a3:["1,-1","2,-1","2,-2","3,-2","3,-3","4,-3","4,-2","3,-1"],
+  "affinity-1-2":["-1,1","-2,2","-2,3"],
+  "affinity-2-3":["1,0","2,0","2,1"],
+  "affinity-1-3":["0,-3","-2,-1","2,-3"]
+};
 assert.equal(new Set(SKILL_CATALOG.map(n => n.id)).size, SKILL_CATALOG.length);
-assert.ok(JUTSU_LIBRARY.every(j => SKILLS_BY_ID.has(j.id)), "Every existing technique remains in the catalog");
-for (const element of BASIC_ELEMENT_IDS) {
-  const other = BASIC_ELEMENT_IDS.filter(id => id !== element);
-  for (const affinities of [[element], [element,...other.slice(0,2)]]) {
-    const nodes = buildSkillTree(affinities,3);
-    assert.equal(new Set(nodes.map(n => `${n.q},${n.r}`)).size,nodes.length,"Cells never overlap");
-    assert.ok(nodes.every(n => Number.isInteger(n.q) && Number.isInteger(n.r)));
-    for (let slot=0; slot<3; slot++) assert.equal(nodes.filter(n => n.category === "affinity" && n.slot === slot).length,8);
-    const physical = nodes.filter(n => n.category === "physical");
-    assert.equal(physical.length,8);
-    assert.ok(physical.filter(n => !n.advanced).every(n => n.r+n.q/2<0));
-    assert.ok(nodes.filter(n => n.slot === 0 && !n.advanced).every(n => n.q<0));
-    assert.ok(nodes.filter(n => n.slot === 1 && !n.advanced).every(n => n.q>0));
-    assert.ok(nodes.filter(n => n.slot === 2 && !n.advanced).every(n => n.r+n.q/2>0));
-    const reached = new Set(["core"]), graph = [{ id:"core",q:0,r:0 },...nodes];
-    for (let pass=0; pass<graph.length; pass++) for (const n of graph) if (graph.some(p => reached.has(p.id) && hexDistance(n,p)===1)) reached.add(n.id);
-    assert.equal(reached.size,graph.length,"Every cell belongs to the connected honeycomb");
-    for (const n of nodes) assert.ok(n.prerequisites.every(id => nodes.some(p => p.id===id)),"Visible requirements are reachable");
+assert.ok(JUTSU_LIBRARY.every(j => SKILLS_BY_ID.has(j.id)));
+for (const first of BASIC_ELEMENT_IDS) for (const second of BASIC_ELEMENT_IDS.filter(id => id!==first)) for (const third of BASIC_ELEMENT_IDS.filter(id => ![first,second].includes(id))) {
+  const nodes=buildSkillTree([first,second,third],3);
+  assert.equal(nodes.length,38,"Exactly 38 skill cells + one character, at every affinity configuration");
+  assert.equal(new Set(["0,0",...nodes.map(n => `${n.q},${n.r}`)]).size,39);
+  for (const [group,positions] of Object.entries(expectedGroups)) {
+    const branch=nodes.filter(n => group === "physical" ? n.category === "physical" : group.startsWith("a") && group.length===2 ? n.slot===Number(group[1])-1 : n.bridge===group);
+    assert.deepEqual(branch.map(n => `${n.q},${n.r}`).sort(),[...positions].sort(),`Exact reference cells: ${group}`);
   }
+  const all=nodes.flatMap(cell => [cell,...cell.linkedSkills]);
+  assert.equal(new Set(all.map(n => n.id)).size,all.length);
+  for (const node of all) assert.ok(node.prerequisites.every(id => all.some(n => n.id===id)),"All existing requirements remain inspectable without extra cells");
+  const reached=new Set(["core"]),graph=[{ id:"core",q:0,r:0 },...nodes];
+  for (let pass=0;pass<graph.length;pass++) for (const n of graph) if (graph.some(p => reached.has(p.id) && hexDistance(n,p)===1)) reached.add(n.id);
+  assert.equal(reached.size,39);
 }
-// The illustrated silhouette is a geometry contract, independent of guide counts.
-const silhouette = buildSkillTree(["fuego","agua","tierra"],3).filter(node => !node.advanced);
-assert.equal(silhouette.length,30);
-assert.equal(silhouette.filter(node => node.category === "physical").length,6);
-assert.deepEqual([-3,-2,-1,0,1,2,3].map(q => silhouette.filter(node => node.q === q).length + (q === 0 ? 1 : 0)),[3,4,6,5,6,4,3]);
-const mainCells = new Set(silhouette.map(node => `${node.q},${node.r}`));
-assert.ok(!mainCells.has("0,-1"),"Keep the recess directly above Resonance, as in the reference");
-for (const node of silhouette) assert.ok(mainCells.has(`${-node.q},${node.r+node.q}`),"The main honeycomb mirrors exactly across the vertical core axis");
-for (const bridge of ["physical-affinity-1","physical-affinity-2","affinity-1-3","affinity-2-3"]) assert.equal(silhouette.filter(node => node.bridge === bridge).length,2);
 let physicalHybridSave = createCharacter(createDefaultSave(),{ affinity:"fuego" });
 const physicalHybrid = SKILLS_BY_ID.get("hybrid_physical_fuego_0");
 assert.equal(investResonance(physicalHybridSave,physicalHybrid.id),physicalHybridSave);
-physicalHybridSave = investResonance(physicalHybridSave,"physical_0");
-physicalHybridSave = investResonance(physicalHybridSave,physicalHybrid.id);
+physicalHybridSave=investResonance(physicalHybridSave,"physical_0");
+physicalHybridSave=investResonance(physicalHybridSave,physicalHybrid.id);
 assert.equal(derivedStats(physicalHybridSave).baseStrength,derivedStats({ ...physicalHybridSave,progression:{ ...physicalHybridSave.progression,resonance:{ investments:{ physical_0:1 } } } }).baseStrength+1);
 
 const visit = (node,path=[]) => {
@@ -105,3 +102,7 @@ assert.equal(skillLevel(dual,reordered),1,"Identity is independent of slot order
 const old = { ...save,progression:{ ...save.progression } }; delete old.progression.resonance;
 assert.deepEqual(normalizeSave(old).loadout,save.loadout,"Legacy saves preserve their combat loadout");
 console.log("Resonance: connected axial layout, affinity permutations, requirements, spending, saves and combat effects verified.");
+
+assert.deepEqual(BIRTH_MONTH_KANJI,["一","二","三","四","五","六","七","八","九","十","十一","十二"]);
+for (let month=1;month<=12;month++) assert.equal(characterResonanceSymbol({ birthday:{ day:1,month } }).symbol,BIRTH_MONTH_KANJI[month-1]);
+for (const birthday of [null,undefined,{ month:0,day:1 },{ month:2,day:31 }]) assert.equal(characterResonanceSymbol({ birthday }).symbol,"☯");
