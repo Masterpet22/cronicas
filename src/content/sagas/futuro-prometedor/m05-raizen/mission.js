@@ -1,6 +1,7 @@
 export const M05 = {
+    recommendedLevel: 5, rewardProfile: "boss", introductory: true,
     id: "m05", number: 7, category: "main", arenaNumber: 5, board: "headquarters", title: "El jefe de los bandidos", location: "Sala del Cuervo", duration: "10–13 min", rank: "D",
-    encounters: ["boss_raizen"], reward: { xp: 165, coins: 145 },
+    encounters: ["boss_raizen"], reward: { coins: 145 },
     requirements: [{ type: "main-completed", id: "m04" }],
     dialogueId: "mission.m05.briefing", sagaFinal: true, tacticalBriefing: true,
     flow: [

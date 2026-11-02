@@ -8,7 +8,7 @@ La identidad visual se apoyará en poses reutilizables, sellos encadenados, efec
 
 ## Estado actual: primera saga jugable
 
-El alcance vigente se resume en [`docs/ESTADO_ACTUAL.md`](docs/ESTADO_ACTUAL.md). Las cronologías anteriores se conservan como banco de ideas y no describen la campaña conectada al juego.
+El alcance vigente se resume en [`docs/ESTADO_ACTUAL.md`](docs/ESTADO_ACTUAL.md). Las reglas normativas de combate, progresión y recompensas están en [`docs/BALANCE_COMBATE.md`](docs/BALANCE_COMBATE.md).
 
 - [x] Escena de combate de escritorio con marco lógico `16:9`.
 - [x] Vida, chakra y turnos.
@@ -35,21 +35,21 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 - [x] Añadir quemadura, aturdimiento, herida y veneno.
 - [x] Incorporar precisión, evasión y el estado Sellado con penalización de precisión.
 - [x] Evitar residuos de opacidad cuando coinciden varios impactos.
-- [x] Incorporar afinidades elementales moderadas: 15 % de ventaja y 10 % de resistencia.
-- [x] Crear tres enemigos con estadísticas, afinidades y patrones distintos.
+- [x] Incorporar afinidades elementales moderadas: ciclo de ventaja/desventaja de ±20 %.
+- [x] Mantener un catálogo de enemigos con estadísticas, afinidades y patrones distintos.
 - [x] Crear un jefe con dos fases y cambio de patrón.
 - [x] Añadir una variante manual sin límite de tiempo como opción de accesibilidad.
 - [x] Acelerar automáticamente las secuencias de técnicas ya vistas.
 - [x] Añadir opciones persistentes de volumen, movimiento de cámara y destellos.
 - [x] Estabilizar combatientes geométricos avanzados con piezas animables.
 
-**Criterio de salida cumplido:** la ruta de cuatro encuentros dura aproximadamente 10 a 15 minutos a ritmo normal y admite estrategias basadas en afinidades/estados o en velocidad/defensa.
+**Criterio de salida cumplido:** los duelos permiten estrategias de afinidad, estados, Guardia, velocidad y administración de recursos, con preparación por sellos y cierre único de acciones.
 
 ## Fase 2 — Progresión del personaje
 
 - [x] Creación de nombre, aspecto y afinidad inicial.
 - [x] Experiencia, niveles y atributos.
-- [x] Biblioteca de 37 técnicas distribuida entre afinidades básicas y combinadas.
+- [x] Árbol de 38 habilidades por personaje, con rangos 1–3 y rutas de aprendizaje obligatorias.
 - [x] Equipamiento sencillo: arma, protector y accesorio.
 - [x] Pantalla para preparar cuatro técnicas antes de combatir.
 - [x] Guardado local versionado.

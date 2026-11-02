@@ -6,6 +6,975 @@
     "turnRecovery": 5,
     "guardRecovery": 25
   },
+  "missionRewardPolicy": {
+    "rates": {
+      "short": 0.25,
+      "normal": 0.5,
+      "hard": 0.75,
+      "boss": 1,
+      "affinity": 0
+    },
+    "encounterShare": 0.6,
+    "introductoryMaxLevel": 5,
+    "introductoryRate": 1
+  },
+  "missionBudgets": [
+    {
+      "id": "m01",
+      "recommendedLevel": 1,
+      "profile": "normal",
+      "introductory": true,
+      "totalXp": 120,
+      "completionXp": 48,
+      "encounterXp": [
+        15,
+        14,
+        43
+      ]
+    },
+    {
+      "id": "s01",
+      "recommendedLevel": 2,
+      "profile": "short",
+      "introductory": false,
+      "totalXp": 40,
+      "completionXp": 40,
+      "encounterXp": []
+    },
+    {
+      "id": "m02",
+      "recommendedLevel": 2,
+      "profile": "hard",
+      "introductory": true,
+      "totalXp": 160,
+      "completionXp": 64,
+      "encounterXp": [
+        16,
+        32,
+        48
+      ]
+    },
+    {
+      "id": "s02",
+      "recommendedLevel": 3,
+      "profile": "short",
+      "introductory": false,
+      "totalXp": 50,
+      "completionXp": 50,
+      "encounterXp": []
+    },
+    {
+      "id": "m03",
+      "recommendedLevel": 3,
+      "profile": "normal",
+      "introductory": true,
+      "totalXp": 200,
+      "completionXp": 80,
+      "encounterXp": [
+        40,
+        40,
+        40
+      ]
+    },
+    {
+      "id": "m04",
+      "recommendedLevel": 4,
+      "profile": "hard",
+      "introductory": true,
+      "totalXp": 240,
+      "completionXp": 96,
+      "encounterXp": [
+        48,
+        48,
+        48
+      ]
+    },
+    {
+      "id": "m05",
+      "recommendedLevel": 5,
+      "profile": "boss",
+      "introductory": true,
+      "totalXp": 280,
+      "completionXp": 112,
+      "encounterXp": [
+        168
+      ]
+    },
+    {
+      "id": "contract_relic",
+      "recommendedLevel": 3,
+      "profile": "short",
+      "introductory": false,
+      "totalXp": 50,
+      "completionXp": 20,
+      "encounterXp": [
+        15,
+        15
+      ]
+    },
+    {
+      "id": "contract_hound",
+      "recommendedLevel": 8,
+      "profile": "short",
+      "introductory": false,
+      "totalXp": 100,
+      "completionXp": 40,
+      "encounterXp": [
+        20,
+        40
+      ]
+    },
+    {
+      "id": "affinity_trial_2",
+      "recommendedLevel": 15,
+      "profile": "affinity",
+      "introductory": false,
+      "totalXp": 0,
+      "completionXp": 0,
+      "encounterXp": [
+        0
+      ]
+    },
+    {
+      "id": "affinity_trial_3",
+      "recommendedLevel": 30,
+      "profile": "affinity",
+      "introductory": false,
+      "totalXp": 0,
+      "completionXp": 0,
+      "encounterXp": [
+        0,
+        0
+      ]
+    }
+  ],
+  "skillEconomy": {
+    "skills": 38,
+    "completeTreeCost": 109,
+    "earliestBudgetLevel": 56,
+    "pointsAtLevel60": 118,
+    "remainingAtLevel60": 9
+  },
+  "skillRoutes": [
+    {
+      "id": "physical_0",
+      "name": "Disciplina del cuerpo",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        2,
+        6
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {}
+    },
+    {
+      "id": "physical_1",
+      "name": "Puño de hierro",
+      "unlockLevel": 2,
+      "rankLevels": [
+        2,
+        4,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "physical_0": 2
+      }
+    },
+    {
+      "id": "physical_2",
+      "name": "Paso fugaz",
+      "unlockLevel": 3,
+      "rankLevels": [
+        3,
+        5,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "physical_0": 2
+      }
+    },
+    {
+      "id": "physical_3",
+      "name": "Guardia inquebrantable",
+      "unlockLevel": 8,
+      "rankLevels": [
+        8,
+        10,
+        13
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "physical_1": 2
+      }
+    },
+    {
+      "id": "physical_4",
+      "name": "Pulso certero",
+      "unlockLevel": 12,
+      "rankLevels": [
+        12,
+        14,
+        17
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "physical_1": 2,
+        "physical_2": 1
+      }
+    },
+    {
+      "id": "physical_5",
+      "name": "Instinto de combate",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "physical_2": 2,
+        "physical_4": 2
+      }
+    },
+    {
+      "id": "fire_embers",
+      "name": "Ascuas veloces",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {}
+    },
+    {
+      "id": "fire_breath",
+      "name": "Aliento de brasa",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_embers": 2
+      }
+    },
+    {
+      "id": "fire_arc",
+      "name": "Arco de llama",
+      "unlockLevel": 6,
+      "rankLevels": [
+        6,
+        8,
+        11
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_embers": 2
+      }
+    },
+    {
+      "id": "fire_brand",
+      "name": "Marca ardiente",
+      "unlockLevel": 12,
+      "rankLevels": [
+        12,
+        14,
+        17
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_breath": 2
+      }
+    },
+    {
+      "id": "fire_ring",
+      "name": "Anillo de ceniza",
+      "unlockLevel": 24,
+      "rankLevels": [
+        24,
+        26,
+        29
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "fire_brand": 2
+      }
+    },
+    {
+      "id": "fire_phoenix",
+      "name": "Fénix escarlata",
+      "unlockLevel": 40,
+      "rankLevels": [
+        40,
+        42,
+        45
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_ring": 3
+      }
+    },
+    {
+      "id": "fuego_resonance_6",
+      "name": "Sello protector · Fuego",
+      "unlockLevel": 16,
+      "rankLevels": [
+        16,
+        18,
+        21
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_breath": 2,
+        "fire_arc": 2
+      }
+    },
+    {
+      "id": "fuego_resonance_7",
+      "name": "Flujo interior · Fuego",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_brand": 2,
+        "fire_ring": 2
+      }
+    },
+    {
+      "id": "water_bullet",
+      "name": "Aqua Shuriken",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {}
+    },
+    {
+      "id": "water_whip",
+      "name": "Látigo de corriente",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_bullet": 2
+      }
+    },
+    {
+      "id": "water_wall",
+      "name": "Muro de marea",
+      "unlockLevel": 6,
+      "rankLevels": [
+        6,
+        8,
+        11
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_bullet": 2
+      }
+    },
+    {
+      "id": "water_lance",
+      "name": "Lanza abisal",
+      "unlockLevel": 40,
+      "rankLevels": [
+        40,
+        42,
+        45
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 3,
+        "agua_resonance_6": 2
+      }
+    },
+    {
+      "id": "agua_resonance_4",
+      "name": "Sello protector · Agua",
+      "unlockLevel": 12,
+      "rankLevels": [
+        12,
+        14,
+        17
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_whip": 2
+      }
+    },
+    {
+      "id": "agua_resonance_5",
+      "name": "Flujo interior · Agua",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2
+      }
+    },
+    {
+      "id": "agua_resonance_6",
+      "name": "Paso elemental · Agua",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "agua_resonance_5": 2
+      }
+    },
+    {
+      "id": "agua_resonance_7",
+      "name": "Dominio · Agua",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_lance": 3,
+        "agua_resonance_6": 2
+      }
+    },
+    {
+      "id": "earth_fist",
+      "name": "Puño de roca",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {}
+    },
+    {
+      "id": "earth_wall",
+      "name": "Muralla pétrea",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_fist": 2
+      }
+    },
+    {
+      "id": "earth_spike",
+      "name": "Púa tectónica",
+      "unlockLevel": 6,
+      "rankLevels": [
+        6,
+        8,
+        11
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_fist": 2
+      }
+    },
+    {
+      "id": "earth_quake",
+      "name": "Pulso sísmico",
+      "unlockLevel": 40,
+      "rankLevels": [
+        40,
+        42,
+        45
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_spike": 3,
+        "tierra_resonance_6": 2
+      }
+    },
+    {
+      "id": "tierra_resonance_4",
+      "name": "Sello protector · Tierra",
+      "unlockLevel": 12,
+      "rankLevels": [
+        12,
+        14,
+        17
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_wall": 2
+      }
+    },
+    {
+      "id": "tierra_resonance_5",
+      "name": "Flujo interior · Tierra",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_spike": 2
+      }
+    },
+    {
+      "id": "tierra_resonance_6",
+      "name": "Paso elemental · Tierra",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_spike": 2,
+        "tierra_resonance_5": 2
+      }
+    },
+    {
+      "id": "tierra_resonance_7",
+      "name": "Dominio · Tierra",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_quake": 3,
+        "tierra_resonance_6": 2
+      }
+    },
+    {
+      "id": "wind_palm",
+      "name": "Palma de vacío",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {}
+    },
+    {
+      "id": "wind_blade",
+      "name": "Filo de vendaval",
+      "unlockLevel": 1,
+      "rankLevels": [
+        1,
+        3,
+        8
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_palm": 2
+      }
+    },
+    {
+      "id": "wind_step",
+      "name": "Paso del céfiro",
+      "unlockLevel": 6,
+      "rankLevels": [
+        6,
+        8,
+        11
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_palm": 2
+      }
+    },
+    {
+      "id": "wind_wave",
+      "name": "Onda cortante",
+      "unlockLevel": 12,
+      "rankLevels": [
+        12,
+        14,
+        17
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_blade": 2
+      }
+    },
+    {
+      "id": "wind_needles",
+      "name": "Agujas del norte",
+      "unlockLevel": 24,
+      "rankLevels": [
+        24,
+        26,
+        29
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_step": 2,
+        "wind_wave": 2
+      }
+    },
+    {
+      "id": "wind_cyclone",
+      "name": "Ciclón cortante",
+      "unlockLevel": 40,
+      "rankLevels": [
+        40,
+        42,
+        45
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_needles": 3
+      }
+    },
+    {
+      "id": "viento_resonance_6",
+      "name": "Sello protector · Viento",
+      "unlockLevel": 16,
+      "rankLevels": [
+        16,
+        18,
+        21
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_blade": 2,
+        "wind_step": 2
+      }
+    },
+    {
+      "id": "viento_resonance_7",
+      "name": "Flujo interior · Viento",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "wind_wave": 2,
+        "wind_needles": 2
+      }
+    },
+    {
+      "id": "vapor_burst",
+      "name": "Estallido de vapor",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "fire_arc": 2
+      }
+    },
+    {
+      "id": "hybrid_agua_fuego_1",
+      "name": "Sello dual · Agua + Fuego",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "fire_arc": 2,
+        "vapor_burst": 2
+      }
+    },
+    {
+      "id": "hybrid_agua_fuego_2",
+      "name": "Sincronía · Agua + Fuego",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "fire_arc": 2,
+        "hybrid_agua_fuego_1": 3
+      }
+    },
+    {
+      "id": "magma_forge",
+      "name": "Forja de magma",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "earth_spike": 2
+      }
+    },
+    {
+      "id": "hybrid_fuego_tierra_1",
+      "name": "Sello dual · Fuego + Tierra",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "earth_spike": 2,
+        "magma_forge": 2
+      }
+    },
+    {
+      "id": "hybrid_fuego_tierra_2",
+      "name": "Sincronía · Fuego + Tierra",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "earth_spike": 2,
+        "hybrid_fuego_tierra_1": 3
+      }
+    },
+    {
+      "id": "lightning_spark",
+      "name": "Aguja de chispa",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "wind_step": 2
+      }
+    },
+    {
+      "id": "lightning_chain",
+      "name": "Cadena estática",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "wind_step": 2,
+        "lightning_spark": 2
+      }
+    },
+    {
+      "id": "lightning_heaven",
+      "name": "Juicio del cielo",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "fire_arc": 2,
+        "wind_step": 2,
+        "lightning_chain": 3
+      }
+    },
+    {
+      "id": "plant_bind",
+      "name": "Enredo esmeralda",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "earth_spike": 2
+      }
+    },
+    {
+      "id": "hybrid_agua_tierra_1",
+      "name": "Sello dual · Agua + Tierra",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "earth_spike": 2,
+        "plant_bind": 2
+      }
+    },
+    {
+      "id": "hybrid_agua_tierra_2",
+      "name": "Sincronía · Agua + Tierra",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "earth_spike": 2,
+        "hybrid_agua_tierra_1": 3
+      }
+    },
+    {
+      "id": "ice_spear",
+      "name": "Lanza glacial",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "wind_step": 2
+      }
+    },
+    {
+      "id": "hybrid_agua_viento_1",
+      "name": "Sello dual · Agua + Viento",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "wind_step": 2,
+        "ice_spear": 2
+      }
+    },
+    {
+      "id": "hybrid_agua_viento_2",
+      "name": "Sincronía · Agua + Viento",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "water_wall": 2,
+        "wind_step": 2,
+        "hybrid_agua_viento_1": 3
+      }
+    },
+    {
+      "id": "sand_coffin",
+      "name": "Prisión de arena",
+      "unlockLevel": 20,
+      "rankLevels": [
+        20,
+        22,
+        25
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_spike": 2,
+        "wind_step": 2
+      }
+    },
+    {
+      "id": "hybrid_tierra_viento_1",
+      "name": "Sello dual · Tierra + Viento",
+      "unlockLevel": 32,
+      "rankLevels": [
+        32,
+        34,
+        37
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_spike": 2,
+        "wind_step": 2,
+        "sand_coffin": 2
+      }
+    },
+    {
+      "id": "hybrid_tierra_viento_2",
+      "name": "Sincronía · Tierra + Viento",
+      "unlockLevel": 48,
+      "rankLevels": [
+        48,
+        50,
+        53
+      ],
+      "cost": 1,
+      "prerequisiteLevels": {
+        "earth_spike": 2,
+        "wind_step": 2,
+        "hybrid_tierra_viento_1": 3
+      }
+    }
+  ],
   "initiativeRules": {
     "speedStep": 0.1,
     "stacking": false,
@@ -13,7 +982,7 @@
   },
   "techniqueMastery": {
     "rules": {
-      "maxLevel": 5,
+      "maxLevel": 3,
       "damagePerLevel": 2,
       "costDiscountPercentPerLevel": 5
     },
@@ -39,22 +1008,6 @@
         "damage": 18,
         "cost": 27,
         "netCost": 22,
-        "seals": 2,
-        "preparationMsAtSpeed10": 600
-      },
-      {
-        "level": 4,
-        "damage": 20,
-        "cost": 26,
-        "netCost": 21,
-        "seals": 2,
-        "preparationMsAtSpeed10": 600
-      },
-      {
-        "level": 5,
-        "damage": 22,
-        "cost": 24,
-        "netCost": 19,
         "seals": 1,
         "preparationMsAtSpeed10": 300
       }
@@ -72,54 +1025,54 @@
         {
           "id": "m01",
           "encounters": 3,
-          "xp": 130,
+          "xp": 120,
           "levelBefore": 1,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 0,
+          "affinityXp": 105,
           "rewardCoins": 100,
           "wallet": 100
         },
         {
           "id": "s01",
           "encounters": 0,
-          "xp": 0,
+          "xp": 40,
           "levelBefore": 2,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 40,
+          "affinityXp": 119,
           "rewardCoins": 0,
           "wallet": 100
         },
         {
           "id": "m02",
           "encounters": 3,
-          "xp": 207,
+          "xp": 160,
           "levelBefore": 2,
           "level": 3,
-          "xpRemainder": 57,
-          "affinityXp": 196,
+          "xpRemainder": 40,
+          "affinityXp": 189,
           "rewardCoins": 172,
           "wallet": 272
         },
         {
           "id": "s02",
           "encounters": 0,
-          "xp": 45,
+          "xp": 50,
           "levelBefore": 3,
           "level": 3,
-          "xpRemainder": 102,
-          "affinityXp": 212,
+          "xpRemainder": 90,
+          "affinityXp": 207,
           "rewardCoins": 30,
           "wallet": 302
         },
         {
           "id": "m03",
           "encounters": 3,
-          "xp": 197,
+          "xp": 200,
           "levelBefore": 3,
           "level": 4,
-          "xpRemainder": 99,
+          "xpRemainder": 90,
           "affinityXp": 295,
           "rewardCoins": 145,
           "wallet": 447
@@ -127,29 +1080,29 @@
         {
           "id": "m04",
           "encounters": 3,
-          "xp": 223,
+          "xp": 240,
           "levelBefore": 4,
           "level": 5,
-          "xpRemainder": 82,
-          "affinityXp": 388,
+          "xpRemainder": 90,
+          "affinityXp": 401,
           "rewardCoins": 167,
           "wallet": 614
         },
         {
           "id": "m05",
           "encounters": 1,
-          "xp": 250,
+          "xp": 280,
           "levelBefore": 5,
           "level": 6,
-          "xpRemainder": 52,
-          "affinityXp": 489,
+          "xpRemainder": 90,
+          "affinityXp": 524,
           "rewardCoins": 220,
           "wallet": 834
         }
       ],
       "level": 6,
-      "xpRemainder": 52,
-      "affinityXp": 489,
+      "xpRemainder": 90,
+      "affinityXp": 524,
       "rank": "Novicio",
       "elementRank": 1
     },
@@ -158,84 +1111,84 @@
         {
           "id": "m01",
           "encounters": 3,
-          "xp": 130,
+          "xp": 120,
           "levelBefore": 1,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 0,
+          "affinityXp": 105,
           "rewardCoins": 100,
           "wallet": 100
         },
         {
           "id": "s01",
           "encounters": 0,
-          "xp": 0,
+          "xp": 40,
           "levelBefore": 2,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 40,
+          "affinityXp": 119,
           "rewardCoins": 0,
           "wallet": 100
         },
         {
           "id": "m02",
           "encounters": 3,
-          "xp": 207,
+          "xp": 160,
           "levelBefore": 2,
           "level": 3,
-          "xpRemainder": 57,
-          "affinityXp": 196,
+          "xpRemainder": 40,
+          "affinityXp": 189,
           "rewardCoins": 172,
           "wallet": 272
         },
         {
           "id": "s02",
           "encounters": 0,
-          "xp": 45,
+          "xp": 50,
           "levelBefore": 3,
           "level": 3,
-          "xpRemainder": 102,
-          "affinityXp": 212,
+          "xpRemainder": 90,
+          "affinityXp": 207,
           "rewardCoins": 60,
           "wallet": 332
         },
         {
           "id": "m03",
           "encounters": 2,
-          "xp": 169,
+          "xp": 200,
           "levelBefore": 3,
           "level": 4,
-          "xpRemainder": 71,
-          "affinityXp": 281,
+          "xpRemainder": 90,
+          "affinityXp": 295,
           "rewardCoins": 217,
           "wallet": 549
         },
         {
           "id": "m04",
           "encounters": 3,
-          "xp": 223,
+          "xp": 240,
           "levelBefore": 4,
           "level": 5,
-          "xpRemainder": 54,
-          "affinityXp": 374,
+          "xpRemainder": 90,
+          "affinityXp": 401,
           "rewardCoins": 167,
           "wallet": 716
         },
         {
           "id": "m05",
           "encounters": 1,
-          "xp": 250,
+          "xp": 280,
           "levelBefore": 5,
           "level": 6,
-          "xpRemainder": 24,
-          "affinityXp": 475,
+          "xpRemainder": 90,
+          "affinityXp": 524,
           "rewardCoins": 220,
           "wallet": 936
         }
       ],
       "level": 6,
-      "xpRemainder": 24,
-      "affinityXp": 475,
+      "xpRemainder": 90,
+      "affinityXp": 524,
       "rank": "Novicio",
       "elementRank": 1
     },
@@ -244,54 +1197,54 @@
         {
           "id": "m01",
           "encounters": 3,
-          "xp": 130,
+          "xp": 120,
           "levelBefore": 1,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 0,
+          "affinityXp": 105,
           "rewardCoins": 100,
           "wallet": 100
         },
         {
           "id": "s01",
           "encounters": 0,
-          "xp": 0,
+          "xp": 40,
           "levelBefore": 2,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 40,
+          "affinityXp": 119,
           "rewardCoins": 0,
           "wallet": 100
         },
         {
           "id": "m02",
           "encounters": 3,
-          "xp": 207,
+          "xp": 160,
           "levelBefore": 2,
           "level": 3,
-          "xpRemainder": 57,
-          "affinityXp": 196,
+          "xpRemainder": 40,
+          "affinityXp": 189,
           "rewardCoins": 172,
           "wallet": 272
         },
         {
           "id": "s02",
           "encounters": 0,
-          "xp": 45,
+          "xp": 50,
           "levelBefore": 3,
           "level": 3,
-          "xpRemainder": 102,
-          "affinityXp": 212,
+          "xpRemainder": 90,
+          "affinityXp": 207,
           "rewardCoins": 30,
           "wallet": 302
         },
         {
           "id": "m03",
           "encounters": 3,
-          "xp": 197,
+          "xp": 200,
           "levelBefore": 3,
           "level": 4,
-          "xpRemainder": 99,
+          "xpRemainder": 90,
           "affinityXp": 295,
           "rewardCoins": 145,
           "wallet": 447
@@ -299,51 +1252,51 @@
         {
           "id": "m04",
           "encounters": 3,
-          "xp": 223,
+          "xp": 240,
           "levelBefore": 4,
           "level": 5,
-          "xpRemainder": 82,
-          "affinityXp": 388,
+          "xpRemainder": 90,
+          "affinityXp": 401,
           "rewardCoins": 167,
           "wallet": 614
         },
         {
           "id": "m05",
           "encounters": 1,
-          "xp": 250,
+          "xp": 280,
           "levelBefore": 5,
           "level": 6,
-          "xpRemainder": 52,
-          "affinityXp": 489,
+          "xpRemainder": 90,
+          "affinityXp": 524,
           "rewardCoins": 220,
           "wallet": 834
         },
         {
           "id": "contract_relic",
           "encounters": 2,
-          "xp": 103,
+          "xp": 50,
           "levelBefore": 6,
           "level": 6,
-          "xpRemainder": 155,
-          "affinityXp": 534,
+          "xpRemainder": 140,
+          "affinityXp": 550,
           "rewardCoins": 61,
           "wallet": 815
         },
         {
           "id": "contract_hound",
           "encounters": 2,
-          "xp": 120,
+          "xp": 100,
           "levelBefore": 6,
           "level": 6,
-          "xpRemainder": 275,
-          "affinityXp": 585,
+          "xpRemainder": 240,
+          "affinityXp": 594,
           "rewardCoins": 79,
           "wallet": 744
         }
       ],
       "level": 6,
-      "xpRemainder": 275,
-      "affinityXp": 585,
+      "xpRemainder": 240,
+      "affinityXp": 594,
       "rank": "Novicio",
       "elementRank": 1
     },
@@ -352,106 +1305,106 @@
         {
           "id": "m01",
           "encounters": 3,
-          "xp": 130,
+          "xp": 120,
           "levelBefore": 1,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 0,
+          "affinityXp": 105,
           "rewardCoins": 100,
           "wallet": 100
         },
         {
           "id": "s01",
           "encounters": 0,
-          "xp": 0,
+          "xp": 40,
           "levelBefore": 2,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 40,
+          "affinityXp": 119,
           "rewardCoins": 0,
           "wallet": 100
         },
         {
           "id": "m02",
           "encounters": 3,
-          "xp": 207,
+          "xp": 160,
           "levelBefore": 2,
           "level": 3,
-          "xpRemainder": 57,
-          "affinityXp": 196,
+          "xpRemainder": 40,
+          "affinityXp": 189,
           "rewardCoins": 172,
           "wallet": 272
         },
         {
           "id": "s02",
           "encounters": 0,
-          "xp": 45,
+          "xp": 50,
           "levelBefore": 3,
           "level": 3,
-          "xpRemainder": 102,
-          "affinityXp": 212,
+          "xpRemainder": 90,
+          "affinityXp": 207,
           "rewardCoins": 60,
           "wallet": 332
         },
         {
           "id": "m03",
           "encounters": 2,
-          "xp": 169,
+          "xp": 200,
           "levelBefore": 3,
           "level": 4,
-          "xpRemainder": 71,
-          "affinityXp": 281,
+          "xpRemainder": 90,
+          "affinityXp": 295,
           "rewardCoins": 217,
           "wallet": 549
         },
         {
           "id": "m04",
           "encounters": 3,
-          "xp": 223,
+          "xp": 240,
           "levelBefore": 4,
           "level": 5,
-          "xpRemainder": 54,
-          "affinityXp": 374,
+          "xpRemainder": 90,
+          "affinityXp": 401,
           "rewardCoins": 167,
           "wallet": 716
         },
         {
           "id": "m05",
           "encounters": 1,
-          "xp": 250,
+          "xp": 280,
           "levelBefore": 5,
           "level": 6,
-          "xpRemainder": 24,
-          "affinityXp": 475,
+          "xpRemainder": 90,
+          "affinityXp": 524,
           "rewardCoins": 220,
           "wallet": 936
         },
         {
           "id": "contract_relic",
           "encounters": 2,
-          "xp": 103,
+          "xp": 50,
           "levelBefore": 6,
           "level": 6,
-          "xpRemainder": 127,
-          "affinityXp": 520,
+          "xpRemainder": 140,
+          "affinityXp": 550,
           "rewardCoins": 61,
           "wallet": 917
         },
         {
           "id": "contract_hound",
           "encounters": 2,
-          "xp": 120,
+          "xp": 100,
           "levelBefore": 6,
           "level": 6,
-          "xpRemainder": 247,
-          "affinityXp": 571,
+          "xpRemainder": 240,
+          "affinityXp": 594,
           "rewardCoins": 79,
           "wallet": 846
         }
       ],
       "level": 6,
-      "xpRemainder": 247,
-      "affinityXp": 571,
+      "xpRemainder": 240,
+      "affinityXp": 594,
       "rank": "Novicio",
       "elementRank": 1
     },
@@ -460,106 +1413,106 @@
         {
           "id": "m01",
           "encounters": 3,
-          "xp": 130,
+          "xp": 120,
           "levelBefore": 1,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 0,
+          "affinityXp": 105,
           "rewardCoins": 100,
           "wallet": 100
         },
         {
           "id": "s01",
           "encounters": 0,
-          "xp": 0,
+          "xp": 46,
           "levelBefore": 2,
           "level": 2,
-          "xpRemainder": 10,
-          "affinityXp": 107,
+          "xpRemainder": 46,
+          "affinityXp": 121,
           "rewardCoins": 0,
           "wallet": 10
         },
         {
           "id": "m02",
           "encounters": 3,
-          "xp": 238,
+          "xp": 184,
           "levelBefore": 2,
           "level": 3,
-          "xpRemainder": 88,
-          "affinityXp": 211,
+          "xpRemainder": 70,
+          "affinityXp": 203,
           "rewardCoins": 172,
           "wallet": 182
         },
         {
           "id": "s02",
           "encounters": 0,
-          "xp": 52,
+          "xp": 57,
           "levelBefore": 3,
           "level": 3,
-          "xpRemainder": 140,
-          "affinityXp": 229,
+          "xpRemainder": 127,
+          "affinityXp": 223,
           "rewardCoins": 30,
           "wallet": 212
         },
         {
           "id": "m03",
           "encounters": 3,
-          "xp": 227,
+          "xp": 230,
           "levelBefore": 3,
           "level": 4,
-          "xpRemainder": 167,
-          "affinityXp": 325,
+          "xpRemainder": 157,
+          "affinityXp": 324,
           "rewardCoins": 145,
           "wallet": 357
         },
         {
           "id": "m04",
           "encounters": 3,
-          "xp": 257,
+          "xp": 276,
           "levelBefore": 4,
           "level": 5,
-          "xpRemainder": 184,
-          "affinityXp": 433,
+          "xpRemainder": 193,
+          "affinityXp": 447,
           "rewardCoins": 167,
           "wallet": 524
         },
         {
           "id": "m05",
           "encounters": 1,
-          "xp": 288,
+          "xp": 322,
           "levelBefore": 5,
           "level": 6,
-          "xpRemainder": 192,
-          "affinityXp": 549,
+          "xpRemainder": 235,
+          "affinityXp": 589,
           "rewardCoins": 220,
           "wallet": 744
         },
         {
           "id": "contract_relic",
           "encounters": 2,
-          "xp": 119,
+          "xp": 57,
           "levelBefore": 6,
           "level": 6,
-          "xpRemainder": 311,
-          "affinityXp": 601,
+          "xpRemainder": 292,
+          "affinityXp": 617,
           "rewardCoins": 61,
           "wallet": 725
         },
         {
           "id": "contract_hound",
           "encounters": 2,
-          "xp": 138,
+          "xp": 115,
           "levelBefore": 6,
           "level": 7,
-          "xpRemainder": 129,
-          "affinityXp": 660,
+          "xpRemainder": 87,
+          "affinityXp": 668,
           "rewardCoins": 79,
           "wallet": 654
         }
       ],
       "level": 7,
-      "xpRemainder": 129,
-      "affinityXp": 660,
+      "xpRemainder": 87,
+      "affinityXp": 668,
       "rank": "Novicio",
       "elementRank": 1
     }
@@ -568,7 +1521,7 @@
     {
       "affinity": "fuego",
       "bodyType": "male",
-      "hp": 100,
+      "hp": 105,
       "chakra": 80,
       "strength": 14,
       "speedShown": 9,
@@ -580,7 +1533,7 @@
     {
       "affinity": "fuego",
       "bodyType": "female",
-      "hp": 100,
+      "hp": 105,
       "chakra": 80,
       "strength": 18,
       "speedShown": 9,
@@ -592,7 +1545,7 @@
     {
       "affinity": "agua",
       "bodyType": "male",
-      "hp": 100,
+      "hp": 105,
       "chakra": 80,
       "strength": 11,
       "speedShown": 12,
@@ -604,7 +1557,7 @@
     {
       "affinity": "agua",
       "bodyType": "female",
-      "hp": 100,
+      "hp": 105,
       "chakra": 80,
       "strength": 13,
       "speedShown": 12,
@@ -616,7 +1569,7 @@
     {
       "affinity": "tierra",
       "bodyType": "male",
-      "hp": 120,
+      "hp": 126,
       "chakra": 70,
       "strength": 12,
       "speedShown": 10,
@@ -628,7 +1581,7 @@
     {
       "affinity": "tierra",
       "bodyType": "female",
-      "hp": 120,
+      "hp": 126,
       "chakra": 70,
       "strength": 15,
       "speedShown": 10,
@@ -640,7 +1593,7 @@
     {
       "affinity": "viento",
       "bodyType": "male",
-      "hp": 88,
+      "hp": 92,
       "chakra": 96,
       "strength": 12,
       "speedShown": 10,
@@ -652,7 +1605,7 @@
     {
       "affinity": "viento",
       "bodyType": "female",
-      "hp": 88,
+      "hp": 92,
       "chakra": 96,
       "strength": 15,
       "speedShown": 10,
@@ -669,6 +1622,7 @@
       "actions": [
         {
           "id": "strike",
+          "learned": true,
           "damage": 25,
           "rawHits": 7,
           "cycleMs": 1126.97,
@@ -678,6 +1632,7 @@
         },
         {
           "id": "fire_embers",
+          "learned": true,
           "damage": 31,
           "rawHits": 6,
           "cycleMs": 1859.5,
@@ -687,6 +1642,7 @@
         },
         {
           "id": "fire_breath",
+          "learned": true,
           "damage": 41,
           "rawHits": 5,
           "cycleMs": 2169.42,
@@ -696,6 +1652,7 @@
         },
         {
           "id": "fire_ring",
+          "learned": false,
           "damage": 46,
           "rawHits": 4,
           "cycleMs": 2169.42,
@@ -705,6 +1662,7 @@
         },
         {
           "id": "fire_phoenix",
+          "learned": false,
           "damage": 64,
           "rawHits": 3,
           "cycleMs": 2479.34,
@@ -714,6 +1672,7 @@
         },
         {
           "id": "fire_arc",
+          "learned": false,
           "damage": 33,
           "rawHits": 6,
           "cycleMs": 1859.5,
@@ -723,6 +1682,7 @@
         },
         {
           "id": "fire_brand",
+          "learned": false,
           "damage": 38,
           "rawHits": 5,
           "cycleMs": 1859.5,
@@ -738,6 +1698,7 @@
       "actions": [
         {
           "id": "strike",
+          "learned": true,
           "damage": 19,
           "rawHits": 9,
           "cycleMs": 699.3,
@@ -747,6 +1708,7 @@
         },
         {
           "id": "water_bullet",
+          "learned": true,
           "damage": 24,
           "rawHits": 7,
           "cycleMs": 1153.85,
@@ -756,15 +1718,17 @@
         },
         {
           "id": "water_whip",
-          "damage": 29,
+          "learned": true,
+          "damage": 33,
           "rawHits": 6,
           "cycleMs": 1153.85,
-          "rawDamagePerTimelineSecond": 25.13,
-          "cost": 36,
-          "netCostAfterNormalAction": 31
+          "rawDamagePerTimelineSecond": 28.6,
+          "cost": 40,
+          "netCostAfterNormalAction": 35
         },
         {
           "id": "water_wall",
+          "learned": false,
           "damage": 32,
           "rawHits": 6,
           "cycleMs": 1153.85,
@@ -774,12 +1738,13 @@
         },
         {
           "id": "water_lance",
-          "damage": 38,
-          "rawHits": 5,
-          "cycleMs": 1346.15,
-          "rawDamagePerTimelineSecond": 28.23,
-          "cost": 48,
-          "netCostAfterNormalAction": 43
+          "learned": false,
+          "damage": 50,
+          "rawHits": 4,
+          "cycleMs": 1538.46,
+          "rawDamagePerTimelineSecond": 32.5,
+          "cost": 62,
+          "netCostAfterNormalAction": 57
         }
       ]
     },
@@ -789,6 +1754,7 @@
       "actions": [
         {
           "id": "strike",
+          "learned": true,
           "damage": 18,
           "rawHits": 10,
           "cycleMs": 991.74,
@@ -798,6 +1764,7 @@
         },
         {
           "id": "earth_fist",
+          "learned": true,
           "damage": 25,
           "rawHits": 7,
           "cycleMs": 1636.36,
@@ -807,15 +1774,17 @@
         },
         {
           "id": "earth_wall",
-          "damage": 27,
-          "rawHits": 7,
+          "learned": true,
+          "damage": 31,
+          "rawHits": 6,
           "cycleMs": 1636.36,
-          "rawDamagePerTimelineSecond": 16.5,
-          "cost": 36,
-          "netCostAfterNormalAction": 31
+          "rawDamagePerTimelineSecond": 18.94,
+          "cost": 40,
+          "netCostAfterNormalAction": 35
         },
         {
           "id": "earth_spike",
+          "learned": false,
           "damage": 32,
           "rawHits": 6,
           "cycleMs": 1909.09,
@@ -825,12 +1794,13 @@
         },
         {
           "id": "earth_quake",
-          "damage": 37,
-          "rawHits": 5,
-          "cycleMs": 1909.09,
-          "rawDamagePerTimelineSecond": 19.38,
-          "cost": 48,
-          "netCostAfterNormalAction": 43
+          "learned": false,
+          "damage": 49,
+          "rawHits": 4,
+          "cycleMs": 2181.82,
+          "rawDamagePerTimelineSecond": 22.46,
+          "cost": 64,
+          "netCostAfterNormalAction": 59
         }
       ]
     },
@@ -840,6 +1810,7 @@
       "actions": [
         {
           "id": "strike",
+          "learned": true,
           "damage": 14,
           "rawHits": 12,
           "cycleMs": 991.74,
@@ -849,6 +1820,7 @@
         },
         {
           "id": "wind_palm",
+          "learned": true,
           "damage": 17,
           "rawHits": 10,
           "cycleMs": 1636.36,
@@ -858,15 +1830,17 @@
         },
         {
           "id": "wind_blade",
-          "damage": 22,
+          "learned": true,
+          "damage": 23,
           "rawHits": 8,
           "cycleMs": 1909.09,
-          "rawDamagePerTimelineSecond": 11.52,
+          "rawDamagePerTimelineSecond": 12.05,
           "cost": 38,
           "netCostAfterNormalAction": 33
         },
         {
           "id": "wind_needles",
+          "learned": false,
           "damage": 26,
           "rawHits": 7,
           "cycleMs": 1909.09,
@@ -876,6 +1850,7 @@
         },
         {
           "id": "wind_cyclone",
+          "learned": false,
           "damage": 37,
           "rawHits": 5,
           "cycleMs": 2181.82,
@@ -885,6 +1860,7 @@
         },
         {
           "id": "wind_step",
+          "learned": false,
           "damage": 18,
           "rawHits": 10,
           "cycleMs": 1636.36,
@@ -894,6 +1870,7 @@
         },
         {
           "id": "wind_wave",
+          "learned": false,
           "damage": 23,
           "rawHits": 8,
           "cycleMs": 1636.36,
@@ -908,93 +1885,85 @@
     {
       "affinity": "fuego",
       "level": 4,
-      "pointsAvailable": 9,
+      "pointsAvailable": 6,
       "initialReduction": 2,
-      "defensiveReduction": 8,
+      "defensiveReduction": 2,
       "investments": {
         "physical_0": 1,
         "physical_1": 1,
-        "physical_3": 3,
-        "hybrid_physical_fuego_0": 1,
-        "hybrid_physical_fuego_1": 3
+        "physical_2": 1
       }
     },
     {
       "affinity": "agua",
       "level": 4,
-      "pointsAvailable": 9,
+      "pointsAvailable": 6,
       "initialReduction": 2,
-      "defensiveReduction": 8,
+      "defensiveReduction": 2,
       "investments": {
         "physical_0": 1,
         "physical_1": 1,
-        "physical_3": 3,
-        "hybrid_physical_agua_0": 1,
-        "hybrid_physical_agua_1": 3
+        "physical_2": 1
       }
     },
     {
       "affinity": "tierra",
       "level": 4,
-      "pointsAvailable": 9,
+      "pointsAvailable": 6,
       "initialReduction": 2,
-      "defensiveReduction": 8,
+      "defensiveReduction": 2,
       "investments": {
         "physical_0": 1,
         "physical_1": 1,
-        "physical_3": 3,
-        "hybrid_physical_tierra_0": 1,
-        "hybrid_physical_tierra_1": 3
+        "physical_2": 1
       }
     },
     {
       "affinity": "viento",
       "level": 4,
-      "pointsAvailable": 9,
+      "pointsAvailable": 6,
       "initialReduction": 2,
-      "defensiveReduction": 8,
+      "defensiveReduction": 2,
       "investments": {
         "physical_0": 1,
         "physical_1": 1,
-        "physical_3": 3,
-        "hybrid_physical_viento_0": 1,
-        "hybrid_physical_viento_1": 3
+        "physical_2": 1
       }
     }
   ],
   "arena": [
     {
       "rival": "fuego",
-      "playerHp": 100,
+      "playerHp": 105,
       "playerChakra": 80,
-      "enemyHp": 100,
+      "enemyHp": 105,
       "enemyChakra": 80,
       "enemySpeed": 8.8,
       "enemyStrength": 13
     },
     {
       "rival": "agua",
-      "playerHp": 100,
+      "playerHp": 105,
       "playerChakra": 80,
-      "enemyHp": 100,
+      "enemyHp": 105,
       "enemyChakra": 80,
       "enemySpeed": 12,
       "enemyStrength": 10
     },
     {
       "rival": "tierra",
-      "playerHp": 100,
+      "playerHp": 105,
       "playerChakra": 80,
-      "enemyHp": 120,
+      "enemyHp": 126,
       "enemyChakra": 70,
       "enemySpeed": 10,
       "enemyStrength": 11
     },
     {
       "rival": "viento",
-      "playerHp": 100,
+      "playerHp": 105,
       "playerChakra": 80,
-      "enemyHp": 88,
+      "enemyHp": 92,
       "enemyChakra": 96,
       "enemySpeed": 10,
       "enemyStrength": 11
@@ -1069,11 +2038,11 @@
     }
   ],
   "xpUpperBound": {
-    "allRewardsWithScholarFromStart": 1468,
+    "allRewardsWithScholarFromStart": 1425,
     "requiredForLevel8": 1680
   },
   "catalog": {
-    "missions": 9,
+    "missions": 11,
     "techniques": 37,
     "mainBossAffinities": [
       "fuego",

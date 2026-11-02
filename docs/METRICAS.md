@@ -1,25 +1,26 @@
-# Métricas finales de arquitectura
+# Verificación de reglas y arquitectura
 
-Fecha: 19 de octubre de 2026. Resultado de `npm run metrics` en la rama de cierre.
+La referencia normativa de juego es [BALANCE_COMBATE.md](BALANCE_COMBATE.md).
+El estado de campaña está en [AUDITORIA_CAMPAIGN.md](AUDITORIA_CAMPAIGN.md).
 
-| Métrica | Resultado | Umbral / referencia |
-| --- | ---: | ---: |
-| `game.js` | 121 líneas | máximo 150 |
-| `src/meta-ui.js` | 298 líneas | máximo 300 |
-| `BattleScene` | 278 líneas | máximo 800 |
-| Mayor vista HTML | 400 líneas o menos | máximo 400 |
-| Consultas a pasos con ID literal | 0 | 0 |
-| Despachos fijos a `s01`/`s02` fuera del contenido | 0 | 0 |
-| Campos de campaña en el esquema base | 20 | 36 al inicio de auditoría |
-| Versión del guardado | 17 | migración v16→v17 |
+## Reglas verificadas
 
-`src/save.js` permanece como fachada de 539 líneas; migraciones, cursor de campaña, maestro/personaje y almacenamiento de ranuras se encuentran en `src/save/`.
+- Personaje nivel 1–60, habilidades rango 1–3 y cinco rangos gratuitos.
+- 38 habilidades por personaje; 109 PR para completarlas en los 24 órdenes.
+- Perfiles de misión 25/50/75/100 % y principales introductorias al 100 %.
+- Presupuesto fijo por nivel recomendado, reparto 60/40 y bonos aplicados una vez.
+- Compra explícita y predecesoras con rango mínimo; equipo y práctica coherentes.
+- Chakra base 60, recuperación normal 5 y Guardia 25 CH totales.
+- Iniciativa temporal de una acción y preparación proporcional a los sellos.
+- Persistencia por pasos, cobro único y confirmación diferida de victoria.
 
-## Validación final
+## Comandos reproducibles
 
-- `npm test`: 17 suites correctas.
-- `npm run smoke`: 4 recorridos correctos, incluida la finalización de `m01` y `m05`.
-- Las tres fixtures v16 migran a v17 conservando el progreso y los hechos no derivados.
-- La arquitectura de contenido no duplica definiciones: las misiones y sus diálogos están junto a cada misión, agregados por `content/index.js`.
+- `npm test`: reglas puras, persistencia, contenido y arquitectura.
+- `npm run smoke`: recorridos de navegador.
+- `npm run metrics`: tamaños y estructura de los archivos del proyecto.
+- `node scripts/audit-balance.mjs --json=artifacts/balance-current.json`:
+  presupuesto, rutas y sondas de combate de las reglas registradas.
 
-Esta línea base mide estructura y pruebas para el siguiente objetivo de rendimiento. No se realizaron optimizaciones de assets ni de ciclo de vida de Phaser como parte de esta refactorización.
+Las métricas de rendimiento gráfico se documentan en
+[RENDIMIENTO_PHASER_4.md](RENDIMIENTO_PHASER_4.md), separadas del balance jugable.

@@ -37,7 +37,7 @@ assert.equal(Object.keys(SEALS).length, 12, "La hoja visual debe exponer doce se
 assert.equal(new Set(Object.values(SEALS).map((seal) => seal.label)).size, 12, "Cada sello debe tener un nombre propio y único");
 assert.equal(JUTSU_LIBRARY.length, 37, "La biblioteca debe cubrir técnicas básicas, secundarias y terciarias");
 for (const element of ["fuego", "agua", "tierra", "viento"]) {
-  assert.ok(JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element && jutsu.unlockLevel === 1).length >= 4, `Debe haber cuatro técnicas iniciales de ${element}`);
+  assert.ok(JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element && jutsu.unlockLevel === 1).length === 2, `Debe haber dos técnicas iniciales de ${element}`);
   const requirements = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === element).map((jutsu) => jutsu.affinityXpRequired);
   assert.equal(new Set(requirements).size, requirements.length, `Cada técnica de ${element} debe exigir una cantidad distinta de PX de afinidad`);
 }

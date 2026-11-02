@@ -1,0 +1,70 @@
+import { MISSIONS } from "../src/content/index.js";
+import assert from "node:assert/strict";
+import { BASIC_ELEMENT_IDS } from "../src/elements.js";
+import { JUTSU_LIBRARY } from "../src/data.js";
+import { buildSkillTree, SKILLS_BY_ID } from "../src/skills/definitions.js";
+import { investResonance, resonancePoints, skillLevel, skillRequirements } from "../src/skills/progression.js";
+import { createCharacter, createDefaultSave, isTechniqueLearned, normalizeSave, awardEncounter } from "../src/save.js";
+import { trainingActions } from "../src/training.js";
+import { learnSkillForTest } from "./helpers/skill-fixtures.mjs";
+
+const technique = id => JUTSU_LIBRARY.find(j => j.id === id);
+const fresh = () => createCharacter(createDefaultSave(),{ affinity:"fuego" });
+let save = fresh();
+assert.equal(skillLevel(save,SKILLS_BY_ID.get("physical_0")),1);
+assert.equal(resonancePoints(save),0);
+assert.equal(isTechniqueLearned(save,technique("fire_breath")),true);
+save.progression.level=60; save.character.affinityXp.fuego=10000;
+assert.equal(isTechniqueLearned(save,technique("fire_phoenix")),false,"Ni nivel ni PX desbloquean automáticamente");
+assert.equal(investResonance(save,"fire_phoenix"),save,"No se salta la ruta comprando la definitiva");
+assert.ok(!trainingActions(save).some(action=>action.id === "fire_phoenix"));
+let early = fresh(); early.progression.level=6; early.character.affinityXp.fuego=1000;
+assert.equal(investResonance(early,"fire_arc"),early);
+early=learnSkillForTest(early,"fire_embers",2);
+assert.equal(isTechniqueLearned(early,technique("fire_arc")),false,"Cumplir los requisitos solo habilita comprar");
+early=investResonance(early,"fire_arc");
+assert.equal(isTechniqueLearned(early,technique("fire_arc")),true);
+assert.equal(isTechniqueLearned(normalizeSave(early),technique("fire_arc")),true);
+assert.equal(investResonance(early,"fire_arc"),early,"El rango 2 exige nivel 8");
+assert.ok(skillRequirements(early,SKILLS_BY_ID.get("fire_arc")).some(reason=>reason.includes("8")));
+// Falsificar una compra sin padres no habilita equipo, entrenamiento ni efectos.
+const forged = fresh(); forged.progression.level=60; forged.character.affinityXp.fuego=10000;
+forged.progression.resonance.investments={ fire_phoenix:3 };
+forged.loadout=["fire_phoenix"];
+assert.equal(isTechniqueLearned(forged,technique("fire_phoenix")),false);
+assert.deepEqual(normalizeSave(forged).progression.resonance.investments,{});
+assert.ok(!normalizeSave(forged).loadout.includes("fire_phoenix"));
+// Tres afinidades y todas las rutas: 109 puntos, nivel 56 y ningún elemento privilegiado.
+for (const first of BASIC_ELEMENT_IDS) for (const second of BASIC_ELEMENT_IDS.filter(id=>id!==first)) for (const third of BASIC_ELEMENT_IDS.filter(id=>![first,second].includes(id))) {
+  let full=createCharacter(createDefaultSave(),{ affinity:first });
+  full.progression.level=56;
+  full.campaign.completedSecondaryMissions=["affinity_trial_2","affinity_trial_3"];
+  full.character.affinities=[first,second,third];
+  full.character.affinityXp={ fuego:10000,agua:10000,tierra:10000,viento:10000 };
+  full=normalizeSave(full);
+  const nodes=buildSkillTree(full.character.affinities,3);
+  for (const node of nodes) full=learnSkillForTest(full,node.id,3);
+  assert.equal(resonancePoints(full),1,"110 disponibles menos 109 gastados");
+  assert.ok(nodes.every(node=>skillLevel(full,node)===3));
+  assert.deepEqual(normalizeSave(full),full);
+  const reversed=structuredClone(full);
+  reversed.progression.resonance.investments=Object.fromEntries(Object.entries(reversed.progression.resonance.investments).reverse());
+  assert.deepEqual(normalizeSave(reversed).progression.resonance.investments,full.progression.resonance.investments,"El orden de carga no altera el progreso");
+}
+const old=structuredClone(early);old.version=28;
+const migrated=normalizeSave(old);
+assert.equal(resonancePoints(migrated),10,"Las partidas antiguas recuperan todos sus puntos para las nuevas rutas");
+assert.deepEqual(migrated.progression.resonance.investments,{});
+assert.equal(isTechniqueLearned(migrated,technique("fire_breath")),true);
+assert.deepEqual(normalizeSave(migrated),migrated);
+const slotSave=fresh();slotSave.progression.level=15;slotSave.campaign.completedSecondaryMissions=["affinity_trial_2"];
+slotSave.character.affinities=["fuego","agua"];slotSave.character.affinityXp.agua=0;
+assert.equal(isTechniqueLearned(slotSave,technique("water_bullet")),true);
+assert.equal(isTechniqueLearned(slotSave,technique("water_whip")),false);
+console.log("Desbloqueos: compra explícita, rutas y rangos obligatorios, 24 órdenes, 109 puntos y migración verificados.");
+
+const maxLevel=fresh(); maxLevel.progression.level=60;
+const previousLevel=structuredClone(maxLevel); previousLevel.progression.level=59;
+assert.equal(awardEncounter(maxLevel,"boss_raizen",{ mission:MISSIONS.at(-1) }).xp,0);
+assert.equal(awardEncounter(maxLevel,"boss_raizen",{ mission:MISSIONS.at(-1) }).affinityXp,awardEncounter(previousLevel,"boss_raizen",{ mission:MISSIONS.at(-1) }).affinityXp,"Llegar a 60 no reduce el entrenamiento de afinidad");
+for(const jutsu of JUTSU_LIBRARY) if(SKILLS_BY_ID.has(jutsu.id)) assert.equal(jutsu.unlockLevel,SKILLS_BY_ID.get(jutsu.id).unlockLevel);

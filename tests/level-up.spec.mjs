@@ -86,7 +86,9 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
     const { playerFighterAppearance } = await import("/src/character.js?v=0.76.0");
     const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");
     const { createCharacter, createDefaultSave, derivedStats, writeSave } = await import("/src/save.js?v=0.94.0");
-    const base = writeSave(createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female", teleportObject: "dog" }));
+    const seed = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female", teleportObject: "dog" });
+    seed.inventory.items.substitution_dog = 1;
+    const base = writeSave(seed);
     const preview = { ...base, progression: { ...base.progression, level: 2, attributePoints: 2 } };
     battleRuntime.activeSave = base;
     battleRuntime.renderResolution = 1;

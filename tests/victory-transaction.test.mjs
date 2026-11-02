@@ -5,7 +5,7 @@ import { MISSIONS } from "../src/content/index.js";
 
 const original = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female" });
 let provisional = original;
-for (const enemyId of MISSIONS[0].encounters) provisional = awardEncounter(provisional, enemyId).save;
+for (const enemyId of MISSIONS[0].encounters) provisional = awardEncounter(provisional, enemyId, { mission:MISSIONS[0] }).save;
 provisional = completeMission(provisional, "m01").save;
 assert.ok(provisional.progression.level > original.progression.level, "La experiencia de la misión debe poder mostrar un nivel provisional");
 

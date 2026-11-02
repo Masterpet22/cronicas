@@ -1,5 +1,6 @@
 import { applyMissionEffects, missionState } from "./mission-system.js?v=0.114.0";
 import { createCompletedMissionProgress } from "./save/save-migrations.js";
+import { addExperience } from "./progression-balance.js?v=0.94.0";
 
 export function secondaryMissionByType(type, missions) {
   return missions.find((mission) => mission.type === type) || null;
@@ -26,8 +27,11 @@ const CARD_PRESENTERS = Object.freeze({
 export function secondaryMissionCardModel(mission, save) {
   const state = missionState(mission, save);
   const present = CARD_PRESENTERS[mission.type];
+  if (mission.affinitySlot) return { mission, state, visible: state.completed || state.unlocked,
+    disabled: state.completed || !state.unlocked, detail: `${mission.location} · Nivel ${mission.recommendedLevel} · ${mission.rewardLabel}`,
+    actionLabel: state.completed ? save.character.affinities.length >= mission.affinitySlot ? "COMPLETADA" : "COMPLETADA · ELIGE EN EL DOJO" : "INICIAR PRUEBA DE AFINIDAD" };
   if (!present && mission.contractItem) return { mission, state, visible: state.completed || state.unlocked,
-    disabled: state.completed || !state.unlocked, detail: `${mission.location} · Nivel recomendado ${mission.recommendedLevel} · ${mission.rewardLabel}`,
+    disabled: state.completed || !state.unlocked, detail: `${mission.location} · Nivel recomendado ${mission.recommendedLevel} · ${mission.reward.totalXp} PX totales · ${mission.rewardLabel}`,
     actionLabel: state.completed ? "COMPLETADA" : "INICIAR CONTRATO" };
   if (!present) return null;
   return { mission, state, disabled: state.completed || !state.unlocked, ...present(mission, state, save) };
@@ -37,14 +41,20 @@ export function emptySecondaryCompletion(result, { blocked = false } = {}) {
   return { save: result, xp: 0, affinityXp: 0, coins: 0, supplyBonus: 0, levelsGained: 0, firstClear: false, blocked };
 }
 
-export function completeInvestigationMission(result, mission) {
+export function completeInvestigationMission(result, mission, { xpBonus = 0 } = {}) {
   const state = missionState(mission, result);
   if (state.completed || !state.unlocked) return emptySecondaryCompletion(result, { blocked: !state.unlocked });
+  const experienceReward = Math.round((mission.reward?.xp || 0) * (1+xpBonus));
+  const { xp,levelsGained } = addExperience(result.progression,experienceReward);
+  const coins = mission.reward?.coins || 0;
+  const affinityXp = experienceReward ? Math.max(10,Math.round(experienceReward*.35)) : 0;
+  result.progression.coins += coins;
+  result.character?.affinities.forEach(id => { result.character.affinityXp[id] += affinityXp; });
   const history = mission.category === "main" ? "completedMissions" : "completedSecondaryMissions";
   result.campaign[history] = [...new Set([...result.campaign[history], mission.id])];
   applyMissionEffects(result, mission.completionEffects);
   result.campaign.missionProgress[mission.id] = createCompletedMissionProgress(mission);
-  return { ...emptySecondaryCompletion(result), firstClear: true };
+  return { ...emptySecondaryCompletion(result), xp,coins,affinityXp,levelsGained,firstClear: true };
 }
 
 export function completeSecondaryByType(result, missionOrId, missions, handlers) {

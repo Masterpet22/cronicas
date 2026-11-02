@@ -8,9 +8,9 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Estado: prototipo jugable con la primera saga disponible y expansión futura planificada.
 - Plataforma de juego habilitada: navegador en pantalla de escritorio.
 - Las nueve localidades de la aldea permiten entrar desde el mapa desde el inicio. Tienda, Torre, Arena, Gremio y Eventos muestran sus pantallas y personajes; sus servicios futuros siguen en preparación.
-- Guardado: tres partidas locales, esquema `SAVE_VERSION = 18`, progreso por paso y migración automática desde v16/v17, conservando las investigaciones como principales.
+- Guardado: tres partidas locales, esquema 29 y progreso por pasos. La carga valida nivel, rangos, presupuesto, requisitos y equipo.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
-- Cada misión incluye dos reintentos del duelo perdido, con vida y chakra restaurados, estados y recargas limpios y los duelos previos conservados. Al agotarse se desactiva Reintentar; Retirada abandona la misión y descarta sus recompensas provisionales. Una misión abandonada vuelve a ofrecer Iniciar historia.
+- Cada misión incluye dos reintentos del duelo perdido, con vida y chakra restaurados, estados y recargas limpios y los duelos previos conservados. Al agotarse se necesita un pergamino de reintento; Retirada abandona la misión y descarta sus recompensas provisionales. Una misión abandonada vuelve a ofrecer Iniciar historia.
 - Durante las misiones se oculta la barra de perfil, experiencia y monedas. Kagemori, las rutas del médico y el cifrado ofrecen un botón compacto de Pausa y la tecla Esc: reanudar, ajustes y abandono con confirmación. La pausa detiene las animaciones y las esperas de la vista, incluidos los diálogos pendientes; al volver a la aldea reaparece la barra habitual.
 - El metajuego inicia sin descargar Phaser ni las escenas de combate. La primera misión carga ambos bajo demanda una sola vez; las entradas posteriores reutilizan los módulos y la instancia aparcada.
 - La entrada solo precarga las dos fuentes críticas. Los fondos de aldea, viaje y combate se solicitan al entrar en su vista, con versiones compartidas para evitar descargas redundantes.
@@ -38,9 +38,25 @@ La primera saga se llama **Futuro prometedor** y contiene siete misiones princip
 6. `m04` — **El corazón de la guarida**.
 7. `m05` — **El jefe de los bandidos**.
 
-El catálogo `MISSIONS` contiene exclusivamente estas siete misiones principales. Los IDs históricos `s01` y `s02` se conservan para mantener partidas, decisiones y rutas; ya no indican categoría secundaria. `SECONDARY_MISSIONS` está vacío: el Tablón queda reservado para futuros encargos opcionales.
+El catálogo `MISSIONS` contiene exclusivamente estas siete misiones principales. Los IDs históricos `s01` y `s02` se conservan para mantener partidas, decisiones y rutas; ya no indican categoría secundaria. `SECONDARY_MISSIONS` contiene los dos contratos de tienda y las pruebas especiales de afinidad de niveles 15 y 30.
 
 El Cuartel y la crónica de la Biblioteca muestran solo misiones descubiertas: disponibles o completadas. Las futuras misiones y sagas no revelan títulos, destinos, recompensas ni fichas bloqueadas. Tras completar la búsqueda de Haru se entrega el libro a Sayo antes de desbloquear la entrada a la guarida.
+
+## Progresión y balance
+
+El personaje llega al nivel 60 con `80 + 40 × nivel` PX por subida. Gana dos PR
+y dos puntos de atributos por subida. Cada habilidad llega a rango 3 y cuesta
+1 PR por rango comprado. El árbol tiene 38 habilidades y cinco rangos gratuitos;
+completarlo cuesta 109 PR, con presupuesto suficiente desde nivel 56.
+La segunda afinidad requiere nivel 15 y prueba especial; la tercera, nivel 30 y
+su prueba. Las rutas exigen predecesoras al rango indicado y compras explícitas.
+Las recompensas siguen perfiles 25/50/75/100 % del umbral del nivel recomendado,
+con reparto 60/40 entre enemigos y finalización. Las misiones introductorias
+principales de nivel 1–5 usan 100 %. La base de chakra es 60, cada acción devuelve
+5 CH y Guardia devuelve 25 CH totales y protege el siguiente impacto al 50 %.
+
+La referencia completa es [BALANCE_COMBATE.md](BALANCE_COMBATE.md). Las rutas y
+coordenadas del árbol están en [ARBOL_RESONANCIA.md](ARBOL_RESONANCIA.md).
 
 ## Sistemas de contenido
 

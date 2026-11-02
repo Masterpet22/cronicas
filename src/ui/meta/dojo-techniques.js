@@ -3,7 +3,7 @@ import { PHYSICAL_COLOR, TAIJUTSU_ACTIONS, TAIJUTSUS_BY_ID, effectText } from ".
 import { TECHNIQUE_MASTERY } from "../../skills/technique-mastery.js?v=1.0.0";
 import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { initiativeLabel } from "../../battle/initiative.js?v=1.0.0";
-import { investResonance, resonancePoints, skillLevel, skillRequirements, skillTreeNodes, upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
+import { investResonance, resonancePoints, skillLevel, skillRequirements, prerequisiteEntries, skillTreeNodes, upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
 import { mountResonanceNavigation, resonanceTreeMarkup } from "./resonance-tree.js?v=1.0.0";
 
 import { equipTaijutsu, learnedTaijutsu, normalizeTaijutsuLoadout, taijutsuAction, unequipTaijutsu } from "../../skills/taijutsu.js?v=1.0.0";
@@ -21,10 +21,7 @@ export function createDojoTechniques(deps) {
   const slotLevels = Array.from({ length: 4 }, (_, index) =>
     Array.from({ length: 100 }, (_, level) => level + 1).find(level => deps.loadoutSlotsForLevel(level) > index));
 
-  const lockReason = (save, jutsu) => [
-    jutsu.unlockLevel > save.progression.level ? `Nivel ${jutsu.unlockLevel}` : "",
-    deps.affinityXpForElement(save.character, jutsu.element) < jutsu.affinityXpRequired ? `${jutsu.affinityXpRequired} PX de afinidad` : ""
-  ].filter(Boolean).join(" · ");
+  const lockReason = (save, node) => skillRequirements(save,node).join(" · ") || `Aprende esta técnica por ${node.cost} PR`;
 
   function taijutsuLoadoutMarkup(save) {
     const slots = normalizeTaijutsuLoadout(save);
@@ -56,9 +53,7 @@ export function createDojoTechniques(deps) {
 
   function detailMarkup(save, node) {
     const identity = characterResonanceSymbol(save.character);
-    if (!node) return `<aside class="technique-detail resonance-core-detail"><div class="technique-detail-body"><p class="eyebrow">ORIGEN DE TU PROGRESIÓN</p><h3>Núcleo de Resonancia</h3><div class="resonance-detail-emblem" aria-hidden="true">${escape(identity.symbol)}</div><p>${escape(save.character.name)} · ${escape(identity.label)}</p><p>Cuatro caminos. Un mismo origen.</p><p>Desarrolla tu cuerpo, domina tus afinidades y conecta sus fuerzas mediante sellos híbridos.</p><p>Las técnicas se aprenden con PX de afinidad. Invierte puntos de Resonancia para desbloquear pasivas y taijutsus o mejorar tus técnicas.</p><p><strong>3 puntos iniciales + 2 por nivel.</strong> Tus puntos de atributos son independientes.</p><p>Selecciona un hexágono para ver sus efectos y requisitos. Arrastra el panal o utiliza los controles para explorar.</p></div></aside>`;
-    const siblings = nodesFor(save).filter(other => other.cellId === node.cellId);
-    const linkedMarkup = siblings.length > 1 ? `<label class="resonance-linked-chooser">Técnicas de esta celda<select data-linked-skill aria-label="Técnicas de esta celda">${siblings.map(other => `<option value="${other.id}" ${other.id === node.id ? "selected" : ""}>${escape(other.name)}</option>`).join("")}</select></label>` : "";
+    if (!node) return `<aside class="technique-detail resonance-core-detail"><div class="technique-detail-body"><p class="eyebrow">ORIGEN DE TU PROGRESIÓN</p><h3>Núcleo de Resonancia</h3><div class="resonance-detail-emblem" aria-hidden="true">${escape(identity.symbol)}</div><p>${escape(save.character.name)} · ${escape(identity.label)}</p><p>Cuatro caminos. Un mismo origen.</p><p>Desarrolla tu cuerpo, domina tus afinidades y conecta sus fuerzas mediante sellos híbridos.</p><p>Cada habilidad requiere nivel de personaje y entrenamiento en las anteriores. Los PX de afinidad habilitan el aprendizaje; después debes desbloquearla con puntos de Resonancia. Son gratuitas las dos primeras de tu afinidad principal, la primera de cada nueva afinidad y Disciplina del cuerpo.</p><p><strong>Sin puntos iniciales. Ganas 2 por cada subida de nivel.</strong> Tus puntos de atributos son independientes.</p><p>Selecciona un hexágono para ver sus efectos y requisitos. Arrastra el panal o utiliza los controles para explorar.</p></div></aside>`;
     const original = technique(node.jutsuId);
     const jutsu = original && upgradedTechnique(save, original);
     const taijutsu = taijutsuAction(save,node.id) || TAIJUTSUS_BY_ID.get(node.id);
@@ -73,18 +68,18 @@ export function createDojoTechniques(deps) {
     const full = save.loadout.length >= deps.loadoutSlotsForLevel(save.progression.level);
     const label = !learned ? "TÉCNICA BLOQUEADA" : equipped ? "QUITAR DEL COMBATE" : full ? "REEMPLAZAR UNA EQUIPADA" : "EQUIPAR EN RANURA LIBRE";
     const category = taijutsu ? "TAIJUTSU · FÍSICO" : node.category === "physical" ? "DISCIPLINA FÍSICA" : node.category === "hybrid" ? "CONFLUENCIA HÍBRIDA" : "TÉCNICA ELEMENTAL";
-    const affinity = (node.physicalHybrid ? "Físicas + " : "") + (node.affinityIds.map(deps.elementName).join(" + ") || "Independiente de las afinidades");
-    const art = node.element ? elementArt(node.element) : `${node.physicalHybrid || !node.affinityIds.length ? '<span class="resonance-physical-mark" aria-hidden="true">拳</span>' : ""}${node.affinityIds.map(id => elementArt(id)).join("")}`;
+    const affinity = (node.affinityIds.map(deps.elementName).join(" + ") || "Independiente de las afinidades");
+    const art = node.element ? elementArt(node.element) : `${!node.affinityIds.length ? '<span class="resonance-physical-mark" aria-hidden="true">拳</span>' : ""}${node.affinityIds.map(id => elementArt(id)).join("")}`;
     const canInvest = !requirements.length && level < node.maxLevel && resonancePoints(save) >= node.cost;
     const investLabel = level >= node.maxLevel ? "NIVEL MÁXIMO" : `${level ? "MEJORAR" : "DESBLOQUEAR"} · ${node.cost} PR`;
     const chakraCost = jutsu ? actionChakraCost(jutsu, deps.derivedStats(save).costReduction) : 0;
     const metrics = combatMove ? `<div class="technique-metrics"><div><strong>${combatMove.damage}</strong><small>DAÑO BASE</small></div><div><strong>${taijutsu ? `${taijutsu.healthCost} PV` : `${chakraCost} CH`}</strong><small>COSTE EN COMBATE</small></div><div><strong>${combatMove.cooldown ? `${combatMove.cooldown} turnos` : "Sin recarga"}</strong><small>RECARGA</small></div><div><strong>${jutsu ? jutsu.seals.length : 0}</strong><small>SELLOS</small></div></div>` : "";
     const effect = taijutsu ? `${taijutsu.description} Cada nivel adicional añade +2 al daño. Entrenamiento: ${effectText(node.effect)}.` : jutsu ? `Cada mejora añade +${TECHNIQUE_MASTERY.damagePerLevel} al daño y reduce el coste un ${TECHNIQUE_MASTERY.costDiscountPercentPerLevel} % del original. Al nivel ${TECHNIQUE_MASTERY.maxLevel} usa un sello menos. Más sellos requieren más tiempo en la zona de preparación. ${jutsu.status ? `Aplica ${jutsu.status.label.toLowerCase()} (${jutsu.status.duration} turnos).` : ""}` : node.effect ? effectText(node.effect) : node.description;
     const taijutsuButtons = taijutsu ? `<div class="taijutsu-equip-actions">${physicalSlots.map((id,slot) => `<button type="button" data-taijutsu-equip="${node.id}" data-taijutsu-target="${slot}" aria-label="Equipar ${escape(taijutsu.name)} en taijutsu ${slot+1}" ${!learnedTaijutsu(save,node.id) || id === node.id ? "disabled" : ""}>T${slot+1} · ${id === node.id ? "EQUIPADO" : physicalSlots.includes(node.id) ? "MOVER" : id ? "REEMPLAZAR" : "EQUIPAR"}</button>`).join("")}</div>` : "";
-    const prerequisiteNames = node.prerequisites.map(id => nodesFor(save).find(n => n.id === id)?.name || id);
+    const prerequisiteNames = prerequisiteEntries(save,node).map(([id,rank]) => `${nodesFor(save).find(n => n.id === id)?.name || id} · rango ${rank}`);
     const recoveryNote = combatMove ? `${initiativeLabel(combatMove)} para la siguiente acción; no se acumula. ` : "";
-    const note = recoveryNote + (taijutsu ? "Equipa en T1 o T2. Consume vida y conserva libres tus ranuras elementales." : jutsu ? !learned ? `Necesitas: ${lockReason(save, original)}.` : equipped ? "La técnica seguirá aprendida." : full ? "Elige cuál cambiar. Ambas seguirán aprendidas." : "Aparecerá en tu barra de acciones al combatir." : "La especialización se aplica automáticamente al combatir.");
-    return `<aside class="technique-detail" style="--technique-color:${color}"><div class="technique-detail-body"><p class="eyebrow">${category}</p><h3>${escape(node.name)}</h3>${linkedMarkup}<div class="technique-element-art">${art}<div><strong>${escape(affinity)}</strong><span>${equipped ? "EN COMBATE" : level ? "APRENDIDA" : requirements.length ? "BLOQUEADA" : "DISPONIBLE"}</span></div></div><p class="technique-description">${escape(node.description)}</p><div class="resonance-rank"><span>${escape(taijutsu ? "Taijutsu · Físico" : node.type)}</span><strong>NIVEL ${level} / ${node.maxLevel}</strong></div>${metrics}<section class="resonance-effects"><h4>Efectos en combate</h4><p>${escape(effect)}</p></section><section class="resonance-requirements"><h4>Requisitos de progresión</h4><p>${escape(prerequisiteNames.length ? prerequisiteNames.join(" + ") : "Desde el Núcleo de Resonancia")}</p><p class="${requirements.length ? "is-missing" : "is-met"}">${escape(requirements.length ? requirements.join(" · ") : "Requisitos cumplidos")}</p></section><p class="technique-accuracy">${jutsu ? `${jutsu.accuracyMod > 0 ? "+" : ""}${jutsu.accuracyMod}% precisión · ${jutsu.affinityXpRequired} PX de afinidad para aprender` : taijutsu ? "Taijutsu · Sin sellos · 0 CH" : "Pasiva permanente · No ocupa ranura de combate"}</p></div><footer class="technique-detail-actions"><button type="button" class="resonance-invest-button" data-skill-invest="${node.id}" ${canInvest ? "" : "disabled"}>${investLabel}</button>${!requirements.length && level < node.maxLevel && resonancePoints(save) < node.cost ? '<p>Necesitas más puntos de Resonancia. Gana 2 al subir de nivel.</p>' : ""}${taijutsuButtons}${jutsu ? `<button class="technique-equip-button" type="button" data-technique-toggle="${jutsu.id}" ${learned ? "" : "disabled"}>${label}</button>` : ""}<p>${escape(note)}</p></footer></aside>`;
+    const note = recoveryNote + (taijutsu ? "Equipa en T1 o T2. Consume vida y conserva libres tus ranuras elementales." : jutsu ? !learned ? `Necesitas: ${lockReason(save, node)}.` : equipped ? "La técnica seguirá aprendida." : full ? "Elige cuál cambiar. Ambas seguirán aprendidas." : "Aparecerá en tu barra de acciones al combatir." : "La especialización se aplica automáticamente al combatir.");
+    return `<aside class="technique-detail" style="--technique-color:${color}"><div class="technique-detail-body"><p class="eyebrow">${category}</p><h3>${escape(node.name)}</h3><div class="technique-element-art">${art}<div><strong>${escape(affinity)}</strong><span>${equipped ? "EN COMBATE" : level ? "APRENDIDA" : requirements.length ? "BLOQUEADA" : "DISPONIBLE"}</span></div></div><p class="technique-description">${escape(node.description)}</p><div class="resonance-rank"><span>${escape(taijutsu ? "Taijutsu · Físico" : node.type)}</span><strong>NIVEL ${level} / ${node.maxLevel}</strong></div>${metrics}<section class="resonance-effects"><h4>Efectos en combate</h4><p>${escape(effect)}</p></section><section class="resonance-requirements"><h4>Requisitos de progresión</h4><p>${escape(prerequisiteNames.length ? prerequisiteNames.join(" + ") : "Desde el Núcleo de Resonancia")}</p><p class="${requirements.length ? "is-missing" : "is-met"}">${escape(requirements.length ? requirements.join(" · ") : "Requisitos cumplidos")}</p></section><p class="technique-accuracy">${jutsu ? `${jutsu.accuracyMod > 0 ? "+" : ""}${jutsu.accuracyMod}% precisión · Nivel de personaje ${node.unlockLevel} · ${jutsu.affinityXpRequired} PX de afinidad · desbloqueo con PR` : taijutsu ? "Taijutsu · Sin sellos · 0 CH" : "Pasiva permanente · No ocupa ranura de combate"}</p></div><footer class="technique-detail-actions"><button type="button" class="resonance-invest-button" data-skill-invest="${node.id}" ${canInvest ? "" : "disabled"}>${investLabel}</button>${!requirements.length && level < node.maxLevel && resonancePoints(save) < node.cost ? '<p>Necesitas más puntos de Resonancia. Gana 2 al subir de nivel.</p>' : ""}${taijutsuButtons}${jutsu ? `<button class="technique-equip-button" type="button" data-technique-toggle="${jutsu.id}" ${learned ? "" : "disabled"}>${label}</button>` : ""}<p>${escape(note)}</p></footer></aside>`;
   }
 
   function render(save) {
@@ -195,11 +190,6 @@ export function createDojoTechniques(deps) {
             refresh(save, '[data-replace-slot="0"]');
           }
         }
-      });
-      scope.listen(host,"change",event => {
-        if (!event.target.matches("[data-linked-skill]")) return;
-        selectedId = event.target.value;
-        refresh(bindings.getSave(),"[data-linked-skill]",true);
       });
       scope.listen(host, "keydown", event => {
         if (event.key === "Escape" && replacementId) { event.preventDefault(); event.stopPropagation(); cancel(); }

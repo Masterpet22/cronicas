@@ -56,10 +56,13 @@ assert.equal(validateAffinityOrder(["fuego", "agua", "tierra"]), true, "Tres afi
 assert.equal(validateAffinityOrder(["fuego", "fuego"]), false, "No deben aceptarse afinidades repetidas");
 assert.equal(validateAffinityOrder(["fuego", "agua", "tierra", "viento"]), false, "No deben aceptarse más de tres afinidades");
 assert.deepEqual(normalizeAffinityOrder(["fuego", "fuego", "agua", "tierra", "viento"]), ["fuego", "agua", "tierra"], "La normalización debe eliminar repetidas y limitar a tres");
-assert.equal(availableAffinitySlots(14, 3), 1, "El nivel debe bloquear la segunda afinidad aunque la historia haya avanzado");
-assert.equal(availableAffinitySlots(15, 2), 2, "Nivel e historia deben desbloquear juntos la segunda afinidad");
-assert.equal(availableAffinitySlots(35, 3), 2, "El progreso natural solo debe abrir dos afinidades");
-assert.equal(availableAffinitySlots(35, 3, true), 3, "El pergamino debe abrir la tercera afinidad");
+assert.equal(availableAffinitySlots(60, 3, true), 1, "Ni nivel, rango ni pergamino sustituyen las misiones");
+const trials = ["affinity_trial_2", "affinity_trial_3"];
+assert.equal(availableAffinitySlots(14, 3, false, "Novicio", trials), 1);
+assert.equal(availableAffinitySlots(15, 1, false, "Novicio", trials.slice(0, 1)), 2);
+assert.equal(availableAffinitySlots(29, 3, true, "Guardián", trials), 2);
+assert.equal(availableAffinitySlots(30, 1, false, "Novicio", trials), 3);
+assert.equal(availableAffinitySlots(60, 3, true, "Guardián", trials.slice(1)), 1, "Las pruebas son secuenciales");
 
 for (const attacker of ["fuego", "viento", "tierra", "agua"]) assert.equal(affinityCycleModifier(attacker, attacker), 0, "Una afinidad no debe aventajarse a sí misma");
 assert.equal(affinityCycleModifier("fuego", "viento"), 0.20, "Fuego debe vencer a Viento");

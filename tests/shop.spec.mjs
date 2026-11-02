@@ -11,6 +11,7 @@ async function seedShop(page) {
     save.progression.coins = 2000;
     save.progression.level = 15;
     save.campaign.elementRank = 2;
+    save.campaign.completedSecondaryMissions = ["affinity_trial_2"];
     save.campaign.rank = "Guardián";
     save.campaign.tutorialSeen = true; save.campaign.npcIntroductions = ["dojo:mei"];
     save.character.affinities = ["fuego", "viento"];
@@ -30,7 +31,7 @@ async function seedShop(page) {
   await expect(page.locator(".shop-panel")).toBeVisible();
 }
 
-test("compra, apila, equipa y conserva la tercera afinidad al recargar", async ({ page }) => {
+test("compra, apila, equipa y conserva el equipo al recargar", async ({ page }) => {
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await seedShop(page);
@@ -47,7 +48,7 @@ test("compra, apila, equipa y conserva la tercera afinidad al recargar", async (
   await page.locator('[data-shop-category="seals"]').click();
   await page.locator('[data-shop-item="seal_shadow"]').getByRole("button", { name: "Comprar" }).click();
   await page.locator('[data-shop-category="scrolls"]').click();
-  await page.locator('[data-shop-item="affinity_scroll"]').getByRole("button", { name: "Comprar" }).click();
+  await expect(page.locator('[data-shop-item="affinity_scroll"]')).toHaveCount(0);
   await page.screenshot({ path: "test-results/shop/tienda.png" });
   await page.getByRole("button", { name: "← Volver al mapa" }).click();
   await page.locator('[data-go="dojo"]').click();
@@ -56,25 +57,19 @@ test("compra, apila, equipa y conserva la tercera afinidad al recargar", async (
   await page.locator('[data-equipment-id="axe"]').click();
   await page.locator('[data-gear-slot="seal"]').click();
   await page.locator('[data-equipment-id="seal_shadow"]').click();
-  await page.locator("[data-dojo-affinity-scroll]").click();
-  await page.getByRole("button", { name: "Cancelar elección de afinidad" }).click();
-  expect((await stored(page)).inventory.items.affinity_scroll).toBe(1);
-  await page.locator("[data-dojo-affinity-scroll]").click();
-  await page.locator('[data-scroll-affinity="agua"]').click();
-  await expect(page.locator(".affinity-slots")).toContainText("Agua");
-  await expect(page.locator(".dojo-affinity-dialog")).toHaveCount(0);
+  await expect(page.locator(".affinity-slots")).toContainText("Nivel 30");
   const save = await stored(page);
   expect(save.equipment).toMatchObject({ weapon: "axe", seal: "seal_shadow" });
-  expect(save.character.affinities).toEqual(["fuego", "viento", "agua"]);
-  expect(save.inventory.extraAffinityUnlocked).toBe(true);
+  expect(save.character.affinities).toEqual(["fuego", "viento"]);
+  expect(save.inventory.extraAffinityUnlocked).toBe(false);
   expect(save.inventory.items.affinity_scroll).toBeUndefined();
-  expect(save.progression.coins).toBe(1079);
+  expect(save.progression.coins).toBe(1679);
   await page.reload();
   await page.locator('[data-go="dojo"]').click();
   await page.locator('[data-dojo-tab="equipment"]').click();
   await expect(page.locator('[data-gear-slot="weapon"]')).toContainText("Hacha de combate");
   await expect(page.locator('[data-gear-slot="seal"]')).toContainText("Sello de la sombra");
-  await expect(page.locator(".affinity-slots")).toContainText("Agua");
+  await expect(page.locator(".affinity-slots")).toContainText("Viento");
   expect((await stored(page)).inventory.items.health_potion).toBe(2);
   await page.screenshot({ path: "test-results/shop/equipo.png" });
   expect(errors).toEqual([]);
@@ -152,7 +147,7 @@ test("un contrato comprado se juega en el tablón y desbloquea un compañero al 
     const last = (await next.textContent()) === "VER OPCIONES";
     await next.click(); if (last) break;
   }
-  await expect(page.locator("[data-secondary-mission]")).toHaveCount(1);
+  await expect(page.locator("[data-secondary-mission]")).toHaveCount(2);
   await ensurePhaser(page);
   await page.evaluate(() => {
     const Base = window.Phaser.Game;
@@ -171,9 +166,9 @@ test("un contrato comprado se juega en el tablón y desbloquea un compañero al 
     scene.delay = async () => {};
     scene.finishBattle = async () => { scene.finished = true; scene.stopTurnTimeline(); };
     while (!scene.finished) { scene.enemy.hp = 0; await scene.resolveEnemyOutcome(); scene.stopTurnTimeline(); }
-    return scene.saveData.inventory.items.companion_hound;
+    return { companion:scene.saveData.inventory.items.companion_hound,rewards:scene.battleRewards };
   });
-  expect(pending).toBe(1);
+  expect(pending).toMatchObject({ companion:1,rewards:{ xp:100 } });
   expect((await stored(page)).inventory.items.companion_hound).toBeUndefined();
   await page.evaluate(async () => {
     const { battleRuntime } = await import("/src/battle/session.js?v=1.0.0");
@@ -190,33 +185,79 @@ test("un contrato comprado se juega en el tablón y desbloquea un compañero al 
   expect(errors).toEqual([]);
 });
 
-test("el pergamino exige Guardián y nivel 10 y conserva la tercera afinidad desde ese nivel", async ({ page }) => {
-  await seedShop(page);
-  await page.locator('[data-shop-category="scrolls"]').click();
-  await page.locator('[data-shop-item="affinity_scroll"] button').click();
-  const openEquipment = async (rank, level) => {
-    await page.evaluate(async ({ rank, level }) => {
-      const { loadSave, writeSave } = await import("/src/save.js?v=0.114.0");
-      const save = loadSave(); save.campaign.rank = rank; save.progression.level = level; writeSave(save);
-    }, { rank, level });
+for (const [slot, level, chosen] of [[2, 15, "viento"], [3, 30, "agua"]]) {
+  test(`la afinidad ${slot} exige nivel ${level} y vencer su misión especial`, async ({ page }) => {
+    const errors = []; page.on("pageerror", error => errors.push(error.message));
+    await seedShop(page);
+    await page.evaluate(async ({ slot, level }) => {
+      const { loadSave, writeSave } = await import("/src/save.js");
+      const save = loadSave(); save.progression.level = level - 1;
+      save.character.affinities = slot === 2 ? ["fuego"] : ["fuego", "viento"];
+      save.campaign.completedSecondaryMissions = slot === 2 ? [] : ["affinity_trial_2"];
+      save.inventory.items.affinity_scroll = 1; save.inventory.extraAffinityUnlocked = true;
+      writeSave(save);
+    }, { slot, level });
     await page.reload();
     await page.locator('[data-go="dojo"]').click();
     await page.locator('[data-dojo-tab="equipment"]').click();
-  };
-  await openEquipment("Novicio", 10);
-  await expect(page.locator("[data-dojo-affinity-scroll]")).toHaveCount(0);
-  await expect(page.locator(".affinity-slots")).toContainText("Guardián");
-  await openEquipment("Guardián", 9);
-  await expect(page.locator("[data-dojo-affinity-scroll]")).toHaveCount(0);
-  expect((await stored(page)).inventory.items.affinity_scroll).toBe(1);
-  await openEquipment("Guardián", 10);
-  await page.locator('[data-affinity-choice="viento"]').click();
-  await page.locator("[data-dojo-affinity-scroll]").click();
-  await page.locator('[data-scroll-affinity="agua"]').click();
-  expect((await stored(page)).character.affinities).toEqual(["fuego", "viento", "agua"]);
-  await page.reload();
-  expect((await stored(page)).character.affinities).toHaveLength(3);
-});
+    await expect(page.locator('[data-affinity-choice]')).toHaveCount(0);
+    await page.locator('[data-affinity-trials]').first().click();
+    const speech = page.locator("[data-stage-speech]");
+    for (let i = 0; i < 12 && await speech.isVisible(); i++) {
+      const next = speech.locator("[data-stage-next]");
+      const last = (await next.textContent()) === "VER OPCIONES";
+      await next.click(); if (last) break;
+    }
+    await expect(page.locator(`[data-secondary-mission="affinity_trial_${slot}"]`)).toHaveCount(0);
+    await page.evaluate(async level => {
+      const { loadSave, writeSave } = await import("/src/save.js");
+      const save = loadSave(); save.progression.level = level; writeSave(save);
+    }, level);
+    await page.reload();
+    await page.locator('[data-go="dojo"]').click();
+    await page.locator('[data-dojo-tab="equipment"]').click();
+    await expect(page.locator('[data-affinity-choice]')).toHaveCount(0);
+    await page.locator('[data-affinity-trials]').first().click();
+    await ensurePhaser(page);
+    await page.evaluate(() => {
+      const Base = window.Phaser.Game;
+      window.Phaser.Game = class extends Base { constructor(config) { super(config); window.__affinityGame = this; } };
+    });
+    await page.locator(`[data-secondary-mission="affinity_trial_${slot}"]`).click();
+    await page.locator(".dialogue-overlay button").click();
+    await expect.poll(() => page.evaluate(() => Boolean(window.__affinityGame?.scene.getScene("battle")?.hero)), { timeout: 60000 }).toBe(true);
+    const outcome = await page.evaluate(async () => {
+      const scene = window.__affinityGame.scene.getScene("battle");
+      scene.stopTurnTimeline();
+      scene.delay = async () => {};
+      scene.showPendingLevelUp = async () => {};
+      scene.finishBattle = async () => { scene.finished = true; scene.stopTurnTimeline(); };
+      const hp = scene.enemy.maxHp;
+      while (!scene.finished) { scene.enemy.hp = 0; await scene.resolveEnemyOutcome(); scene.stopTurnTimeline(); }
+      return { hp, level: scene.saveData.progression.level, rewards: scene.battleRewards };
+    });
+    expect(outcome.hp).toBeGreaterThan(150);
+    expect(outcome.level).toBe(level);
+    expect(outcome.rewards).toMatchObject({ xp: 0, coins: 0, affinityXp: 0 });
+    expect((await stored(page)).campaign.completedSecondaryMissions).not.toContain(`affinity_trial_${slot}`);
+    await page.evaluate(async () => {
+      const { battleRuntime } = await import("/src/battle/session.js?v=1.0.0");
+      battleRuntime.releaseGameToMeta("plaza", { commitVictory: true });
+    });
+    await page.locator('[data-go="dojo"]').click();
+    await page.locator('[data-dojo-tab="equipment"]').click();
+    await page.locator(`[data-affinity-choice="${chosen}"]`).click();
+    const save = await stored(page);
+    expect(save.character.affinities).toHaveLength(slot);
+    expect(save.character.affinities[slot - 1]).toBe(chosen);
+    expect(save.campaign.completedSecondaryMissions).toContain(`affinity_trial_${slot}`);
+    expect(save.character.affinityXp[chosen]).toBe(0);
+    expect(save.inventory.items.affinity_scroll).toBe(1);
+    await page.reload();
+    expect((await stored(page)).character.affinities).toHaveLength(slot);
+    expect(errors).toEqual([]);
+  });
+}
 
 test("la tienda y el equipo comprado caben en una ventana de 1280 × 720", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });

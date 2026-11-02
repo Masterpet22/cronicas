@@ -1,5 +1,6 @@
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
 import { validateMissionTransitions } from "./mission-transitions.js";
+import { missionXpPlan } from "./mission-rewards.js?v=1.0.0";
 
 export const MISSION_CATEGORIES = Object.freeze({ MAIN: "main", SECONDARY: "secondary" });
 export const MISSION_STEP_TYPES = Object.freeze(["dialogue", "combat", "investigation", "route", "choice", "resource", "consequence"]);
@@ -14,6 +15,7 @@ const completedSecondary = (save) => new Set(campaignOf(save).completedSecondary
 const combatIds = MISSIONS.filter((mission) => !mission.type).map((mission) => mission.id);
 const fieldIdsByType = Object.fromEntries([...MISSIONS, ...SECONDARY_MISSIONS].map((mission) => [mission.type, mission.id]));
 const DERIVED_CAMPAIGN_VALUES = Object.freeze({
+  secondAffinityChosen: (save) => (save?.character?.affinities?.length || 0) >= 2,
   kagemoriInvestigated: (save) => completedMain(save).has(fieldIdsByType.investigation),
   banditBossMissionUnlocked: (save) => completedMain(save).has(fieldIdsByType.investigation),
   doctorMissionUnlocked: (save) => completedMain(save).has(combatIds[1]),
@@ -130,6 +132,7 @@ export function validateMissionCatalog(missions, sagas = []) {
     }
   };
   missions.forEach((mission) => {
+    try { missionXpPlan(mission); } catch (error) { errors.push(`${mission.id}: ${error.message}`); }
     if (!mission.id || ids.has(mission.id)) errors.push(`ID de misión duplicado o vacío: ${mission.id || "(vacío)"}`);
     ids.add(mission.id);
     if (!Object.values(MISSION_CATEGORIES).includes(mission.category)) errors.push(`${mission.id}: categoría desconocida`);

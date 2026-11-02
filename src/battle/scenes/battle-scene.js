@@ -9,7 +9,7 @@ import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
 import { queueElementIcons, composeElementIcons } from "../element-icons.js?v=1.0.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
@@ -17,6 +17,7 @@ import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
 import { createEnemyState, resolveEnemyProfileForBattle } from "../enemy-state.js?v=0.114.0";
+import { affinityTrialProfile } from "../affinity-trial-combat.js?v=1.0.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
@@ -122,7 +123,10 @@ export class BattleScene extends Phaser.Scene {
     queuePlayerFighterTextures(this, this.playerAppearance());
   }
 
-  battleLoadoutForMission() { return [...battleRuntime.activeSave.loadout]; }
+  battleLoadoutForMission() {
+    const save = battleRuntime.activeSave;
+    return save.loadout.filter(id => isTechniqueLearned(save,JUTSU_LIBRARY.find(jutsu => jutsu.id === id)));
+  }
 
   create() {
     composeElementIcons(this, this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.element).filter(Boolean));
@@ -268,7 +272,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   recordEnemyObservation(observation) {
-    if (this.mission.tutorialReplay) return;
+    if (this.mission.tutorialReplay || this.mission.affinitySlot) return;
     const entry = bestiaryObservation(this.encounterIds, this.enemyIndex, observation);
     this.saveData = writeSave(recordBestiaryObservation(this.saveData, entry.enemyId, entry.observation));
     battleRuntime.activeSave = this.saveData;
@@ -359,7 +363,9 @@ export class BattleScene extends Phaser.Scene {
   }
 
   createEnemyState(profile) {
-    return createEnemyState(profile, this.mission, this.saveData.campaign, this.saveData.character.affinity);
+    const opponent = affinityTrialProfile(profile, this.mission, this.saveData);
+    if (this.mission.affinitySlot) this.encounters[this.enemyIndex] = opponent;
+    return createEnemyState(opponent, this.mission, this.saveData.campaign, this.saveData.character.affinity);
   }
 
   combatantSpeed(combatant) {

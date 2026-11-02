@@ -1,6 +1,6 @@
 # Línea temporal de combate
 
-Fecha de actualización: 2026-10-21.
+Referencia normativa: [BALANCE_COMBATE.md](BALANCE_COMBATE.md).
 
 ## Objetivo
 
@@ -17,15 +17,22 @@ La barra de velocidad representa iniciativa real. Jugador y enemigo tienen progr
 
 ## Velocidad y tiempos
 
-La tasa base es `0.8 / 1200 ms` para velocidad 10. Antes de elegir una acción se usa exclusivamente la velocidad efectiva del personaje, incluidos modificadores de estados como Empapado.
+La tasa base es `0.8 / 1200 ms` para velocidad 10. Durante la recuperación se usa la velocidad efectiva del personaje, incluidos Empapado y la iniciativa temporal de la acción anterior.
 
 El tiempo desde 0 % hasta 80 % es:
 
 ```text
-tiempo_hasta_80 = 12000 / velocidad_efectiva  (milisegundos)
+tiempo_hasta_80 = 12000 / (velocidad_efectiva × factor_iniciativa)  (milisegundos)
 ```
 
-Durante 80–100 %, la preparación usa `velocidad_efectiva + speedMod` de la acción, con un mínimo de 1. Esto permite que una técnica rápida prepare antes que una técnica pesada sin alterar la iniciativa ya acumulada.
+La iniciativa de una acción vale −1, 0 o +1 y fija el factor de la siguiente
+recuperación en 0,9, 1 o 1,1. El valor se reemplaza, no se acumula y se consume
+al llegar al 80 %. Reintentar o cambiar de rival lo limpia.
+
+La preparación elemental 80–100 % tarda `sellos × 300 ms × 10 / velocidad efectiva`.
+Una técnica a rango 3 usa un sello menos. La iniciativa temporal corresponde a
+recuperación; el número de sellos gobierna la preparación. Los ataques físicos
+enemigos preparados usan su anticipación definida en el planificador.
 
 ## Elección y simultaneidad
 
@@ -43,8 +50,8 @@ Durante 80–100 %, la preparación usa `velocidad_efectiva + speedMod` de la ac
 
 - Los estados periódicos se resuelven cuando el combatiente afectado completa su propia acción, no al final de una ronda global.
 - Los enfriamientos del jugador avanzan al completar una acción propia.
-- El jugador recupera 8 de chakra al completar una acción propia; Guardia conserva además su recuperación específica.
-- Guardia permanece activa hasta consumir el siguiente ataque enemigo. Mientras siga activa no puede prepararse otra Guardia.
+- El jugador recupera 5 CH por acción propia; Guardia recupera 25 CH totales.
+- Guardia permanece activa hasta el siguiente impacto directo acertado; fallos y aturdimiento enemigo la conservan. Mientras siga activa no puede prepararse otra Guardia.
 - `round` se mantiene como contador interno de acciones del jugador para compatibilidad e informes; ya no gobierna la iniciativa.
 
 ## Lenguaje visual

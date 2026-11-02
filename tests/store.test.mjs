@@ -62,19 +62,14 @@ assert.equal(countItem(migrated, "shadow_outfit"), 1);
 assert.equal(migrated.equipment.armor, undefined);
 assert.deepEqual(normalizeSave(migrated), migrated, "La migración se aplica una sola vez");
 
-save = purchaseItem(save, "affinity_scroll").save;
-save.character.affinities = ["fuego", "agua"];
-save.character.knownAffinities = ["fuego", "agua"];
-save.progression.level = 20;
-assert.equal(unlockAffinityWithScroll(save, "viento").ok, false, "Un Novicio no usa el pergamino");
-save.campaign.rank = "Guardián"; save.progression.level = 9;
-assert.equal(unlockAffinityWithScroll(save, "viento").ok, false);
-save.progression.level = 10;
-save = unlockAffinityWithScroll(save, "viento").save;
-assert.equal(normalizeSave(save).character.affinities.length, 3);
-assert.equal(countItem(save, "affinity_scroll"), 0);
+assert.equal(purchaseItem(save, "affinity_scroll").ok, false);
+save.inventory.items.affinity_scroll = 1;
+save.progression.level = 30;
+save.campaign.rank = "Guardián";
+assert.equal(unlockAffinityWithScroll(save, "viento").ok, false, "El objeto antiguo no evita las misiones especiales");
+assert.equal(countItem(save, "affinity_scroll"), 1);
 
-for (const mission of SECONDARY_MISSIONS) {
+for (const mission of SECONDARY_MISSIONS.filter(mission => mission.contractItem)) {
   assert.equal(missionState(mission, save).unlocked, false);
   save = purchaseItem(save, mission.contractItem).save;
   assert.equal(missionState(mission, save).unlocked, true);
@@ -95,4 +90,4 @@ save = equipItem(save, "companion", "companion_hound").save;
 assert.equal(normalizeSave(save).equipment.companion, "companion_hound");
 assert.equal(derivedStats(save).accuracy, withoutCompanion.accuracy + 3);
 assert.equal(derivedStats(save).luck, withoutCompanion.luck + 2);
-console.log("Tienda: venta a mitad, propiedad, sustitución, cosméticos, sellos, Guardián nivel 10 y contratos con recompensas únicas verificados.");
+console.log("Tienda: venta a mitad, propiedad, sustitución, cosméticos, sellos, pruebas de afinidad y contratos con recompensas únicas verificados.");

@@ -118,7 +118,7 @@ test("el cifrado se reanuda, revela el mapa completo y solo entonces entrega el 
   await expect(page.locator(".village-map-card")).toBeVisible();
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
   expect(saved.campaign.doctorBookDeliveryPending).toBe(true);
-  expect(saved.progression.xp).toBe(45);
+  expect(saved.progression.xp).toBe(50);
   expect(saved.progression.coins).toBe(30);
   expect(errors).toEqual([]);
 });

@@ -1,51 +1,248 @@
-# Balance de combate y progresión de la primera saga
+# Sistema de combate, progresión y recompensas
 
-Estas reglas cubren los cinco combates de la saga de siete misiones principales. Las cifras editables están en `src/progression-balance.js`, `src/affinity-system.js`, `src/chakra-balance.js`, `src/data.js` y las recompensas finales de cada misión en `src/content/sagas/`.
+Este documento es la referencia normativa del juego. El árbol y sus rutas se
+detallan en [ARBOL_RESONANCIA.md](ARBOL_RESONANCIA.md). El contrato para crear
+misiones está en [SISTEMA_MISIONES_DIALOGOS.md](SISTEMA_MISIONES_DIALOGOS.md).
+Las reglas de este documento se aplican al contenido jugable y a las expansiones.
 
-## Experiencia y niveles
+## Límites y monedas de progreso
 
-- Para subir del nivel `N` al `N + 1` se necesitan `80 + 40 × N` PX. La experiencia sobrante se conserva.
-- Cada enemigo tiene una recompensa por identidad; el orden del encuentro no altera sus PX ni sus monedas. El cierre de la misión añade su recompensa propia.
-- Los PX, las monedas y los niveles se calculan durante el combate, pero permanecen provisionales hasta que el jugador acepta el informe y vuelve a la aldea. Abandonar o perder los descarta. Una misión ya completada no vuelve a dar PX, PX de afinidad ni monedas al repetirse.
-- La ruta principal, sin contratos ni bonos de experiencia, lleva de nivel 1 a 2, 3, 4, 5 y 6 al terminar m01…m05. Kagemori y el médico son misiones principales intermedias; el médico concede 45 PX adicionales.
-- Cada nivel otorga automáticamente `+6 PV base`, `+1 fuerza base` y `+3 chakra base`; además, `+1 velocidad` cada tres niveles y `+1 suerte` cada cuatro. Fuego añade `+1 fuerza` cada dos niveles; agua, `+1 velocidad` cada dos; tierra, `+3 PV base` por nivel; viento, `+3 chakra base` por nivel. Los modificadores porcentuales de afinidad se aplican después.
-- Después de vencer al rival cuya experiencia cruza el umbral, el personaje brilla con luz blanca y el humo lleva a una ventana con los valores anteriores y nuevos de los cinco atributos. Al aceptar, el humo devuelve al mismo combate si quedan rivales; los bonos funcionan allí provisionalmente. La recompensa de cierre de misión puede causar otra subida antes del regreso. Abandonar muestra una confirmación que avisa de la pérdida de recompensas y niveles vistos.
-- Cada nivel también da dos puntos para distribuir en el Dojo. Un atributo puede recibir como máximo `nivel + 1` puntos, con mínimo de dos al nivel 1. Redistribuir devuelve los puntos invertidos. Al cargar una partida antigua, los puntos por encima del límite se devuelven para redistribuirlos.
+| Concepto | Regla |
+|---|---|
+| Nivel del personaje | 1–60 |
+| Rango de una habilidad | 0 bloqueada, 1–3 aprendida |
+| Puntos de habilidad o PR | 0 iniciales, 2 por subida; máximo 118 |
+| Puntos de atributos | 0 iniciales, 2 por subida; presupuesto separado |
+| Árbol completo | 38 habilidades, una por hexágono, más el centro del personaje |
+| Precio de cada rango comprado | 1 PR |
+| Rangos gratuitos | 2 técnicas principales, Disciplina del cuerpo y la primera de cada nueva afinidad |
+| Coste del árbol completo al rango 3 | 38 × 3 − 5 = 109 PR |
+| Presupuesto para completarlo | Nivel 56: 110 PR; nivel 60: 118 PR, con 9 restantes |
 
-## Daño y supervivencia
+Los PX de personaje suben el nivel. Los PX de afinidad habilitan el aprendizaje
+de técnicas. Los PR se gastan en el Dojo para desbloquear o mejorar habilidades.
+Los puntos de atributos se distribuyen por separado. Una misión entrega PX,
+monedas u objetos según su ficha; los puntos de habilidad proceden de las subidas.
 
-El daño base de una acción es `daño de la técnica + redondear(fuerza base × 0,75)`. Después se aplican la afinidad del atacante, la ventaja o desventaja elemental, la pasiva de fuego, la calidad de los sellos y el crítico. Finalmente se resta la reducción de daño y, si hay Guardia, el impacto se divide por dos redondeando hacia arriba. La precisión y la evasión deciden antes si el ataque acierta.
+## Experiencia y subida de nivel
 
-El crítico parte del 5 % y suma `floor(suerte efectiva × 0,8)`, con tope de 25 %. Los críticos siguen multiplicando el daño por 1,5. Una secuencia perfecta de sellos añade el 10 %; una secuencia con varios errores lo reduce al 85 %. El ciclo elemental conserva ±20 %.
+Subir desde nivel `N` cuesta `80 + 40 × N` PX. Para llegar desde nivel 1 a nivel
+`L` se necesitan `(L − 1) × (20 × L + 80)` PX acumulados.
 
-Entre enemigos de una misma misión se restauran el 22 % de los PV máximos y el 18 % del chakra máximo, con mínimo de 12 de cada recurso. Las decisiones especiales de la misión pueden sustituir esa recuperación.
+| Nivel de destino | PX desde el nivel anterior | PX acumulados desde nivel 1 |
+|---:|---:|---:|
+| 2 | 120 | 120 |
+| 15 | 640 | 5.320 |
+| 30 | 1.240 | 19.720 |
+| 40 | 1.640 | 34.320 |
+| 56 | 2.280 | 66.000 |
+| 60 | 2.440 | 75.520 |
 
-La reserva base de chakra es 60; se mantienen los bonos de equipo, afinidad, atributos y niveles. Al completar una acción propia se recuperan 5 CH, incluso si el golpe derrota al enemigo. Guardia es un descanso defensivo que recupera 25 CH **en total**, sustituyendo los 5 normales, y mantiene la reducción de daño del 50 %. No hay dos recuperaciones acumuladas.
+La experiencia sobrante se conserva y una recompensa puede producir varias
+subidas. El nivel 60 detiene los PX de personaje y las nuevas concesiones por
+nivel. Los PX de afinidad siguen entrenándose por el valor completo de la recompensa.
 
-Las técnicas iniciales cuestan 30–42 CH en nivel 1 y las definitivas hasta 72. Por ejemplo, Ascuas veloces cuesta 30 y deja un gasto neto de 25 después de recuperar 5; una Guardia devuelve 25. En nivel 5 cuesta 24 y deja un gasto neto de 19. Las reducciones de equipo/Resonancia no pueden rebajar el coste de una técnica a menos de la mitad del coste de su nivel actual (redondeado hacia arriba). El HUD, el Dojo y el tutorial usan las mismas reglas que el gasto real. El entrenamiento libre conserva su restauración de recursos después de cada prueba.
+Cada subida añade +6 PV base, +1 fuerza y +3 chakra; además, +1 velocidad cada
+tres subidas y +1 suerte cada cuatro. Fuego añade +1 fuerza cada dos subidas;
+Agua, +1 velocidad cada dos; Tierra, +3 PV por subida; Viento, +3 chakra por subida.
+Los modificadores de afinidad se aplican después de nivel, equipo y entrenamiento.
+Un atributo admite como máximo `nivel + 1` puntos entrenados, con mínimo 2.
 
-## Maestría y preparación
+## Regla obligatoria de recompensas de experiencia
 
-El máximo de cada habilidad es 5. Las técnicas elementales aprendidas empiezan en nivel 1 y admiten cuatro mejoras de Resonancia. Cada mejora añade +2 al daño y reduce el coste en 5 puntos porcentuales del coste original, hasta un 20 % en nivel 5. El coste se redondea hacia arriba. Al llegar a nivel 5 se elimina exactamente el último sello de la secuencia original. No cambia el enfriamiento ni el estado aplicado. Las inversiones anteriores conservan su nivel y ahora pueden seguir mejorándose. Las pasivas y los taijutsus también admiten hasta cinco niveles y conservan sus efectos por nivel; los taijutsus siguen consumiendo vida, sin chakra ni sellos.
+La recompensa de una misión se calcula con su **nivel recomendado fijo**, no con
+el nivel del jugador. Cada misión declara `recommendedLevel` y `rewardProfile`.
+La fórmula es `redondear((80 + 40 × nivel recomendado) × proporción)`.
 
-La preparación elemental entre 80–100 % tarda `sellos × 300 ms × 10 / velocidad efectiva del personaje`. A velocidad 10, uno/dos/tres/cuatro sellos tardan 300/600/900/1200 ms. El antiguo `speedMod` del jutsu no altera ese cálculo: el número de sellos define su dificultad de preparación. El rival sigue avanzando mientras se prepara la técnica. Los ataques físicos enemigos con preparación y sin sellos mantienen su regla propia de anticipación.
+| Perfil | Uso | Proporción de una subida |
+|---|---|---:|
+| `short` | Encargo corto, investigación o búsqueda | 25 % |
+| `normal` | Misión de duración normal | 50 % |
+| `hard` | Misión difícil | 75 % |
+| `boss` | Misión larga con jefe importante | 100 % |
+| `affinity` | Prueba especial que habilita una afinidad | 0 %; recompensa de desbloqueo |
 
-Varek, jefe del combate tutorial, adapta su afinidad a la debilidad frente a la principal del jugador: fuego→viento, agua→fuego, tierra→agua y viento→tierra. Esto aplica sus atributos y pasiva de esa afinidad, conservando identidad, recompensas y patrones. Los otros jefes y los bandidos del tutorial mantienen su afinidad. La adaptación también se usa al reintentar, repetir la misión y consultar su ficha en la Biblioteca; nunca modifica el catálogo global.
+Las principales de introducción, señaladas con `introductory: true`, conceden el
+100 % del umbral en niveles recomendados 1–5. Esto sostiene aproximadamente una
+subida por misión principal de combate. Después, la referencia son dos misiones
+normales del nivel adecuado por subida. La clasificación se elige considerando
+la duración y dificultad reales; incluir un enemigo jefe no clasifica por sí solo
+la misión completa como `boss`.
 
-Los perfiles enemigos muestran niveles 1–6 acordes con la etapa de la saga. Su vida, fuerza, precisión y patrones siguen definidos por enemigo en `src/data.js`; el número de nivel del rival es una indicación de dificultad y no aplica automáticamente los bonos del personaje jugador.
+| Nivel recomendado | Encargo corto | Normal | Difícil | Larga con jefe |
+|---:|---:|---:|---:|---:|
+| 10 | 120 | 240 | 360 | 480 |
+| 15 | 170 | 340 | 510 | 680 |
+| 30 | 320 | 640 | 960 | 1.280 |
+| 40 | 420 | 840 | 1.260 | 1.680 |
+| 59 | 610 | 1.220 | 1.830 | 2.440 |
 
-## Iniciativa, Guardia y cierre de acciones
+Todas las cifras son PX **totales**, incluidos enemigos y finalización.
 
-Cada acción define iniciativa −1, 0 o +1. Tras ejecutarla se asigna ese valor al combatiente, reemplazando el anterior. Durante el siguiente recorrido 0–80 %, la velocidad efectiva se multiplica por 0,9 / 1 / 1,1. Al llegar al 80 % se consume el modificador. No cambia la velocidad permanente ni el tramo 80–100 % de preparación por sellos. Golpe veloz, shuriken, Paso fugaz y golpe rápido enemigo dan +1; Guardia, Puño de hierro y golpe pesado enemigo dan −1; golpe de arma, técnicas elementales y objetos dan 0. Los dos combatientes usan la misma regla. Reintentar y cambiar de duelo reinicia la iniciativa.
+- Con combate: 60 % del presupuesto se reparte entre enemigos y 40 % al completar.
+  El grupo de enemigos se redondea y la finalización recibe el resto exacto.
+- El reparto entre encuentros usa pesos de dificultad: normal 1, élite 2 y jefe 3.
+  Los restos de redondeo se asignan por fracción mayor y orden de encuentro.
+- Una ruta que cambie el número de enemigos conserva el presupuesto de la misión.
+- Sin combate: el 100 % del presupuesto se paga al completar la actividad.
+- Un bono de PX, como +15 %, se aplica una vez al presupuesto total y luego se reparte.
+- El HUD y el Tablón muestran el total de la misión. El informe suma los encuentros
+  y la finalización; esta última no vuelve a entregar el total completo.
+- La primera victoria entrega recompensas una sola vez. Repetir una misión
+  completada entrega 0 PX de personaje, 0 PX de afinidad y 0 monedas.
+- Las exhibiciones, el entrenamiento y las pruebas de afinidad tienen su propia
+  recompensa de práctica o desbloqueo y no conceden PX de personaje ni monedas.
 
-Guardia devuelve 25 CH totales una sola vez y absorbe la mitad del primer impacto directo recibido. Un fallo o aturdimiento enemigo no la consume. No puede volver a usarse mientras siga activa. No elimina estados anteriores ni evita su daño periódico. El impacto protegido conserva el bloqueo de los estados añadidos por ese golpe; Empapado mantiene su pasiva elemental. La protección se reinicia al cambiar de duelo o reintentar.
+Las monedas por enemigo y finalización, los contratos, objetos y decisiones
+narrativas tienen sus valores declarados en el contenido. El presupuesto porcentual
+regula los PX, no impone una fórmula económica a las monedas.
 
-`closeActionState` centraliza el cierre mecánico para ambas partes: avanza Empapado una vez, asigna la iniciativa de recuperación y limpia la acción pendiente y el progreso de la barra. En acciones propias también avanza los enfriamientos una vez, recupera 5 CH (25 si fue Guardia) y cuenta la acción. Un turno perdido por aturdimiento no concede la iniciativa de un ataque que no se ejecutó. No se ejecutan dos acciones simultáneas ni se duplica su cierre. El entrenamiento libre usa el mismo cierre, con su restauración completa posterior habitual.
+`src/mission-rewards.js` calcula el presupuesto y el reparto. El registro de
+contenido genera `reward.totalXp` y `reward.xp` (solo finalización). Los ejecutores
+usan ese mismo plan con los encuentros concretos de la ruta y los bonos del equipo.
 
-Después se aplican los estados del actor una sola vez antes de resolver el encuentro. Excepción: si el jugador sigue vivo y su golpe derrota al último rival, se concede la victoria sin un daño periódico posterior que la anule. Contra rivales intermedios se resuelve el veneno antes de premiar y avanzar; si mata al jugador, se ofrece el reintento. CD1 exige completar otra acción propia antes de volver a usar esa técnica. El coste se paga al confirmar y no se devuelve al fallar.
+## Cobro y persistencia
 
-Las pruebas `tests/action-resolution.test.mjs` cubren iniciativa no acumulativa y consumida al 80 %, separación de preparación, Guardia ante fallos/aturdimiento/impactos, bloqueo de recarga repetida, estados anteriores, CD1, cierre único y prioridad de victoria final.
+En combate, PX, monedas y niveles son provisionales hasta confirmar el informe
+y regresar a la aldea. Perder o retirarse descarta esas ganancias. Los consumibles
+usados sí permanecen gastados. Las investigaciones y búsquedas registran su
+finalización una sola vez. El historial evita duplicar pagos o desbloqueos.
 
-## Objetivo y control
+La carga valida nivel, rangos, presupuesto, afinidades y predecesoras. Las
+inversiones que no cumplen las condiciones se liberan como PR disponibles. El
+saldo es estable al recargar y al cambiar de pantalla. El guardado se almacena
+en tres partidas locales independientes y usa el esquema 29.
 
-Con la técnica inicial de mayor daño de cada afinidad, sin invertir puntos, los enemigos de la saga requieren entre 2 y 5 impactos base acertados; Raizen requiere entre 4 y 7 según afinidad. Es una referencia de daño bruto: enfriamientos, fallos, estados, guardias y habilidades desbloqueadas cambian los turnos reales. `tests/progression-balance.test.mjs` comprueba esos límites, la curva de niveles en las cuatro afinidades, el cierre de recompensas repetibles, los bonos automáticos y el límite de entrenamiento. `tests/level-up.spec.mjs` comprueba el aviso visible y accesible de subida de nivel.
+## Afinidades
+
+El jugador elige los elementos y su orden. La afinidad principal aporta el 100 %
+de sus modificadores, la secundaria el 50 % y la tercera el 25 %.
+
+| Elemento | Bono principal | Penalización principal |
+|---|---|---|
+| Fuego | +20 % fuerza | −12 % velocidad |
+| Agua | +20 % velocidad | −12 % fuerza |
+| Tierra | +20 % vida | −12 % chakra |
+| Viento | +20 % chakra | −12 % vida |
+
+El ciclo es Fuego → Viento → Tierra → Agua → Fuego: +20 % de daño con ventaja,
+−20 % con desventaja y 0 % en los demás casos. Se comparan las afinidades
+principales de los combatientes, también en ataques físicos.
+
+Fuego obtiene Furia al perder vida, hasta +25 % de daño. Agua aplica Empapado,
+con hasta cinco cargas de −3 % de velocidad; el efecto sobre jefes se reduce a la
+mitad. Tierra tiene 20 % de probabilidad de Represalia, que devuelve 30 % del daño
+recibido con tope de 5 % de la vida máxima del atacante. Viento obtiene +8 de
+evasión con chakra completo. La evasión tiene tope de 75 % y la velocidad efectiva
+conserva al menos 70 % de su base, con mínimo 1.
+
+La segunda afinidad exige nivel 15 y superar **El despertar de la segunda afinidad**
+(un duelo). La tercera exige nivel 30, haber elegido la segunda y superar
+**La armonía de las tres afinidades** (dos duelos). Las pruebas aparecen en el
+Tablón al cumplir sus requisitos. Confirmar la victoria abre la ranura; el elemento
+se elige en el Dojo y su primera técnica es gratuita. Perder o abandonar deja la
+ranura bloqueada. Los custodios adaptan vida, fuerza y velocidad al personaje.
+
+Varek, el jefe tutorial, usa el elemento débil frente al principal del jugador:
+Fuego → Viento, Agua → Fuego, Tierra → Agua y Viento → Tierra.
+
+## Habilidades, aprendizaje y maestría
+
+Una habilidad requiere su casilla, afinidades activas, nivel mínimo, PX de afinidad
+cuando corresponda y predecesoras al rango indicado. Cumplirlos habilita comprar
+el primer rango por 1 PR. Equipo, entrenamiento y combate validan esa adquisición.
+Las gratuitas se conceden al crear el personaje o elegir cada nueva afinidad.
+
+Las técnicas iniciales permiten rangos 2 y 3 en niveles de personaje 3 y 8.
+Disciplina del cuerpo los permite en 2 y 6. En las demás habilidades los rangos
+2 y 3 requieren `nivel de desbloqueo + 2` y `nivel de desbloqueo + 5`.
+La barrera máxima de rango es nivel 53; el presupuesto para todo el árbol se
+alcanza en 56. Las 24 combinaciones y órdenes mantienen el mismo coste de 109 PR.
+
+Las rutas exactas de cada habilidad figuran en [ARBOL_RESONANCIA.md](ARBOL_RESONANCIA.md)
+y en la ficha del Dojo, con el rango requerido de cada predecesora. Las etapas
+principales de técnicas son 6, 12, 24 y 40; las combinadas usan 20, 32 y 48.
+Las pasivas tienen sus niveles propios según su posición y efecto.
+
+Cada mejora de técnica añade +2 de daño y descuenta 5 puntos porcentuales del
+chakra original: rango 2 añade +2/−5 % y rango 3 +4/−10 %. El coste se redondea
+hacia arriba. Al rango 3 se elimina un sello. Los efectos de estado y el enfriamiento
+se conservan entre rangos. Las pasivas aplican su efecto por rango aprendido.
+
+Puño de hierro y Paso fugaz son técnicas físicas equipables en dos ranuras
+independientes, T1 y T2. Consumen 8 y 5 PV, respectivamente, con 0 CH y sin sellos;
+el coste no puede derrotar al usuario. Cada rango adicional añade +2 al daño.
+
+Látigo de corriente y Muralla pétrea tienen 22 de daño y coste 40 CH. Filo de
+vendaval tiene 20 de daño y coste 38 CH. Lanza abisal se aprende a nivel 40:
+38 de daño, 62 CH, CD3, cuatro sellos y Sellado de un turno. Pulso sísmico también
+requiere nivel 40: 40 de daño, 64 CH, CD3, cuatro sellos y Aturdido de un turno.
+
+## Daño, precisión y estados
+
+La base es `daño de técnica + redondear(fuerza base × 0,75)`. Se aplican fuerza de
+afinidad, ciclo, Furia, calidad de sellos y crítico, y después la reducción plana.
+Guardia divide el impacto protegido entre dos, redondeando hacia arriba.
+La precisión y evasión resuelven si el ataque acierta.
+
+El crítico empieza en 5 % y añade `floor(suerte efectiva × 0,8)`, con máximo 25 %;
+se multiplica el daño por 1,5. Sellos perfectos añaden 10 % de daño y varios
+errores dejan el multiplicador en 85 %. Sellado resta 15 puntos de precisión.
+Los estados periódicos avanzan en las acciones del combatiente afectado.
+
+## Chakra y Guardia
+
+La base es 60 CH antes de equipo, afinidades, nivel y entrenamiento. Una acción
+propia recupera 5 CH. Guardia recupera **25 CH totales** y protege el siguiente
+impacto directo con reducción del 50 %. Un fallo o aturdimiento enemigo conserva
+la protección; esta impide repetir Guardia para recargar varias veces.
+Los estados activos conservan su duración y daño periódico.
+
+Las técnicas iniciales cuestan 30–42 CH y las más costosas llegan a 72 CH en
+rango 1. El descuento de equipo y pasivas conserva al menos la mitad del coste
+después de maestría, redondeada hacia arriba. El coste se paga al confirmar la
+acción; un fallo conserva el gasto. Al cambiar de rival se recupera 22 % de PV
+y 18 % de chakra máximos, con mínimo 12 de cada uno, salvo recursos de misión.
+
+## Velocidad, iniciativa y cierre de acciones
+
+Ambos combatientes avanzan de forma independiente. El tramo 0–80 % es recuperación:
+`12000 / velocidad efectiva` milisegundos, modificado por iniciativa temporal.
+Cada acción asigna −1, 0 o +1 a la siguiente recuperación: ×0,9, ×1 o ×1,1 en su
+velocidad. El valor reemplaza al anterior y se consume al llegar al 80 %.
+
+La preparación elemental 80–100 % tarda
+`sellos × 300 ms × 10 / velocidad efectiva`. Más sellos requieren más tiempo.
+El enemigo sigue avanzando durante la preparación. Al llegar el jugador al 80 %,
+la elección pausa el tiempo hasta confirmar una acción válida. Los ataques físicos
+enemigos preparados usan su anticipación definida en el planificador.
+
+Golpe veloz, shuriken, Paso fugaz y golpe rápido enemigo dan +1; Guardia, Puño de
+hierro y golpe pesado enemigo dan −1. Técnicas elementales, armas y objetos dan 0.
+La iniciativa temporal se limpia al reintentar y al cambiar de duelo.
+
+`closeActionState` cierra una acción una sola vez: avanza Empapado y enfriamientos,
+asigna la iniciativa, recupera el chakra correspondiente y limpia preparación y
+barra del actor. El rival conserva su progreso. CD1 requiere completar otra acción
+propia antes de reutilizar la técnica. Un ataque perdido por aturdimiento no concede
+su iniciativa. Los estados periódicos se resuelven una vez por acción propia.
+
+Un golpe final que derrota al último rival concede victoria si el jugador sigue
+vivo, antes de un daño periódico posterior. En encuentros intermedios, los estados
+se resuelven antes de avanzar; si derrotan al jugador se ofrece reintento.
+
+## Validación y mantenimiento
+
+- `src/progression-balance.js`: curva de nivel, crecimiento, recuperación y pesos.
+- `src/mission-rewards.js`: perfiles de misión, presupuesto, bonos y reparto exacto.
+- `src/skills/definitions.js`, `unlock-levels.js`, `progression.js`: rutas y compras.
+- `src/affinity-system.js`, `chakra-balance.js`: afinidades, recursos y descuentos.
+- `src/battle/initiative.js`, `timeline.js`, `action-resolution.js`: ritmo y cierre.
+- `npm test`: comprueba reglas, presupuestos, 24 órdenes, persistencia y contenido.
+- `node scripts/audit-balance.mjs --json=artifacts/balance-current.json`: informe
+  reproducible de las reglas y del contenido registrado.
+
+Las pruebas de navegador verifican compra, bloqueo, equipamiento, combate,
+entrenamiento y regreso. Las cifras de daño bruto de la saga se contrastan en
+las cuatro afinidades; las tasas de victoria y duración real requieren partidas
+jugadas y se deben medir al ampliar el contenido.

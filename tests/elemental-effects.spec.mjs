@@ -7,23 +7,23 @@ for (const renderer of ["Canvas", "WebGL"]) {
     const failures = [], errors = [];
     page.on("response", response => { if (response.status() >= 400 && response.url().includes("/assets/")) failures.push(response.url()); });
     page.on("pageerror", error => errors.push(error.message));
-    await bootPerformanceReference(page, { renderer, loadout: ["storm_domain", "fire_embers"] });
+    await bootPerformanceReference(page, { renderer, loadout: ["lightning_heaven", "fire_embers"] });
     const result = await page.evaluate(async () => {
       const scene = window.__performanceReference.scene;
-      const texture = scene.textures.get("element-tormenta");
+      const texture = scene.textures.get("element-rayo");
       const pixels = texture.context.getImageData(0, 0, 512, 512).data;
       const before = texture;
       const { composeElementIcons } = await import("/src/battle/element-icons.js?v=1.0.0");
-      composeElementIcons(scene, ["tormenta"]);
+      composeElementIcons(scene, ["rayo"]);
       return {
-        action: scene.actions.find(action => action?.id === "storm_domain")?.iconTexture,
-        basic: ["viento", "fuego", "agua"].every(id => scene.textures.exists(`element-${id}`)),
+        action: scene.actions.find(action => action?.id === "lightning_heaven")?.iconTexture,
+        basic: ["viento", "fuego"].every(id => scene.textures.exists(`element-${id}`)),
         visible: pixels.some((value, index) => index % 4 === 3 && value > 0),
-        cached: before === scene.textures.get("element-tormenta"),
+        cached: before === scene.textures.get("element-rayo"),
         advancedRequests: performance.getEntriesByType("resource").filter(entry => /assets\/elements\/tier-[234]\//.test(entry.name)).length
       };
     });
-    expect(result).toEqual({ action: "element-tormenta", basic: true, visible: true, cached: true, advancedRequests: 0 });
+    expect(result).toEqual({ action: "element-rayo", basic: true, visible: true, cached: true, advancedRequests: 0 });
     expect(failures).toEqual([]);
     expect(errors).toEqual([]);
     await page.screenshot({ path: `test-results/element-icons/combat-${renderer}.png` });

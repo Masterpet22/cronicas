@@ -1,6 +1,5 @@
 import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.126.0";
 import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
-import { AFFINITY_IDS } from "./affinity-system.js?v=0.114.0";
 import { GUILD_STARTER_ITEMS, GUILD_INVENTORY_VERSION, guildInventoryGrants } from "./guild-catalog.js?v=0.126.0";
 import { placedDecorationCount } from "./guild.js?v=0.126.0";
 
@@ -111,9 +110,7 @@ export function equipCosmetic(save, id) {
   return success({ ...save, character: { ...save.character, [item.cosmeticSlot]: item.value } }, `${item.name} seleccionado.`);
 }
 
-export const affinityScrollRequirement = save => save?.campaign?.rank !== "Guardián" || save?.progression?.level < 10
-  ? "Requiere rango Guardián y nivel 10 como mínimo."
-  : save.character.affinities.length !== 2 ? "Necesitas dos afinidades activas." : "";
+export const affinityScrollRequirement = () => "Completa la prueba de afinidad del Tablón y elige el elemento en el Dojo: nivel 15 para la segunda y 30 para la tercera.";
 
 export function removeItem(save, id) {
   if (!ITEMS[id] || countItem(save, id) < 1 || ["equipment", "decoration"].includes(ITEMS[id].kind)) return failure(save, "No tienes un objeto utilizable de ese tipo.");
@@ -123,20 +120,8 @@ export function removeItem(save, id) {
   return success(next, `${ITEMS[id].name} usado.`);
 }
 
-export function unlockAffinityWithScroll(save, affinity) {
-  if (!save?.character) return failure(save, "Primero crea un personaje.");
-  const known = save?.character?.affinities || [];
-  if (!AFFINITY_IDS.includes(affinity) || known.includes(affinity)) return failure(save, "Elige una afinidad diferente.");
-  if (save.inventory?.extraAffinityUnlocked) return failure(save, "La tercera afinidad ya está desbloqueada.");
-  const requirement = affinityScrollRequirement(save);
-  if (requirement) return failure(save, requirement);
-  const result = removeItem(save, "affinity_scroll");
-  if (!result.ok) return result;
-  const next = result.save;
-  next.inventory.extraAffinityUnlocked = true;
-  next.character = { ...save.character, affinities: [...known, affinity], knownAffinities: [...new Set([...save.character.knownAffinities, affinity])],
-    affinityXp: { ...save.character.affinityXp, [affinity]: Math.max(50, save.character.affinityXp[affinity] || 0) } };
-  return success(next, `Tercera afinidad desbloqueada: ${affinity}.`);
+export function unlockAffinityWithScroll(save) {
+  return failure(save, affinityScrollRequirement());
 }
 
 export function missionItemEffect(itemId, player) {

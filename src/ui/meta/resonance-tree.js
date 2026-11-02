@@ -34,11 +34,10 @@ export const viewBox = view => `${view.x} ${view.y} ${view.width} ${view.height}
 
 export function resonanceTreeMarkup(save,deps,selectedId,view) {
   const escape = deps.escapeHtml;
-  const allNodes = skillTreeNodes(save);
-  const cells = allNodes.filter(node => node.id===node.cellId);
-  const selected = allNodes.find(node => node.id===selectedId);
+  const nodes = skillTreeNodes(save);
+  const cells = nodes;
+  const selected = nodes.find(node => node.id===selectedId);
   const colorOf = cell => skillRegionColor(save,cell);
-  const nodes = cells.map(cell => selected?.cellId===cell.id ? { ...selected,category:cell.category,slot:cell.slot,bridge:cell.bridge,cellId:cell.id } : cell);
   const bounds = treeBounds(cells);
   const regionColors = new Map();
   const regions = [
@@ -66,8 +65,7 @@ export function resonanceTreeMarkup(save,deps,selectedId,view) {
     const equipped=physicalSlot>=0 || slot>=0;
     const status=physicalSlot>=0 ? `EN COMBATE · TAIJUTSU ${physicalSlot+1}` : slot>=0 ? `EN COMBATE · RANURA ${slot+1}` : labels[state];
     const stamps=node.affinityIds.map((id,i) => `<image class="resonance-element-stamp" href="${deps.elementIcon(id)}" x="${node.affinityIds.length>1 ? -17+i*14 : -8}" y="-31" width="16" height="16" aria-hidden="true"/>`).join("");
-    const linked=allNodes.filter(other => other.cellId===cell.id).length-1;
-    return `<g class="resonance-node is-${state} ${cell.category === "hybrid" ? "is-hybrid" : ""} ${selected?.cellId===cell.id ? "is-selected" : ""}" transform="translate(${x} ${y})" style="--node-color:${color}" role="button" tabindex="0" aria-pressed="${selected?.cellId===cell.id}" aria-label="${escape(node.name)}. ${status}. Nivel ${level} de ${node.maxLevel}${linked ? `. ${linked} técnicas vinculadas en la ficha` : ""}" data-skill-select="${node.id}" data-cell-id="${cell.id}" data-q="${node.q}" data-r="${node.r}" data-category="${cell.category}" data-slot="${cell.slot ?? ""}" data-bridge="${cell.bridge || ""}" data-state="${state}" data-node-color="${color}"><title>${escape(node.name)} · ${status}</title><polygon class="resonance-hex-outline" points="${hexPoints(44)}"/><polygon class="resonance-hex" points="${hexPoints()}" stroke="${color}"/><polygon class="resonance-hex-inset" points="${hexPoints(35)}"/>${stamps}<path class="resonance-glyph" d="${PATHS[node.icon] || PATHS.seal}" stroke="${color}"/>${state === "locked" ? '<g class="resonance-lock" transform="translate(17 15)"><rect x="-5" y="0" width="10" height="9" rx="1"/><path d="M-3 0v-3a3 3 0 0 1 6 0v3"/></g>' : `<text class="resonance-level" x="0" y="28" text-anchor="middle">${level ? `${level}/${node.maxLevel}` : "+"}</text>`}${equipped ? '<circle class="resonance-equipped" cx="25" cy="-19" r="5"/>' : ""}${linked ? `<text class="resonance-linked-count" x="-24" y="21">+${linked}</text>` : ""}<text class="skill-state" aria-hidden="true">${escape(status)}</text></g>`;
+    return `<g class="resonance-node is-${state} ${cell.category === "hybrid" ? "is-hybrid" : ""} ${selected?.cellId===cell.id ? "is-selected" : ""}" transform="translate(${x} ${y})" style="--node-color:${color}" role="button" tabindex="0" aria-pressed="${selected?.cellId===cell.id}" aria-label="${escape(node.name)}. ${status}. Nivel ${level} de ${node.maxLevel}" data-skill-select="${node.id}" data-cell-id="${cell.id}" data-q="${node.q}" data-r="${node.r}" data-category="${cell.category}" data-slot="${cell.slot ?? ""}" data-bridge="${cell.bridge || ""}" data-state="${state}" data-node-color="${color}"><title>${escape(node.name)} · ${status}</title><polygon class="resonance-hex-outline" points="${hexPoints(44)}"/><polygon class="resonance-hex" points="${hexPoints()}" stroke="${color}"/><polygon class="resonance-hex-inset" points="${hexPoints(35)}"/>${stamps}<path class="resonance-glyph" d="${PATHS[node.icon] || PATHS.seal}" stroke="${color}"/>${state === "locked" ? '<g class="resonance-lock" transform="translate(17 15)"><rect x="-5" y="0" width="10" height="9" rx="1"/><path d="M-3 0v-3a3 3 0 0 1 6 0v3"/></g>' : `<text class="resonance-level" x="0" y="28" text-anchor="middle">${level ? `${level}/${node.maxLevel}` : "+"}</text>`}${equipped ? '<circle class="resonance-equipped" cx="25" cy="-19" r="5"/>' : ""}<text class="skill-state" aria-hidden="true">${escape(status)}</text></g>`;
   }).join("");
   const identity=characterResonanceSymbol(save.character);
   const coreColors=characterCoreColors(save.character);

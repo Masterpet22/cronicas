@@ -117,6 +117,7 @@ export class ResultsScene extends Phaser.Scene {
       ["Monedas obtenidas", completed ? `+${data.rewards?.coins || 0}` : "+0"]
     ];
     if (data.item) rows.push(["Objeto recuperado", data.item]);
+    if (data.affinitySlot) rows.push(["Afinidad desbloqueada", `${data.affinitySlot} · Elige el elemento en el Dojo`]);
     rows.forEach(([label, value], index) => {
       const y = 290 + index * 27;
       this.add.circle(377, y, 2.5, index === 0 ? 0x39251a : 0xa32620, 0.82).setDepth(5);

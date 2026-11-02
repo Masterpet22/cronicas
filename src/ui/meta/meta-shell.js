@@ -5,6 +5,7 @@ export function createMetaShell(deps) {
     id: "meta-shell",
     render({ save, view }, content) {
       const { character, progression, campaign } = save;
+      const xpForNext = deps.xpForNextLevel(progression.level);
       const currentLocation = deps.locations.find((location) => location.id === view)
         || (view === "kagemori" ? { name: "Aldea de Kagemori" } : view === "doctor-route" ? { name: "Caminos del Norte" } : view === "debug" ? { name: "Herramientas de pruebas" } : null);
       const isSecondaryField = view === "kagemori" || view === "doctor-route";
@@ -20,7 +21,7 @@ export function createMetaShell(deps) {
               <span class="level-chip" aria-label="Nivel ${progression.level}"><small>NIVEL</small><strong>${progression.level}</strong></span>
             </div>
             <div class="campaign-summary" aria-label="Progreso de la partida">
-              <span class="summary-item" aria-label="${progression.xp} de ${deps.xpForNextLevel(progression.level)} puntos de experiencia"><img class="hud-stat-icon" src="assets/ui/hud-icons/progress-emblem.webp?v=0.83.0" alt="" aria-hidden="true"><strong>${progression.xp}/${deps.xpForNextLevel(progression.level)}</strong><small>PX</small></span>
+              <span class="summary-item" aria-label="${xpForNext ? `${progression.xp} de ${xpForNext} puntos de experiencia` : "Nivel máximo alcanzado"}"><img class="hud-stat-icon" src="assets/ui/hud-icons/progress-emblem.webp?v=0.83.0" alt="" aria-hidden="true"><strong>${xpForNext ? `${progression.xp}/${xpForNext}` : "MÁX."}</strong><small>PX</small></span>
               <span class="summary-item" aria-label="${progression.coins} monedas"><img class="hud-stat-icon" src="assets/ui/hud-icons/coins.webp?v=0.83.0" alt="" aria-hidden="true"><strong>${progression.coins}</strong><small>monedas</small></span>
             </div>
             <div class="topbar-actions" aria-label="Acciones de la partida">

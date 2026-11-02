@@ -1,5 +1,8 @@
 import { normalizeBirthday } from "./birthday.js?v=0.127.0";
-import { normalizeResonance, resonanceBonuses } from "./skills/progression.js?v=1.0.0";
+import { normalizeResonance, resonanceBonuses, skillLevel } from "./skills/progression.js?v=1.0.0";
+import { SKILLS_BY_ID } from "./skills/definitions.js?v=1.0.0";
+import { missionXpPlan } from "./mission-rewards.js?v=1.0.0";
+import { resolveEncounterIds } from "./combat-modifiers.js?v=0.114.0";
 import { normalizeTaijutsuLoadout } from "./skills/taijutsu.js?v=1.0.0";
 import { normalizeIntroductions } from "./location-conversations.js?v=0.131.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
@@ -20,14 +23,15 @@ import { LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
 import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.126.0";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
 import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js?v=0.114.0";
-import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
+import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, MAX_CHARACTER_LEVEL, addExperience, characterLevel, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
+import { AFFINITY_TRIALS } from "./content/affinity-progression.js?v=1.0.0";
 export { attributeTrainingLimit };
 import { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
 export { MASTER_IDS, assignedMasterId, masterIdForCharacter } from "./save/character-state.js";
 export const SAVE_KEY = "cronicas-del-sello-save";
 export const ACTIVE_SAVE_SLOT_KEY = `${SAVE_KEY}-active-slot`;
 export const MAX_SAVE_SLOTS = 3;
-export const SAVE_VERSION = 27;
+export const SAVE_VERSION = 29;
 
 const DEFAULT_EQUIPMENT = { weapon: "kunai", throwable: "shuriken", seal: "seal_wind", accessory: "chakra_charm", companion: null };
 const MAIN_MISSION_IDS = Object.freeze(MISSIONS.map((mission) => mission.id));
@@ -94,9 +98,7 @@ export function affinityXpForElement(character, elementId) {
 }
 
 export function isTechniqueLearned(save, jutsu) {
-  return Boolean(jutsu)
-    && jutsu.unlockLevel <= (Number(save?.progression?.level) || 1)
-    && affinityXpForElement(save?.character, jutsu.element) >= jutsu.affinityXpRequired;
+  return Boolean(jutsu?.id) && skillLevel(save, SKILLS_BY_ID.get(jutsu.id)) > 0;
 }
 
 function normalizeHairStyle(value) {
@@ -130,14 +132,14 @@ function validEquipment(type, id, inventory) {
 }
 
 export function normalizeSave(candidate) {
+  const sourceVersion = Number(candidate?.version) || 0;
   const inventory = normalizeInventory(candidate);
   candidate = migrateSaveToV18(candidate, { missions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS });
   const defaults = createDefaultSave();
   if (!candidate || typeof candidate !== "object") return defaults;
   const progression = candidate.progression || {};
   const attributes = progression.attributes || {};
-  const level = Math.max(1, Math.floor(Number(progression.level) || 1));
-  const resonance = normalizeResonance(progression.resonance,level);
+  const level = characterLevel(progression.level);
   const trainingLimit = attributeTrainingLimit(level);
   const trainedAttributes = Object.fromEntries(["health", "strength", "speed", "chakra", "luck"].map((id) => [id, Math.max(0, Math.floor(Number(attributes[id]) || 0))]));
   const excessTraining = Object.values(trainedAttributes).reduce((sum, points) => sum + Math.max(0, points - trainingLimit), 0);
@@ -146,10 +148,16 @@ export function normalizeSave(candidate) {
     .filter((id) => MISSIONS.some((mission) => mission.id === id));
   const completedSecondaryMissions = [...new Set(Array.isArray(candidate.campaign?.completedSecondaryMissions) ? candidate.campaign.completedSecondaryMissions : [])]
     .filter((id) => SECONDARY_MISSIONS.some((mission) => mission.id === id));
-  const elementRank = Math.min(3, Math.max(1, Math.floor(Number(candidate.campaign?.elementRank) || 1)));
-  const requestedAffinities = Array.isArray(candidate.character?.affinities) ? candidate.character.affinities : [candidate.character?.affinity];
-  const slots = availableAffinitySlots(level, elementRank, inventory.extraAffinityUnlocked, candidate.campaign?.rank);
-  const affinities = normalizeAffinityOrder(requestedAffinities).slice(0, slots);
+  const requestedAffinities = normalizeAffinityOrder(Array.isArray(candidate.character?.affinities) ? candidate.character.affinities : [candidate.character?.affinity]);
+  // Las afinidades ya aprendidas antes de introducir las pruebas se conservan.
+  if (sourceVersion < 28) {
+    for (const trial of AFFINITY_TRIALS) {
+      if (requestedAffinities.length >= trial.slot && level >= trial.level && !completedSecondaryMissions.includes(trial.id)) completedSecondaryMissions.push(trial.id);
+    }
+  }
+  const slots = availableAffinitySlots(level, 1, false, "Novicio", completedSecondaryMissions);
+  const elementRank = slots;
+  const affinities = requestedAffinities.slice(0, slots);
   if (!affinities.length) affinities.push("fuego");
   const affinity = affinities[0];
   const knownAffinities = [...new Set([...(candidate.character?.knownAffinities || []), ...affinities, ...(slots >= 2 ? BASIC_ELEMENT_IDS : [])])].filter((id) => BASIC_ELEMENT_IDS.includes(id));
@@ -159,8 +167,11 @@ export function normalizeSave(candidate) {
   }));
   const bodyType = candidate.character?.bodyType === "female" ? "female" : "male";
   const masterId = MASTER_IDS.includes(candidate.character?.masterId) ? candidate.character.masterId : assignedMasterId(bodyType);
-  const normalizedCharacter = { affinityXp };
-  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => isTechniqueLearned({ character: normalizedCharacter, progression: { level } }, jutsu) && canAccessElement(jutsu.element, affinities, elementRank)).map((jutsu) => jutsu.id));
+  const normalizedCharacter = { affinityXp, affinities };
+  const skillContext = { character: normalizedCharacter,progression:{ level },campaign:{ elementRank } };
+  const resonance = normalizeResonance(progression.resonance,skillContext,{ reset: sourceVersion < 29 });
+  skillContext.progression.resonance = resonance;
+  const unlockedIds = new Set(JUTSU_LIBRARY.filter((jutsu) => isTechniqueLearned(skillContext, jutsu)).map((jutsu) => jutsu.id));
   const requestedLoadout = Array.isArray(candidate.loadout) ? candidate.loadout : initialLoadout(affinity);
   const selectedLoadout = [...new Set(requestedLoadout)]
     .filter((id) => unlockedIds.has(id));
@@ -190,7 +201,7 @@ export function normalizeSave(candidate) {
     } : null,
     progression: {
       level,
-      xp: Math.max(0, Math.floor(Number(progression.xp) || 0)),
+      xp: level === MAX_CHARACTER_LEVEL ? 0 : Math.max(0, Math.floor(Number(progression.xp) || 0)),
       coins: Number.isFinite(Number(progression.coins)) ? Math.max(0, Math.min(9999999, Math.floor(Number(progression.coins) || 0))) : 0,
       attributePoints: Math.max(0, Math.floor(Number(progression.attributePoints) || 0)) + excessTraining,
       resonance,
@@ -333,26 +344,23 @@ export function applyDebugCheckpoint(save, checkpointId) {
 }
 
 export function xpForNextLevel(level) {
-  return experienceForNextLevel(level);
+  return characterLevel(level) === MAX_CHARACTER_LEVEL ? 0 : experienceForNextLevel(level);
 }
 
-export function awardEncounter(save, enemyId, { firstClear = true } = {}) {
+export function awardEncounter(save, enemyId, { firstClear = true, mission, encounterIndex, encounterIds } = {}) {
   const result = normalizeSave(save);
-  const base = firstClear ? ENCOUNTER_REWARDS[enemyId] : null;
+  const base = firstClear && mission?.rewardProfile !== "affinity" ? ENCOUNTER_REWARDS[enemyId] : null;
   if (!base) return { save: result, xp: 0, affinityXp: 0, coins: 0, levelsGained: 0 };
+  if (!mission) throw new Error("La recompensa de un enemigo requiere su misión.");
   const stats = derivedStats(result);
-  const gainedXp = Math.round(base.xp * (1 + stats.xpBonus));
-  result.progression.xp += gainedXp;
+  const ids = encounterIds || resolveEncounterIds(mission,result.campaign);
+  const index = encounterIndex ?? ids.indexOf(enemyId);
+  if (ids[index] !== enemyId) throw new Error("El enemigo no corresponde al encuentro de la misión.");
+  const experienceReward = missionXpPlan(mission,{ encounterIds:ids,xpBonus:stats.xpBonus }).encounterXp[index];
+  const { xp: gainedXp, levelsGained } = addExperience(result.progression, experienceReward);
   result.progression.coins += base.coins;
-  const affinityXp = Math.max(8, Math.round(gainedXp * 0.5));
+  const affinityXp = mission.affinitySlot ? 0 : Math.max(8, Math.round(experienceReward * 0.5));
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
-  let levelsGained = 0;
-  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
-    result.progression.xp -= xpForNextLevel(result.progression.level);
-    result.progression.level += 1;
-    result.progression.attributePoints += 2;
-    levelsGained += 1;
-  }
   return { save: result, xp: gainedXp, affinityXp, coins: base.coins, levelsGained };
 }
 
@@ -365,37 +373,30 @@ export function completeMission(save, missionId) {
     return { save: result, xp: 0, coins: 0, levelsGained: 0, firstClear: false, blocked: Boolean(mission && !state.unlocked) };
   }
 
-  const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
-  result.progression.xp += gainedXp;
+  const experienceReward = missionXpPlan(mission,{ encounterIds:resolveEncounterIds(mission,result.campaign),xpBonus:derivedStats(result).xpBonus }).completionXp;
+  const { xp: gainedXp, levelsGained } = addExperience(result.progression, experienceReward);
   const completionBonus = missionStep(mission, "choice")?.completionBonus;
   const secretBonus = completionBonus?.requirements?.every((requirement) => requirementMet(requirement, result))
     ? completionBonus.coins || 0
     : 0;
   const gainedCoins = mission.reward.coins + secretBonus;
   result.progression.coins += gainedCoins;
-  const affinityXp = Math.max(10, Math.round(gainedXp * 0.35));
+  const affinityXp = mission.affinitySlot ? 0 : Math.max(10, Math.round(experienceReward * 0.35));
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
   result.campaign[mission.category === "secondary" ? "completedSecondaryMissions" : "completedMissions"].push(missionId);
   for (const [id, quantity] of Object.entries(mission.reward.items || {})) if (ITEMS[id]) result.inventory.items[id] = Math.min(ITEMS[id].stackLimit, (result.inventory.items[id] || 0) + quantity);
   if (mission.contractItem) delete result.inventory.items[mission.contractItem];
   applyMissionEffects(result, mission.completionEffects, { secretBonusAwarded: secretBonus > 0 });
   result.campaign.missionProgress[missionId] = createCompletedMissionProgress(mission);
-  let levelsGained = 0;
-  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
-    result.progression.xp -= xpForNextLevel(result.progression.level);
-    result.progression.level += 1;
-    result.progression.attributePoints += 2;
-    levelsGained += 1;
-  }
   return { save: result, xp: gainedXp, affinityXp, coins: gainedCoins, bonusCoins: secretBonus, levelsGained, firstClear: true };
 }
 function completeRouteSearchMission(result, mission) {
   if (missionState(mission, result).completed || result.campaign.doctorRoute.phase < 3 || !cipherComplete(result.campaign.doctorRoute.cipher)) return emptySecondaryCompletion(result, { blocked: true });
-  const gainedXp = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
+  const experienceReward = Math.round(mission.reward.xp * (1 + derivedStats(result).xpBonus));
+  const { xp: gainedXp, levelsGained } = addExperience(result.progression, experienceReward);
   const gainedCoins = mission.reward.coins * (result.campaign.banditPrisonerChoice === "interrogate" ? 2 : 1);
-  const affinityXp = Math.max(8, Math.round(gainedXp * 0.35));
+  const affinityXp = Math.max(8, Math.round(experienceReward * 0.35));
   const supplyBonus = result.campaign.doctorRoute.resources >= 2 ? 1 : 0;
-  result.progression.xp += gainedXp;
   result.progression.coins += gainedCoins;
   result.character.affinities.forEach((id) => { result.character.affinityXp[id] += affinityXp; });
   const history = mission.category === "main" ? "completedMissions" : "completedSecondaryMissions";
@@ -405,17 +406,10 @@ function completeRouteSearchMission(result, mission) {
   result.campaign.doctorRoute.active = false;
   applyMissionEffects(result, mission.completionEffects);
   result.campaign.missionProgress[mission.id] = createCompletedMissionProgress(mission);
-  let levelsGained = 0;
-  while (result.progression.xp >= xpForNextLevel(result.progression.level)) {
-    result.progression.xp -= xpForNextLevel(result.progression.level);
-    result.progression.level += 1;
-    result.progression.attributePoints += 2;
-    levelsGained += 1;
-  }
   return { save: normalizeSave(result), xp: gainedXp, affinityXp, coins: gainedCoins, supplyBonus, levelsGained, firstClear: true };
 }
 const SECONDARY_COMPLETION_HANDLERS = Object.freeze({
-  investigation: completeInvestigationMission,
+  investigation: (result,mission) => completeInvestigationMission(result,mission,{ xpBonus:derivedStats(result).xpBonus }),
   "route-search": completeRouteSearchMission
 });
 
@@ -533,7 +527,7 @@ export function learnAffinity(save, affinityId) {
 
 export function selectNextAffinity(save, affinityId) {
   const result = normalizeSave(save);
-  const availableSlots = availableAffinitySlots(result.progression.level, result.campaign.elementRank, result.inventory.extraAffinityUnlocked, result.campaign.rank);
+  const availableSlots = availableAffinitySlots(result.progression.level, result.campaign.elementRank, false, result.campaign.rank, result.campaign.completedSecondaryMissions);
   if (!result.character.knownAffinities.includes(affinityId)
     || result.character.affinities.includes(affinityId)
     || result.character.affinities.length >= availableSlots

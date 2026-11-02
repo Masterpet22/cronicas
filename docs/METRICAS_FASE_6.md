@@ -1,13 +1,20 @@
-# Métricas de la Fase 6 · Guardado v17
+# Validación del guardado
 
-Fecha de cierre: 19 de octubre de 2026.
+El esquema de archivo vigente es 29. Cada una de las tres ranuras locales
+conserva personaje, experiencia, afinidades, rangos, equipo, inventario, decisiones
+y progreso por misión. El contrato de juego está en [BALANCE_COMBATE.md](BALANCE_COMBATE.md).
 
-- `SAVE_VERSION` subió de 16 a 17 con una migración pura y separada.
-- Los tres fixtures v16 conservaron historial, decisiones y recompensas; cada uno se normaliza a v17.
-- `campaign.missionProgress` registra estado, paso actual, pasos completados, contexto, efectos aplicados e intentos.
-- Al abrir una misión se guarda su primer paso pendiente. Volver a iniciarla conserva cursor/contexto e incrementa intentos; el combate en curso se reinicia.
-- Diecisiete indicadores derivados de campaña ya no se serializan. La interfaz y los requisitos los consultan desde historiales, decisiones y hechos canónicos.
-- `save.js` conserva el API público y delega migraciones, cursor de campaña, estado de personaje y persistencia de ranuras en módulos propios.
-- Campos de `campaign` en el esquema por defecto: 20 (36 al comenzar la auditoría de la Fase 1).
-- `npm test`: 17 suites correctas.
-- `npm run smoke`: 4 recorridos correctos; incluye finalización persistida de `m01` y `m05` con v17.
+`campaign.missionProgress` registra estado, paso actual, pasos completados,
+contexto, efectos aplicados e intentos. Reanudar conserva cursor y decisiones;
+un combate pendiente comienza desde su paso de combate.
+
+Los rangos se validan por nivel, predecesoras, casilla y presupuesto. Los puntos
+que no corresponden a inversiones válidas quedan disponibles. Repetir la carga
+conserva el mismo saldo. El orden de las entradas del archivo no altera las rutas.
+
+Las ganancias de combate se confirman al aceptar el informe y regresar. Los
+historiales evitan pagos duplicados. Los consumibles gastados permanecen usados.
+
+`save.js` expone el API de persistencia y progreso. Los módulos de `src/save/`
+gestionan ranuras, normalización, estado de personaje y continuidad de campaña.
+Las pruebas de guardado, recompensas y victoria forman parte de `npm test`.

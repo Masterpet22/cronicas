@@ -31,7 +31,7 @@ existentes; los números y estados proceden del motor.
 
 La guía muestra nombres de técnicas, niveles, recursos y posiciones de iniciativa
 ilustrativos. En el juego se conservan las habilidades reales, los desbloqueos de
-ranuras NV 5/NV 8, el chakra enemigo 21/21 en la partida de prueba y las ranuras de
+ranuras NV 5/NV 8, el chakra enemigo calculado por sus atributos y las ranuras de
 estados vacías cuando no hay estados activos. No se rellenan esferas ni se cambian
 posiciones de iniciativa para imitar un estado ficticio.
 

@@ -1,6 +1,7 @@
 export const M03 = {
+    recommendedLevel: 3, rewardProfile: "normal", introductory: true,
     id: "m03", number: 5, category: "main", arenaNumber: 3, board: "headquarters", title: "El umbral de los cuervos", location: "Accesos a la guarida", duration: "10–12 min", rank: "D",
-    encounters: ["gate_guard", "bandit_pathfinder", "stone_hunter"], reward: { xp: 105, coins: 85 },
+    encounters: ["gate_guard", "bandit_pathfinder", "stone_hunter"], reward: { coins: 85 },
     requirements: [{ type: "main-completed", id: "s02" }, { type: "flag", id: "archiveUnlocked" }],
     dialogueId: "mission.m03.briefing", tacticalBriefing: true,
     flow: [

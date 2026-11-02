@@ -15,6 +15,8 @@ El contrato para añadir misiones, mecánicas y traducciones sin acoplarlas a un
 Las fórmulas y objetivos de progresión y combate están en
 [`docs/BALANCE_COMBATE.md`](docs/BALANCE_COMBATE.md).
 
+Las reglas normativas de progresión, recompensas y combate están en [docs/BALANCE_COMBATE.md](docs/BALANCE_COMBATE.md), y las rutas exactas de habilidades en [docs/ARBOL_RESONANCIA.md](docs/ARBOL_RESONANCIA.md).
+
 ## Ejecutar
 
 Phaser 4.2.1 está incluido localmente en el proyecto. Para servir el juego:
@@ -51,12 +53,12 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - **Dojo → Equipo** contiene arma, sello, accesorio y compañero. Solo ofrece objetos poseídos. Las antiguas protecciones se convierten en sellos; las compras de trajes anteriores conservan su apariencia y reciben el sello equivalente.
 - **Dojo → Apariencia** gestiona rostro, peinado, sustitución, parte superior, inferior, calzado y traje completo, usando las compras del personaje. La ropa común es cosmética. Los trajes especiales indican su efecto: el ceremonial del canalizador añade 15 de chakra. Los gráficos de prendas y rostros siguen pendientes y se indica en el catálogo; los peinados y objetos de sustitución usan los recursos existentes.
 - Los objetos de **Sustitución** (tronco, perrito y marioneta) son selecciones permanentes: no se gastan al usarlos. El tronco es gratuito y las demás opciones se compran.
-- La segunda afinidad se abre por progreso en nivel 15/rango elemental 2, o al ser **Guardián con nivel 10**. El **pergamino de afinidad** requiere Guardián, al menos nivel 10 y dos afinidades activas para elegir la tercera. Las partidas antiguas conservan su tercera afinidad.
+- El personaje llega hasta **nivel 60**. La **segunda afinidad requiere nivel 15 y superar «El despertar de la segunda afinidad»**; la **tercera requiere nivel 30 y superar «La armonía de las tres afinidades»**, después de elegir la segunda. Las pruebas aparecen en el Tablón y habilitan la elección del elemento en el Dojo con su primera técnica gratuita.
 - Los contratos de la tienda aparecen en el **Tablón de Misiones**. **El sello extraviado** entrega el Sello del guardián; **El pacto del sabueso** desbloquea al Sabueso del horizonte, una invocación equipable que aporta +3 precisión y +2 suerte. La licencia se consume al completar el contrato; las recompensas se entregan una sola vez y se guardan al confirmar la victoria.
 - En combate, abre **Mochila** durante tu turno para usar pociones de vida/chakra, un tónico purificador o un elixir. Usar un consumible gasta el turno; no se consume si no tiene efecto. Los objetos gastados no reaparecen al retirarte o reintentar y no adelantan el cobro de recompensas.
 - Cada misión conserva dos reintentos gratuitos. Al agotarlos, un **pergamino de reintento** permite repetir el duelo perdido con ambos combatientes recuperados.
 - Las compras y ventas se guardan por personaje. El equipo inicial vendido no reaparece al recargar. El tipo de cuerpo se fija al crear cada partida.
-- Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; cada técnica exige también experiencia de afinidad obtenida en combate.
+- Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; las nuevas técnicas requieren nivel, PX de afinidad y predecesoras entrenadas antes de comprarse por 1 punto de habilidad.
 - Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
 - También puedes pulsar el sello iluminado con el ratón.
@@ -65,8 +67,10 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Desactiva **Sellos manuales** sobre el juego para ejecutar las secuencias automáticamente; la preferencia queda guardada en el navegador.
 - El modo manual no tiene límite de tiempo. Las técnicas ya vistas reproducen sus sellos más rápidamente.
 - Puedes regular el volumen y desactivar el movimiento de cámara o los destellos.
-- La reserva base es de 60 de chakra antes de equipo y afinidad. El personaje recupera 5 puntos al completar una acción propia; las técnicas iniciales cuestan 30–42 y las más potentes hasta 72 en nivel 1. Cada mejora añade +2 de daño y descuenta un 5 % del coste original (hasta −20 %). Los descuentos de equipo conservan como mínimo la mitad del coste de la técnica ya mejorada.
-- Las habilidades llegan hasta nivel 5. Al máximo, una técnica elemental usa un sello menos. Cada sello requiere 300 ms de preparación a velocidad 10: más sellos hacen más lento el tramo 80–100 %, y una mayor velocidad del personaje lo acelera.
+- La reserva base es de 60 de chakra antes de equipo y afinidad. El personaje recupera 5 puntos al completar una acción propia; las técnicas iniciales cuestan 30–42 y las más potentes hasta 72 en nivel 1. Cada mejora añade +2 de daño y descuenta un 5 % del coste original (hasta −10 %). Los descuentos de equipo conservan como mínimo la mitad del coste de la técnica ya mejorada.
+- Las habilidades llegan hasta nivel 3. Los puntos de habilidad empiezan en 0 y se ganan 2 por cada subida de nivel, hasta 118 puntos al nivel 60. Al máximo, una técnica elemental usa un sello menos. Cada sello requiere 300 ms de preparación a velocidad 10: más sellos hacen más lento el tramo 80–100 %, y una mayor velocidad del personaje lo acelera.
+- Cada hexágono del árbol representa una única habilidad: 38 habilidades por personaje y el núcleo central.
+- El aprendizaje sigue rutas obligatorias: técnicas intermedias desde niveles 6/12, avanzadas desde 24 y definitivas desde 40. Las combinadas se escalonan en 20/32/48. Las predecesoras exigen rango 2 o 3, y las mejoras también tienen nivel mínimo. Completar las 38 habilidades a rango 3 cuesta 109 puntos: presupuesto suficiente desde nivel 56, con nueve sobrantes al 60.
 - Jugador y enemigo avanzan de forma independiente por una línea temporal según su velocidad efectiva.
 - Las acciones tienen iniciativa −1, 0 o +1: ralentizan un 10 %, mantienen o aceleran un 10 % el recorrido hacia la siguiente acción. El efecto se consume al llegar al 80 %, no se acumula y no modifica la preparación por sellos. Golpe veloz y Paso fugaz dan +1; Puño de hierro y Guardia dan −1; técnicas elementales y golpe de arma dan 0. Se reinicia al cambiar de duelo o reintentar.
 - Al llegar al 80 % se habilita la acción; las técnicas con preparación recorren el tramo 80–100 % mientras el rival sigue avanzando.
@@ -82,7 +86,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Cada enemigo tiene debilidad, resistencia y patrón de acciones propios. Varek, el primer jefe del tutorial, siempre es débil frente a tu afinidad principal: fuego→viento, agua→fuego, tierra→agua y viento→tierra.
 - Al derrotar un enemigo se recupera el 22 % de los PV máximos y el 18 % del chakra máximo antes del siguiente encuentro (mínimo 12 de cada recurso).
 - La técnica especial utiliza una presentación cinematográfica oscura.
-- Cada enemigo concede experiencia y monedas según su dificultad en la primera victoria de la misión. Repetirla no vuelve a dar experiencia ni monedas.
+- La experiencia total se fija por nivel recomendado y tipo de misión: encargo corto 25 %, normal 50 %, difícil 75 % y larga con jefe 100 % de una subida. Las principales de introducción (niveles 1–5) usan 100 %. Con combate se reparte 60 % entre encuentros y 40 % al completar; sin combate, todo al completar. Los bonos se aplican una vez al total. Repetir una misión completada no concede PX ni monedas.
 - Si la experiencia de un rival alcanza el siguiente nivel, el personaje destella con luz blanca y pasa entre humo a una ventana con los atributos anteriores y nuevos. Al aceptar, el humo devuelve al combate si quedan rivales. Los aumentos dependen de la afinidad principal y se aplican provisionalmente; experiencia, monedas y niveles sólo se guardan al cerrar el informe y llegar a la aldea. Abandonar pide confirmación y descarta esas recompensas.
 - Al finalizar aparece un botón para volver a la aldea y ajustar la estrategia.
 - **Resolución de combate**, en Ajustes y en Pausa, permite elegir Automática, 540p, 675p, 810p o 1080p. La elección manual se guarda y cambia el lienzo al instante sin reiniciar la batalla. Automática ajusta la resolución al equipo y al tamaño de la ventana.
@@ -103,7 +107,7 @@ src/data.js              Jutsus, equipo, sellos, enemigos y patrones (sin mision
 src/content/              Sagas, misiones, diálogos y datos específicos
 src/battle/               Runtime, lógica pura, BattleState y escenas Phaser
 src/character.js         Definición visual compartida y vista previa SVG
-src/save.js              Fachada del guardado v25 y API de progresión
+src/save.js              Fachada del guardado v29 y API de progresión
 src/save/                 Migraciones, estado de campaña/personaje y ranuras
 src/mission-system.js    Requisitos, estados, efectos y validación del catálogo de misiones
 src/dialogues.js         Catálogo de diálogos de NPC y resolución de claves de misión

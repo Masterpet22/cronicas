@@ -1,10 +1,10 @@
 # Interfaz de combate — referencia B
 
-## Auditoría previa
+## Contrato vigente
 
 La pantalla es `BattleScene` (Phaser 4), con métodos instalados desde
 `battle-presentation.js`, `battle-feedback.js`, `battle-flow.js` y `battle-actions.js`.
-`src/ui.js` construye barras, ranuras y tooltips. No existe un HUD DOM previo.
+`src/ui.js` construye barras, ranuras y tooltips. El HUD accesible HTML complementa el lienzo.
 El lienzo lógico es 960 × 540; la cámara y el framebuffer se escalan desde
 `runtime.js` y `game.js`. El escenario, los personajes y sus animaciones se
 dibujan por separado de la UI, y no necesitan cambios para este trabajo.
@@ -12,11 +12,11 @@ dibujan por separado de la UI, y no necesitan cambios para este trabajo.
 Las barras consumen `player` / `enemy`, creados por `derivedStats` y
 `createEnemyState`. Ambos tienen `chakra` y `maxChakra` reales. Los cinco
 círculos son ranuras de estados (incluida Guardia), no cargas de chakra.
-El antiguo sello del chakra enemigo era decorativo y ocultaba el recurso.
+El chakra enemigo se representa con su valor real.
 
 Las seis acciones conservan su contrato: Golpe en 1, cuatro técnicas del
 loadout en 2–5, Guardia en 6. Los espacios configurables tercero y cuarto se
-abren a nivel 5 y 8 (`loadoutSlotsForLevel`), no a 4 y 5 como en la ilustración.
+abren a nivel 5 y 8 (`loadoutSlotsForLevel`).
 Costes ajustados, enfriamientos, selección y ejecución pertenecen al motor.
 `useJutsu` sigue siendo el único punto de ejecución para ratón/teclado/táctil.
 
@@ -95,7 +95,7 @@ reglas, velocidad, costes, estadísticas ni archivos del motor de daño.
 - Los nombres son Golpe veloz, Aqua Shuriken, Látigo de corriente y Guardia en
   la partida de verificación. Los huecos sin técnica se muestran como ranuras,
   con los requisitos reales NV 5 / NV 8.
-- Chakra enemigo 21/21, no el 65/65 ilustrativo. Los círculos empiezan vacíos:
+- El chakra enemigo procede de sus atributos. Los círculos empiezan vacíos:
   sólo se iluminan cuando existe un estado real.
 - Posiciones de iniciativa y placa central responden al sistema ATB existente.
   El último 20 % sigue identificado como preparación.

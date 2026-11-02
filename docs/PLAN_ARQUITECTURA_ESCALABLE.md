@@ -964,20 +964,12 @@ campaign: {
 - Saga desbloqueada cuando se derive de la anterior.
 - Requisitos cumplidos.
 
-### 15.4. Migración v16 → v17
+### 15.4. Validación del guardado
 
-La migración deberá convertir:
-
-- `completedMissions`.
-- `completedSecondaryMissions`.
-- Misión y fase activa del médico.
-- Decisión del teniente.
-- Entrada elegida.
-- Hallazgo de prisioneros o documentos.
-- Pistas y objetos narrativos.
-- Bonificaciones y recompensas ya concedidas.
-
-Las referencias históricas `m11`–`m14` permanecerán exclusivamente en `save-migrations.js` y en pruebas de migración.
+El esquema de archivo vigente es 29. El cargador valida historial, decisiones,
+recursos, afinidades, presupuesto y rutas de habilidades. Las referencias de
+contenido se validan contra el catálogo registrado. El contrato normativo está
+en [BALANCE_COMBATE.md](BALANCE_COMBATE.md) y [AUDITORIA_CAMPAIGN.md](AUDITORIA_CAMPAIGN.md).
 
 ### 15.5. División de responsabilidades
 
@@ -1237,7 +1229,7 @@ La validación debe devolver todos los errores encontrados, no detenerse en el p
 
 ### 21.3. Guardado
 
-- Crear una partida v17.
+- Crear una partida con el esquema vigente.
 - Normalizar datos parciales.
 - Migrar v16.
 - Migrar guardados con IDs antiguos.
@@ -1355,7 +1347,7 @@ Criterio de salida:
 - `game.js` y `meta-ui.js` dejan de ser monolitos.
 - Las invariantes de una sola vista y un solo canvas se cumplen.
 
-### Fase 5 — Guardado v17
+### Fase 5 — Guardado y reanudación
 
 Acciones:
 
@@ -1435,7 +1427,7 @@ Mitigación:
 
 Mitigación:
 
-- Migración v16 → v17 pura y probada.
+- Carga y normalización probadas contra las reglas vigentes.
 - Fixtures de guardados reales anonimizados.
 - Conservación de la migración de IDs antiguos.
 
@@ -1526,7 +1518,7 @@ La reestructuración estará terminada solamente cuando se cumplan todos los pun
 
 ### Guardado
 
-- [ ] El esquema vigente es v17.
+- [ ] El esquema vigente es 29.
 - [ ] Guardados v16 migran sin perder progreso.
 - [ ] Guardados con IDs históricos migran correctamente.
 - [ ] Una misión activa se reanuda desde su paso.

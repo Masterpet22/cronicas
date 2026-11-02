@@ -37,7 +37,7 @@ scene.player.hp = 8;
 assert.equal(physicalActionAvailable(scene, taijutsu), false, "El coste físico no puede matar al usuario");
 scene.player.hp = 9; assert.ok(physicalActionAvailable(scene, taijutsu));
 scene.cooldowns.example = 1; assert.equal(physicalActionAvailable(scene, taijutsu), false);
-let trained = investResonance(save,"physical_0");
+let trained = investResonance(normalizeSave({ ...save, progression: { ...save.progression, level: 4 } }),"physical_0");
 assert.equal(equipTaijutsu(trained,0,"physical_1"),trained,"No se equipa un taijutsu bloqueado");
 trained = investResonance(investResonance(trained,"physical_1"),"physical_2");
 trained = equipTaijutsu(equipTaijutsu(trained,0,"physical_1"),1,"physical_2");
@@ -51,7 +51,7 @@ assert.deepEqual(unequipTaijutsu(swapped,0).taijutsuLoadout,[null,"physical_1"],
 assert.deepEqual(normalizeTaijutsuLoadout(trained,["physical_1","physical_1","physical_2"]),["physical_1",null]);
 assert.deepEqual(normalizeTaijutsuLoadout(save,["physical_1","bad"]),[null,null]);
 assert.equal(equipTaijutsu(trained,2,"physical_1"),trained);
-trained.progression.level=2;
+trained.progression.level=4;
 trained = investResonance(trained,"physical_1");
 assert.equal(taijutsuAction(trained,"physical_1").damage,24,"El rango del nodo mejora también el golpe equipado");
 assert.deepEqual(normalizeSave({ ...trained,taijutsuLoadout:undefined }).taijutsuLoadout,[null,null],"Partidas anteriores reciben dos ranuras vacías");

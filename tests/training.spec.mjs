@@ -7,10 +7,12 @@ async function prepare(page, origin) {
   await page.goto("/");
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.131.0");
-    const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
+    let save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
     save.progression.level = 20;
     save.character.affinityXp.fuego = 10000;
-    save.progression.resonance.investments = { physical_1: 1, physical_2: 1 };
+    save.progression.resonance.investments = { physical_0: 1, physical_1: 1, physical_2: 1 };
+    const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
+    save=learnSkillForTest(save,"fire_arc");
     save.loadout = []; save.taijutsuLoadout = [null, null];
     save.campaign.tutorialSeen = true;
     writeSave(save);

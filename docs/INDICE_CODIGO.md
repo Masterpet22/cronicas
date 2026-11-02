@@ -16,7 +16,7 @@ index.html
       ├─ src/mission-system.js ─ requisitos y flujo de misiones
       ├─ src/dialogues.js ─ resolución de claves y diálogos de NPC
       ├─ src/view-runtime.js ─ ciclo de vida exclusivo de pantallas
-      ├─ src/save.js ───── API fachada del guardado v17
+      ├─ src/save.js ───── API fachada del guardado 29
       ├─ src/save/ ─────── esquema, migraciones, progreso y ranuras
       ├─ src/battle/ ──── escenas Phaser, estado y lógica pura
       ├─ src/doctor-mission.js ─ rutas convergentes de Haru
@@ -108,7 +108,7 @@ index.html
 
 ### `src/save` — Módulos internos de persistencia
 
-- `save-migrations.js`: migración pura de v16 a v17 e importación de progreso histórico.
+- `save-migrations.js`: normalización pura y validación de los archivos persistidos.
 - `campaign-state.js`: normalización, inicio, avance y recuperación del cursor de misión.
 - `character-state.js`: asignación estable del maestro a partir del personaje.
 - `slot-repository.js`: lectura/escritura de las tres ranuras con manejo de almacenamiento no disponible.
@@ -215,7 +215,7 @@ index.html
 | `tests/affinity-system.test.mjs` | Afinidades del personaje, modificadores y reglas especiales de combate. |
 | `tests/rules.test.mjs` | Precisión, afinidades y estados. |
 | `tests/save.test.mjs` | Guardado, migración, progresión, equipo y recompensas. |
-| `tests/save-migrations.test.mjs` | Migraciones puras y conservación de estado en v17. |
+| `tests/save-migrations.test.mjs` | Migraciones puras y conservación de estado en el esquema vigente. |
 | `tests/character.test.mjs` | Apariencia y composición del personaje. |
 | `tests/village-map.test.mjs` | Mapa y destinos de la aldea. |
 | `tests/npcs.test.mjs` | Reparto y diálogos. |
@@ -248,3 +248,13 @@ El comando `npm test` ejecuta toda la batería en el orden definido por `package
 ## Criterio para futuros nombres
 
 Los nombres físicos actuales permanecen en inglés porque forman parte de rutas públicas y contratos de importación. Si se decide traducirlos, conviene hacerlo en una rama exclusiva y actualizar simultáneamente imports, HTML, pruebas, documentación y rutas sensibles a mayúsculas de GitHub Pages.
+
+## Reglas de progresión y recompensas
+
+La referencia normativa es [BALANCE_COMBATE.md](BALANCE_COMBATE.md).
+`src/progression-balance.js` define la curva 1–60, el crecimiento y los pesos de
+encuentro. `src/mission-rewards.js` transforma el nivel recomendado y perfil de
+cada misión en su presupuesto total, aplica bonos y reparte 60/40.
+`src/skills/definitions.js` y `src/skills/unlock-levels.js` definen rangos y rutas;
+`src/skills/progression.js` valida y compra los rangos. La proyección visual del
+árbol contiene 38 habilidades, cada una con su casilla propia.

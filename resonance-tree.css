@@ -59,9 +59,6 @@
 .resonance-core .resonance-yinyang .yin-disc { fill:var(--core-color,#e8edf5); stroke:var(--core-ink,#171b15); stroke-width:1; }
 .resonance-core .resonance-yinyang .yin-dark { fill:var(--core-ink,#171b15); stroke:none; }
 .resonance-core .resonance-yinyang .yin-light { fill:var(--core-color,#e8edf5); stroke:none; }
-.resonance-linked-count { fill:#c9c4ac; font:8px "Alegreya Sans",sans-serif; pointer-events:none; }
-.resonance-linked-chooser { display:grid; gap:4px; color:#bfccb9; font-size:11px; }
-.resonance-linked-chooser select { width:100%; min-width:0; min-height:34px; border:1px solid #7e8c76; border-radius:4px; background:#102017; color:#e5e9d9; font-size:12px; }
 .resonance-category-legend { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px 12px; padding:7px; border-top:1px solid #b49b6333; background:#101611c9; }
 .resonance-category-legend > span { display:flex; align-items:center; gap:4px; color:#bdc5b3; font-size:11px; }
 .resonance-category-legend i { width:8px; height:8px; border-radius:2px; }

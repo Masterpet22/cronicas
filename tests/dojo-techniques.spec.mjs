@@ -1,18 +1,20 @@
 import { expect, test } from "@playwright/test";
 
-async function openDojo(page, { level = 3, loadout = ["fire_embers", "fire_breath"] } = {}) {
+async function openDojo(page, { level = 3, loadout = ["fire_embers", "fire_breath"], learned = [] } = {}) {
   await page.goto("/");
   await expect(page.locator(".save-selector")).toBeVisible();
-  await page.evaluate(async ({ level, loadout }) => {
+  await page.evaluate(async ({ level, loadout, learned }) => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.106.0");
-    const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
+    let save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
     save.progression.level = level;
     save.character.affinityXp.fuego = 196;
     save.campaign.tutorialSeen = true;
     save.loadout = loadout;
+    const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
+    for (const id of learned) save = learnSkillForTest(save,id);
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
-  }, { level, loadout });
+  }, { level, loadout, learned });
   await enterDojo(page);
 }
 
@@ -25,24 +27,68 @@ async function enterDojo(page) {
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
 
-test("maestría cinco: comprar mejoras actualiza daño, chakra, sellos y guardado", async ({ page }) => {
-  await openDojo(page);
+test("nivel y PX habilitan la compra, pero los padres y rangos son obligatorios", async ({ page }) => {
+  await openDojo(page,{ level:6 });
+  await page.locator('[data-skill-select="fire_arc"]').click();
+  await expect(page.locator('[data-skill-invest="fire_arc"]')).toBeDisabled();
+  await expect(page.locator('[data-technique-toggle="fire_arc"]')).toBeDisabled();
+  await expect(page.locator(".resonance-requirements")).toContainText("Ascuas veloces · rango 2");
+  await page.locator('[data-skill-select="fire_embers"]').click();
+  await page.locator('[data-skill-invest="fire_embers"]').click();
+  await page.locator('[data-skill-select="fire_arc"]').click();
+  await expect(page.locator('[data-skill-invest="fire_arc"]')).toBeEnabled();
+  await expect(page.locator('[data-technique-toggle="fire_arc"]')).toBeDisabled();
+  await page.locator('[data-skill-invest="fire_arc"]').click();
+  await expect(page.locator('[data-technique-toggle="fire_arc"]')).toBeEnabled();
+  await expect(page.locator('[data-skill-invest="fire_arc"]')).toBeDisabled();
+  await expect(page.locator(".resonance-requirements")).toContainText("Nivel de personaje 8 para rango 2");
+  await page.locator('[data-technique-toggle="fire_arc"]').click();
+  await enterDojo(page);
+  expect(await loadout(page)).toContain("fire_arc");
+  await page.locator('[data-skill-select="fire_phoenix"]').click();
+  await expect(page.locator('[data-skill-invest="fire_phoenix"]')).toBeDisabled();
+  await expect(page.locator(".resonance-requirements")).toContainText("Anillo de ceniza · rango 3");
+});
+
+test("el personaje empieza sin puntos y recibe dos al subir de nivel", async ({ page }) => {
+  await openDojo(page, { level: 1 });
+  await expect(page.locator("[data-resonance-points]")).toHaveText("0");
+  await page.locator("[data-tree-core]").click();
+  await expect(page.locator(".technique-detail")).toContainText("Sin puntos iniciales");
+  await page.locator('[data-skill-select="physical_0"]').click();
+  await expect(page.locator('[data-skill-invest="physical_0"]')).toBeDisabled();
+  await page.evaluate(async () => {
+    const { loadSave, writeSave } = await import("/src/save.js");
+    const save = loadSave(); save.progression.level = 2; writeSave(save);
+  });
+  await enterDojo(page);
+  await expect(page.locator("[data-resonance-points]")).toHaveText("2");
+  await page.locator('[data-skill-select="physical_0"]').click();
+  await expect(page.locator('[data-skill-invest="physical_0"]')).toBeEnabled();
+  await page.reload();
+  await page.locator(".debug-tools-trigger").click();
+  await page.locator('[data-debug-view="dojo"]').click();
+  await expect(page.locator("[data-resonance-points]")).toHaveText("2");
+});
+
+test("maestría tres: comprar mejoras actualiza daño, chakra, sellos y guardado", async ({ page }) => {
+  await openDojo(page,{ level:8 });
   await page.locator('[data-skill-select="fire_embers"]').click();
   const detail = page.locator(".technique-detail");
   const metrics = detail.locator(".technique-metrics strong");
-  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 1 / 5");
+  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 1 / 3");
   await expect(metrics).toHaveText(["14", "30 CH", "1 turnos", "2"]);
-  for (const [level, cost, damage, seals] of [[2,29,16,2],[3,27,18,2],[4,26,20,2],[5,24,22,1]]) {
+  for (const [level, cost, damage, seals] of [[2,29,16,2],[3,27,18,1]]) {
     await page.locator('[data-skill-invest="fire_embers"]').click();
-    await expect(detail.locator(".resonance-rank strong")).toHaveText(`NIVEL ${level} / 5`);
+    await expect(detail.locator(".resonance-rank strong")).toHaveText(`NIVEL ${level} / 3`);
     await expect(metrics).toHaveText([String(damage), `${cost} CH`, "1 turnos", String(seals)]);
   }
   await expect(page.locator('[data-skill-invest="fire_embers"]')).toBeDisabled();
   await expect(detail).toContainText("NIVEL MÁXIMO");
   await enterDojo(page);
   await page.locator('[data-skill-select="fire_embers"]').click();
-  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 5 / 5");
-  await expect(metrics).toHaveText(["22", "24 CH", "1 turnos", "1"]);
+  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 3 / 3");
+  await expect(metrics).toHaveText(["18", "27 CH", "1 turnos", "1"]);
 });
 
 test("el núcleo sigue el color del jugador y mantiene legible el kanji", async ({ page }) => {
@@ -71,8 +117,10 @@ test("las afinidades inactivas son grises y los pares mezclan los colores equipa
   await page.locator(".resonance-tree").screenshot({ path:"test-results/dojo-techniques/panal-afinidades-bloqueadas.png" });
   await page.evaluate(async () => {
     const { loadSave,writeSave }=await import("/src/save.js");
-    const save=loadSave(); save.progression.level=15; save.campaign.elementRank=2;
-    save.character.affinities=["fuego","agua"]; save.character.affinityXp={ fuego:1000,agua:1000,tierra:0,viento:0 }; writeSave(save);
+    let save=loadSave(); save.progression.level=20; save.campaign.elementRank=2; save.campaign.completedSecondaryMissions=["affinity_trial_2"];
+    save.character.affinities=["fuego","agua"]; save.character.affinityXp={ fuego:1000,agua:1000,tierra:0,viento:0 };
+    const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
+    save=learnSkillForTest(learnSkillForTest(save,"fire_arc",2),"water_wall",2); writeSave(save);
   });
   await enterDojo(page);
   await expect(page.locator('[data-region="affinity-1"]')).toHaveAttribute("data-region-color","#ff783d");
@@ -89,17 +137,22 @@ test("las afinidades inactivas son grises y los pares mezclan los colores equipa
   expect(await page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(n => n.getAttribute("transform")))).toEqual(positions);
 });
 
-test("las técnicas vinculadas no añaden ni mueven ninguna de las 39 celdas", async ({ page }) => {
+test("cada uno de los 38 hexágonos muestra una única habilidad", async ({ page }) => {
   await openDojo(page);
   const positions=() => page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(n => [n.dataset.cellId,n.dataset.q,n.dataset.r]));
   const before=await positions();
   const points=await page.locator("[data-resonance-points]").textContent();
   const original=await loadout(page);
-  await expect(page.locator("[data-skill-select]")).toHaveCount(38);
-  await expect(page.locator("[data-tree-extensions]")).toHaveCount(0);
+  const ids=await page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(n=>n.dataset.skillSelect));
+  expect(ids).toHaveLength(38);
+  expect(new Set(ids).size).toBe(38);
+  for (const id of ids) {
+    await page.locator(`[data-skill-select="${id}"]`).click();
+    await expect(page.locator("[data-skill-invest]")).toHaveAttribute("data-skill-invest",id);
+    await expect(page.locator("[data-linked-skill], .resonance-linked-count")).toHaveCount(0);
+  }
   await page.locator('[data-skill-select="physical_5"]').click();
-  await page.locator("[data-linked-skill]").selectOption("physical_7");
-  await expect(page.locator(".technique-detail h3")).toHaveText("Cuerpo trascendente");
+  await expect(page.locator(".technique-detail h3")).toHaveText("Instinto de combate");
   expect(await positions()).toEqual(before);
   await expect(page.locator("[data-resonance-points]")).toHaveText(points);
   expect(await loadout(page)).toEqual(original);
@@ -156,7 +209,7 @@ test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar t
 
 test("los puntos desbloquean especializaciones físicas, mejoran técnicas y persisten", async ({ page }) => {
   await openDojo(page);
-  await expect(page.locator("[data-resonance-points]")).toHaveText("7");
+  await expect(page.locator("[data-resonance-points]")).toHaveText("4");
   const stats = () => page.evaluate(async () => {
     const { loadSave,derivedStats } = await import("/src/save.js");
     return derivedStats(loadSave());
@@ -166,17 +219,17 @@ test("los puntos desbloquean especializaciones físicas, mejoran técnicas y per
   await expect(page.locator('[data-skill-invest="physical_1"]')).toBeDisabled();
   await page.locator('[data-skill-select="physical_0"]').click();
   await page.locator('[data-skill-invest="physical_0"]').click();
-  await expect(page.locator("[data-resonance-points]")).toHaveText("6");
+  await expect(page.locator("[data-resonance-points]")).toHaveText("3");
   expect((await stats()).maxHp).toBe(original.maxHp+5);
-  await expect(page.locator('[data-skill-select="physical_0"]')).toHaveAttribute("data-state","unlocked");
+  await expect(page.locator('[data-skill-select="physical_0"]')).toHaveAttribute("data-state","upgraded");
   await page.locator('[data-skill-select="fire_embers"]').click();
   await page.locator('[data-skill-invest="fire_embers"]').click();
-  await expect(page.locator("[data-resonance-points]")).toHaveText("5");
+  await expect(page.locator("[data-resonance-points]")).toHaveText("2");
   await expect(page.locator(".technique-metrics")).toContainText("16");
   await expect(page.locator('[data-skill-select="fire_embers"]')).toHaveAttribute("data-state","upgraded");
   await enterDojo(page);
   expect((await stats()).maxHp).toBe(original.maxHp+5);
-  await expect(page.locator("[data-resonance-points]")).toHaveText("5");
+  await expect(page.locator("[data-resonance-points]")).toHaveText("2");
   expect(await loadout(page)).toEqual(["fire_embers","fire_breath"]);
 });
 
@@ -211,17 +264,14 @@ test("tres afinidades conservan el plano exacto de 39 celdas y sus tres combinac
   await openDojo(page);
   await page.evaluate(async () => {
     const { loadSave,writeSave } = await import("/src/save.js");
-    const save = loadSave(); save.progression.level=35;
+    let save = loadSave(); save.progression.level=35;
     save.character.affinities=["fuego","agua","tierra"];
     save.character.appearance="#b8578f";
     save.character.affinityXp={ agua:1000,tierra:1000,fuego:1000,viento:0 };
-    save.campaign.elementRank=3; save.inventory.extraAffinityUnlocked=true;
-    save.progression.resonance.investments = {
-      physical_0:1,physical_1:1,physical_2:1,physical_3:1,physical_4:1,physical_5:1,
-      hybrid_physical_fuego_0:1,hybrid_physical_fuego_1:1,
-      hybrid_physical_agua_0:1,hybrid_physical_agua_1:1,
-      tierra_resonance_4:1,tierra_resonance_5:1,agua_resonance_4:1,hybrid_agua_tierra_1:1
-    };
+    save.campaign.elementRank=3; save.inventory.extraAffinityUnlocked=true; save.campaign.completedSecondaryMissions=["affinity_trial_2","affinity_trial_3"];
+    const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
+    for (const id of ["physical_1","physical_2","physical_3","physical_4","physical_5"]) save=learnSkillForTest(save,id);
+    for (const id of ["fire_arc","water_wall","earth_spike","magma_forge"]) save=learnSkillForTest(save,id,2);
     save.taijutsuLoadout = ["physical_1","physical_2"];
     writeSave(save);
   });
@@ -235,8 +285,8 @@ test("tres afinidades conservan el plano exacto de 39 celdas y sus tres combinac
   await expect(page.locator('[data-category="hybrid"]')).toHaveCount(9);
   await expect(page.locator("[data-bridge-region]")).toHaveCount(3);
   await page.locator('[data-skill-select="hybrid_fuego_tierra_1"]').click();
-  await expect(page.locator(".resonance-requirements")).toContainText("Ascuas veloces");
-  await expect(page.locator(".resonance-requirements")).toContainText("Puño de roca");
+  await expect(page.locator(".resonance-requirements")).toContainText("Arco de llama · rango 2");
+  await expect(page.locator(".resonance-requirements")).toContainText("Púa tectónica · rango 2");
   await page.locator('[data-skill-invest="hybrid_fuego_tierra_1"]').click();
   await expect(page.locator('[data-skill-select="hybrid_fuego_tierra_1"]')).toHaveAttribute("data-state","unlocked");
   await page.mouse.move(10,10);
@@ -250,20 +300,21 @@ test("las técnicas de tiers superiores reutilizan los iconos básicos", async (
   await openDojo(page);
   await page.evaluate(async () => {
     const { loadSave, writeSave } = await import("/src/save.js?v=0.106.0");
-    const save = loadSave();
-    save.progression.level = 35;
+    let save = loadSave();
+    save.progression.level = 56;
     save.character.affinities = ["viento", "fuego", "agua"];
     save.character.knownAffinities = ["viento", "fuego", "agua"];
     save.character.affinityXp = { viento: 1000, fuego: 1000, agua: 1000, tierra: 0 };
     save.campaign.elementRank = 3;
-    save.inventory.extraAffinityUnlocked = true;
-    save.loadout = ["storm_domain"];
+    save.inventory.extraAffinityUnlocked = true; save.campaign.completedSecondaryMissions=["affinity_trial_2","affinity_trial_3"];
+    const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
+    save=learnSkillForTest(save,"lightning_heaven");
+    save.loadout = ["lightning_heaven"];
     writeSave(save);
   });
   await enterDojo(page);
-  await page.locator('[data-bridge="affinity-1-3"]').last().click();
-  await page.locator("[data-linked-skill]").selectOption("storm_domain");
-  await expect(page.locator(".technique-element-art .element-composition img")).toHaveCount(3);
+  await page.locator('[data-skill-select="lightning_heaven"]').click();
+  await expect(page.locator(".technique-element-art .element-composition img")).toHaveCount(2);
   const images = await page.locator(".element-composition img").evaluateAll(images => images.map(img => ({ src: img.getAttribute("src"), loaded: img.complete && img.naturalWidth > 0 })));
   expect(images.every(image => image.src.startsWith("assets/elements/tier-1/") && image.loaded)).toBe(true);
   expect(await page.evaluate(() => performance.getEntriesByType("resource").filter(entry => /assets\/elements\/tier-[234]\//.test(entry.name)).length)).toBe(0);
@@ -271,46 +322,45 @@ test("las técnicas de tiers superiores reutilizan los iconos básicos", async (
   await page.screenshot({ path: "test-results/dojo-techniques/elementos-combinados.png" });
 });
 
-test("nivel 3 explica la capacidad y permite reemplazar una equipada por una aprendida", async ({ page }) => {
+test("nivel 24 explica la capacidad y permite reemplazar una equipada por una aprendida", async ({ page }) => {
   await page.setViewportSize({ width: 1360, height: 748 });
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
-  await openDojo(page);
-  await expect(page.locator("[data-equipped-count]")).toHaveText("2/2 EQUIPADAS");
-  await expect(page.locator('[data-loadout-locked="3"]')).toContainText("nivel 5");
-  await expect(page.locator('[data-loadout-locked="4"]')).toContainText("nivel 8");
+  await openDojo(page,{ level:24,loadout:["fire_embers","fire_breath","fire_arc","fire_brand"],learned:["fire_arc","fire_brand","fire_ring"] });
+  await expect(page.locator("[data-equipped-count]")).toHaveText("4/4 EQUIPADAS");
+  await expect(page.locator("[data-loadout-locked]")).toHaveCount(0);
   await expect(page.locator("[data-technique-feedback]")).toBeVisible();
   await expect(page.locator("[data-technique-feedback]")).toContainText("ranuras están ocupadas");
-  await expect(page.locator('[data-skill-select="fire_arc"] .skill-state')).toHaveText("APRENDIDA");
+  await expect(page.locator('[data-skill-select="fire_ring"] .skill-state')).toHaveText("APRENDIDA");
   const original = await loadout(page);
-  await page.locator('[data-skill-select="fire_arc"]').click();
+  await page.locator('[data-skill-select="fire_ring"]').click();
   expect(await loadout(page)).toEqual(original);
-  await expect(page.locator(".technique-detail h3")).toHaveText("Arco de llama");
-  await expect(page.locator('[data-technique-toggle="fire_arc"]')).toHaveText("REEMPLAZAR UNA EQUIPADA");
-  await page.locator('[data-technique-toggle="fire_arc"]').click();
-  await expect(page.locator("[data-replace-slot]")).toHaveCount(2);
+  await expect(page.locator(".technique-detail h3")).toHaveText("Anillo de ceniza");
+  await expect(page.locator('[data-technique-toggle="fire_ring"]')).toHaveText("REEMPLAZAR UNA EQUIPADA");
+  await page.locator('[data-technique-toggle="fire_ring"]').click();
+  await expect(page.locator("[data-replace-slot]")).toHaveCount(4);
   await expect(page.locator("[data-technique-feedback]")).toContainText("Elige qué técnica reemplazar");
   expect(await loadout(page)).toEqual(original);
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-replace-slot]")).toHaveCount(0);
   expect(await loadout(page)).toEqual(original);
-  await page.locator('[data-technique-toggle="fire_arc"]').click();
+  await page.locator('[data-technique-toggle="fire_ring"]').click();
   await page.screenshot({ path: "test-results/dojo-techniques/reemplazar-1360.png" });
-  await page.getByRole("button", { name: "Reemplazar Aliento de brasa por Arco de llama", exact: true }).click();
-  expect(await loadout(page)).toEqual(["fire_embers", "fire_arc"]);
-  await expect(page.locator('[data-skill-select="fire_arc"] .skill-state')).toHaveText("EN COMBATE · RANURA 2");
-  await expect(page.locator('[data-skill-select="fire_breath"] .skill-state')).toHaveText("APRENDIDA");
+  await page.getByRole("button", { name: "Reemplazar Aliento de brasa por Anillo de ceniza", exact: true }).click();
+  expect(await loadout(page)).toEqual(["fire_embers", "fire_ring", "fire_arc", "fire_brand"]);
+  await expect(page.locator('[data-skill-select="fire_ring"] .skill-state')).toHaveText("EN COMBATE · RANURA 2");
+  await expect(page.locator('[data-skill-select="fire_breath"] .skill-state')).toHaveText("MEJORADA");
   await expect(page.locator("[data-technique-feedback]")).toContainText("Ambas siguen aprendidas");
   await enterDojo(page);
-  expect(await loadout(page)).toEqual(["fire_embers", "fire_arc"]);
-  await expect(page.locator('[data-loadout-inspect="fire_arc"]')).toBeVisible();
+  expect(await loadout(page)).toEqual(["fire_embers", "fire_ring", "fire_arc", "fire_brand"]);
+  await expect(page.locator('[data-loadout-inspect="fire_ring"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test("una ranura libre permite equipar y consultar una bloqueada no cambia el equipo", async ({ page }) => {
-  await openDojo(page, { loadout: ["fire_embers"] });
-  await expect(page.locator("[data-equipped-count]")).toHaveText("1/2 EQUIPADAS");
-  await expect(page.locator(".technique-loadout-slot.is-empty")).toContainText("Ranura libre");
+  await openDojo(page, { level:6,loadout: ["fire_embers"],learned:["fire_arc"] });
+  await expect(page.locator("[data-equipped-count]")).toHaveText("1/3 EQUIPADAS");
+  await expect(page.locator(".technique-loadout-slot.is-empty").first()).toContainText("Ranura libre");
   await page.locator('[data-skill-select="fire_arc"]').click();
   await expect(page.locator('[data-technique-toggle="fire_arc"]')).toHaveText("EQUIPAR EN RANURA LIBRE");
   await page.locator('[data-technique-toggle="fire_arc"]').click();
@@ -321,7 +371,7 @@ test("una ranura libre permite equipar y consultar una bloqueada no cambia el eq
   expect(await loadout(page)).toEqual(["fire_embers", "fire_arc"]);
   await page.locator('[data-loadout-remove="0"]').click();
   expect(await loadout(page)).toEqual(["fire_arc"]);
-  await expect(page.locator('[data-skill-select="fire_embers"] .skill-state')).toHaveText("APRENDIDA");
+  await expect(page.locator('[data-skill-select="fire_embers"] .skill-state')).toHaveText("MEJORADA");
   await page.locator('[data-dojo-tab="appearance"]').click();
   await page.locator('[data-dojo-tab="techniques"]').click();
   await page.locator('[data-skill-select="fire_embers"]').click();
@@ -329,15 +379,18 @@ test("una ranura libre permite equipar y consultar una bloqueada no cambia el eq
   expect(await loadout(page)).toEqual(["fire_arc", "fire_embers"]);
 });
 
-for (const { level, capacity, locked } of [{ level: 5, capacity: 3, locked: 1 }, { level: 8, capacity: 4, locked: 0 }]) {
+for (const { level, capacity, locked, initial, incoming } of [
+  { level:5,capacity:3,locked:1,initial:["fire_embers"],incoming:"fire_breath" },
+  { level:8,capacity:4,locked:0,initial:["fire_embers","fire_breath"],incoming:"fire_arc" }
+]) {
   test(`el nivel ${level} muestra ${capacity} ranuras y equipa en el espacio nuevo`, async ({ page }) => {
-    await openDojo(page, { level });
+    await openDojo(page,{ level,loadout:initial,learned:incoming === "fire_arc" ? [incoming] : [] });
     await expect(page.locator(".technique-loadout-slot.is-locked")).toHaveCount(locked);
-    await expect(page.locator("[data-equipped-count]")).toHaveText(`2/${capacity} EQUIPADAS`);
-    await page.locator('[data-skill-select="fire_arc"]').click();
-    await page.locator('[data-technique-toggle="fire_arc"]').click();
-    expect(await loadout(page)).toEqual(["fire_embers", "fire_breath", "fire_arc"]);
-    await expect(page.locator('[data-skill-select="fire_arc"] .skill-state')).toHaveText("EN COMBATE · RANURA 3");
+    await expect(page.locator("[data-equipped-count]")).toHaveText(`${initial.length}/${capacity} EQUIPADAS`);
+    await page.locator(`[data-skill-select="${incoming}"]`).click();
+    await page.locator(`[data-technique-toggle="${incoming}"]`).click();
+    expect(await loadout(page)).toEqual([...initial,incoming]);
+    await expect(page.locator(`[data-skill-select="${incoming}"] .skill-state`)).toHaveText(`EN COMBATE · RANURA ${initial.length+1}`);
   });
 }
 
@@ -363,3 +416,13 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await page.screenshot({ path: `test-results/dojo-techniques/panel-${viewport.width}.png` });
   });
 }
+
+
+test("el Dojo muestra el nivel máximo 60 y limita el presupuesto a 118", async ({ page }) => {
+  await openDojo(page, { level: 100 });
+  await expect(page.locator(".dojo-level strong")).toHaveText("NIVEL 60");
+  await expect(page.locator(".dojo-level span")).toHaveText("NIVEL MÁXIMO");
+  await expect(page.locator(".dojo-level i b")).toHaveAttribute("style", "width:100%");
+  await expect(page.locator("[data-resonance-points]")).toHaveText("118");
+  expect(await page.locator(".village-topbar").innerText()).not.toContain("0/0");
+});

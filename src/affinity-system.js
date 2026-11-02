@@ -1,4 +1,5 @@
 import { CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
+import { AFFINITY_TRIALS } from "./content/affinity-progression.js?v=1.0.0";
 
 export const AFFINITY_IDS = Object.freeze(["fuego", "agua", "tierra", "viento"]);
 export const COMBAT_STAT_IDS = Object.freeze(["health", "strength", "speed", "chakra", "luck"]);
@@ -13,7 +14,7 @@ export const AFFINITY_CONFIG = Object.freeze({
   slots: Object.freeze([
     Object.freeze({ position: 1, weight: 1, bonus: 0.20, penalty: -0.12, level: 1, storyRank: 1 }),
     Object.freeze({ position: 2, weight: 0.5, bonus: 0.10, penalty: -0.06, level: 15, storyRank: 2 }),
-    Object.freeze({ position: 3, weight: 0.25, bonus: 0.05, penalty: -0.03, level: 35, storyRank: 3 })
+    Object.freeze({ position: 3, weight: 0.25, bonus: 0.05, penalty: -0.03, level: 30, storyRank: 3 })
   ]),
   affinities: Object.freeze({
     fuego: Object.freeze({ boosts: "strength", penalizes: "speed", passive: "fury" }),
@@ -56,11 +57,14 @@ export function normalizeAffinityOrder(affinities) {
   return [...new Set(affinities.filter((id) => AFFINITY_IDS.includes(id)))].slice(0, AFFINITY_CONFIG.maxAffinities);
 }
 
-export function availableAffinitySlots(level, storyRank, extraAffinityUnlocked = false, rank = "Novicio") {
+export function availableAffinitySlots(level, storyRank, extraAffinityUnlocked = false, rank = "Novicio", completedMissions = []) {
   const safeLevel = Math.max(1, Math.floor(finite(level, 1)));
-  const safeStoryRank = Math.max(1, Math.floor(finite(storyRank, 1)));
-  const natural = AFFINITY_CONFIG.slots.slice(0, 2).filter((slot) => safeLevel >= slot.level && safeStoryRank >= slot.storyRank).length;
-  return extraAffinityUnlocked ? 3 : rank === "Guardián" && safeLevel >= 10 ? 2 : natural;
+  let slots = 1;
+  for (const trial of AFFINITY_TRIALS) {
+    if (safeLevel < trial.level || !completedMissions.includes(trial.id)) break;
+    slots = trial.slot;
+  }
+  return slots;
 }
 
 export function affinityStatModifiers(affinities) {

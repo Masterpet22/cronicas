@@ -14,7 +14,9 @@ export const PHYSICAL_COLOR = "#657fff";
  * @property {string} icon
  * @property {number} maxLevel
  * @property {number} cost Resonance points per purchased rank (not chakra).
- * @property {string[]} prerequisites All listed nodes must have at least one rank.
+ * @property {string[]} prerequisites All listed nodes are required.
+ * @property {Object<string,number>} prerequisiteLevels Required rank of each preceding skill.
+ * @property {number[]} rankLevels Minimum character level for ranks 1, 2 and 3.
  * @property {number} q Axial coordinate; belongs to layout, never player progression.
  * @property {number} r
  */
@@ -44,32 +46,38 @@ const PHYSICAL = [
   ["Paso fugaz", "speed", 1, "Movilidad", "step"],
   ["Guardia inquebrantable", "damageReduction", 1, "Defensa", "shield"],
   ["Pulso certero", "accuracy", 1, "Precisión", "target"],
-  ["Instinto de combate", "evasion", 1, "Evasión", "eye"],
-  ["Respiración profunda", "chakra", 5, "Recuperación", "seal"],
-  ["Cuerpo trascendente", "strength", 2, "Maestría física", "crown"]
+  ["Instinto de combate", "evasion", 1, "Evasión", "eye"]
 ];
 const STAT_LABELS = { health: "vida máxima", strength: "fuerza", speed: "velocidad", damageReduction: "reducción de daño", accuracy: "precisión", evasion: "evasión", chakra: "chakra máximo", costReduction: "reducción del coste de chakra" };
 export const effectText = effect => `+${effect.amount} ${STAT_LABELS[effect.stat]} por nivel`;
-const path = [[], [0], [0], [1], [1], [2], [3,4], [5,6]];
-
-function passive(id, name, category, affinityIds, index, effect, prerequisites = []) {
-  return { id, name, category, affinityIds, description: `Entrenamiento permanente. ${effectText(effect)}. Se aplica mientras sus afinidades estén equipadas.`, icon: ICONS[index % 8], type: "Pasiva", maxLevel: TECHNIQUE_MASTERY.maxLevel, cost: index >= 6 ? 2 : 1, prerequisites, effect };
+function passive(id, name, category, affinityIds, index, effect) {
+  return { id, name, category, affinityIds, description: `Entrenamiento permanente. ${effectText(effect)}. Se aplica mientras sus afinidades estén equipadas.`, icon: ICONS[index % 8], type: "Pasiva", maxLevel: TECHNIQUE_MASTERY.maxLevel, cost: 1, prerequisites: [], effect };
 }
 
 function techniqueNode(jutsu, category, index) {
   return {
     id: jutsu.id, name: jutsu.name, category, affinityIds: basicRequirements(jutsu.element),
     description: jutsu.status ? `Inflige daño y aplica ${jutsu.status.label.toLowerCase()} durante ${jutsu.status.duration} turno(s).` : "Concentra la afinidad en un impacto elemental directo.",
-    icon: ICONS[index % 8], type: jutsu.cinematic ? "Definitiva" : jutsu.status ? "Ataque · Estado" : jutsu.seals.length <= 2 ? "Ataque veloz" : "Ataque directo",
-    maxLevel: TECHNIQUE_MASTERY.maxLevel, cost: jutsu.cinematic ? 2 : 1, prerequisites: [], jutsuId: jutsu.id, element: jutsu.element,
+    icon: ICONS[index % 8], type: jutsu.cinematic || jutsu.finisher ? "Definitiva" : jutsu.status ? "Ataque · Estado" : jutsu.seals.length <= 2 ? "Ataque veloz" : "Ataque directo",
+    maxLevel: TECHNIQUE_MASTERY.maxLevel, cost: 1, prerequisites: [], jutsuId: jutsu.id, element: jutsu.element,
     unlockLevel: jutsu.unlockLevel, affinityXpRequired: jutsu.affinityXpRequired
   };
 }
 
+function route(node, unlockLevel, requirements = []) {
+  return { ...node, unlockLevel, rankLevels: [unlockLevel, Math.max(3, unlockLevel + 2), Math.max(8, unlockLevel + 5)],
+    prerequisites: requirements.map(([id]) => id), prerequisiteLevels: Object.fromEntries(requirements) };
+}
+
 export const PHYSICAL_SKILLS = PHYSICAL.map(([name, stat, amount, type, icon], index) => ({
-  ...passive(`physical_${index}`, name, "physical", [], index, { stat, amount }, (path[index] || [index-1]).map(i => `physical_${i}`)),
+  ...passive(`physical_${index}`, name, "physical", [], index, { stat, amount }),
   type, icon, description: `Técnica física independiente. ${effectText({ stat, amount })}.`
-}));
+})).map((node,index,nodes) => {
+  const levels = [1,2,3,8,12,20];
+  const parents = [[],[[0,2]],[[0,2]],[[1,2]],[[1,2],[2,1]],[[2,2],[4,2]]];
+  const result = route(node, levels[index], parents[index].map(([i,rank]) => [nodes[i].id,rank]));
+  return index === 0 ? { ...result, rankLevels: [1,2,6] } : result;
+});
 
 // Active moves share their physical node's unlock and retain its existing bonus.
 export const TAIJUTSU_ACTIONS = [
@@ -89,7 +97,12 @@ export function affinitySkills(elementId) {
     const index = nodes.length;
     nodes.push(passive(`${elementId}_resonance_${index}`, `${name} · ${ELEMENTS[elementId].name}`, "affinity", [elementId], index, { stat, amount }));
   });
-  return nodes.map((node, i) => ({ ...node, prerequisites: (path[i] || [i-1]).map(parent => nodes[parent].id) }));
+  const sixTechniques = techniques.length === 6;
+  const levels = sixTechniques ? [1,1,6,12,24,40,16,32] : [1,1,6,40,12,20,32,48];
+  const parents = sixTechniques
+    ? [[],[[0,2]],[[0,2]],[[1,2]],[[2,2],[3,2]],[[4,3]],[[1,2],[2,2]],[[3,2],[4,2]]]
+    : [[],[[0,2]],[[0,2]],[[2,3],[6,2]],[[1,2]],[[2,2]],[[2,2],[5,2]],[[3,3],[6,2]]];
+  return nodes.map((node,i) => route({ ...node,affinityIndex:i }, levels[i], parents[i].map(([parent,rank]) => [nodes[parent].id,rank])));
 }
 
 export function pairSkills(affinityIds) {
@@ -99,58 +112,50 @@ export function pairSkills(affinityIds) {
     const requirements = basicRequirements(j.element).sort();
     return requirements.length === 2 && requirements.join("_") === key;
   }).sort((a,b) => a.affinityXpRequired - b.affinityXpRequired);
-  const roots = ids.map(id => affinitySkills(id)[0].id);
-  const nodes = techniques.map((j,i) => ({ ...techniqueNode(j, "hybrid", i), prerequisites: roots }));
+  // Tres celdas por combinación. Rayo conserva entrada, intermedia y definitiva.
+  const selectedTechniques = techniques.length > 3 ? [techniques[0], ...techniques.slice(-2)] : techniques;
+  const nodes = selectedTechniques.map((j,i) => techniqueNode(j, "hybrid", i));
   while (nodes.length < 3) {
     const index = nodes.length;
     const titles = ["Confluencia", "Sello dual", "Sincronía"];
     nodes.push(passive(`hybrid_${key}_${index}`, `${titles[index]} · ${ids.map(id => ELEMENTS[id].name).join(" + ")}`, "hybrid", ids, index,
-      { stat: index === 1 ? "damageReduction" : "costReduction", amount: 1 }, [...roots, ...(index ? [nodes[index - 1].id] : [])]));
+      { stat: index === 1 ? "damageReduction" : "costReduction", amount: 1 }));
   }
-  return nodes;
-}
-
-export function physicalAffinitySkills(elementId) {
-  const key = `physical_${elementId}`;
-  const root = affinitySkills(elementId)[0].id;
-  return [
-    passive(`hybrid_${key}_0`, `Impacto resonante · ${ELEMENTS[elementId].name}`, "hybrid", [elementId], 0,
-      { stat:"strength",amount:1 }, ["physical_0",root]),
-    passive(`hybrid_${key}_1`, `Cuerpo resonante · ${ELEMENTS[elementId].name}`, "hybrid", [elementId], 2,
-      { stat:"damageReduction",amount:1 }, [`hybrid_${key}_0`,"physical_0",root])
-  ].map(node => ({ ...node,physicalHybrid:true,description:`Combina el entrenamiento físico con ${ELEMENTS[elementId].name}. ${effectText(node.effect)}.` }));
+  const branchRoots = ids.map(id => affinitySkills(id)[2].id);
+  return nodes.map((node,i) => route(node, [20,32,48][i], [
+    ...branchRoots.map(id => [id,2]), ...(i ? [[nodes[i-1].id,i === 2 ? 3 : 2]] : [])
+  ]));
 }
 
 export const SKILL_CATALOG = [
   ...PHYSICAL_SKILLS,
   ...BASIC_ELEMENT_IDS.flatMap(affinitySkills),
-  ...BASIC_ELEMENT_IDS.flatMap(physicalAffinitySkills),
-  ...BASIC_ELEMENT_IDS.flatMap((id,i) => BASIC_ELEMENT_IDS.slice(i+1).flatMap(other => pairSkills([id,other]))),
-  ...JUTSU_LIBRARY.filter(j => basicRequirements(j.element).length === 3).map((j,i) => ({
-    ...techniqueNode(j,"hybrid",i), prerequisites: basicRequirements(j.element).map(id => affinitySkills(id)[0].id)
-  }))
+  ...BASIC_ELEMENT_IDS.flatMap((id,i) => BASIC_ELEMENT_IDS.slice(i+1).flatMap(other => pairSkills([id,other])))
 ];
 export const SKILLS_BY_ID = new Map(SKILL_CATALOG.map(node => [node.id, node]));
 
+// Una habilidad solo pertenece al árbol si dispone de su propia celda.
+export function skillHasCell(affinities = [], id) {
+  const node = SKILLS_BY_ID.get(id);
+  if (!node || !node.affinityIds.every(affinity => affinities.includes(affinity))) return false;
+  if (node.category !== "affinity") return true;
+  const slot = affinities.indexOf(node.affinityIds[0]);
+  return node.affinityIndex < (SKILL_LAYOUT.affinities[slot]?.length || 0);
+}
+
 function place(nodes,cells,metadata = {}) {
-  return nodes.slice(0,cells.length).map((node,i) => ({ ...node,...metadata,q:cells[i][0],r:cells[i][1],linkedSkills:[] }));
+  return cells.map(([q,r],i) => ({ ...nodes[i],...metadata,q,r }));
 }
 
 export function buildSkillTree(affinities = [],rank = 1) {
-  const physical = place(PHYSICAL_SKILLS,SKILL_LAYOUT.physical);
-  physical.at(-1).linkedSkills.push(...PHYSICAL_SKILLS.slice(SKILL_LAYOUT.physical.length));
-  const nodes = [...physical];
+  const nodes = place(PHYSICAL_SKILLS,SKILL_LAYOUT.physical);
   for (let slot=0;slot<3;slot++) {
     const id = affinities[slot];
     const branch = id ? affinitySkills(id) : Array.from({ length:8 },(_,i) => ({
       id:`empty_${slot}_${i}`,name:`Afinidad ${slot+1} por descubrir`,description:"Equipa una afinidad en esta ranura del Dojo para revelar sus habilidades.",
       category:"affinity",affinityIds:[],icon:"seal",type:"Sin afinidad",maxLevel:TECHNIQUE_MASTERY.maxLevel,cost:1,prerequisites:[],placeholder:true
     }));
-    const cells = place(branch,SKILL_LAYOUT.affinities[slot],{ slot });
-    cells.at(-1).linkedSkills.push(...branch.slice(cells.length));
-    // Keep existing physical/elemental mastery reachable without adding any cells.
-    if (id) cells.at(-1).linkedSkills.push(...physicalAffinitySkills(id));
-    nodes.push(...cells);
+    nodes.push(...place(branch,SKILL_LAYOUT.affinities[slot],{ slot }));
   }
   for (const { slots:[a,b],cells } of SKILL_LAYOUT.affinityBridges) {
     const ids = [affinities[a],affinities[b]];
@@ -158,11 +163,7 @@ export function buildSkillTree(affinities = [],rank = 1) {
       id:`empty_hybrid_${a}_${b}_${i}`,name:`Afinidad ${a+1} + Afinidad ${b+1}`,category:"hybrid",affinityIds:ids.filter(Boolean),
       description:"Equipa ambas afinidades y desarrolla sus habilidades de entrada.",icon:"bind",type:"Confluencia",maxLevel:TECHNIQUE_MASTERY.maxLevel,cost:1,prerequisites:[],placeholder:true
     }));
-    const bridge = place(branch,cells,{ bridge:`affinity-${a+1}-${b+1}`,pair:[a,b] });
-    bridge.at(-1).linkedSkills.push(...branch.slice(cells.length));
-    if (a===0 && b===2) bridge.at(-1).linkedSkills.push(...SKILL_CATALOG.filter(node =>
-      node.affinityIds.length===3 && rank >= ELEMENTS[node.element].tier && node.affinityIds.every(id => affinities.includes(id))));
-    nodes.push(...bridge);
+    nodes.push(...place(branch,cells,{ bridge:`affinity-${a+1}-${b+1}`,pair:[a,b] }));
   }
   return nodes;
 }

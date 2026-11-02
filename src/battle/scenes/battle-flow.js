@@ -177,8 +177,8 @@ export class BattleFlowMethods {
       }
       // Las recompensas se calculan para informar al jugador, pero no se
       // incorporan al guardado hasta completar toda la misión.
-      const firstClear = !this.missionStartSave.campaign[this.mission.category === "secondary" ? "completedSecondaryMissions" : "completedMissions"].includes(this.mission.id);
-      const reward = awardEncounter(this.rewardPreviewSave, this.encounterIds[this.enemyIndex], { firstClear });
+      const firstClear = !this.mission.affinitySlot && !this.missionStartSave.campaign[this.mission.category === "secondary" ? "completedSecondaryMissions" : "completedMissions"].includes(this.mission.id);
+      const reward = awardEncounter(this.rewardPreviewSave, this.encounterIds[this.enemyIndex], { firstClear,mission:this.mission,encounterIndex:this.enemyIndex,encounterIds:this.encounterIds });
       this.rewardPreviewSave = reward.save;
       this.pendingEncounterRewards.push(this.enemyIndex);
       this.lastReward = reward;
@@ -190,7 +190,7 @@ export class BattleFlowMethods {
         if (this.combatFeatures.relicDecision) await this.playRelicDrop();
         if (this.combatFeatures.postCombatChoice) await this.playHideoutDiscoveryChoice();
         this.pendingEncounterRewards.forEach((encounterIndex) => {
-          this.saveData = awardEncounter(this.saveData, this.encounterIds[encounterIndex], { firstClear }).save;
+          this.saveData = awardEncounter(this.saveData, this.encounterIds[encounterIndex], { firstClear,mission:this.mission,encounterIndex,encounterIds:this.encounterIds }).save;
         });
         const completion = completeMission(this.saveData, this.mission.id);
         this.saveData = completion.save;
@@ -344,7 +344,7 @@ export class BattleFlowMethods {
       const levelNote = this.lastReward?.levelsGained ? ` · ¡Nivel +${this.lastReward.levelsGained}!` : "";
       const rewardMessage = this.lastReward.xp || this.lastReward.coins
         ? `+${this.lastReward.xp} PX · +${this.lastReward.affinityXp} PX de afinidad · +${this.lastReward.coins} monedas${levelNote}`
-        : "sin nuevas recompensas por repetición";
+        : this.mission.affinitySlot ? "prueba de afinidad superada" : "sin nuevas recompensas por repetición";
       this.setMessage(`${defeatedName} derrotado · ${rewardMessage}`, "#79e8b5");
       this.stopFighterFlash(this.foe);
       this.tweens.add({ targets: [...this.foe.targets, this.foe.shadow], alpha: 0, x: "+=70", duration: 480 });
@@ -356,10 +356,11 @@ export class BattleFlowMethods {
       if (this.finished || !isSceneActive(this.scene)) return;
 
       this.enemyIndex += 1;
-      const profile = this.encounters[this.enemyIndex];
+      let profile = this.encounters[this.enemyIndex];
       await this.playEncounterTransition(profile);
       if (this.finished) return;
       this.enemy = this.createEnemyState(profile);
+      profile = this.encounters[this.enemyIndex];
       this.recordEnemyObservation({ encounter: true });
       this.enemyName.setText(profile.name);
       this.enemyRankNumber.setText(`NV ${this.enemyRankForProfile(profile)}`);

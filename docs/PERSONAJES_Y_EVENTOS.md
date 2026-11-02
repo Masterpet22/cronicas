@@ -6,7 +6,7 @@ Este registro contiene solo personajes y funciones presentes en **Futuro promete
 
 ### Protagonista
 
-Combatiente novicio creado por el jugador. Elige una afinidad inicial, aprende técnicas mediante experiencia y construye su estilo con equipo, atributos y hasta tres afinidades activas.
+Combatiente novicio creado por el jugador. Elige una afinidad inicial, aprende técnicas cumpliendo requisitos de nivel, experiencia y predecesoras, y gastando puntos en el Dojo y construye su estilo con equipo, atributos y hasta tres afinidades activas.
 
 ### Mei Hayate — Instructora de Técnicas
 

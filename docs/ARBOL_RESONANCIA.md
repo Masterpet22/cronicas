@@ -21,10 +21,13 @@ La mezcla usa aportes RGB iguales: rojo `#ff0000` + azul `#0000ff` da morado
 `#800080`. El núcleo toma `character.appearance`; su borde, kanji e yin yang
 adaptan el contraste para colores claros y oscuros. No aparecen hexágonos adicionales al progresar o cambiar de vista.
 
-El catálogo conserva sus habilidades, mejoras y requisitos anteriores. Las que
-exceden las posiciones del plano quedan vinculadas a una celda existente y se
-consultan en su ficha con **Técnicas de esta celda**. Las ranuras sin afinidad
-mantienen sus celdas bloqueadas.
+Cada hexágono representa una sola habilidad, con su propia ficha y sus tres
+rangos. El centro representa al personaje y no cuenta como habilidad. El árbol
+completo contiene exactamente **38 habilidades**, cualquiera que sea el orden
+de los elementos: 6 físicas, 8/7/8 según la ranura de afinidad y 9 combinadas.
+No hay selectores, contadores de habilidades adicionales ni habilidades ocultas
+al seleccionar una casilla. Las ranuras sin afinidad muestran sus casillas
+bloqueadas. La cantidad depende de la posición elegida, no del elemento.
 
 El núcleo usa la numeración japonesa del mes de nacimiento: `一` a `十`, `十一` y
 `十二`. Sin fecha válida muestra yin yang. Cambiar o quitar el cumpleaños en el
@@ -59,54 +62,55 @@ deben cumplirse. Desarrollar una rama no obliga a comprar todos sus nodos.
 
 Los pares 1+2 y 2+3 ocupan sus tres celdas inferiores. El par 1+3 ocupa
 exactamente `(0,-3)`, `(-2,-1)` y `(2,-3)`, sin unirlas ni desplazarlas a una franja.
-Las técnicas de tres elementos, las maestrías físicas y los cruces físicos de
-versiones anteriores se conservan como técnicas vinculadas, sin alterar el plano.
-
-`buildSkillTree` devuelve solo las 38 celdas de habilidades, cada una con sus
-`linkedSkills`. `skillTreeNodes` expone las habilidades y sus niveles con un
-`cellId` compartido. El renderizado mantiene una sola celda por `cellId`, también
-al seleccionar una habilidad vinculada.
+`buildSkillTree` devuelve 38 nodos, sin habilidades anidadas. `skillTreeNodes`
+añade el nivel actual y un `cellId` igual al ID de la única habilidad de la casilla.
+`skillHasCell` aplica la misma disponibilidad al aprendizaje, mejoras y efectos.
 
 ## Economía y compatibilidad
 
-El personaje dispone de **3 puntos de Resonancia iniciales y 2 por nivel ganado**,
+El personaje comienza con **0 puntos de Resonancia y gana 2 por cada subida de nivel**,
 independientes de los puntos de atributos. Los puntos disponibles se calculan a
-partir del nivel y de las inversiones; recargar o cambiar de vista no los duplica.
-Cada nodo define su coste por nivel y un máximo de cinco niveles.
+partir del nivel (máximo 60, 118 puntos) y de las inversiones; recargar o cambiar de vista no los duplica.
+Cada nodo define su coste por nivel y un máximo de tres niveles.
 
-Las técnicas existentes mantienen su aprendizaje por nivel y PX de afinidad.
-Aprender una técnica concede su primer nivel; cada mejora comprada añade dos
-puntos de daño base y reduce el consumo un 5 % del coste original. Al nivel 5,
-la reducción alcanza el 20 % y la técnica usa un sello menos. Cada sello suma
-300 ms de preparación a velocidad 10; la velocidad del personaje escala ese
-tiempo. El Dojo muestra el daño, coste efectivo y número de sellos del nivel
-actual. Las especializaciones pasivas se desbloquean
-y mejoran con puntos, y sus efectos se aplican en `derivedStats` al crear al
-combatiente. Los híbridos requieren progreso en ambas afinidades y, cuando está
-definida, la técnica híbrida anterior.
+Cada desbloqueo o mejora cuesta **1 PR**, incluidas las definitivas. Hay cinco
+rangos gratuitos: las dos técnicas iniciales de la afinidad principal, Disciplina
+del cuerpo y la primera técnica de cada nueva afinidad. No dependen de los PX
+para conservarse. Las demás habilidades exigen nivel, PX cuando corresponde y
+el rango concreto de sus predecesoras; cumplirlos habilita comprar, sin aprender
+automáticamente. El equipo, el entrenamiento y el combate validan la misma regla.
 
-Se guarda únicamente `progression.resonance.investments`, un mapa de ID a cantidad
-de niveles comprados. Las partidas sin este campo se normalizan con inversiones
-vacías: conservan técnicas aprendidas, ranuras, atributos y equipo. No se necesita
-cambiar la versión del formato por este campo opcional. La normalización descarta
-IDs desconocidos, rangos no finitos y cantidades negativas, limita los máximos y
-el gasto total al presupuesto del personaje.
+Las 38 habilidades a rango 3 cuestan `38 × 3 − 5 = 109 PR`. El nivel 56 permite
+acumular 110 PR; el nivel 60, 118 PR, dejando nueve libres tras completar el árbol.
+Esto se comprueba en los 24 órdenes posibles, contando también los requisitos
+intermedios. Siguen siendo necesarios los PX de afinidad y las pruebas especiales.
+
+Las técnicas iniciales admiten rango 2 desde nivel 3 y rango 3 desde nivel 8.
+Disciplina del cuerpo se mejora desde niveles 2 y 6. En el resto, el rango 2 exige
+`nivel de desbloqueo + 2` y el rango 3 `nivel de desbloqueo + 5`. Cada mejora de
+una técnica añade +2 al daño y descuenta un 5 % del chakra original; rango 3
+quita un sello. Las pasivas conservan sus efectos por rango.
+
+El formato de guardado es 29. La carga conserva los rangos válidos y libera las
+inversiones sin nivel, predecesoras o casilla. El cargador conserva nivel, PX,
+misiones, afinidades, inventario y objetos. La validación no depende del orden del
+JSON y recargar conserva el mismo saldo.
 
 `taijutsuLoadout` guarda exactamente dos posiciones (ID o `null`), separadas de
-`loadout`. Las partidas anteriores reciben dos ranuras vacías. No admite técnicas
+`loadout`. Las ranuras vacías se guardan como `null`. No admite técnicas
 bloqueadas, duplicados ni más de dos posiciones; mover una técnica a la posición
 de otra intercambia ambas. Las técnicas elementales conservan su equipo.
 
 Puño de hierro y Paso fugaz son los dos taijutsus activos asociados a los nodos
-`physical_1` y `physical_2`. Conservan sus bonos de entrenamiento previos; además,
+`physical_1` y `physical_2`. Aplican su bono de entrenamiento y, además,
 pueden equiparse en T1 y T2 una vez desbloqueados. Cuestan 8 y 5 PV respectivamente,
 sin chakra ni sellos, y no pueden dejar al personaje sin vida. Cada rango adicional
 añade dos puntos de daño al movimiento equipado. En la tabla física de combate
 ocupan las acciones 4 y 5, entre el arma arrojadiza y la Guardia.
 
-Cambiar o reordenar afinidades conserva las inversiones. Las pasivas de afinidades
-no equipadas quedan inactivas y se recuperan al volver a equiparlas. No se
-reembolsa ni reinicia silenciosamente el progreso.
+La carga conserva las inversiones compatibles con las afinidades y rutas. Las
+pasivas de afinidades no equipadas quedan inactivas. Las inversiones que pierden
+su casilla o incumplen requisitos se liberan como puntos disponibles.
 
 ## Interacción y ampliación
 
@@ -121,7 +125,8 @@ los controles para equipar, quitar y reemplazar una ranura de combate.
 - La cámara se conserva durante inversiones y cambios de equipo.
 
 Para añadir habilidades, define sus requisitos y efectos en el catálogo y
-vincúlalas a una celda existente. El plano `SKILL_LAYOUT` es un contrato fijo;
+asigna una celda propia, sustituyendo la habilidad de esa posición si fuera
+necesario. El plano `SKILL_LAYOUT` es un contrato fijo;
 ninguna ampliación automática agrega hexágonos. Mantén IDs persistentes para
 conservar partidas.
 Los efectos pasivos admitidos son vida, fuerza, velocidad, chakra, precisión,
@@ -130,3 +135,96 @@ nueva requiere implementar su efecto en combate y describirlo en la ficha.
 
 Validación: `npm test` incluye `tests/resonance-tree.test.mjs`; las pruebas de
 navegador están en `tests/dojo-techniques.spec.mjs`.
+
+## Catálogo y requisitos exactos
+
+Esta tabla enumera las opciones del catálogo. Cada personaje usa las 38 casillas
+correspondientes a sus tres afinidades elegidas y su orden. Las habilidades
+gratuitas omiten los requisitos de predecesoras en la ranura donde se conceden.
+Los niveles indicados son de personaje; los rangos son de habilidad.
+
+### Físicas
+
+| Habilidad | Nivel para rangos 1/2/3 | Predecesoras | PX de afinidad |
+|---|---|---|---:|
+| Disciplina del cuerpo | 1 / 2 / 6 | Gratuita | — |
+| Puño de hierro | 2 / 4 / 8 | Disciplina del cuerpo rango 2 | — |
+| Paso fugaz | 3 / 5 / 8 | Disciplina del cuerpo rango 2 | — |
+| Guardia inquebrantable | 8 / 10 / 13 | Puño de hierro rango 2 | — |
+| Pulso certero | 12 / 14 / 17 | Puño de hierro rango 2 + Paso fugaz rango 1 | — |
+| Instinto de combate | 20 / 22 / 25 | Paso fugaz rango 2 + Pulso certero rango 2 | — |
+
+### Fuego
+
+| Habilidad | Nivel para rangos 1/2/3 | Predecesoras | PX de afinidad |
+|---|---|---|---:|
+| Ascuas veloces | 1 / 3 / 8 | Gratuita al elegir la afinidad | 0 |
+| Aliento de brasa | 1 / 3 / 8 | Ascuas veloces rango 2; gratuita en afinidad principal | 20 |
+| Arco de llama | 6 / 8 / 11 | Ascuas veloces rango 2 | 60 |
+| Marca ardiente | 12 / 14 / 17 | Aliento de brasa rango 2 | 110 |
+| Anillo de ceniza | 24 / 26 / 29 | Arco de llama rango 2 + Marca ardiente rango 2 | 170 |
+| Fénix escarlata | 40 / 42 / 45 | Anillo de ceniza rango 3 | 280 |
+| Sello protector · Fuego | 16 / 18 / 21 | Aliento de brasa rango 2 + Arco de llama rango 2 | — |
+| Flujo interior · Fuego | 32 / 34 / 37 | Marca ardiente rango 2 + Anillo de ceniza rango 2 | — |
+
+### Agua
+
+| Habilidad | Nivel para rangos 1/2/3 | Predecesoras | PX de afinidad |
+|---|---|---|---:|
+| Aqua Shuriken | 1 / 3 / 8 | Gratuita al elegir la afinidad | 0 |
+| Látigo de corriente | 1 / 3 / 8 | Aqua Shuriken rango 2; gratuita en afinidad principal | 20 |
+| Muro de marea | 6 / 8 / 11 | Aqua Shuriken rango 2 | 75 |
+| Lanza abisal | 40 / 42 / 45 | Muro de marea rango 3 + Paso elemental · Agua rango 2 | 150 |
+| Sello protector · Agua | 12 / 14 / 17 | Látigo de corriente rango 2 | — |
+| Flujo interior · Agua | 20 / 22 / 25 | Muro de marea rango 2 | — |
+| Paso elemental · Agua | 32 / 34 / 37 | Muro de marea rango 2 + Flujo interior · Agua rango 2 | — |
+| Dominio · Agua | 48 / 50 / 53 | Lanza abisal rango 3 + Paso elemental · Agua rango 2 | — |
+
+### Tierra
+
+| Habilidad | Nivel para rangos 1/2/3 | Predecesoras | PX de afinidad |
+|---|---|---|---:|
+| Puño de roca | 1 / 3 / 8 | Gratuita al elegir la afinidad | 0 |
+| Muralla pétrea | 1 / 3 / 8 | Puño de roca rango 2; gratuita en afinidad principal | 20 |
+| Púa tectónica | 6 / 8 / 11 | Puño de roca rango 2 | 75 |
+| Pulso sísmico | 40 / 42 / 45 | Púa tectónica rango 3 + Paso elemental · Tierra rango 2 | 150 |
+| Sello protector · Tierra | 12 / 14 / 17 | Muralla pétrea rango 2 | — |
+| Flujo interior · Tierra | 20 / 22 / 25 | Púa tectónica rango 2 | — |
+| Paso elemental · Tierra | 32 / 34 / 37 | Púa tectónica rango 2 + Flujo interior · Tierra rango 2 | — |
+| Dominio · Tierra | 48 / 50 / 53 | Pulso sísmico rango 3 + Paso elemental · Tierra rango 2 | — |
+
+### Viento
+
+| Habilidad | Nivel para rangos 1/2/3 | Predecesoras | PX de afinidad |
+|---|---|---|---:|
+| Palma de vacío | 1 / 3 / 8 | Gratuita al elegir la afinidad | 0 |
+| Filo de vendaval | 1 / 3 / 8 | Palma de vacío rango 2; gratuita en afinidad principal | 20 |
+| Paso del céfiro | 6 / 8 / 11 | Palma de vacío rango 2 | 60 |
+| Onda cortante | 12 / 14 / 17 | Filo de vendaval rango 2 | 110 |
+| Agujas del norte | 24 / 26 / 29 | Paso del céfiro rango 2 + Onda cortante rango 2 | 170 |
+| Ciclón cortante | 40 / 42 / 45 | Agujas del norte rango 3 | 280 |
+| Sello protector · Viento | 16 / 18 / 21 | Filo de vendaval rango 2 + Paso del céfiro rango 2 | — |
+| Flujo interior · Viento | 32 / 34 / 37 | Onda cortante rango 2 + Agujas del norte rango 2 | — |
+
+### Combinadas
+
+| Habilidad | Nivel para rangos 1/2/3 | Predecesoras | PX de afinidad |
+|---|---|---|---:|
+| Estallido de vapor | 20 / 22 / 25 | Muro de marea rango 2 + Arco de llama rango 2 | 120 |
+| Sello dual · Agua + Fuego | 32 / 34 / 37 | Muro de marea rango 2 + Arco de llama rango 2 + Estallido de vapor rango 2 | — |
+| Sincronía · Agua + Fuego | 48 / 50 / 53 | Muro de marea rango 2 + Arco de llama rango 2 + Sello dual · Agua + Fuego rango 3 | — |
+| Forja de magma | 20 / 22 / 25 | Arco de llama rango 2 + Púa tectónica rango 2 | 140 |
+| Sello dual · Fuego + Tierra | 32 / 34 / 37 | Arco de llama rango 2 + Púa tectónica rango 2 + Forja de magma rango 2 | — |
+| Sincronía · Fuego + Tierra | 48 / 50 / 53 | Arco de llama rango 2 + Púa tectónica rango 2 + Sello dual · Fuego + Tierra rango 3 | — |
+| Aguja de chispa | 20 / 22 / 25 | Arco de llama rango 2 + Paso del céfiro rango 2 | 90 |
+| Cadena estática | 32 / 34 / 37 | Arco de llama rango 2 + Paso del céfiro rango 2 + Aguja de chispa rango 2 | 210 |
+| Juicio del cielo | 48 / 50 / 53 | Arco de llama rango 2 + Paso del céfiro rango 2 + Cadena estática rango 3 | 320 |
+| Enredo esmeralda | 20 / 22 / 25 | Muro de marea rango 2 + Púa tectónica rango 2 | 115 |
+| Sello dual · Agua + Tierra | 32 / 34 / 37 | Muro de marea rango 2 + Púa tectónica rango 2 + Enredo esmeralda rango 2 | — |
+| Sincronía · Agua + Tierra | 48 / 50 / 53 | Muro de marea rango 2 + Púa tectónica rango 2 + Sello dual · Agua + Tierra rango 3 | — |
+| Lanza glacial | 20 / 22 / 25 | Muro de marea rango 2 + Paso del céfiro rango 2 | 130 |
+| Sello dual · Agua + Viento | 32 / 34 / 37 | Muro de marea rango 2 + Paso del céfiro rango 2 + Lanza glacial rango 2 | — |
+| Sincronía · Agua + Viento | 48 / 50 / 53 | Muro de marea rango 2 + Paso del céfiro rango 2 + Sello dual · Agua + Viento rango 3 | — |
+| Prisión de arena | 20 / 22 / 25 | Púa tectónica rango 2 + Paso del céfiro rango 2 | 135 |
+| Sello dual · Tierra + Viento | 32 / 34 / 37 | Púa tectónica rango 2 + Paso del céfiro rango 2 + Prisión de arena rango 2 | — |
+| Sincronía · Tierra + Viento | 48 / 50 / 53 | Púa tectónica rango 2 + Paso del céfiro rango 2 + Sello dual · Tierra + Viento rango 3 | — |

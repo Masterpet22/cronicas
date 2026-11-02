@@ -26,9 +26,21 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     document.getElementById("flash-effects").checked = false;
     localStorage.setItem("light-mode", lightMode ? "on" : "off");
     const mission = MISSIONS.filter((mission) => mission.encounters)[arenaIndex];
-    const save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType, skinTone });
-    save.progression.level = 8;
-    save.progression.resonance = { investments };
+    const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
+    const { SKILLS_BY_ID } = await import("/src/skills/definitions.js?v=1.0.0");
+    const { basicRequirements } = await import("/src/elements.js?v=0.20.0");
+    let save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType, skinTone });
+    save.progression.level = Math.max(8,...loadout.map(id=>SKILLS_BY_ID.get(id)?.unlockLevel || 1));
+    save.character.affinities = [...new Set(["fuego",...loadout.flatMap(id=>basicRequirements(JUTSU_LIBRARY.find(j=>j.id===id)?.element || "fuego"))])];
+    save.character.affinityXp = { fuego:10000,agua:10000,tierra:10000,viento:10000 };
+    save.campaign.elementRank = save.character.affinities.length;
+    save.campaign.completedSecondaryMissions = ["affinity_trial_2","affinity_trial_3"].slice(0,save.character.affinities.length-1);
+    for (const id of loadout) save = learnSkillForTest(save,id);
+    for (const [id,paid] of Object.entries(investments)) {
+      const node = SKILLS_BY_ID.get(id);
+      const { naturalSkillLevel } = await import("/src/skills/progression.js?v=1.0.0");
+      save = learnSkillForTest(save,id,Math.min(3,paid+naturalSkillLevel(save,node)));
+    }
     save.taijutsuLoadout = taijutsuLoadout;
     save.character.affinityXp.fuego = 1000;
     save.loadout = loadout;

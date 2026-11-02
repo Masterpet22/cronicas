@@ -1,4 +1,5 @@
 import { WEAPON_ASSETS } from "./weapon-assets.js?v=1.0.0";
+import { TECHNIQUE_UNLOCK_LEVELS } from "./skills/unlock-levels.js?v=1.0.0";
 import { balanceTechniqueChakra, CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
 export const SEALS = {
   ara:       { frame: 0, label: "ARA", key: "Q", element: "fuego" },
@@ -111,12 +112,17 @@ export const JUTSU_LIBRARY = [
   { id: "lightning_chain", unlockLevel: 2, element: "rayo", name: "Cadena estática", subtitle: "22CH · V12 · P87 · CD2", cost: 22, damage: 26, speedMod: 0, accuracyMod: -3, cooldown: 2, seals: sealSlots(3), color: 0x508ff0, status: { type: "seal", label: "SELLADO", duration: 3, power: 0 } },
   { id: "lightning_heaven", unlockLevel: 3, element: "rayo", name: "Juicio del cielo", subtitle: "36CH · V5 · P78 · CD4", cost: 36, damage: 44, speedMod: -7, accuracyMod: -12, cooldown: 4, seals: sealSlots(4), color: 0x3f78df, cinematic: true, status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } },
   ...EXTRA_ELEMENT_TECHNIQUES
-].map((jutsu) => ({
-  ...balanceTechniqueChakra(jutsu),
-  initiative: 0,
-  seals: elementalSealSequence(jutsu),
-  affinityXpRequired: AFFINITY_XP_REQUIREMENTS[jutsu.id] ?? 0
-}));
+].map((original) => {
+  const jutsu = { ...balanceTechniqueChakra(original),
+    ...(["water_whip","earth_wall"].includes(original.id) ? { damage: 22, cost: 40 } : {}),
+    ...(original.id === "wind_blade" ? { damage: 20 } : {}),
+    ...(original.id === "water_lance" ? { finisher: true, damage: 38, cost: 62, cooldown: 3, seals: sealSlots(4), status: { type: "seal", label: "SELLADO", duration: 1, power: 0 } } : {}),
+    ...(original.id === "earth_quake" ? { finisher: true, damage: 40, cost: 64, cooldown: 3, seals: sealSlots(4), status: { type: "stun", label: "ATURDIDO", duration: 1, power: 0 } } : {})
+  };
+  return { ...jutsu, unlockLevel: TECHNIQUE_UNLOCK_LEVELS[jutsu.id] ?? jutsu.unlockLevel, initiative: 0,
+    subtitle: `${jutsu.cost}CH · P${90+jutsu.accuracyMod} · CD${jutsu.cooldown}`,
+    seals: elementalSealSequence(jutsu), affinityXpRequired: AFFINITY_XP_REQUIREMENTS[jutsu.id] ?? 0 };
+});
 
 export const EQUIPMENT = {
   weapon: [

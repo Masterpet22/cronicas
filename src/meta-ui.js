@@ -184,6 +184,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   });
   const dojoView = createDojoView({
     onStartMission: startLocationMission,
+    onNavigate(nextView) { view = nextView; render(); },
     assetVersion: ASSET_VERSION, escapeHtml,
     affinityConfig: AFFINITY_CONFIG, elements: ELEMENTS, elementRankLabels: ELEMENT_RANK_LABELS,
     equipment: EQUIPMENT, jutsus: JUTSU_LIBRARY, npcs: NPCS,

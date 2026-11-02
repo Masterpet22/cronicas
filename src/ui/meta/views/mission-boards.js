@@ -61,7 +61,7 @@ export function createMissionBoardsView(deps) {
       const inProgress = progressStatus === "in-progress";
       const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? mission.type ? "COMPLETADA" : "REPETIR" : progressStatus === "failed" ? "REINTENTAR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
       const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
-      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.xp} PX · ${mission.reward.coins} monedas`;
+      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.totalXp} PX totales · ${mission.reward.coins} monedas`;
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
     const completedInSaga = missions.filter((mission) => completed.has(mission.id)).length;
@@ -77,8 +77,8 @@ export function createMissionBoardsView(deps) {
       ? `<div class="notice-card ally"><strong>Información con un coste</strong><span>Entrada secreta y monedas ×2; Akumori recibió refuerzos.</span></div>`
       : save.campaign.banditPrisonerChoice === "eliminate" ? `<div class="notice-card"><strong>Ventaja táctica</strong><span>Akumori no recibió refuerzos; se perdieron la entrada secreta y el aliado futuro.</span></div>` : "";
     const availableCount = cardModels.filter(({ state: missionStatus }) => missionStatus.unlocked && !missionStatus.completed).length;
-    const cards = cardModels.map(({ mission, state: missionStatus, disabled, detail, actionLabel }) => `<article class="mission-card ${missionStatus.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">ENCARGO DE SAYO · CLASE ${mission.rank}</p><h3>${deps.escapeHtml(mission.title)}</h3><p>${deps.escapeHtml(detail)}</p></div><button type="button" data-secondary-mission="${deps.escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button></article>`).join("");
-    return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Compra contratos en la tienda para conseguir objetos especiales e invocaciones. Sus recompensas se entregan una sola vez.</p>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
+    const cards = cardModels.map(({ mission, state: missionStatus, disabled, detail, actionLabel }) => `<article class="mission-card ${missionStatus.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.affinitySlot ? "PRUEBA DE AFINIDAD" : "ENCARGO DE SAYO"} · CLASE ${mission.rank}</p><h3>${deps.escapeHtml(mission.title)}</h3><p>${deps.escapeHtml(detail)}</p></div><button type="button" data-secondary-mission="${deps.escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button></article>`).join("");
+    return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Compra contratos en la tienda para conseguir objetos especiales e invocaciones. Sus recompensas se entregan una sola vez. En los niveles 15 y 30, supera aquí las pruebas para aprender nuevas afinidades.</p>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
   }
 
   function renderKagemori(state) {
@@ -117,7 +117,7 @@ export function createMissionBoardsView(deps) {
       const state = currentState;
       const getSave = () => state.save;
       const launchFieldMission = (mission) => {
-        if (mission.contractItem) {
+        if (mission.contractItem || mission.affinitySlot) {
           const status = deps.missionState(mission, getSave());
           if (!status.unlocked || status.completed) return;
           deps.showDialogue(briefingForMission(mission, getSave()), () => deps.onStartMission(getSave(), mission), "COMENZAR MISIÓN", "story");

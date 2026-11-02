@@ -1,4 +1,4 @@
-export const TECHNIQUE_MASTERY = Object.freeze({ maxLevel: 5, damagePerLevel: 2, costDiscountPercentPerLevel: 5 });
+export const TECHNIQUE_MASTERY = Object.freeze({ maxLevel: 3, damagePerLevel: 2, costDiscountPercentPerLevel: 5 });
 
 export function techniqueAtLevel(action, requestedLevel) {
   const level = Math.min(TECHNIQUE_MASTERY.maxLevel, Math.max(1, Math.floor(Number(requestedLevel) || 1)));

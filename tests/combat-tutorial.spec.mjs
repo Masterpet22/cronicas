@@ -17,8 +17,8 @@ async function prepare(page, { manual = false, emptyLoadout = false, completed =
     const save = createCharacter(createDefaultSave(), { name: "Aprendiz", affinity, bodyType: "male", appearance: "#315f87" });
     save.campaign.tutorialSeen = true;
     if (mastered) {
-      save.progression.level = 3;
-      save.progression.resonance.investments = { fire_embers: 4 };
+      save.progression.level = 8;
+      save.progression.resonance.investments = { fire_embers: 2 };
     }
     if (emptyLoadout) save.loadout = [];
     if (completed) save.campaign.completedMissions = ["m01"];
@@ -112,7 +112,7 @@ for (const [affinity, weak] of Object.entries({ fuego: "viento", agua: "fuego", 
   });
 }
 
-test("maestría cinco: combate usa el coste reducido y prepara un solo sello", async ({ page }) => {
+test("maestría tres: combate usa el coste reducido y prepara un solo sello", async ({ page }) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await prepare(page, { mastered: true });
   await launch(page);
@@ -125,7 +125,7 @@ test("maestría cinco: combate usa el coste reducido y prepara un solo sello", a
       preparation: millisecondsToTimelineThreshold(.8, speed, action),
       novicePreparation: millisecondsToTimelineThreshold(.8, speed, { ...action, seals: action.baseSeals }) };
   });
-  expect(mastery).toMatchObject({ level: 5, damage: 22, cost: 24, seals: 1 });
+  expect(mastery).toMatchObject({ level: 3, damage: 18, cost: 27, seals: 1 });
   expect(mastery.preparation).toBeCloseTo(mastery.novicePreparation / 2, 8);
   await page.locator("[data-tutorial-skip]").click();
   await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
@@ -138,7 +138,7 @@ test("maestría cinco: combate usa el coste reducido y prepara un solo sello", a
     return round;
   });
   await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round), { timeout: 20000 }).toBe(round + 1);
-  expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.chakra)).toBe(21);
+  expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.chakra)).toBe(18);
   expect(errors).toEqual([]);
 });
 

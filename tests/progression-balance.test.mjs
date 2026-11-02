@@ -8,7 +8,7 @@ import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, attributeTrainingLimit, encoun
 import { applyDebugCheckpoint, awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats, levelUpReport, normalizeSave, spendAttribute } from "../src/save.js";
 
 assert.deepEqual(Object.keys(ENCOUNTER_REWARDS).sort(), Object.keys(ENEMY_ROSTER).sort(), "Cada enemigo debe tener una recompensa explícita");
-assert.ok(ENCOUNTER_REWARDS.boss_raizen.xp > ENCOUNTER_REWARDS.boss_akumori.xp, "El jefe final debe premiar más que el jefe anterior");
+assert.ok(ENCOUNTER_REWARDS.boss_raizen.xpWeight > ENCOUNTER_REWARDS.bandit_pathfinder.xpWeight, "El jefe final debe premiar más que el jefe anterior");
 assert.equal(experienceForNextLevel(1), 120);
 assert.equal(experienceForNextLevel(5), 280);
 assert.deepEqual(levelStatBonus(5), { health: 24, strength: 4, speed: 1, chakra: 12, luck: 1 });
@@ -50,7 +50,7 @@ for (const affinity of AFFINITY_IDS) {
     const levelBefore = save.progression.level;
     const coinsBefore = save.progression.coins;
     const expectedCoins = mission.encounters.reduce((sum, id) => sum + ENCOUNTER_REWARDS[id].coins, mission.reward.coins);
-    for (const id of mission.encounters) save = awardEncounter(save, id).save;
+    for (const id of mission.encounters) save = awardEncounter(save, id, { mission }).save;
     const completion = completeMission(save, mission.id);
     assert.equal(completion.firstClear, true, `${affinity} debe poder completar ${mission.id}`);
     save = completion.save;
@@ -87,3 +87,73 @@ const finalDamage = attackBaseDamage(JUTSU_LIBRARY.find((jutsu) => jutsu.id === 
 assert.ok(finalDamage > starterDamage && finalDamage < starterDamage * 1.3, "El crecimiento de daño debe sentirse sin desbordarse");
 
 console.log("Pruebas de progresión y balance superadas.");
+
+// La experiencia se detiene en 60 en cada vía de recompensa.
+const { MAX_CHARACTER_LEVEL, addExperience, characterLevel } = await import("../src/progression-balance.js");
+const { xpForNextLevel, selectNextAffinity, abandonMissionProgress, startMissionProgress, isTechniqueLearned } = await import("../src/save.js");
+const { earnedResonancePoints, resonancePoints, skillLevel } = await import("../src/skills/progression.js");
+const { SKILLS_BY_ID } = await import("../src/skills/definitions.js");
+const { AFFINITY_TRIAL_MISSIONS } = await import("../src/content/affinity-trials.js");
+const { missionState } = await import("../src/mission-system.js");
+const { affinityTrialProfile } = await import("../src/battle/affinity-trial-combat.js");
+assert.equal(MAX_CHARACTER_LEVEL, 60);
+assert.equal(characterLevel(100), 60);
+assert.equal(xpForNextLevel(60), 0);
+const capped = { level: 59, xp: experienceForNextLevel(59) - 1, attributePoints: 0 };
+assert.deepEqual(addExperience(capped, 999999), { xp: 1, levelsGained: 1 });
+assert.deepEqual(capped, { level: 60, xp: 0, attributePoints: 2 });
+assert.deepEqual(addExperience(capped, 999999), { xp: 0, levelsGained: 0 });
+assert.equal(earnedResonancePoints({ progression: capped }), 118);
+assert.deepEqual(levelStatBonus(100, "agua"), levelStatBonus(60, "agua"));
+let highSave = normalizeSave({ ...starter, progression: { ...starter.progression, level: 100, xp: 2000 } });
+assert.equal(highSave.progression.level, 60);
+assert.equal(highSave.progression.xp, 0);
+assert.equal(awardEncounter(highSave, "boss_raizen", { mission:MISSIONS.at(-1) }).xp, 0);
+const capMission = completeMission(highSave, MISSIONS[0].id);
+assert.equal(capMission.xp, 0);
+assert.equal(capMission.save.progression.level, 60);
+assert.equal(capMission.save.progression.xp, 0);
+// Las inversiones anteriores a las rutas se reembolsan y se conservan las gratuitas.
+const oldMastery = normalizeSave({ ...highSave, version: 27, progression: { ...highSave.progression, resonance: { investments: { fire_embers: 4, physical_0: 5 } } } });
+assert.equal(skillLevel(oldMastery, SKILLS_BY_ID.get("fire_embers")), 1);
+assert.equal(skillLevel(oldMastery, SKILLS_BY_ID.get("physical_0")), 1);
+assert.equal(resonancePoints(oldMastery), 118);
+assert.deepEqual(normalizeSave(oldMastery), oldMastery);
+for (const trial of AFFINITY_TRIAL_MISSIONS) {
+  let trialSave = createCharacter(createDefaultSave(), { affinity: "fuego" });
+  trialSave.progression.level = trial.recommendedLevel - 1;
+  trialSave.campaign.rank = "Guardián";
+  trialSave.inventory.extraAffinityUnlocked = true;
+  if (trial.affinitySlot === 3) {
+    trialSave.campaign.completedSecondaryMissions = [AFFINITY_TRIAL_MISSIONS[0].id];
+    trialSave = selectNextAffinity(trialSave, "agua");
+  }
+  assert.equal(missionState(trial, trialSave).unlocked, false);
+  assert.equal(completeMission(trialSave, trial.id).firstClear, false);
+  trialSave.progression.level = trial.recommendedLevel;
+  const before = trialSave.character.affinities.length;
+  assert.equal(selectNextAffinity(trialSave, "viento").character.affinities.length, before, "El nivel solo no abre la ranura");
+  assert.equal(missionState(trial, trialSave).unlocked, true);
+  const abandoned = abandonMissionProgress(startMissionProgress(trialSave, trial.id), trial.id);
+  assert.equal(selectNextAffinity(abandoned, "viento").character.affinities.length, before, "Retirarse no desbloquea la afinidad");
+  const pointsBefore = resonancePoints(trialSave);
+  const completion = completeMission(trialSave, trial.id);
+  assert.equal(completion.firstClear, true);
+  assert.deepEqual(completion.save.progression, trialSave.progression);
+  const chosen = selectNextAffinity(completion.save, "viento");
+  assert.equal(chosen.character.affinities.length, trial.affinitySlot);
+  assert.equal(chosen.campaign.elementRank, trial.affinitySlot);
+  const first = JUTSU_LIBRARY.filter(j => j.element === "viento").sort((a,b) => a.affinityXpRequired - b.affinityXpRequired)[0];
+  assert.equal(isTechniqueLearned(chosen, first), true);
+  assert.equal(skillLevel(chosen, SKILLS_BY_ID.get(first.id)), 1);
+  assert.equal(resonancePoints(chosen), pointsBefore, "Elegir la afinidad y su primera técnica es gratis");
+  assert.equal(chosen.character.affinityXp.viento, 0);
+  assert.equal(completeMission(chosen, trial.id).firstClear, false);
+  assert.deepEqual(normalizeSave(chosen), chosen);
+  const profile = ENEMY_ROSTER[trial.encounters[0]], snapshot = structuredClone(profile);
+  assert.ok(affinityTrialProfile(profile, trial, chosen).stats.health > profile.stats.health);
+  assert.deepEqual(profile, snapshot);
+  const legacy = structuredClone(chosen); legacy.version = 27; legacy.campaign.completedSecondaryMissions = [];
+  assert.deepEqual(normalizeSave(legacy).character.affinities, chosen.character.affinities);
+}
+console.log("Nivel máximo 60, maestría 3, migración y pruebas de afinidad 15/30 verificadas.");

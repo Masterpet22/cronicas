@@ -6,7 +6,7 @@ const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fue
 save.loadout = [];
 save.progression.level = 20;
 save.character.affinityXp.fuego = 10000;
-save.progression.resonance.investments = { physical_1: 1, physical_2: 1, fire_embers: 2 };
+save.progression.resonance.investments = { physical_0: 1, physical_1: 1, physical_2: 1, fire_embers: 2 };
 save.taijutsuLoadout = [null, null];
 const baseline = JSON.stringify(save);
 const actions = trainingActions(save);
@@ -24,5 +24,5 @@ save.progression.level = 1;
 save.character.affinityXp.fuego = 0;
 save.progression.resonance.investments = {};
 assert(!trainingActions(save).some(action => action.id === "physical_1"));
-assert(!trainingActions(save).some(action => action.id === "fire_breath"));
+assert(trainingActions(save).some(action => action.id === "fire_breath"), "Las dos técnicas iniciales son gratuitas");
 console.log("Catálogo y aislamiento del entrenamiento verificados.");

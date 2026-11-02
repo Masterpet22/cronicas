@@ -10,7 +10,7 @@ Este documento define el contrato vigente para ampliar la campaña sin volver a 
 | Reglas | `src/mission-system.js` | Evalúa requisitos, estado, pasos y efectos; valida el catálogo. No conoce pantallas. |
 | Texto | `src/content/sagas/<saga>/<misión>/dialogues.js` y `src/dialogues.js` | Las misiones guardan sus líneas junto al contenido; `src/dialogues.js` resuelve NPC, claves, condiciones y ubicación. |
 | Presentación | `src/meta-ui.js` y `game.js` | Ejecuta pasos semánticos y muestra el resultado. No decide desbloqueos por número de misión. |
-| Persistencia | `src/save.js` y `src/save/` | La fachada aplica esquema v17, historial por pasos, migraciones puras y repositorio de ranuras. No mantiene desbloqueos derivados. |
+| Persistencia | `src/save.js` y `src/save/` | La fachada aplica esquema 29, historial por pasos, migraciones puras y repositorio de ranuras. No mantiene desbloqueos derivados. |
 | Ciclo de vistas | `src/view-runtime.js` | Garantiza una única vista HTML activa y desmonta listeners y overlays anteriores. |
 
 Las principales usan `category: "main"` y `board: "headquarters"`. Las secundarias usan `category: "secondary"` y `board: "missions"`. Un requisito puede cruzar categorías, pero una misión nunca cambia de tablero por ello.
@@ -20,9 +20,13 @@ Las principales usan `category: "main"` y `board: "headquarters"`. Las secundari
 ```js
 {
   id: "m06",
-  number: 6,
+  number: 8,
   category: "main",
   board: "headquarters",
+  recommendedLevel: 10,
+  rewardProfile: "normal",
+  encounters: ["bandit_pathfinder", "gate_guard"],
+  reward: { coins: 100 },
   dialogueId: "mission.m06.briefing",
   requirements: [
     { type: "main-completed", id: "m05" },
@@ -42,11 +46,26 @@ Las principales usan `category: "main"` y `board: "headquarters"`. Las secundari
 
 Los IDs son estables y no determinan la categoría: `s01` y `s02` conservan su identidad histórica, aunque ahora sean principales. El campo `number` sigue el orden narrativo. `validateMissionCatalog` rechaza números discontinuos, IDs duplicados, referencias inexistentes, pasos sin ID y tipos no registrados.
 
+### Presupuesto de experiencia
+
+`recommendedLevel` es un entero 1–60 y `rewardProfile` es `short`, `normal`,
+`hard`, `boss` o `affinity`. El registro aplica `withMissionRewards`; el autor
+solo declara monedas y objetos en `reward`. `reward.totalXp` es el presupuesto
+total generado y `reward.xp` la parte de finalización. Las proporciones, la
+introducción 1–5, los bonos y el reparto exacto se rigen por
+[BALANCE_COMBATE.md](BALANCE_COMBATE.md) y `src/mission-rewards.js`.
+
+En combate, `awardEncounter` recibe la misión, los IDs concretos de la ruta y el
+índice del encuentro. La finalización paga su parte; no se añade otra vez el total.
+Las investigaciones y búsquedas sin duelos pagan todo el presupuesto al completarse.
+El catálogo valida nivel, perfil y enemigos. La UI muestra los PX totales.
+
 ### Requisitos disponibles
 
 - `main-completed` y `secondary-completed`: dependen de otra misión de la categoría correcta.
 - `flag`: compara una bandera de campaña con `value` o con `true` por defecto.
 - `level`: exige un nivel mínimo.
+- `item-owned`: exige poseer un objeto, como un contrato de la tienda.
 - `all` y `any`: componen requisitos anidados.
 
 ### Pasos disponibles
@@ -89,16 +108,16 @@ Las misiones y NPC guardan claves, no texto incrustado. Los diálogos de misión
 
 Toda vista HTML se monta mediante `viewRuntime.replace`. El cambio de vista aborta los listeners registrados con el `signal` de su ámbito, ejecuta limpiezas, elimina overlays transitorios y sustituye el árbol anterior. Los diálogos y decisiones se montan con `mountOverlay`.
 
-Al salir de Phaser hacia una vista HTML, `releaseGameToMeta` oculta el canvas, monta la ubicación solicitada y destruye la instancia de Phaser en la siguiente microtarea. Una misión secundaria que vuelva a necesitar Phaser crea una instancia aislada nueva. No se permite conservar escenas dormidas detrás de otras pantallas.
+Al salir de Phaser hacia una vista HTML, `releaseGameToMeta` oculta el canvas, detiene las escenas y duerme el bucle. La instancia se reutiliza con su caché al volver a combate; no ejecuta animaciones detrás de la aldea.
 
 ## Guardado y reanudación
 
-El guardado v17 conserva `campaign.missionProgress[missionId]` con estado, paso actual, pasos completados, contexto, efectos aplicados e intentos. Reanudar una misión pendiente mantiene el cursor; un combate interrumpido vuelve a iniciar desde el comienzo de su paso. Los indicadores reconstruibles se consultan desde los historiales, decisiones y hechos canónicos y no se serializan.
+El esquema 29 conserva `campaign.missionProgress[missionId]` con estado, paso actual, pasos completados, contexto, efectos aplicados e intentos. Reanudar una misión pendiente mantiene el cursor; un combate interrumpido vuelve a iniciar desde el comienzo de su paso. Los indicadores reconstruibles se consultan desde los historiales, decisiones y hechos canónicos y no se serializan.
 
 ## Lista de comprobación para añadir contenido
 
 1. Añadir la misión al catálogo correcto con el siguiente ID consecutivo.
-2. Declarar requisitos, pasos y efectos; evitar condicionales por ID.
+2. Declarar nivel recomendado, perfil de recompensa, requisitos, pasos y efectos; evitar condicionales por ID.
 3. Añadir su `dialogueId` y líneas en cada idioma disponible.
 4. Añadirla a una saga solo si es principal; las secundarias permanecen en su tablero.
 5. Ejecutar `npm test` y corregir cualquier error del validador.

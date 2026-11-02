@@ -1,3 +1,4 @@
+import { learnSkillForTest } from "./helpers/skill-fixtures.mjs";
 import { cipherComplete, cipherHint } from "../src/puzzles/seal-cipher.js";
 import assert from "node:assert/strict";
 import { DEBUG_CHECKPOINTS, actOnDoctorCipher, affinityXpForElement, advanceMissionProgress, applyDebugCheckpoint, awardEncounter, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, completeMission, createCharacter, createDefaultSave, deleteSaveSlot, deliverBestiaryBook, derivedStats, failMissionProgress, learnAffinity, listSaveSlots, loadSave, loadoutSlotsForLevel, normalizeSave, recordBestiaryObservation, resetAttributes, resolveDoctorMissionCombat, resolveDoctorRiverPassage, SAVE_VERSION, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, startMissionProgress, writeSave } from "../src/save.js";
@@ -5,7 +6,7 @@ import { MISSIONS, STORY_SAGAS } from "../src/content/index.js";
 import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
-assert.equal(SAVE_VERSION, 27, "La versión debe incorporar la ranura y el shuriken inicial");
+assert.equal(SAVE_VERSION, 29, "La versión incorpora los máximos 60/3 y las pruebas de afinidad");
 assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
 assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
@@ -47,7 +48,7 @@ assert.equal(listSaveSlots(slotStorage)[1].save, null, "Una ranura borrada debe 
 const initialStats = derivedStats(save);
 assert.equal(initialStats.damageBonus, 15, "La fuerza base, Daichi y el kunai inicial deben acumularse");
 assert.equal(initialStats.damageReduction, 0, "Daichi no debe conceder la ventaja defensiva de Mei");
-assert.equal(initialStats.maxHp, 88, "Viento principal debe penalizar 12 % la vida");
+assert.equal(initialStats.maxHp, 92, "Viento principal debe penalizar 12 % la vida");
 assert.equal(initialStats.maxChakra, 96, "Viento principal debe potenciar 20 % los 60 CH base y 20 del amuleto");
 
 save.progression.attributePoints = 5;
@@ -55,7 +56,7 @@ for (const attribute of ["health", "strength", "speed", "chakra", "luck"]) save 
 assert.deepEqual(save.progression.attributes, { health: 1, strength: 1, speed: 1, chakra: 1, luck: 1 }, "Debe poder invertirse un punto en cada estadística");
 assert.equal(save.progression.attributePoints, 0, "Invertir los cinco puntos debe consumirlos");
 const trainedStats = derivedStats(save);
-assert.equal(trainedStats.maxHp, 97, "Vida debe aumentar los PV antes de aplicar la penalización de Viento");
+assert.equal(trainedStats.maxHp, 101, "Vida debe aumentar los PV antes de aplicar la penalización de Viento");
 assert.equal(trainedStats.damageBonus, 16, "Fuerza debe aumentar el daño, además de la base, el equipo y Daichi");
 assert.equal(trainedStats.speed, 11, "Velocidad debe acelerar el avance desde la base fija");
 assert.equal(trainedStats.maxChakra, 102, "Chakra debe aumentar la reserva antes del bono de Viento");
@@ -65,13 +66,13 @@ const resetTraining = resetAttributes(save);
 assert.deepEqual(resetTraining.progression.attributes, { health: 0, strength: 0, speed: 0, chakra: 0, luck: 0 }, "Reiniciar atributos debe devolver la distribución a cero");
 assert.equal(resetTraining.progression.attributePoints, 5, "Reiniciar atributos debe reembolsar todos los puntos invertidos");
 
-const reward = awardEncounter(save, "boss_raizen");
+const reward = awardEncounter(save, "boss_raizen", { mission:MISSIONS.at(-1) });
 assert.equal(reward.coins, 75, "El jefe final debe entregar una recompensa propia");
-assert.equal(reward.save.progression.level, 1, "Una sola recompensa del jefe no debe saltar el umbral inicial");
+assert.equal(reward.save.progression.level, 2, "La recompensa fija de una misión de nivel 5 supera el umbral de un personaje de nivel 1");
 assert.ok(reward.save.character.affinityXp.viento > save.character.affinityXp.viento, "Combatir debe entrenar las afinidades activas");
 
 let routeSave = save;
-for (const enemyId of MISSIONS[0].encounters) routeSave = awardEncounter(routeSave, enemyId).save;
+for (const enemyId of MISSIONS[0].encounters) routeSave = awardEncounter(routeSave, enemyId, { mission:MISSIONS[0] }).save;
 routeSave = completeMission(routeSave, "m01").save;
 assert.equal(routeSave.progression.level, 2, "Completar la ruta debe subir al personaje de nivel");
 assert.equal(routeSave.progression.attributePoints, 2, "Subir de nivel debe entregar dos puntos de atributo");
@@ -138,7 +139,7 @@ assert.equal(Object.hasOwn(migrated.campaign, "doctorMissionUnlocked"), false, "
 assert.equal(Object.hasOwn(migrated.campaign, "companion"), false, "La migración debe retirar el estado de acompañante de la campaña anterior");
 const normalized = normalizeSave({ version: 16, character: { name: "Prueba", affinity: "viento", affinities: ["viento"] }, progression: { level: 2 }, equipment: {}, campaign: { completedMissions: ["m01"], elementRank: 2 } });
 assert.deepEqual(normalized.character.affinities, ["viento"], "La afinidad principal válida debe conservarse");
-assert.equal(normalized.campaign.elementRank, 2, "El rango elemental actual debe conservarse");
+assert.equal(normalized.campaign.elementRank, 1, "El rango elemental requiere nivel y prueba, no basta un valor guardado");
 assert.equal(normalized.campaign.secondaryBoardUnlocked, false, "Un estado parcial debe mantener el Tablón cerrado");
 assert.deepEqual(normalized.campaign.seenMissionNotices, [], "Un estado parcial debe iniciar sin avisos vistos");
 const noticesSeen = normalizeSave({ ...normalized, campaign: { ...normalized.campaign, seenMissionNotices: ["story:m01", "valor no válido", "story:m01"] } });
@@ -225,19 +226,22 @@ assert.equal(libraryReady.campaign.archiveUnlocked, true, "El último punto de c
 assert.equal(campaignFlag(applyDebugCheckpoint(save, "mission-4-ready"), "heartMissionUnlocked"), true, "El depurador debe poder saltar directamente a la misión 4");
 assert.equal(campaignFlag(applyDebugCheckpoint(save, "mission-5-ready"), "banditLeaderMissionUnlocked"), true, "El depurador debe poder saltar directamente a la misión 5");
 
-const dualAffinity = normalizeSave({ ...campaignSave, progression: { ...campaignSave.progression, level: 15 }, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, campaign: { ...campaignSave.campaign, elementRank: 2 }, loadout: ["lightning_spark"] });
+let dualAffinity = normalizeSave({ ...campaignSave, progression: { ...campaignSave.progression, level: 20 }, character: { ...campaignSave.character, affinities: ["viento", "fuego"], affinityXp: { ...campaignSave.character.affinityXp, viento: 100, fuego: 100 } }, campaign: { ...campaignSave.campaign, elementRank: 2, completedSecondaryMissions: ["affinity_trial_2"] }, loadout: ["lightning_spark"] });
+dualAffinity = learnSkillForTest(dualAffinity,"lightning_spark");
+dualAffinity = normalizeSave({ ...dualAffinity,loadout:["lightning_spark"] });
 assert.deepEqual(dualAffinity.character.affinities, ["viento", "fuego"], "El rango 2 debe conservar dos afinidades básicas");
 assert.ok(dualAffinity.loadout.includes("lightning_spark"), "Combinar Viento y Fuego debe habilitar técnicas de Rayo");
 assert.equal(affinityXpForElement(dualAffinity.character, "rayo"), 100, "Las combinaciones deben usar la afinidad básica menos entrenada");
-let affinityChoice = normalizeSave({ ...campaignSave, progression: { ...campaignSave.progression, level: 15 }, campaign: { ...campaignSave.campaign, elementRank: 2 } });
+let affinityChoice = normalizeSave({ ...campaignSave, progression: { ...campaignSave.progression, level: 15 }, campaign: { ...campaignSave.campaign, elementRank: 2, completedSecondaryMissions: ["affinity_trial_2"] } });
 affinityChoice = learnAffinity(affinityChoice, "agua");
 affinityChoice = selectNextAffinity(affinityChoice, "agua");
 assert.deepEqual(affinityChoice.character.affinities, ["viento", "agua"], "Una afinidad conocida debe poder elegirse cuando nivel e historia abren la ranura");
 assert.deepEqual(selectNextAffinity(affinityChoice, "agua").character.affinities, ["viento", "agua"], "No debe poder elegirse dos veces la misma afinidad");
 
-const tripleAffinity = normalizeSave({ ...fullCampaign, inventory: { ...fullCampaign.inventory, extraAffinityUnlocked: true }, progression: { ...fullCampaign.progression, level: 35 }, character: { ...fullCampaign.character, affinities: ["viento", "fuego", "agua"], affinityXp: { viento: 300, fuego: 300, agua: 300, tierra: 0 } }, campaign: { ...fullCampaign.campaign, elementRank: 3 }, loadout: ["storm_domain"] });
+const tripleAffinity = normalizeSave({ ...fullCampaign, inventory: { ...fullCampaign.inventory, extraAffinityUnlocked: true }, progression: { ...fullCampaign.progression, level: 35 }, character: { ...fullCampaign.character, affinities: ["viento", "fuego", "agua"], affinityXp: { viento: 300, fuego: 300, agua: 300, tierra: 0 } }, campaign: { ...fullCampaign.campaign, elementRank: 3, completedSecondaryMissions: ["affinity_trial_2", "affinity_trial_3"] }, loadout: ["storm_domain"] });
 assert.equal(tripleAffinity.character.affinities.length, 3, "El rango 3 debe conservar tres afinidades básicas");
-assert.ok(tripleAffinity.loadout.includes("storm_domain"), "Combinar Viento, Fuego y Agua debe habilitar técnicas de Tormenta");
+assert.ok(!tripleAffinity.loadout.includes("storm_domain"), "Una técnica sin hexágono propio se retira del equipo al cargar");
+assert.deepEqual(tripleAffinity.loadout, ["wind_palm","wind_blade"], "El equipo retirado se repara con las técnicas iniciales");
 
 const emptyBuild = normalizeSave({ ...save, equipment: { weapon: null, seal: null, accessory: null, companion: null }, loadout: [] });
 assert.deepEqual(emptyBuild.loadout, [], "Debe ser posible desequipar todas las técnicas");

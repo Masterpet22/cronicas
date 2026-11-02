@@ -1,6 +1,7 @@
 export const M02 = {
+    recommendedLevel: 2, rewardProfile: "hard", introductory: true,
     id: "m02", number: 3, category: "main", arenaNumber: 2, board: "headquarters", title: "Asalto al Desfiladero del Cuervo", location: "Ruta de la cantera", duration: "12–15 min", rank: "D",
-    encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { xp: 95, coins: 80 },
+    encounters: ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], reward: { coins: 80 },
     requirements: [{ type: "main-completed", id: "s01" }],
     dialogueId: "mission.m02.briefing", relic: "Mapa cifrado",
     flow: [

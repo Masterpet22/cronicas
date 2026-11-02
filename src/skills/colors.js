@@ -16,7 +16,7 @@ export function mixSkillColors(first,second) {
 
 export function affinitySlotColor(save,slot) {
   const capacity=availableAffinitySlots(save?.progression?.level,save?.campaign?.elementRank,
-    save?.inventory?.extraAffinityUnlocked,save?.campaign?.rank);
+    save?.inventory?.extraAffinityUnlocked,save?.campaign?.rank,save?.campaign?.completedSecondaryMissions);
   const element=ELEMENTS[save?.character?.affinities?.[slot]];
   return Number.isInteger(slot) && slot>=0 && slot<capacity && element
     ? `#${element.color.toString(16).padStart(6,"0")}` : LOCKED_SKILL_COLOR;

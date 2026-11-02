@@ -1,10 +1,11 @@
 export const S02 = {
+    recommendedLevel: 3, rewardProfile: "short",
     id: "s02", number: 4, category: "main", legacyCategory: "secondary", arenaNumber: 2, board: "headquarters", type: "route-search", title: "El médico errante", location: "Caminos del Norte", duration: "8–12 min", rank: "D",
     requirements: [{ type: "main-completed", id: "m02" }],
     dialogueId: "mission.s02.briefing", routeMode: "convergent",
     flow: [{ type: "dialogue" }, { type: "route", id: "doctor-search" }, { type: "dialogue", id: "doctor-lesson" }, { type: "investigation", id: "map-decipher" }, { type: "dialogue", id: "doctor-farewell" }],
     cipher: { speaker: "Haru Takamine", lessonScene: "doctor-lesson", farewellScene: "doctor-farewell", seals: ["ara", "cetus", "bootes", "aquila", "phoenix"] },
-    reward: { xp: 45, coins: 30 },
+    reward: { coins: 30 },
     routeEvents: [
       { id: "elevated", label: "Camino elevado", type: "dialogue", description: "Una ruta segura y lenta donde los viajeros ofrecen consejos útiles." },
       { id: "river", label: "Sendero del río", type: "investigation", description: "Exige interpretar señales y encontrar el paso correcto." },

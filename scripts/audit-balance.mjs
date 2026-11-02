@@ -1,9 +1,10 @@
 // Auditoría de solo lectura: no modifica reglas ni partidas del navegador.
-// node scripts/audit-balance.mjs [--json=artifacts/balance-audit.json]
+// node scripts/audit-balance.mjs [--json=artifacts/balance-current.json]
 import fs from "node:fs";
 import path from "node:path";
 import { AFFINITY_IDS, affinityCycleModifier } from "../src/affinity-system.js";
 import { BASE_ACTIONS, ENEMY_ROSTER, JUTSU_LIBRARY } from "../src/data.js";
+import { MISSION_XP_POLICY, missionXpPlan } from "../src/mission-rewards.js";
 import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS } from "../src/content/index.js";
 import { resolveEncounterIds } from "../src/combat-modifiers.js";
 import { attackBaseDamage, resolveDamage } from "../src/battle/damage.js";
@@ -11,13 +12,13 @@ import { createEnemyState } from "../src/battle/enemy-state.js";
 import { combatantSpeed, combatantEvasion, advanceCooldowns } from "../src/battle/turn.js";
 import { millisecondsToTimelineThreshold } from "../src/battle/timeline.js";
 import { awardEncounter, completeMission, createCharacter, createDefaultSave, derivedStats,
-  deliverBestiaryBook } from "../src/save.js";
+  deliverBestiaryBook, isTechniqueLearned } from "../src/save.js";
 import { sellItem, purchaseItem } from "../src/inventory.js";
 import { ENCOUNTER_REWARDS, experienceForNextLevel } from "../src/progression-balance.js";
 import { createCipherState } from "../src/puzzles/seal-cipher.js";
 import { arenaPreview } from "../src/arena.js";
-import { investResonance, earnedResonancePoints } from "../src/skills/progression.js";
-import { TAIJUTSU_ACTIONS } from "../src/skills/definitions.js";
+import { investResonance, earnedResonancePoints, naturalSkillLevel } from "../src/skills/progression.js";
+import { TAIJUTSU_ACTIONS, buildSkillTree, SKILL_CATALOG } from "../src/skills/definitions.js";
 import { CHAKRA_BALANCE, actionChakraCost, actionChakraRecovery } from "../src/chakra-balance.js";
 import { TECHNIQUE_MASTERY, techniqueAtLevel } from "../src/skills/technique-mastery.js";
 import { actionInitiative, INITIATIVE_SPEED_STEP } from "../src/battle/initiative.js";
@@ -31,7 +32,7 @@ const fresh = (affinity = "fuego", bodyType = "male") => createCharacter(createD
 function campaign({ secret = false, scholar = false, contracts = false, affinity = "fuego" } = {}) {
   let save = fresh(affinity);
   const rows = [];
-  for (const mission of [...MISSIONS, ...(contracts ? SECONDARY_MISSIONS : [])]) {
+  for (const mission of [...MISSIONS, ...(contracts ? SECONDARY_MISSIONS.filter(m => m.contractItem) : [])]) {
     if (scholar && mission.id === "s01") {
       save.equipment.accessory = null;
       save = sellItem(save, "chakra_charm").save;
@@ -56,7 +57,7 @@ function campaign({ secret = false, scholar = false, contracts = false, affinity
     const ids = mission.encounters ? resolveEncounterIds(mission, save.campaign) : [];
     let encounterXp = 0;
     for (const id of ids) {
-      const reward = awardEncounter(save, id);
+      const reward = awardEncounter(save, id, { mission,encounterIndex:ids.indexOf(id),encounterIds:ids });
       encounterXp += reward.xp;
       save = reward.save;
     }
@@ -82,7 +83,7 @@ function attackMetrics(save, action, target) {
   const speed = combatantSpeed(p);
   const readyMs = millisecondsToTimelineThreshold(0, speed, null, actionInitiative(action));
   const preparationMs = action.seals?.length ? millisecondsToTimelineThreshold(.8, speed, action) : 0;
-  return { id: action.id, damage, rawHits: Math.ceil(target.hp / damage),
+  return { id: action.id, learned: ["strike","guard"].includes(action.id) || isTechniqueLearned(save,action), damage, rawHits: Math.ceil(target.hp / damage),
     cycleMs: round(readyMs + preparationMs), rawDamagePerTimelineSecond: round(damage / ((readyMs + preparationMs) / 1000)),
     cost: actionChakraCost(action, p.costReduction), netCostAfterNormalAction: actionChakraCost(action, p.costReduction) - actionChakraRecovery(action) };
 }
@@ -143,7 +144,7 @@ const resonance = AFFINITY_IDS.map(affinity => {
   const save = fresh(affinity); save.progression.level = 4;
   const p = derivedStats(save);
   let trained = save;
-  for (const [id, times] of [["physical_0", 1], ["physical_1", 1], ["physical_3", 3], [`hybrid_physical_${affinity}_0`, 1], [`hybrid_physical_${affinity}_1`, 3]])
+  for (const [id, times] of [["physical_0", 1], ["physical_1", 1], ["physical_3", 3], ["physical_2", 1]])
     for (let i = 0; i < times; i++) trained = investResonance(trained, id);
   return { affinity, level: 4, pointsAvailable: earnedResonancePoints(save), initialReduction: p.damageReduction,
     defensiveReduction: derivedStats(trained).damageReduction, investments: trained.progression.resonance.investments };
@@ -153,10 +154,19 @@ const arena = AFFINITY_IDS.map(affinity => {
   return { rival: affinity, playerHp: player.maxHp, playerChakra: player.maxChakra, enemyHp: enemy.maxHp,
     enemyChakra: enemy.maxChakra, enemySpeed: combatantSpeed(enemy), enemyStrength: enemy.strength };
 });
+const economySave=fresh(); economySave.character.affinities=["fuego","agua","tierra"];
+const economyNodes=buildSkillTree(economySave.character.affinities,3);
+const completeTreeCost=economyNodes.reduce((sum,node)=>sum+(node.maxLevel-naturalSkillLevel(economySave,node))*node.cost,0);
 const report = { schema: 2, method: "Reglas puras, liquidación de recompensas y sondas del flujo real. Sin estimación de victorias ni duración de animaciones.",
   chakraRules: CHAKRA_BALANCE,
+  missionRewardPolicy: MISSION_XP_POLICY,
+  missionBudgets: ALL_MISSIONS.map(m=>({ id:m.id,recommendedLevel:m.recommendedLevel,profile:m.rewardProfile,introductory:!!m.introductory,...missionXpPlan(m) })),
+  skillEconomy: { skills:economyNodes.length,completeTreeCost,earliestBudgetLevel:Math.ceil(completeTreeCost/2)+1,
+    pointsAtLevel60:118,remainingAtLevel60:118-completeTreeCost },
+  skillRoutes: SKILL_CATALOG.map(node=>({ id:node.id,name:node.name,unlockLevel:node.unlockLevel,rankLevels:node.rankLevels,
+    cost:node.cost,prerequisiteLevels:node.prerequisiteLevels })),
   initiativeRules: { speedStep: INITIATIVE_SPEED_STEP, stacking: false, consumedAtProgress: .8 },
-  techniqueMastery: { rules: TECHNIQUE_MASTERY, example: Array.from({ length: 5 }, (_, i) => {
+  techniqueMastery: { rules: TECHNIQUE_MASTERY, example: Array.from({ length: TECHNIQUE_MASTERY.maxLevel }, (_, i) => {
     const action = techniqueAtLevel(JUTSU_LIBRARY.find(j => j.id === "fire_embers"), i + 1);
     return { level: i + 1, damage: action.damage, cost: action.cost, netCost: action.cost - actionChakraRecovery(action),
       seals: action.seals.length, preparationMsAtSpeed10: millisecondsToTimelineThreshold(.8, 10, action) };
@@ -170,9 +180,8 @@ const report = { schema: 2, method: "Reglas puras, liquidación de recompensas y
     immediateEnemyOutcome: { statusTicks: lethalScene.statusTicks || 0, hp: lethalScene.player.hp,
       chakra: lethalScene.player.chakra, cooldown: lethalScene.cooldowns.demo } },
   xpThresholds: Array.from({ length: 10 }, (_, i) => ({ level: i + 1, next: experienceForNextLevel(i + 1) })),
-  xpUpperBound: { allRewardsWithScholarFromStart: ALL_MISSIONS.reduce((sum, m) => sum + Math.round(m.reward.xp * 1.15)
-    + (m.encounters || []).reduce((total, id) => total + Math.round(ENCOUNTER_REWARDS[id].xp * 1.15), 0), 0),
-    requiredForLevel8: Array.from({ length: 7 }, (_, i) => experienceForNextLevel(i + 1)).reduce((a, b) => a + b, 0) },
+  xpUpperBound: { allRewardsWithScholarFromStart: ALL_MISSIONS.reduce((sum,m)=>sum+Math.round(m.reward.totalXp*1.15),0),
+    requiredForLevel8: Array.from({ length:7 },(_,i)=>experienceForNextLevel(i+1)).reduce((a,b)=>a+b,0) },
   catalog: { missions: ALL_MISSIONS.length, techniques: JUTSU_LIBRARY.length,
     mainBossAffinities: Object.values(ENEMY_ROSTER).filter(e => e.boss).map(e => e.affinity) } };
 const arg = process.argv.find(arg => arg.startsWith("--json="));
