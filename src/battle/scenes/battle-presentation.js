@@ -417,6 +417,8 @@ export class BattlePresentationMethods {
     this.setButtonsEnabled(false);
     this.timelineProgress = { player: 0, enemy: 0 };
     this.pendingActions = { player: null, enemy: null };
+    this.player.recoveryInitiative = 0;
+    this.enemy.recoveryInitiative = 0;
     this.setTimelineMarkerState("player", "charging");
     this.setTimelineMarkerState("enemy", "charging");
     const resetClock = { value: 0 };
@@ -608,7 +610,8 @@ export class BattlePresentationMethods {
         actor,
         action,
         speed,
-        duration: millisecondsToTimelineThreshold(this.timelineProgress[actor], speed, action)
+        initiative: this[actor].recoveryInitiative,
+        duration: millisecondsToTimelineThreshold(this.timelineProgress[actor], speed, action, this[actor].recoveryInitiative)
       };
     });
     const duration = Math.min(...timings.map((entry) => entry.duration));
@@ -619,9 +622,9 @@ export class BattlePresentationMethods {
     }
 
     const from = { ...this.timelineProgress };
-    const to = Object.fromEntries(timings.map(({ actor, action, speed }) => [
+    const to = Object.fromEntries(timings.map(({ actor, action, speed, initiative }) => [
       actor,
-      advanceTimelineProgress(from[actor], speed, duration, action)
+      advanceTimelineProgress(from[actor], speed, duration, action, initiative)
     ]));
     const clock = { value: 0 };
     const token = ++this.timelineRunToken;
@@ -659,6 +662,9 @@ export class BattlePresentationMethods {
       await this.executeTimelineAction(arrival.actor, arrival.action);
       return;
     }
+
+    // El modificador se agota al llegar al 80 %; no afecta la preparación.
+    this[arrival.actor].recoveryInitiative = 0;
 
     if (arrival.actor === "player") {
       this.timelinePaused = true;

@@ -20,6 +20,7 @@ import { investResonance, earnedResonancePoints } from "../src/skills/progressio
 import { TAIJUTSU_ACTIONS } from "../src/skills/definitions.js";
 import { CHAKRA_BALANCE, actionChakraCost, actionChakraRecovery } from "../src/chakra-balance.js";
 import { TECHNIQUE_MASTERY, techniqueAtLevel } from "../src/skills/technique-mastery.js";
+import { actionInitiative, INITIATIVE_SPEED_STEP } from "../src/battle/initiative.js";
 
 const round = x => Math.round(x * 100) / 100;
 const fresh = (affinity = "fuego", bodyType = "male") => createCharacter(createDefaultSave(), { name: "Auditoría", affinity, bodyType });
@@ -79,7 +80,7 @@ function attackMetrics(save, action, target) {
     strengthModifier: p.strengthModifier, cycleModifier: affinityCycleModifier(p.primaryAffinity, target.primaryAffinity),
     damageReduction: target.damageReduction }).damage;
   const speed = combatantSpeed(p);
-  const readyMs = millisecondsToTimelineThreshold(0, speed);
+  const readyMs = millisecondsToTimelineThreshold(0, speed, null, actionInitiative(action));
   const preparationMs = action.seals?.length ? millisecondsToTimelineThreshold(.8, speed, action) : 0;
   return { id: action.id, damage, rawHits: Math.ceil(target.hp / damage),
     cycleMs: round(readyMs + preparationMs), rawDamagePerTimelineSecond: round(damage / ((readyMs + preparationMs) / 1000)),
@@ -112,6 +113,9 @@ guardScene.resolveCombatantStatusTick = async () => {};
 guardScene.playerGuard = () => BattleActionMethods.prototype.playerGuard.call(guardScene);
 await BattleFlowMethods.prototype.executeTimelineAction.call(guardScene, "player", BASE_ACTIONS[1]);
 const lethalScene = probeScene();
+lethalScene.enemy.hp = 0;
+lethalScene.enemyIndex = 0;
+lethalScene.encounters = [{}];
 lethalScene.resolveEnemyOutcome = async () => true;
 await BattleFlowMethods.prototype.executeTimelineAction.call(lethalScene, "player", BASE_ACTIONS[0]);
 const missScene = probeScene(); missScene.player.guarding = true;
@@ -151,6 +155,7 @@ const arena = AFFINITY_IDS.map(affinity => {
 });
 const report = { schema: 2, method: "Reglas puras, liquidación de recompensas y sondas del flujo real. Sin estimación de victorias ni duración de animaciones.",
   chakraRules: CHAKRA_BALANCE,
+  initiativeRules: { speedStep: INITIATIVE_SPEED_STEP, stacking: false, consumedAtProgress: .8 },
   techniqueMastery: { rules: TECHNIQUE_MASTERY, example: Array.from({ length: 5 }, (_, i) => {
     const action = techniqueAtLevel(JUTSU_LIBRARY.find(j => j.id === "fire_embers"), i + 1);
     return { level: i + 1, damage: action.damage, cost: action.cost, netCost: action.cost - actionChakraRecovery(action),

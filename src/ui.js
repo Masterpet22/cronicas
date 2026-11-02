@@ -1,5 +1,6 @@
 import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.131.0";
 import { CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
+import { initiativeLabel } from "./battle/initiative.js?v=1.0.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";
 import { createResourceLayer } from "./battle/resource-bar.js?v=0.114.0";
 
@@ -28,19 +29,16 @@ export function createBar(scene, x, y, width, height, color, {
 }
 
 export function actionLines(action) {
-  if (action.type === "guard") return [`Recupera ${CHAKRA_BALANCE.guardRecovery} chakra`, "Reduce 50%", "Descanso"];
+  if (action.type === "guard") return [`Recupera ${CHAKRA_BALANCE.guardRecovery} chakra`, "Reduce 50%", initiativeLabel(action)];
 
-  const speed = action.subtitle.match(/(?:^|·)\s*V(\d+)/)?.[1];
-  const accuracy = action.subtitle.match(/(?:^|·)\s*P(\d+)/)?.[1];
-  const cooldown = action.subtitle.match(/(?:^|·)\s*CD(\d+)/)?.[1];
   const cost = action.cost > 0 ? `${action.cost} chakra` : "Sin coste";
   const prepared = Boolean(action.preparation || action.seals?.length);
-  const timing = prepared ? "Preparación: 80–100 %" : cooldown ? `Recarga: ${cooldown}` : accuracy ? `Prec. ${accuracy}%` : speed ? `Vel. ${speed}` : "";
+  const timing = prepared ? "Preparación: 80–100 %" : initiativeLabel(action);
   return [cost, `${action.damage} de daño`, timing];
 }
 
 export function actionDescription(action) {
-  if (action.type === "guard") return "Adopta una postura defensiva que reduce el daño entrante y recupera chakra.";
+  if (action.type === "guard") return "Descansa y recupera 25 CH. Reduce un 50 % el primer golpe recibido; conserva la protección si el rival falla. Iniciativa -1 para tu siguiente acción.";
   if (action.id === "strike") return "Ataque físico rápido contra el enemigo.";
   if (action.id === "water_whip") return "Ataca con un látigo de agua a presión.";
   if (action.id === "water_bullet") return "Forma un shuriken de agua y lo lanza girando contra el rival.";

@@ -16,7 +16,7 @@ for (let i = 0; i < 2; i++) {
 assert.equal(consumeRetry(free), null);
 assert.equal(availableRetries(-9), 0);
 const battle = {
-  player: { hp: 0, maxHp: 140, chakra: 0, maxChakra: 90, statuses: [{ type: "burn" }], guarding: true, soak: { stacks: 3 } },
+  player: { hp: 0, maxHp: 140, chakra: 0, maxChakra: 90, statuses: [{ type: "burn" }], guarding: true, soak: { stacks: 3 }, recoveryInitiative: -1 },
   enemy: { hp: 5, phase: 2 }, enemyIndex: 1, encounters: ["first", "second"],
   defeatedEncounters: 1, pendingEncounterRewards: [0], battleRewards: { xp: 50 },
   cooldowns: { flame: 3 }, pendingActions: { enemy: "attack" }, timelineProgress: { player: 50, enemy: 90 }, round: 9,
@@ -29,6 +29,8 @@ assert.deepEqual(battle.player.statuses, []);
 assert.equal(battle.player.soak, null);
 assert.equal(battle.enemy.hp, 100);
 assert.equal(battle.enemy.phase, 1);
+assert.equal(battle.player.recoveryInitiative, 0);
+assert.equal(battle.enemy.recoveryInitiative, 0);
 assert.equal(battle.enemyIndex, 1);
 assert.deepEqual(battle.pendingEncounterRewards, [0]);
 assert.deepEqual(battle.battleRewards, { xp: 50 });

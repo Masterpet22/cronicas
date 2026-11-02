@@ -193,7 +193,8 @@ export class BattleScene extends Phaser.Scene {
     this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
     this.encounters = this.encounterIds.map((id) => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], this.mission, this.saveData.character.affinity));
     const stats = derivedStats(this.saveData);
-    this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false };
+    this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false, recoveryInitiative: 0 };
+    this.actionExecution = null;
     const selectedJutsus = this.battleLoadout.map((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)).filter(Boolean).map(jutsu => upgradedTechnique(battleRuntime.activeSave, jutsu))
       .map((jutsu) => ({ ...jutsu, iconTexture: `element-${jutsu.element}` }));
     // La barra tiene un contrato estable: Golpe siempre ocupa 1, las cuatro
@@ -374,10 +375,6 @@ export class BattleScene extends Phaser.Scene {
     defender.soak = waterSoakAfterAttack(attacker, defender);
     if (defender.soak === previous) return null;
     return defender.soak;
-  }
-
-  finishCombatantTurn(combatant) {
-    combatant.soak = soakAfterTurn(combatant);
   }
 
   async applyEarthReprisal(defender, attacker, attackerFighter, receivedDamage) {

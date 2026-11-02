@@ -1,5 +1,5 @@
 import { actionHealthCost } from "../skill-tables.js?v=0.135.0";
-import { actionChakraRecovery } from "../../chakra-balance.js?v=1.0.0";
+import { closeActionState, isFinalOpponent } from "../action-resolution.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
 import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.136.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
@@ -79,65 +79,72 @@ export class BattleFlowMethods {
   }
 
   async executeTimelineAction(actor, action) {
-    if (this.finished) return;
+    if (this.finished || this.actionExecution) return;
+    const execution = Symbol("action");
+    this.actionExecution = execution;
     const playerAtStart = this.player;
     const current = () => !this.finished && this.player === playerAtStart && (this.scene?.isActive?.() !== false || this.scene?.isPaused?.());
-    this.clearPreparationFeedback(actor);
-    this.stopTurnTimeline();
-    this.timelinePaused = true;
-    this.busy = true;
-    this.turnReady = false;
-    this.setButtonsEnabled(false);
+    try {
+      this.clearPreparationFeedback(actor);
+      this.stopTurnTimeline();
+      this.timelinePaused = true;
+      this.busy = true;
+      this.turnReady = false;
+      this.setButtonsEnabled(false);
 
-    if (actor === "player") {
-      const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
-      if (!current()) return;
-      if (action.type === "item") await applyBattleConsumable(this, action.itemId);
-      else if (action.type === "guard") await this.playerGuard();
-      else await this.playerAttack(action, casting);
-      if (!current()) return;
-      this.finishCombatantTurn(this.player);
-      // Una sola recuperación por acción, también si este golpe cierra el duelo.
-      this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + actionChakraRecovery(action));
+      if (actor === "player") {
+        const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
+        if (!current()) return;
+        if (action.type === "item") await applyBattleConsumable(this, action.itemId);
+        else if (action.type === "guard") await this.playerGuard();
+        else await this.playerAttack(action, casting);
+        if (!current()) return;
+        closeActionState(this, actor, action);
+        this.refreshHud();
+        this.setTimelineMarkerState("player", "charging");
+        this.updateTimelineMarkers();
+
+        await this.combatTutorial?.afterAction();
+        if (!current()) return;
+
+        if (this.combatTutorial?.active) {
+          this.player.hp = Math.max(1, this.player.hp);
+          this.enemy.hp = Math.max(1, this.enemy.hp);
+        }
+        // Dar el golpe final gana antes del veneno propio; los encuentros
+        // intermedios sí deben cerrar sus estados antes de cambiar de rival.
+        if (this.player.hp > 0 && this.enemy.hp <= 0 && isFinalOpponent(this)) {
+          if (await this.resolveEnemyOutcome()) return;
+        }
+        if (this.player.hp <= 0) return this.finishBattle(false);
+        await this.resolveCombatantStatusTick(this.player, this.hero);
+        if (!current()) return;
+        if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
+        if (this.player.hp <= 0) return this.finishBattle(false);
+        if (await this.resolveEnemyOutcome()) return;
+
+      } else {
+        const result = await this.executeEnemyAction(action);
+        if (!current()) return;
+        closeActionState(this, actor, action, { skipped: Boolean(result?.skipped) });
+        this.setTimelineMarkerState("enemy", "charging");
+        this.updateTimelineMarkers();
+
+        if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
+        if (this.player.hp <= 0) return this.finishBattle(false);
+        if (this.enemy.hp > 0) await this.resolveCombatantStatusTick(this.enemy, this.foe);
+        if (!current()) return;
+        if (await this.resolveEnemyOutcome()) return;
+      }
+
       this.refreshHud();
-      this.pendingActions.player = null;
-      this.timelineProgress.player = 0;
-      this.setTimelineMarkerState("player", "charging");
-      this.updateTimelineMarkers();
-
-      await this.combatTutorial?.afterAction();
-      if (!current()) return;
-
-      if (await this.resolveEnemyOutcome()) return;
-      await this.resolveCombatantStatusTick(this.player, this.hero);
-      if (!current()) return;
-      if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
-      if (this.player.hp <= 0) return this.finishBattle(false);
-      if (await this.resolveEnemyOutcome()) return;
-
-      this.advanceCooldowns();
-      this.round += 1;
-    } else {
-      await this.executeEnemyAction(action);
-      if (!current()) return;
-      if (this.player.guarding) this.clearGuard();
-      this.pendingActions.enemy = null;
-      this.timelineProgress.enemy = 0;
-      this.setTimelineMarkerState("enemy", "charging");
-      this.updateTimelineMarkers();
-
-      if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
-      if (this.player.hp <= 0) return this.finishBattle(false);
-      await this.resolveCombatantStatusTick(this.enemy, this.foe);
-      if (!current()) return;
-      if (await this.resolveEnemyOutcome()) return;
+      if (this.finished) return;
+      this.busy = false;
+      this.timelinePaused = false;
+      this.startTurnCharge();
+    } finally {
+      if (this.actionExecution === execution) this.actionExecution = null;
     }
-
-    this.refreshHud();
-    if (this.finished) return;
-    this.busy = false;
-    this.timelinePaused = false;
-    this.startTurnCharge();
   }
 
   async resolveEnemyOutcome() {
@@ -370,7 +377,6 @@ export class BattleFlowMethods {
       this.nextRecovery = null;
       this.clearGuard();
       Object.keys(this.cooldowns).forEach((id) => { this.cooldowns[id] = 0; });
-      this.round += 1;
       this.refreshHud();
       await this.delay(620);
       await this.resetTurnTimeline();

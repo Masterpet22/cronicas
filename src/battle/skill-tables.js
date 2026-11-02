@@ -10,7 +10,7 @@ export function physicalSkillActions(save, elementalActions) {
   const owned = weapon?.slot === "weapon" && save.inventory.items[weapon.id] > 0;
   // Equipment bonuses already contribute to the fighter's derived statistics.
   const weaponStrike = owned ? { ...elementalActions[0], id: "weapon_strike", name: "Golpe de arma", type: "weapon",
-    weaponId: weapon.id, equipmentName: weapon.name, iconTexture: null, cost: 0, healthCost: 0,
+    weaponId: weapon.id, equipmentName: weapon.name, iconTexture: null, cost: 0, healthCost: 0, initiative: 0,
     description: `Ataca con ${weapon.name}, el arma que llevas equipada.` } : null;
   const taijutsus = normalizeTaijutsuLoadout(save).map(id => taijutsuAction(save,id));
   const throwable = ITEMS[save.equipment.throwable];

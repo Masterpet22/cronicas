@@ -6,6 +6,11 @@
     "turnRecovery": 5,
     "guardRecovery": 25
   },
+  "initiativeRules": {
+    "speedStep": 0.1,
+    "stacking": false,
+    "consumedAtProgress": 0.8
+  },
   "techniqueMastery": {
     "rules": {
       "maxLevel": 5,
@@ -666,8 +671,8 @@
           "id": "strike",
           "damage": 25,
           "rawHits": 7,
-          "cycleMs": 1239.67,
-          "rawDamagePerTimelineSecond": 20.17,
+          "cycleMs": 1126.97,
+          "rawDamagePerTimelineSecond": 22.18,
           "cost": 0,
           "netCostAfterNormalAction": -5
         },
@@ -735,8 +740,8 @@
           "id": "strike",
           "damage": 19,
           "rawHits": 9,
-          "cycleMs": 769.23,
-          "rawDamagePerTimelineSecond": 24.7,
+          "cycleMs": 699.3,
+          "rawDamagePerTimelineSecond": 27.17,
           "cost": 0,
           "netCostAfterNormalAction": -5
         },
@@ -786,8 +791,8 @@
           "id": "strike",
           "damage": 18,
           "rawHits": 10,
-          "cycleMs": 1090.91,
-          "rawDamagePerTimelineSecond": 16.5,
+          "cycleMs": 991.74,
+          "rawDamagePerTimelineSecond": 18.15,
           "cost": 0,
           "netCostAfterNormalAction": -5
         },
@@ -837,8 +842,8 @@
           "id": "strike",
           "damage": 14,
           "rawHits": 12,
-          "cycleMs": 1090.91,
-          "rawDamagePerTimelineSecond": 12.83,
+          "cycleMs": 991.74,
+          "rawDamagePerTimelineSecond": 14.12,
           "cost": 0,
           "netCostAfterNormalAction": -5
         },
@@ -1013,12 +1018,12 @@
   ],
   "runtimeProbes": {
     "guardChakraGained": 25,
-    "guardingAfterEnemyActionWithoutHit": false,
+    "guardingAfterEnemyActionWithoutHit": true,
     "immediateEnemyOutcome": {
       "statusTicks": 0,
       "hp": 3,
       "chakra": 35,
-      "cooldown": 2
+      "cooldown": 1
     }
   },
   "xpThresholds": [

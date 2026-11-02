@@ -48,6 +48,7 @@ export function createEnemyState(profile, mission, campaign = {}, playerAffinity
     boss: Boolean(profile.boss),
     damageReduction: defenseModifiers.reduce((total, modifier) => total + (Number(modifier.damageReduction) || 0), 0),
     soak: null,
+    recoveryInitiative: 0,
     statuses: [],
     phase: 1,
     patternIndex: 0

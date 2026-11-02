@@ -562,12 +562,11 @@ export class BattleActionMethods {
     const stun = this.enemy.statuses.find((status) => status.type === "stun");
     if (stun) {
       this.enemy.statuses = this.enemy.statuses.filter((status) => status !== stun);
-      this.finishCombatantTurn(this.enemy);
       this.refreshHud();
       this.setMessage("El rival está aturdido y pierde su acción.", "#8fc7ff");
       this.tone(180, 0.16);
       await this.delay(620);
-      return;
+      return { skipped: true };
     }
     await this.enemyTurn(action);
   }
@@ -627,7 +626,6 @@ export class BattleActionMethods {
       await this.delay(120);
       this.foe.body.x = originX;
       this.foe.shadow.x = originShadowX;
-      this.finishCombatantTurn(this.enemy);
       return;
     }
 
@@ -635,14 +633,16 @@ export class BattleActionMethods {
     this.tone(110, 0.1);
     this.shake(120, 0.005);
     if (critical) this.floatLabel(this.hero.body.x, this.hero.body.y - 156, "CRÍTICO", 0xf5c96b);
-    const { amount, reaction } = this.loseHealth(this.player, this.hero, damage, { guarded: this.player.guarding });
+    const guarded = this.player.guarding;
+    const { amount, reaction } = this.loseHealth(this.player, this.hero, damage, { guarded });
     const appliedSoak = this.applyWaterPassive(this.enemy, this.player);
     if (appliedSoak) this.floatLabel(this.hero.body.x, this.hero.body.y - 178, `EMPAPADO ×${appliedSoak.stacks}`, 0x63cfff);
-    if (action.status && !this.player.guarding && this.player.hp > 0) {
+    if (action.status && !guarded && this.player.hp > 0) {
       applyStatus(this.player, action.status);
       this.refreshHud();
     }
     await reaction;
+    if (guarded && amount > 0) this.clearGuard();
     await this.applyEarthReprisal(this.player, this.enemy, this.foe, amount);
     if (usesPuppetPunch) {
       await Promise.all([
@@ -653,7 +653,6 @@ export class BattleActionMethods {
       this.foe.body.x = originX;
       this.foe.shadow.x = originShadowX;
     }
-    this.finishCombatantTurn(this.enemy);
     await this.delay(220);
   }
 

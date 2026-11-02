@@ -29,7 +29,8 @@ const waterUser = { primaryAffinity: "agua" };
 const target = { hp: 20, boss: false, soak: null };
 const soaked = waterSoakAfterAttack(waterUser, target);
 assert.equal(soaked.stacks, 1);
-assert.equal(soakAfterTurn(soaked), null);
+assert.deepEqual(soakAfterTurn({ soak: soaked }), { ...soaked, turns: 1 });
+assert.equal(soakAfterTurn({ soak: { ...soaked, turns: 1 } }), null);
 assert.equal(combatantSpeed({ baseSpeed: 10, speedModifier: 0, soak: null }), 10);
 assert.ok(combatantEvasion({ primaryAffinity: "viento", chakra: 10, maxChakra: 10, baseEvasion: 4 }) > 4);
 

@@ -1,3 +1,5 @@
+import { recoverySpeed } from "./initiative.js?v=1.0.0";
+
 export const TIMELINE_READY = 0.8;
 export const TIMELINE_COMPLETE = 1;
 export const TIMELINE_BASE_SPEED = 10;
@@ -11,7 +13,8 @@ export function actionNeedsPreparation(action) {
   return Boolean(action?.preparation || action?.seals?.length);
 }
 
-export function timelineRate(speed, action = null) {
+export function timelineRate(speed, action = null, initiative = 0) {
+  if (!action) speed = recoverySpeed(finite(speed, TIMELINE_BASE_SPEED), initiative);
   // En el tramo 80–100 %, cada sello suma el mismo tiempo de preparación.
   // La velocidad del personaje lo modifica; el antiguo speedMod del jutsu no.
   if (action?.seals?.length) {
@@ -28,16 +31,16 @@ export function timelineThreshold(action = null) {
   return actionNeedsPreparation(action) ? TIMELINE_COMPLETE : TIMELINE_READY;
 }
 
-export function millisecondsToTimelineThreshold(progress, speed, action = null) {
+export function millisecondsToTimelineThreshold(progress, speed, action = null, initiative = 0) {
   const current = clamp(finite(progress), 0, TIMELINE_COMPLETE);
   const threshold = timelineThreshold(action);
   if (current >= threshold) return 0;
-  return (threshold - current) / timelineRate(speed, action);
+  return (threshold - current) / timelineRate(speed, action, initiative);
 }
 
-export function advanceTimelineProgress(progress, speed, elapsedMs, action = null) {
+export function advanceTimelineProgress(progress, speed, elapsedMs, action = null, initiative = 0) {
   const threshold = timelineThreshold(action);
-  return Math.min(threshold, clamp(finite(progress), 0, TIMELINE_COMPLETE) + timelineRate(speed, action) * Math.max(0, finite(elapsedMs)));
+  return Math.min(threshold, clamp(finite(progress), 0, TIMELINE_COMPLETE) + timelineRate(speed, action, initiative) * Math.max(0, finite(elapsedMs)));
 }
 
 export function timelineMarkerPosition(progress, start, end) {

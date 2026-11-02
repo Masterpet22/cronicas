@@ -34,6 +34,18 @@ Varek, jefe del combate tutorial, adapta su afinidad a la debilidad frente a la 
 
 Los perfiles enemigos muestran niveles 1–6 acordes con la etapa de la saga. Su vida, fuerza, precisión y patrones siguen definidos por enemigo en `src/data.js`; el número de nivel del rival es una indicación de dificultad y no aplica automáticamente los bonos del personaje jugador.
 
+## Iniciativa, Guardia y cierre de acciones
+
+Cada acción define iniciativa −1, 0 o +1. Tras ejecutarla se asigna ese valor al combatiente, reemplazando el anterior. Durante el siguiente recorrido 0–80 %, la velocidad efectiva se multiplica por 0,9 / 1 / 1,1. Al llegar al 80 % se consume el modificador. No cambia la velocidad permanente ni el tramo 80–100 % de preparación por sellos. Golpe veloz, shuriken, Paso fugaz y golpe rápido enemigo dan +1; Guardia, Puño de hierro y golpe pesado enemigo dan −1; golpe de arma, técnicas elementales y objetos dan 0. Los dos combatientes usan la misma regla. Reintentar y cambiar de duelo reinicia la iniciativa.
+
+Guardia devuelve 25 CH totales una sola vez y absorbe la mitad del primer impacto directo recibido. Un fallo o aturdimiento enemigo no la consume. No puede volver a usarse mientras siga activa. No elimina estados anteriores ni evita su daño periódico. El impacto protegido conserva el bloqueo de los estados añadidos por ese golpe; Empapado mantiene su pasiva elemental. La protección se reinicia al cambiar de duelo o reintentar.
+
+`closeActionState` centraliza el cierre mecánico para ambas partes: avanza Empapado una vez, asigna la iniciativa de recuperación y limpia la acción pendiente y el progreso de la barra. En acciones propias también avanza los enfriamientos una vez, recupera 5 CH (25 si fue Guardia) y cuenta la acción. Un turno perdido por aturdimiento no concede la iniciativa de un ataque que no se ejecutó. No se ejecutan dos acciones simultáneas ni se duplica su cierre. El entrenamiento libre usa el mismo cierre, con su restauración completa posterior habitual.
+
+Después se aplican los estados del actor una sola vez antes de resolver el encuentro. Excepción: si el jugador sigue vivo y su golpe derrota al último rival, se concede la victoria sin un daño periódico posterior que la anule. Contra rivales intermedios se resuelve el veneno antes de premiar y avanzar; si mata al jugador, se ofrece el reintento. CD1 exige completar otra acción propia antes de volver a usar esa técnica. El coste se paga al confirmar y no se devuelve al fallar.
+
+Las pruebas `tests/action-resolution.test.mjs` cubren iniciativa no acumulativa y consumida al 80 %, separación de preparación, Guardia ante fallos/aturdimiento/impactos, bloqueo de recarga repetida, estados anteriores, CD1, cierre único y prioridad de victoria final.
+
 ## Objetivo y control
 
 Con la técnica inicial de mayor daño de cada afinidad, sin invertir puntos, los enemigos de la saga requieren entre 2 y 5 impactos base acertados; Raizen requiere entre 4 y 7 según afinidad. Es una referencia de daño bruto: enfriamientos, fallos, estados, guardias y habilidades desbloqueadas cambian los turnos reales. `tests/progression-balance.test.mjs` comprueba esos límites, la curva de niveles en las cuatro afinidades, el cierre de recompensas repetibles, los bonos automáticos y el límite de entrenamiento. `tests/level-up.spec.mjs` comprueba el aviso visible y accesible de subida de nivel.

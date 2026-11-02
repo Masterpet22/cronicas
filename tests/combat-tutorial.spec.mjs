@@ -142,6 +142,101 @@ test("maestría cinco: combate usa el coste reducido y prepara un solo sello", a
   expect(errors).toEqual([]);
 });
 
+test("iniciativa temporal y Guardia sobreviven a fallos y aturdimiento hasta el impacto", async ({ page }) => {
+  test.setTimeout(120000);
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await prepare(page); await launch(page);
+  await page.evaluate(() => {
+    const s = window.__tutorialGame.scene.getScene("battle");
+    s.rollHit = () => false;
+    s.enemy.baseSpeed = 2; s.enemy.hp = s.enemy.maxHp = 1000;
+    window.__recoveries = [];
+    const charge = s.startTurnCharge;
+    s.startTurnCharge = function() { window.__recoveries.push({ round: this.round, initiative: this.player.recoveryInitiative }); return charge.call(this); };
+  });
+  await page.locator("[data-tutorial-skip]").click();
+  for (let n = 0; n < 2; n++) {
+    await expect(page.locator('[data-combat-action="1"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+    expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.recoveryInitiative)).toBe(0);
+    const round = await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round);
+    await page.locator('[data-combat-action="1"]').click();
+    await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round)).toBe(round + 1);
+    await expect.poll(() => page.evaluate(round => window.__recoveries.some(r => r.round === round && r.initiative === 1), round + 1)).toBe(true);
+  }
+  await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+  const round = await page.evaluate(() => {
+    const s = window.__tutorialGame.scene.getScene("battle");
+    s.player.chakra = 10; s.player.hp = 100;
+    s.player.statuses = [{ type: "poison", label: "VENENO", power: 3, duration: 3 }];
+    s.refreshHud(); return s.round;
+  });
+  await page.locator('[data-combat-action="6"]').click();
+  await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round)).toBe(round + 1);
+  await expect(page.locator('[data-combat-action="1"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+  await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "true");
+  const result = await page.evaluate(async () => {
+    const s = window.__tutorialGame.scene.getScene("battle");
+    const { ENEMY_ACTIONS } = await import("/src/data.js?v=0.114.0");
+    const before = { chakra: s.player.chakra, hp: s.player.hp, guarding: s.player.guarding };
+    await s.useJutsu(s.actions[5]);
+    const afterRepeatedGuard = s.player.chakra;
+    s.enemy.statuses = [{ type: "stun", duration: 1, power: 0 }];
+    s.enemy.soak = { stacks: 1, turns: 2, boss: false };
+    await s.executeTimelineAction("enemy", ENEMY_ACTIONS.heavy);
+    const afterStun = { guarding: s.player.guarding, soakTurns: s.enemy.soak.turns };
+    await s.executeTimelineAction("enemy", ENEMY_ACTIONS.quick);
+    const afterMiss = s.player.guarding;
+    s.rollHit = chance => chance > 25;
+    s.player.damageReduction = 0; s.player.primaryAffinity = null;
+    s.enemy.baseStrength = 0; s.enemy.primaryAffinity = null;
+    await s.executeTimelineAction("enemy", ENEMY_ACTIONS.heavy);
+    return { before, afterRepeatedGuard, afterStun, afterMiss, guarding: s.player.guarding,
+      damage: before.hp - s.player.hp, chakra: s.player.chakra, statuses: s.player.statuses,
+      initiatives: window.__recoveries.map(r => r.initiative) };
+  });
+  expect(result.before).toEqual({ chakra: 35, hp: 97, guarding: true });
+  expect(result.afterRepeatedGuard).toBe(35);
+  expect(result.afterStun).toEqual({ guarding: true, soakTurns: 1 });
+  expect(result.afterMiss).toBe(true);
+  expect(result.guarding).toBe(false);
+  expect(result.damage).toBeGreaterThanOrEqual(8); expect(result.damage).toBeLessThanOrEqual(10);
+  expect(result.chakra).toBe(35);
+  expect(result.statuses).toEqual([{ type: "poison", label: "VENENO", power: 3, duration: 2 }]);
+  expect(result.initiatives).toContain(-1);
+  expect(result.initiatives.every(i => [-1, 0, 1].includes(i))).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test("el golpe final cierra recargas y chakra y gana antes del veneno propio", async ({ page }) => {
+  test.setTimeout(120000);
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await prepare(page); await launch(page);
+  await page.locator("[data-tutorial-skip]").click();
+  await expect(page.locator('[data-combat-action="1"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
+  const snapshot = await page.evaluate(async () => {
+    const s = window.__tutorialGame.scene.getScene("battle");
+    s.enemyIndex = s.encounters.length - 1;
+    s.enemy = s.createEnemyState(s.encounters[s.enemyIndex]);
+    s.defeatedEncounters = s.enemyIndex;
+    s.player.hp = 3; s.player.chakra = 10;
+    s.player.statuses = [{ type: "poison", label: "VENENO", power: 3, duration: 1 }];
+    s.cooldowns.closure_probe = 2;
+    s.playerAttack = async () => { s.enemy.hp = 0; };
+    const finish = s.finishBattle;
+    let result;
+    s.finishBattle = async function(won) {
+      result = { won, hp: this.player.hp, chakra: this.player.chakra, cooldown: this.cooldowns.closure_probe,
+        pending: this.pendingActions.player, progress: this.timelineProgress.player };
+      return finish.call(this, won);
+    };
+    await s.useJutsu(s.actions[0]);
+    const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
+    return { ...result, completed: battleRuntime.pendingVictorySave?.campaign.completedMissions.includes("m01") };
+  });
+  expect(snapshot).toEqual({ won: true, hp: 3, chakra: 15, cooldown: 1, pending: null, progress: 0, completed: true });
+  expect(errors).toEqual([]);
+});
+
 test("la misión enseña sobre el HUD real y omitir permite combatir y pausar", async ({ page }) => {
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));

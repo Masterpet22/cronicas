@@ -163,16 +163,16 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
       expected = action.id;
       const slot = scene.actions.indexOf(action) + 1;
       const step = phase === "strike"
-        ? { id: "strike", number: 5, title: "Prueba Golpe veloz", copy: "Has alcanzado el 80 %. Elige el golpe resaltado o pulsa 1: no consume chakra ni requiere sellos y se ejecuta sin preparación." }
+        ? { id: "strike", number: 5, title: "Prueba Golpe veloz", copy: "Has alcanzado el 80 %. Elige el golpe resaltado o pulsa 1: no consume chakra ni requiere sellos. Su iniciativa +1 acelera un 10 % el recorrido hacia tu siguiente acción; no se acumula." }
         : phase === "guard"
-          ? { id: "guard", number: 6, title: "Ahora prepara Guardia", copy: `Elige Guardia o pulsa 6. Reduce a la mitad el daño del próximo ataque enemigo y recupera ${CHAKRA_BALANCE.guardRecovery} CH en total. Usa este descanso para volver a cargar tus técnicas.` }
+          ? { id: "guard", number: 6, title: "Ahora prepara Guardia", copy: `Elige Guardia o pulsa 6. Recupera ${CHAKRA_BALANCE.guardRecovery} CH en total y reduce a la mitad el primer golpe recibido. Si el rival falla, conservas la protección. Mientras siga activa no puedes repetirla. Su iniciativa -1 ralentiza un 10 % tu siguiente recorrido.` }
           : { id: "technique", number: 7, title: "Usa una técnica elemental", copy: `Elige ${action.name} o pulsa ${slot}. Consume ${scene.actionCost(action)} CH. Después de elegirla, tu retrato recorrerá la zona de preparación; el rival puede actuar antes de que termines.${scene.practiceTechnique ? " Te presto esta técnica para la práctica: tu equipo se conserva." : ""}` };
       show({ ...step, target: `action:${slot}`, hint: "Práctica guiada: usa la acción resaltada. También puedes omitir la guía.", button: `Usar ${action.name}` }, () => scene.useJutsu(action));
     },
     selected() { if (active) { expected = null; hideCard(); } },
     async preparation() {
       if (!active || phase !== "technique") return;
-      await page({ id: "preparation", number: 8, target: "preparation", title: "Del 80 al 100 % · preparación", copy: "El chakra ya se ha consumido y la técnica está elegida. Tu marcador debe llegar al final de esta zona antes de ejecutar los sellos. La velocidad de la técnica modifica el tiempo de preparación.", button: "Preparar la técnica" });
+      await page({ id: "preparation", number: 8, target: "preparation", title: "Del 80 al 100 % · preparación", copy: "El chakra ya se ha consumido y la técnica está elegida. Tu marcador debe llegar al final de esta zona antes de ejecutar los sellos. Más sellos requieren más tiempo; la velocidad del personaje lo reduce. La iniciativa ya se consumió al llegar al 80 % y no modifica esta preparación.", button: "Preparar la técnica" });
     },
     async seals() {
       if (!active || sealsExplained) return;

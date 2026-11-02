@@ -9,9 +9,10 @@ export function consumeRetry(remaining) {
 
 export function restoreDuel(battle) {
   battle.player = { ...battle.player, hp: battle.player.maxHp, chakra: battle.player.maxChakra,
-    statuses: [], guarding: false, soak: null };
+    statuses: [], guarding: false, soak: null, recoveryInitiative: 0 };
   battle.enemy = battle.createEnemyState(battle.encounters[battle.enemyIndex]);
   battle.enemy.hp = battle.enemy.maxHp;
+  battle.enemy.recoveryInitiative = 0;
   battle.cooldowns = Object.fromEntries(Object.keys(battle.cooldowns).map((id) => [id, 0]));
   battle.pendingActions = { player: null, enemy: null };
   battle.timelineProgress = { player: 0, enemy: 0 };

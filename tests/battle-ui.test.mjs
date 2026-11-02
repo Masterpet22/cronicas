@@ -176,7 +176,7 @@ assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las i
 assert.doesNotMatch(battle, /playInvestigationPhase|playChakraTracking/, "La misión del desfiladero debe continuar al siguiente duelo sin la fase de investigación retirada");
 assert.match(battle, /playMissionOneTutorial\(\)/, "La primera misión debe explicar explícitamente vida, chakra, velocidad, sellos y guardia");
 assert.match(battle, /this\.pendingActions\.player = jutsu;[\s\S]*actionNeedsPreparation\(jutsu\)/, "Las técnicas preparadas deben comprometerse en la línea temporal");
-assert.match(battle, /millisecondsToTimelineThreshold\(this\.timelineProgress\[actor\], speed, action\)/, "Cada combatiente debe calcular su siguiente llegada con su velocidad real");
+assert.match(battle, /millisecondsToTimelineThreshold\(this\.timelineProgress\[actor\], speed, action, this\[actor\]\.recoveryInitiative\)/, "Cada combatiente debe calcular su siguiente llegada con su velocidad e iniciativa temporal");
 assert.match(battle, /this\.timelineProgress = \{ player: 0, enemy: 0 \}/, "La línea temporal debe mantener progreso independiente para ambos combatientes");
 assert.doesNotMatch(battle, /INICIATIVA ENEMIGA|playInitiativeNotice/, "El combate no debe recuperar el aviso impredecible de iniciativa enemiga");
 assert.match(battle, /playPrisonerChoice\(\)/, "El teniente derrotado debe abrir una decisión persistente");
@@ -224,8 +224,8 @@ assert.doesNotMatch(battle, /abilityArc|actionArc|actionThemeParts|drawCubicBezi
 assert.match(ui, /x \+ width \/ 2/, "Los valores de vida y chakra deben quedar en el centro horizontal de la barra");
 assert.match(ui, /setOrigin\(0\.5\)/, "Los valores deben centrarse sobre ambos ejes dentro del relleno");
 assert.match(ui, /setDepth\(40\)/, "La zona interactiva de las acciones debe quedar por encima del escenario");
-assert.match(ui, /Adopta una postura defensiva/, "La guardia debe explicar su efecto dentro del tooltip");
-assert.match(ui, /Prec\./, "Las estadísticas de acción deben tener etiquetas comprensibles");
+assert.match(ui, /primer golpe recibido/, "La guardia debe explicar que protege el primer impacto dentro del tooltip");
+assert.match(ui, /initiativeLabel\(action\)/, "Las acciones deben explicar su iniciativa en el tooltip");
 assert.match(ui, /Preparación: 80–100 %/, "El tooltip debe explicar el tramo real de preparación");
 assert.match(battle, /"ORDEN DE TURNO"/, "La línea temporal inferior debe identificarse como en la referencia");
 assert.match(battle, /button\.tooltip\.layer\.setVisible\(true\)/, "Los detalles deben aparecer al pasar el cursor");
@@ -251,7 +251,7 @@ assert.match(battle, /timelineMilestones\(start, end\)\.filter/, "Las muescas gr
 assert.match(battle, /const preparationStart = timelineMarkerPosition\(0\.8, start, end\)/, "El tramo final debe comenzar exactamente en el 80 %");
 assert.match(battle, /lineBetween\(preparationStart, trackY - 9, preparationStart, trackY \+ 9\)/, "El último 20 % debe resaltarse sobre la punta de la hoja");
 assert.match(battle, /fontFamily: HUD_ART.font[\s\S]*color: HUD_ART.text/, "Los textos de la espada deben mantener contraste mediante contorno y sombra");
-assert.match(battle, /advanceTimelineProgress\(from\[actor\], speed, duration, action\)/, "Ambos marcadores deben avanzar con las mismas reglas de velocidad");
+assert.match(battle, /advanceTimelineProgress\(from\[actor\], speed, duration, action, initiative\)/, "Ambos marcadores deben avanzar con las mismas reglas de velocidad e iniciativa");
 assert.match(battle, /"timeline-ready-brush"/, "La llegada al umbral debe usar un golpe de pincel de una sola ejecución");
 assert.match(battle, /showPreparationFeedback\(actor, action\)/, "La preparación debe tener una respuesta visual propia");
 assert.match(battle, /this\.add\.particles\(0, 0, "preparation-mote"/, "La preparación debe usar emisores de partículas reales de Phaser");

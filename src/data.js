@@ -43,8 +43,8 @@ function elementalSealSequence(jutsu) {
 }
 
 export const BASE_ACTIONS = [
-  { id: "strike", element: "physical", icon: "assets/actions/basic-strike.webp?v=1.1.0", name: "Golpe veloz", subtitle: "0CH · V16 · P93", cost: 0, damage: 9, speedMod: 4, accuracyMod: 3, cooldown: 0, seals: [], color: 0xd7dce5 },
-  { id: "guard", element: "none", icon: "assets/actions/guard.webp?v=1.1.0", type: "guard", name: "Guardia", subtitle: `-50% · +${CHAKRA_BALANCE.guardRecovery}CH · V20`, cost: 0, damage: 0, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
+  { id: "strike", element: "physical", icon: "assets/actions/basic-strike.webp?v=1.1.0", name: "Golpe veloz", subtitle: "0CH · P93", cost: 0, damage: 9, initiative: 1, speedMod: 4, accuracyMod: 3, cooldown: 0, seals: [], color: 0xd7dce5 },
+  { id: "guard", element: "none", icon: "assets/actions/guard.webp?v=1.1.0", type: "guard", name: "Guardia", subtitle: `-50% · +${CHAKRA_BALANCE.guardRecovery}CH`, cost: 0, damage: 0, initiative: -1, speedMod: 8, accuracyMod: 0, cooldown: 0, seals: [], color: 0xf5c96b }
 ];
 
 const AFFINITY_XP_REQUIREMENTS = {
@@ -113,6 +113,7 @@ export const JUTSU_LIBRARY = [
   ...EXTRA_ELEMENT_TECHNIQUES
 ].map((jutsu) => ({
   ...balanceTechniqueChakra(jutsu),
+  initiative: 0,
   seals: elementalSealSequence(jutsu),
   affinityXpRequired: AFFINITY_XP_REQUIREMENTS[jutsu.id] ?? 0
 }));
@@ -149,8 +150,8 @@ export const EQUIPMENT = {
 };
 
 export const ENEMY_ACTIONS = {
-  quick: { id: "quick", name: "Golpe rápido", damage: [9, 13], speedMod: 2, accuracyMod: 5, color: 0xff6b55 },
-  heavy: { id: "heavy", name: "Golpe pesado", damage: [15, 19], speedMod: -4, accuracyMod: -10, preparation: true, color: 0xff935c },
+  quick: { id: "quick", name: "Golpe rápido", damage: [9, 13], initiative: 1, speedMod: 2, accuracyMod: 5, color: 0xff6b55 },
+  heavy: { id: "heavy", name: "Golpe pesado", damage: [15, 19], initiative: -1, speedMod: -4, accuracyMod: -10, preparation: true, color: 0xff935c },
   toxin: { id: "toxin", name: "Aguja tóxica", damage: [7, 10], speedMod: 5, accuracyMod: 0, preparation: true, color: 0xb58cff, status: { type: "poison", label: "VENENO", duration: 3, power: 3 } },
   ember: { id: "ember", name: "Ascua errante", damage: [8, 12], speedMod: 0, accuracyMod: 2, preparation: true, color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 3 } }
 };

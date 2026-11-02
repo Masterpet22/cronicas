@@ -2,6 +2,7 @@ import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.137.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
 import { trainingActions } from "../../training.js?v=1.0.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";
+import { closeActionState } from "../action-resolution.js?v=1.0.0";
 import { createEnemyState } from "../enemy-state.js?v=0.114.0";
 import { META_ASSET_VERSION } from "../../asset-urls.js?v=0.115.0";
 import { stopPlayerBreathing } from "../../fighters.js?v=0.119.0";
@@ -61,8 +62,8 @@ export class TrainingBattleScene extends ArenaBattleScene {
   }
   resetTraining() {
     this.clearGuard();
-    Object.assign(this.player, { hp: this.player.maxHp, chakra: this.player.maxChakra, statuses: [], soak: null, guarding: false });
-    Object.assign(this.enemy, { hp: this.enemy.maxHp, chakra: 0, statuses: [], soak: null, guarding: false });
+    Object.assign(this.player, { hp: this.player.maxHp, chakra: this.player.maxChakra, statuses: [], soak: null, guarding: false, recoveryInitiative: 0 });
+    Object.assign(this.enemy, { hp: this.enemy.maxHp, chakra: 0, statuses: [], soak: null, guarding: false, recoveryInitiative: 0 });
     this.cooldowns = {};
     this.refreshHud();
   }
@@ -85,16 +86,17 @@ export class TrainingBattleScene extends ArenaBattleScene {
       if (move.type === "guard") await this.playerGuard();
       else await this.playerAttack(move, casting);
       if (this.finished) return;
+      closeActionState(this, "player", move);
       const damage = this.enemy.maxHp - this.enemy.hp;
       const statuses = this.enemy.statuses.map(status => `${status.label} (${status.duration} turnos)${status.power > 0 ? `: ${status.power} de daño por turno` : ""}`).join(" · ");
       const soak = this.enemy.soak?.stacks ? ` · Empapado ×${this.enemy.soak.stacks}` : "";
       const result = move.type === "guard" ? `${move.name}: reduce el daño recibido un 50 % y recupera ${CHAKRA_BALANCE.guardRecovery} CH en total.`
         : `${move.name}: ${damage} de daño${statuses ? ` · ${statuses}` : ""}${soak}. Coste: ${healthCost ? `${healthCost} PV` : `${cost} CH`}.`;
       this.setMessage(result);
-      this.round += 1;
     } finally {
       if (!this.finished) {
         this.player.hp = this.player.maxHp; this.player.chakra = this.player.maxChakra;
+        this.player.recoveryInitiative = 0;
         this.enemy.hp = this.enemy.maxHp;
         this.startTurnCharge();
       }

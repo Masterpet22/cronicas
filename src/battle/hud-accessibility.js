@@ -1,4 +1,5 @@
 import { skillFrameSvg } from "./hud-chrome.js?v=0.131.0";
+import { initiativeLabel } from "./initiative.js?v=1.0.0";
 import { mountBattleInventory } from "./battle-inventory.js?v=0.136.0";
 import { emptySkillInfo } from './hud-art.js?v=0.131.0';
 import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
@@ -212,7 +213,7 @@ export function mountAccessibleBattleHud(scene) {
     };
   };
   const put = (el, text) => { if (el.textContent !== String(text)) el.textContent = text; };
-  const statusText = unit => [...(unit.guarding ? [{ label: 'Guardia' }] : []), ...(unit.statuses || []), ...(unit.soak?.stacks ? [{ label: `Empapado ×${unit.soak.stacks}`, duration: unit.soak.turns }] : [])]
+  const statusText = unit => [...(unit.guarding ? [{ label: 'Guardia' }] : []), ...(unit.recoveryInitiative ? [{ label: initiativeLabel({ initiative: unit.recoveryInitiative }) }] : []), ...(unit.statuses || []), ...(unit.soak?.stacks ? [{ label: `Empapado ×${unit.soak.stacks}`, duration: unit.soak.turns }] : [])]
     .map(s => `${s.label || s.type}${s.duration ? ` (${s.duration})` : ''}`).join(' · ');
   const refresh = () => {
     inventory.refresh();
@@ -248,7 +249,7 @@ export function mountAccessibleBattleHud(scene) {
       button.setAttribute('aria-label', `${index + 1}. ${name.textContent}${action?.equipmentName ? `, ${action.equipmentName}` : ''}, ${requirement}`);
       button.setAttribute('aria-disabled', String(Boolean(!slot.available || scene.skillTableSwitching && index > 0 && index < 5)));
       button.setAttribute('aria-pressed', String(Boolean(action && action.id === scene.selectedHudActionId)));
-      button.title = action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement}` : physical || scene.mission.training ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
+      button.title = action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement} · ${initiativeLabel(action)} para la siguiente acción` : physical || scene.mission.training ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
     });
     markers.forEach(({ name, actor }) => put(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
