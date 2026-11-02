@@ -25,6 +25,24 @@ async function enterDojo(page) {
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
 
+test("Avanzadas conserva todas las técnicas y vuelve al contorno exacto sin gastar puntos", async ({ page }) => {
+  await openDojo(page);
+  const positions = () => page.locator("[data-skill-select]").evaluateAll(nodes => nodes.map(node => [node.dataset.skillSelect,node.getAttribute("transform")]));
+  const before = await positions();
+  const points = await page.locator("[data-resonance-points]").textContent();
+  const original = await loadout(page);
+  await expect(page.locator("[data-skill-select]")).toHaveCount(30);
+  await page.locator("[data-tree-extensions]").click();
+  expect(await page.locator("[data-skill-select]").count()).toBeGreaterThan(30);
+  await page.locator('[data-skill-select="fire_phoenix"]').click();
+  await expect(page.locator(".technique-detail h3")).toHaveText("Fénix escarlata");
+  await page.locator("[data-tree-extensions]").click();
+  expect(await positions()).toEqual(before);
+  await expect(page.locator("[data-resonance-points]")).toHaveText(points);
+  expect(await loadout(page)).toEqual(original);
+  await expect(page.locator(".technique-detail h3")).toHaveText("Núcleo de Resonancia");
+});
+
 test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar taijutsus", async ({ page }) => {
   await page.setViewportSize({ width:1280,height:720 });
   const errors = []; page.on("pageerror",error => errors.push(error.message));
@@ -110,31 +128,41 @@ test("el árbol permite zoom anclado, arrastre, ajuste y navegación por teclado
   await expect(page.locator(".technique-detail h3")).toHaveText("Núcleo de Resonancia");
 });
 
-test("tres afinidades revelan sus ocho celdas, puentes híbridos y técnicas avanzadas", async ({ page }) => {
+test("tres afinidades conservan la silueta ilustrada y sus cuatro puentes diagonales", async ({ page }) => {
+  await page.setViewportSize({ width:1600,height:1000 });
   await openDojo(page);
   await page.evaluate(async () => {
     const { loadSave,writeSave } = await import("/src/save.js");
     const save = loadSave(); save.progression.level=35;
-    save.character.affinities=["agua","tierra","fuego"];
+    save.character.affinities=["fuego","agua","tierra"];
     save.character.affinityXp={ agua:1000,tierra:1000,fuego:1000,viento:0 };
     save.campaign.elementRank=3; save.inventory.extraAffinityUnlocked=true;
+    save.progression.resonance.investments = {
+      physical_0:1,physical_1:1,physical_2:1,physical_3:1,physical_4:1,physical_5:1,
+      hybrid_physical_fuego_0:1,hybrid_physical_fuego_1:1,
+      hybrid_physical_agua_0:1,hybrid_physical_agua_1:1,
+      tierra_resonance_4:1,tierra_resonance_5:1,agua_resonance_4:1,hybrid_agua_tierra_1:1
+    };
+    save.taijutsuLoadout = ["physical_1","physical_2"];
     writeSave(save);
   });
   await enterDojo(page);
-  for (let slot=0;slot<3;slot++) await expect(page.locator(`[data-category="affinity"][data-slot="${slot}"]`)).toHaveCount(8);
+  for (let slot=0;slot<3;slot++) await expect(page.locator(`[data-category="affinity"][data-slot="${slot}"]`)).toHaveCount([5,5,6][slot]);
   const regionColors = await page.locator("[data-region]").evaluateAll(regions => regions.map(region => region.dataset.regionColor));
-  expect(regionColors).toEqual(["#bca0ff","#55bfff","#b78a55","#ff783d"]);
+  expect(regionColors).toEqual(["#bca0ff","#ff783d","#55bfff","#b78a55"]);
   expect(new Set(regionColors).size).toBe(4);
-  for (const border of await page.locator(".resonance-region-border").all()) expect(await border.evaluate(path => parseFloat(getComputedStyle(path).strokeWidth))).toBeGreaterThanOrEqual(6);
-  await expect(page.locator('[data-category="physical"]')).toHaveCount(8);
-  expect(await page.locator('[data-category="hybrid"]').count()).toBeGreaterThanOrEqual(9);
-  await page.locator('[data-skill-select="hybrid_agua_tierra_1"]').click();
-  await expect(page.locator(".resonance-requirements")).toContainText("Aqua Shuriken");
+  for (const border of await page.locator("[data-region] .resonance-region-border").all()) expect(await border.evaluate(path => parseFloat(getComputedStyle(path).strokeWidth))).toBeGreaterThanOrEqual(6);
+  await expect(page.locator('[data-category="physical"]')).toHaveCount(6);
+  await expect(page.locator('[data-category="hybrid"]')).toHaveCount(8);
+  await expect(page.locator("[data-bridge-region]")).toHaveCount(4);
+  await page.locator('[data-skill-select="hybrid_fuego_tierra_1"]').click();
+  await expect(page.locator(".resonance-requirements")).toContainText("Ascuas veloces");
   await expect(page.locator(".resonance-requirements")).toContainText("Puño de roca");
-  await page.locator('[data-skill-invest="hybrid_agua_tierra_1"]').click();
-  await expect(page.locator('[data-skill-select="hybrid_agua_tierra_1"]')).toHaveAttribute("data-state","unlocked");
+  await page.locator('[data-skill-invest="hybrid_fuego_tierra_1"]').click();
+  await expect(page.locator('[data-skill-select="hybrid_fuego_tierra_1"]')).toHaveAttribute("data-state","unlocked");
   await page.mouse.move(10,10);
   await page.screenshot({ path:"test-results/dojo-techniques/panal-tres-afinidades.png" });
+  await page.locator(".resonance-tree").screenshot({ path:"test-results/dojo-techniques/panal-referencia.png" });
 });
 
 test("las técnicas de tiers superiores reutilizan los iconos básicos", async ({ page }) => {
@@ -154,6 +182,7 @@ test("las técnicas de tiers superiores reutilizan los iconos básicos", async (
     writeSave(save);
   });
   await enterDojo(page);
+  await page.locator("[data-tree-extensions]").click();
   await page.locator('[data-skill-select="storm_domain"]').click();
   await expect(page.locator(".technique-element-art .element-composition img")).toHaveCount(3);
   const images = await page.locator(".element-composition img").evaluateAll(images => images.map(img => ({ src: img.getAttribute("src"), loaded: img.complete && img.naturalWidth > 0 })));
@@ -207,6 +236,7 @@ test("una ranura libre permite equipar y consultar una bloqueada no cambia el eq
   await expect(page.locator('[data-technique-toggle="fire_arc"]')).toHaveText("EQUIPAR EN RANURA LIBRE");
   await page.locator('[data-technique-toggle="fire_arc"]').click();
   expect(await loadout(page)).toEqual(["fire_embers", "fire_arc"]);
+  await page.locator("[data-tree-extensions]").click();
   await page.locator('[data-skill-select="fire_phoenix"]').click();
   await expect(page.locator('[data-technique-toggle="fire_phoenix"]')).toBeDisabled();
   await expect(page.locator(".technique-detail")).toContainText("280 PX de afinidad");
@@ -251,7 +281,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     });
     expect(layout).toEqual({ detail: true, actions: true, equip: true, loadout: true, catalog: true, outerOverflow: 0, actionVisible: true });
     await expect(page.locator("[data-tree-canvas]")).toBeVisible();
-    await expect(page.locator("[data-skill-select]")).toHaveCount(41);
+    await expect(page.locator("[data-skill-select]")).toHaveCount(30);
     await page.screenshot({ path: `test-results/dojo-techniques/panel-${viewport.width}.png` });
   });
 }

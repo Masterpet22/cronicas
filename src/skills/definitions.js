@@ -18,15 +18,19 @@ export const PHYSICAL_COLOR = "#bca0ff";
  */
 /** @typedef {SkillDefinition & { level: number }} SkillNode Runtime projection of definition + player progression. */
 
-// Flat-top axial cells. Layout is data, shared by every equipped element.
+// Main silhouette traced from the reference: seven staggered columns,
+// six upper physical cells, two five-cell side fans, six lower cells,
+// and four two-cell diagonal bridges. The upper central recess stays empty.
+export const HEX_GRID_SIZE = 47;
 export const SKILL_LAYOUT = Object.freeze({
-  physical: [[0,-1],[-1,-1],[1,-2],[0,-2],[-1,-2],[1,-3],[-2,-1],[0,-3]],
+  physical: [[0,-2],[-1,-1],[1,-2],[-1,-2],[1,-3],[0,-3]],
   affinities: [
-    [[-1,0],[-2,0],[-2,1],[-3,1],[-3,0],[-4,1],[-4,2],[-3,2]],
-    [[1,0],[2,0],[2,-1],[3,-1],[3,0],[4,-1],[4,-2],[3,-2]],
-    [[0,1],[1,1],[-1,2],[0,2],[1,2],[-1,3],[-2,3],[0,3]]
+    [[-2,1],[-2,0],[-3,0],[-3,1],[-3,2]],
+    [[2,-1],[2,-2],[3,-3],[3,-2],[3,-1]],
+    [[0,1],[-1,2],[1,1],[0,2],[-1,3],[1,2]]
   ],
-  hybrids: [[[1,-1],[2,-2],[2,-3]],[[-1,1],[-2,2],[-3,3]],[[2,1],[3,1],[2,2]]]
+  physicalBridges: [[[-1,0],[-2,-1]],[[1,-1],[2,-3]]],
+  affinityBridges: [[[-1,1],[-2,2]],[[1,0],[2,0]]]
 });
 
 const ICONS = ["strike", "burst", "shield", "seal", "flame", "step", "bind", "crown"];
@@ -102,9 +106,21 @@ export function pairSkills(affinityIds) {
   return nodes;
 }
 
+export function physicalAffinitySkills(elementId) {
+  const key = `physical_${elementId}`;
+  const root = affinitySkills(elementId)[0].id;
+  return [
+    passive(`hybrid_${key}_0`, `Impacto resonante · ${ELEMENTS[elementId].name}`, "hybrid", [elementId], 0,
+      { stat:"strength",amount:1 }, ["physical_0",root]),
+    passive(`hybrid_${key}_1`, `Cuerpo resonante · ${ELEMENTS[elementId].name}`, "hybrid", [elementId], 2,
+      { stat:"damageReduction",amount:1 }, [`hybrid_${key}_0`,"physical_0",root])
+  ].map(node => ({ ...node,physicalHybrid:true,description:`Combina el entrenamiento físico con ${ELEMENTS[elementId].name}. ${effectText(node.effect)}.` }));
+}
+
 export const SKILL_CATALOG = [
   ...PHYSICAL_SKILLS,
   ...BASIC_ELEMENT_IDS.flatMap(affinitySkills),
+  ...BASIC_ELEMENT_IDS.flatMap(physicalAffinitySkills),
   ...BASIC_ELEMENT_IDS.flatMap((id,i) => BASIC_ELEMENT_IDS.slice(i+1).flatMap(other => pairSkills([id,other]))),
   ...JUTSU_LIBRARY.filter(j => basicRequirements(j.element).length === 3).map((j,i) => ({
     ...techniqueNode(j,"hybrid",i), prerequisites: basicRequirements(j.element).map(id => affinitySkills(id)[0].id)
@@ -126,19 +142,29 @@ export function buildSkillTree(affinities = [], rank = 1) {
     nodes.push(...place(branch.slice(0,SKILL_LAYOUT.affinities[slot].length), SKILL_LAYOUT.affinities[slot]).map(node => ({ ...node, slot })));
     overflow.push(...branch.slice(SKILL_LAYOUT.affinities[slot].length).map(node => ({ ...node, slot })));
   }
-  [[0,1],[0,2],[1,2]].forEach(([a,b], index) => {
-    const ids = [affinities[a],affinities[b]];
-    const branch = ids.every(Boolean) ? pairSkills(ids) : Array.from({ length: 3 }, (_,i) => ({
-      id: `empty_hybrid_${index}_${i}`, name: `Puente de afinidades ${a+1} + ${b+1}`, category: "hybrid", affinityIds: ids.filter(Boolean),
-      description: "Equipa ambas afinidades y desarrolla sus nodos de entrada para activar este puente.", icon: "bind", type: "Híbrida", maxLevel: 3, cost: 1, prerequisites: [], placeholder: true
-    }));
-    nodes.push(...place(branch.slice(0,3), SKILL_LAYOUT.hybrids[index]).map(node => ({ ...node, pair: [a,b] })));
-    overflow.push(...branch.slice(3));
+  const emptyBridge = (id,affinityIds,description,physicalHybrid = false) => Array.from({ length:2 },(_,i) => ({
+    id:`${id}_${i}`,name:"Confluencia por descubrir",category:"hybrid",affinityIds,description,
+    icon:"bind",type:physicalHybrid ? "Físicas + Afinidad" : "Afinidad + Afinidad",maxLevel:3,cost:1,prerequisites:[],placeholder:true,physicalHybrid
+  }));
+  [0,1].forEach(slot => {
+    const elementId = affinities[slot];
+    const branch = elementId ? physicalAffinitySkills(elementId) : emptyBridge(`empty_physical_${slot}`,[],"Equipa esta afinidad y desarrolla tu disciplina física para revelar el puente.",true);
+    nodes.push(...place(branch,SKILL_LAYOUT.physicalBridges[slot]).map(node => ({ ...node,bridge:`physical-affinity-${slot+1}` })));
   });
+  [[0,2],[1,2]].forEach(([a,b],index) => {
+    const ids = [affinities[a],affinities[b]];
+    const branch = ids.every(Boolean) ? pairSkills(ids) : emptyBridge(`empty_hybrid_${index}`,ids.filter(Boolean),"Equipa ambas afinidades y desarrolla sus nodos de entrada para activar este puente.");
+    nodes.push(...place(branch.slice(0,2),SKILL_LAYOUT.affinityBridges[index]).map(node => ({ ...node,bridge:`affinity-${a+1}-${b+1}`,pair:[a,b] })));
+    overflow.push(...branch.slice(2));
+  });
+  // The first/second affinity combination remains available in the advanced view.
+  if (affinities[0] && affinities[1]) overflow.push(...pairSkills([affinities[0],affinities[1]]));
+  // Reordering affinities never hides an already developed physical combination.
+  affinities.slice(2).forEach(id => overflow.push(...physicalAffinitySkills(id)));
   // Existing advanced techniques remain reachable. New seasons can add data
   // without changing the renderer: reserve the nearest unoccupied axial cells.
   overflow.push(...SKILL_CATALOG.filter(node => node.affinityIds.length === 3 && rank >= ELEMENTS[node.element].tier && node.affinityIds.every(id => affinities.includes(id))));
-  const occupied = new Set(["0,0", ...nodes.map(n => `${n.q},${n.r}`)]);
+  const occupied = new Set(["0,0","0,-1", ...nodes.map(n => `${n.q},${n.r}`)]);
   const candidates = [];
   const radius = Math.max(5,Math.ceil(Math.sqrt(nodes.length + overflow.length)));
   for (let q = -radius; q <= radius; q++) for (let r = -radius; r <= radius; r++) {
@@ -150,5 +176,5 @@ export function buildSkillTree(affinities = [], rank = 1) {
   return nodes;
 }
 
-export const axialToPixel = (q,r,size = 44) => ({ x: size * 1.5 * q, y: size * Math.sqrt(3) * (r + q/2) });
+export const axialToPixel = (q,r,size = HEX_GRID_SIZE) => ({ x: size * 1.5 * q, y: size * Math.sqrt(3) * (r + q/2) });
 export const hexDistance = (a,b) => Math.max(Math.abs(a.q-b.q),Math.abs(a.r-b.r),Math.abs(a.q+a.r-b.q-b.r));

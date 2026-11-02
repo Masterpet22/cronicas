@@ -1,8 +1,15 @@
 # Árbol de Resonancia
 
 El Dojo → Técnicas muestra un panal axial con cuatro direcciones: físicas arriba,
-primera afinidad a la izquierda, segunda a la derecha y tercera abajo. Cada rama
-elemental contiene ocho habilidades. Las ranuras sin afinidad conservan su lugar
+primera afinidad a la izquierda, segunda a la derecha y tercera abajo. El contorno
+principal reproduce las celdas de la referencia visual del 2 de noviembre:
+siete columnas escalonadas y simétricas, un hueco sobre el núcleo, seis celdas
+físicas, cinco en cada abanico lateral, seis abajo y cuatro puentes diagonales
+de dos celdas. Los números escritos en la referencia son orientativos.
+
+El catálogo conserva ocho habilidades por afinidad y ocho físicas. Las adicionales
+aparecen al activar **Avanzadas**; regresar a **Panal principal** restaura exactamente
+el contorno de referencia. Las ranuras sin afinidad conservan su lugar
 con celdas bloqueadas; no asignan elementos que el personaje todavía no posee.
 
 ## Datos, progreso y representación
@@ -30,11 +37,15 @@ celdas vecinas: ninguna línea atraviesa artificialmente el espacio entre ramas.
 Los requisitos efectivos figuran en la ficha; todos los requisitos de un nodo
 deben cumplirse. Desarrollar una rama no obliga a comprar todos sus nodos.
 
-Cada par de afinidades tiene tres celdas iniciales. Las técnicas avanzadas que ya
-existían en el juego se conservan como extensiones: Rayo tiene una cuarta técnica,
-y las combinaciones triples aparecen al equipar sus tres elementos y alcanzar el
-rango elemental correspondiente. Las extensiones ocupan celdas axiales libres
-cercanas al núcleo sin superponer nodos.
+Los puentes superiores combinan físicas con la primera y segunda afinidad. Los
+inferiores combinan primera + tercera y segunda + tercera. Sus contornos mezclan
+ambos colores. Las dos combinaciones físicas de cada elemento requieren progreso
+en el cuerpo y en el elemento, y añaden fuerza o reducción de daño.
+
+La combinación primera + segunda, las técnicas restantes y las combinaciones
+triples se conservan en Avanzadas. Al reordenar las afinidades, los cruces físicos
+de la tercera afinidad también quedan accesibles allí. Las extensiones ocupan
+celdas axiales libres sin superponer nodos; nunca ocupan el hueco sobre Resonancia.
 
 ## Economía y compatibilidad
 

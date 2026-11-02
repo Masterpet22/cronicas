@@ -8,6 +8,9 @@
 .resonance-points { display:flex; align-items:center; gap:8px; padding:4px 8px; border:1px solid #d7b86d55; background:#c6a9660d; color:#d7b86d; }
 .resonance-points b { font:700 26px "Cinzel",Georgia,serif; }
 .resonance-points span { font-size:9px; line-height:1.3; letter-spacing:1px; }
+.resonance-heading-actions { display:flex; align-items:center; gap:7px; }
+.resonance-extensions-toggle { padding:6px 8px; border:1px solid #a28b5c; border-radius:3px; background:#132131; color:#e3cf9f; font-size:10px; cursor:pointer; white-space:nowrap; }
+.resonance-extensions-toggle[aria-pressed="true"] { border-color:#dcc183; background:#3c3221; }
 .resonance-viewport { position:relative; min-height:0; overflow:hidden; }
 .resonance-canvas { display:block; width:100%; height:100%; touch-action:none; user-select:none; cursor:grab; }
 .resonance-canvas:active { cursor:grabbing; }
@@ -19,6 +22,8 @@
 .resonance-region { pointer-events:none; fill:none; stroke-linecap:round; stroke-linejoin:round; }
 .resonance-region-shadow { stroke:#080d0b; stroke-width:12; }
 .resonance-region-border { stroke:var(--region-color); stroke-width:7; opacity:.95; }
+.resonance-region:not(.is-hybrid-region) .resonance-region-border { filter:drop-shadow(0 0 2px var(--region-color)); }
+.resonance-region.is-hybrid-region .resonance-region-border { stroke-width:5; }
 .resonance-node { cursor:pointer; outline:none; }
 .resonance-hex-outline { fill:#0c100f; stroke:var(--node-color); stroke-width:1.5; }
 .resonance-hex { fill:#191d1b; stroke-width:1.8; }
@@ -53,6 +58,7 @@
 .resonance-caption { fill:#d8c898; pointer-events:none; font:700 17px "Cinzel",Georgia,serif; letter-spacing:1.7px; }
 .resonance-caption.physical { fill:#bca0ff; }
 .resonance-caption-sub { fill:#9b9c83; font:12px "Alegreya Sans",sans-serif; letter-spacing:1.3px; }
+.resonance-bridge-caption { pointer-events:none; font:700 14px "Alegreya Sans",sans-serif; letter-spacing:.5px; }
 .resonance-controls { position:absolute; right:10px; bottom:10px; display:flex; gap:4px; }
 .resonance-controls button { display:grid; place-items:center; width:32px; min-height:32px; padding:0; border:1px solid #8a7853; border-radius:3px; background:#171c17ef; color:#e1c488; font-size:19px; cursor:pointer; }
 .resonance-controls button:hover { background:#3d3926; border-color:#e0c084; }

@@ -29,16 +29,32 @@ for (const element of BASIC_ELEMENT_IDS) {
     for (let slot=0; slot<3; slot++) assert.equal(nodes.filter(n => n.category === "affinity" && n.slot === slot).length,8);
     const physical = nodes.filter(n => n.category === "physical");
     assert.equal(physical.length,8);
-    assert.ok(physical.every(n => n.r+n.q/2<0));
-    assert.ok(nodes.filter(n => n.slot === 0).every(n => n.q<0));
-    assert.ok(nodes.filter(n => n.slot === 1).every(n => n.q>0));
-    assert.ok(nodes.filter(n => n.slot === 2).every(n => n.r+n.q/2>0));
+    assert.ok(physical.filter(n => !n.advanced).every(n => n.r+n.q/2<0));
+    assert.ok(nodes.filter(n => n.slot === 0 && !n.advanced).every(n => n.q<0));
+    assert.ok(nodes.filter(n => n.slot === 1 && !n.advanced).every(n => n.q>0));
+    assert.ok(nodes.filter(n => n.slot === 2 && !n.advanced).every(n => n.r+n.q/2>0));
     const reached = new Set(["core"]), graph = [{ id:"core",q:0,r:0 },...nodes];
     for (let pass=0; pass<graph.length; pass++) for (const n of graph) if (graph.some(p => reached.has(p.id) && hexDistance(n,p)===1)) reached.add(n.id);
     assert.equal(reached.size,graph.length,"Every cell belongs to the connected honeycomb");
     for (const n of nodes) assert.ok(n.prerequisites.every(id => nodes.some(p => p.id===id)),"Visible requirements are reachable");
   }
 }
+// The illustrated silhouette is a geometry contract, independent of guide counts.
+const silhouette = buildSkillTree(["fuego","agua","tierra"],3).filter(node => !node.advanced);
+assert.equal(silhouette.length,30);
+assert.equal(silhouette.filter(node => node.category === "physical").length,6);
+assert.deepEqual([-3,-2,-1,0,1,2,3].map(q => silhouette.filter(node => node.q === q).length + (q === 0 ? 1 : 0)),[3,4,6,5,6,4,3]);
+const mainCells = new Set(silhouette.map(node => `${node.q},${node.r}`));
+assert.ok(!mainCells.has("0,-1"),"Keep the recess directly above Resonance, as in the reference");
+for (const node of silhouette) assert.ok(mainCells.has(`${-node.q},${node.r+node.q}`),"The main honeycomb mirrors exactly across the vertical core axis");
+for (const bridge of ["physical-affinity-1","physical-affinity-2","affinity-1-3","affinity-2-3"]) assert.equal(silhouette.filter(node => node.bridge === bridge).length,2);
+let physicalHybridSave = createCharacter(createDefaultSave(),{ affinity:"fuego" });
+const physicalHybrid = SKILLS_BY_ID.get("hybrid_physical_fuego_0");
+assert.equal(investResonance(physicalHybridSave,physicalHybrid.id),physicalHybridSave);
+physicalHybridSave = investResonance(physicalHybridSave,"physical_0");
+physicalHybridSave = investResonance(physicalHybridSave,physicalHybrid.id);
+assert.equal(derivedStats(physicalHybridSave).baseStrength,derivedStats({ ...physicalHybridSave,progression:{ ...physicalHybridSave.progression,resonance:{ investments:{ physical_0:1 } } } }).baseStrength+1);
+
 const visit = (node,path=[]) => {
   assert.ok(!path.includes(node.id),`Prerequisite cycle: ${node.id}`);
   node.prerequisites.forEach(id => { assert.ok(SKILLS_BY_ID.has(id)); visit(SKILLS_BY_ID.get(id),[...path,node.id]); });

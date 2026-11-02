@@ -1,10 +1,10 @@
-import { axialToPixel } from "./definitions.js?v=1.0.0";
+import { HEX_GRID_SIZE, axialToPixel } from "./definitions.js?v=1.0.0";
 
 const NEIGHBORS = [[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 
 // Draw only exposed edges, so the outline follows the actual honeycomb instead
 // of enclosing other branches or leaving artificial space between their cells.
-export function hexBoundarySegments(nodes,size = 44) {
+export function hexBoundarySegments(nodes,size = HEX_GRID_SIZE) {
   const occupied = new Set(nodes.map(node => `${node.q},${node.r}`));
   return nodes.flatMap(node => {
     const { x,y } = axialToPixel(node.q,node.r,size);

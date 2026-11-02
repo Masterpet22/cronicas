@@ -7,6 +7,7 @@ import { equipTaijutsu, learnedTaijutsu, normalizeTaijutsuLoadout, taijutsuActio
 export function createDojoTechniques(deps) {
   let selectedId = null;
   let treeView = null;
+  let expandedTree = false;
   let replacementId = null;
   let feedback = "";
   let host = null;
@@ -66,8 +67,8 @@ export function createDojoTechniques(deps) {
     const full = save.loadout.length >= deps.loadoutSlotsForLevel(save.progression.level);
     const label = !learned ? "TÉCNICA BLOQUEADA" : equipped ? "QUITAR DEL COMBATE" : full ? "REEMPLAZAR UNA EQUIPADA" : "EQUIPAR EN RANURA LIBRE";
     const category = taijutsu ? "TAIJUTSU · FÍSICO" : node.category === "physical" ? "DISCIPLINA FÍSICA" : node.category === "hybrid" ? "CONFLUENCIA HÍBRIDA" : "TÉCNICA ELEMENTAL";
-    const affinity = node.affinityIds.map(deps.elementName).join(" + ") || "Independiente de las afinidades";
-    const art = node.element ? elementArt(node.element) : node.affinityIds.map(id => elementArt(id)).join("") || '<span class="resonance-physical-mark" aria-hidden="true">拳</span>';
+    const affinity = (node.physicalHybrid ? "Físicas + " : "") + (node.affinityIds.map(deps.elementName).join(" + ") || "Independiente de las afinidades");
+    const art = node.element ? elementArt(node.element) : `${node.physicalHybrid || !node.affinityIds.length ? '<span class="resonance-physical-mark" aria-hidden="true">拳</span>' : ""}${node.affinityIds.map(id => elementArt(id)).join("")}`;
     const canInvest = !requirements.length && level < node.maxLevel && resonancePoints(save) >= node.cost;
     const investLabel = level >= node.maxLevel ? "NIVEL MÁXIMO" : `${level ? "MEJORAR" : "DESBLOQUEAR"} · ${node.cost} PR`;
     const metrics = combatMove ? `<div class="technique-metrics"><div><strong>${combatMove.damage}</strong><small>DAÑO BASE</small></div><div><strong>${taijutsu ? `${taijutsu.healthCost} PV` : `${jutsu.cost} CH`}</strong><small>COSTE EN COMBATE</small></div><div><strong>${combatMove.cooldown ? `${combatMove.cooldown} turnos` : "Sin recarga"}</strong><small>RECARGA</small></div><div><strong>${combatMove.speedMod > 0 ? "+" : ""}${combatMove.speedMod}</strong><small>RITMO</small></div></div>` : "";
@@ -80,15 +81,19 @@ export function createDojoTechniques(deps) {
 
   function render(save) {
     const nodes = nodesFor(save);
-    if (selectedId !== "core" && !nodes.some(node => node.id === selectedId)) selectedId = save.loadout.find(id => nodes.some(node => node.id === id)) || "core";
+    const visibleNodes = expandedTree ? nodes : nodes.filter(node => !node.advanced);
+    if (selectedId !== "core" && !visibleNodes.some(node => node.id === selectedId)) selectedId = save.loadout.find(id => visibleNodes.some(node => node.id === id)) || "core";
     if (replacementId && (save.loadout.includes(replacementId) || !deps.isTechniqueLearned(save, technique(replacementId)))) replacementId = null;
-    return `<div class="dojo-technique-workspace">${loadoutMarkup(save)}<div class="dojo-technique-layout">${resonanceTreeMarkup(save,deps,selectedId,treeView)}<section class="technique-detail-wrap" aria-label="Detalle de habilidad" data-technique-detail>${detailMarkup(save,nodes.find(n => n.id === selectedId))}</section></div></div>`;
+    return `<div class="dojo-technique-workspace">${loadoutMarkup(save)}<div class="dojo-technique-layout">${resonanceTreeMarkup(save,deps,selectedId,treeView,{ expanded:expandedTree })}<section class="technique-detail-wrap" aria-label="Detalle de habilidad" data-technique-detail>${detailMarkup(save,nodes.find(n => n.id === selectedId))}</section></div></div>`;
   }
 
   function inspect(id, preview = false) {
     if (!host?.isConnected) return;
     const save = bindings.getSave();
     if (!preview) {
+      if (!expandedTree && nodesFor(save).some(node => node.id === id && node.advanced)) {
+        expandedTree = true; treeView = null; selectedId = id; refresh(save);
+      }
       selectedId = id;
       replacementId = null;
       const prerequisites = nodesFor(save).find(node => node.id === id)?.prerequisites || [];
@@ -129,7 +134,7 @@ export function createDojoTechniques(deps) {
       feedback = "";
       refresh(bindings.getSave());
       mountResonanceNavigation(host,scope,{
-        getSave: bindings.getSave, getView: () => treeView, setView: view => { treeView = view; },
+        getSave: bindings.getSave, getExpanded: () => expandedTree, getView: () => treeView, setView: view => { treeView = view; },
         onInspect: id => { if (replacementId) { replacementId = null; refresh(bindings.getSave()); } inspect(id); },
         onHover: id => { if (!replacementId) inspect(id || selectedId,true); },
         onCore: () => inspect("core")
@@ -140,7 +145,11 @@ export function createDojoTechniques(deps) {
         if (!button || button.disabled) return;
         const save = bindings.getSave();
         const inspectId = button.dataset.skillSelect || button.dataset.loadoutInspect;
-        if (button.hasAttribute("data-taijutsu-choose")) {
+        if (button.hasAttribute("data-tree-extensions")) {
+          expandedTree = !expandedTree; treeView = null;
+          if (!expandedTree && nodesFor(save).some(node => node.id === selectedId && node.advanced)) selectedId = "core";
+          refresh(save,"[data-tree-extensions]");
+        } else if (button.hasAttribute("data-taijutsu-choose")) {
           const index = Number(button.dataset.taijutsuChoose);
           selectedId = normalizeTaijutsuLoadout(save)[index] || TAIJUTSU_ACTIONS.find(action => learnedTaijutsu(save,action.id) && !normalizeTaijutsuLoadout(save).includes(action.id))?.id || TAIJUTSU_ACTIONS[0].id;
           replacementId = null; feedback = "Elige T1 o T2 en la ficha para equipar el taijutsu.";
@@ -160,6 +169,7 @@ export function createDojoTechniques(deps) {
           host.querySelector(`[data-skill-invest="${selectedId}"]`)?.focus({ preventScroll:true });
         } else if (inspectId) {
           selectedId = inspectId; replacementId = null; feedback = "";
+          if (nodesFor(save).some(node => node.id === selectedId && node.advanced)) { expandedTree = true; treeView = null; }
           refresh(save, button.dataset.skillSelect ? `[data-skill-select="${inspectId}"]` : `[data-loadout-inspect="${inspectId}"]`, true);
         } else if (button.hasAttribute("data-cancel-replace")) cancel();
         else if (button.hasAttribute("data-loadout-remove")) {
