@@ -16,7 +16,7 @@ async function startSearch(page) {
   await page.locator('[data-mission="s02"]').click();
   const dialogue = page.locator(".dialogue-overlay");
   await expect(dialogue).toBeVisible();
-  for (let i = 0; i < 8 && await dialogue.isVisible(); i += 1) await dialogue.locator("button").click();
+  for (let i = 0; i < 8 && await dialogue.isVisible(); i += 1) await dialogue.locator(".primary-button").click();
   await expect(page.locator(".route-atlas")).toBeVisible({ timeout: 20_000 });
 }
 
@@ -95,7 +95,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await page.locator('[data-route-node="camp"]').click();
     await expect(page.locator(".doctor-meeting")).toBeVisible();
     await expect(page.locator(".dialogue-overlay")).toContainText("Gracias por venir a buscarme");
-    for (let i = 0; i < 3; i += 1) await page.locator(".dialogue-overlay button").click();
+    for (let i = 0; i < 3; i += 1) await page.locator(".dialogue-overlay .primary-button").click();
     await expect(page.locator(".cipher-screen")).toBeVisible();
     await expect(page.locator(".village-topbar")).toHaveCount(0);
     await page.getByRole("button", { name: "Pausar misión" }).click();

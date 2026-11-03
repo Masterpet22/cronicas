@@ -83,7 +83,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     expect(saved.character).toMatchObject({ name: "Mika", bodyType: "female", affinity: "agua", affinities: ["agua"], hair: 4, appearance: "#55bfff" });
     expect(saved.character.outfit).toBeNull();
     const dialogue = page.locator(".dialogue-overlay");
-    for (let i = 0; i < 6 && await dialogue.isVisible(); i += 1) await dialogue.locator("button").click();
+    for (let i = 0; i < 6 && await dialogue.isVisible(); i += 1) await dialogue.locator(".primary-button").click();
     await page.locator(".debug-tools-trigger").click();
     await page.locator('[data-debug-view="dojo"]').click();
     await page.locator('[data-dojo-tab="appearance"]').click();

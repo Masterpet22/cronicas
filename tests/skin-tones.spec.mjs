@@ -20,7 +20,7 @@ test("el tono se elige al crear, se cambia gratis en el Dojo y persiste al recar
   const read = () => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
   expect((await read()).character.skinTone).toBe("moreno");
   const dialogue = page.locator(".dialogue-overlay");
-  for (let i = 0; i < 6 && await dialogue.isVisible(); i++) await dialogue.locator("button").click();
+  for (let i = 0; i < 6 && await dialogue.isVisible(); i++) await dialogue.locator(".primary-button").click();
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-view="dojo"]').click();
   await page.locator('[data-dojo-tab="appearance"]').click();

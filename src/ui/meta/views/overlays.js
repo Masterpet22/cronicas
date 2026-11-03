@@ -2,13 +2,57 @@ export function createOverlayView(deps) {
   const controllers = new Set();
 
   const listen = (target, event, handler, options = {}) => {
+    if (!target) return () => {};
     const controller = new AbortController();
     controllers.add(controller);
     target?.addEventListener(event, handler, { ...options, signal: controller.signal });
     return () => { controller.abort(); controllers.delete(controller); };
   };
 
-  const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR", type = "message") => {
+  const mountOverlay = (overlay, { cancellable = false, onCancel } = {}, cleanup = () => {}) => {
+    const previousFocus = document.activeElement;
+    const mounted = deps.viewRuntime.mountOverlay(overlay);
+    const subscriptions = [];
+    const on = (...args) => subscriptions.push(listen(...args));
+    const close = (cancelled = false) => {
+      if (!mounted.isCurrent()) return false;
+      cleanup();
+      subscriptions.splice(0).forEach(unsubscribe => unsubscribe());
+      mounted.remove();
+      if (cancelled) {
+        if (previousFocus?.isConnected) previousFocus.focus();
+        onCancel?.();
+      }
+      return true;
+    };
+    if (cancellable) {
+      overlay.setAttribute("role", "dialog");
+      overlay.setAttribute("aria-modal", "true");
+      overlay.setAttribute("aria-label", "Preparación de misión");
+      on(overlay, "keydown", (event) => {
+        if (!mounted.isCurrent()) return;
+        if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
+          close(true);
+        }
+        if (event.key === "Tab") {
+          const buttons = [...overlay.querySelectorAll("button:not([disabled])")];
+          const first = buttons[0], last = buttons.at(-1);
+          if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+            event.preventDefault();
+            (event.shiftKey ? last : first)?.focus();
+          }
+        }
+      });
+    }
+    return { ...mounted, close, listen: on,
+      cancelButton: cancellable ? '<button type="button" class="secondary-button mission-cancel" data-cancel-mission>CANCELAR MISIÓN</button>' : "",
+      bindCancel() { on(overlay.querySelector("[data-cancel-mission]"), "click", () => close(true)); }
+    };
+  };
+
+  const showDialogue = (lines, onComplete, finalLabel = "CONTINUAR", type = "message", options = {}) => {
     if (!lines.length) { onComplete(); return; }
     let index = 0;
     let previousSpeaker = null;
@@ -17,7 +61,7 @@ export function createOverlayView(deps) {
     const location = type === "story" ? deps.root.querySelector("[data-location-stage]") : null;
     const overlay = document.createElement("div");
     overlay.className = `dialogue-overlay dialogue-${type}`;
-    const mounted = deps.viewRuntime.mountOverlay(overlay);
+    const mounted = mountOverlay(overlay, options, () => { if (location) location.classList.remove("story-dialogue-active"); });
     if (location) location.classList.add("story-dialogue-active");
     const draw = () => {
       const [speaker, dialogue] = lines[index];
@@ -35,33 +79,35 @@ export function createOverlayView(deps) {
         overlay.classList.toggle("story-speaker-left", side === "left");
         overlay.classList.toggle("story-speaker-right", side === "right");
         const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${deps.escapeHtml(npc.name)}</span></div>` : "";
-        overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${deps.escapeHtml(speaker)} · ${deps.escapeHtml(role)}</header><p>${deps.escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></footer></section>`;
+        overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${deps.escapeHtml(speaker)} · ${deps.escapeHtml(role)}</header><p>${deps.escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><div class="dialogue-actions">${mounted.cancelButton}<button type="button" class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></div></footer></section>`;
         previousSpeaker = speaker;
       } else {
         const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${deps.escapeHtml(npc.title)}</span></div>` : "";
-        overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${deps.escapeHtml(speaker)}</p><p>${deps.escapeHtml(dialogue)}</p><button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
+        overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${deps.escapeHtml(speaker)}</p><p>${deps.escapeHtml(dialogue)}</p>${mounted.cancelButton}<button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       }
-      listen(overlay.querySelector("button"), "click", () => {
+      mounted.bindCancel();
+      const next = overlay.querySelector(".primary-button");
+      if (options.cancellable) next.focus();
+      mounted.listen(next, "click", () => {
         if (!mounted.isCurrent()) return;
         if (!last) { index += 1; draw(); return; }
-        if (location) location.classList.remove("story-dialogue-active");
-        mounted.remove();
-        onComplete();
+        if (mounted.close()) onComplete();
       }, { once: true });
     };
     draw();
   };
 
-  const showMissionDecision = ({ eyebrow, title, text, options }, onChoice) => {
+  const showMissionDecision = ({ eyebrow, title, text, options }, onChoice, controls = {}) => {
     const overlay = document.createElement("div");
     overlay.className = "mission-decision-overlay";
-    const mounted = deps.viewRuntime.mountOverlay(overlay);
-    overlay.innerHTML = `<section class="mission-decision-panel"><p class="eyebrow">${deps.escapeHtml(eyebrow)}</p><h2>${deps.escapeHtml(title)}</h2><p>${deps.escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${deps.escapeHtml(option.label)}</strong><small>${deps.escapeHtml(option.description)}</small></button>`).join("")}</div></section>`;
-    overlay.querySelectorAll("[data-decision]").forEach((button) => listen(button, "click", () => {
+    const mounted = mountOverlay(overlay, controls);
+    overlay.innerHTML = `<section class="mission-decision-panel"><p class="eyebrow">${deps.escapeHtml(eyebrow)}</p><h2>${deps.escapeHtml(title)}</h2><p>${deps.escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${deps.escapeHtml(option.label)}</strong><small>${deps.escapeHtml(option.description)}</small></button>`).join("")}</div>${mounted.cancelButton}</section>`;
+    mounted.bindCancel();
+    if (controls.cancellable) overlay.querySelector("[data-decision]")?.focus();
+    overlay.querySelectorAll("[data-decision]").forEach((button) => mounted.listen(button, "click", () => {
       if (!mounted.isCurrent()) return;
       const value = button.dataset.decision;
-      mounted.remove();
-      onChoice(value);
+      if (mounted.close()) onChoice(value);
     }, { once: true }));
   };
 

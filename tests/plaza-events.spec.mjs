@@ -132,7 +132,7 @@ test("visita del segundo viernes con diálogo y participación por edición", as
   await page.locator('[data-event-day="2026-11-13"]').click();
   await page.getByRole("button", { name: "Conversar con Mei Hayate" }).click();
   const dialogue = page.locator(".dialogue-overlay");
-  for (let i = 0; i < 5 && await dialogue.isVisible(); i++) await dialogue.locator("button").click();
+  for (let i = 0; i < 5 && await dialogue.isVisible(); i++) await dialogue.locator(".primary-button").click();
   await expect(page.locator(".events-calendar")).toBeVisible();
   await expect(page.locator(".event-completed")).toBeVisible(); const after = await read(page);
   expect(after.events.participation["second-friday-visit@2026-11-13"].steps).toEqual([0]);

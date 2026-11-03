@@ -11,10 +11,10 @@ import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-m
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=1.4.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.115.0";
 import { createDojoView } from "./ui/meta/views/dojo.js?v=0.137.0";
-import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.114.0";
+import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=1.1.0";
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.137.0";
 import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.119.0";
-import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.67.0";
+import { createOverlayView } from "./ui/meta/views/overlays.js?v=1.1.0";
 import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.132.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
 import { createLocationStage } from "./ui/meta/location-stage.js?v=0.131.0";

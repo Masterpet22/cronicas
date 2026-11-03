@@ -28,7 +28,7 @@ test("Phaser y las escenas se cargan solamente al iniciar una misión", async ({
   await page.locator('[data-select-slot="1"]').click();
   const dialogue = page.locator(".dialogue-overlay");
   for (let index = 0; index < 8 && await dialogue.isVisible(); index += 1) {
-    await dialogue.locator("button").click();
+    await dialogue.locator(".primary-button").click();
   }
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-mission="m02"]').click();

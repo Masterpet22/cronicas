@@ -3,7 +3,7 @@ import { bootPerformanceReference } from "./helpers/performance-harness.mjs";
 
 async function dismissDialogue(page) {
   const dialogue = page.locator(".dialogue-overlay");
-  for (let index = 0; index < 8 && await dialogue.isVisible(); index += 1) await dialogue.locator("button").click();
+  for (let index = 0; index < 8 && await dialogue.isVisible(); index += 1) await dialogue.locator(".primary-button").click();
 }
 
 async function launchMission(page) {

@@ -156,7 +156,7 @@ test("un contrato comprado se juega en el tablón y desbloquea un compañero al 
   await page.locator('[data-secondary-mission="contract_hound"]').click();
   const dialogue = page.locator(".dialogue-overlay");
   await expect(dialogue).toBeVisible();
-  await dialogue.locator("button").click();
+  await dialogue.locator(".primary-button").click();
   await expect.poll(() => page.evaluate(() => Boolean(window.__contractGame?.scene.getScene("battle")?.hero)), { timeout: 60000 }).toBe(true);
   const pending = await page.evaluate(async () => {
     const scene = window.__contractGame.scene.getScene("battle");
@@ -224,7 +224,7 @@ for (const [slot, level, chosen] of [[2, 15, "viento"], [3, 30, "agua"]]) {
       window.Phaser.Game = class extends Base { constructor(config) { super(config); window.__affinityGame = this; } };
     });
     await page.locator(`[data-secondary-mission="affinity_trial_${slot}"]`).click();
-    await page.locator(".dialogue-overlay button").click();
+    await page.locator(".dialogue-overlay .primary-button").click();
     await expect.poll(() => page.evaluate(() => Boolean(window.__affinityGame?.scene.getScene("battle")?.hero)), { timeout: 60000 }).toBe(true);
     const outcome = await page.evaluate(async () => {
       const scene = window.__affinityGame.scene.getScene("battle");

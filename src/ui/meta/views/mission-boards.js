@@ -120,7 +120,7 @@ export function createMissionBoardsView(deps) {
         if (mission.contractItem || mission.affinitySlot) {
           const status = deps.missionState(mission, getSave());
           if (!status.unlocked || status.completed) return;
-          deps.showDialogue(briefingForMission(mission, getSave()), () => deps.onStartMission(getSave(), mission), "COMENZAR MISIÓN", "story");
+          deps.showDialogue(briefingForMission(mission, getSave()), () => deps.onStartMission(getSave(), mission), "COMENZAR MISIÓN", "story", { cancellable: true });
           return;
         }
         if (mission.type === "route-search" && getSave().campaign.doctorRoute.active) {
@@ -134,7 +134,7 @@ export function createMissionBoardsView(deps) {
             state.save = deps.onStartDoctorMission(getSave(), mission);
             deps.onStartDoctorRoute(getSave(), mission);
           } else deps.onStartMission(getSave(), mission);
-        }, mission.type === "route-search" ? "INICIAR BÚSQUEDA" : "VIAJAR A KAGEMORI", "story");
+        }, mission.type === "route-search" ? "INICIAR BÚSQUEDA" : "VIAJAR A KAGEMORI", "story", { cancellable: true });
       };
 
       if (state.view === "headquarters") {
@@ -150,6 +150,7 @@ export function createMissionBoardsView(deps) {
             return;
           }
           const launch = () => deps.onStartMission(getSave(), mission);
+          const preparation = { cancellable: true, onCancel: () => button.focus() };
           const hasEntryChoice = Boolean(deps.missionStep(mission, "choice")?.beforeCombat);
           const afterBriefing = hasEntryChoice ? () => {
             const options = campaignFlag(getSave(), "secretEntranceKnown")
@@ -158,9 +159,9 @@ export function createMissionBoardsView(deps) {
             deps.showMissionDecision({ eyebrow: "PREPARACIÓN DE MISIÓN", title: "Elige una entrada", text: "Esta decisión altera la ruta, pero todos los enfrentamientos siguen siendo uno contra uno.", options }, (choice) => {
               state.save = deps.onChooseHideoutEntrance(getSave(), choice);
               launch();
-            });
+            }, preparation);
           } : launch;
-          deps.showDialogue(briefingForMission(mission, getSave()), afterBriefing, hasEntryChoice ? "ELEGIR ENTRADA" : "COMENZAR MISIÓN", "story");
+          deps.showDialogue(briefingForMission(mission, getSave()), afterBriefing, hasEntryChoice ? "ELEGIR ENTRADA" : "COMENZAR MISIÓN", "story", preparation);
         }));
       }
       if (state.view === "missions") {

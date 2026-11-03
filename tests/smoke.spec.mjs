@@ -4,7 +4,7 @@ async function advanceDialogue(page) {
   const overlay = page.locator(".dialogue-overlay");
   await expect(overlay).toBeVisible();
   for (let guard = 0; guard < 12 && await overlay.isVisible(); guard += 1) {
-    await overlay.locator("button").click();
+    await overlay.locator(".primary-button").click();
   }
   await expect(overlay).toHaveCount(0);
 }

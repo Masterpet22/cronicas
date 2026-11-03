@@ -127,7 +127,7 @@ test("la pausa de investigación guarda la calidad y vuelve al tablero", async (
   await page.locator('[data-mission="s02"]').click();
   const dialogue = page.locator(".dialogue-overlay");
   await expect(dialogue).toBeVisible();
-  for (let index = 0; index < 3; index++) await dialogue.locator("button").click();
+  for (let index = 0; index < 3; index++) await dialogue.locator(".primary-button").click();
   await expect(page.locator(".cipher-screen")).toBeVisible();
   await page.locator("[data-mission-pause]").click();
   const dialog = page.locator(".mission-pause-dialog");

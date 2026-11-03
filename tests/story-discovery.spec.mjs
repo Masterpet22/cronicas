@@ -20,7 +20,7 @@ async function openHeadquarters(page) {
 async function dialogue(page) {
   const overlay = page.locator(".dialogue-overlay");
   await expect(overlay).toBeVisible();
-  for (let i = 0; i < 12 && await overlay.isVisible(); i++) await overlay.locator("button").click();
+  for (let i = 0; i < 12 && await overlay.isVisible(); i++) await overlay.locator(".primary-button").click();
 }
 
 test("el Cuartel muestra solo la primera misión al comenzar", async ({ page }, testInfo) => {

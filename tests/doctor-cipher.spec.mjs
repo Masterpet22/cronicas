@@ -22,11 +22,11 @@ async function openDoctor(page, seed = true) {
 async function finishLesson(page) {
   await expect(page.locator(".dialogue-overlay")).toBeVisible({ timeout: 20_000 });
   await expect(page.locator(".dialogue-overlay")).toContainText("Gracias por venir");
-  await page.locator(".dialogue-overlay button").click();
+  await page.locator(".dialogue-overlay .primary-button").click();
   await expect(page.locator(".dialogue-overlay")).toContainText("mismos sellos");
-  await page.locator(".dialogue-overlay button").click();
+  await page.locator(".dialogue-overlay .primary-button").click();
   await expect(page.locator(".dialogue-overlay")).toContainText("cuatro o más");
-  await page.locator(".dialogue-overlay button").click();
+  await page.locator(".dialogue-overlay .primary-button").click();
 }
 
 async function storedCipher(page) {
