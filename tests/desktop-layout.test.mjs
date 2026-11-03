@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const desktopCss = await readFile(new URL("../desktop.css", import.meta.url), "utf8");
@@ -24,7 +24,7 @@ assert.match(css, /\.master-modal-options \{[^}]*auto-fit/, "El modal de maestro
 assert.match(css, /\.master-summary-card \{[^}]*height: 100%;[^}]*min-height: 280px;/, "La tarjeta del maestro debe ocupar la altura útil de su columna");
 assert.match(css, /\.master-summary-card img \{[^}]*position: absolute;[^}]*width: 128%;[^}]*height: 152%;[^}]*object-position: center top;/, "El retrato del maestro debe ampliarse y recortarse desde el torso hacia arriba");
 assert.match(css, /\.master-summary-card > span \{[^}]*position: absolute;[^}]*inset: auto 0 0;[^}]*linear-gradient/, "La información del maestro debe superponerse en la base de la imagen sin un panel rectangular");
-assert.match(css, /\.master-summary-card > span::before \{[^}]*backdrop-filter: blur\(8px\);[^}]*mask-image: linear-gradient/, "La base informativa debe difuminar progresivamente la imagen del maestro");
+assert.match(css, /\.master-summary-card > span::before \{[^}]*backdrop-filter: none;[^}]*mask-image: linear-gradient/, "La base informativa debe mantener su degradado sin filtrar el fondo");
 assert.match(techniquesCss, /\.technique-detail \{[^}]*grid-template-rows: minmax\(0, 1fr\) auto/, "El detalle debe reservar espacio para las acciones sin desbordarse");
 assert.match(techniquesCss, /\.technique-detail-body \{[^}]*overflow-y: auto/, "La descripción debe desplazarse dentro del detalle si falta altura");
 assert.match(css, /\.statistics-layout/, "La pestaña de estadísticas debe distribuir el pentagrama y los controles sin superponerlos");
@@ -54,5 +54,12 @@ assert.match(desktopCss, /\.notice-card \.notice-detail \{[\s\S]*overflow-wrap: 
 assert.match(desktopCss, /\.village-topbar,\s*\.creator-card,[\s\S]*?background-image: linear-gradient/, "La barra superior debe conservar la interfaz compacta de alto contraste");
 assert.match(desktopCss, /\.village-topbar \{[\s\S]*border-left: 3px solid #65bce9/, "La barra superior debe conservar su acento azul nítido");
 assert.match(desktopCss, /\.village-map-card \.village-map > img \{[\s\S]*object-fit: fill/, "La imagen del mapa y sus zonas interactivas deben compartir exactamente la misma geometría");
+
+for (const name of (await readdir(new URL("../", import.meta.url))).filter(name => name.endsWith(".css"))) {
+  const source = await readFile(new URL(`../${name}`, import.meta.url), "utf8");
+  for (const [, value] of source.matchAll(/(?:-webkit-)?backdrop-filter\s*:\s*([^;}]+)/g)) {
+    assert.equal(value.trim(), "none", `${name}: los paneles y ::backdrop deben evitar el filtro que degrada el cursor`);
+  }
+}
 
 console.log("Pruebas del escenario de escritorio superadas.");

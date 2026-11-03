@@ -167,6 +167,13 @@ El protocolo, los límites y la interpretación de resultados están en
 Durante la pausa del combate se conserva la última imagen del canvas y se mantiene activo
 el bucle de teclado y menú. Los cambios de imagen solicitan un frame; reanudar restaura el render normal.
 
+Las ventanas y los paneles usan velos de color sin `backdrop-filter`, también en escritorio
+y en `dialog::backdrop`. El desenfoque del fondo provocaba una caída reproducible de unos
+48 a 10–11 FPS al mover el cursor sobre equipamiento o maestros del Dojo. La regresión se
+comprueba con `npx playwright test tests/ui-windows-performance.spec.mjs`: compara la cadencia
+del navegador con y sin ventana, recorre todas las ranuras, maestros, diálogos nativos y la
+elección de entrada de misión, y adjunta sus mediciones en JSON.
+
 Las tres arenas usan perfiles declarativos de ambiente, niebla, viñeta, partículas y cámara,
 con variantes sin filtros para Canvas, modo ligero y movimiento reducido. Se verifican con
 `npm run arenas:test`, `npm run arenas:verify` y `npm run arenas:benchmark`; véase

@@ -13,7 +13,7 @@
   font: 400 17px "Alegreya Sans", sans-serif;
 }
 .mission-pause-dialog[open] { display: grid; gap: 16px; }
-.mission-pause-dialog::backdrop { background: #02070dc9; backdrop-filter: blur(4px); }
+.mission-pause-dialog::backdrop { background: #02070dc9; backdrop-filter: none; }
 .mission-pause-dialog .eyebrow { margin: 0; color: #d7a857; font-size: 13px; }
 .mission-pause-dialog h2 { margin: 0; font: 700 25px Cinzel, Georgia, serif; color: #f5e7c9; }
 .mission-pause-dialog .mission-pause-note { margin: 0 0 4px; color: #afc2cf; }

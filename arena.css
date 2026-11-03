@@ -65,7 +65,7 @@
 .arena-rankings th { color:#b4c3bd; padding:9px 4px; border-bottom:1px solid #58707d55; }
 .arena-rankings td { padding:22px 4px; color:#93aeba; }
 .arena-result-dialog { box-sizing:border-box; width:min(650px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); overflow:auto; padding:28px; border:1px solid #dab672; border-radius:12px; background:linear-gradient(140deg,#172e3d,#07111e); color:#ead8b3; box-shadow:0 30px 100px #000b,inset 0 0 0 3px #07111a,inset 0 0 0 4px #9b7d4755; font-family:"Alegreya Sans",sans-serif; }
-.arena-result-dialog::backdrop { background:#020812bb; backdrop-filter:blur(5px); }
+.arena-result-dialog::backdrop { background:#020812bb; backdrop-filter:none; }
 .arena-result-dialog>.eyebrow { color:#c1a265; font-size:11px; letter-spacing:.12em; margin:0; }
 .arena-result-dialog h2 { margin:8px 0 12px; color:#f5deaf; font:700 32px Cinzel,Georgia,serif; }
 .arena-result-dialog>p { color:#b4c9c8; }

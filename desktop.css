@@ -662,7 +662,7 @@
     border-radius: 0;
     background: linear-gradient(105deg, rgba(4, 10, 19, .9), rgba(5, 12, 23, .7));
     box-shadow: 0 20px 48px rgba(0, 0, 0, .34);
-    backdrop-filter: blur(8px);
+    backdrop-filter: none;
   }
 
   .dojo-tabs {
@@ -913,7 +913,7 @@
     padding: 10px 16px 10px 18px;
     border-left: 3px solid #65bce9;
     border-radius: 4px;
-    backdrop-filter: blur(10px);
+    backdrop-filter: none;
   }
 
   .primary-button,
@@ -971,7 +971,7 @@
     background: linear-gradient(145deg, rgba(7, 20, 36, .98), rgba(3, 10, 21, .98));
     color: #edf5fb;
     box-shadow: 0 24px 62px rgba(0, 0, 0, .64), inset 3px 0 #65bce9;
-    backdrop-filter: blur(8px);
+    backdrop-filter: none;
   }
 
   .stage-speech::before { display: none; content: none; }
@@ -1006,7 +1006,7 @@
 
   .equipment-modal {
     background: radial-gradient(circle at 50% 42%, rgba(14, 42, 67, .34), transparent 42%), rgba(1, 5, 12, .86);
-    backdrop-filter: blur(7px) saturate(.8);
+    backdrop-filter: none;
   }
   .equipment-modal-card {
     border-left: 3px solid #65bce9;

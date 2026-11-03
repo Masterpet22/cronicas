@@ -29,7 +29,7 @@
 .shop-stock, .inventory-use-note { color: #a3afa6; font-size: 12px; line-height: 1.4; }
 .inventory-empty { grid-column: 1 / -1; padding: 30px; border: 1px dashed #8a734c; border-radius: 7px; color: #b9c3ca; }
 .player-inventory-dialog { box-sizing: border-box; width: min(900px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: 26px; border: 1px solid #cda65f; border-radius: 12px; background: linear-gradient(140deg, #172338, #060d19); color: #eae3d4; box-shadow: 0 22px 90px #000c; font-family: "Alegreya Sans", sans-serif; }
-.player-inventory-dialog::backdrop { background: #02060dbb; backdrop-filter: blur(4px); }
+.player-inventory-dialog::backdrop { background: #02060dbb; backdrop-filter: none; }
 .player-inventory-dialog > header { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-bottom: 14px; border-bottom: 1px solid #a9814744; }
 .player-inventory-dialog h2 { margin: 5px 0 0; color: #f1dfb9; font-family: Cinzel, Georgia, serif; }
 .player-inventory-dialog > header button { width: 38px; height: 38px; flex: 0 0 auto; border: 1px solid #a9844e; border-radius: 50%; background: #251821; color: #e6c184; font-size: 24px; cursor: pointer; }
