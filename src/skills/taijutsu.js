@@ -1,4 +1,4 @@
-import { TAIJUTSUS_BY_ID, SKILLS_BY_ID } from "./definitions.js?v=1.0.0";
+import { TAIJUTSUS_BY_ID, SKILLS_BY_ID } from "./definitions.js?v=1.4.0";
 import { skillLevel } from "./progression.js?v=1.0.0";
 
 export const TAIJUTSU_SLOT_COUNT = 2;

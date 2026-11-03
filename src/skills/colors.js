@@ -1,6 +1,6 @@
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { availableAffinitySlots } from "../affinity-system.js?v=0.114.0";
-import { PHYSICAL_COLOR } from "./definitions.js?v=1.0.0";
+import { PHYSICAL_COLOR } from "./definitions.js?v=1.4.0";
 
 export const LOCKED_SKILL_COLOR = "#707984";
 const validHex = color => /^#[0-9a-f]{6}$/i.test(color || "");

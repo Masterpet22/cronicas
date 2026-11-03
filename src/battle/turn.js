@@ -21,7 +21,7 @@ export function soakAfterTurn(combatant) {
 }
 
 export function nextEnemyAction(profile, enemyState) {
-  const pattern = profile.boss && enemyState.phase === 2 ? profile.phase2Pattern : profile.pattern;
+  const pattern = profile.boss && enemyState.phase === 2 && profile.phase2Pattern?.length ? profile.phase2Pattern : profile.pattern;
   return {
     actionId: pattern[enemyState.patternIndex % pattern.length],
     patternIndex: enemyState.patternIndex + 1

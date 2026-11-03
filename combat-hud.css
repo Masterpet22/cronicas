@@ -157,7 +157,10 @@ html.mobile-viewport:has(.compact-combat) body > main { display: block; }
 html.mobile-viewport:has(.compact-combat) .mobile-gate { display: none; }
 body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; aspect-ratio: auto; margin: 0; padding: 0; overflow: visible; }
 /* Menú de pausa: laca oscura, filetes dorados y sellos granate. */
-.combat-pause-access, .combat-abandon-confirm-access { position: absolute; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: #020610b8; backdrop-filter: blur(4px); color: #f5e1af; font-family: "Alegreya Sans", sans-serif; pointer-events: auto; box-sizing: border-box; }
+/* Desenfocar un canvas que se repinta obliga a recomponer el combate cada frame. */
+.combat-pause-access, .combat-abandon-confirm-access { position: absolute; inset: 0; z-index: 60; display: grid; place-items: center; padding: 20px; background: #020610d9; color: #f5e1af; font-family: "Alegreya Sans", sans-serif; pointer-events: auto; box-sizing: border-box; }
+.pause-performance { display: block; margin: 12px auto 0; min-height: 32px; border: 1px solid #8b7443; border-radius: 4px; padding: 6px 12px; background: #101a2a; color: #f5e1af; font: 700 12px "Alegreya Sans", sans-serif; cursor: pointer; }
+.pause-performance[aria-pressed=true] { border-color: #84ccdf; color: #bdefff; }
 .combat-pause-panel { position: relative; width: min(790px, 100%); max-height: 100%; overflow-y: auto; box-sizing: border-box; padding: 26px 30px 22px; border: 1px solid #d7a857; border-radius: 12px; background: radial-gradient(ellipse at 50% 0, #27304488, transparent 65%), linear-gradient(135deg, #101a2a, #060c18 70%); box-shadow: 0 24px 90px #000c, inset 0 0 0 3px #060b15, inset 0 0 0 4px #a17c3a77; }
 .combat-pause-panel::before, .combat-pause-panel::after { content: "◆"; position: absolute; top: 16px; color: #d7a857; font-size: 12px; }
 .combat-pause-panel::before { left: 16px; }

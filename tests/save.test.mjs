@@ -203,7 +203,7 @@ assert.equal(campaignFlag(sagaComplete.save, "masterSelectionUnlocked"), true, "
 let fieldGuide = recordBestiaryObservation(deliveredBook, "reed_bandit", { encounter: true });
 fieldGuide = recordBestiaryObservation(fieldGuide, "reed_bandit", { technique: "quick", vulnerability: "fuego", defeated: true });
 assert.equal(fieldGuide.bestiary.entries.reed_bandit.encounters, 1, "El primer encuentro debe abrir una ficha del bestiario");
-assert.deepEqual(fieldGuide.bestiary.entries.reed_bandit.techniques, ["quick"], "Presenciar una técnica debe registrarla");
+assert.deepEqual(fieldGuide.bestiary.entries.reed_bandit.techniques, ["strike"], "Presenciar una técnica debe registrarla con su ID canónico");
 assert.deepEqual(fieldGuide.bestiary.entries.reed_bandit.vulnerabilities, ["fuego"], "Descubrir una debilidad debe conservarla");
 const eliminatedRoute = normalizeSave({ ...doctorCompletion.save, campaign: { ...doctorCompletion.save.campaign, banditPrisonerChoice: "eliminate", doctorBookDeliveryPending: true, archiveUnlocked: false, secretEntranceKnown: false } });
 const eliminatedBook = deliverBestiaryBook(eliminatedRoute);

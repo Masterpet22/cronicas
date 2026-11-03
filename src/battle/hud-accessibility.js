@@ -4,7 +4,7 @@ import { mountBattleInventory } from "./battle-inventory.js?v=0.136.0";
 import { emptySkillInfo } from './hud-art.js?v=0.131.0';
 import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
 import { mountSkillTableControl } from './skill-table-control.js?v=0.135.0';
-import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.135.0';
+import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=1.4.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -304,4 +304,4 @@ export function mountAccessibleBattleHud(scene) {
   } };
 }
 
-export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=0.137.0";
+export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=1.2.0";

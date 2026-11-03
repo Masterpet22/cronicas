@@ -38,7 +38,7 @@ test("los cinco impactos elementales funcionan en Canvas, WebGL y modo ligero", 
   page.on("pageerror", (error) => browserErrors.push(error.message));
   const results = await page.evaluate(async () => {
     const { elementalImpactProfile, showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.92.0");
-    const { JUTSU_LIBRARY } = await import("/src/data.js?v=0.69.0");
+    const { JUTSU_LIBRARY } = await import("/src/data.js?v=1.5.0");
     const unmappedElements = [...new Set(JUTSU_LIBRARY.filter((jutsu) => !elementalImpactProfile(jutsu.element)).map((jutsu) => jutsu.element))];
     const elements = ["fuego", "agua", "tierra", "viento", "rayo"];
     const render = (type, lightMode) => new Promise((resolve, reject) => {

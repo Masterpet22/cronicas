@@ -1,4 +1,5 @@
 import { mountRenderQualityControl } from "../render-settings.js?v=0.119.0";
+import { performanceTools } from "../dev/performance-tools.js?v=1.2.0";
 
 const SETTINGS = [
   ["manual-seals", "Sellos manuales", "Completa las secuencias con el teclado."],
@@ -23,12 +24,21 @@ export function mountPauseMenu(scene) {
       <section class="pause-settings-section"><h3><span aria-hidden="true">一</span> COMBATE</h3><div data-pause-combat></div></section>
       <section class="pause-settings-section"><h3><span aria-hidden="true">二</span> IMAGEN Y SONIDO</h3><div data-pause-quality></div><div data-pause-effects></div><label class="pause-volume"><span>Volumen <output></output></span><input type="range" min="0" max="100" aria-label="Volumen"></label></section>
     </div>
+    <button type="button" class="pause-performance" data-pause-performance aria-pressed="false">MEDIR RENDIMIENTO · FPS</button>
     <footer class="pause-actions"><button type="button" class="pause-resume" data-pause-resume>REANUDAR <kbd aria-hidden="true">Esc</kbd></button><button type="button" class="pause-leave" data-pause-leave>${scene.battle.mission.training ? "VOLVER AL DOJO" : scene.battle.mission.tower ? "VOLVER A LA TORRE" : scene.battle.mission.exhibition ? "VOLVER A LA ARENA" : scene.battle.mission.tutorialReplay ? "SALIR" : "ABANDONAR"}</button></footer>
   </div>`;
   ["pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "touchend"].forEach(type => {
     root.addEventListener(type, event => event.stopPropagation());
   });
   const controller = new AbortController();
+  const performanceButton = root.querySelector("[data-pause-performance]");
+  const syncPerformance = () => {
+    performanceButton.setAttribute("aria-pressed", String(performanceTools.enabled));
+    performanceButton.textContent = performanceTools.enabled ? "OCULTAR MEDIDOR · FPS" : "MEDIR RENDIMIENTO · FPS";
+  };
+  performanceButton.addEventListener("click", () => performanceTools.setEnabled(!performanceTools.enabled));
+  document.addEventListener("performance-tools-changed", syncPerformance, { signal: controller.signal });
+  syncPerformance();
   const sync = () => {
     root.querySelectorAll("[data-pause-setting]").forEach(button => {
       const enabled = document.getElementById(button.dataset.pauseSetting).checked;
@@ -79,13 +89,21 @@ export function mountPauseMenu(scene) {
   host.append(root);
   sync();
   root.querySelector("[data-pause-resume]").focus({ preventScroll: true });
-  scene.events.once("shutdown", () => {
+  const remove = (restoreFocus) => {
+    scene.events.off("shutdown", onShutdown);
+    scene.events.off("destroy", onDestroy);
     controller.abort();
     removeQuality();
     root.remove();
     if (battleHud) battleHud.inert = false;
-    scene.battle.accessibleHud?.refresh();
-    if (!battleHud?.hidden) host.querySelector(".combat-access-pause")?.focus({ preventScroll: true });
-  });
+    if (restoreFocus) {
+      scene.battle.accessibleHud?.refresh();
+      if (!battleHud?.hidden) host.querySelector(".combat-access-pause")?.focus({ preventScroll: true });
+    }
+  };
+  const onShutdown = () => remove(true);
+  const onDestroy = () => remove(false);
+  scene.events.once("shutdown", onShutdown);
+  scene.events.once("destroy", onDestroy);
   return { root };
 }

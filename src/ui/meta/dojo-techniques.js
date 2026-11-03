@@ -1,5 +1,5 @@
 import { characterResonanceSymbol } from "../../skills/character-symbol.js?v=1.0.0";
-import { PHYSICAL_COLOR, TAIJUTSU_ACTIONS, TAIJUTSUS_BY_ID, effectText } from "../../skills/definitions.js?v=1.0.0";
+import { PHYSICAL_COLOR, TAIJUTSU_ACTIONS, TAIJUTSUS_BY_ID, effectText } from "../../skills/definitions.js?v=1.4.0";
 import { TECHNIQUE_MASTERY } from "../../skills/technique-mastery.js?v=1.0.0";
 import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { initiativeLabel } from "../../battle/initiative.js?v=1.0.0";

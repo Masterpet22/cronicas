@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { ENEMY_ACTIONS, SEALS } from "../src/data.js";
+import { combatantSpeed } from "../src/battle/turn.js";
 import {
   TIMELINE_COMPLETE,
   TIMELINE_READY,
@@ -27,5 +29,22 @@ assert.equal(actionNeedsPreparation({ seals: ["tigre"] }), true);
 assert.ok(timelineRate(10, prepared) < timelineRate(10, { preparation: true, speedMod: 4 }));
 assert.ok(millisecondsToTimelineThreshold(0.8, 10, prepared) > 0);
 assert.equal(advanceTimelineProgress(0.8, 10, 10_000, prepared), 1);
+
+for (const [id, count] of [["ember", 2], ["toxin", 3]]) {
+  const action = ENEMY_ACTIONS[id];
+  assert.equal(action.seals.length, count);
+  assert.ok(action.seals.every(id => SEALS[id]), "Los sellos del enemigo deben tener una imagen válida");
+  for (const speed of [5, 10, 20]) {
+    const ms = millisecondsToTimelineThreshold(.8, speed, action);
+    assert.equal(ms, count * 300 * 10 / speed, `${id}: misma regla de sellos y velocidad que el jugador`);
+    assert.equal(ms, millisecondsToTimelineThreshold(.8, speed, { ...action, speedMod: -999 }));
+    assert.equal(ms, millisecondsToTimelineThreshold(.8, speed, { ...action, speedMod: 999 }));
+  }
+  const wetSpeed = combatantSpeed({ baseSpeed: 10, speedModifier: 0, soak: { stacks: 2, turns: 2 } });
+  assert.ok(millisecondsToTimelineThreshold(.8, wetSpeed, action) > count * 300,
+    "Empapado también ralentiza la preparación enemiga real");
+}
+assert.deepEqual(ENEMY_ACTIONS.quick.seals, []);
+assert.deepEqual(ENEMY_ACTIONS.heavy.seals, [], "Los golpes físicos conservan su preparación sin sellos");
 
 console.log("Pruebas de la línea temporal superadas.");

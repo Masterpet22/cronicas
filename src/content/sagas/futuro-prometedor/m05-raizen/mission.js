@@ -22,7 +22,7 @@ export const M05 = {
       {
         type: "combat", id: "raizen-duel", phaseMessageKey: "raizen",
         phaseMessage: "Raizen altera el ritmo: aumenta su velocidad y cambia su patrón.",
-        announcedActionIds: ["heavy", "toxin"]
+        announcedActionIds: ["physical_1", "fire_breath"]
       }
     ],
     completionEffects: []

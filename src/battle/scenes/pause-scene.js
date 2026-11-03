@@ -1,6 +1,7 @@
 import { HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
-import { mountAccessiblePause } from "../hud-accessibility.js?v=0.137.0";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=1.2.0";
 import { resumeSceneIfPaused, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
+import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
 
 export class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
@@ -16,6 +17,7 @@ export class PauseScene extends Phaser.Scene {
       if (this.abandonWarningOpen) this.closeAbandonWarning?.();
       else this.resumeMission();
     });
+    suspendPauseRendering(this);
   }
 
   resumeMission() {
@@ -38,8 +40,13 @@ export class PauseScene extends Phaser.Scene {
     dialog.setAttribute("aria-label", "Confirmar abandono de misión");
     dialog.innerHTML = `<div class="combat-pause-panel pause-confirm-panel"><p class="pause-kicker">RETIRADA</p><h2>¿ABANDONAR LA MISIÓN?</h2><p>Si sales ahora, perderás toda la experiencia, las monedas y las recompensas de esta misión.</p><p class="pause-confirm-warning">${levelLine}</p><footer class="pause-actions"><button type="button" class="pause-resume" data-stay>SEGUIR JUGANDO</button><button type="button" class="pause-leave" data-leave aria-label="Abandonar misión y perder recompensas">ABANDONAR MISIÓN</button></footer></div>`;
     this.game.canvas.parentElement.append(dialog);
-    const close = () => {
+    const remove = () => {
       dialog.remove();
+      this.events.off(Phaser.Scenes.Events.SHUTDOWN, remove);
+      this.events.off(Phaser.Scenes.Events.DESTROY, remove);
+    };
+    const close = () => {
+      remove();
       this.abandonWarningOpen = false;
       this.closeAbandonWarning = null;
       this.pauseAccess.root.inert = false;
@@ -62,6 +69,7 @@ export class PauseScene extends Phaser.Scene {
       buttons[document.activeElement === buttons[0] ? 1 : 0].focus();
     });
     dialog.querySelector("[data-stay]").focus({ preventScroll: true });
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => dialog.remove());
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, remove);
+    this.events.once(Phaser.Scenes.Events.DESTROY, remove);
   }
 }

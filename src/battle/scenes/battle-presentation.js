@@ -1,19 +1,19 @@
 import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.131.0";
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.131.0";
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
-import { elementIcon } from "../../elements.js?v=0.20.0";
+import { ELEMENTS, elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState } from "../enemy-state.js?v=0.114.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
+import { createEnemyState } from "../enemy-state.js?v=1.5.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
@@ -194,13 +194,21 @@ export class BattlePresentationMethods {
     if (hair) useFighterTextureRendering(hair);
     const frame = this.add.graphics().setDepth(27);
     const side = flipped ? 1 : -1;
-    chromePath(frame, [['M', 0, 8], ['L', 10, -3], ['L', 7, 7], ['L', 16, 12], ['L', 5, 10], ['Z']], { x: x + side * 31, y: y - 31, sx: side, fill: 0x8e3420, width: .9 });
-    frame.lineStyle(5, 0x6f1d18, 1).strokeCircle(x, y, 34);
-    frame.lineStyle(1.5, HUD_ART.gold, 1).strokeCircle(x, y, 36);
-    frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
-    frame.lineStyle(1.5, 0xd0a04f, 0.95).strokeCircle(x, y, 29);
-    frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
-    return { shadow, wash, head, hair, frame };
+    let affinity = null;
+    const setAffinity = id => {
+      if (affinity === id || !ELEMENTS[id]) return;
+      affinity = id;
+      const color = ELEMENTS[id].color;
+      frame.clear();
+      chromePath(frame, [['M', 0, 8], ['L', 10, -3], ['L', 7, 7], ['L', 16, 12], ['L', 5, 10], ['Z']], { x: x + side * 31, y: y - 31, sx: side, fill: color, width: .9 });
+      frame.lineStyle(5, color, 1).strokeCircle(x, y, 34);
+      frame.lineStyle(1.5, HUD_ART.gold, 1).strokeCircle(x, y, 36);
+      frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
+      frame.lineStyle(1.5, 0xd0a04f, 0.95).strokeCircle(x, y, 29);
+      frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
+    };
+    setAffinity(flipped ? this.enemy.primaryAffinity : this.player.primaryAffinity);
+    return { shadow, wash, head, hair, frame, setAffinity, get affinity() { return affinity; } };
   }
 
   createOfudaSeal(x, y) {
@@ -371,6 +379,7 @@ export class BattlePresentationMethods {
   }
 
   createPauseButton() {
+    this.pauseOpening = false;
     const bg = this.add.circle(430, 67, 18, HUD_ART.wine, 0.96).setStrokeStyle(1.1, HUD_ART.gold, 1)
       .setDepth(25).setInteractive({ useHandCursor: true });
     const label = this.add.graphics().setDepth(26);
@@ -379,9 +388,12 @@ export class BattlePresentationMethods {
     bg.on("pointerout", () => bg.setFillStyle(HUD_ART.wine, 0.96));
     bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));
     this.openBattlePause = () => {
-      if (this.finished || !isSceneActive(this.scene)) return;
+      if (this.finished || this.pauseOpening || !isSceneActive(this.scene)) return;
+      // launch/pause se encolan hasta el siguiente frame; bloquear también ese intervalo.
+      this.pauseOpening = true;
       this.scene.launch("pause");
       if (!pauseSceneIfActive(this.scene)) {
+        this.pauseOpening = false;
         stopSceneIfRunning(this.scene, "pause");
         return;
       }
@@ -389,7 +401,7 @@ export class BattlePresentationMethods {
     };
     bg.on("pointerup", this.openBattlePause);
     this.input.keyboard.on("keydown-ESC", this.openBattlePause);
-    const onResume = () => this.refreshBattlePhase();
+    const onResume = () => { this.pauseOpening = false; this.refreshBattlePhase(); };
     this.events.on(Phaser.Scenes.Events.RESUME, onResume);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.events.off(Phaser.Scenes.Events.RESUME, onResume);

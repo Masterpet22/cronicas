@@ -1,5 +1,6 @@
 import { ITEMS } from "../items.js?v=0.126.0";
 import { normalizeTaijutsuLoadout, taijutsuAction } from "../skills/taijutsu.js?v=1.0.0";
+import { EQUIPMENT_ACTIONS } from "../data.js?v=1.5.0";
 
 export function actionHealthCost(action) {
   return Math.max(0, Math.floor(Number(action?.healthCost) || 0));
@@ -9,13 +10,13 @@ export function physicalSkillActions(save, elementalActions) {
   const weapon = ITEMS[save.equipment.weapon];
   const owned = weapon?.slot === "weapon" && save.inventory.items[weapon.id] > 0;
   // Equipment bonuses already contribute to the fighter's derived statistics.
-  const weaponStrike = owned ? { ...elementalActions[0], id: "weapon_strike", name: "Golpe de arma", type: "weapon",
+  const weaponStrike = owned ? { ...EQUIPMENT_ACTIONS[0],
     weaponId: weapon.id, equipmentName: weapon.name, iconTexture: null, cost: 0, healthCost: 0, initiative: 0,
     description: `Ataca con ${weapon.name}, el arma que llevas equipada.` } : null;
   const taijutsus = normalizeTaijutsuLoadout(save).map(id => taijutsuAction(save,id));
   const throwable = ITEMS[save.equipment.throwable];
   const thrownStrike = throwable?.slot === "throwable" && save.inventory.items[throwable.id] > 0
-    ? { ...elementalActions[0], id: "throwable_strike", name: throwable.name, type: "throwable", weaponId: throwable.id,
+    ? { ...EQUIPMENT_ACTIONS[1], name: throwable.name, weaponId: throwable.id,
       equipmentName: throwable.name, iconTexture: null, cost: 0, healthCost: 0,
       description: "Lanza el shuriken equipado contra el rival. Es reutilizable y no consume vida ni chakra." } : null;
   return [elementalActions[0], weaponStrike, thrownStrike, ...taijutsus, elementalActions[5]];

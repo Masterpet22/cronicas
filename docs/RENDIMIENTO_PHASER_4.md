@@ -1,17 +1,47 @@
-# Línea base de rendimiento — Phaser 4, fase 0
+# Rendimiento de Phaser 4: diagnóstico y línea base
 
 ## Uso durante el desarrollo
 
-1. Abrir **PRUEBAS → Medir rendimiento** y activar el checkbox.
+1. Abrir **PRUEBAS → Medir rendimiento** y activar el checkbox, o pulsar **MEDIR RENDIMIENTO · FPS** en la pausa del combate.
 2. Iniciar una misión. El panel acompaña viajes, combate, pausa, informes y subida de nivel.
 3. Seleccionar el nombre del escenario y pulsar **Iniciar muestra** para reiniciar tiempos y picos.
 4. Reproducir la situación y pulsar **Guardar muestra**. El selector etiqueta la medición; no altera el combate.
 5. **Exportar JSON** descarga las muestras. También se puede exportar desde PRUEBAS al regresar a la aldea.
 
 La opción está apagada por defecto y se recuerda localmente. Sin activarla no se recorren
-objetos por frame, no hay panel ni temporizador de refresco. Al salir de Phaser o desactivarla
-se retiran los listeners y el temporizador. Se conservan como máximo 30 muestras en memoria;
+objetos, no hay panel, observadores ni temporizador de refresco. Al salir de Phaser o desactivarla
+se retiran los listeners, el observador de bloqueos, el rAF y el temporizador. Se conservan como máximo 30 muestras en memoria;
 la colección se pierde al recargar. No hay telemetría ni envío de datos.
+
+### Diagnosticar lentitud al pausar
+
+Activar el medidor, reanudar unos segundos y volver a pausar. El panel muestra los FPS
+actuales y los del tramo anterior. Los tiempos se reinician automáticamente al cambiar de
+escenas activas o modo ligero; el JSON conserva los últimos 12 tramos terminados y el actual.
+El selector **Menú de pausa en combate** permite etiquetar una captura manual. **Iniciar
+muestra** borra los tiempos y tramos de esa captura; **Guardar muestra** conserva una copia.
+Pulsar **Exportar JSON** después de reproducir el problema para guardar la comparación.
+El encabezado del panel permite plegarlo para acceder a los ajustes que queden debajo.
+
+La pausa y su confirmación de abandono usan una capa oscura sin `backdrop-filter`.
+Se retiró el desenfoque sobre el canvas: en una comprobación local con Chromium headless,
+Canvas pasó aproximadamente de 10 a 44 FPS al quitar solo ese filtro, manteniendo resolución
+y escena. Es una muestra del entorno de pruebas, no una garantía para otras GPU o equipos.
+
+Además, la pausa conserva el último frame del canvas: después de dibujar la capa oscura,
+el bucle usa `Game.headlessStep` para procesar teclado y operaciones de escenas sin reenviar
+el combate a la GPU. No reduce el límite de FPS ni duerme la interfaz. Cambiar resolución,
+efectos o recuperar el contexto gráfico solicita un único render; reanudar, abandonar o
+destruir el juego restaura el callback original y retira los listeners de la suspensión.
+Una guarda también impide encolar dos aperturas antes de que Phaser procese la primera.
+
+El panel indica **Canvas congelado · menú y teclado activos** y exporta
+`renderingSuspended` en el informe y sus tramos. Los FPS del bucle en pausa representan
+actualizaciones sin dibujo; los FPS de rAF siguen midiendo la cadencia del navegador.
+En una muestra de dos segundos por estado con WebGL/SwiftShader, congelar el render
+elevó la cadencia del navegador de 14,28 a 60,20 FPS (p95 de 75,3 a 18,1 ms) a igual
+resolución y escena. La prueba funcional verifica además cero renders entre cambios,
+teclado operativo, estado de combate inmóvil y restauración al salir.
 
 ## Carga bajo demanda
 
@@ -28,23 +58,35 @@ reutilizan esa promesa resuelta, los módulos evaluados y la misma instancia apa
 - Perfil adaptativo de resolución (`economy`, `low`, `balanced` o `high`), escala máxima y presupuesto físico de píxeles.
 - FPS medio, frame medio, mediana, p95, máximo y número de frames por encima de 33,33 ms.
 - Tiempo medio de CPU desde `prestep` hasta `postrender`.
+- Cadencia del navegador mediante un `requestAnimationFrame` independiente del bucle de Phaser.
+- Tareas largas del hilo principal (más de 50 ms): cantidad, total, p95 y máximo; indica si la API no está disponible.
+- Retraso de entradas reales de teclado/puntero: cola hasta el listener y tiempo hasta el siguiente rAF,
+  con cantidad, media, p95 y máximo. No se guardan teclas, posiciones ni texto.
 - Objetos residentes, emisores, partículas vivas y controladores de filtros, con valores actuales y picos por escena.
 - Límites por escena y una lista de excesos exportable en JSON.
 
 La cadencia usa diferencias de `performance.now()` entre eventos `postrender`, sin suavizado
 ni el delta limitado de Phaser. Los FPS son `frames * 1000 / suma(intervalos)`. El tiempo de CPU
 incluye actualización y envío del render; **no es una medición de tiempo GPU**.
-La ventana está limitada a los últimos 600 intervalos; los picos de recursos abarcan toda
-la captura. Ocultar o volver a mostrar la pestaña corta el intervalo para no contar el tiempo
+La ventana está limitada a los últimos 600 intervalos; los picos de recursos abarcan todo
+el tramo actual. Las duraciones de bloqueos y entradas también están limitadas a 600 muestras por tramo.
+Los recursos se inspeccionan cada 250 ms; efectos más breves pueden quedar fuera de sus picos.
+Ocultar o volver a mostrar la pestaña corta el intervalo para no contar el tiempo
 en segundo plano. Cambiar el modo ligero reinicia la ventana y los picos para no comparar
 filtros del modo anterior con el presupuesto nuevo.
 
 Se cuentan también piezas anidadas y objetos ocultos residentes, una sola vez por referencia;
 los objetos no son draw calls. Las partículas se contabilizan aparte de sus emisores.
 Los filtros incluyen listas internas y externas de objetos y cámaras, incluso controladores
-configurados en objetos ocultos. Las escenas pausadas visibles siguen apareciendo porque se renderizan.
+configurados en objetos ocultos. Las escenas pausadas visibles siguen apareciendo como
+recursos residentes, aunque el menú de pausa suspenda el dibujo del canvas.
 
 El contador añade trabajo de CPU mientras está activo; comparar siempre con el mismo protocolo.
+Los FPS de rAF representan callbacks del navegador, no fotogramas presentados por la GPU.
+El tiempo de entrada hasta rAF tampoco certifica cuándo apareció el cambio en pantalla.
+Si los FPS caen con poca CPU del motor y sin tareas largas, revisar composición, filtros y GPU;
+si aumentan los bloqueos o la cola de entrada, investigar trabajo síncrono del hilo principal.
+Estas señales orientan la investigación y no identifican por sí solas la causa.
 
 Los iconos del HUD accesible usan una caché LRU de plantillas Canvas procesadas. La primera
 variante recorta transparencia y aplica su tinte con un contexto `willReadFrequently`; las

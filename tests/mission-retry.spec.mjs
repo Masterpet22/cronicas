@@ -85,7 +85,7 @@ test("repite solo el duelo perdido, agota dos reintentos y permite retirarse", a
   await page.goto("/");
   await ensurePhaser(page);
   await page.evaluate(async () => {
-    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.4.0");
+    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.5.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { MISSIONS } = await import("/src/content/index.js");
     const saves = await import("/src/save.js?v=0.106.0");

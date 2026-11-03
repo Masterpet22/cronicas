@@ -1,6 +1,6 @@
 import { normalizeBirthday } from "./birthday.js?v=0.127.0";
 import { normalizeResonance, resonanceBonuses, skillLevel } from "./skills/progression.js?v=1.0.0";
-import { SKILLS_BY_ID } from "./skills/definitions.js?v=1.0.0";
+import { SKILLS_BY_ID } from "./skills/definitions.js?v=1.4.0";
 import { missionXpPlan } from "./mission-rewards.js?v=1.0.0";
 import { resolveEncounterIds } from "./combat-modifiers.js?v=0.114.0";
 import { normalizeTaijutsuLoadout } from "./skills/taijutsu.js?v=1.0.0";
@@ -8,7 +8,7 @@ import { normalizeIntroductions } from "./location-conversations.js?v=0.131.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
 import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.126.0";
 import { defaultEventState, normalizeEventState } from "./plaza-events.js?v=0.130.0";
-import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=0.114.0";
+import { canonicalAbilityId, ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=1.5.0";
 import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
 import { applyMissionEffects, campaignFlag, missionState, missionStep, requirementMet } from "./mission-system.js?v=0.114.0";
 import { BASIC_ELEMENT_IDS, basicRequirements, canAccessElement } from "./elements.js?v=0.20.0";
@@ -250,7 +250,7 @@ export function normalizeSave(candidate) {
         .map(([id, entry]) => [id, {
           encounters: Math.max(0, Math.floor(Number(entry?.encounters) || 0)),
           defeated: Math.max(0, Math.floor(Number(entry?.defeated) || 0)),
-          techniques: [...new Set(Array.isArray(entry?.techniques) ? entry.techniques : [])].filter((technique) => Object.hasOwn(ENEMY_ACTIONS, technique)),
+          techniques: [...new Set((Array.isArray(entry?.techniques) ? entry.techniques : []).map(canonicalAbilityId))].filter((technique) => Object.hasOwn(ENEMY_ACTIONS, technique)),
           vulnerabilities: [...new Set(Array.isArray(entry?.vulnerabilities) ? entry.vulnerabilities : [])].filter((affinityId) => BASIC_ELEMENT_IDS.includes(affinityId)),
           documents: Math.max(0, Math.floor(Number(entry?.documents) || 0))
         }]))
@@ -492,7 +492,7 @@ export function recordBestiaryObservation(save, enemyId, observation = {}) {
   const current = result.bestiary.entries[enemyId] || { encounters: 0, defeated: 0, techniques: [], vulnerabilities: [], documents: 0 };
   if (observation.encounter) current.encounters += 1;
   if (observation.defeated) current.defeated += 1;
-  if (observation.technique && Object.hasOwn(ENEMY_ACTIONS, observation.technique)) current.techniques = [...new Set([...current.techniques, observation.technique])];
+  if (observation.technique && Object.hasOwn(ENEMY_ACTIONS, canonicalAbilityId(observation.technique))) current.techniques = [...new Set([...current.techniques, canonicalAbilityId(observation.technique)])];
   if (observation.vulnerability && BASIC_ELEMENT_IDS.includes(observation.vulnerability)) current.vulnerabilities = [...new Set([...current.vulnerabilities, observation.vulnerability])];
   if (observation.document) current.documents += 1;
   result.bestiary.entries[enemyId] = current;

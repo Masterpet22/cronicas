@@ -1,4 +1,4 @@
-import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.135.0";
+import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=1.4.0";
 
 export function mountSkillTableControl(scene, { root, actions, restorePerspective, refresh }) {
   let table = "elemental", switching = false, timer = null, removed = false, returnFocus = false;

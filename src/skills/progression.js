@@ -1,4 +1,4 @@
-import { buildSkillTree, skillHasCell, SKILLS_BY_ID, SKILL_CATALOG } from "./definitions.js?v=1.0.0";
+import { buildSkillTree, skillHasCell, SKILLS_BY_ID, SKILL_CATALOG } from "./definitions.js?v=1.4.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { techniqueAtLevel } from "./technique-mastery.js?v=1.0.0";
 import { characterLevel } from "../progression-balance.js?v=0.94.0";

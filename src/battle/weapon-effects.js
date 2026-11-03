@@ -6,12 +6,13 @@ export function queueWeaponTextures(scene) {
   }
 }
 
-export function holdKunai(scene) {
+export function holdKunai(scene, actor = "player") {
+  const fighter = actor === "player" ? scene.hero : scene.foe;
   const image = scene.add.image(0, 0, "equipment-kunai").setOrigin(.86, .85).setDisplaySize(64, 55).setDepth(14);
   image.name = "held-kunai";
   const follow = () => {
-    const hand = scene.playerHandPosition();
-    const matrix = scene.hero.joints?.wristRight?.getWorldTransformMatrix();
+    const hand = scene.playerHandPosition(actor);
+    const matrix = fighter.joints?.wristRight?.getWorldTransformMatrix();
     // The artwork points up-left. Align its blade with the forearm's down axis;
     // the punch rotates both the hand and blade forward at impact.
     image.setPosition(hand.x, hand.y).setRotation((matrix?.decomposeMatrix().rotation || 0) + 3.97);
@@ -24,12 +25,14 @@ export function holdKunai(scene) {
   return remove;
 }
 
-export async function throwShuriken(scene, missed = false) {
-  const hand = scene.playerProjectileOrigin();
+export async function throwShuriken(scene, missed = false, actor = "player") {
+  const target = actor === "player" ? scene.foe : scene.hero;
+  const direction = actor === "player" ? 1 : -1;
+  const hand = scene.playerProjectileOrigin(actor);
   const projectile = scene.add.image(hand.x, hand.y, "equipment-shuriken").setDisplaySize(46, 48).setDepth(14);
   projectile.name = "thrown-shuriken";
   try {
-    await scene.tween({ targets: projectile, x: scene.foe.body.x + (missed ? 100 : 0),
-      y: scene.foe.body.y - (missed ? 100 : 22), angle: 1080, duration: 440, ease: "Linear" });
+    await scene.tween({ targets: projectile, x: target.body.x + (missed ? 100 : 0) * direction,
+      y: target.body.y - (missed ? 100 : 22), angle: 1080 * direction, duration: 440, ease: "Linear" });
   } finally { projectile.destroy(); }
 }

@@ -1,4 +1,4 @@
-import { resolveEnemyProfileForBattle } from "../../../battle/enemy-state.js?v=0.114.0";
+import { resolveEnemyProfileForBattle } from "../../../battle/enemy-state.js?v=1.5.0";
 
 export function createArchiveView(deps) {
   let currentState = null;

@@ -12,7 +12,7 @@ test("la evasión usa el objeto elegido y la salida por nivel comparte sus tiemp
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   const results = await page.evaluate(async () => {
-    const { BattleActionMethods } = await import("/src/battle/scenes/battle-actions.js?v=1.1.0");
+    const { BattleActionMethods } = await import("/src/battle/scenes/battle-actions.js?v=1.4.0");
     const { playLevelUpFlash } = await import("/src/battle/level-up-transition.js?v=1.4.0");
     const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
     const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");

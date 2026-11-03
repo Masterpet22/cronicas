@@ -4,7 +4,7 @@ import { closeActionState } from "../src/battle/action-resolution.js";
 import { actionInitiative, recoverySpeed } from "../src/battle/initiative.js";
 import { millisecondsToTimelineThreshold } from "../src/battle/timeline.js";
 
-globalThis.window = { Phaser: { Scene: class {}, Math: { Between: min => min } } };
+globalThis.window = { Phaser: { Scene: class {}, Math: { Between: min => min } }, matchMedia: () => ({ matches: true }) };
 const { BattleFlowMethods } = await import("../src/battle/scenes/battle-flow.js");
 const { BattleActionMethods } = await import("../src/battle/scenes/battle-actions.js");
 const { BattleFeedbackMethods } = await import("../src/battle/scenes/battle-feedback.js");
@@ -37,9 +37,13 @@ function battle(count = 1) {
     finishBattle: async function(won) { this.finished = true; this.outcome = won ? "won" : "lost"; }
   };
   s.combatantSpeed = u => (u.baseSpeed * (1 + u.speedModifier));
+  const graphic = new Proxy({}, { get: () => () => graphic });
+  s.add.graphics = () => graphic;
+  for (const name of ["playFireEmbersProjectile", "playWaterShurikenProjectile", "playWindPalmProjectile", "playEarthFistProjectile", "playTechniqueEffect"])
+    s[name] = async () => {};
   s.combatantEvasion = () => 0;
   s.rollHit = () => s.rolls.shift() ?? true;
-  for (const name of ["playerGuard", "executeEnemyAction", "enemyTurn", "clearGuard"])
+  for (const name of ["playerGuard", "executeEnemyAction", "enemyTurn", "clearGuard", "combatantAttack"])
     s[name] = (...args) => BattleActionMethods.prototype[name].call(s, ...args);
   s.loseHealth = (...args) => BattleFeedbackMethods.prototype.loseHealth.call(s, ...args);
   s.actionCost = a => BattleFeedbackMethods.prototype.actionCost.call(s, a);
@@ -84,6 +88,48 @@ await BattlePresentationMethods.prototype.resetTurnTimeline.call(reset);
 assert.equal(reset.player.recoveryInitiative, 0);
 assert.equal(reset.enemy.recoveryInitiative, 0);
 
+// Elegir una técnica enemiga abre el tramo de sellos; todavía no aplica el ataque.
+const enemyPreparation = battle(); enemyPreparation.busy = false; enemyPreparation.timelinePaused = false;
+enemyPreparation.timelineProgress.enemy = .8;
+enemyPreparation.chooseEnemyAction = () => ENEMY_ACTIONS.toxin;
+enemyPreparation.runTurnTimeline = () => { enemyPreparation.timelineStarted = true; };
+await BattlePresentationMethods.prototype.handleTimelineArrivals.call(enemyPreparation, [{ actor: "enemy", action: null }]);
+assert.equal(enemyPreparation.pendingActions.enemy, ENEMY_ACTIONS.toxin);
+assert.equal(enemyPreparation.timelineStarted, true);
+assert.equal(enemyPreparation.round, 1, "Elegir sellos no cierra la acción enemiga");
+enemyPreparation.timelineRunToken = 0;
+enemyPreparation.enemy.baseSpeed = 10;
+enemyPreparation.player.baseSpeed = 1;
+enemyPreparation.tweens.add = config => { enemyPreparation.duration = config.duration; return {}; };
+BattlePresentationMethods.prototype.runTurnTimeline.call(enemyPreparation);
+assert.equal(enemyPreparation.duration, 900, "La escena programa tres sellos completos a velocidad 10");
+
+const enemyCasting = battle(); let releaseSeals; let enemyHits = 0;
+enemyCasting.enemy.primaryAffinity = "fuego";
+enemyCasting.enemy.affinities = ["fuego"];
+enemyCasting.enemy.chakra = 60;
+enemyCasting.pendingActions.enemy = ENEMY_ACTIONS.ember;
+enemyCasting.timelineProgress.enemy = 1;
+enemyCasting.playSeals = async (action, options) => {
+  assert.equal(action, ENEMY_ACTIONS.ember);
+  assert.deepEqual(options, { actor: "enemy" });
+  await new Promise(resolve => { releaseSeals = resolve; });
+};
+enemyCasting.enemyTurn = async () => { enemyHits++; };
+const enemyCast = enemyCasting.executeTimelineAction("enemy", ENEMY_ACTIONS.ember);
+assert.equal(enemyHits, 0, "La técnica no golpea antes de completar sus sellos");
+releaseSeals(); await enemyCast;
+assert.equal(enemyHits, 1);
+assert.equal(enemyCasting.pendingActions.enemy, null);
+assert.equal(enemyCasting.timelineProgress.enemy, 0);
+enemyCasting.enemy.statuses = [{ type: "stun", duration: 1, power: 0 }];
+enemyCasting.playSeals = async () => { throw new Error("Un enemigo aturdido no debe ejecutar sellos"); };
+await enemyCasting.executeTimelineAction("enemy", ENEMY_ACTIONS.ember);
+assert.equal(enemyHits, 1);
+await enemyCasting.executeTimelineAction("enemy", ENEMY_ACTIONS.quick);
+await enemyCasting.executeTimelineAction("enemy", ENEMY_ACTIONS.heavy);
+assert.equal(enemyHits, 3, "Los ataques físicos no piden sellos");
+
 // Guardia conserva estados previos y dura hasta un impacto; el descanso no se repite.
 const guarded = battle();
 guarded.player.statuses = [{ type: "poison", label: "VENENO", power: 3, duration: 3 }];
@@ -97,6 +143,8 @@ guarded.turnReady = true;
 await BattleFlowMethods.prototype.useJutsu.call(guarded, BASE_ACTIONS[1]);
 assert.equal(guarded.player.chakra, 45);
 const blockedStatus = battle(); blockedStatus.player.guarding = true; blockedStatus.rolls = [false, true];
+blockedStatus.enemy.primaryAffinity = "agua";
+blockedStatus.enemy.affinities = ["agua", "tierra", "fuego"];
 blockedStatus.player.statuses = [{ type: "burn", label: "QUEMADURA", power: 2, duration: 2 }];
 await blockedStatus.executeTimelineAction("enemy", ENEMY_ACTIONS.toxin);
 assert.equal(blockedStatus.player.guarding, false);
@@ -116,12 +164,12 @@ assert.equal(guarded.enemy.recoveryInitiative, 0, "No se ejecutó el golpe fuert
 assert.equal(guarded.enemy.statuses.length, 1);
 guarded.rolls = [false, true];
 await guarded.executeTimelineAction("enemy", ENEMY_ACTIONS.heavy);
-assert.equal(guarded.player.hp, 89, "Golpe de 15 reducido a 8 por Guardia");
+assert.equal(guarded.player.hp, 86, "Puño de hierro compartido: 22 de daño reducidos a 11 por Guardia");
 assert.equal(guarded.player.guarding, false);
 assert.equal(guarded.player.chakra, 45);
 guarded.rolls = [false, true];
 await guarded.executeTimelineAction("enemy", ENEMY_ACTIONS.quick);
-assert.equal(guarded.player.hp, 80, "El segundo impacto ya no está protegido");
+assert.equal(guarded.player.hp, 77, "El segundo impacto ya no está protegido");
 
 // CD1 bloquea la siguiente elección; otra acción completa lo libera.
 const cast = battle(); cast.player.chakra = 60;

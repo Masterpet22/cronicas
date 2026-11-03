@@ -1,6 +1,8 @@
 import { WEAPON_ASSETS } from "./weapon-assets.js?v=1.0.0";
 import { TECHNIQUE_UNLOCK_LEVELS } from "./skills/unlock-levels.js?v=1.0.0";
 import { balanceTechniqueChakra, CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
+import { TAIJUTSU_ACTIONS } from "./skills/physical-actions.js?v=1.0.0";
+export { TAIJUTSU_ACTIONS };
 export const SEALS = {
   ara:       { frame: 0, label: "ARA", key: "Q", element: "fuego" },
   fornex:    { frame: 1, label: "FORNEX", key: "W", element: "fuego" },
@@ -155,77 +157,94 @@ export const EQUIPMENT = {
   ]
 };
 
-export const ENEMY_ACTIONS = {
-  quick: { id: "quick", name: "Golpe rápido", damage: [9, 13], initiative: 1, speedMod: 2, accuracyMod: 5, color: 0xff6b55 },
-  heavy: { id: "heavy", name: "Golpe pesado", damage: [15, 19], initiative: -1, speedMod: -4, accuracyMod: -10, preparation: true, color: 0xff935c },
-  toxin: { id: "toxin", name: "Aguja tóxica", damage: [7, 10], speedMod: 5, accuracyMod: 0, preparation: true, color: 0xb58cff, status: { type: "poison", label: "VENENO", duration: 3, power: 3 } },
-  ember: { id: "ember", name: "Ascua errante", damage: [8, 12], speedMod: 0, accuracyMod: 2, preparation: true, color: 0xff783d, status: { type: "burn", label: "QUEMADURA", duration: 2, power: 3 } }
-};
+export const EQUIPMENT_ACTIONS = [
+  { ...BASE_ACTIONS[0], id: "weapon_strike", name: "Golpe de arma", type: "weapon", initiative: 0, healthCost: 0, iconTexture: null },
+  { ...BASE_ACTIONS[0], id: "throwable_strike", name: "Arma arrojadiza", type: "throwable", healthCost: 0, iconTexture: null }
+];
+
+export const ENEMY_EXCLUSIVE_ABILITIES = [
+  { id: "toxin", name: "Aguja tóxica", element: "veneno", seals: ["cetus", "bootes", "ara"], cost: 18, cooldown: 2,
+    damage: 9, initiative: 0, speedMod: 0, accuracyMod: 0, color: 0xb58cff,
+    status: { type: "poison", label: "VENENO", duration: 3, power: 3 } }
+];
+
+// El mismo objeto de definición para ambos actores. Las mejoras se proyectan aparte.
+export const ABILITY_CATALOG = Object.freeze(Object.fromEntries(
+  [...BASE_ACTIONS, ...TAIJUTSU_ACTIONS, ...EQUIPMENT_ACTIONS, ...JUTSU_LIBRARY, ...ENEMY_EXCLUSIVE_ABILITIES]
+    .map(action => [action.id, action])
+));
+export const LEGACY_ENEMY_ABILITY_IDS = Object.freeze({ quick: "strike", heavy: "physical_1", ember: "fire_embers" });
+export const canonicalAbilityId = id => Object.hasOwn(LEGACY_ENEMY_ABILITY_IDS, id) ? LEGACY_ENEMY_ABILITY_IDS[id] : id;
+export const abilityAccess = id => !Object.hasOwn(ABILITY_CATALOG, canonicalAbilityId(id)) ? null
+  : ENEMY_EXCLUSIVE_ABILITIES.some(action => action.id === canonicalAbilityId(id)) ? "enemy-only" : "shared";
+// Compatibilidad con registros del bestiario guardados antes del catálogo común.
+export const ENEMY_ACTIONS = Object.freeze({ ...ABILITY_CATALOG,
+  ...Object.fromEntries(Object.entries(LEGACY_ENEMY_ABILITY_IDS).map(([old, id]) => [old, ABILITY_CATALOG[id]])) });
 
 const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ health, strength, speed, chakra, luck });
 
 export const ENEMY_ROSTER = {
   tutorial_bandit: {
     name: "BANDIDO", level: 1, affinity: "tierra", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
-    pattern: ["quick", "quick", "heavy"],
+    pattern: ["strike", "strike", "physical_1"],
     colors: { cloth: 0x7b6a50, accent: 0x2c241d }
   },
   tutorial_bandit_second: {
     name: "BANDIDO", level: 1, affinity: "viento", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
-    pattern: ["quick", "heavy", "quick"],
+    pattern: ["strike", "physical_1", "strike"],
     colors: { cloth: 0x596b4d, accent: 0x20291d }
   },
   boss_varek: {
     name: "VAREK, EL RAPTAFELINOS", level: 2, affinity: "fuego", stats: enemyStats(94, 2, 11, 42, 4), accuracy: 90,
-    pattern: ["heavy", "quick", "heavy"],
-    phase2Pattern: ["quick", "heavy", "quick", "ember"], boss: true,
+    pattern: ["physical_1", "strike", "physical_1"],
+    phase2Pattern: ["strike", "physical_1", "strike", "fire_embers"], boss: true,
     colors: { cloth: 0x8f5747, accent: 0x321b19 }
   },
   bandit_pathfinder: {
     name: "RASTREADOR BANDIDO", level: 2, affinity: "viento", stats: enemyStats(72, 1, 12, 34, 4), accuracy: 89,
-    pattern: ["quick", "toxin", "heavy"],
+    pattern: ["strike", "wind_palm", "physical_1"],
     colors: { cloth: 0x53684b, accent: 0x1d2b20 }
   },
   bandit_lieutenant: {
     name: "TENIENTE DE LA CANTERA", level: 3, affinity: "tierra", stats: enemyStats(86, 2, 11, 40, 4), accuracy: 92,
-    pattern: ["heavy", "quick", "toxin"],
+    pattern: ["physical_1", "strike", "earth_fist"],
     colors: { cloth: 0x755744, accent: 0x2d1e19 }
   },
   boss_akumori: {
     name: "AKUMORI, CAPATAZ DEL CUERVO", level: 3, affinity: "fuego", stats: enemyStats(118, 3, 12, 54, 5), accuracy: 94,
-    pattern: ["heavy", "quick", "toxin"],
-    phase2Pattern: ["ember", "heavy", "quick", "toxin"], boss: true,
+    pattern: ["physical_1", "strike", "fire_embers"],
+    phase2Pattern: ["fire_embers", "physical_1", "strike", "fire_embers"], boss: true,
     colors: { cloth: 0x6d3e48, accent: 0x25131a }
   },
   boss_raizen: {
     name: "RAIZEN KUROGANE, SEÑOR DE LOS CUERVOS", level: 6, affinity: "fuego", stats: enemyStats(168, 5, 13, 80, 6), accuracy: 96,
-    pattern: ["heavy", "quick", "ember"],
-    phase2Pattern: ["toxin", "heavy", "quick", "ember"], boss: true,
+    pattern: ["physical_1", "strike", "fire_embers"],
+    phase2Pattern: ["fire_breath", "physical_1", "strike", "fire_embers"], boss: true,
     colors: { cloth: 0x4b3341, accent: 0x170d15 }
   },
   gate_guard: {
     name: "GUARDIÁN DEL PASO", level: 3, affinity: "tierra", stats: enemyStats(68, 1, 10, 32, 2), accuracy: 90,
-    pattern: ["quick", "heavy", "quick"],
+    pattern: ["strike", "physical_1", "strike"],
     colors: { cloth: 0xe0a45a, accent: 0x3d2021 }
   },
   ash_adept: {
     name: "ADEPTA DE CENIZA", level: 4, affinity: "fuego", stats: enemyStats(76, 1, 9, 58, 1), accuracy: 92,
-    pattern: ["ember", "quick", "heavy", "ember"],
+    pattern: ["fire_embers", "strike", "physical_1", "fire_embers"],
     colors: { cloth: 0xd87855, accent: 0x411b24 }
   },
   reed_bandit: {
     name: "BANDIDO DEL JUNCO", level: 2, affinity: "viento", stats: enemyStats(70, 1, 12, 30, 4), accuracy: 88,
-    pattern: ["quick", "quick", "heavy"],
+    pattern: ["strike", "wind_palm", "physical_1"],
     colors: { cloth: 0x7ea063, accent: 0x253421 }
   },
   stone_hunter: {
     name: "CAZADOR DE PIEDRA", level: 4, affinity: "tierra", stats: enemyStats(92, 3, 8, 36, 0), accuracy: 93,
-    pattern: ["heavy", "quick", "heavy"],
+    pattern: ["physical_1", "earth_fist", "strike"],
     colors: { cloth: 0x9b8c7b, accent: 0x332d2a }
   },
   venom_medic: {
     name: "MÉDICA DEL VENENO", level: 4, affinity: "agua", stats: enemyStats(78, 1, 11, 64, 3), accuracy: 94,
-    pattern: ["toxin", "quick", "toxin", "ember"],
+    pattern: ["water_bullet", "strike", "water_whip", "guard"],
     colors: { cloth: 0x8e75b8, accent: 0x2e2145 }
   }
 };

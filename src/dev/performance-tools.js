@@ -1,5 +1,5 @@
-import { createPerformanceMonitor } from "./performance-monitor.js?v=0.99.0";
-import { mountPerformancePanel } from "./performance-panel.js?v=0.99.0";
+import { createPerformanceMonitor } from "./performance-monitor.js?v=1.2.0";
+import { mountPerformancePanel } from "./performance-panel.js?v=1.2.0";
 
 const preference = "dev-performance-enabled";
 let enabled = false;
@@ -40,12 +40,13 @@ export const performanceTools = {
     try { window.localStorage.setItem(preference, enabled ? "on" : "off"); } catch (_) { /* Sin persistencia. */ }
     if (enabled) start();
     else stop();
+    document.dispatchEvent(new Event("performance-tools-changed"));
   },
   snapshot() { return monitor?.snapshot() || latest; },
   capture,
   exportReport() {
     if (monitor) capture();
-    const data = { schemaVersion: 1, captures: [...captures] };
+    const data = { schemaVersion: 2, captures: [...captures] };
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
     const link = document.createElement("a");
     link.href = url;

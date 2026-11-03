@@ -3,7 +3,7 @@ import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.131
 import { battleRuntime } from "./src/battle/session.js?v=1.0.0";
 import { loadPhaser } from "./src/battle/load-phaser.js?v=1.0.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";
-import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=0.99.0";
+import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=1.2.0";
 import { bindRenderSettings } from "./src/render-settings.js?v=0.119.0";
 import { settleExhibitionSave } from "./src/tower.js?v=0.131.0";
 

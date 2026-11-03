@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createFrameWindow, sceneBudget, resourceViolations } from "../src/dev/performance-metrics.js";
+import { createDurationWindow, createFrameWindow, sceneBudget, resourceViolations } from "../src/dev/performance-metrics.js";
 import { sceneObjects, sceneResourceUsage, clearSceneFilters } from "../src/battle/visual-resources.js";
 
 const frames = createFrameWindow(3);
@@ -13,6 +13,15 @@ frames.add(30, 3);
 assert.equal(frames.summary().elapsedMs, 90, "La ventana expulsa la muestra más antigua");
 frames.reset();
 assert.equal(frames.summary().frames, 0);
+
+const durations = createDurationWindow(3);
+assert.deepEqual(durations.summary(), { count: 0, totalMs: 0, meanMs: null, p95Ms: null, maxMs: null });
+[0, 20, 100, NaN, -1, Infinity].forEach(ms => durations.add(ms));
+assert.deepEqual(durations.summary(), { count: 3, totalMs: 120, meanMs: 40, p95Ms: 100, maxMs: 100 });
+durations.add(60);
+assert.deepEqual(durations.summary(), { count: 3, totalMs: 180, meanMs: 60, p95Ms: 100, maxMs: 100 });
+durations.reset();
+assert.equal(durations.summary().count, 0);
 
 const list = { list: [{ active: true }], clear() { this.list.length = 0; } };
 const particle = { getAliveParticleCount: () => 7, filters: { internal: list } };

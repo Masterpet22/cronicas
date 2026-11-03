@@ -1,6 +1,6 @@
-import { ENEMY_ROSTER } from "./data.js?v=0.114.0";
+import { ENEMY_ROSTER } from "./data.js?v=1.5.0";
 import { derivedStats } from "./save.js?v=0.131.0";
-import { createEnemyState } from "./battle/enemy-state.js?v=0.114.0";
+import { createEnemyState } from "./battle/enemy-state.js?v=1.5.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 
 export const ARENA_BACKGROUND = `assets/locations/arena.webp?v=${META_ASSET_VERSION}`;
@@ -28,7 +28,7 @@ export function arenaRivalProfile(save, settings) {
     stats: { health: Math.max(1, Math.round(stats.maxHp * difficulty.health)), chakra: stats.maxChakra,
       strength: Math.max(0, Math.round((stats.baseStrength ?? stats.strength) * difficulty.power)),
       speed: Math.max(1, Math.round((stats.baseSpeed ?? stats.speed) * difficulty.speed)), luck: stats.luck },
-    accuracy: difficulty.accuracy, pattern: config.difficulty === "casual" ? ["quick", "quick", "heavy"] : [...base.pattern] };
+    accuracy: difficulty.accuracy, pattern: config.difficulty === "casual" ? ["strike", "strike", "physical_1"] : [...base.pattern] };
 }
 export function createExhibition(settings) {
   const config = normalizeArenaSettings(settings), rival = ARENA_RIVALS.find(entry => entry.id === config.rival);

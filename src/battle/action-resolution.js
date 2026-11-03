@@ -1,6 +1,6 @@
 import { actionChakraRecovery } from "../chakra-balance.js?v=1.0.0";
 import { actionInitiative } from "./initiative.js?v=1.0.0";
-import { advanceCooldowns, soakAfterTurn } from "./turn.js?v=0.114.0";
+import { advanceCooldowns, soakAfterTurn } from "./turn.js?v=1.4.0";
 
 // Cierre común, previo a cualquier victoria, derrota o cambio de encuentro.
 export function closeActionState(battle, actor, action, { skipped = false } = {}) {
@@ -11,6 +11,10 @@ export function closeActionState(battle, actor, action, { skipped = false } = {}
     battle.cooldowns = advanceCooldowns(battle.cooldowns);
     if (!skipped) unit.chakra = Math.min(unit.maxChakra, unit.chakra + actionChakraRecovery(action));
     battle.round += 1;
+  } else {
+    unit.cooldowns = advanceCooldowns(unit.cooldowns || {});
+    if (!skipped) unit.chakra = Math.min(unit.maxChakra, unit.chakra + actionChakraRecovery(action));
+    unit.reservedAction = null;
   }
   battle.pendingActions[actor] = null;
   battle.timelineProgress[actor] = 0;

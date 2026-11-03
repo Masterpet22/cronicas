@@ -1,9 +1,9 @@
-import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.137.0";
+import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=1.2.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
 import { mountCombatTutorial } from "../combat-tutorial.js?v=0.131.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
@@ -16,23 +16,24 @@ import { missionStep } from "../../mission-system.js?v=0.114.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState, resolveEnemyProfileForBattle } from "../enemy-state.js?v=0.114.0";
+import { createEnemyState, resolveEnemyProfileForBattle } from "../enemy-state.js?v=1.5.0";
 import { affinityTrialProfile } from "../affinity-trial-combat.js?v=1.0.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.135.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=1.5.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.136.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.131.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.136.0";
+import { BattleActionMethods } from "./battle-actions.js?v=1.4.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=1.5.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { FREE_MISSION_RETRIES } from "../mission-retries.js?v=0.114.0";
-import { queueWeaponTextures } from "../weapon-effects.js?v=1.0.0";
+import { queueWeaponTextures } from "../weapon-effects.js?v=1.4.0";
+import { chooseEnemyAbility } from "../enemy-abilities.js?v=1.5.0";
 
 export class BattleScene extends Phaser.Scene {
   constructor() {
@@ -74,10 +75,16 @@ export class BattleScene extends Phaser.Scene {
       const practice = JUTSU_LIBRARY.find(jutsu => jutsu.element === battleRuntime.activeSave.character.affinity && jutsu.seals?.length);
       if (practice) { this.battleLoadout[0] = practice.id; this.practiceTechnique = true; }
     }
-    const needsSealSheet = this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
-    if (needsSealSheet) this.load.image("sealSheet", "assets/sellos-constelaciones.png?v=1.0.1");
+    const playerAffinity = battleRuntime.activeSave.character.affinities?.[0] || battleRuntime.activeSave.character.affinity;
+    const enemyAbilities = resolveEncounterIds(battleRuntime.activeMission, battleRuntime.activeSave.campaign)
+      .map(id => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], battleRuntime.activeMission, playerAffinity))
+      .flatMap(profile => [...(profile.pattern || []), ...(profile.phase2Pattern || [])]);
+    const enemyNeedsSeals = enemyAbilities.some(id => ENEMY_ACTIONS[id]?.seals?.length);
+    const needsSealSheet = enemyNeedsSeals || this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
+    if (needsSealSheet && !this.textures.exists("sealSheet")) this.load.image("sealSheet", "assets/sellos-constelaciones.png?v=1.0.1");
+    this.battleVisualAbilities = [...new Set([...this.battleLoadout, ...enemyAbilities])];
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
-      if (!this.battleLoadout.includes(jutsuId)) return;
+      if (!this.battleVisualAbilities.includes(jutsuId)) return;
       if (effect.creationFile) {
         [["creation", effect.creationFile], ["destruction", effect.destructionFile]].filter(([, file]) => file).forEach(([phase, file]) => {
           const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
@@ -195,7 +202,8 @@ export class BattleScene extends Phaser.Scene {
     }
     this.mission = battleRuntime.activeMission;
     this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
-    this.encounters = this.encounterIds.map((id) => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], this.mission, this.saveData.character.affinity));
+    this.encounters = this.encounterIds.map((id) => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], this.mission,
+      this.saveData.character.affinities?.[0] || this.saveData.character.affinity));
     const stats = derivedStats(this.saveData);
     this.player = { ...stats, hp: stats.maxHp, chakra: stats.maxChakra, statuses: [], guarding: false, recoveryInitiative: 0 };
     this.actionExecution = null;
@@ -365,7 +373,7 @@ export class BattleScene extends Phaser.Scene {
   createEnemyState(profile) {
     const opponent = affinityTrialProfile(profile, this.mission, this.saveData);
     if (this.mission.affinitySlot) this.encounters[this.enemyIndex] = opponent;
-    return createEnemyState(opponent, this.mission, this.saveData.campaign, this.saveData.character.affinity);
+    return createEnemyState(opponent, this.mission, this.saveData.campaign, this.player.primaryAffinity);
   }
 
   combatantSpeed(combatant) {
@@ -395,9 +403,9 @@ export class BattleScene extends Phaser.Scene {
 
   chooseEnemyAction() {
     const profile = this.encounters[this.enemyIndex];
-    const next = nextEnemyAction(profile, this.enemy);
-    this.enemy.patternIndex = next.patternIndex;
-    return ENEMY_ACTIONS[next.actionId];
+    const action = chooseEnemyAbility(profile, this.enemy);
+    this.refreshHud();
+    return action;
   }
 
   makeSealFrames() {

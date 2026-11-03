@@ -1,4 +1,4 @@
-import { HEX_GRID_SIZE, axialToPixel } from "./definitions.js?v=1.0.0";
+import { HEX_GRID_SIZE, axialToPixel } from "./definitions.js?v=1.4.0";
 
 const NEIGHBORS = [[1,0],[0,1],[-1,1],[-1,0],[0,-1],[1,-1]];
 

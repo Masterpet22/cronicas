@@ -1,5 +1,5 @@
 import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
-import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=0.114.0";
+import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
@@ -12,8 +12,8 @@ import { missionStep } from "../../mission-system.js?v=0.114.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState } from "../enemy-state.js?v=0.114.0";
-import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=0.114.0";
+import { createEnemyState } from "../enemy-state.js?v=1.5.0";
+import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 
@@ -225,6 +225,8 @@ export class BattleFeedbackMethods {
   }
 
   refreshHud() {
+    this.playerPortrait?.setAffinity?.(this.player.primaryAffinity);
+    this.enemyPortrait?.setAffinity?.(this.enemy.primaryAffinity);
     this.updateHealthBar(this.playerHpBar, this.player.hp, this.player.maxHp);
     this.setBarRatio(this.chakraBar, this.player.chakra / this.player.maxChakra);
     this.updateHealthBar(this.enemyHpBar, this.enemy.hp, this.enemy.maxHp);

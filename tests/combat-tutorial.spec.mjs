@@ -176,7 +176,7 @@ test("iniciativa temporal y Guardia sobreviven a fallos y aturdimiento hasta el 
   await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "true");
   const result = await page.evaluate(async () => {
     const s = window.__tutorialGame.scene.getScene("battle");
-    const { ENEMY_ACTIONS } = await import("/src/data.js?v=0.114.0");
+    const { ENEMY_ACTIONS } = await import("/src/data.js?v=1.5.0");
     const before = { chakra: s.player.chakra, hp: s.player.hp, guarding: s.player.guarding };
     await s.useJutsu(s.actions[5]);
     const afterRepeatedGuard = s.player.chakra;

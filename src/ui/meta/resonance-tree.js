@@ -1,5 +1,5 @@
 import { LOCKED_SKILL_COLOR, characterCoreColors, skillRegionColor } from "../../skills/colors.js?v=1.0.0";
-import { axialToPixel, buildSkillTree, hexDistance } from "../../skills/definitions.js?v=1.0.0";
+import { axialToPixel, buildSkillTree, hexDistance } from "../../skills/definitions.js?v=1.4.0";
 import { resonancePoints, skillLevel, skillState, skillTreeNodes } from "../../skills/progression.js?v=1.0.0";
 
 import { hexBoundarySegments } from "../../skills/hex-boundaries.js?v=1.0.0";

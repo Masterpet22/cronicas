@@ -11,13 +11,14 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
   await ensurePhaser(page);
   await page.waitForFunction(() => window.Phaser && document.querySelector('[data-select-slot="1"]'));
   await page.evaluate(async ({ renderer, lightMode, arenaIndex, loadout, skinTone, bodyType, investments, taijutsuLoadout }) => {
-    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.0.0");
+    const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.5.0");
+    const { PauseScene } = await import("/src/battle/scenes/pause-scene.js?v=1.2.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { configureRenderResolution } = await import("/src/battle/render-resolution.js?v=1.0.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");
     const { MISSIONS } = await import("/src/content/index.js");
-    const { createPerformanceMonitor } = await import("/src/dev/performance-monitor.js?v=0.99.0");
-    const { JUTSU_LIBRARY } = await import("/src/data.js?v=0.93.0");
+    const { createPerformanceMonitor } = await import("/src/dev/performance-monitor.js?v=1.2.0");
+    const { JUTSU_LIBRARY } = await import("/src/data.js?v=1.5.0");
     const { showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.92.0");
     document.getElementById("light-mode").checked = lightMode;
     document.getElementById("manual-seals").checked = false;
@@ -27,7 +28,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     localStorage.setItem("light-mode", lightMode ? "on" : "off");
     const mission = MISSIONS.filter((mission) => mission.encounters)[arenaIndex];
     const { learnSkillForTest } = await import("/tests/helpers/skill-fixtures.mjs");
-    const { SKILLS_BY_ID } = await import("/src/skills/definitions.js?v=1.0.0");
+    const { SKILLS_BY_ID } = await import("/src/skills/definitions.js?v=1.4.0");
     const { basicRequirements } = await import("/src/elements.js?v=0.20.0");
     let save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType, skinTone });
     save.progression.level = Math.max(8,...loadout.map(id=>SKILLS_BY_ID.get(id)?.unlockLevel || 1));
@@ -71,7 +72,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     }
     state.game = new window.Phaser.Game({
       type: renderer === "WebGL" ? window.Phaser.WEBGL : window.Phaser.CANVAS,
-      parent: root, width: renderSize.width, height: renderSize.height, scene: [ReferenceBattle], seed: ["cronicas-phase-0"],
+      parent: root, width: renderSize.width, height: renderSize.height, scene: [ReferenceBattle, PauseScene], seed: ["cronicas-phase-0"],
       callbacks: { postBoot: (game) => { state.monitor = createPerformanceMonitor(game, { renderScale: battleRuntime.renderResolution, renderProfile: battleRuntime.renderProfile }); } },
       loader: { maxParallelDownloads: 6 },
       render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },

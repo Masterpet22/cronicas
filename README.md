@@ -69,6 +69,9 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 - Puedes regular el volumen y desactivar el movimiento de cámara o los destellos.
 - La reserva base es de 60 de chakra antes de equipo y afinidad. El personaje recupera 5 puntos al completar una acción propia; las técnicas iniciales cuestan 30–42 y las más potentes hasta 72 en nivel 1. Cada mejora añade +2 de daño y descuenta un 5 % del coste original (hasta −10 %). Los descuentos de equipo conservan como mínimo la mitad del coste de la técnica ya mejorada.
 - Las habilidades llegan hasta nivel 3. Los puntos de habilidad empiezan en 0 y se ganan 2 por cada subida de nivel, hasta 118 puntos al nivel 60. Al máximo, una técnica elemental usa un sello menos. Cada sello requiere 300 ms de preparación a velocidad 10: más sellos hacen más lento el tramo 80–100 %, y una mayor velocidad del personaje lo acelera.
+- **PRUEBAS → Catálogo de habilidades** lista las 44 habilidades activas, sus costes, daño base, sellos, preparación, recarga y enemigos que las usan. Las compartidas proceden de las mismas definiciones del jugador; Aguja tóxica permanece como exclusiva de enemigos y no se añade al Dojo. Los ataques físicos no usan sellos. Las técnicas enemigas muestran su secuencia automáticamente y respetan la misma preparación por velocidad efectiva y Empapado.
+- Los enemigos pagan chakra y vida al elegir su habilidad y respetan sus recargas. Cuando no tienen chakra pueden recuperar con Guardia; una técnica en recarga o un coste de vida inseguro usa Golpe veloz. Las técnicas compartidas usan también el mismo cálculo de daño, estados y efectos visuales, orientados hacia su adversario.
+- Todos los enemigos tienen una afinidad dominante. Usan las mismas restricciones elementales del jugador, incluidas las técnicas exclusivas y las combinaciones de afinidades. Los enemigos iniciales tienen una sola afinidad; las adicionales requieren nivel 15/30 y sus pruebas completadas, declaradas en `completedAffinityTrials`. El aro del retrato de ambos combatientes usa el color de su afinidad dominante y se actualiza al cambiar de rival.
 - Cada hexágono del árbol representa una única habilidad: 38 habilidades por personaje y el núcleo central.
 - El aprendizaje sigue rutas obligatorias: técnicas intermedias desde niveles 6/12, avanzadas desde 24 y definitivas desde 40. Las combinadas se escalonan en 20/32/48. Las predecesoras exigen rango 2 o 3, y las mejoras también tienen nivel mínimo. Completar las 38 habilidades a rango 3 cuesta 109 puntos: presupuesto suficiente desde nivel 56, con nueve sobrantes al 60.
 - Jugador y enemigo avanzan de forma independiente por una línea temporal según su velocidad efectiva.
@@ -154,10 +157,15 @@ npm run performance:baseline
 ```
 
 En **PRUEBAS → Medir rendimiento** se activa el panel opcional de FPS, tiempos de frame,
-resolución y presupuestos por escena, con exportación JSON. El benchmark genera las
+resolución y presupuestos por escena, con exportación JSON. También se activa desde
+**Pausa → MEDIR RENDIMIENTO · FPS**: compara combate y pausa, mide la cadencia del navegador,
+los bloqueos de CPU y el retraso de entrada. El benchmark genera las
 27 muestras y referencias visuales en `artifacts/phaser-performance/`.
 El protocolo, los límites y la interpretación de resultados están en
 [`docs/RENDIMIENTO_PHASER_4.md`](docs/RENDIMIENTO_PHASER_4.md).
+
+Durante la pausa del combate se conserva la última imagen del canvas y se mantiene activo
+el bucle de teclado y menú. Los cambios de imagen solicitan un frame; reanudar restaura el render normal.
 
 Las tres arenas usan perfiles declarativos de ambiente, niebla, viñeta, partículas y cámara,
 con variantes sin filtros para Canvas, modo ligero y movimiento reducido. Se verifican con

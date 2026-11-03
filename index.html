@@ -42,8 +42,8 @@
   <link rel="preload" href="assets/fonts/alegreya-sans-latin-400.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="styles.css?v=0.132.0">
   <link rel="stylesheet" href="desktop.css?v=0.83.0">
-  <link rel="stylesheet" href="combat-hud.css?v=0.135.0">
-  <link rel="stylesheet" href="performance.css?v=0.99.0">
+  <link rel="stylesheet" href="combat-hud.css?v=1.1.0">
+  <link rel="stylesheet" href="performance.css?v=1.4.0">
   <link rel="stylesheet" href="cipher.css?v=0.101.1">
   <link rel="stylesheet" href="creator.css?v=0.105.0">
   <link rel="stylesheet" href="dojo-techniques.css?v=0.107.0">
@@ -131,7 +131,7 @@
     if (!mobileViewport.matches || compactEnabled) {
       const { installGameCursor } = await import("./src/game-cursor.js?v=0.3.0");
       installGameCursor(document.querySelector("main"));
-      await import("./game.js?v=1.38.0");
+      await import("./game.js?v=1.43.0");
     }
   </script>
 </body>

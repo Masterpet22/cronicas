@@ -1,4 +1,4 @@
-import { SKILLS_BY_ID } from "../../src/skills/definitions.js?v=1.0.0";
+import { SKILLS_BY_ID } from "../../src/skills/definitions.js?v=1.4.0";
 import { investResonance, prerequisiteEntries, skillLevel, skillRequirements } from "../../src/skills/progression.js?v=1.0.0";
 
 // Los fixtures recorren las mismas transacciones y requisitos que el jugador.

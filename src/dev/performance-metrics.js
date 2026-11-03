@@ -15,6 +15,9 @@ export const REFERENCE_SCENARIOS = Object.freeze([
   Object.freeze({ id: "elemental-technique", label: "Técnica elemental" })
 ]);
 
+export const CAPTURE_SCENARIOS = Object.freeze([...REFERENCE_SCENARIOS,
+  Object.freeze({ id: "battle-pause", label: "Menú de pausa en combate" })]);
+
 export function sceneBudget(key, { lightMode = false, renderer = "WebGL" } = {}) {
   const budget = SCENE_PERFORMANCE_BUDGETS[key] || SCENE_PERFORMANCE_BUDGETS.default;
   return { ...budget, ...(lightMode ? { particles: 0, emitters: 0 } : {}),
@@ -28,6 +31,26 @@ export function resourceViolations(usage, budget) {
 
 const round = (value) => Math.round(value * 100) / 100;
 const percentile = (sorted, ratio) => sorted[Math.max(0, Math.ceil(sorted.length * ratio) - 1)] || 0;
+
+export function createDurationWindow(capacity = 600) {
+  const samples = [];
+  return {
+    add(ms) {
+      if (!Number.isFinite(ms) || ms < 0) return;
+      samples.push(ms);
+      if (samples.length > capacity) samples.shift();
+    },
+    reset() { samples.length = 0; },
+    summary() {
+      const sorted = [...samples].sort((a, b) => a - b);
+      const totalMs = samples.reduce((sum, ms) => sum + ms, 0);
+      return { count: samples.length, totalMs: round(totalMs),
+        meanMs: samples.length ? round(totalMs / samples.length) : null,
+        p95Ms: samples.length ? round(percentile(sorted, .95)) : null,
+        maxMs: samples.length ? round(sorted.at(-1)) : null };
+    }
+  };
+}
 
 // Una ventana acotada evita acumular una muestra por frame durante toda la partida.
 export function createFrameWindow(capacity = 600) {

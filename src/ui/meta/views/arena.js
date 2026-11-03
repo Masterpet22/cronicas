@@ -1,6 +1,6 @@
 import { plazaSchedule, worldDate } from "../../../plaza-events.js?v=0.130.0";
 import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.131.0";
-import { JUTSU_LIBRARY } from "../../../data.js?v=0.114.0";
+import { JUTSU_LIBRARY } from "../../../data.js?v=1.5.0";
 
 export function createArenaView(deps) {
   let save, host, tab = "local", settings = normalizeArenaSettings();
