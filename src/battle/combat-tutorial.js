@@ -3,6 +3,7 @@ import { COMBAT_LESSONS } from "../content/sagas/futuro-prometedor/combat-lesson
 import { recordBattleLesson } from "./tutorial-progress.js";
 import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup, updateTutorialActor } from "../tutorial-speakers.js";
 import { affinityTutorialCopy } from "../content/sagas/futuro-prometedor/affinity-advice.js";
+import { CHAKRA_BALANCE } from "../chakra-balance.js?v=1.0.0";
 
 export function needsCombatTutorial(save, mission) {
   const plan = COMBAT_LESSONS[tutorialCourseFor(mission)?.battle];
@@ -15,7 +16,7 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   const plan = COMBAT_LESSONS[onReplayExit ? "basics" : course?.battle || "basics"];
   const parent = scene.game.canvas.parentElement;
   const root = document.createElement("div"); root.className = "combat-tutorial";
-  const initialActor = tutorialActor(scene.saveData, "battle", "guardian");
+  const initialActor = tutorialActor(scene.saveData, "battle", "master");
   root.innerHTML = `<div class="tutorial-shade"></div><div class="tutorial-spotlight" aria-hidden="true"></div><div class="tutorial-character-dialogue">${tutorialCharacterMarkup(initialActor)}<section class="tutorial-dialogue-box" role="dialog" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy"><header data-dialogue-speaker>${tutorialSpeakerMarkup(initialActor)}</header><p class="tutorial-kicker"></p><h2 id="tutorial-title"></h2><div class="tutorial-dialogue-body"><p id="tutorial-copy"></p></div><footer><p class="tutorial-hint"></p><button type="button" data-tutorial-next>Continuar</button></footer></section></div><button type="button" class="tutorial-skip" ${onReplayExit ? "data-tutorial-skip" : "data-tutorial-pause"}>${onReplayExit ? "Salir del repaso" : "Pausar formación"}</button>`;
   parent.append(root);
   const presentation = root.querySelector(".tutorial-character-dialogue"), spotlight = root.querySelector(".tutorial-spotlight"), shade = root.querySelector(".tutorial-shade");
@@ -61,18 +62,20 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   };
   const observer = new ResizeObserver(() => position()); observer.observe(parent);
   const controlFor = target => parent.querySelector(target === "table" ? "[data-skill-table-switch]" : target === "bag" ? ".combat-access-inventory" : target?.startsWith("action:") ? `[data-combat-action="${target.split(":")[1]}"]` : ".combat-access-pause");
-  const hide = () => { current = null; presentation.hidden = spotlight.hidden = shade.hidden = true; root.classList.remove("is-explaining"); };
+  const hide = () => { current = null; presentation.hidden = spotlight.hidden = shade.hidden = true; root.classList.remove("is-explaining", "is-practicing"); };
   const show = (item, callback) => {
     if (!active || destroyed) return;
-    current = item; root.dataset.tutorialStep = item.id;
+    current = item; root.dataset.tutorialStep = item.id; root.dataset.tutorialTarget = item.target || "";
     root.classList.add("is-explaining"); presentation.hidden = false;
-    const actor = tutorialActor(scene.saveData, "battle", item.id === plan.intro[0].id ? "guardian" : "master");
+    root.classList.toggle("is-practicing", Boolean(item.practice));
+    const actor = tutorialActor(scene.saveData, "battle", "master");
     updateTutorialActor(presentation, actor);
     root.querySelector(".tutorial-kicker").textContent = `PASO ${ids.indexOf(item.id) + 1} DE ${ids.length}`;
     root.querySelector("#tutorial-title").textContent = item.title;
     root.querySelector("#tutorial-copy").textContent = item.id === "affinity" ? affinityTutorialCopy(scene.player.primaryAffinity) : item.copy;
-    root.querySelector(".tutorial-hint").textContent = item.practice ? "La lección se acredita al realizar la acción. Puedes pausar o abandonar sin perder las prácticas aprendidas." : "El combate espera mientras lees.";
-    next.textContent = item.button || (item.practice ? "Usar el control señalado" : "Continuar"); next.onclick = callback;
+    root.querySelector(".tutorial-hint").textContent = item.practice ? "Usa el control resaltado o su tecla. El tiempo espera tu decisión." : "El combate espera mientras lees.";
+    next.textContent = item.button || (item.practice ? "Ir al control resaltado" : "Continuar");
+    next.onclick = item.practice && !item.button ? () => controlFor(item.target)?.focus({ preventScroll: true }) : callback;
     position(); next.focus({ preventScroll: true });
   };
   const page = item => new Promise(resolve => {
@@ -95,16 +98,16 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   };
   scene.events.on("pause", onPause); scene.events.on("resume", onResume); hide();
   if (course?.battle === "resources" && !onReplayExit && !lessonCompleted(scene.saveData, "potion")) scene.player.hp = Math.max(1, scene.player.maxHp - Math.min(20, Math.round(scene.player.maxHp * .2)));
-  if (course?.battle === "statuses" && !onReplayExit) scene.player.statuses.push({ type: "burn", label: "QUEMADURA", duration: 2, power: 2 });
+  if (course?.battle === "statuses" && !onReplayExit && !lessonCompleted(scene.saveData, "cleanse")) scene.player.statuses.push({ type: "burn", label: "QUEMADURA", duration: 2, power: 2 });
   scene.refreshHud();
   const finishPractice = async () => {
   phase = "outro";
-  if (plan === COMBAT_LESSONS.basics) await page({ id: "cooldowns", target: "statuses", title: "Enfriamientos, afinidades y estados", copy: "CD indica las acciones que faltan para reutilizar un movimiento. El aro gris corresponde a Normal, sin ventajas ni pasivas elementales. Los iconos de estado muestran efectos y duración. Aprenderás a consultar el ciclo y a limpiar estados en las próximas misiones." });
+  if (plan === COMBAT_LESSONS.basics) await page({ id: "cooldowns", target: "action:2", title: "Tu técnica necesita recuperarse", copy: `CD indica cuántas acciones debes esperar para repetir una técnica. Mientras se recupera, puedes usar Golpe veloz, tu equipo o Guardia. Cada acción recupera ${CHAKRA_BALANCE.turnRecovery} CH; Guardia recupera ${CHAKRA_BALANCE.guardRecovery} CH en total.` });
   if (plan.pause && active) await new Promise(resolve => {
     pending = resolve; pauseAwaited = true;
     show({ id: "pause", target: "pause", title: "Pausa y reanuda el combate", copy: "Abre la pausa real y pulsa Reanudar. Allí puedes cambiar los sellos manuales, sonido, movimiento y destellos. Abandonar exige confirmación y pierde las recompensas provisionales; los objetos consumidos no regresan.", practice: true, button: "Abrir pausa" }, pause);
   });
-  if (active) await page({ id: "complete", title: "Práctica completada", copy: "Tus acciones han quedado registradas. Continúa la misión aplicando lo aprendido. Si pierdes un duelo, dispones de dos reintentos gratuitos; después necesitas un pergamino. Reintentar no devuelve objetos gastados.", button: onReplayExit ? "Volver a la Biblioteca" : "Continuar la misión" });
+  if (active) await page({ id: "complete", title: "Ahora tú decides", copy: "Ya has realizado las acciones guiadas. A partir de ahora ambos podéis caer: elige tus ataques y defensas para completar el duelo. Puedes pausar cuando lo necesites.", button: onReplayExit ? "Volver a la Biblioteca" : "Continuar la misión" });
   const complete = active; close(); if (complete && onReplayExit) onReplayExit();
   };
   const guide = {
@@ -140,7 +143,7 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
     },
     selected() { if (active) hide(); },
     async preparation() {
-      if (active && step()?.kind === "technique") await page({ id: "preparation", target: "preparation", title: "Preparación: del 80 al 100 %", copy: "El chakra ya se ha pagado. El marcador completa ahora la preparación según tu velocidad y los sellos de la técnica. El rival puede actuar antes de que termine; la iniciativa no cambia este tramo." });
+      if (active && step()?.kind === "technique") await page({ id: "preparation", target: "preparation", title: "Prepara la técnica", copy: "Ya has gastado el chakra. Ahora tu marcador debe llegar al 100 % antes de ejecutar los sellos. El rival también avanza y puede atacar durante la preparación." });
     },
     async seals() {
       if (!active || sealsExplained) return; sealsExplained = true;

@@ -20,7 +20,7 @@ import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0
 import { createLocationStage } from "./ui/meta/location-stage.js?v=0.131.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 import { rememberIntroduction, retainIntroductions } from "./location-conversations.js?v=0.131.0"; import { ITEMS } from "./items.js?v=0.126.0";
-import { createSagaTutorialCoach } from "./ui/meta/saga-tutorial.js"; import { observeTutorialChanges, observeTutorialEvent, recordTutorialLesson } from "./tutorial-system.js"; import { locationAccess } from "./village-progression.js"; export { VILLAGE_LOCATIONS };
+import { createSagaTutorialCoach } from "./ui/meta/saga-tutorial.js"; import { observeTutorialChanges, observeTutorialEvent, pendingTutorialPreparation, recordTutorialLesson } from "./tutorial-system.js"; import { locationAccess } from "./village-progression.js"; export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
 const ASSET_VERSION = META_ASSET_VERSION; const LOCATION_BACKGROUNDS = { kagemori: "assets/locations/kagemori.webp" };
 const warmedImages = new Map();
@@ -63,7 +63,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   let tutorialCoach;
   const persist = (next) => { const previous = save; save = writeSave(observeTutorialChanges(previous, retainIntroductions(next, save), view)); stageView.react(view, previous, save); tutorialCoach?.refresh(); return save; };
   const startLocationMission = (next, mission) => { if (!tutorialCoach.gate(mission)) onStartMission(observeTutorialChanges(save, retainIntroductions(next, save), view), mission); };
-  tutorialCoach = createSagaTutorialCoach({ root, getSave: () => save, persist, navigate(next) { view = next; render(); } });
+  tutorialCoach = createSagaTutorialCoach({ root, getSave: () => save, persist, navigate(next) { if (next === "dojo" && ["equipment", "throwable-equipment", "mentor", "initial-kit"].includes(pendingTutorialPreparation(save)?.id)) activeDojoTab = "equipment"; view = next; render(); } });
   const investigatedClues = new Set();
   const overlayView = createOverlayView({ root, viewRuntime, npcByName, escapeHtml, assetVersion: ASSET_VERSION });
   const showDialogue = (...args) => overlayView.showDialogue(...args);

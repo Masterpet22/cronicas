@@ -8,6 +8,7 @@ import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
 import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
 import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
 import { playerRankLabel } from "../../player-rank.js";
+import { lessonCompleted } from "../../tutorial-system.js";
 
 const THEMES = Object.freeze({
   fuego: { color: 0xff914f, ink: "#ffb17d", title: "FUEGO" },
@@ -150,7 +151,9 @@ export class LevelUpScene extends Phaser.Scene {
     const resonance = 2 * (report.afterLevel - report.beforeLevel);
     const teacher = tutorialActor(battleRuntime.activeSave, "battle");
     explanation.innerHTML = `${tutorialCharacterMarkup(teacher)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(teacher)}</header><h3>Qué has ganado</h3><div class="tutorial-dialogue-body"><p>Los PX aumentan tu nivel. Tus atributos crecen automáticamente según tu afinidad; la tabla muestra cuánto.</p><p><strong>+${report.pointsGained} puntos de atributo:</strong> distribúyelos con + en Dojo → Estadísticas.</p><p><strong>+${resonance} PR:</strong> aprende o mejora habilidades en Dojo → Técnicas.</p><p>Tu rango actual es ${playerRankLabel(battleRuntime.activeSave)}. Las pruebas de afinidad permiten ascender. Estos beneficios se confirman al regresar con éxito.</p></div></section>`;
-    this.game.canvas.parentElement?.append(explanation);
+    // La primera subida enseña atributos y PR. Las siguientes muestran el
+    // resultado numérico sin repetir la misma explicación de formación.
+    if (!lessonCompleted(battleRuntime.activeSave, "level-up")) this.game.canvas.parentElement?.append(explanation);
     const accessibleDialog = document.createElement("div");
     accessibleDialog.className = "level-up-accessible";
     accessibleDialog.setAttribute("role", "dialog");

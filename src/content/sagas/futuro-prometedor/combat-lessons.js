@@ -1,27 +1,21 @@
-import { CHAKRA_BALANCE } from "../../../chakra-balance.js?v=1.0.0";
-
 export const COMBAT_LESSONS = {
   basics: {
     intro: [
-      { id: "welcome", title: "Tu primer combate, paso a paso", copy: "Practicarás sobre los controles reales: Golpe veloz, Guardia, kunai, shuriken y una técnica elemental. Las explicaciones detienen el tiempo; durante estas prácticas nadie cae." },
-      { id: "health", target: "health", title: "Vida y costes de PV", copy: "Las barras rojas son los PV de ambos combatientes. A cero termina el duelo. Los ataques de taijutsu consumen PV; Golpe veloz, kunai y shuriken cuestan 0 PV." },
-      { id: "chakra", target: "chakra", title: "Chakra y recuperación", copy: `Las técnicas elementales consumen CH. Al cerrar cada acción recuperas ${CHAKRA_BALANCE.turnRecovery} CH; Guardia recupera ${CHAKRA_BALANCE.guardRecovery} CH en total. El coste aparece en la ficha de cada movimiento.` },
-      { id: "affinity", target: "health", title: "Qué aporta tu afinidad principal", copy: "Tu afinidad modifica atributos y concede una pasiva propia." },
-      { id: "timeline", target: "timeline", title: "El 80 % es tu decisión", copy: "Al llegar al 80 %, eliges y el tiempo se detiene. Una acción inmediata sale entonces; las técnicas con sellos preparan del 80 al 100 %. Más sellos alargan la preparación y más velocidad la reduce." },
-      { id: "enemy-turn", target: "timeline", title: "El rival también decide y prepara", copy: "El enemigo tiene su propio marcador: al 80 % elige una acción; si requiere sellos, prepara hasta el 100 %. Puede terminar antes que tú. Observa su preparación y sus sellos. Un nuevo rival comienza otro duelo; un jefe en fase II sigue dentro del mismo duelo. Lo comprobaremos durante esta misión." }
+      { id: "welcome", target: "health", title: "Protege tu vida", copy: "Estoy contigo, fuera del duelo. La barra PV es tu vida: si llega a cero, pierdes. Primero probaremos un golpe y una defensa. Mientras dure la guía, ninguno de los dos caerá." },
+      { id: "timeline", target: "timeline", title: "Espera tu turno y elige", copy: "Tu marcador avanza por la barra inferior. Al llegar al 80 %, el combate se detiene para que elijas con calma. El rival tiene su propio marcador. Ahora espera tu primer turno." }
     ],
     actions: [
-      { id: "strike", kind: "strike", title: "Ejecuta Golpe veloz", copy: "Usa el botón real 1. No cuesta PV ni CH. Su iniciativa +1 acelera un 10 % el recorrido de tu siguiente acción y no se acumula.", lesson: "strike" },
-      { id: "guard", kind: "guard", title: "Prepara Guardia", copy: "Usa el botón 6. Reduce a la mitad el primer impacto y recupera chakra. Si el rival falla conservas la protección; mientras siga activa no puedes repetirla. Iniciativa −1: tu próximo recorrido tarda más.", lesson: "guard" },
+      { id: "strike", kind: "strike", title: "Ejecuta Golpe veloz", copy: "Pulsa Golpe veloz (1). Es un ataque sin coste de vida ni chakra. Después del golpe, observa la vida del rival y espera tu siguiente turno.", lesson: "strike" },
+      { id: "guard", kind: "guard", title: "Prepara Guardia", copy: "Pulsa Guardia (6). Reduce a la mitad el próximo impacto y recupera chakra. El escudo permanece hasta recibir un golpe; mientras esté activo no puedes repetirla.", lesson: "guard" },
       { id: "physical-table", kind: "table", table: "physical", title: "Abre la tabla física", copy: "Pulsa 0 o el control señalado para cambiar de tabla. El cambio no gasta tu acción. Golpe veloz y Guardia se mantienen en 1 y 6; las cuatro casillas centrales cambian." },
       { id: "weapon", kind: "weapon", title: "Ataca con tu kunai", copy: "Ejecuta Golpe de arma desde la tabla física. Solo está disponible si posees y llevas equipada un arma; su coste es 0 PV y 0 CH.", lesson: "weapon" },
       { id: "throwable", kind: "throwable", title: "Lanza el shuriken", copy: "Usa el shuriken de la tabla física. Es reutilizable: lanzarlo no gasta el objeto ni consume PV o CH. Sigue su estela hasta el blanco Normal.", lesson: "throwable" },
       { id: "elemental-table", kind: "table", table: "elemental", title: "Vuelve a las técnicas elementales", copy: "Pulsa 0 otra vez para recuperar tus técnicas equipadas. Tener una técnica aprendida y llevarla equipada son cosas distintas." },
-      { id: "technique", kind: "technique", title: "Ejecuta una técnica elemental", copy: "Elige la técnica señalada: pagarás su coste real de chakra y recorrerás su preparación antes de los sellos.", lesson: "technique" }
+      { id: "technique", kind: "technique", title: "Ejecuta una técnica elemental", copy: "La barra CH es tu chakra. La técnica señalada gasta la cantidad indicada en su botón. Púlsala y observa cómo baja CH; después prepararás sus sellos.", lesson: "technique" }
     ], pause: true
   },
   resources: {
-    intro: [{ id: "resources", title: "PV, objetos y decisiones", copy: "El acceso a la cantera te ha dejado un rasguño de práctica. Usa tu poción para recuperarte y después ejecuta el taijutsu que preparaste. Ambos son usos reales: los objetos gastados no regresan al retirarte ni al reintentar." }],
+    intro: [{ id: "resources", title: "PV, objetos y decisiones", copy: "Al cruzar las rocas de la entrada te has hecho un rasguño. Mira los PV que te faltan: usa la poción que trajiste. Después probarás el taijutsu que aprendiste en el Dojo." }],
     actions: [
       { id: "potion", kind: "item", item: "health_potion", title: "Recupérate con una poción", copy: "Abre Objetos durante tu turno y usa Poción de vida. Solo se consume si recupera PV. Usar un consumible gasta la acción.", lesson: "potion" },
       { id: "physical-table", kind: "table", table: "physical", title: "Busca tu taijutsu", copy: "Cambia a la tabla física. El taijutsu preparado en T1 o T2 ocupa una casilla central." },
@@ -36,7 +30,7 @@ export const COMBAT_LESSONS = {
     ]
   },
   statuses: {
-    intro: [{ id: "statuses", target: "statuses", title: "Reconoce y limpia un estado", copy: "El humo de las galerías ha provocado una quemadura leve de práctica. Bajo tus barras aparecen su duración y efecto. El daño periódico se resuelve al cerrar tus acciones; un purificador elimina el estado y Empapado." }],
+    intro: [{ id: "statuses", target: "statuses", title: "Reconoce y limpia un estado", copy: "El humo de las galerías te ha causado una quemadura leve. El icono bajo tus barras indica que perderás vida al terminar tus acciones. Usa el purificador que trajiste para eliminarla." }],
     actions: [{ id: "cleanse", kind: "item", item: "purifying_tonic", title: "Usa el tónico purificador", copy: "Abre Objetos y usa Tónico purificador. Comprueba que desaparece la quemadura. Después practicarás una recuperación amplia y otra conservando suministros entre duelos.", lesson: "cleanse" }]
   },
   final: {

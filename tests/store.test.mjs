@@ -6,6 +6,7 @@ import { SECONDARY_MISSIONS } from "../src/content/index.js";
 import { missionState } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "Comerciante", affinity: "fuego", hair: 0 });
+save = equipItem(equipItem(save, "weapon", "kunai").save, "throwable", "shuriken").save;
 save.progression.coins = 5000;
 const snapshot = structuredClone(save);
 assert.equal(sellItem(save, "shuriken").ok, false, "No se vende el arma arrojadiza equipada");

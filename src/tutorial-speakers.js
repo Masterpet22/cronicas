@@ -2,7 +2,7 @@ import { NPCS } from "./npcs.js?v=0.131.0";
 import { masterIdForCharacter } from "./save/character-state.js";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 
-const GUARDIANS = { headquarters: "ren", shop: "hana", archive: "sayo", kagemori: "iori", "doctor-route": "sayo", battle: "ren" };
+const GUARDIANS = { headquarters: "ren", shop: "hana", archive: "sayo", kagemori: "iori" };
 const HARU = { id: "haru", name: "Haru Takamine", title: "Médico errante" };
 const AREA_LINES = {
   headquarters: "Yo organizo las sagas y sus encargos. Tu maestro te ayudará a preparar cada salida.",
@@ -10,14 +10,14 @@ const AREA_LINES = {
   archive: "Yo guardo el Diccionario, el Bestiario y la Crónica. Tu maestro te ayudará a aplicar lo que descubras.",
   kagemori: "Yo conozco esta aldea. Reúne las pistas y tu maestro te ayudará a relacionarlas.",
   "doctor-route": "Cada camino conectado tiene ventajas y riesgos. Cuando llegues, te enseñaré a leer el mapa cifrado.",
-  battle: "El encargo sigue bajo mi supervisión. Escucha a tu maestro y observa lo que cambia en cada rival."
+  battle: "Te acompaño desde fuera del duelo. Practicaremos una acción a la vez."
 };
 const escape = value => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 
 export function tutorialSpeakers(save, area = "battle") {
   const master = NPCS[masterIdForCharacter(save.character)];
   const doctorFound = (save.campaign?.doctorRoute?.phase || 0) >= 3;
-  const guardian = area === "dojo" ? master : area === "doctor-route" ? doctorFound ? HARU : NPCS.nami : NPCS[GUARDIANS[area] || "ren"];
+  const guardian = ["dojo", "battle"].includes(area) ? master : area === "doctor-route" ? doctorFound ? HARU : master : NPCS[GUARDIANS[area]] || master;
   const introduction = area === "doctor-route" ? doctorFound ? "El cifrado oculta la ruta. Intercambia sellos vecinos para revelar sus fragmentos." : "Como exploradora, te aconsejo leer los caminos conectados y sus riesgos. Haru podrá ayudarte al final del recorrido." : AREA_LINES[area];
   return { master, guardian, introduction: introduction || "Aprenderemos sobre los controles reales, una acción a la vez." };
 }

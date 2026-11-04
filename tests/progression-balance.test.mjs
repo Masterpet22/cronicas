@@ -24,6 +24,8 @@ assert.equal(resolveDamage({ baseDamage: 32 }).damage, 32);
 const checkpoints = [null, "mission-2-ready", "mission-3-ready", "mission-4-ready", "mission-5-ready"];
 for (const affinity of AFFINITY_IDS) {
   let save = createCharacter(createDefaultSave(), { name: "Balance", affinity, bodyType: "male" });
+  // Estos duelos parten del equipo preparado que exige la salida del Cuartel.
+  save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
   const leveled = normalizeSave({ ...save, progression: { ...save.progression, level: 2, attributePoints: 2 } });
   const report = levelUpReport(1, leveled);
   assert.equal(report.focus.stat, AFFINITY_LEVEL_FOCUS[affinity].stat, "La ventana debe identificar la especialidad de la afinidad");

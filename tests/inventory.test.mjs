@@ -9,7 +9,7 @@ let save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "
 save.progression.coins = 2000;
 assert.equal(countItem(save, "seal_wind"), 1);
 assert.equal(countItem(save, "shuriken"), 1);
-assert.equal(save.equipment.throwable, "shuriken");
+assert.equal(save.equipment.throwable, null, "El equipo inicial debe prepararse en el Dojo");
 const beforeThrowables = structuredClone(save);
 const unequipped = equipItem(save, "throwable", null).save;
 assert.equal(normalizeSave(unequipped).equipment.throwable, null, "Desequipar debe persistir");

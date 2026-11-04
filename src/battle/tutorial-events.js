@@ -10,7 +10,7 @@ export async function explainSagaEvent(scene, lesson, { title, copy, guardianCop
   const heading = document.createElement("h2"); heading.textContent = title; heading.id = "battle-lesson-title";
   const text = document.createElement("p"); text.textContent = copy;
   dialog.setAttribute("aria-labelledby", heading.id);
-  const actor = tutorialActor(scene.saveData, "battle", lesson === "enemy-encounters" ? "guardian" : "master");
+  const actor = tutorialActor(scene.saveData, "battle", "master");
   dialog.innerHTML = `${tutorialCharacterMarkup(actor)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}</header><div class="tutorial-dialogue-body"></div><footer></footer></section>`;
   const button = document.createElement("button"); button.type = "button"; button.className = "primary-button"; button.textContent = "Entendido · Continuar";
   text.textContent = [guardianCopy, copy].filter(Boolean).join(" ");

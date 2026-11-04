@@ -8,6 +8,7 @@ async function seedShop(page) {
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.111.0");
     const save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "fuego", bodyType: "male" });
+    save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
     const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
     unlockVillageForTest(save, {});
     save.progression.coins = 2000;
@@ -128,7 +129,8 @@ test("vende a mitad de precio y selecciona solo apariencia y sustitución compra
   expect((await stored(page)).character.hair).toBe(4);
   await page.screenshot({ path: "test-results/shop/apariencia.png" });
   await page.locator('[data-dojo-tab="equipment"]').click();
-  await expect(page.locator("[data-gear-slot]")).toHaveCount(4);
+  await expect(page.locator("[data-gear-slot]")).toHaveCount(5);
+  await expect(page.locator('[data-gear-slot="throwable"]')).toBeVisible();
   await expect(page.locator('[data-gear-slot="seal"]')).toContainText("Sello");
   await expect(page.locator('[data-gear-slot="armor"]')).toHaveCount(0);
   await page.reload();

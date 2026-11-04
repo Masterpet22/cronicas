@@ -21,7 +21,12 @@
 .tutorial-character-dialogue[data-dialogue-placement=top] .tutorial-dialogue-box { top:13%; bottom:auto; max-height:31%; }
 .tutorial-character-dialogue[data-dialogue-placement=top] .tutorial-character-stage { bottom:1%; height:64%; }
 .saga-tutorial-coach { z-index:12; }
-.has-guided-speaker > .stage-characters { visibility:hidden; }
+.has-guided-speaker > .stage-characters, .has-guided-speaker > .stage-characters > .stage-character { visibility:hidden; }
+.location-stage.story-dialogue-active .saga-tutorial-coach { visibility:hidden; pointer-events:none; }
+.combat-tutorial.is-practicing .tutorial-character-stage { display:none; }
+.combat-tutorial.is-practicing .tutorial-dialogue-box { left:auto; right:2%; width:min(440px,65%); max-height:40%; }
+.combat-tutorial.is-practicing .tutorial-dialogue-box .tutorial-hint { display:none; }
+.combat-tutorial.is-practicing .tutorial-spotlight { box-shadow:0 0 0 3000px #02071155; }
 .saga-tutorial-coach .tutorial-character-stage { left:0; right:auto; bottom:30%; width:28%; height:56%; }
 .saga-tutorial-coach .tutorial-dialogue-box { left:1.5%; right:auto; bottom:1.5%; width:25%; max-height:39%; padding:11px 13px; }
 .saga-tutorial-coach .tutorial-dialogue-box h3 { font-size:17px; }

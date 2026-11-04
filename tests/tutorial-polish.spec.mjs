@@ -45,6 +45,26 @@ test("rendimiento: la subida de nivel deja de dibujar escenas mientras espera", 
   await page.evaluate(async () => { await window.__levelPreview; window.__performanceReference.game.destroy(true); });
 });
 
+test("las subidas siguientes no repiten la explicación de atributos y PR", async ({ page }) => {
+  await bootPerformanceReference(page);
+  await page.evaluate(async () => {
+    const state = window.__performanceReference;
+    const { LevelUpScene } = await import("/src/battle/scenes/level-up-scene.js?v=0.95.0");
+    const { recordBattleLesson } = await import("/src/battle/tutorial-progress.js");
+    recordBattleLesson(state.scene, "level-up");
+    state.game.scene.add("level-up", LevelUpScene);
+    const preview = structuredClone(state.scene.saveData);
+    preview.progression.level++; preview.progression.attributePoints += 2;
+    window.__levelPreview = state.scene.showPendingLevelUp(preview);
+  });
+  await expect(page.locator('.level-up-accessible')).toBeAttached({ timeout: 20000 });
+  await expect(page.locator('.level-up-explanation')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => window.__performanceReference.game.scene.getScene("level-up").children.getByName("level-up-panel")?.list.some(item => item.name === "level-up-continue" && item.input?.enabled))).toBe(true);
+  await page.keyboard.press("Enter");
+  await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isActive())).toBe(true);
+  await page.evaluate(async () => { await window.__levelPreview; window.__performanceReference.game.destroy(true); });
+});
+
 test("rendimiento: la decisión del teniente conserva un fondo estático e interactivo", async ({ page }, info) => {
   await bootPerformanceReference(page, { renderer: process.env.TUTORIAL_RENDERER || "Canvas" });
   await page.evaluate(() => { window.__choice = window.__performanceReference.scene.playPrisonerChoice(); });
@@ -127,6 +147,8 @@ for (const width of [1280, 1600]) test(`la descripción del shuriken cabe en la 
   await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 });
   await seedVillage(page); await page.locator('[data-go="dojo"]').click();
   await page.locator('[data-dojo-tab="equipment"]').click();
+  await page.locator('[data-gear-slot="throwable"]').click();
+  await page.locator('[data-equipment-id="shuriken"]').click();
   const card = page.locator('[data-gear-slot="throwable"]');
   const bounds = await card.evaluate(el => {
     const box = el.getBoundingClientRect(), text = el.querySelector(".gear-copy").getBoundingClientRect();
@@ -149,7 +171,7 @@ test("0 y Numpad0 cambian la tabla una vez sin gastar turno ni recursos", async 
   await page.evaluate(() => { document.getElementById("shortcut-input").remove(); window.__performanceReference.game.destroy(true); });
 });
 
-test("el maestro y Ren explican los nuevos duelos, la ventaja y la fase II cuando ocurren", async ({ page }, info) => {
+test("el maestro explica los nuevos duelos, la ventaja y la fase II cuando ocurren", async ({ page }, info) => {
   await bootPerformanceReference(page, { arenaIndex: 0 });
   await page.evaluate(() => {
     const s = window.__performanceReference.scene;
@@ -161,8 +183,8 @@ test("el maestro y Ren explican los nuevos duelos, la ventaja y la fase II cuand
   const encounters = page.locator('[data-battle-lesson="enemy-encounters"]');
   await expect(encounters).toBeVisible({ timeout: 20000 });
   await expect(encounters).toContainText("uno contra uno");
-  await expect(encounters.locator('[data-tutorial-speaker="ren"]')).toBeVisible();
-  await expect(encounters.locator('[data-dialogue-character="ren"] img')).toBeVisible();
+  await expect(encounters.locator('[data-tutorial-speaker="mei"]')).toBeVisible();
+  await expect(encounters.locator('[data-dialogue-character="mei"] img')).toBeVisible();
   await encounters.locator("button").click();
   await page.evaluate(async () => {
     await window.__eventFlow;

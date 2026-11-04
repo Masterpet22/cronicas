@@ -4,7 +4,7 @@ import { AFFINITY_CONFIG } from "./affinity-system.js?v=0.114.0";
 export function normalizeSagaTutorial(candidate, campaign = {}) {
   const completed = new Set(Array.isArray(candidate?.completed) ? candidate.completed.filter(id => TUTORIAL_LESSON_IDS.includes(id)) : []);
   // El historial anterior acredita únicamente las misiones ya superadas.
-  if (!candidate) for (const course of SAGA_TUTORIAL) if (campaign.completedMissions?.includes(course.missionId)) {
+  if (!candidate || candidate.version < SAGA_TUTORIAL_VERSION) for (const course of SAGA_TUTORIAL) if (campaign.completedMissions?.includes(course.missionId)) {
     [...course.before.map(step => step.id), ...course.practices].forEach(id => completed.add(id));
   }
   return { version: SAGA_TUTORIAL_VERSION, completed: [...completed] };
@@ -26,6 +26,7 @@ export function tutorialStepSatisfied(step, save) {
   if (step.state === "taijutsu") return Boolean(save.taijutsuLoadout?.some(Boolean));
   if (step.state === "elemental") return Boolean(save.loadout?.length);
   if (step.state === "equipment") return Boolean(save.equipment?.weapon && save.equipment?.throwable);
+  if (step.state === "gear") return Boolean(save.equipment?.[step.key]);
   if (step.state === "combat-ready") return Boolean(save.loadout?.length && save.taijutsuLoadout?.some(Boolean) && save.equipment?.weapon && save.equipment?.throwable);
   return false;
 }
@@ -37,19 +38,21 @@ export function pendingTutorialPreparation(save, mission) {
 export function observeTutorialEvent(save, event) {
   const course = currentTutorialCourse(save);
   if (!course) return save;
-  let next = save;
-  for (const step of course.before) {
-    if (!step.event || step.event.type !== event.type || step.event.key && step.event.key !== event.key || (event.amount || 1) < (step.event.minimum || 1)) continue;
-    if (step.quiz === "affinity" && AFFINITY_CONFIG.cycle.matrix[save.character.affinity]?.[event.key] !== AFFINITY_CONFIG.cycle.advantage) continue;
-    next = recordTutorialLesson(next, step.id);
-  }
-  return next;
+  const step = pendingTutorialPreparation(save);
+  if (!step?.event || step.event.type !== event.type || step.event.key && step.event.key !== event.key || (event.amount || 1) < (step.event.minimum || 1)) return save;
+  if (step.quiz === "affinity" && AFFINITY_CONFIG.cycle.matrix[save.character.affinity]?.[event.key] !== AFFINITY_CONFIG.cycle.advantage) return save;
+  return recordTutorialLesson(save, step.id);
 }
 export function observeTutorialChanges(before, after, view) {
   // Las vistas pueden conservar una instantánea anterior a una lección del coach.
   // Las lecciones son acumulativas dentro de una partida y no se deben sobrescribir.
   let next = { ...after, campaign: { ...after.campaign, sagaTutorial: normalizeSagaTutorial({ completed: [...(before.campaign.sagaTutorial?.completed || []), ...(after.campaign.sagaTutorial?.completed || [])] }) } };
   const emit = event => { next = observeTutorialEvent(next, event); };
+  // Evaluate each mutation against the step that was pending BEFORE the change.
+  // Otherwise state-based steps disappear before their successful action is recorded.
+  const pending = pendingTutorialPreparation(before);
+  if (pending?.state && tutorialStepSatisfied(pending, after)) next = recordTutorialLesson(next, pending.id);
+  for (const key of ["weapon", "throwable"]) if (after.equipment?.[key] && after.equipment[key] !== before.equipment?.[key]) emit({ type: "gear", key });
   if (sum(after.progression.attributes) > sum(before.progression.attributes)) emit({ type: "attribute" });
   for (const [key, count] of Object.entries(after.progression.resonance.investments)) if (count > (before.progression.resonance.investments[key] || 0)) emit({ type: "invest", key });
   if (after.taijutsuLoadout.some((id, i) => id && id !== before.taijutsuLoadout[i])) emit({ type: "taijutsu" });

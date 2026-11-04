@@ -23,7 +23,10 @@ test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kuna
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js");
     const save = createCharacter(createDefaultSave(), { name: "Armero", affinity: "fuego", bodyType: "male" });
+    save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
     save.progression.coins = 200; save.campaign.tutorialSeen = true; save.campaign.completedMissions = ["m01"];
+    const { normalizeSagaTutorial } = await import("/src/tutorial-system.js");
+    save.campaign.sagaTutorial = normalizeSagaTutorial(null, save.campaign);
     writeSave(save); sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off"); localStorage.setItem("seal-input-mode", "automatic");
   });

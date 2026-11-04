@@ -7,6 +7,7 @@ import { equipTaijutsu, normalizeTaijutsuLoadout, taijutsuAction, unequipTaijuts
 import { normalizeSave } from "../src/save.js";
 
 const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego" });
+save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
 const original = structuredClone(save);
 const elemental = [BASE_ACTIONS[0], { id: "fire_embers" }, null, null, null, BASE_ACTIONS[1]];
 const physical = physicalSkillActions(save, elemental);

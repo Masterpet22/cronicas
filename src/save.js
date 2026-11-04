@@ -120,7 +120,7 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     version: SAVE_VERSION,
     character: { birthday: normalizeBirthday(birthday), name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", skinTone: normalizeSkinTone(skinTone), masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
-    equipment: { ...DEFAULT_EQUIPMENT },
+    equipment: { ...DEFAULT_EQUIPMENT, weapon: null, throwable: null },
     inventory: starterInventory({ hair: normalizeHairStyle(hair) }),
     guild: defaultGuildState(),
     events: defaultEventState(),

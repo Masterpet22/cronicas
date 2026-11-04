@@ -8,9 +8,16 @@ export function tutorialControl(root, step, save, view) {
   const tab = step.id === "attribute" ? "statistics" : equipmentSteps.includes(step.id) || finalEquipment ? "equipment" : "techniques";
   if (view === "dojo" && root.querySelector(`[data-dojo-tab="${tab}"]`)?.getAttribute("aria-selected") === "false") return result(`[data-dojo-tab="${tab}"]`, `1. Abre ${tab === "statistics" ? "Estadísticas" : tab === "equipment" ? "Equipo" : "Técnicas"}.`, true);
   if (view === "archive" && step.id === "dictionary" && root.querySelector('[data-archive-tab="dictionary"]')?.getAttribute("aria-selected") === "false") return result('[data-archive-tab="dictionary"]', "Abre la pestaña Diccionario.", true);
+  if (["equipment", "throwable-equipment"].includes(step.id)) {
+    const slot = step.key;
+    const modal = root.querySelector('.equipment-modal:not(.master-modal)');
+    if (modal && !modal.hidden) return result(`[data-equipment-type="${slot}"][data-equipment-id="${slot === "weapon" ? "kunai" : "shuriken"}"]`, "Elige el objeto para colocarlo en la ranura. Abrir esta ventana todavía no lo equipa.");
+    return result(`[data-gear-slot="${slot}"]`, `Abre ${slot === "weapon" ? "Arma" : "Arma arrojadiza"} para elegir el objeto.`, true);
+  }
+  if (step.id === "mentor") return result('[data-open-master]', "Abre la ficha, lee tu ventaja y pulsa × para volver.", true);
   const skillStep = ["foundation", "learn-punch", "equip-punch", "punch-ready"].includes(step.id);
   let skill = skillStep ? step.key || "physical_1" : null;
-  if (["equip-technique", "element-ready"].includes(step.id) || step.id === "final-loadout" && !save.loadout.length) skill = skillTreeNodes(save).find(node => node.jutsuId && node.level > 0 && !save.loadout.includes(node.id))?.id;
+  if (["equip-technique", "element-ready", "initial-elemental"].includes(step.id) || step.id === "final-loadout" && !save.loadout.length) skill = skillTreeNodes(save).find(node => node.jutsuId && node.level > 0 && !save.loadout.includes(node.id))?.id;
   if (skill) {
     const node = skillTreeNodes(save).find(node => node.id === skill);
     const selector = `[data-skill-select="${skill}"]`;

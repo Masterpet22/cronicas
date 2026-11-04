@@ -31,6 +31,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     const { SKILLS_BY_ID } = await import("/src/skills/definitions.js?v=1.4.0");
     const { basicRequirements } = await import("/src/elements.js?v=0.20.0");
     let save = createCharacter(createDefaultSave(), { name: "Referencia", affinity: "fuego", bodyType, skinTone });
+    save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
     save.progression.level = Math.max(8,...loadout.map(id=>SKILLS_BY_ID.get(id)?.unlockLevel || 1));
     save.character.affinities = [...new Set(["fuego",...loadout.flatMap(id=>basicRequirements(JUTSU_LIBRARY.find(j=>j.id===id)?.element || "fuego"))])];
     save.character.affinityXp = { fuego:10000,agua:10000,tierra:10000,viento:10000 };

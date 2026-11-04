@@ -4,6 +4,7 @@ import { COMBAT_LESSONS } from "../../src/content/sagas/futuro-prometedor/combat
 // Los escenarios ajenos a la formación parten de un jugador que ya la practicó.
 // Los casos de currículo utilizan partidas nuevas y controles reales por separado.
 export function learnedTutorialForTest(save) {
+  save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
   save.campaign.sagaTutorial.completed = [...new Set([...SAGA_TUTORIAL.flatMap(course => course.before.map(step => step.id)), ...Object.values(COMBAT_LESSONS).flatMap(plan => plan.actions.map(step => step.lesson).filter(Boolean)), ...SHARED_TUTORIAL_PRACTICES, "pause"])];
   return save;
 }

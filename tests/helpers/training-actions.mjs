@@ -4,8 +4,10 @@ export async function trainingAction(page, id) {
   if (!["strike", "guard"].includes(id)) {
     const table = ["weapon_strike", "throwable_strike"].includes(id) || id.startsWith("physical_") ? "physical" : "elemental";
     if (await page.locator(".combat-access").getAttribute("data-skill-table") !== table) {
-      await page.getByRole("button", { name: table === "physical" ? "Cambiar a habilidades físicas" : "Cambiar a habilidades elementales", exact: true }).click();
+      await page.locator("[data-skill-table-switch]").click();
+      await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", table);
     }
+    await expect(page.locator("[data-skill-table-switch]")).toBeEnabled();
     const previous = page.locator('[data-training-page="previous"]');
     while (await previous.isVisible() && await previous.isEnabled()) await previous.click();
   }

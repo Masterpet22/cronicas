@@ -9,6 +9,7 @@ async function seed(page, current = 0, prepared = false) {
     const { normalizeSagaTutorial } = await import("/src/tutorial-system.js");
     localStorage.clear(); sessionStorage.clear();
     const save = createCharacter(createDefaultSave(), { name: "Novicio", affinity: "fuego" });
+    if (current) { save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken"; }
     save.campaign.tutorialSeen = true;
     save.campaign.completedMissions = SAGA_TUTORIAL.slice(0, current).map(c => c.missionId);
     save.campaign.sagaTutorial = normalizeSagaTutorial(null, save.campaign);
@@ -45,7 +46,15 @@ async function debugBattle(page, mission) {
   await expect(page.locator(".tutorial-dialogue-box")).toBeVisible({ timeout: 30000 });
 }
 async function step(page, id) { await expect(page.locator(`.combat-tutorial[data-tutorial-step="${id}"] .tutorial-dialogue-box`)).toBeVisible({ timeout: 30000 }); }
-const next = page => page.locator("[data-tutorial-next]").click();
+const next = async page => {
+  const guide = page.locator(".combat-tutorial");
+  const practicing = await guide.evaluate(el => el.classList.contains("is-practicing"));
+  const target = await guide.getAttribute("data-tutorial-target");
+  if (practicing && target !== "pause") {
+    const selector = target === "table" ? "[data-skill-table-switch]" : target === "bag" ? ".combat-access-inventory" : `[data-combat-action="${target.split(":")[1]}"]`;
+    await page.locator(selector).click();
+  } else await page.locator("[data-tutorial-next]").click();
+};
 async function choose(page, x, y) {
   const bounds = await page.locator("#game > canvas").boundingBox();
   await page.mouse.click(bounds.x + x / 960 * bounds.width, bounds.y + y / 540 * bounds.height);
@@ -54,23 +63,68 @@ async function choose(page, x, y) {
 test("el Cuartel exige confirmar equipo y conocer al maestro antes de partir", async ({ page }, info) => {
   await seed(page); await headquarters(page);
   await page.locator('[data-mission="m01"]').click();
-  await expect(coach(page)).toContainText("Prepara tu equipo inicial");
+  await expect(coach(page)).toContainText("Equipa tu kunai");
+  expect((await saved(page)).equipment.weapon).toBeNull();
+  expect((await saved(page)).equipment.throwable).toBeNull();
   await page.locator('[data-dojo-tab="equipment"]').click();
   await page.locator('[data-gear-slot="weapon"]').click();
+  expect((await saved(page)).campaign.sagaTutorial.completed).not.toContain("equipment");
   await page.locator('[data-equipment-id="kunai"]').click();
   await expect(coach(page)).toContainText("Equipa el shuriken");
   await page.locator('[data-gear-slot="throwable"]').click();
   await page.locator('[data-equipment-id="shuriken"]').click();
   await page.locator('[data-open-master]').click();
   await expect(coach(page)).toBeHidden();
+  expect((await saved(page)).campaign.sagaTutorial.completed).not.toContain("mentor");
   await page.locator('[data-close-master]').click();
+  await expect(coach(page)).toContainText("Ya estás preparado");
   const data = await saved(page);
   for (const id of ["command", "equipment", "throwable-equipment", "mentor"]) expect(data.campaign.sagaTutorial.completed).toContain(id);
   expect(data.campaign.sagaTutorial.completed).not.toContain("throwable");
   await page.screenshot({ path: info.outputPath("preparacion-dojo.png") });
 });
 
-test("Kagemori enseña atributos, PR, ranuras, compra y venta antes de investigar", async ({ page }) => {
+test("la introducción y el briefing tienen una sola voz y la guía conduce hasta la misión", async ({ page }, info) => {
+  test.setTimeout(150000);
+  page.setDefaultTimeout(20000);
+  await seed(page);
+  await page.evaluate(async () => {
+    const { loadSave, writeSave } = await import("/src/save.js");
+    const save = loadSave(); save.campaign.npcIntroductions = []; writeSave(save);
+  });
+  await page.reload(); await page.locator('[data-go="headquarters"]').click();
+  await expect(page.locator('[data-stage-speech]')).toBeVisible();
+  await expect(coach(page)).toBeHidden();
+  await expect(page.locator('[data-dialogue-character="ren"]')).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath("cuartel-una-sola-conversacion.png") });
+  const introductionNext = page.locator('[data-stage-speech]:not(.leaving) [data-stage-next]');
+  for (let i = 0; i < 8 && await introductionNext.isVisible(); i++) await introductionNext.click();
+  await expect(coach(page)).toBeVisible();
+  await page.locator('.player-settings-trigger').click();
+  await expect(coach(page)).toBeHidden();
+  await page.locator('.player-settings-trigger').click();
+  await expect(coach(page)).toBeVisible();
+  await page.locator('[data-saga="saga-1"]').click();
+  await expect(coach(page)).toContainText("Siguiente: Dojo");
+  await page.locator('[data-coach-go]').click();
+  for (let i = 0; i < 8 && await introductionNext.isVisible(); i++) await introductionNext.click();
+  await page.locator('[data-dojo-tab="equipment"]').click();
+  for (const [slot, item] of [["weapon", "kunai"], ["throwable", "shuriken"]]) {
+    await page.locator(`[data-gear-slot="${slot}"]`).click();
+    await page.locator(`[data-equipment-id="${item}"]`).click();
+  }
+  await page.locator('[data-open-master]').click(); await page.locator('[data-close-master]').click();
+  await page.locator('[data-coach-go]').click();
+  await page.locator('[data-mission="m01"]').click();
+  await expect(page.locator('.dialogue-overlay')).toBeVisible();
+  await expect(coach(page)).toBeHidden();
+  await page.locator('.dialogue-overlay').evaluate(async element => {
+    await Promise.all(element.getAnimations({ subtree: true }).filter(animation => animation.effect.getTiming().iterations !== Infinity).map(animation => animation.finished.catch(() => {})));
+  });
+  await page.screenshot({ path: info.outputPath("encargo-sin-guia-superpuesta.png") });
+});
+
+test("Kagemori enseña crecimiento y permite investigar sin trámites comerciales", async ({ page }) => {
   test.setTimeout(120000);
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await seed(page, 1); await headquarters(page);
@@ -83,23 +137,11 @@ test("Kagemori enseña atributos, PR, ranuras, compra y venta antes de investiga
     await page.locator(`[data-skill-invest="${id}"]`).click();
   }
   await page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="0"]').click();
-  const original = (await saved(page)).loadout[0];
-  await page.locator('[data-loadout-remove="0"]').click();
-  await page.locator(`[data-skill-select="${original}"]`).click();
-  await page.locator(`[data-technique-toggle="${original}"]`).click();
-  await map(page); await page.locator('[data-go="shop"]').click();
-  const potions = page.locator('[data-shop-item="health_potion"]');
-  await potions.locator("input").fill("2"); await potions.locator("button").click();
-  await page.locator('[data-shop-mode="sell"]').click();
-  await potions.locator("button").click();
-  expect((await saved(page)).inventory.items.health_potion).toBe(1);
-  await potions.locator("button").click();
-  expect((await saved(page)).inventory.items.health_potion).toBe(1);
-  await expect(coach(page)).toContainText("Conserva una unidad");
+  await expect(coach(page)).toContainText("Ya estás preparado");
   await map(page); await headquarters(page);
   await page.locator('[data-mission="s01"]').click();
   await expect(page.locator(".dialogue-overlay")).toBeVisible();
-  expect((await saved(page)).campaign.sagaTutorial.completed).toEqual(expect.arrayContaining(["attribute", "foundation", "learn-punch", "equip-punch", "remove-technique", "equip-technique", "buy-potions", "sell-potion"]));
+  expect((await saved(page)).campaign.sagaTutorial.completed).toEqual(expect.arrayContaining(["attribute", "foundation", "learn-punch", "equip-punch"]));
   expect(errors).toEqual([]);
 });
 
@@ -126,7 +168,7 @@ test("el Diccionario y el Bestiario requieren consulta y una respuesta elemental
   await expect(coach(page)).toContainText("vuelve a elegir");
   expect((await saved(page)).campaign.sagaTutorial.completed).not.toContain("affinity-cycle");
   await page.locator('[data-coach-answer="viento"]').click();
-  await expect(coach(page)).toBeHidden();
+  await expect(coach(page)).toContainText("Ya estás preparado");
   expect((await saved(page)).campaign.sagaTutorial.completed).toEqual(expect.arrayContaining(["dictionary", "bestiary", "affinity-cycle"]));
 });
 
@@ -205,10 +247,14 @@ test("la preparación permite recuperar PR y financiar materiales si ya se gasta
     await page.locator(`[data-skill-select="${id}"]`).click(); await page.locator(`[data-skill-invest="${id}"]`).click();
   }
   await page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="0"]').click();
-  const original = (await saved(page)).loadout[0];
-  await page.locator('[data-loadout-remove="0"]').click(); await page.locator(`[data-skill-select="${original}"]`).click(); await page.locator(`[data-technique-toggle="${original}"]`).click();
-  await map(page); await page.locator('[data-go="shop"]').click(); await page.locator('[data-coach-support]').click();
-  expect((await saved(page)).progression.coins).toBe(36);
-  expect((await saved(page)).campaign.sagaTutorial.completed).toContain("aid-buy-potions");
+  // La ayuda para materiales pertenece al Desfiladero, cuando la poción se necesita.
+  await page.evaluate(async () => {
+    const { loadSave, writeSave } = await import("/src/save.js");
+    const save = loadSave(); save.campaign.completedMissions.push("s01"); writeSave(save);
+  });
+  await page.reload(); await headquarters(page); await page.locator('[data-mission="m02"]').click();
+  await page.locator('[data-coach-support]').click();
+  expect((await saved(page)).progression.coins).toBe(18);
+  expect((await saved(page)).campaign.sagaTutorial.completed).toContain("aid-potion-ready");
   await expect(page.locator('[data-coach-support]')).toHaveCount(0);
 });

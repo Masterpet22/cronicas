@@ -26,6 +26,6 @@ const sold = sellItem(bought.save, "health_potion", 1);
 assert.ok(sold.ok);
 assert.match(locationChangeComment("shop", bought.save, sold.save, "hana", ITEMS), /venta/);
 assert.equal(locationChangeComment("shop", funded, funded, "hana", ITEMS), null);
-const equipped = structuredClone(original); equipped.equipment.weapon = null;
+const equipped = structuredClone(original); equipped.equipment.weapon = "kunai";
 assert.notEqual(locationChangeComment("dojo", original, equipped, "mei"), locationChangeComment("dojo", original, equipped, "daichi"), "La reacción respeta la personalidad del maestro");
 console.log("Presentaciones persistentes y reacciones de los encargados verificadas.");

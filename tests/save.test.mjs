@@ -45,6 +45,9 @@ assert.equal(loadSave(slotStorage).character.name, "Kira", "Cambiar de ranura de
 deleteSaveSlot(2, slotStorage);
 assert.equal(listSaveSlots(slotStorage)[1].save, null, "Una ranura borrada debe quedar disponible para una partida nueva");
 
+assert.equal(save.equipment.weapon, null, "La partida nueva conserva el kunai en el inventario hasta equiparlo");
+assert.equal(derivedStats(save).damageBonus, 13, "Sin equipar, el kunai no aporta fuerza");
+save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
 const initialStats = derivedStats(save);
 assert.equal(initialStats.damageBonus, 15, "La fuerza base, Daichi y el kunai inicial deben acumularse");
 assert.equal(initialStats.damageReduction, 0, "Daichi no debe conceder la ventaja defensiva de Mei");

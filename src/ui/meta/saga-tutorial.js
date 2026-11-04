@@ -9,7 +9,15 @@ import { revealTutorialControl, tutorialControl } from "./tutorial-controls.js";
 export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
   let view, host, ambient, stage, launcher, marked, message = "", signature = "", dismissed = "", previousStep = "", notice = "", noticeTimer = 0;
   const escape = value => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-  const currentStep = () => pendingTutorialPreparation(getSave()) || FIELD_LESSONS[view]?.find(item => !lessonCompleted(getSave(), item.id));
+  const currentStep = () => {
+    const save = getSave();
+    // A field scene owns its objectives; village preparation must never leak into it.
+    if (FIELD_LESSONS[view]) return FIELD_LESSONS[view].find(item => !lessonCompleted(save, item.id));
+    const pending = pendingTutorialPreparation(save);
+    if (pending) return pending;
+    const course = currentTutorialCourse(save);
+    return course && !["headquarters", "plaza", "debug"].includes(view) ? { id: "return-to-mission", view: "headquarters", title: "Ya estás preparado", text: "Vuelve al Cuartel General y abre la siguiente misión de Futuro prometedor.", destination: true } : null;
+  };
   const event = value => {
     const before = getSave(), next = observeTutorialEvent(before, value);
     if (next !== before) { notice = ""; clearTimeout(noticeTimer); persist(next); message = "Práctica registrada."; refresh(); }
@@ -28,7 +36,10 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
   };
   function refresh() {
     if (!host?.isConnected) return;
-    const step = notice ? { id: "notice", view, title: "Un consejo antes de continuar", text: notice } : currentStep(), save = getSave();
+    const requested = currentStep(), save = getSave();
+    const destination = requested?.view && requested.view !== view ? requested.view : null;
+    const places = { headquarters: "Cuartel General", dojo: "Dojo", shop: "Tienda", archive: "Biblioteca" };
+    const step = notice ? { id: "notice", view, title: "Un consejo antes de continuar", text: notice } : destination ? { ...requested, view, title: requested.destination ? requested.title : `Siguiente: ${places[destination]}`, text: requested.destination ? requested.text : `Tu próximo objetivo es «${requested.title}». Ve al ${places[destination]} para continuar.`, quiz: null } : requested;
     if (previousStep !== step?.id) { message = ""; previousStep = step?.id; }
     const options = root.querySelector("[data-stage-options]");
     if (view === "archive" && save.campaign.archiveUnlocked && !options?.hidden) {
@@ -38,7 +49,9 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
         if (next !== save) { persist(next); return; }
       }
     }
-    const visible = Boolean(step && (!step.view || step.view === view) && dismissed !== `${view}:${step.id}` && !options?.hidden);
+    const speech = root.querySelector('[data-stage-speech]');
+    const blocked = options?.hidden || speech && !speech.hidden || root.querySelector('.dialogue-overlay, .mission-decision-overlay, .master-modal:not([hidden]), .combat-pause-access, .mission-pause-dialog[open]') || document.querySelector('.game-settings[open]');
+    const visible = Boolean(step && dismissed !== `${view}:${step.id}` && !blocked);
     if (host.hidden === visible) host.hidden = !visible;
     stage?.classList.toggle("has-guided-speaker", visible);
     if (ambient) {
@@ -47,7 +60,7 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
       if (visible && !ambient.hidden) ambient.hidden = true;
       else if (!visible && wasTutorial) ambient.hidden = true;
     }
-    const control = visible ? tutorialControl(root, step, save, view) : null;
+    const control = visible && !destination ? tutorialControl(root, step, save, view) : null;
     if (marked !== control?.element) { marked?.classList.remove("saga-tutorial-target"); marked = control?.element; }
     marked?.classList.add("saga-tutorial-target");
     if (control?.skill) root.dataset.tutorialSkill = control.skill; else delete root.dataset.tutorialSkill;
@@ -56,12 +69,13 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
       if (launcher.textContent !== label) launcher.textContent = label;
     }
     if (!visible) return;
-    const aid = support(step);
+    const aid = destination ? null : support(step);
     const actor = tutorialActor(save, view, view !== "dojo" && !["affinity-cycle", "field-pause"].includes(step.id) ? "guardian" : "master");
     const key = JSON.stringify([step.id, step.text, control?.instruction, aid, message, actor.id, save.character.affinity]);
     if (key === signature) return;
     signature = key;
-    host.innerHTML = `${tutorialCharacterMarkup(actor)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}<button type="button" data-coach-close aria-label="Cerrar explicación">×</button></header><h3>${escape(step.title)}</h3><div class="tutorial-dialogue-body"><p>${escape(step.text)}</p>${notice ? "" : `<p class="tutorial-control-instruction" role="status">${escape(control?.instruction || "Sigue la indicación de tu maestro.")}</p>`}${step.quiz === "affinity" ? `<div class="saga-coach-answers" role="group" aria-label="Rival vulnerable a ${escape(elementName(save.character.affinity))}">${BASIC_ELEMENT_IDS.map(id => `<button type="button" data-coach-answer="${id}">${elementName(id)}</button>`).join("")}</div>` : ""}<p class="saga-coach-message" role="status">${escape(message)}</p></div><footer><button type="button" data-coach-go>${notice ? "Entendido" : control?.reveal ? "Abrir el paso indicado" : "Mostrar el control"}</button></footer></section>`;
+    host.dataset.coachStep = step.id;
+    host.innerHTML = `${tutorialCharacterMarkup(actor)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}<button type="button" data-coach-close aria-label="Cerrar explicación">×</button></header><h3>${escape(step.title)}</h3><div class="tutorial-dialogue-body"><p>${escape(step.text)}</p>${notice || destination ? "" : `<p class="tutorial-control-instruction" role="status">${escape(control?.instruction || "Sigue la indicación de tu maestro.")}</p>`}${step.quiz === "affinity" ? `<div class="saga-coach-answers" role="group" aria-label="Rival vulnerable a ${escape(elementName(save.character.affinity))}">${BASIC_ELEMENT_IDS.map(id => `<button type="button" data-coach-answer="${id}">${elementName(id)}</button>`).join("")}</div>` : ""}<p class="saga-coach-message" role="status">${escape(message)}</p></div><footer><button type="button" data-coach-go>${notice ? "Entendido" : destination ? `Ir al ${places[destination]}` : control?.reveal ? "Abrir el paso indicado" : "Mostrar el control"}</button></footer></section>`;
     if (aid) host.querySelector(".saga-coach-message").insertAdjacentHTML("beforebegin", aid.reset
       ? '<p>Puedes devolver todas las inversiones de técnicas y reasignarlas. Se retiran las mejoras compradas; conservas los atributos.</p><button type="button" data-coach-support>Recuperar PR invertidos</button>'
       : `<p>Tu maestro puede aportar las ${aid.coins} monedas que faltan, una sola vez para esta práctica.</p><button type="button" data-coach-support>Solicitar ayuda para materiales</button>`);
@@ -96,7 +110,10 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
           else if (aid) persist(recordTutorialLesson({ ...save, progression: { ...save.progression, coins: save.progression.coins + aid.coins } }, `aid-${step.id}`));
           navigate(view); return;
         }
-        if (action.target.closest("[data-coach-go]")) { if (notice) { notice = ""; refresh(); } else revealTutorialControl(tutorialControl(root, currentStep(), getSave(), view)); }
+        if (action.target.closest("[data-coach-go]")) {
+          if (notice) { notice = ""; refresh(); }
+          else { const step = currentStep(); if (step?.view && step.view !== view) navigate(step.view); else revealTutorialControl(tutorialControl(root, step, getSave(), view)); }
+        }
         const answer = action.target.closest("[data-coach-answer]");
         if (answer) { const before = getSave(); event({ type: "affinity-answer", key: answer.dataset.coachAnswer }); if (before === getSave()) { message = "Revisa el ciclo elemental y vuelve a elegir."; refresh(); } }
       });
@@ -105,8 +122,7 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
         queueMicrotask(() => {
           if (!nextScope.isCurrent()) return;
           if (button.dataset.saga) event({ type: "saga" });
-          if (button.dataset.equipmentType && getSave().equipment[button.dataset.equipmentType] === button.dataset.equipmentId) event({ type: "gear", key: button.dataset.equipmentType });
-          if (button.hasAttribute("data-open-master") && !root.querySelector(".master-modal")?.hidden) event({ type: "master" });
+          if (button.hasAttribute("data-close-master") && root.querySelector(".master-modal")?.hidden) event({ type: "master" });
           const archive = button.dataset.archiveTab;
           if (archive && getSave().campaign.archiveUnlocked && !root.querySelector(`[data-archive-panel="${archive}"]`)?.hidden) event({ type: archive });
           refresh();
@@ -115,6 +131,7 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
       scope.listen(root, "mission-resumed", () => {
         if (view === "kagemori") { persist(recordTutorialLesson(getSave(), "field-pause")); refresh(); }
       });
+      scope.listen(document.querySelector(".game-settings"), "toggle", refresh);
       scope.listen(root, "input", action => {
         if (action.target.matches("[data-dictionary-search]") && action.target.value.trim() && root.querySelectorAll(".dictionary-entry").length) event({ type: "dictionary" });
       });
@@ -149,7 +166,7 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
         queued = true;
         queueMicrotask(() => { queued = false; if (scope.isCurrent()) refresh(); });
       });
-      observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "aria-selected", "aria-pressed", "data-selected-skill"] });
+      observer.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["hidden", "open", "aria-selected", "aria-pressed", "data-selected-skill"] });
       queueMicrotask(() => { if (scope.isCurrent()) refresh(); });
       scope.onCleanup(() => { observer.disconnect(); clearTimeout(noticeTimer); notice = ""; stage?.classList.remove("has-guided-speaker"); marked?.classList.remove("saga-tutorial-target"); delete root.dataset.tutorialSkill; });
     }

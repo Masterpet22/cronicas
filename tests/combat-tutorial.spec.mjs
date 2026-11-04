@@ -27,6 +27,7 @@ async function prepare(page, { manual = false, emptyLoadout = false, completed =
     localStorage.clear();
     sessionStorage.clear();
     const save = createCharacter(createDefaultSave(), { name: "Aprendiz", affinity, bodyType: "male", appearance: "#315f87" });
+    save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
     save.campaign.tutorialSeen = true; save.campaign.doctorBookDeliveryPending = true;
     if (mastered) {
       save.progression.level = 8;
@@ -84,21 +85,38 @@ async function openArchive(page) {
 async function step(page, id) {
   await expect(page.locator(`.combat-tutorial[data-tutorial-step="${id}"] .tutorial-dialogue-box`)).toBeVisible({ timeout: 20000 });
 }
-const next = page => page.locator("[data-tutorial-next]").click();
-test("el tutorial muestra a Ren y al maestro con personaje grande y diálogo de escena", async ({ page }, info) => {
+const next = async page => {
+  const guide = page.locator(".combat-tutorial");
+  const practicing = await guide.evaluate(el => el.classList.contains("is-practicing"));
+  const target = await guide.getAttribute("data-tutorial-target");
+  if (practicing && target !== "pause") {
+    const selector = target === "table" ? "[data-skill-table-switch]" : target === "bag" ? ".combat-access-inventory" : `[data-combat-action="${target.split(":")[1]}"]`;
+    await page.locator(selector).click();
+  } else await page.locator("[data-tutorial-next]").click();
+};
+test("el maestro acompaña el combate y Ren permanece en el Cuartel", async ({ page }, info) => {
+  test.setTimeout(150000);
   await prepare(page, { trained: false }); await launch(page);
-  await expect(page.locator('[data-dialogue-character="ren"] img')).toBeVisible();
-  const image = await page.locator('[data-dialogue-character="ren"] img').boundingBox();
+  await expect(page.locator('[data-dialogue-character="mei"] img')).toBeVisible();
+  await expect(page.locator('[data-dialogue-character="ren"]')).toHaveCount(0);
+  const image = await page.locator('[data-dialogue-character="mei"] img').boundingBox();
   expect(image.width).toBeGreaterThan(200); expect(image.height).toBeGreaterThan(300);
   await expect(page.locator(".tutorial-card, .tutorial-voices")).toHaveCount(0);
   const game = await page.locator("#game").boundingBox();
   const box = await page.locator(".tutorial-dialogue-box").boundingBox();
   expect(box.y).toBeGreaterThan(game.y + game.height * .6);
   await page.locator("#game").screenshot({ path: info.outputPath("ren-dialogo-escena.png") });
-  await next(page); await step(page, "health");
+  await next(page); await step(page, "timeline");
   await expect(page.locator('[data-dialogue-character="mei"] img')).toBeVisible();
   await expect(page.locator('[data-tutorial-speaker="mei"]')).toBeVisible();
-  await page.locator("#game").screenshot({ path: info.outputPath("mei-dialogo-escena.png") });
+  await next(page); await step(page, "strike");
+  await page.locator('[data-tutorial-next]').click();
+  await expect(page.locator('[data-combat-action="1"]')).toBeFocused();
+  await expect(page.locator('.combat-tutorial')).toHaveAttribute("data-tutorial-step", "strike");
+  await expect(page.locator('.tutorial-character-stage')).toBeHidden();
+  await page.locator("#game").screenshot({ path: info.outputPath("practica-control-real.png") });
+  await page.locator('[data-combat-action="1"]').click();
+  await step(page, "guard");
 });
 async function practical(page, manual = false) {
   await intro(page);
@@ -126,7 +144,7 @@ async function practical(page, manual = false) {
   await step(page, "complete"); await next(page);
 }
 async function intro(page) {
-  for (const id of ["welcome", "health", "chakra", "affinity", "timeline", "enemy-turn"]) { await step(page, id); await next(page); }
+  for (const id of ["welcome", "timeline"]) { await step(page, id); await next(page); }
 }
 
 for (const [affinity, weak] of Object.entries({ fuego: "viento", agua: "fuego", tierra: "agua", viento: "tierra" })) {
