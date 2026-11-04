@@ -89,7 +89,7 @@ const next = async page => {
   const guide = page.locator(".combat-tutorial");
   const practicing = await guide.evaluate(el => el.classList.contains("is-practicing"));
   const target = await guide.getAttribute("data-tutorial-target");
-  if (practicing && target !== "pause") {
+  if (practicing) {
     const selector = target === "table" ? "[data-skill-table-switch]" : target === "bag" ? ".combat-access-inventory" : `[data-combat-action="${target.split(":")[1]}"]`;
     await page.locator(selector).click();
   } else await page.locator("[data-tutorial-next]").click();
@@ -130,15 +130,6 @@ async function practical(page, manual = false) {
     }
   }
   await step(page, "cooldowns"); await next(page);
-  await step(page, "pause");
-  const highlight = await page.locator(".tutorial-spotlight").boundingBox();
-  const pause = await page.locator(".combat-access-pause").boundingBox();
-  const bag = await page.locator(".combat-access-inventory").boundingBox();
-  const contains = box => box.x + box.width / 2 >= highlight.x && box.x + box.width / 2 <= highlight.x + highlight.width && box.y + box.height / 2 >= highlight.y && box.y + box.height / 2 <= highlight.y + highlight.height;
-  expect(contains(pause)).toBe(true); expect(contains(bag)).toBe(false);
-  await next(page);
-  await expect(page.locator("[data-pause-resume]")).toBeVisible();
-  await page.locator("[data-pause-resume]").click();
   await step(page, "complete"); await next(page);
 }
 async function intro(page) {
@@ -317,7 +308,8 @@ test("la primera misión exige prácticas reales y conserva las lecciones al pau
   await practical(page);
   await expect(page.locator(".combat-tutorial")).toBeHidden();
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
-  for (const id of ["strike", "guard", "weapon", "throwable", "technique", "pause"]) expect(saved.campaign.sagaTutorial.completed).toContain(id);
+  for (const id of ["strike", "guard", "weapon", "throwable", "technique"]) expect(saved.campaign.sagaTutorial.completed).toContain(id);
+  expect(saved.campaign.sagaTutorial.completed).not.toContain("pause");
   expect(saved.progression).toEqual(baseline.progression);
   expect(saved.campaign.completedMissions).toEqual([]);
   await page.keyboard.press("Escape");

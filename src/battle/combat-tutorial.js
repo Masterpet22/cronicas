@@ -7,7 +7,7 @@ import { CHAKRA_BALANCE } from "../chakra-balance.js?v=1.0.0";
 
 export function needsCombatTutorial(save, mission) {
   const plan = COMBAT_LESSONS[tutorialCourseFor(mission)?.battle];
-  return Boolean(plan && !save.campaign.completedMissions.includes(mission.id) && (plan.actions.some(step => step.lesson && !lessonCompleted(save, step.lesson)) || plan.pause && !lessonCompleted(save, "pause")));
+  return Boolean(plan && !save.campaign.completedMissions.includes(mission.id) && plan.actions.some(step => step.lesson && !lessonCompleted(save, step.lesson)));
 }
 
 // Cada avance práctico procede del control real o de una acción terminada.
@@ -21,7 +21,7 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   parent.append(root);
   const presentation = root.querySelector(".tutorial-character-dialogue"), spotlight = root.querySelector(".tutorial-spotlight"), shade = root.querySelector(".tutorial-shade");
   const next = root.querySelector("[data-tutorial-next]"), exit = root.querySelector(".tutorial-skip");
-  let active = true, current = null, pending = null, index = 0, phase = "intro", destroyed = false, sealsExplained = false, pauseAwaited = false;
+  let active = true, current = null, pending = null, index = 0, phase = "intro", destroyed = false, sealsExplained = false;
   const step = () => plan.actions[index];
   const actionFor = specification => {
     const actions = Array.from({ length: 6 }, (_, i) => scene.accessibleHud.getAction(i)).filter(Boolean);
@@ -91,7 +91,6 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   const onPause = () => { root.hidden = true; };
   const onResume = () => {
     root.hidden = !active;
-    if (pauseAwaited) { pauseAwaited = false; recordBattleLesson(scene, "pause"); const done = pending; pending = null; hide(); done?.(true); }
     position();
   };
   scene.events.on("pause", onPause); scene.events.on("resume", onResume); hide();
@@ -101,11 +100,7 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   const finishPractice = async () => {
   phase = "outro";
   if (plan === COMBAT_LESSONS.basics) await page({ id: "cooldowns", target: "action:2", title: "Tu técnica necesita recuperarse", copy: `CD indica cuántas acciones debes esperar para repetir una técnica. Mientras se recupera, puedes usar Golpe veloz, tu equipo o Guardia. Cada acción recupera ${CHAKRA_BALANCE.turnRecovery} CH; Guardia recupera ${CHAKRA_BALANCE.guardRecovery} CH en total.` });
-  if (plan.pause && active) await new Promise(resolve => {
-    pending = resolve; pauseAwaited = true;
-    show({ id: "pause", target: "pause", title: "Pausa y reanuda el combate", copy: "Abre la pausa real y pulsa Reanudar. Allí puedes cambiar los sellos manuales, sonido, movimiento y destellos. Abandonar exige confirmación y pierde las recompensas provisionales; los objetos consumidos no regresan.", practice: true, button: "Abrir pausa" }, pause);
-  });
-  if (active) await page({ id: "complete", title: "Ahora tú decides", copy: "Ya has realizado las acciones guiadas. A partir de ahora ambos podéis caer: elige tus ataques y defensas para completar el duelo. Puedes pausar cuando lo necesites.", button: onReplayExit ? "Volver a la Biblioteca" : "Continuar la misión" });
+  if (active) await page({ id: "complete", title: "Ahora tú decides", copy: "Ya has realizado las acciones guiadas. A partir de ahora ambos podéis caer: elige tus ataques y defensas para completar el duelo.", button: onReplayExit ? "Volver a la Biblioteca" : "Continuar la misión" });
   const complete = active; close(); if (complete && onReplayExit) onReplayExit();
   };
   const guide = {
@@ -145,7 +140,7 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
     },
     async seals() {
       if (!active || sealsExplained) return; sealsExplained = true;
-      await page({ id: "seals", target: "seals", title: "Completa los sellos de esta técnica", copy: scene.manualSeals ? "Pulsa la letra de la tarjeta iluminada con QWER / ASDF / ZXCV o haz clic en ella. La práctica no tiene reloj. Sin errores: +10 % de daño; más de dos errores lo reducen." : "Tienes sellos automáticos: las tarjetas se completan solas y no conceden la bonificación manual. Puedes cambiarlo en los ajustes de pausa." });
+      await page({ id: "seals", target: "seals", title: "Completa los sellos de esta técnica", copy: scene.manualSeals ? "Pulsa la letra de la tarjeta iluminada con QWER / ASDF / ZXCV o haz clic en ella. La práctica no tiene reloj. Sin errores: +10 % de daño; más de dos errores lo reducen." : "Tienes sellos automáticos: las tarjetas se completan solas y no conceden la bonificación manual." });
     },
     async afterAction(action) {
       if (!active || phase !== "practice" || !guide.canUse(action)) return;

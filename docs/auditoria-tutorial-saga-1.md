@@ -40,7 +40,7 @@ Estas pautas orientan el diseño; no sustituyen una prueba de comprensión con p
 | Módulo | Necesidad narrativa | Aprendizaje principal |
 | --- | --- | --- |
 | Tras las huellas del gato | Prepararse y recuperar el gato robado. | Equipar objetos, conocer al acompañante, decidir al llegar el turno, atacar, defenderse, usar equipo y ejecutar una técnica. |
-| El silencio de Kagemori | Seguir el rastro de los saqueadores. | Usar el crecimiento obtenido, aprender y preparar un taijutsu, pausar e investigar. |
+| El silencio de Kagemori | Seguir el rastro de los saqueadores. | Usar el crecimiento obtenido, aprender y preparar un taijutsu e investigar. |
 | Asalto al Desfiladero | Entrar en la cantera y afrontar una decisión. | Comprar una poción porque se necesitará, curar una herida, pagar el coste de un taijutsu y decidir sobre el teniente. |
 | El médico errante | Encontrar a Haru y entender el mapa. | Elegir rutas conectadas, resolver sus incidentes y descifrar sin cuenta atrás. |
 | El umbral de los cuervos | Preparar la infiltración con información. | Consultar registros, reconocer el ciclo elemental y aplicarlo. |

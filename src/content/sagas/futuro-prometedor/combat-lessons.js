@@ -12,7 +12,7 @@ export const COMBAT_LESSONS = {
       { id: "throwable", kind: "throwable", title: "Lanza el shuriken", copy: "Usa el shuriken de la tabla física. Es reutilizable: lanzarlo no gasta el objeto ni consume PV o CH. Sigue su estela hasta el blanco Normal.", lesson: "throwable" },
       { id: "elemental-table", kind: "table", table: "elemental", title: "Vuelve a las técnicas elementales", copy: "Pulsa 0 otra vez para recuperar tus técnicas equipadas. Tener una técnica aprendida y llevarla equipada son cosas distintas." },
       { id: "technique", kind: "technique", title: "Ejecuta una técnica elemental", copy: "La barra CH es tu chakra. La técnica señalada gasta la cantidad indicada en su botón. Púlsala y observa cómo baja CH; después prepararás sus sellos.", lesson: "technique" }
-    ], pause: true
+    ]
   },
   resources: {
     intro: [{ id: "resources", title: "PV, objetos y decisiones", copy: "Al cruzar las rocas de la entrada te has hecho un rasguño. Mira los PV que te faltan: usa la poción que trajiste. Después probarás el taijutsu que aprendiste en el Dojo." }],

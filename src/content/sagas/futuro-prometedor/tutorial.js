@@ -9,13 +9,13 @@ export const SAGA_TUTORIAL = [
     lesson("mentor", "Conoce a tu maestro", "Te acompañaré durante la misión. Consulta mi ficha para conocer cómo te ayuda mi enseñanza y vuelve conmigo cuando estés listo.", "dojo", '[data-open-master]', { type: "master" }),
     lesson("initial-elemental", "Prepara una técnica elemental", "Quiero que llevemos una de tus técnicas preparada. Elige una que ya conozcas y equípala; la practicaremos juntos en el bosque.", "dojo", '[data-dojo-tab="techniques"]', null, { state: "elemental" }),
     lesson("initial-kit", "Revisa el equipo para partir", "Nos falta preparar el arma o el shuriken. Revisa sus ranuras y, cuando los tengas, volveremos al Cuartel.", "dojo", '[data-dojo-tab="equipment"]', null, { state: "equipment" })
-  ], practices: ["strike", "guard", "weapon", "throwable", "technique", "pause", ...SHARED_TUTORIAL_PRACTICES] },
+  ], practices: ["strike", "guard", "weapon", "throwable", "technique", ...SHARED_TUTORIAL_PRACTICES] },
   { missionId: "s01", title: "Preparación e investigación", before: [
     lesson("attribute", "Invierte un punto de atributo", "Has aprendido de tu primera victoria. Ven a Estadísticas y dedica un punto al atributo que prefieras. Fíjate en cómo cambia tu personaje.", "dojo", '[data-attribute]:not([disabled])', { type: "attribute" }, { state: "attribute" }),
     lesson("foundation", "Mejora Disciplina del cuerpo", "Vamos a fortalecer tu base. Busca Disciplina del cuerpo en Técnicas y mejórala con un punto de resonancia, o PR. Estos puntos sirven para aprender y mejorar habilidades.", "dojo", '[data-skill-select="physical_0"]', { type: "invest", key: "physical_0" }, { state: "investment", key: "physical_0" }),
     lesson("learn-punch", "Aprende Puño de hierro", "Con esa base ya puedo enseñarte Puño de hierro. Selecciónalo en la rama física y dedica un PR a aprenderlo.", "dojo", '[data-skill-select="physical_1"]', { type: "invest", key: "physical_1" }, { state: "investment", key: "physical_1" }),
     lesson("equip-punch", "Prepara un taijutsu", "Ya conoces Puño de hierro. Ahora prepáralo en T1 o T2 para poder usarlo. Recuerda que este esfuerzo se paga con vida, no con chakra.", "dojo", '[data-skill-select="physical_1"]', { type: "taijutsu" }, { state: "taijutsu" })
-  ], practices: ["field-pause", "clue-cart", "clue-hall", "clue-well", "investigation"] },
+  ], practices: ["clue-cart", "clue-hall", "clue-well", "investigation"] },
   { missionId: "m02", title: "Recursos y decisiones", battle: "resources", before: [
     lesson("potion-ready", "Compra una poción de vida", "¿Vas al Desfiladero? Te recomiendo llevar una poción de vida. Cuesta 18 monedas y te permitirá curarte si te hieren.", "shop", '[data-shop-item="health_potion"]', null, { state: "item", key: "health_potion", practice: "potion" }),
     lesson("punch-ready", "Comprueba tu taijutsu", "Equipa Puño de hierro en T1 o T2. Se practicará con su coste real de vida.", "dojo", '[data-taijutsu-choose]', null, { state: "taijutsu", practice: "taijutsu" })
@@ -38,7 +38,6 @@ export const SAGA_TUTORIAL = [
 export const TUTORIAL_LESSON_IDS = [...SAGA_TUTORIAL.flatMap(course => [...course.before.map(step => step.id), ...course.practices]), "remove-technique", "equip-technique", "buy-potions", "sell-potion", "aid-buy-potions", "aid-potion-ready", "aid-buy-tonic"];
 export const FIELD_LESSONS = {
   kagemori: [
-    { id: "field-pause", title: "Aprende a pausar", text: "Antes de investigar, prueba a detener la misión con Pausa y volver con Reanudar. También puedes hacerlo con Escape; te esperaré mientras lo necesites.", selector: "[data-mission-pause]" },
     { id: "clue-cart", title: "Investiga la carreta", text: "Mira esa carreta. Los saqueadores dejaron algo atrás; acércate y examínala para que podamos seguir su rastro.", selector: '[data-clue="cart"]' },
     { id: "clue-hall", title: "Relaciona el polvo gris", text: "Investiga la casa comunal. Observa qué objeto permite relacionar a los saqueadores con una cantera.", selector: '[data-clue="hall"]' },
     { id: "clue-well", title: "Reconstruye la salida", text: "Investiga el pozo y las huellas. Reunir las tres pistas abrirá la conclusión; confirma el informe para completar la misión.", selector: '[data-clue="well"]' }

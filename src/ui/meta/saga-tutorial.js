@@ -54,7 +54,7 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
     const visible = Boolean(step && dismissed !== `${view}:${step.id}` && !blocked);
     if (host.hidden === visible) host.hidden = !visible;
     stage?.classList.toggle("has-guided-speaker", visible);
-    const actor = tutorialActor(save, view, view !== "dojo" && !["affinity-cycle", "field-pause"].includes(step?.id) ? "guardian" : "master");
+    const actor = tutorialActor(save, view, view !== "dojo" && step?.id !== "affinity-cycle" ? "guardian" : "master");
     stage?.querySelectorAll('[data-stage-npc]').forEach(character => character.classList.toggle("tutorial-speaking", visible && character.dataset.stageNpc === actor.id));
     if (ambient) {
       const wasTutorial = ambient.classList.contains("has-tutorial-dialogue");
@@ -131,9 +131,6 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
           refresh();
         });
       });
-      scope.listen(root, "mission-resumed", () => {
-        if (view === "kagemori") { persist(recordTutorialLesson(getSave(), "field-pause")); refresh(); }
-      });
       scope.listen(document.querySelector(".game-settings"), "toggle", refresh);
       scope.listen(root, "input", action => {
         if (action.target.matches("[data-dictionary-search]") && action.target.value.trim() && root.querySelectorAll(".dictionary-entry").length) event({ type: "dictionary" });
@@ -143,9 +140,6 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
         if (button?.dataset.skillInvest) {
           const required = course?.before.find(step => step.state === "investment" && !tutorialStepSatisfied(step, getSave()));
           if (required && required.key !== button.dataset.skillInvest) { action.preventDefault(); action.stopImmediatePropagation(); tell(`Reserva estos PR para la práctica: ${required.title}.`); }
-        }
-        if (action.target.closest("[data-clue]") && !lessonCompleted(getSave(), "field-pause")) {
-          action.preventDefault(); action.stopImmediatePropagation(); tell("Primero abre Pausa y pulsa Reanudar. Después podrás investigar.");
         }
       }, { capture: true });
       scope.listen(root, "submit", action => {

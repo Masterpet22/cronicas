@@ -190,7 +190,6 @@ export function createMissionBoardsView(deps) {
           const showLabel = () => label?.classList.add("visible");
           const hideLabel = () => label?.classList.remove("visible");
           const collectClue = () => {
-            if (deps.onTutorialLesson && !lessonCompleted(getSave(), "field-pause")) return;
             const clue = KAGEMORI_CLUES.find((entry) => entry.id === area.dataset.clue);
             if (!clue || state.investigatedClues.has(clue.id)) return;
             state.investigatedClues.add(clue.id);

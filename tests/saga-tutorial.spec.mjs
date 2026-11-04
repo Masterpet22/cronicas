@@ -50,7 +50,7 @@ const next = async page => {
   const guide = page.locator(".combat-tutorial");
   const practicing = await guide.evaluate(el => el.classList.contains("is-practicing"));
   const target = await guide.getAttribute("data-tutorial-target");
-  if (practicing && target !== "pause") {
+  if (practicing) {
     const selector = target === "table" ? "[data-skill-table-switch]" : target === "bag" ? ".combat-access-inventory" : `[data-combat-action="${target.split(":")[1]}"]`;
     await page.locator(selector).click();
   } else await page.locator("[data-tutorial-next]").click();
@@ -145,15 +145,16 @@ test("Kagemori enseña crecimiento y permite investigar sin trámites comerciale
   expect(errors).toEqual([]);
 });
 
-test("la investigación acredita pausa con Escape y conserva las pistas al recargar", async ({ page }) => {
+test("la investigación empieza sin aprender pausa y conserva las pistas al recargar", async ({ page }) => {
   await seed(page, 1, true);
   await page.locator(".debug-tools-trigger").click(); await page.locator('[data-debug-view="kagemori"]').click();
   for (let i = 0; i < 12 && await page.locator("[data-stage-next]").isVisible(); i++) await page.locator("[data-stage-next]").click();
-  await page.keyboard.press("Escape"); await expect(page.locator(".mission-pause-dialog")).toBeVisible();
-  await page.keyboard.press("Escape");
-  await expect.poll(async () => (await saved(page)).campaign.sagaTutorial.completed).toContain("field-pause");
+  await expect(coach(page)).toHaveAttribute("data-coach-step", "clue-cart");
   await page.locator('[data-clue="cart"]').focus(); await page.keyboard.press("Enter");
   await expect(page.locator("[data-clue-count]")).toHaveText("1/3 pistas");
+  await page.keyboard.press("Escape"); await expect(page.locator(".mission-pause-dialog")).toBeVisible();
+  await page.keyboard.press("Escape");
+  expect((await saved(page)).campaign.sagaTutorial.completed).not.toContain("field-pause");
   await page.reload(); await page.locator(".debug-tools-trigger").click(); await page.locator('[data-debug-view="kagemori"]').click();
   await expect(page.locator("[data-clue-count]")).toHaveText("1/3 pistas");
 });

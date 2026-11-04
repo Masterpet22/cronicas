@@ -18,6 +18,7 @@ for (const [bodyType, master] of [["male", "mei"], ["female", "daichi"]]) {
   assert.equal(tutorialActor(pupil, "doctor-route", "guardian").id, master, "Nadie aparece en campo sin haber acompañado al jugador");
 }
 assert.equal(new Set(TUTORIAL_LESSON_IDS).size, TUTORIAL_LESSON_IDS.length);
+assert.deepEqual(normalizeSagaTutorial({ version: 3, completed: ["strike", "pause", "field-pause"] }).completed, ["strike"], "Las antiguas lecciones de pausa se descartan sin bloquear la partida");
 assert.equal(SAGA_TUTORIAL.length, 7);
 const firstMission = MISSIONS.find(m => tutorialCourseFor(m)?.battle === "basics");
 for (const affinity of ["fuego", "agua", "tierra", "viento"]) {
