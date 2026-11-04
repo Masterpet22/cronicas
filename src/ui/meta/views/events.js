@@ -1,5 +1,6 @@
 import { worldDate, monthOf, monthLength, shiftMonth, calendarMonth, monthLabel, dateLabel, eventDateLabel, dateNumber, addDays, eventsBetween, plazaSchedule, EVENT_TYPES, eventProgress, eventCatalog, calendarDayComment, calendarDayActions, actOnPlazaEvent } from "../../../plaza-events.js?v=0.130.0";
 import { normalizeBirthday, BIRTHDAY_MONTHS } from "../../../birthday.js?v=0.127.0";
+import { locationAccess } from "../../../village-progression.js";
 
 export function createEventsView(deps) {
   let save, host, scope, today, month, selectedDay, timer = null, selectedEvent = null, message = "";
@@ -8,9 +9,11 @@ export function createEventsView(deps) {
   const schedule = () => plazaSchedule(today, eventCatalog(save));
   const monthEvents = () => eventsBetween(`${month}-01`, `${month}-${monthLength(month)}`, eventCatalog(save));
   const commentSelectedDay = () => deps.onCalendarComment?.(calendarDayComment(save, selectedDay, clock()), calendarDayActions(save, selectedDay).map(action => ({
-    ...action, onSelect() {
+    ...action, disabled: action.disabled || Boolean(action.destination && !locationAccess(action.destination, save).unlocked),
+    label: action.destination && !locationAccess(action.destination, save).unlocked ? `${action.label} · ${locationAccess(action.destination, save).reason}` : action.label,
+    onSelect() {
       if (!scope?.isCurrent()) return;
-      if (action.destination) return deps.onNavigate(action.destination);
+      if (action.destination) { if (locationAccess(action.destination, save).unlocked) deps.onNavigate(action.destination); return; }
       selectedEvent = action.eventKey; paint();
       const detail = host.querySelector("[data-event-detail]");
       if (!detail) return;
@@ -48,7 +51,7 @@ export function createEventsView(deps) {
     }).join("")}</tr>`).join("")}</tbody></table><div class="events-legend" aria-label="Tipos de evento">${Object.values(EVENT_TYPES).map(type => `<span style="--event-color:${type.color}"><i></i>${type.label}</span>`).join("")}</div><small class="events-calendar-note">Calendario anual y mensual · Hora de Bolivia · Semana de domingo a sábado.</small></section><aside class="events-agenda"><header><p class="eyebrow">${escape(dateLabel(selectedDay))}</p><h3>${selected ? "Actividades del día" : "Un día en la aldea"}</h3></header>${dayPicker}${selected ? eventDetails(selected) : '<p class="event-free-day">No hay eventos programados para este día. Consulta las fechas marcadas del mes.</p>'}<h4>Eventos de ${escape(monthLabel(month))}</h4><div class="events-month-list">${events.map(event => `<button type="button" data-select-event="${event.key}" style="--event-color:${EVENT_TYPES[event.type].color}"><small>${EVENT_TYPES[event.type].label} · ${event.start === event.end ? Number(event.start.slice(-2)) : `${Number(event.start.slice(-2))}–${Number(event.end.slice(-2))}`}</small><strong>${escape(event.title)}</strong></button>`).join("") || '<p>No hay eventos anunciados para este mes.</p>'}</div></aside></div>`;
   }
   function activityContents(event) {
-    if (event.activity !== "conversation") return `<div class="event-announcement"><span aria-hidden="true">${EVENT_TYPES[event.type].symbol}</span><h4>${event.pending === "server" ? "Visita pendiente de servidor" : event.pending === "details" ? "Combates especiales por definir" : event.activity === "tower" ? "Desafío en la Torre" : "Celebración de la aldea"}</h4>${event.destination ? `<button type="button" data-event-destination="${event.destination}">${event.destination === "tower" ? "Ir a la Torre de Desafíos" : "Ver Arena de Combate"}</button>` : ""}${event.pending === "server" ? '<button type="button" disabled>Requiere conexión al servidor</button>' : ""}</div>`;
+    if (event.activity !== "conversation") return `<div class="event-announcement"><span aria-hidden="true">${EVENT_TYPES[event.type].symbol}</span><h4>${event.pending === "server" ? "Visita pendiente de servidor" : event.pending === "details" ? "Combates especiales por definir" : event.activity === "tower" ? "Desafío en la Torre" : "Celebración de la aldea"}</h4>${event.destination ? `<button type="button" data-event-destination="${event.destination}" ${locationAccess(event.destination, save).unlocked ? "" : `disabled title="${escape(locationAccess(event.destination, save).reason)}"`}>${event.destination === "tower" ? "Ir a la Torre de Desafíos" : "Ver Arena de Combate"}</button>` : ""}${event.destination && !locationAccess(event.destination, save).unlocked ? `<p>${escape(locationAccess(event.destination, save).reason)}</p>` : ""}${event.pending === "server" ? '<button type="button" disabled>Requiere conexión al servidor</button>' : ""}</div>`;
     if (event.activity === "conversation") {
       const guest = deps.npcs[event.guest];
       return `<div class="event-guest"><img src="${guest.image}?v=${deps.assetVersion}" width="1145" height="1374" alt="${escape(guest.name)}"><div><p class="eyebrow">VISITA DE LA ALDEA</p><h3>${escape(guest.name)}</h3><p>${escape(guest.title)}</p><button type="button" data-event-talk>Conversar con ${escape(guest.name)}</button></div></div>`;

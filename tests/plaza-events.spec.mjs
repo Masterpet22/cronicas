@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { installArenaSagaForTest } from "./helpers/village-progress.mjs";
+test.beforeEach(async ({ page }) => installArenaSagaForTest(page));
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 const withIntroductions = (save, ...ids) => ({ ...save, campaign: { ...save.campaign, npcIntroductions: [...save.campaign.npcIntroductions, ...ids] } });
 const read = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
@@ -12,6 +14,8 @@ async function seed(page, time, bodyType = "male") {
   await page.evaluate(async bodyType => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.127.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType });
+    const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
+    unlockVillageForTest(save, { arena: true, rank: 2 });
     save.campaign.tutorialSeen = true; save.progression.coins = 75; save.inventory.items.health_potion = 2;
     writeSave(save); sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off"); localStorage.setItem("seal-input-mode", "automatic");
@@ -24,7 +28,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1280, height: 720
   await expect(page.locator(".events-calendar th").first()).toHaveText("Dom");
   await expect(page.locator(".events-calendar tbody td").first().locator("button")).toHaveAttribute("data-event-day", "2026-11-01");
   await expect(page.locator("[data-event-day]")).toHaveCount(30);
-  for (const [day, title] of [[5, "Día de Agua"], [11, "Bitsfury"], [12, "Día de Tierra"], [13, "segundo viernes"], [19, "Día de Fuego"], [26, "Día de Aire"], [27, "último viernes"], [28, "Festival elemental"], [30, "Fin de Aki"]]) await expect(page.locator(`[data-event-day="2026-11-${String(day).padStart(2, "0")}"]`)).toHaveAttribute("aria-label", new RegExp(title));
+  for (const [day, title] of [[5, "Día de Agua"], [11, "Bitsfury"], [12, "Día de Tierra"], [13, "segundo viernes"], [19, "Día de Fuego"], [26, "Día de Viento"], [27, "último viernes"], [28, "Festival elemental"], [30, "Fin de Aki"]]) await expect(page.locator(`[data-event-day="2026-11-${String(day).padStart(2, "0")}"]`)).toHaveAttribute("aria-label", new RegExp(title));
   await expect(page.locator("[data-event-countdown]>strong")).toHaveText(/2\s*días/);
   await page.locator('[data-event-day="2026-11-13"]').focus(); await page.locator('[data-event-day="2026-11-13"]').press("ArrowRight");
   await expect(page.locator('[data-event-day="2026-11-14"]')).toBeFocused();
@@ -158,7 +162,7 @@ test("visita Bitsfury pendiente y festival simultáneo al fin de Aki", async ({ 
   await page.getByRole("button", { name: "← Volver al mapa" }).click();
   await page.clock.setSystemTime(new Date("2027-02-26T16:00:00Z")); await enterPlaza(page);
   await expect(page.locator(".events-overlap [data-select-event]")).toHaveCount(3);
-  for (const name of ["Día de Aire", "Visita del último viernes", "Festival elemental"]) {
+  for (const name of ["Día de Viento", "Visita del último viernes", "Festival elemental"]) {
     await page.getByRole("button", { name, exact: true }).click();
     await expect(page.locator(".event-detail>h3")).toHaveText(name);
     await expect(page.locator(".events-calendar")).toBeVisible();

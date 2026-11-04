@@ -1,6 +1,8 @@
+import { PLAYER_RANK_LABELS } from "./player-rank.js";
 export const BASIC_ELEMENT_IDS = ["fuego", "agua", "tierra", "viento"];
 
 export const ELEMENTS = {
+  normal: { name: "Normal", tier: 0, parents: [], color: 0xaeb5bd },
   fuego: { name: "Fuego", tier: 1, parents: [], icon: "assets/elements/tier-1/fuego.webp", color: 0xff783d },
   agua: { name: "Agua", tier: 1, parents: [], icon: "assets/elements/tier-1/agua.webp", color: 0x55bfff },
   tierra: { name: "Tierra", tier: 1, parents: [], icon: "assets/elements/tier-1/tierra.webp", color: 0xb78a55 },
@@ -25,7 +27,7 @@ export const ELEMENTS = {
   espora: { name: "Espora", tier: 4, parents: ["vapor", "planta"], color: 0x76ae76 }
 };
 
-export const ELEMENT_RANK_LABELS = { 1: "Rango elemental 1", 2: "Rango elemental 2", 3: "Rango elemental 3" };
+export const ELEMENT_RANK_LABELS = Object.freeze(Object.fromEntries(Object.entries(PLAYER_RANK_LABELS).map(([rank, label]) => [rank, `Rango ${rank} · ${label}`])));
 
 export function basicRequirements(elementId) {
   const element = ELEMENTS[elementId];
@@ -36,6 +38,7 @@ export function basicRequirements(elementId) {
 
 export function canAccessElement(elementId, affinities = [], rank = 1) {
   const element = ELEMENTS[elementId];
+  if (elementId === "normal") return affinities.length === 1 && affinities[0] === "normal";
   if (!element || element.tier === 4 || element.tier > rank) return false;
   return basicRequirements(elementId).every((id) => affinities.includes(id));
 }

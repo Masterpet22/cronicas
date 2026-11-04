@@ -7,9 +7,11 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - Versión del paquete: `0.45.1`.
 - Estado: prototipo jugable con la primera saga disponible y expansión futura planificada.
 - Plataforma de juego habilitada: navegador en pantalla de escritorio.
-- Las nueve localidades de la aldea permiten entrar desde el mapa desde el inicio. Tienda, Torre, Arena, Gremio y Eventos muestran sus pantallas y personajes; sus servicios futuros siguen en preparación.
+- Las nueve localidades se muestran en el mapa, con requisitos visibles al enfocar las bloqueadas. Cuartel General y Dojo abren en el prólogo; Tienda tras la misión del gato; Biblioteca al regresar con el libro de Haru. Gremio, Tablón y Plaza de Eventos abren al pasar a saga 2. Arena exige saga 3 y nivel 16 o superior; Torre exige rango 2. Las sagas 2 y 3 todavía no tienen misiones, por lo que la Arena permanece bloqueada en la campaña actual. Véase [Progresión de lugares](saga-1-tutorial.md#progresión-de-lugares).
 - Guardado: tres partidas locales, esquema 29 y progreso por pasos. La carga valida nivel, rangos, presupuesto, requisitos y equipo.
 - Combate: duelos consecutivos uno contra uno, afinidades, estados, sellos, equipo, técnicas y progresión.
+- El tipo **Normal** identifica blancos sin afinidad elemental: marioneta de entrenamiento y los dos bandidos básicos del tutorial. No tiene modificadores de atributos, pasivas, ventajas ni debilidades elementales. No se elige para el jugador ni se combina con elementos. La marioneta permanece pasiva y practicar no cambia la partida.
+- El shuriken arrojadizo usa borde metálico claro, estela de trayectoria y chispas al acertar. El modo ligero y el movimiento reducido acortan la estela y omiten las chispas; desactivar destellos también las omite. Funciona para ambos combatientes, sin efectos de impacto al fallar ni cambios de daño, coste o duración del lanzamiento.
 - Cada misión incluye dos reintentos del duelo perdido, con vida y chakra restaurados, estados y recargas limpios y los duelos previos conservados. Al agotarse se necesita un pergamino de reintento; Retirada abandona la misión y descarta sus recompensas provisionales. Una misión abandonada vuelve a ofrecer Iniciar historia.
 - Durante las misiones se oculta la barra de perfil, experiencia y monedas. Kagemori, las rutas del médico y el cifrado ofrecen un botón compacto de Pausa y la tecla Esc: reanudar, ajustes y abandono con confirmación. La pausa detiene las animaciones y las esperas de la vista, incluidos los diálogos pendientes; al volver a la aldea reaparece la barra habitual.
 - El metajuego inicia sin descargar Phaser ni las escenas de combate. La primera misión carga ambos bajo demanda una sola vez; las entradas posteriores reutilizan los módulos y la instancia aparcada.
@@ -19,7 +21,9 @@ Este documento es la referencia breve del alcance vigente de *Crónicas del Sell
 - La Plaza de Eventos, el Paso del Crepúsculo y la Marisma de los Juncos también usan los fondos nuevos optimizados a WebP. Kagemori conserva únicamente su WebP activo; se eliminó el PNG antiguo sin referencias. El Santuario de la Luna sigue usando su fondo anterior.
 - Los tintes sólidos usan la API de Phaser 4 y las operaciones de pausa, reanudación y cierre validan el estado de la escena. Cerrar una transición de subida de nivel cancela sus continuaciones y restaura el HUD.
 - Los iconos accesibles del combate se recortan y tiñen una sola vez por variante. Una caché LRU ligada a Phaser los reutiliza entre misiones y se limpia al destruir la instancia.
-- La misión 1 enseña el combate con una guía de 11 pasos, foco visual y práctica real. Se puede omitir y repetir desde la Biblioteca, disponible como manual desde el inicio; el bestiario sigue requiriendo el libro de Haru.
+- Las siete misiones de la saga 1 forman la formación de Novicio, con preparación comprobada y prácticas reales de combate, equipo, atributos, PR, tienda, investigación, rutas, Biblioteca, estados, suministros y evaluación final. Las lecciones se guardan sin anticipar recompensas; la primera formación se puede pausar o abandonar y el repaso actualizado de la Biblioteca permite salir en cualquier paso.
+- El tutorial muestra al maestro asignado o al guardián del lugar de cuerpo completo, con su cuadro de diálogo en el borde de la escena y cambios de interlocutor. Las marcas siguen pestañas, hexágonos y botones reales. Se explican puntos de atributo/PR, turnos y fases enemigas, modificadores de afinidad y ciclo elemental. La tecla 0 alterna las tablas de habilidades sin consumir acción.
+- Las subidas de nivel ocultan la batalla subyacente y conservan un frame al esperar confirmación; las decisiones también suspenden el dibujo continuo sin desactivar los controles.
 - La misión 3, Asalto al Desfiladero del Cuervo, continúa directamente del primer duelo al teniente. La fase de investigación de la cantera está retirada por el momento; se conserva la decisión sobre el prisionero tras el segundo duelo.
 - El creador permite elegir peinado (sin cabello, corto o coleta) con vista previa y conserva la elección al cambiar de género. Incluye la sección de traje, pendiente de sus recursos gráficos. Las transiciones entre encuentros comparten la barra de recorrido de salida y regreso de misión.
 - La vista previa del creador muestra partículas de la afinidad detrás del cuerpo: brasas, gotas, fragmentos de tierra o corrientes de viento. Con movimiento reducido se mantienen estáticas.
@@ -44,9 +48,13 @@ El Cuartel y la crónica de la Biblioteca muestran solo misiones descubiertas: d
 
 ## Progresión y balance
 
+La Biblioteca se divide en pestañas **Diccionario**, **Tutorial**, **Bestiario** y **Crónica**. La cabecera, las pestañas y el buscador permanecen visibles; cada sección desplaza solo su contenido. Cambiar de pestaña conserva la búsqueda y volver a la Biblioteca conserva la pestaña durante la sesión. La entrega pendiente del libro aparece encima de las pestañas y, al completarla, abre el Bestiario. Antes de entregarlo, Bestiario y Crónica explican su estado pendiente.
+
+El rango del jugador determina cuántas afinidades tiene disponibles: rango 1 (Novicio), una; rango 2 (Experto), dos; rango 3 (Veterano), tres. El diccionario canónico está en [DICCIONARIO_JUEGO.md](DICCIONARIO_JUEGO.md) y se consulta en la Biblioteca.
+
 El personaje llega al nivel 60 con `80 + 40 × nivel` PX por subida. Gana dos PR
-y dos puntos de atributos por subida. Cada habilidad llega a rango 3 y cuesta
-1 PR por rango comprado. El árbol tiene 38 habilidades y cinco rangos gratuitos;
+y dos puntos de atributos por subida. Cada habilidad llega a nivel 3 y cuesta
+1 PR por nivel comprado. El árbol tiene 38 habilidades y cinco rangos gratuitos;
 completarlo cuesta 109 PR, con presupuesto suficiente desde nivel 56.
 La segunda afinidad requiere nivel 15 y prueba especial; la tercera, nivel 30 y
 su prueba. Las rutas exigen predecesoras al rango indicado y compras explícitas.

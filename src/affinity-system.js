@@ -2,6 +2,9 @@ import { CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
 import { AFFINITY_TRIALS } from "./content/affinity-progression.js?v=1.0.0";
 
 export const AFFINITY_IDS = Object.freeze(["fuego", "agua", "tierra", "viento"]);
+// Normal representa ausencia de afinidad elemental. No se elige ni combina.
+export const NORMAL_AFFINITY_ID = "normal";
+export const COMBAT_AFFINITY_IDS = Object.freeze([...AFFINITY_IDS, NORMAL_AFFINITY_ID]);
 export const COMBAT_STAT_IDS = Object.freeze(["health", "strength", "speed", "chakra", "luck"]);
 
 export const AFFINITY_CONFIG = Object.freeze({

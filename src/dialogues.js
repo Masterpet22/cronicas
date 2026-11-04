@@ -9,22 +9,22 @@ const es = {
     { speaker: "ren", text: "El Cuartel registra tu rango, tus victorias y las amenazas que todavía permanecen abiertas." }
   ],
   "npc.ren.guide": [
-    { speaker: "ren", text: "Tu nivel aumenta con experiencia y cada ascenso concede puntos de atributo." },
+    { speaker: "ren", text: "Tu nivel aumenta con PX. Tu rango determina cuántas afinidades tienes disponibles: Novicio comienza con una; las pruebas de nivel 15 y 30 permiten ascender a Experto, con dos, y Veterano, con tres." },
     { speaker: "ren", text: "Las siete misiones principales se desbloquean en orden a medida que investigas a los Bandidos del Cuervo." },
     { speaker: "ren", text: "Antes de partir, revisa el Dojo y prepara las técnicas que permita tu nivel." }
   ],
   "npc.kureha.intro": [
     { speaker: "kureha", text: "Me llaman Kureha Tsukikage. La Torre no mide fuerza: revela cuánto tardas en perder el control." },
-    { speaker: "kureha", text: "Los días 5, 12, 19 y 26 te esperan minijefes de agua, tierra, fuego y aire. Consulta el calendario para preparar tu visita." }
+    { speaker: "kureha", text: "Los días 5, 12, 19 y 26 te esperan minijefes de agua, tierra, fuego y viento. Consulta el calendario para preparar tu visita." }
   ],
   "npc.kureha.guide": [
-    { speaker: "kureha", text: "Los desafíos elementales se abren únicamente en su fecha. Tu victoria queda registrada al volver a la Torre." },
+    { speaker: "kureha", text: "Con rango Experto o Veterano puedes entrar en la Torre. Los desafíos elementales se abren únicamente en su fecha. Tu victoria queda registrada al volver a la Torre." },
     { speaker: "kureha", text: "Cada custodio tiene su propia afinidad. Prepara tu equipo y tus técnicas en el Dojo antes del combate." },
     { speaker: "kureha", text: "Puedes repetir un desafío durante su día. Por ahora no entrega PX, monedas ni objetos y no consume tus recursos de misión." }
   ],
   "npc.sayo.intro": [
     { speaker: "sayo", text: "Soy Sayo Kisaragi. Aquí una misión no termina al cobrar la recompensa: se convierte en memoria." },
-    { speaker: "sayo", text: "Puedes repetir el tutorial de combate aquí cuando quieras. El bestiario se abrirá cuando me entregues el libro de Haru." }
+    { speaker: "sayo", text: "Aquí conservamos el diccionario del juego y puedes repetir el tutorial de combate. El bestiario se abrirá cuando me entregues el libro de Haru." }
   ],
   "npc.sayo.guide": [
     { speaker: "sayo", text: "Los registros marcados con una señal verde ya fueron completados y puedes consultarlos en el Cuartel General." },
@@ -51,7 +51,7 @@ const es = {
   ],
   "npc.goro.intro": [
     { speaker: "goro", text: "¡Goro Tetsugan! Aquí los errores no cuestan una campaña; cuestan orgullo." },
-    { speaker: "goro", text: "Elige un rival y una dificultad para una exhibición contra la IA. PvP y combates clasificatorios llegarán con el modo online." }
+    { speaker: "goro", text: "Desde la saga 3 y con nivel 16 o más, elige un rival y una dificultad para una exhibición contra la IA. PvP y combates clasificatorios llegarán con el modo online." }
   ],
   "npc.goro.guide": [
     { speaker: "goro", text: "Compara la afinidad principal de ambos combatientes antes de gastar chakra." },

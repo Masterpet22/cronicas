@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { installArenaSagaForTest } from "./helpers/village-progress.mjs";
+test.beforeEach(async ({ page }) => installArenaSagaForTest(page));
 
 async function seed(page) {
   await page.clock.install({ time: new Date("2026-11-03T16:00:00Z") });
@@ -6,6 +8,8 @@ async function seed(page) {
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.131.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
+    const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
+    unlockVillageForTest(save, { arena: true, rank: 2 });
     save.campaign.tutorialSeen = true; save.progression.coins = 2000;
     writeSave(save); sessionStorage.setItem("cronicas-save-slot-selected", "1"); localStorage.setItem("music-enabled", "off");
   });

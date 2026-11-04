@@ -174,7 +174,7 @@ assert.match(battle, /Aldea de Kagemori/, "Sayo debe señalar Kagemori como el l
 assert.match(battle, /activeMission\?\.type === "investigation"/, "El viaje de investigación debe abrir la zona explorable en lugar de iniciar un combate");
 assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las investigaciones secundarias deben tener resultados propios");
 assert.doesNotMatch(battle, /playInvestigationPhase|playChakraTracking/, "La misión del desfiladero debe continuar al siguiente duelo sin la fase de investigación retirada");
-assert.match(battle, /playMissionOneTutorial\(\)/, "La primera misión debe explicar explícitamente vida, chakra, velocidad, sellos y guardia");
+assert.match(battle, /playSagaTutorial\(\)/, "El combate debe ejecutar el módulo de formación correspondiente a la misión");
 assert.match(battle, /this\.pendingActions\.player = jutsu;[\s\S]*actionNeedsPreparation\(jutsu\)/, "Las técnicas preparadas deben comprometerse en la línea temporal");
 assert.match(battle, /millisecondsToTimelineThreshold\(this\.timelineProgress\[actor\], speed, action, this\[actor\]\.recoveryInitiative\)/, "Cada combatiente debe calcular su siguiente llegada con su velocidad e iniciativa temporal");
 assert.match(battle, /this\.timelineProgress = \{ player: 0, enemy: 0 \}/, "La línea temporal debe mantener progreso independiente para ambos combatientes");
@@ -359,7 +359,6 @@ assert.match(battle, /GAME_SCENES = Object\.freeze\(\[[\s\S]*MissionTravelScene,
 assert.match(battle, /pendingSecondaryResults[\s\S]*void launchGame\(\)/, "Los resultados secundarios deben reutilizar la instancia y mostrar la subida durante el regreso antes del informe");
 assert.match(metaUi, /markSecondaryMissionCompleted\((?:currentSave|save), mission\)/, "Reunir las pistas debe registrar la secundaria activa mediante el sistema de misiones");
 assert.match(metaUi, /(?:deps\.)?missionState\(mission, save\)\.unlocked/, "Las misiones deben usar requisitos declarativos para determinar su acceso");
-assert.match(metaUi, /if \(!save\.campaign\.archiveUnlocked\) return/, "El bestiario permanece bloqueado, con el tutorial disponible desde el inicio");
 assert.match(battle, /masterIdForCharacter\((?:battleRuntime\.)?activeSave\.character\) === "mei" \? "Mei Hayate" : "Daichi Kazan"/, "Resultados debe conservar el maestro elegido");
 assert.match(battle, /criticalMultiplier: AFFINITY_CONFIG\.damage\.criticalMultiplier,[\s\S]*damageReduction: defender\.damageReduction/, "La ventaja defensiva de Mei debe reducir cada impacto, incluso los críticos");
 assert.doesNotMatch(battle, /companionAttack|Mika/, "El combate no debe conservar el acompañante de la campaña retirada");

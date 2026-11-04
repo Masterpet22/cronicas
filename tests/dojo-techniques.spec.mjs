@@ -32,7 +32,7 @@ test("nivel y PX habilitan la compra, pero los padres y rangos son obligatorios"
   await page.locator('[data-skill-select="fire_arc"]').click();
   await expect(page.locator('[data-skill-invest="fire_arc"]')).toBeDisabled();
   await expect(page.locator('[data-technique-toggle="fire_arc"]')).toBeDisabled();
-  await expect(page.locator(".resonance-requirements")).toContainText("Ascuas veloces · rango 2");
+  await expect(page.locator(".resonance-requirements")).toContainText("Ascuas veloces · nivel de técnica 2");
   await page.locator('[data-skill-select="fire_embers"]').click();
   await page.locator('[data-skill-invest="fire_embers"]').click();
   await page.locator('[data-skill-select="fire_arc"]').click();
@@ -47,7 +47,7 @@ test("nivel y PX habilitan la compra, pero los padres y rangos son obligatorios"
   expect(await loadout(page)).toContain("fire_arc");
   await page.locator('[data-skill-select="fire_phoenix"]').click();
   await expect(page.locator('[data-skill-invest="fire_phoenix"]')).toBeDisabled();
-  await expect(page.locator(".resonance-requirements")).toContainText("Anillo de ceniza · rango 3");
+  await expect(page.locator(".resonance-requirements")).toContainText("Anillo de ceniza · nivel de técnica 3");
 });
 
 test("el personaje empieza sin puntos y recibe dos al subir de nivel", async ({ page }) => {
@@ -285,8 +285,8 @@ test("tres afinidades conservan el plano exacto de 39 celdas y sus tres combinac
   await expect(page.locator('[data-category="hybrid"]')).toHaveCount(9);
   await expect(page.locator("[data-bridge-region]")).toHaveCount(3);
   await page.locator('[data-skill-select="hybrid_fuego_tierra_1"]').click();
-  await expect(page.locator(".resonance-requirements")).toContainText("Arco de llama · rango 2");
-  await expect(page.locator(".resonance-requirements")).toContainText("Púa tectónica · rango 2");
+  await expect(page.locator(".resonance-requirements")).toContainText("Arco de llama · nivel de técnica 2");
+  await expect(page.locator(".resonance-requirements")).toContainText("Púa tectónica · nivel de técnica 2");
   await page.locator('[data-skill-invest="hybrid_fuego_tierra_1"]').click();
   await expect(page.locator('[data-skill-select="hybrid_fuego_tierra_1"]')).toHaveAttribute("data-state","unlocked");
   await page.mouse.move(10,10);

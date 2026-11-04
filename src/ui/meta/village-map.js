@@ -22,9 +22,10 @@ export function villageMapHotspots(locations, imageUrl, escapeHtml, missionTarge
     ${locations.map(place => {
       const light = VILLAGE_LIGHTING[place.id], [x, y, rx, ry] = light.entrance;
       const isMissionTarget = missionTargets.has(place.id);
-      const targetClass = isMissionTarget ? " is-mission-target" : "";
-      const targetLabel = isMissionTarget ? ". Destino de misión pendiente" : "";
-      return `<g class="village-hotspot hotspot-${place.id}${targetClass}" data-go="${place.id}"${isMissionTarget ? " data-mission-target" : ""} role="button" tabindex="0" aria-label="${escapeHtml(place.name)}: ${escapeHtml(place.description)}${targetLabel}"><path class="hotspot-shape" d="${place.path}"/><g class="hotspot-lighting" aria-hidden="true" pointer-events="none"><path class="hotspot-windows" d="${light.windows}"/>${light.lamps.map(([lx, ly, lrx, lry]) => `<ellipse cx="${lx}" cy="${ly}" rx="${lrx}" ry="${lry}" fill="url(#village-lamp-glow)"/>`).join("")}</g><path class="hotspot-contour" d="${VILLAGE_CONTOURS[place.id]}" aria-hidden="true" pointer-events="none"/><g class="hotspot-entry" aria-hidden="true" pointer-events="none" style="transform-origin:${x}px ${y}px"><ellipse class="hotspot-entry-flash" cx="${x}" cy="${y}" rx="${rx * 2}" ry="${ry * 2}" fill="url(#village-lamp-glow)"/><ellipse class="hotspot-entry-ring" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></g></g>`;
+      const locked = place.unlocked === false;
+      const targetClass = locked ? " is-locked" : isMissionTarget ? " is-mission-target" : "";
+      const targetLabel = locked ? `. Bloqueado. ${escapeHtml(place.reason)}` : isMissionTarget ? ". Destino de misión pendiente" : "";
+      return `<g class="village-hotspot hotspot-${place.id}${targetClass}" data-go="${place.id}"${locked ? ' aria-disabled="true"' : ""}${isMissionTarget ? " data-mission-target" : ""} role="button" tabindex="0" aria-label="${escapeHtml(place.name)}: ${escapeHtml(place.description)}${targetLabel}"><path class="hotspot-shape" d="${place.path}"/><g class="hotspot-lighting" aria-hidden="true" pointer-events="none"><path class="hotspot-windows" d="${light.windows}"/>${light.lamps.map(([lx, ly, lrx, lry]) => `<ellipse cx="${lx}" cy="${ly}" rx="${lrx}" ry="${lry}" fill="url(#village-lamp-glow)"/>`).join("")}</g><path class="hotspot-contour" d="${VILLAGE_CONTOURS[place.id]}" aria-hidden="true" pointer-events="none"/><g class="hotspot-entry" aria-hidden="true" pointer-events="none" style="transform-origin:${x}px ${y}px"><ellipse class="hotspot-entry-flash" cx="${x}" cy="${y}" rx="${rx * 2}" ry="${ry * 2}" fill="url(#village-lamp-glow)"/><ellipse class="hotspot-entry-ring" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/></g></g>`;
     }).join("")}`;
 }
 
@@ -45,10 +46,10 @@ export function mountVillageMap(root, scope, deps) {
   const clearEntry = () => {
     entering = false; token += 1;
     map.classList.remove("is-entering"); map.removeAttribute("aria-busy");
-    hotspots.forEach(button => { button.classList.remove("is-entering"); button.removeAttribute("aria-disabled"); });
+    hotspots.forEach(button => { button.classList.remove("is-entering"); if (!button.classList.contains("is-locked")) button.removeAttribute("aria-disabled"); });
   };
   const enter = async button => {
-    if (entering) return;
+    if (entering || button.classList.contains("is-locked")) return;
     const id = button.dataset.go;
     highlight(id); entering = true; const entry = ++token;
     deps.warmLocationAssets(id);
@@ -63,7 +64,7 @@ export function mountVillageMap(root, scope, deps) {
   };
   hotspots.forEach(button => {
     const id = button.dataset.go;
-    const warm = () => deps.warmLocationAssets(id);
+    const warm = () => { if (!button.classList.contains("is-locked")) deps.warmLocationAssets(id); };
     scope.listen(button, "mouseenter", () => { hovered = id; highlight(id); });
     scope.listen(button, "mouseleave", () => { hovered = null; highlight(focused); });
     scope.listen(button, "focus", () => { focused = id; highlight(id); });

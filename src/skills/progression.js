@@ -25,7 +25,7 @@ export function skillUnlockRequirements(save,node) {
   if (!node || node.placeholder) return [node?.description || "Habilidad inexistente"];
   const missing = [];
   if (!skillHasCell(save?.character?.affinities || [],node.id)) missing.push("Equipa las afinidades y la casilla de esta habilidad");
-  if (node.element && ELEMENTS[node.element].tier > (save?.campaign?.elementRank || 1)) missing.push(`Rango elemental ${ELEMENTS[node.element].tier}`);
+  if (node.element && ELEMENTS[node.element].tier > (save?.campaign?.elementRank || 1)) missing.push(`Rango del jugador ${ELEMENTS[node.element].tier}`);
   if (naturalSkillLevel(save,node)) return missing;
   if ((save?.progression?.level || 1) < node.unlockLevel) missing.push(`Nivel de personaje ${node.unlockLevel}`);
   if (node.jutsuId) {
@@ -34,7 +34,7 @@ export function skillUnlockRequirements(save,node) {
   }
   for (const [id,rank] of prerequisiteEntries(save,node)) {
     const parent = SKILLS_BY_ID.get(id);
-    if (skillLevel(save,parent) < rank) missing.push(`${parent?.name || id} · rango ${rank}`);
+    if (skillLevel(save,parent) < rank) missing.push(`${parent?.name || id} · nivel de técnica ${rank}`);
   }
   return missing;
 }
@@ -87,7 +87,7 @@ export function skillRequirements(save,node) {
   const missing = skillUnlockRequirements(save,node);
   const level = skillLevel(save,node);
   const next = node?.rankLevels?.[level];
-  if (level && next && (save?.progression?.level || 1) < next) missing.push(`Nivel de personaje ${next} para rango ${level+1}`);
+  if (level && next && (save?.progression?.level || 1) < next) missing.push(`Nivel de personaje ${next} para nivel de técnica ${level+1}`);
   return missing;
 }
 

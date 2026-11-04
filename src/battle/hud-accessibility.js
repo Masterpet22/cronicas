@@ -299,7 +299,7 @@ export function mountAccessibleBattleHud(scene) {
   scene.events.once('shutdown', remove);
   layout();
   refresh();
-  return { refresh, suspend, getAction: tables.actionAt, activateAction: tables.activate, updateProgress(values) {
+  return { refresh, suspend, getAction: tables.actionAt, activateAction: tables.activate, toggleSkillTable: tables.toggle, updateProgress(values) {
     markers.forEach(({ actor, meter }) => { meter.value = Math.max(0, Math.min(1, values[actor])); });
   } };
 }

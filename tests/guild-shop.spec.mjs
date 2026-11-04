@@ -14,6 +14,8 @@ async function open(page) {
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.126.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego" });
+    const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
+    unlockVillageForTest(save, {});
     save.progression.coins = 2000; save.campaign.tutorialSeen = true; writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
   });

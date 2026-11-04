@@ -5,6 +5,14 @@ detallan en [ARBOL_RESONANCIA.md](ARBOL_RESONANCIA.md). El contrato para crear
 misiones está en [SISTEMA_MISIONES_DIALOGOS.md](SISTEMA_MISIONES_DIALOGOS.md).
 Las reglas de este documento se aplican al contenido jugable y a las expansiones.
 
+## Tipo Normal
+
+**Normal** representa ausencia de afinidad elemental. Se utiliza para la marioneta de entrenamiento y los dos bandidos básicos de la primera misión. No concede modificadores de atributos, ventajas, resistencias ni pasivas elementales; el multiplicador del ciclo es siempre 1 tanto al atacar como al recibir ataques. Los estados de las técnicas siguen aplicándose según sus reglas habituales.
+
+Normal no es una quinta afinidad elegible por el jugador ni participa en combinaciones. Los enemigos normales pueden usar acciones físicas y neutras, pero no técnicas elementales. Una afinidad ausente o inválida sigue siendo un error de contenido: hay que declarar `affinity: "normal"`. Normal no se mezcla con otras afinidades.
+
+La marioneta es un blanco pasivo: 10.000 PV, 0 chakra, 0 fuerza, 1 velocidad, 0 suerte y patrones de ataque vacíos. Al probar movimientos restaura los recursos y no modifica campaña, equipo ni recompensas.
+
 ## Límites y monedas de progreso
 
 | Concepto | Regla |

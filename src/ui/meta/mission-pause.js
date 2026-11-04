@@ -30,6 +30,7 @@ export function mountMissionPause(root, scope, onAbandon) {
     content.inert = false;
     root.classList.remove("mission-paused");
     trigger.setAttribute("aria-expanded", "false");
+    if (restoreFocus && !confirming) root.dispatchEvent(new CustomEvent("mission-resumed"));
     animations.forEach((animation) => { if (animation.playState === "paused") animation.play(); });
     animations.clear();
     if (restoreFocus && previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });

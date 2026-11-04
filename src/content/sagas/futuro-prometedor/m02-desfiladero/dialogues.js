@@ -2,7 +2,7 @@ export const dialogues = {
   "mission.m02.briefing": [
     { speaker: "ren", text: "Nami confirmó la ruta hacia el Desfiladero del Cuervo. Seguirás a los bandidos antes de que abandonen la cantera." },
     { speaker: "ren", text: "{master} irá contigo. Primero asegura el sendero; después averigüen dónde ocultan al resto del grupo." },
-    { speaker: "master", text: "No buscamos una pelea innecesaria. Observa el terreno y recuerda que la información puede valer más que una victoria rápida." }
+    { speaker: "master", text: "Practicarás la poción que compraste y el coste de vida de tu taijutsu. Después decidirás qué hacer con el teniente: lee las dos consecuencias antes de elegir." }
   ],
   "mission.m02.prisoner-choice": [
     { speaker: "narrator", text: "El teniente está derrotado y conoce la ruta del campamento. Tu decisión quedará registrada." }

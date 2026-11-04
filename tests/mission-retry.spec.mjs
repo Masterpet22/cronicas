@@ -48,10 +48,12 @@ test("una misión fallida puede reintentarse después de recargar", async ({ pag
   await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
   await advanceDialogue(page);
 
-  await page.evaluate(() => {
+  await page.evaluate(async () => {
     const slot = localStorage.getItem("cronicas-del-sello-save-active-slot") || "1";
     const key = `cronicas-del-sello-save-slot-${slot}`;
     const save = JSON.parse(localStorage.getItem(key));
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    learnedTutorialForTest(save);
     save.campaign.missionProgress.m01 = {
       status: "failed",
       currentStepId: "bandit-ambush",
@@ -91,6 +93,8 @@ test("repite solo el duelo perdido, agota dos reintentos y permite retirarse", a
     const saves = await import("/src/save.js?v=0.106.0");
     let save = saves.createCharacter(saves.createDefaultSave(), { name: "Duelos", affinity: "fuego" });
     save = saves.applyDebugCheckpoint(save, "mission-2-ready");
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    learnedTutorialForTest(save);
     battleRuntime.activeSave = saves.startMissionProgress(save, "m02");
     battleRuntime.activeMission = MISSIONS.find((mission) => mission.id === "m02");
     battleRuntime.renderResolution = 1;

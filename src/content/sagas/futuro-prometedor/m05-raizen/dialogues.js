@@ -1,5 +1,6 @@
 export const dialogues = {
   "mission.m05.briefing": [
+    { speaker: "ren", text: "Esta misión cerrará tu formación. Cuando regreses victorioso podrás acudir al Gremio, aceptar encargos del Tablón de Misiones y consultar la Plaza de Eventos: tus nuevos accesos para la saga 2." },
     { speaker: "ren", text: "Raizen Kurogane dirige a los bandidos. Sus cambios de ritmo, ataques anunciados y estados alterados serán tu duelo final." }
   ],
   "mission.m05.lieutenant-intervention": [

@@ -1,15 +1,17 @@
 import assert from "node:assert/strict";
 import { ABILITY_CATALOG, ENEMY_ROSTER } from "../src/data.js?v=1.5.0";
-import { AFFINITY_IDS, applyAffinityStatModifiers } from "../src/affinity-system.js";
+import { AFFINITY_IDS, COMBAT_AFFINITY_IDS, affinityCycleModifier, applyAffinityStatModifiers } from "../src/affinity-system.js";
 import { MISSIONS } from "../src/content/index.js";
 import { createEnemyState, resolveEnemyProfileForBattle } from "../src/battle/enemy-state.js";
 import { enemyAffinityOrder, enemyCanUseElement } from "../src/battle/enemy-affinities.js";
 import { chooseEnemyAbility, reserveEnemyAbility } from "../src/battle/enemy-abilities.js";
+import { createArchiveView } from "../src/ui/meta/views/archive.js";
+import { elementName } from "../src/elements.js";
 
 const neutral = { flow: [] };
 for (const profile of Object.values(ENEMY_ROSTER)) {
   const state = createEnemyState(profile, neutral);
-  assert.ok(AFFINITY_IDS.includes(state.primaryAffinity));
+  assert.ok(COMBAT_AFFINITY_IDS.includes(state.primaryAffinity));
   assert.equal(state.affinities[0], state.primaryAffinity);
   assert.equal(state.affinities.length, 1, "Los enemigos iniciales no tienen afinidades adicionales implícitas");
   for (const id of [...profile.pattern, ...(profile.phase2Pattern || [])]) {
@@ -29,6 +31,33 @@ for (const mission of MISSIONS.filter(m => m.encounters)) for (const playerAffin
 
 const base = ENEMY_ROSTER.ash_adept;
 assert.throws(() => createEnemyState({ ...base, affinity: undefined }, neutral), /afinidad dominante/);
+assert.throws(() => createEnemyState({ ...base, affinity: null }, neutral), /afinidad dominante/, "Una afinidad ausente sigue siendo un error; Normal debe declararse");
+assert.throws(() => enemyAffinityOrder({ ...base, affinity: "normal", affinities: ["normal", "fuego"] }), /afinidad dominante/);
+assert.throws(() => enemyAffinityOrder({ ...base, affinity: "fuego", affinities: ["fuego", "normal"] }), /afinidad dominante/);
+const normalProfile = { ...base, affinity: "normal", pattern: ["strike", "physical_1"] };
+const normal = createEnemyState(normalProfile, neutral);
+assert.deepEqual(normal.affinities, ["normal"]);
+assert.equal(normal.maxHp, base.stats.health);
+assert.equal(normal.strength, base.stats.strength);
+assert.equal(normal.speed, base.stats.speed);
+assert.equal(normal.maxChakra, base.stats.chakra);
+for (const affinity of COMBAT_AFFINITY_IDS) {
+  assert.equal(affinityCycleModifier(affinity, "normal"), 0);
+  assert.equal(affinityCycleModifier("normal", affinity), 0);
+}
+for (const action of Object.values(ABILITY_CATALOG)) {
+  if (["physical", "none"].includes(action.element)) assert.equal(enemyCanUseElement(normal, action), true);
+  else if (action.seals?.length) assert.equal(enemyCanUseElement(normal, action), false, `Normal no habilita ${action.id}`);
+}
+const normalResources = { hp: normal.hp, chakra: normal.chakra };
+assert.equal(reserveEnemyAbility(normal, ABILITY_CATALOG.fire_embers), null);
+assert.deepEqual({ hp: normal.hp, chakra: normal.chakra }, normalResources);
+assert.equal(resolveEnemyProfileForBattle({ ...normalProfile, boss: true }, MISSIONS[0], "fuego").affinity, "normal", "El tutorial conserva los blancos normales");
+const archive = createArchiveView({ missions: [], enemyRoster: { normal: normalProfile }, enemyActions: {}, elementName, escapeHtml: String });
+const normalRecord = archive.render({ save: { character: { name: "Prueba", affinity: "fuego" }, campaign: { archiveUnlocked: true, completedMissions: [] },
+  bestiary: { entries: { normal: { encounters: 1, defeated: 1, techniques: [], vulnerabilities: ["agua"], documents: 0 } } } } });
+assert.match(normalRecord, /Afinidad Normal/);
+assert.match(normalRecord, /Sin debilidad elemental/, "Un registro antiguo no atribuye debilidades elementales a un enemigo Normal");
 assert.throws(() => enemyAffinityOrder({ ...base, affinities: ["agua"] }), /afinidad dominante/);
 assert.throws(() => enemyAffinityOrder({ ...base, affinities: ["fuego", "fuego"] }), /afinidad dominante/);
 assert.throws(() => enemyAffinityOrder({ ...base, affinities: ["fuego", "viento"], completedAffinityTrials: ["affinity_trial_2"] }), /nivel y pruebas/);

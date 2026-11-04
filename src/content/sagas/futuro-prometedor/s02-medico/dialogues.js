@@ -10,6 +10,6 @@ export const dialogues = {
   ],
   "mission.s02.doctor-farewell": [
     { speaker: "narrator", text: "Lo has conseguido. El camino oculto atraviesa el Desfiladero del Cuervo y llega hasta la guarida de los bandidos. Ahora podemos leerlo sin el cifrado." },
-    { speaker: "narrator", text: "Lleva este libro a Sayo. Registra criaturas, técnicas y debilidades; sus páginas se completarán con tus propios encuentros." }
+    { speaker: "narrator", text: "Lleva este libro a Sayo. Abrirá la Biblioteca para ti: allí podrás consultar el diccionario del juego y repasar el tutorial. Al entregar el libro activarás el bestiario, que registra criaturas, técnicas y debilidades con tus propios encuentros." }
   ]
 };

@@ -14,6 +14,8 @@ async function openGuild(page) {
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.119.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
+    const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
+    unlockVillageForTest(save, {});
     const { GUILD_ITEMS } = await import("/src/guild-catalog.js?v=0.126.0");
     for (const item of GUILD_ITEMS) if (!["guardian", "medal"].includes(item.value)) save.inventory.items[item.id] = item.stackLimit;
     save.guild.room = { wall: "jade", floor: "cedar", nextId: 5, decorations: [

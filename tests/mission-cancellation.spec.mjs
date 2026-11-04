@@ -5,14 +5,17 @@ const stored = page => page.evaluate(() => JSON.parse(localStorage.getItem("cron
 async function openBoard(page, checkpoint = "saga-start", board = "headquarters") {
   await page.goto("/");
   await expect(page.locator(".save-selector")).toBeVisible();
-  await page.evaluate(async checkpoint => {
+  await page.evaluate(async ({ checkpoint, board }) => {
     const s = await import("/src/save.js?v=0.131.0");
     const save = s.applyDebugCheckpoint(s.createCharacter(s.createDefaultSave(), { name: "Cancelar", affinity: "fuego" }), checkpoint);
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    learnedTutorialForTest(save);
+    if (board === "missions") { const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs"); unlockVillageForTest(save); }
     save.inventory.items.contract_relic = 1;
     s.writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off");
-  }, checkpoint);
+  }, { checkpoint, board });
   await page.reload();
   await page.locator(".debug-tools-trigger").click();
   await page.locator(`[data-debug-view="${board}"]`).click();

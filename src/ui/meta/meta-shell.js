@@ -1,3 +1,4 @@
+import { playerRank, playerRankLabel } from "../../player-rank.js";
 import { mountMissionPause } from "./mission-pause.js?v=0.119.0";
 
 export function createMetaShell(deps) {
@@ -17,7 +18,7 @@ export function createMetaShell(deps) {
           ${isSecondaryField ? "" : `<section class="village-topbar">
             <div class="profile-heading">
               <span class="avatar-swatch" style="--avatar:${character.appearance}"></span>
-              <div class="profile-copy"><p class="eyebrow">${campaign.rank.toUpperCase()}</p><h2>${deps.escapeHtml(character.name)}</h2></div>
+              <div class="profile-copy"><p class="eyebrow">${playerRank(save) === 1 ? "RANGO 1 · " : ""}${deps.escapeHtml(playerRankLabel(save).toUpperCase())}</p><h2>${deps.escapeHtml(character.name)}</h2></div>
               <span class="level-chip" aria-label="Nivel ${progression.level}"><small>NIVEL</small><strong>${progression.level}</strong></span>
             </div>
             <div class="campaign-summary" aria-label="Progreso de la partida">

@@ -32,6 +32,11 @@ import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../tel
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
+import { recordBattleLesson } from "../tutorial-progress.js";
+import { lessonCompleted, tutorialCourseFor } from "../../tutorial-system.js";
+import { explainSagaEvent } from "../tutorial-events.js";
+import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
+import { elementName } from "../../elements.js?v=0.20.0";
 
 export class BattleFlowMethods {
   async useJutsu(jutsu) {
@@ -104,7 +109,7 @@ export class BattleFlowMethods {
         this.setTimelineMarkerState("player", "charging");
         this.updateTimelineMarkers();
 
-        await this.combatTutorial?.afterAction();
+        await this.combatTutorial?.afterAction(action);
         if (!current()) return;
 
         if (this.combatTutorial?.active) {
@@ -159,6 +164,14 @@ export class BattleFlowMethods {
       return true;
     }
     const profile = this.encounters[this.enemyIndex];
+    // La evaluación siempre deja ver la segunda fase, incluso con un golpe letal.
+    const tutorialBattle = tutorialCourseFor(this.mission)?.battle;
+    if ((tutorialBattle === "final" || tutorialBattle === "basics" && !lessonCompleted(this.saveData, "enemy-phase")) && profile.boss && !this.saveData.campaign.completedMissions.includes(this.mission.id)
+      && this.enemy.phase === 1 && this.enemy.hp <= this.enemy.maxHp / 2) {
+      this.enemy.hp = Math.max(1, this.enemy.hp);
+      await this.triggerBossPhaseTwo();
+      return false;
+    }
     if (this.enemy.hp <= 0) {
       this.clearPreparationFeedback("enemy");
       this.recordEnemyObservation({ defeated: true });
@@ -194,11 +207,13 @@ export class BattleFlowMethods {
         });
         const completion = completeMission(this.saveData, this.mission.id);
         this.saveData = completion.save;
-        stageVictory(battleRuntime, this.saveData);
         this.rewardPreviewSave = this.saveData;
         this.missionReward = completion;
+        if (tutorialCourseFor(this.mission)?.battle === "final") recordBattleLesson(this, "graduation");
+        if (this.combatFeatures.relicDecision) recordBattleLesson(this, "relic");
         this.battleRewards = addBattleReward(this.battleRewards, completion);
         await this.showPendingLevelUp(this.saveData);
+        stageVictory(battleRuntime, this.saveData);
         await this.finishBattle(true);
       } else {
         const choiceStep = missionStep(this.mission, "choice");
@@ -224,10 +239,12 @@ export class BattleFlowMethods {
     if (!report) return;
     this.stopTurnTimeline?.();
     const restoreHudCallback = this.accessibleHud?.suspend?.();
+    const wasVisible = this.sys.settings.visible;
     let hudRestored = false;
     const restoreHud = () => {
       if (hudRestored) return;
       hudRestored = true;
+      this.scene.setVisible(wasVisible);
       restoreHudCallback?.();
     };
     const arrivalAppearance = { bodyAlpha: this.hero.body.alpha, shadowAlpha: this.hero.shadow.alpha, pace: "substitution" };
@@ -250,6 +267,7 @@ export class BattleFlowMethods {
         settle();
       };
       const onResume = async () => {
+        this.scene.setVisible(wasVisible);
         teleportCover.destroy?.();
         if (!isSceneActive(this.scene)) { restoreHud(); settle(); return; }
         const oldHp = this.player.maxHp;
@@ -258,6 +276,7 @@ export class BattleFlowMethods {
         this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.maxHp - oldHp);
         this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + this.player.maxChakra - oldChakra);
         this.lastShownLevel = report.afterLevel;
+        recordBattleLesson(this, "level-up");
         this.refreshHud();
         await teleportArrival(this, this.hero, arrivalAppearance);
         restoreHud();
@@ -265,6 +284,7 @@ export class BattleFlowMethods {
       };
       this.events.once(Phaser.Scenes.Events.RESUME, onResume);
       this.events.once(Phaser.Scenes.Events.SHUTDOWN, onShutdown);
+      this.scene.setVisible(false);
       this.scene.launch("level-up", { result: { outcome: "completed", levelUp: report }, returnToBattle: true });
       if (!pauseSceneIfActive(this.scene)) {
         stopSceneIfRunning(this.scene, "level-up");
@@ -381,6 +401,10 @@ export class BattleFlowMethods {
       this.refreshHud();
       await this.delay(620);
       await this.resetTurnTimeline();
+      if (tutorialCourseFor(this.mission)?.battle === "basics") {
+        await explainSagaEvent(this, "enemy-encounters", { title: "Cada enemigo inicia un duelo distinto", guardianCopy: `Has pasado al encuentro ${this.enemyIndex + 1} de ${this.encounters.length}. Siguen siendo combates uno contra uno.`, copy: `El rival anterior ya está derrotado. ${profile.name} entra con su propia vida y patrón. Entre duelos recuperas hasta ${recovery.hp} PV y ${recovery.chakra} CH; las recargas se limpian. Estas fases de misión son distintas de la fase II de un jefe. Las recompensas siguen siendo provisionales hasta regresar con éxito.` });
+        if (this.enemy.primaryAffinity !== "normal") await explainSagaEvent(this, "affinity-advantage", { title: "Tu primera ventaja elemental", guardianCopy: `Este rival tiene afinidad ${elementName(this.enemy.primaryAffinity)}. El aro junto a su retrato permite reconocerla.`, copy: `Tu afinidad principal es ${elementName(this.player.primaryAffinity)}. El ciclo aporta un 20 % de ventaja al daño contra el elemento al que supera y un 20 % de desventaja contra el que te supera. Fuego vence a Viento; Viento a Tierra; Tierra a Agua; Agua a Fuego. Contra Normal no existe ventaja ni desventaja elemental. Varek es vulnerable a tu afinidad principal: compara su aro con el tuyo.` });
+      }
       const tutorialMessages = [
         "Observa la barra de velocidad: cada marcador avanza según la velocidad del combatiente; al 80 % se puede elegir una acción.",
         "Prueba Guardia para reducir el próximo impacto y recuperar chakra.",
@@ -395,6 +419,7 @@ export class BattleFlowMethods {
 
   async playBattleChoice(title, description, choices) {
     const restoreHud = this.accessibleHud?.suspend?.();
+    let frozen;
     try {
       const layer = [];
       const add = (item) => { layer.push(item); return item; };
@@ -407,17 +432,21 @@ export class BattleFlowMethods {
       const startX = WIDTH / 2 - ((choices.length - 1) * spacing) / 2;
       const value = await new Promise((resolve) => choices.forEach((choice, index) => {
         const x = startX + index * spacing;
-        const button = add(this.add.rectangle(x, 340, 220, 92, choice.primary ? 0x174d65 : 0x0b2638, 1).setStrokeStyle(1.5, choice.primary ? 0xf0b85c : 0x55c9ff, 0.9).setInteractive({ useHandCursor: true }).setDepth(83));
+        const button = add(this.add.rectangle(x, 340, 220, 92, choice.primary ? 0x174d65 : 0x0b2638, choice.disabled ? .35 : 1).setStrokeStyle(1.5, choice.primary ? 0xf0b85c : 0x55c9ff, 0.9).setDepth(83));
+        if (!choice.disabled) button.setInteractive({ useHandCursor: true });
         add(this.add.text(x, 325, choice.label, this.textStyle(12, "#f4f0e8", "800", true)).setOrigin(0.5).setDepth(84));
         add(this.add.text(x, 354, choice.detail, { ...this.textStyle(10, "#adc0cc", "700"), align: "center", wordWrap: { width: 185 } }).setOrigin(0.5).setDepth(84));
-        button.on("pointerover", () => button.setFillStyle(0x17638d, 1));
-        button.on("pointerout", () => button.setFillStyle(choice.primary ? 0x174d65 : 0x0b2638, 1));
+        button.on("pointerover", () => { button.setFillStyle(0x17638d, 1); frozen?.invalidate(); });
+        button.on("pointerout", () => { button.setFillStyle(choice.primary ? 0x174d65 : 0x0b2638, 1); frozen?.invalidate(); });
         button.once("pointerup", () => resolve(choice.value));
+        frozen ||= suspendPauseRendering(this);
       }));
+      frozen?.dispose();
       await this.tween({ targets: layer, alpha: 0, duration: 180 });
       layer.forEach((item) => item.destroy());
       return value;
     } finally {
+      frozen?.dispose();
       restoreHud?.();
     }
   }
@@ -428,7 +457,7 @@ export class BattleFlowMethods {
       .join("\n\n");
   }
 
-  async playMissionOneTutorial() {
+  async playSagaTutorial() {
     await this.combatTutorial.start();
     if (!this.finished) this.setMessage("Observa los retratos: al alcanzar el 80 % podrás elegir una acción.", "#83d8ff");
   }
@@ -437,11 +466,16 @@ export class BattleFlowMethods {
     const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
     const choices = [{ value: "conserve", label: "CONSERVAR", detail: "Recuperación menor; guardas los suministros." }];
     if (this.fieldSupplies > 0) choices.unshift({ value: "rest", label: "DESCANSAR", detail: `Recuperación amplia; consume 1 de ${this.fieldSupplies}.`, primary: true });
-    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", this.missionSceneText("resource-choice", { master: masterName }), choices);
+    const guided = !this.saveData.campaign.completedMissions.includes(this.mission.id);
+    const required = guided && !lessonCompleted(this.saveData, "rest") ? "rest" : guided && !lessonCompleted(this.saveData, "conserve") ? "conserve" : null;
+    choices.forEach(option => { option.disabled = Boolean(required && option.value !== required); });
+    const explanation = this.missionSceneText("resource-choice", { master: masterName }) + (required === "rest" ? "\n\nPráctica 1: descansa. Consume un suministro, recupera 70 PV y 55 CH y limpia estados." : required === "conserve" ? "\n\nPráctica 2: conserva. Recupera 10 PV y 8 CH y mantén tus suministros; los estados continúan." : "");
+    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", explanation, choices);
     if (choice === "rest") {
       this.fieldSupplies -= 1;
       this.nextRecovery = { hp: 70, chakra: 55, clearStatuses: true };
     } else this.nextRecovery = { hp: 10, chakra: 8, clearStatuses: false };
+    recordBattleLesson(this, choice);
     this.saveData.campaign.hideoutSupplies = this.fieldSupplies;
     this.saveData = writeSave(this.saveData);
     battleRuntime.activeSave = this.saveData;
@@ -454,6 +488,7 @@ export class BattleFlowMethods {
       { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
     ]);
     this.saveData.campaign.hideoutDiscoveryChoice = choice;
+    recordBattleLesson(this, "discovery");
     this.saveData = recordBestiaryObservation(this.saveData, "boss_raizen", { document: choice === "documents", vulnerability: "agua" });
     this.saveData = writeSave(this.saveData);
     battleRuntime.activeSave = this.saveData;
@@ -479,6 +514,7 @@ export class BattleFlowMethods {
 
   async playPrisonerChoice() {
     const restoreHud = this.accessibleHud?.suspend?.();
+    let frozen;
     try {
       const layer = [];
       const add = (item) => { layer.push(item); return item; };
@@ -495,8 +531,14 @@ export class BattleFlowMethods {
         return { bg, value };
       };
       const choices = [makeChoice(330, "INTERROGAR", 0x79e8b5, "interrogate"), makeChoice(630, "ELIMINAR", 0xef6b72, "eliminate")];
-      const choice = await new Promise((resolve) => choices.forEach(({ bg, value }) => bg.once("pointerup", () => resolve(value))));
+      frozen = suspendPauseRendering(this);
+      const choice = await new Promise((resolve) => choices.forEach(({ bg, value }) => {
+        bg.on("pointerover", () => frozen.invalidate()); bg.on("pointerout", () => frozen.invalidate());
+        bg.once("pointerup", () => resolve(value));
+      }));
+      frozen.dispose();
       this.saveData.campaign.banditPrisonerChoice = choice;
+      recordBattleLesson(this, "lieutenant-choice");
       choices.forEach(({ bg }) => bg.disableInteractive());
       const response = add(this.add.text(WIDTH / 2, 414, this.missionSceneText(choice === "interrogate" ? "prisoner-interrogate" : "prisoner-eliminate"), this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
       await this.delay(1100);
@@ -504,6 +546,7 @@ export class BattleFlowMethods {
       layer.forEach((item) => item.destroy());
       return response;
     } finally {
+      frozen?.dispose();
       restoreHud?.();
     }
   }
@@ -578,6 +621,7 @@ export class BattleFlowMethods {
   async triggerBossPhaseTwo() {
     const profile = this.encounters[this.enemyIndex];
     this.enemy.phase = 2;
+    if (tutorialCourseFor(this.mission)?.battle === "final") recordBattleLesson(this, "boss-phase");
     this.enemy.patternIndex = 0;
     this.enemy.baseSpeed += 3;
     this.enemy.speed = this.combatantSpeed(this.enemy);
@@ -590,6 +634,7 @@ export class BattleFlowMethods {
     this.screenFlash(220, 130, 55, 180);
     this.tone(95, 0.35);
     await playBossPhaseTransition(this, { fighter: this.foe, name: profile.name, detail: bossPhaseMessage(this.mission) });
+    await explainSagaEvent(this, "enemy-phase", { title: "El jefe ha entrado en fase II", guardianCopy: `${profile.name} sigue siendo el mismo rival: no comienza otro duelo ni se reparten recompensas todavía.`, copy: "Al bajar de la mitad de vida, cambia su patrón. Ahora tiene +3 de velocidad, +4 de precisión y +2 de evasión. Conserva el daño y los estados del duelo. Observa su marcador, prepara Guardia y administra el chakra; su nueva fase no reinicia tu vida ni tus recargas." });
     this.refreshHud();
   }
 

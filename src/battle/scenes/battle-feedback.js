@@ -151,7 +151,7 @@ export class BattleFeedbackMethods {
     this.finished = true;
     this.busy = false;
     const rewardText = won && this.missionReward?.firstClear ? ` +${this.missionReward.xp} PX, +${this.missionReward.affinityXp} PX de afinidad y +${this.missionReward.coins} monedas de misión.` : "";
-    const rankText = won && this.mission.exam && this.missionReward?.firstClear ? " ¡Ascenso a Guardián!" : "";
+    const rankText = won && this.mission.affinitySlot && this.missionReward?.firstClear ? ` ¡Ascenso a ${RANK_LEVELS[this.mission.affinitySlot - 1]} (rango ${this.mission.affinitySlot})!${this.mission.affinitySlot === 2 ? " La Torre de Desafíos está disponible." : ""}` : "";
     this.setMessage(won ? `¡Misión completada!${rewardText}${rankText}` : "Misión fallida. No se entregan recompensas.", won ? "#79e8b5" : "#ff8e80");
     const target = won ? this.foe : this.hero;
     this.stopFighterFlash(target);
@@ -206,7 +206,7 @@ export class BattleFeedbackMethods {
       const affordable = this.player.chakra >= this.actionCost(jutsu);
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const guardAvailable = jutsu.type !== "guard" || !this.player.guarding;
-      const available = enabled && this.turnReady && affordable && cooldown === 0 && guardAvailable;
+      const available = enabled && this.turnReady && affordable && cooldown === 0 && guardAvailable && (!this.combatTutorial?.active || this.combatTutorial.canUse(jutsu));
       button.available = available;
       const visualAlpha = available ? 1 : affordable && cooldown === 0 && guardAvailable ? 0.76 : 0.42;
       button.visualParts.forEach((part) => part.setAlpha(Math.max(0.6, visualAlpha)));

@@ -260,7 +260,7 @@ export class BattleActionMethods {
       }
 
       if (!this.rollHit(chance)) {
-        if (usesThrowable) await throwShuriken(this, true, actor);
+        if (usesThrowable) { await throwShuriken(this, true, actor); if (this.finished) return; }
         else if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(true, actor);
         else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true, actor);
         else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true, actor);
@@ -315,7 +315,7 @@ export class BattleActionMethods {
         }, actor);
         reaction = Promise.all(reactions);
       } else {
-        if (usesThrowable) await throwShuriken(this, false, actor);
+        if (usesThrowable) { await throwShuriken(this, false, actor); if (this.finished) return; }
         else if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false, actor);
         else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false, actor);
         else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false, actor);

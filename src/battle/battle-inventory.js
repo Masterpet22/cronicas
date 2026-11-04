@@ -22,7 +22,7 @@ export function consumeBattleItem(scene, itemId, persist = writeSave) {
 export function itemUseReason(scene, id) {
   if (scene.mission.exhibition) return "Los consumibles están desactivados en las exhibiciones.";
   if (!countItem(scene.saveData, id)) return "No tienes este objeto.";
-  if (scene.mission.tutorialReplay || scene.combatTutorial?.active) return "Completa el entrenamiento antes de usar objetos.";
+  if (scene.mission.tutorialReplay || (scene.combatTutorial?.active && !scene.combatTutorial.canUse({ type: "item", itemId: id }))) return "En esta práctica utiliza el objeto indicado por la guía.";
   if (scene.finished || scene.busy || !scene.turnReady) return "Espera a tu turno para usar un objeto.";
   const effect = missionItemEffect(id, scene.player);
   return effect.ok ? "" : effect.reason;

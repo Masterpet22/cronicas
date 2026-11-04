@@ -42,7 +42,9 @@ const archiveSave = createCharacter(createDefaultSave(), { name: "Biblioteca", a
 archiveSave.campaign.archiveUnlocked = true;
 const archive = createArchiveView({ missions: MISSIONS, missionState, escapeHtml: String });
 const archiveHtml = archive.render({ save: archiveSave });
-for (const future of ALL_MISSIONS.slice(1)) assert.ok(!archiveHtml.includes(future.title), "La crónica tampoco debe adelantar misiones");
+const chronicleHtml = archiveHtml.match(/<section id="archive-panel-chronicle"[\s\S]*?<\/section>/)?.[0] || "";
+assert.ok(chronicleHtml.includes("Tras las huellas del gato"), "La crónica conserva la historia descubierta");
+for (const future of ALL_MISSIONS.slice(1)) assert.ok(!chronicleHtml.includes(future.title), "La crónica tampoco debe adelantar misiones");
 const futureMission = { ...MISSIONS[0], id: "future-mission", number: 8, title: "Título futuro secreto", requirements: [{ type: "main-completed", id: "m05" }] };
 const futureBoards = createMissionBoardsView({
   mainMissions: [...MISSIONS, futureMission], missionState, escapeHtml: String,

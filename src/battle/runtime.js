@@ -1,4 +1,5 @@
 import { battleRuntime } from "./session.js?v=1.0.0";
+import { PLAYER_RANK_LABELS } from "../player-rank.js";
 
 export const Phaser = window.Phaser;
 export { battleRuntime };
@@ -26,7 +27,7 @@ export function drawCubicBezier(graphics, start, controlA, controlB, end, segmen
 
 export const TIMELINE_START = 360;
 export const TIMELINE_END = 840;
-export const RANK_LEVELS = Object.freeze(["Novicio", "Guardián"]);
+export const RANK_LEVELS = Object.freeze(Object.values(PLAYER_RANK_LABELS));
 export const HUD_THEMES = Object.freeze({
   ancestral: Object.freeze({
     texture: "hud-theme-ancestral",

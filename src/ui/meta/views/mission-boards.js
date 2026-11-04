@@ -1,5 +1,6 @@
 import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
 import { campaignFlag } from "../../../mission-system.js?v=0.114.0";
+import { lessonCompleted, tutorialCourseFor } from "../../../tutorial-system.js";
 import { renderDoctorRouteMap } from "../doctor-route-map.js";
 import { mountDoctorCipher, renderDoctorCipher } from "../doctor-cipher.js?v=0.114.0";
 
@@ -61,7 +62,8 @@ export function createMissionBoardsView(deps) {
       const inProgress = progressStatus === "in-progress";
       const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? mission.type ? "COMPLETADA" : "REPETIR" : progressStatus === "failed" ? "REINTENTAR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
       const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
-      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.totalXp} PX totales · ${mission.reward.coins} monedas`;
+      const formation = tutorialCourseFor(mission);
+      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${formation ? `Tutorial: ${formation.title} · ` : ""}${activityLabels} · ${mission.duration} · ${mission.reward.totalXp} PX totales · ${mission.reward.coins} monedas`;
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
     const completedInSaga = missions.filter((mission) => completed.has(mission.id)).length;
@@ -86,6 +88,7 @@ export function createMissionBoardsView(deps) {
     const completed = deps.missionState(mission, state.save).completed;
     if (completed) return `<section class="kagemori-complete"><p class="eyebrow">INVESTIGACIÓN COMPLETADA</p><h2>El rastro continúa</h2><p>Nami ubicó la guarida en el Desfiladero del Cuervo. La siguiente misión ya figura en el Cuartel General.</p><button class="primary-button" type="button" data-view="plaza">VOLVER A LA ALDEA</button></section>`;
     const clues = state.investigatedClues;
+    KAGEMORI_CLUES.filter(clue => lessonCompleted(state.save, `clue-${clue.id}`)).forEach(clue => clues.add(clue.id));
     return `<section class="kagemori-investigation"><header><div><p class="eyebrow">ALDEA DE KAGEMORI</p><h2>Reconstruye la ruta de los bandidos</h2></div><strong data-clue-count>${clues.size}/3 pistas</strong></header><p class="investigation-log" data-investigation-log>Explora la escena y selecciona las áreas sospechosas.</p><svg class="clue-hotspots" viewBox="0 0 1672 941" preserveAspectRatio="none" aria-label="Áreas de investigación">${KAGEMORI_CLUES.map((clue) => `<g class="clue-hotspot ${clues.has(clue.id) ? "found" : ""}" data-clue="${clue.id}" role="button" tabindex="0" aria-label="Investigar ${deps.escapeHtml(clue.label)}"><path class="clue-shape" d="${clue.path}"/></g>`).join("")}</svg>${KAGEMORI_CLUES.map((clue) => `<span class="clue-label" data-clue-label="${clue.id}" aria-hidden="true" style="--clue-label-x:${clue.labelX}%;--clue-label-y:${clue.labelY}%"><strong>${clues.has(clue.id) ? "✓ " : ""}${deps.escapeHtml(clue.label)}</strong></span>`).join("")}</section>`;
   }
 
@@ -115,7 +118,7 @@ export function createMissionBoardsView(deps) {
     mount(root, scope) {
       if (!currentState) return;
       const state = currentState;
-      const getSave = () => state.save;
+      const getSave = () => deps.getSave?.() || state.save;
       const launchFieldMission = (mission) => {
         if (mission.contractItem || mission.affinitySlot) {
           const status = deps.missionState(mission, getSave());
@@ -143,6 +146,7 @@ export function createMissionBoardsView(deps) {
         root.querySelectorAll("[data-mission]").forEach((button) => scope.listen(button, "click", () => {
           const mission = missionById(button.dataset.mission);
           if (!mission || mission.comingSoon || !deps.missionState(mission, getSave()).unlocked) return;
+          if (deps.onPrepare?.(mission)) return;
           if (mission.type) { if (!deps.missionState(mission, getSave()).completed) launchFieldMission(mission); return; }
           const inProgress = getSave().campaign.missionProgress[mission.id]?.status === "in-progress";
           if (inProgress) {
@@ -172,25 +176,30 @@ export function createMissionBoardsView(deps) {
       }
       if (state.view === "kagemori" && !deps.missionState(secondaryByType("investigation"), getSave()).completed) {
         let conclusionQueued = false;
+        const conclude = () => {
+          if (state.investigatedClues.size !== KAGEMORI_CLUES.length || conclusionQueued) return;
+          conclusionQueued = true;
+          void scope.delay(420).then(() => { if (scope.isCurrent()) deps.showDialogue([
+            ["Iori Kagemori", "Las tres señales coinciden. No vinieron a saquear al azar: reunieron comida, herramientas y mapas para abastecer un campamento."],
+            ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
+            ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Informa en el Cuartel General; el rastro continúa en la vieja cantera."]
+          ], () => deps.onCompleteInvestigation(getSave(), secondaryByType("investigation"), KAGEMORI_CLUES.length), "REGISTRAR HALLAZGO", "story"); });
+        };
         root.querySelectorAll("[data-clue]").forEach((area) => {
           const label = root.querySelector(`[data-clue-label="${area.dataset.clue}"]`);
           const showLabel = () => label?.classList.add("visible");
           const hideLabel = () => label?.classList.remove("visible");
           const collectClue = () => {
+            if (deps.onTutorialLesson && !lessonCompleted(getSave(), "field-pause")) return;
             const clue = KAGEMORI_CLUES.find((entry) => entry.id === area.dataset.clue);
             if (!clue || state.investigatedClues.has(clue.id)) return;
             state.investigatedClues.add(clue.id);
+            if (deps.onTutorialLesson) state.save = deps.onTutorialLesson(`clue-${clue.id}`);
             area.classList.add("found");
             if (label) label.querySelector("strong").textContent = `✓ ${clue.label}`;
             root.querySelector("[data-clue-count]").textContent = `${state.investigatedClues.size}/3 pistas`;
             root.querySelector("[data-investigation-log]").textContent = clue.text;
-            if (state.investigatedClues.size !== KAGEMORI_CLUES.length || conclusionQueued) return;
-            conclusionQueued = true;
-            void scope.delay(420).then(() => { if (scope.isCurrent()) deps.showDialogue([
-              ["Iori Kagemori", "Las tres señales coinciden. No vinieron a saquear al azar: reunieron comida, herramientas y mapas para abastecer un campamento."],
-              ["Nami Kurose", "Ya sé dónde están. Vi esa misma tierra gris en sus botas: conduce a la vieja cantera del Desfiladero del Cuervo."],
-              ["Nami Kurose", "La puerta norte conduce al Desfiladero del Cuervo. Informa en el Cuartel General; el rastro continúa en la vieja cantera."]
-            ], () => deps.onCompleteInvestigation(getSave(), secondaryByType("investigation"), KAGEMORI_CLUES.length), "REGISTRAR HALLAZGO", "story"); });
+            conclude();
           };
           scope.listen(area, "mouseenter", showLabel);
           scope.listen(area, "mouseleave", hideLabel);
@@ -199,6 +208,7 @@ export function createMissionBoardsView(deps) {
           scope.listen(area, "click", collectClue);
           scope.listen(area, "keydown", (event) => { if (["Enter", " "].includes(event.key)) { event.preventDefault(); collectClue(); } });
         });
+        conclude();
       }
       if (state.view === "doctor-route") {
         const mission = secondaryByType("route-search");

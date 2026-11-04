@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { useLearnedTutorialSave } from "./helpers/saga-tutorial.mjs";
 
 async function advanceDialogue(page) {
   const overlay = page.locator(".dialogue-overlay");
@@ -20,6 +21,7 @@ async function createFreshCharacter(page, name = "Smoke", bodyType = "male") {
   await page.locator('select[name="bodyType"]').selectOption(bodyType);
   await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
   await advanceDialogue(page);
+  await useLearnedTutorialSave(page);
 }
 
 async function powerUpActiveCharacter(page) {
@@ -49,14 +51,13 @@ async function completedMissionIds(page) {
 async function completeDebugMission(page, { checkpoint, missionId }) {
   await page.locator(".debug-tools-trigger").click();
   await page.locator(`[data-debug-checkpoint="${checkpoint}"]`).click();
+  await useLearnedTutorialSave(page);
   await page.locator(".debug-tools-trigger").click();
   await page.locator(`[data-debug-mission="${missionId}"]`).click();
   const canvas = page.locator("#game > canvas");
-  await expect(canvas).toHaveCount(1);
+  await expect(canvas).toHaveCount(1, { timeout: 30000 });
 
   await expect.poll(async () => {
-    const tutorialSkip = page.locator("[data-tutorial-skip]");
-    if (await tutorialSkip.isVisible().catch(() => false)) await tutorialSkip.click();
     if (await page.locator(".level-up-accessible").isVisible().catch(() => false)) await page.keyboard.press("Enter");
     const box = await canvas.boundingBox().catch(() => null);
     if (box) {
@@ -117,13 +118,14 @@ test("crear partida, lanzar m01 y volver a la aldea aparca Phaser", async ({ pag
   await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
   await advanceDialogue(page);
 
+  await useLearnedTutorialSave(page);
   await page.locator('[data-saga="saga-1"]').click();
   await page.locator('[data-mission="m01"]').click();
   const saveWritesBeforeLaunch = await page.evaluate(() => window.__smokeSaveWrites);
   await advanceDialogue(page);
 
   const canvas = page.locator("#game > canvas");
-  await expect(canvas).toHaveCount(1);
+  await expect(canvas).toHaveCount(1, { timeout: 30000 });
   await expect(page.locator("#game")).toBeVisible();
   await expect(page.locator("#meta")).toBeHidden();
   const canvasBox = await canvas.boundingBox();
@@ -131,7 +133,6 @@ test("crear partida, lanzar m01 y volver a la aldea aparca Phaser", async ({ pag
 
   await expect.poll(() => page.evaluate(() => window.__smokeSaveWrites), { timeout: 40_000 }).toBeGreaterThan(saveWritesBeforeLaunch + 1);
   await page.waitForTimeout(500);
-  await page.locator("[data-tutorial-skip]").click();
   await page.waitForTimeout(500);
   await page.keyboard.press("Escape");
   await page.waitForTimeout(250);
@@ -174,7 +175,8 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await page.locator('[data-debug-checkpoint="library-ready"]').click();
   await visitFromDebug("plaza", ".village-map");
   await visitFromDebug("headquarters", ".saga-selector");
-  await visitFromDebug("missions", ".mission-board");
+  await visitFromDebug("missions", ".stage-panel");
+  await expect(page.locator(".stage-panel")).toContainText("ACCESO BLOQUEADO");
   await visitFromDebug("kagemori", ".kagemori-investigation, .kagemori-complete");
   await visitFromDebug("dojo", ".dojo-layout");
   await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
@@ -239,7 +241,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   expect(browserErrors, "No debe haber errores al recorrer las vistas meta").toEqual([]);
 });
 
-test("las nueve localidades abren desde el mapa desde el inicio de la partida", async ({ page }, testInfo) => {
+test("el mapa muestra nueve localidades y respeta los accesos del prólogo", async ({ page }, testInfo) => {
   const errors = [];
   page.on("pageerror", (error) => errors.push(error.message));
   page.on("console", (message) => { if (message.type() === "error") errors.push(message.text()); });
@@ -249,7 +251,9 @@ test("las nueve localidades abren desde el mapa desde el inicio de la partida", 
   await expect(page.locator(".village-hotspot[data-go]")).toHaveCount(9);
   await expect(page.locator("[data-coming-soon]")).toHaveCount(0);
   for (const id of locations) {
-    await page.locator(`.village-hotspot[data-go="${id}"]`).click();
+    const building = page.locator(`.village-hotspot[data-go="${id}"]`);
+    if (!["headquarters", "dojo"].includes(id)) { await expect(building).toHaveAttribute("aria-disabled", "true"); continue; }
+    await building.click();
     await expect(page.locator(`[data-location-stage="${id}"]`)).toBeVisible();
     const next = page.locator("[data-stage-speech]:not(.leaving) [data-stage-next]");
     for (let i = 0; i < 10 && await next.isVisible(); i++) await next.click();

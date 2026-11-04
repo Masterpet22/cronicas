@@ -5,6 +5,9 @@ import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-tr
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
+import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
+import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
+import { playerRankLabel } from "../../player-rank.js";
 
 const THEMES = Object.freeze({
   fuego: { color: 0xff914f, ink: "#ffb17d", title: "FUEGO" },
@@ -35,7 +38,8 @@ export class LevelUpScene extends Phaser.Scene {
     const report = result.levelUp;
     const theme = THEMES[report.affinity] || THEMES.fuego;
     const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
-    const flashesEnabled = !reducedMotion && window.localStorage.getItem("flash-effects") !== "off";
+    const lightMode = window.localStorage.getItem("light-mode") === "on";
+    const flashesEnabled = !reducedMotion && !lightMode && window.localStorage.getItem("flash-effects") !== "off";
 
     this.cameras.main.setBackgroundColor(0x07111c);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x07111c).setOrigin(0).setDepth(0);
@@ -56,10 +60,10 @@ export class LevelUpScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(8);
     const arrival = new Promise(resolve => this.time.delayedCall(90, () => { resolve(teleportArrival(this, fighter, { pace: "substitution" })); }));
 
-    if (!reducedMotion) {
-      this.tweens.add({ targets: outerAura, scale: 1.18, alpha: 0.3, duration: 900, ease: "Sine.inOut", yoyo: true, repeat: -1 });
-      this.tweens.add({ targets: innerAura, scale: 1.12, alpha: 0.28, duration: 740, ease: "Sine.inOut", yoyo: true, repeat: -1 });
-      this.tweens.add({ targets: [fighter.body, name], y: "-=7", duration: 800, ease: "Sine.inOut", yoyo: true, repeat: -1 });
+    if (!reducedMotion && !lightMode) {
+      this.tweens.add({ targets: outerAura, scale: 1.18, alpha: 0.3, duration: 900, ease: "Sine.inOut", yoyo: true });
+      this.tweens.add({ targets: innerAura, scale: 1.12, alpha: 0.28, duration: 740, ease: "Sine.inOut", yoyo: true });
+      this.tweens.add({ targets: [fighter.body, name], y: "-=7", duration: 800, ease: "Sine.inOut", yoyo: true });
     }
     if (flashesEnabled) {
       const flash = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xffffff, 0).setOrigin(0).setDepth(30).setName("level-up-flash");
@@ -118,9 +122,13 @@ export class LevelUpScene extends Phaser.Scene {
 
     let ready = false;
     let continuing = false;
+    let frozen = null;
+    this.staticConfirmation = false;
     const continueToResults = async () => {
       if (!ready || continuing) return;
       continuing = true;
+      this.staticConfirmation = false;
+      frozen?.dispose();
       if (returnToBattle) {
         if (!await teleportVanish(this, fighter)) return;
         if (!await teleportFadeOut(this, { pace: "substitution" })) return;
@@ -136,21 +144,32 @@ export class LevelUpScene extends Phaser.Scene {
       }
     };
     document.addEventListener("keydown", onKeydown);
+    const explanation = document.createElement("section"); explanation.className = "level-up-explanation";
+    explanation.tabIndex = 0;
+    explanation.setAttribute("aria-label", "Tu maestro explica la subida de nivel");
+    const resonance = 2 * (report.afterLevel - report.beforeLevel);
+    const teacher = tutorialActor(battleRuntime.activeSave, "battle");
+    explanation.innerHTML = `${tutorialCharacterMarkup(teacher)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(teacher)}</header><h3>Qué has ganado</h3><div class="tutorial-dialogue-body"><p>Los PX aumentan tu nivel. Tus atributos crecen automáticamente según tu afinidad; la tabla muestra cuánto.</p><p><strong>+${report.pointsGained} puntos de atributo:</strong> distribúyelos con + en Dojo → Estadísticas.</p><p><strong>+${resonance} PR:</strong> aprende o mejora habilidades en Dojo → Técnicas.</p><p>Tu rango actual es ${playerRankLabel(battleRuntime.activeSave)}. Las pruebas de afinidad permiten ascender. Estos beneficios se confirman al regresar con éxito.</p></div></section>`;
+    this.game.canvas.parentElement?.append(explanation);
     const accessibleDialog = document.createElement("div");
     accessibleDialog.className = "level-up-accessible";
     accessibleDialog.setAttribute("role", "dialog");
     accessibleDialog.setAttribute("aria-modal", "true");
     accessibleDialog.setAttribute("aria-label", `Nuevo nivel ${report.afterLevel}`);
     accessibleDialog.tabIndex = -1;
-    accessibleDialog.textContent = `Subiste del nivel ${report.beforeLevel} al ${report.afterLevel}. Afinidad ${theme.title}. ${report.stats.map((stat) => `${stat.label}: ${stat.before} a ${stat.after}, más ${stat.gain}`).join(". ")}. Ganaste ${report.pointsGained} puntos de atributo para el Dojo. Se confirmará al regresar a la aldea. Pulsa Intro para aceptar y ${returnToBattle ? "volver al combate" : "continuar al informe"}.`;
+    accessibleDialog.textContent = `Subiste del nivel ${report.beforeLevel} al ${report.afterLevel}. Afinidad ${theme.title}. ${report.stats.map((stat) => `${stat.label}: ${stat.before} a ${stat.after}, más ${stat.gain}`).join(". ")}. Ganaste ${report.pointsGained} puntos de atributo y ${resonance} PR para el Dojo. Se confirmará al regresar a la aldea. Pulsa Intro para aceptar y ${returnToBattle ? "volver al combate" : "continuar al informe"}.`;
     accessibleDialog.style.cssText = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
     this.game.canvas.parentElement?.append(accessibleDialog);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       document.removeEventListener("keydown", onKeydown);
       accessibleDialog.remove();
+      explanation.remove(); frozen?.dispose();
     });
     this.tweens.add({ targets: panel, alpha: 1, scale: 1, delay: reducedMotion ? 0 : 90, duration: reducedMotion ? 100 : 180, ease: "Back.out",
-      onComplete: async () => { await arrival; ready = true; button.setAlpha(1).setInteractive({ useHandCursor: true }); accessibleDialog.focus(); } });
+      onComplete: async () => {
+        await arrival; ready = true; button.setAlpha(1).setInteractive({ useHandCursor: true }); accessibleDialog.focus();
+        this.time.delayedCall(reducedMotion || lightMode ? 120 : 1700, () => { if (!continuing) { frozen = suspendPauseRendering(this); this.staticConfirmation = true; } });
+      } });
     this.cameras.main.fadeIn(90, 6, 15, 27);
     sharpenTextTree(this.children.list);
   }

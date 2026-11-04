@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { JUTSU_LIBRARY, ENEMIES, SEALS } from "../src/data.js";
 import { MISSIONS, SECONDARY_MISSIONS } from "../src/content/index.js";
 import { applyStatus, hitChance } from "../src/rules.js";
+import { COMBAT_AFFINITY_IDS } from "../src/affinity-system.js";
 
 const fire = JUTSU_LIBRARY.find((action) => action.id === "fire_embers");
 const actor = { accuracy: 95, statuses: [] };
@@ -19,7 +20,7 @@ assert.equal(ENEMIES.filter((enemy) => !enemy.boss).length, 9, "El catálogo deb
 assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 3, "La campaña vigente debe tener a Varek, Akumori y Raizen como jefes");
 assert.ok(ENEMIES.filter((enemy) => enemy.boss).every((enemy) => enemy.phase2Pattern.length > 0), "Cada jefe debe tener una segunda fase");
 assert.ok(ENEMIES.every((enemy) => ["health", "strength", "speed", "chakra", "luck"].every((stat) => Number.isFinite(enemy.stats?.[stat]))), "Cada enemigo debe usar las cinco estadísticas de balance");
-assert.ok(ENEMIES.every((enemy) => ["fuego", "agua", "tierra", "viento"].includes(enemy.affinity)), "Cada enemigo debe tener una afinidad principal para el ciclo de combate");
+assert.ok(ENEMIES.every((enemy) => COMBAT_AFFINITY_IDS.includes(enemy.affinity)), "Cada enemigo debe declarar una afinidad elemental o el tipo Normal");
 assert.equal(ENEMIES.find((enemy) => enemy.name.includes("RAIZEN KUROGANE"))?.boss, true, "Raizen debe ser el jefe final jugable de la saga");
 assert.equal(MISSIONS.length, 7, "La campaña debe contener solamente las siete misiones principales vigentes");
 assert.deepEqual(MISSIONS[0].encounters, ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"], "La primera misión debe encadenar dos bandidos y un minijefe");

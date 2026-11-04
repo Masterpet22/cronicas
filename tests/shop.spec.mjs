@@ -8,6 +8,8 @@ async function seedShop(page) {
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.111.0");
     const save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "fuego", bodyType: "male" });
+    const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
+    unlockVillageForTest(save, {});
     save.progression.coins = 2000;
     save.progression.level = 15;
     save.campaign.elementRank = 2;

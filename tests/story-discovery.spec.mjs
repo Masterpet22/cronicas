@@ -4,7 +4,8 @@ async function seed(page, checkpoint = "saga-start") {
   await page.goto("/");
   await page.evaluate(async (checkpoint) => {
     const s = await import("/src/save.js?v=0.106.0");
-    s.writeSave(s.applyDebugCheckpoint(s.createCharacter(s.createDefaultSave(), { name: "Historia", affinity: "fuego" }), checkpoint));
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    s.writeSave(learnedTutorialForTest(s.applyDebugCheckpoint(s.createCharacter(s.createDefaultSave(), { name: "Historia", affinity: "fuego" }), checkpoint)));
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off");
   }, checkpoint);

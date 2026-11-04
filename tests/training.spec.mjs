@@ -52,6 +52,12 @@ for (const { origin, viewport } of [
     window.__enemyExecutions = 0;
     scene.executeEnemyAction = async () => { window.__enemyExecutions += 1; };
   });
+  expect(await page.evaluate(() => {
+    const scene = window.__trainingGame.scene.getScene("battle");
+    return { affinity: scene.enemy.primaryAffinity, affinities: scene.enemy.affinities,
+      portrait: scene.enemyPortrait.affinity, health: scene.enemy.maxHp, strength: scene.enemy.strength,
+      chakra: scene.enemy.maxChakra, speed: scene.enemy.speed };
+  })).toEqual({ affinity: "normal", affinities: ["normal"], portrait: "normal", health: 10000, strength: 0, chakra: 0, speed: 1 });
   for (const move of ["fire_embers", "fire_embers", "fire_arc", "physical_1", "guard", "guard"]) {
     await (await trainingAction(page, move)).click();
     await trainingReady(page);

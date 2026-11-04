@@ -20,10 +20,9 @@ import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0
 import { createLocationStage } from "./ui/meta/location-stage.js?v=0.131.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 import { rememberIntroduction, retainIntroductions } from "./location-conversations.js?v=0.131.0"; import { ITEMS } from "./items.js?v=0.126.0";
-export { VILLAGE_LOCATIONS };
+import { createSagaTutorialCoach } from "./ui/meta/saga-tutorial.js"; import { observeTutorialChanges, observeTutorialEvent, recordTutorialLesson } from "./tutorial-system.js"; import { locationAccess } from "./village-progression.js"; export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
-const ASSET_VERSION = META_ASSET_VERSION;
-const LOCATION_BACKGROUNDS = { kagemori: "assets/locations/kagemori.webp" };
+const ASSET_VERSION = META_ASSET_VERSION; const LOCATION_BACKGROUNDS = { kagemori: "assets/locations/kagemori.webp" };
 const warmedImages = new Map();
 function warmImage(src) {
   if (warmedImages.has(src)) return warmedImages.get(src);
@@ -54,16 +53,17 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   let save = initialSave;
   let view = "plaza";
   const viewRuntime = createViewRuntime(root);
-  let viewScope = null;
-  let choosingSaveSlot = (() => {
+  let viewScope = null; let choosingSaveSlot = (() => {
     try { return sessionStorage.getItem("cronicas-save-slot-selected") !== "1"; } catch (_) { return true; }
   })();
   let activeDojoTab = "techniques";
   let debugSnapshot = null;
   let selectedSagaId = null;
   const introducedViews = new Set();
-  const persist = (next) => { const previous = save; save = writeSave(retainIntroductions(next, save)); stageView.react(view, previous, save); return save; };
-  const startLocationMission = (next, mission) => onStartMission(retainIntroductions(next, save), mission);
+  let tutorialCoach;
+  const persist = (next) => { const previous = save; save = writeSave(observeTutorialChanges(previous, retainIntroductions(next, save), view)); stageView.react(view, previous, save); tutorialCoach?.refresh(); return save; };
+  const startLocationMission = (next, mission) => { if (!tutorialCoach.gate(mission)) onStartMission(observeTutorialChanges(save, retainIntroductions(next, save), view), mission); };
+  tutorialCoach = createSagaTutorialCoach({ root, getSave: () => save, persist, navigate(next) { view = next; render(); } });
   const investigatedClues = new Set();
   const overlayView = createOverlayView({ root, viewRuntime, npcByName, escapeHtml, assetVersion: ASSET_VERSION });
   const showDialogue = (...args) => overlayView.showDialogue(...args);
@@ -99,7 +99,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     confirmDelete: (name) => window.confirm(`¿Borrar definitivamente la partida de ${name}?`),
     onSelectSlot(slot) {
       save = selectSaveSlot(slot);
-      introducedViews.clear();
+      introducedViews.clear(); investigatedClues.clear();
       choosingSaveSlot = false;
       try { sessionStorage.setItem("cronicas-save-slot-selected", "1"); } catch (_) { /* La selección seguirá activa durante esta vista. */ }
       view = save.character ? "plaza" : "headquarters";
@@ -204,13 +204,15 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     secondaryMissionByType, secondaryMissionCardModel, warmLocationAssets,
     showDialogue: (...args) => showDialogue(...args),
     showMissionDecision: (...args) => showMissionDecision(...args),
-    onSagaSelected(sagaId) { selectedSagaId = sagaId; renderStoryMissions(); },
+    getSave: () => save, onPrepare: mission => tutorialCoach.gate(mission),
+    onTutorialLesson(id) { return persist(recordTutorialLesson(save, id)); },
+    onSagaSelected(sagaId) { persist(observeTutorialEvent(save, { type: "saga" })); selectedSagaId = sagaId; renderStoryMissions(); },
     onStartMission: startLocationMission,
     onStartDoctorRoute(currentSave, mission) { startLocationMission(currentSave, mission); },
     onChooseHideoutEntrance(currentSave, choice) { return persist(chooseHideoutEntrance(currentSave, choice)); },
     onStartDoctorMission(currentSave, mission) { return persist(startDoctorMission(currentSave, mission)); },
     onCompleteInvestigation(currentSave, mission, clues) {
-      save = retainIntroductions(markSecondaryMissionCompleted(currentSave, mission), save);
+      save = retainIntroductions(recordTutorialLesson(markSecondaryMissionCompleted(currentSave, mission), "investigation"), save);
       onFinishSecondaryMission(save, mission, { outcome: "completed", clues });
     },
     onCompleteDoctor(currentSave, mission) {
@@ -234,7 +236,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const renderCreator = () => renderSaveCreator("creator");
   const shell = (content) => {
     viewScope = viewRuntime.replace(view, shellView.render({ save, view }, content));
-    shellView.mount(root, viewScope, { save, view });
+    shellView.mount(root, viewScope, { save, view }); tutorialCoach.mount(view, viewScope);
   };
   const locationStage = (locationId, content, options) => stageView.render(locationId, content, options);
   const bindLocationStage = (locationId) => stageView.mount(root, viewScope, locationId);
@@ -245,8 +247,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     if (locationId) bindLocationStage(locationId);
     villageView.mount(root, viewScope);
   };
-  const renderPlaza = renderVillageView;
-  const renderVillageService = () => renderVillageView();
+  const renderPlaza = renderVillageView; const renderVillageService = renderVillageView;
   const renderMissionBoardView = () => {
     if (view === "doctor-route") {
       const mission = secondaryMissionByType("route-search", ALL_MISSIONS);
@@ -260,8 +261,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   };
   const renderStoryMissions = renderMissionBoardView;
   const renderSecondaryMissions = renderMissionBoardView;
-  const renderKagemori = renderMissionBoardView;
-  const renderDoctorRoute = renderMissionBoardView;
+  const renderKagemori = renderMissionBoardView; const renderDoctorRoute = renderMissionBoardView;
   const renderDojo = () => {
     shell(locationStage("dojo", dojoView.render({ save, activeDojoTab }), { cast: [masterIdForCharacter(save.character)] }));
     dojoView.mount(root, viewScope);
@@ -280,6 +280,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const render = () => {
     if (choosingSaveSlot) return renderSaveSlots();
     if (!save.character) return renderCreator();
+    const access = locationAccess(view, save); if (!access.unlocked) return shell(`<section class="stage-panel"><p class="eyebrow">ACCESO BLOQUEADO</p><h2>${escapeHtml(VILLAGE_LOCATIONS.find(place => place.id === view)?.name || "Destino")}</h2><p>${escapeHtml(access.reason)}</p></section>`);
     if (view === "headquarters") return renderStoryMissions();
     if (view === "missions") return renderSecondaryMissions();
     if (view === "kagemori") return renderKagemori();

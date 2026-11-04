@@ -1,6 +1,6 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=1.2.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
-import { mountCombatTutorial } from "../combat-tutorial.js?v=0.131.0";
+import { mountCombatTutorial, needsCombatTutorial } from "../combat-tutorial.js?v=0.131.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.1.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
@@ -68,8 +68,7 @@ export class BattleScene extends Phaser.Scene {
     // exists only in this battle and never changes the player's saved loadout.
     this.battleLoadout = this.battleLoadoutForMission();
     this.practiceTechnique = false;
-    this.tutorialRequested = combatFeatures(battleRuntime.activeMission, battleRuntime.activeSave.campaign).tutorial
-      && (battleRuntime.activeMission.tutorialReplay || !battleRuntime.activeSave.campaign.completedMissions.includes(battleRuntime.activeMission.id));
+    this.tutorialRequested = Boolean(battleRuntime.activeMission.tutorialReplay || needsCombatTutorial(battleRuntime.activeSave, battleRuntime.activeMission));
     if (this.tutorialRequested
       && !this.battleLoadout.some(id => JUTSU_LIBRARY.find(jutsu => jutsu.id === id)?.seals.length)) {
       const practice = JUTSU_LIBRARY.find(jutsu => jutsu.element === battleRuntime.activeSave.character.affinity && jutsu.seals?.length);
@@ -120,6 +119,7 @@ export class BattleScene extends Phaser.Scene {
     this.saveData = battleRuntime.activeSave;
     this.missionStartSave = JSON.parse(JSON.stringify(battleRuntime.activeSave));
     this.mission = battleRuntime.activeMission;
+    this.tutorialPracticeSave = this.mission.tutorialReplay ? { ...this.saveData, equipment: { ...this.saveData.equipment, weapon: "kunai", throwable: "shuriken" }, inventory: { ...this.saveData.inventory, items: { ...this.saveData.inventory.items, kunai: 1, shuriken: 1 } } } : null;
     this.combatFeatures = combatFeatures(this.mission, this.saveData.campaign);
     battleRuntime.activeMission.encounters.forEach((enemyId) => queuePlayerFighterTextures(this, enemyFighterAppearance(ENEMY_ROSTER[enemyId], enemyId)));
     BASE_ACTIONS.forEach((action) => {
@@ -201,6 +201,7 @@ export class BattleScene extends Phaser.Scene {
       });
     }
     this.mission = battleRuntime.activeMission;
+    this.tutorialPracticeSave = this.mission.tutorialReplay ? { ...this.saveData, equipment: { ...this.saveData.equipment, weapon: "kunai", throwable: "shuriken" }, inventory: { ...this.saveData.inventory, items: { ...this.saveData.inventory.items, kunai: 1, shuriken: 1 } } } : null;
     this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
     this.encounters = this.encounterIds.map((id) => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], this.mission,
       this.saveData.character.affinities?.[0] || this.saveData.character.affinity));
@@ -261,19 +262,13 @@ export class BattleScene extends Phaser.Scene {
     this.startMusic();
     if (this.tutorialRequested) {
       this.combatTutorial = mountCombatTutorial(this, { onReplayExit: this.mission.tutorialReplay ? () => this.exitTutorialReplay() : null });
+    }
+    if (this.tutorialRequested || this.combatFeatures.secretEntry || this.combatFeatures.lieutenantIntervention) {
       this.time.delayedCall(120, async () => {
-        await this.playMissionOneTutorial();
+        if (this.combatTutorial) await this.playSagaTutorial();
+        if (!this.finished && this.combatFeatures.secretEntry) await this.playSecretWarehouse();
+        if (!this.finished && this.combatFeatures.lieutenantIntervention) await this.playLieutenantIntervention();
         if (!this.finished) this.startTurnCharge();
-      });
-    } else if (this.combatFeatures.secretEntry) {
-      this.time.delayedCall(120, async () => {
-        await this.playSecretWarehouse();
-        this.startTurnCharge();
-      });
-    } else if (this.combatFeatures.lieutenantIntervention) {
-      this.time.delayedCall(120, async () => {
-        await this.playLieutenantIntervention();
-        this.startTurnCharge();
       });
     } else this.startTurnCharge();
     this.sharpenSceneText();

@@ -57,6 +57,7 @@ export function createLocationStage(deps) {
         stage.querySelectorAll("[data-stage-npc]").forEach((button) => button.classList.toggle("active", deps.npcs[button.dataset.stageNpc]?.name === speaker));
       };
       const showTip = (text, npcId = cast[0], { persistent = false, actions = [], idle = false } = {}) => {
+        if (ambient?.classList.contains("has-tutorial-dialogue")) return;
         const npc = deps.npcs[npcId] || deps.npcs[cast[0]];
         if (!npc || !ambient || !stage.isConnected || options.hidden) return;
         window.clearTimeout(tipTimer);
@@ -96,7 +97,7 @@ export function createLocationStage(deps) {
         if (text) queueMicrotask(() => { if (activeSpeech?.locationId === locationId) activeSpeech.showTip(text); });
       });
       const idleTimer = window.setInterval(() => {
-        if (options.hidden || !speech.hidden || document.hidden || pinned || !stage.isConnected || document.querySelector('[role="dialog"]:not([hidden]), dialog[open], .dialogue-overlay, .mission-decision-overlay, .game-settings[open]')) return;
+        if (options.hidden || !speech.hidden || document.hidden || pinned || ambient?.classList.contains("has-tutorial-dialogue") || !stage.isConnected || document.querySelector('[role="dialog"]:not([hidden]), dialog[open], .dialogue-overlay, .mission-decision-overlay, .game-settings[open]')) return;
         if (performance.now() < nextIdleAt) return;
         const npcId = cast[idleIndex % cast.length], idleLines = NPC_IDLE_LINES[npcId];
         if (!idleLines?.length) return;

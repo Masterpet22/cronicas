@@ -1,4 +1,7 @@
 import { normalizeBirthday } from "./birthday.js?v=0.127.0";
+import { normalizeSagaTutorial, recordRouteLesson, recordTutorialLesson } from "./tutorial-system.js";
+import { PLAYER_RANK_LABELS, playerRank } from "./player-rank.js";
+import { locationAccess } from "./village-progression.js";
 import { normalizeResonance, resonanceBonuses, skillLevel } from "./skills/progression.js?v=1.0.0";
 import { SKILLS_BY_ID } from "./skills/definitions.js?v=1.4.0";
 import { missionXpPlan } from "./mission-rewards.js?v=1.0.0";
@@ -62,6 +65,7 @@ export function createDefaultSave() {
       rank: "Novicio",
       elementRank: 1,
       tutorialSeen: false,
+      sagaTutorial: normalizeSagaTutorial(null),
       npcIntroductions: [],
       sayoEncounterSeen: false,
       secondaryBoardUnlocked: false,
@@ -223,12 +227,13 @@ export function normalizeSave(candidate) {
       completedMissions,
       completedSecondaryMissions,
       missionProgress: normalizeMissionProgress(candidate.campaign?.missionProgress, completedMissions, completedSecondaryMissions),
-      rank: candidate.campaign?.rank === "Guardián" ? "Guardián" : "Novicio",
+      rank: PLAYER_RANK_LABELS[elementRank],
       elementRank,
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
+      sagaTutorial: normalizeSagaTutorial(candidate.campaign?.sagaTutorial, { completedMissions }),
       npcIntroductions: normalizeIntroductions(candidate.campaign?.npcIntroductions),
       sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),
-      secondaryBoardUnlocked: Boolean(candidate.campaign?.secondaryBoardUnlocked),
+      secondaryBoardUnlocked: locationAccess("missions", { character: candidate.character, campaign: { completedMissions } }).unlocked,
       banditPrisonerChoice: ["interrogate", "eliminate"].includes(candidate.campaign?.banditPrisonerChoice) ? candidate.campaign.banditPrisonerChoice : null,
       archiveUnlocked: Boolean(candidate.campaign?.archiveUnlocked),
       sayoRelicPending: Boolean(candidate.campaign?.sayoRelicPending),
@@ -387,6 +392,8 @@ export function completeMission(save, missionId) {
   for (const [id, quantity] of Object.entries(mission.reward.items || {})) if (ITEMS[id]) result.inventory.items[id] = Math.min(ITEMS[id].stackLimit, (result.inventory.items[id] || 0) + quantity);
   if (mission.contractItem) delete result.inventory.items[mission.contractItem];
   applyMissionEffects(result, mission.completionEffects, { secretBonusAwarded: secretBonus > 0 });
+  result.campaign.rank = PLAYER_RANK_LABELS[playerRank(result)];
+  result.campaign.secondaryBoardUnlocked = locationAccess("missions", result).unlocked;
   result.campaign.missionProgress[missionId] = createCompletedMissionProgress(mission);
   return { save: result, xp: gainedXp, affinityXp, coins: gainedCoins, bonusCoins: secretBonus, levelsGained, firstClear: true };
 }
@@ -406,7 +413,7 @@ function completeRouteSearchMission(result, mission) {
   result.campaign.doctorRoute.active = false;
   applyMissionEffects(result, mission.completionEffects);
   result.campaign.missionProgress[mission.id] = createCompletedMissionProgress(mission);
-  return { save: normalizeSave(result), xp: gainedXp, affinityXp, coins: gainedCoins, supplyBonus, levelsGained, firstClear: true };
+  return { save: normalizeSave(recordTutorialLesson(result, "cipher")), xp: gainedXp, affinityXp, coins: gainedCoins, supplyBonus, levelsGained, firstClear: true };
 }
 const SECONDARY_COMPLETION_HANDLERS = Object.freeze({
   investigation: (result,mission) => completeInvestigationMission(result,mission,{ xpBonus:derivedStats(result).xpBonus }),
@@ -424,7 +431,7 @@ export function markSecondaryMissionCompleted(save, missionOrId) {
 export function chooseHideoutEntrance(save, entrance) {
   const result = normalizeSave(save);
   result.campaign.hideoutEntryChoice = entrance === "secret" && campaignFlag(result, "secretEntranceKnown") ? "secret" : "main";
-  return normalizeSave(result);
+  return normalizeSave(recordTutorialLesson(result, "entry-choice"));
 }
 
 export function startDoctorMission(save, mission = secondaryMissionByType("route-search", ALL_MISSIONS)) {
@@ -437,19 +444,19 @@ export function startDoctorMission(save, mission = secondaryMissionByType("route
 export function chooseDoctorMissionRoute(save, routeId) {
   const result = normalizeSave(save);
   result.campaign.doctorRoute = chooseRoute(result.campaign.doctorRoute, routeId);
-  return normalizeSave(result);
+  return normalizeSave(recordRouteLesson(result, save.campaign.doctorRoute.phase));
 }
 
 export function resolveDoctorRiverPassage(save, passageId) {
   const result = normalizeSave(save);
   result.campaign.doctorRoute = resolveRiverPassage(result.campaign.doctorRoute, passageId);
-  return normalizeSave(result);
+  return normalizeSave(recordRouteLesson(result, save.campaign.doctorRoute.phase));
 }
 
 export function resolveDoctorMissionCombat(save) {
   const result = normalizeSave(save);
   result.campaign.doctorRoute = resolveRouteCombat(result.campaign.doctorRoute);
-  return normalizeSave(result);
+  return normalizeSave(recordRouteLesson(result, save.campaign.doctorRoute.phase));
 }
 
 export function cancelDoctorMission(save) {
@@ -483,7 +490,7 @@ export function deliverBestiaryBook(save) {
     if (result.bestiary.entries[enemyId]) return;
     result.bestiary.entries[enemyId] = { encounters: 1, defeated: 1, techniques: [], vulnerabilities: [], documents: 0 };
   });
-  return normalizeSave(result);
+  return normalizeSave(recordTutorialLesson(result, "book"));
 }
 
 export function recordBestiaryObservation(save, enemyId, observation = {}) {

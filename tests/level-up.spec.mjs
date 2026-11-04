@@ -226,13 +226,13 @@ test("abandonar advierte que se pierden recompensas y niveles provisionales", as
   });
   const canvas = page.locator("#abandon-test-stage canvas");
   await expect(page.locator("#abandon-test-stage .combat-pause-access")).toBeVisible();
-  await canvas.click({ position: { x: 560, y: 454 } });
+  await page.locator("#abandon-test-stage [data-pause-leave]").click();
   await expect(page.locator("#abandon-test-stage [role='alertdialog']")).toContainText("perderás 1 nivel");
-  await canvas.click({ position: { x: 360, y: 354 } });
+  await page.locator("#abandon-test-stage [data-stay]").click();
   await expect(page.locator("#abandon-test-stage [role='alertdialog']")).toHaveCount(0);
   expect(await page.evaluate(() => window.__abandonTest.abandoned)).toBe(false);
-  await canvas.click({ position: { x: 560, y: 454 } });
-  await canvas.click({ position: { x: 600, y: 354 } });
+  await page.locator("#abandon-test-stage [data-pause-leave]").click();
+  await page.locator("#abandon-test-stage [data-leave]").click();
   await expect.poll(() => page.evaluate(() => window.__abandonTest.result?.outcome)).toBe("abandoned");
   const abandoned = await page.evaluate(() => {
     const state = window.__abandonTest;

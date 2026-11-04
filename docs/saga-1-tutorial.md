@@ -13,6 +13,29 @@ Documento de diseño narrativo y tutorial para las siete misiones principales `m
 - Al terminar la saga, el maestro deja de estar ligado al tipo de cuerpo y puede elegirse libremente.
 - Toda misión muestra viaje de salida, regreso a la aldea y pantalla de resultados, incluso si se falla o abandona.
 
+## Progresión de lugares
+
+Los edificios permanecen visibles en el mapa. Un lugar bloqueado muestra su requisito al enfocarlo con teclado o ratón y no permite entrar; los accesos desde el calendario y el Dojo respetan la misma regla.
+
+| Momento | Acceso | Introducción narrativa |
+| --- | --- | --- |
+| Prólogo | Cuartel General y Dojo | Ren recibe al jugador; su maestro explica la preparación. El briefing del gato confirma el acceso al Cuartel. |
+| Regreso victorioso de «Tras las huellas del gato» | Tienda | Sayo anuncia la apertura del comercio de Hana en el epílogo. El briefing de Kagemori recuerda comprar suministros. |
+| Regreso de «El médico errante» con el libro | Biblioteca | Haru envía al jugador a Sayo. La Biblioteca ofrece diccionario y repaso; entregar el libro activa el bestiario y permite continuar hacia la guarida. |
+| Final de la saga 1 / paso a saga 2 | Gremio, Tablón de Misiones y Plaza de Eventos | Ren anuncia estos accesos en el briefing de Raizen; se conceden al completar la saga. La aldea muestra el aviso de nuevos accesos. |
+| Paso a saga 3 y nivel superior a 15 | Arena de Combate | Exige completar la saga 2 y nivel 16 o más. La introducción de su misión se escribirá con la saga 2. |
+| Rango 2 del jugador o superior | Torre de Desafíos | Se concede con el ascenso tras la prueba de la segunda afinidad. Kureha recuerda el rango y las fechas de cada desafío. |
+
+Solo la saga 1 tiene misiones actualmente. La Arena permanece bloqueada hasta que se incorpore y complete la saga 2. Los servicios de saga 2 ya se pueden visitar al terminar la primera saga; no se añaden misiones ficticias para simular las sagas futuras.
+
+Las reglas están en `src/content/village-progression.js`; `src/village-progression.js` consulta el historial real y el catálogo ordenado de sagas. No se concede acceso por leer un diálogo, fallar o abandonar. Las partidas anteriores recalculan los accesos desde sus misiones y pruebas completadas.
+
+## Rangos y lenguaje
+
+El jugador tiene **tres rangos**: rango 1, **Novicio**, con una afinidad disponible; rango 2, **Experto**, con dos; rango 3, **Veterano**, con tres. Los requisitos existentes se conservan: nivel 15 y prueba de la segunda afinidad para rango 2; nivel 30, segunda afinidad elegida y prueba de la tercera para rango 3. El ascenso habilita la plaza; la afinidad se elige en el Dojo.
+
+«Rango elemental» es una denominación histórica del rango del jugador, no una progresión independiente. «Nivel del jugador», «nivel de técnica» y «clase de misión» se distinguen en el [diccionario del juego](DICCIONARIO_JUEGO.md), que también está disponible en la Biblioteca.
+
 ## Maestros
 
 ### Mei Hayate — Disciplina defensiva
@@ -33,84 +56,60 @@ Estas bonificaciones nunca convierten el combate en un enfrentamiento grupal.
 - **Akumori, Capataz del Cuervo:** minijefe de la misión 3. Al ser vencido deja caer el mapa cifrado.
 - **Raizen Kurogane, Señor de los Cuervos:** jefe de la misión 7 y antagonista final de la saga. El nombre es provisional.
 
-## Flujo de misiones
+## Formación de Novicio: siete módulos jugables
 
-### Prólogo — El nuevo combatiente
+La saga completa es el tutorial. El maestro asignado y el guardián del lugar explican cada práctica en el diálogo del personaje. No hay un cartel permanente sobre el mapa: la ayuda se puede cerrar y recuperar con «Pedir ayuda al maestro». Cada indicación marca el control real, se actualiza al cambiar de pestaña y distingue entre seleccionar un hexágono y pulsar el botón de su ficha. La preparación se comprueba antes de abrir el briefing; las prácticas de combate se acreditan al terminar la acción real. Leer una explicación o pulsar Continuar no acredita un ataque, una compra ni una pista.
 
-Creación de partida, afinidad, maestro asignado, mapa de la aldea y acceso al Cuartel General.
+| Misión | Preparación en la aldea | Práctica y fases de misión | Acceso relacionado |
+| --- | --- | --- | --- |
+| 1 · `m01` · Tras las huellas del gato | Abrir la saga en el Cuartel; confirmar kunai y shuriken en Dojo → Equipo; abrir la ficha del maestro. | Primer duelo: PV y CH; decisión al 80 %; Golpe veloz; Guardia; tabla física; kunai; shuriken; tabla elemental; técnica; preparación; sellos manuales o automáticos; enfriamientos, afinidad Normal y estados; pausa real y reanudación. Después, segundo bandido y Varek: explicaciones al entrar en otro duelo, al aparecer la primera ventaja elemental y al cambiar el jefe de fase; la subida de nivel explica crecimiento automático, puntos de atributo y PR. Sayo anuncia el comercio de Hana al regresar. | Cuartel y Dojo, presentados desde el prólogo. La victoria abre la **Tienda**. |
+| 2 · `s01` · El silencio de Kagemori | Invertir un atributo; mejorar Disciplina del cuerpo con 1 PR; desbloquear Puño de hierro con otro PR; equiparlo en T1/T2; quitar y volver a equipar una técnica elemental; comprar 2 pociones de vida y vender 1. | Viaje y presentación de Iori y Nami; abrir y cerrar Pausa; investigar carreta, casa comunal y pozo; leer la conclusión y registrar el informe. Las pistas se guardan una a una. | Enseña a usar la **Tienda** y el Dojo antes del Desfiladero. |
+| 3 · `m02` · Asalto al Desfiladero del Cuervo | Llevar la poción y un taijutsu equipado. | Primer duelo: un rasguño leve garantizado permite usar una poción real; cambiar a tabla física y ejecutar taijutsu pagando PV. Segundo duelo: derrotar al teniente y elegir Interrogar o Eliminar con ventajas y costes visibles. Tercer duelo: Akumori, afectado por esa decisión; obtener el mapa cifrado. | Abre la búsqueda de Haru; todavía no el Bestiario. |
+| 4 · `s02` · El médico errante | Leer las opciones de ruta. | Tres tramos de caminos conectados: elevado seguro, río con pista y cruce, bosque con riesgo y recursos. El bosque en el segundo tramo incluye un duelo individual. Encontrar a Haru; aprender el intercambio de sellos vecinos y las combinaciones de 3; revelar las 36 casillas, con poderes de línea al combinar 4 o más; recibir el libro; entregarlo a Sayo. | El libro permite entrar en la **Biblioteca**; entregarlo activa Bestiario y Crónica y permite continuar. |
+| 5 · `m03` · El umbral de los cuervos | Buscar un término con resultados en Diccionario; abrir Bestiario; responder correctamente qué afinidad pierde contra la principal; llevar una técnica elemental equipada. | Elegir entrada principal o secreta si fue revelada; ejecutar una técnica elemental y Guardia en el primer duelo. Aplicar la información y administrar CH en los duelos restantes. La ruta secreta conserva su almacén y bonificación. | Consolida la **Biblioteca**, el ciclo elemental y las consecuencias de la cantera. |
+| 6 · `m04` · El corazón de la guarida | Llevar un tónico purificador. | Primer duelo: reconocer una quemadura leve garantizada y eliminarla con el tónico real. Primera transición: Descansar, gastar 1 suministro, recuperar 70 PV/55 CH y limpiar estados. Segunda transición: Conservar, recuperar 10 PV/8 CH y mantener suministros y estados. Tras el tercer duelo, elegir prisioneros o documentos y registrar el hallazgo. | Practica estados y recursos antes del jefe. No abre servicios adicionales. |
+| 7 · `m05` · El jefe de los bandidos | Consultar Crónica; comprobar arma, arrojadiza, taijutsu y técnica elemental. | Evaluación: ejecutar técnica elemental y Guardia; continuar el duelo aplicando lo aprendido; presenciar el cambio de fase de Raizen, incluso si un ataque muy fuerte iba a derrotarlo directamente; vencer, regresar y confirmar resultados. La información del teniente y los documentos mantiene sus efectos. | Completa la formación y abre **Gremio, Tablón y Plaza de Eventos** para el paso a saga 2. |
 
-### Misión 1 — Tras las huellas del gato
+### Reglas explicadas y comprobadas
 
-Tutorial guiado en 11 pasos sobre el HUD real, con foco visual en vida, chakra, barra de velocidad, golpe, guardia, técnicas, preparación, sellos, enfriamiento y pausa. El tiempo se detiene durante las explicaciones y al elegir una acción. Se practican un golpe, una guardia y una técnica en el primer duelo; la primera secuencia manual de sellos no tiene límite de tiempo. Durante la guía, ambos combatientes conservan al menos 1 PV para poder completar la práctica. Si no hay técnicas equipadas, se presta una de la afinidad del jugador solo para ese combate. Se puede omitir en cualquier momento con el botón o Escape y continuar la misión. Después siguen los tres duelos consecutivos y el encuentro con Sayo anuncia la investigación en el Cuartel General.
+- **Combate real:** cada práctica usa el botón o atajo del HUD, su coste, preparación, sellos y enfriamiento. El botón de la guía puede activar ese mismo control. Las acciones ajenas al paso actual no lo acreditan.
+- **Tiempo:** las explicaciones detienen el avance. Las prácticas respetan el sistema de turnos; mientras la guía de combate está activa, ambos combatientes conservan al menos 1 PV. Una vez cerrada, el duelo continúa con sus reglas normales.
+- **Tablas:** 0 y Numpad0 alternan entre tabla física y elemental sin gastar acción ni recursos. Se ignoran durante una pausa, un diálogo o al escribir en un campo. Golpe veloz y Guardia permanecen en 1 y 6. En la tabla física se practica arma, shuriken y taijutsu; la elemental usa las técnicas preparadas en el Dojo.
+- **Costes:** kunai y shuriken no consumen PV ni CH; el shuriken es reutilizable. El taijutsu consume PV y no puede dejarte a cero. Las técnicas elementales pagan CH antes de preparar los sellos. Cerrar una acción recupera 5 CH; Guardia, 25 CH en total.
+- **Guardia:** reduce a la mitad el primer impacto; un fallo rival no la consume. No puede repetirse mientras siga activa. Golpe veloz concede iniciativa +1 y Guardia −1 para la siguiente recuperación; no alteran la preparación de sellos.
+- **Objetos:** una poción se consume solo si recupera recursos; un purificador, si limpia estados o Empapado. Usarlos gasta una acción. Retirarse o reintentar no devuelve consumibles gastados.
+- **Investigación y rutas:** solo una pista nueva o un tramo resuelto acredita el objetivo. Un cruce erróneo del río no adelanta la fase. El cifrado no tiene reloj ni límite de movimientos; pistas y reorganización evitan bloqueos.
+- **Afinidades y rangos:** Normal carece de ventajas elementales. Fuego supera Viento; Viento, Tierra; Tierra, Agua; Agua, Fuego. Novicio, Experto y Veterano habilitan 1, 2 y 3 afinidades. Completar la saga no concede automáticamente Experto.
 
-La Biblioteca ofrece «Repetir tutorial guiado» desde el inicio, incluso antes de abrir el bestiario. El repaso usa el mismo campo de batalla y la misma guía; permite salir en cualquier paso y vuelve a la Biblioteca al terminar. No registra encuentros, recompensas, misiones ni cambios de equipo.
+### Pausas, reintentos y compatibilidad
 
-### Misión 2 — El silencio de Kagemori
+La primera formación no tiene un botón para omitir las prácticas. Permite pausar, cambiar ajustes y abandonar con confirmación. Escape abre la pausa; en la misión de investigación también permite cerrarla y acredita la reanudación real.
 
-Tutorial de exploración. El jugador investiga tres lugares y habla con Iori y Nami. Completarla desbloquea la misión principal 3.
+`campaign.sagaTutorial` guarda versión y lecciones realizadas. Las prácticas se conservan entre pausas, recargas, retirada y reintentos. Las recompensas provisionales se mantienen separadas: aprender una lección no concede PX, monedas ni una victoria. Un consumible cuya práctica ya terminó no se exige de nuevo para reanudar.
 
-### Misión 3 — Asalto al Desfiladero del Cuervo
+Las partidas anteriores acreditan las lecciones de misiones ya completadas sin retroceder su campaña. La preparación pendiente permite recuperar PR invertidos mediante una opción explícita que retira las mejoras compradas y devuelve los puntos. Si faltan monedas para los materiales obligatorios, el maestro aporta la diferencia una sola vez por práctica. La tienda protege la última unidad que todavía deba usarse en la formación.
 
-1. Duelo contra un rastreador.
-2. Investigación junto al maestro.
-3. Duelo contra el teniente sin nombre.
-4. Decisión persistente con ventajas y costes:
-   - Interrogar y perdonar revela la entrada secreta y duplica las monedas del próximo encargo, pero permite que el teniente avise y refuerce a Akumori.
-   - Eliminar impide que Akumori reciba refuerzos, pero pierde la entrada secreta, la bonificación económica y la ayuda futura del teniente.
-5. Transición.
-6. Duelo contra Akumori.
-7. Akumori deja caer un **mapa cifrado**.
+### Repaso actualizado en la Biblioteca
 
-Completar esta misión activa «El médico errante». La elección libre de maestro y el bestiario de la Biblioteca todavía permanecen bloqueados; el tutorial sí está disponible.
+La pestaña **Tutorial** contiene los siete módulos y su progreso en secciones desplegables, con desplazamiento independiente. **Repetir tutorial guiado** ejecuta el módulo de combate actualizado, incluidos arma, shuriken, cambio de tablas y pausa. Si faltan equipo o técnicas, el repaso los presta únicamente durante la práctica. No modifica equipo, misiones, encuentros, consumibles ni recompensas guardados. Se puede salir con el botón o Escape, incluso durante un sello manual.
 
-### Misión 4 — El médico errante
+El resto de la Biblioteca mantiene pestañas separadas para **Diccionario**, **Bestiario** y **Crónica**. El diccionario es la referencia común del lenguaje del juego.
 
-El jugador busca al doctor **Haru Takamine** para descifrar el mapa. La misión tiene tres tramos y un mapa horizontal de nueve lugares conectados, con bifurcaciones y convergencias. Solo se puede avanzar a los nodos conectados a la posición actual; los caminos visibles y las opciones jugables comparten el mismo grafo. El recorrido elegido aparece en violeta y las siguientes opciones en verde. Las decisiones actualizan peligro, tiempo, pistas y recursos, pero convergen en el mismo encuentro narrativo:
+## Claridad y rendimiento de las explicaciones
 
-Al encontrar a Haru, el médico agradece la visita y explica cómo deshacer la tinta cifrada mediante los sellos de las habilidades. Una transición abre un tablero de 6 × 6: intercambiar vecinos para reunir tres sellos iguales revela permanentemente las casillas de una imagen del mapa situada debajo. Hay caídas y cascadas; cuatro o más sellos crean un poder de fila o columna que se activa al intercambiarlo. No hay reloj ni límite de movimientos. Haru ofrece pistas y un tablero sin jugadas se reorganiza conservando fragmentos y poderes. El guardado conserva el campo `doctorRoute.cipher` con tablero, poderes, casillas reveladas, movimientos y semilla. Solo tras revelar las 36 casillas se puede recibir el libro y completar el encargo; las misiones completadas conservan su estado.
+- La guía de Estadísticas señala primero la pestaña y después el botón +. La guía de Resonancia señala primero el hexágono y después MEJORAR, DESBLOQUEAR o EQUIPAR. El detalle no cambia por pasar el cursor por otra habilidad durante esta práctica.
+- El foco de pausa sigue el rectángulo del botón HTML real, tanto en el HUD de escritorio como en el compacto; no usa las coordenadas de Objetos.
+- Se explica el turno del enemigo y se distingue fase de misión (otro duelo) de fase II (el mismo jefe cambia patrón y atributos). El ciclo aporta 20 % de ventaja/desventaja y Normal es neutro. También se presentan los modificadores y la pasiva de la afinidad principal.
+- Las explicaciones muestran al personaje de cuerpo completo y su cuadro de diálogo acoplado al borde de la escena. Ren presenta el encargo y el maestro asignado toma la palabra para las mecánicas; en la aldea habla el encargado correspondiente. No hay ventanas flotantes con filas de retratos pequeños. En combate, el diálogo cambia al borde superior cuando debe dejar visible la barra de turnos; al practicar se retiran personaje y diálogo.
+- La subida presenta al maestro asignado, diferencia los puntos de atributo y los PR, y recuerda que nivel y rango son avances distintos.
+- Al mostrar la subida se oculta la batalla pausada. Tras la breve presentación se conserva un frame mientras se espera la confirmación. Las decisiones conservan igualmente el fondo sin redibujarlo; el teclado, el ratón y la actualización de escenas siguen activos. Volver al combate, redimensionar o modificar la calidad reactiva el dibujo cuando corresponde.
+- Las suspensiones anidadas comparten un controlador para restaurar correctamente el renderizado al cerrar cualquier menú. La descripción de equipo ajusta la altura de su tarjeta, con desplazamiento interno de la lista si hace falta.
 
-1. **Camino elevado:** ruta segura y lenta. Sus diálogos enseñan a valorar la preparación por encima de la rapidez.
-2. **Sendero del río:** investigación breve para identificar el cruce correcto. Equivocarse aumenta tiempo y peligro sin bloquear la misión.
-3. **Bosque cerrado:** ruta de mayor riesgo y recursos. En la segunda fase activa un único duelo uno contra uno sin recompensa directa repetible. Reunir al menos dos recursos concede un suministro adicional para la misión 6.
+## Fuentes y verificación
 
-Al encontrar al doctor:
-
-- Haru descifra el mapa y localiza la guarida.
-- Entrega un libro para llevar a la Biblioteca.
-- El libro funciona como bestiario: comienza incompleto y añade información al enfrentarse a cada enemigo.
-- El regreso a la aldea es obligatorio y la Biblioteca se convierte en el siguiente objetivo.
-- Sayo recibe el libro, abre la Biblioteca y explica el registro de enemigos.
-- Se desbloquea la siguiente misión principal.
-
-### Regla implementada: consecuencias fijas y convergentes
-
-Cada ruta usa resultados fijos por fase. El jugador puede repetir una ruta o alternarlas y no se generan 27 historias distintas: el historial de elecciones y sus cuatro métricas conserva la variedad, mientras que todas las combinaciones conducen a Haru. Esta base permite añadir azar controlado en una repetición futura sin reescribir la misión.
-
-### Misión 5 — El umbral de los cuervos
-
-El mapa conduce a dos accesos:
-
-- Entrada principal, protegida por tres enemigos que se enfrentan uno por uno.
-- Entrada secreta, revelada únicamente si el teniente fue interrogado y perdonado. Evita al guardia exterior, conserva dos duelos obligatorios y conduce al almacén que entrega 90 monedas adicionales al completar la misión.
-- Antes de entrar, Sayo consulta las fichas identificadas de la Biblioteca y recomienda afinidades favorables sin revelar los campos aún desconocidos.
-
-### Misión 6 — El corazón de la guarida
-
-Tutorial de estados alterados, preparación mediante el bestiario y administración de vida y chakra entre tres duelos consecutivos. Entre duelos se elige entre descansar —consumiendo un suministro para recuperar vida, chakra y limpiar estados— o conservarlo y avanzar con una recuperación mínima. El maestro recuerda su ventaja pasiva y aconseja la decisión. Al final se elige entre liberar prisioneros o recuperar documentos; ambas rutas incluyen la revelación de que los Cuervos son una célula de una organización mayor y desbloquean al jefe, mientras los documentos amplían su ficha.
-
-### Misión 7 — El jefe de los bandidos
-
-Duelo final contra Raizen Kurogane. Manipula la velocidad, anuncia sus golpes más peligrosos, aplica estados alterados y cambia de patrón al perder la mitad de su vida. Si el teniente fue perdonado, aparece antes del combate, resta un 15 % de la vida inicial de Raizen y elimina su reducción de daño como agradecimiento. Si fue eliminado, Raizen comienza con toda su vida y una reducción de 3 puntos por impacto. Ambas rutas siguen siendo completables.
-
-## Biblioteca y bestiario
-
-La guía de combate está disponible en la Biblioteca desde el inicio. El libro del doctor desbloquea su bestiario. Cada ficha progresa así:
-
-1. Primer encuentro: nombre, apariencia y afiliación.
-2. Técnica observada: se registra el movimiento.
-3. Debilidad descubierta: se añade la afinidad vulnerable.
-4. Victoria: se completan estadísticas aproximadas y posibles recompensas.
-
-Los jefes mantienen sus estadísticas selladas después de la primera victoria. Se revelan tras un segundo encuentro o al encontrar un documento relacionado.
-
-Los datos incompletos deben mostrarse mediante campos desconocidos, no con información falsa.
+- Currículo y objetivos: `src/content/sagas/futuro-prometedor/tutorial.js` y `combat-lessons.js`.
+- Estado, migración y detección de cambios: `src/tutorial-system.js`.
+- Guía de aldea y campo: `src/ui/meta/saga-tutorial.js`.
+- Guía de combate y persistencia sin recompensas: `src/battle/combat-tutorial.js` y `tutorial-progress.js`.
+- Desbloqueos: `src/content/village-progression.js` y `src/village-progression.js`.
+- Pruebas: `tests/saga-tutorial.test.mjs`, `tests/saga-tutorial.spec.mjs`, `tests/combat-tutorial.spec.mjs` y pruebas de rutas/cifrado/progresión de lugares.

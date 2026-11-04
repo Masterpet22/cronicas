@@ -5,6 +5,13 @@ import { TAIJUTSU_ACTIONS } from "./skills/definitions.js?v=1.4.0";
 import { taijutsuAction } from "./skills/taijutsu.js?v=1.0.0";
 import { upgradedTechnique } from "./skills/progression.js?v=1.0.0";
 import { physicalSkillActions } from "./battle/skill-tables.js?v=1.4.0";
+import { NORMAL_AFFINITY_ID } from "./affinity-system.js?v=0.114.0";
+
+export function trainingDummyProfile(profile = {}) {
+  return { ...profile, name: "MARIONETA DE ENTRENAMIENTO", affinity: NORMAL_AFFINITY_ID,
+    affinities: [NORMAL_AFFINITY_ID], completedAffinityTrials: [], level: 1, boss: false,
+    stats: { health: 10000, chakra: 0, strength: 0, speed: 1, luck: 0 }, accuracy: 0, pattern: [], phase2Pattern: [] };
+}
 
 // Training includes learned moves independently of the equipped combat slots.
 export function trainingActions(save) {

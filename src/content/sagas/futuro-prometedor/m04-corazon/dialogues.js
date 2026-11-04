@@ -1,6 +1,6 @@
 export const dialogues = {
   "mission.m04.briefing": [
-    { speaker: "ren", text: "Las galerías interiores están llenas de combatientes especializados. Administra vida, chakra y suministros entre cada duelo." }
+    { speaker: "ren", text: "Las galerías interiores están llenas de combatientes especializados. Lleva un purificador: practicarás limpiar una quemadura leve, descansar con un suministro y avanzar conservando el resto." }
   ],
   "mission.m04.resource-choice": [
     { speaker: "master", text: "{master}: «Mide lo que todavía queda por delante. Los estados no desaparecerán si avanzas sin descansar.»" }

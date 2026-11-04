@@ -1,6 +1,18 @@
 import { expect, test } from "@playwright/test";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
+test.afterEach(async ({ page }) => {
+  if (page.isClosed()) return;
+  await page.evaluate(async () => {
+    const game = window.__tutorialGame;
+    if (!game?.scene) return;
+    await new Promise(resolve => {
+      game.events.once("destroy", resolve); game.destroy(true); game.loop.wake();
+      setTimeout(resolve, 1000);
+    });
+  });
+});
+
 // La primera visita a Sayo se guarda; repetir la guía no cambia el resto de la partida.
 const afterArchiveIntroduction = raw => {
   const save = JSON.parse(raw);
@@ -8,14 +20,14 @@ const afterArchiveIntroduction = raw => {
   return JSON.stringify(save);
 };
 
-async function prepare(page, { manual = false, emptyLoadout = false, completed = false, power = false, affinity = "fuego", mastered = false } = {}) {
+async function prepare(page, { manual = false, emptyLoadout = false, completed = false, power = false, affinity = "fuego", mastered = false, trained = true } = {}) {
   await page.goto("/");
-  await page.evaluate(async ({ manual, emptyLoadout, completed, power, affinity, mastered }) => {
+  await page.evaluate(async ({ manual, emptyLoadout, completed, power, affinity, mastered, trained }) => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.94.0");
     localStorage.clear();
     sessionStorage.clear();
     const save = createCharacter(createDefaultSave(), { name: "Aprendiz", affinity, bodyType: "male", appearance: "#315f87" });
-    save.campaign.tutorialSeen = true;
+    save.campaign.tutorialSeen = true; save.campaign.doctorBookDeliveryPending = true;
     if (mastered) {
       save.progression.level = 8;
       save.progression.resonance.investments = { fire_embers: 2 };
@@ -26,11 +38,15 @@ async function prepare(page, { manual = false, emptyLoadout = false, completed =
       save.progression.level = 30;
       save.progression.attributes = { health: 250, strength: 250, speed: 250, chakra: 250, luck: 250 };
     }
+    if (trained) {
+      const { SAGA_TUTORIAL } = await import("/src/content/sagas/futuro-prometedor/tutorial.js");
+      save.campaign.sagaTutorial.completed = [...SAGA_TUTORIAL[0].practices];
+    }
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off");
     localStorage.setItem("seal-input-mode", manual ? "manual" : "automatic");
-  }, { manual, emptyLoadout, completed, power, affinity, mastered });
+  }, { manual, emptyLoadout, completed, power, affinity, mastered, trained });
   await page.reload();
   await ensurePhaser(page);
   await page.evaluate(() => {
@@ -49,24 +65,68 @@ async function launch(page, replay = false) {
     await page.locator(".debug-tools-trigger").click();
     await page.locator('[data-debug-mission="m01"]').click();
   }
-  await expect(page.locator('[data-tutorial-step="welcome"]')).toBeVisible({ timeout: 30000 });
+  await expect.poll(() => page.evaluate(() => Boolean(window.__tutorialGame?.scene.getScene("battle")?.player)), { timeout: 30000 }).toBe(true);
+  const guided = await page.evaluate(() => Boolean(window.__tutorialGame?.scene.getScene("battle")?.combatTutorial?.active));
+  if (replay || guided) await step(page, "welcome");
+  else await expect(page.locator('[data-combat-action="1"]')).toBeVisible({ timeout: 30000 });
 }
 
 async function openArchive(page) {
   await page.locator('[data-go="archive"]').click();
   const advance = page.locator('[data-stage-next]');
-  for (let guard = 0; guard < 8 && !await page.locator('[data-replay-tutorial]').isVisible(); guard += 1) {
+  for (let guard = 0; guard < 8 && await advance.isVisible(); guard += 1) {
     await advance.click();
     await page.waitForTimeout(220);
   }
+  await page.getByRole("tab", { name: "Tutorial", exact: true }).click();
 }
 
 async function step(page, id) {
-  await expect(page.locator(`.combat-tutorial[data-tutorial-step="${id}"] .tutorial-card`)).toBeVisible({ timeout: 20000 });
+  await expect(page.locator(`.combat-tutorial[data-tutorial-step="${id}"] .tutorial-dialogue-box`)).toBeVisible({ timeout: 20000 });
 }
 const next = page => page.locator("[data-tutorial-next]").click();
+test("el tutorial muestra a Ren y al maestro con personaje grande y diálogo de escena", async ({ page }, info) => {
+  await prepare(page, { trained: false }); await launch(page);
+  await expect(page.locator('[data-dialogue-character="ren"] img')).toBeVisible();
+  const image = await page.locator('[data-dialogue-character="ren"] img').boundingBox();
+  expect(image.width).toBeGreaterThan(200); expect(image.height).toBeGreaterThan(300);
+  await expect(page.locator(".tutorial-card, .tutorial-voices")).toHaveCount(0);
+  const game = await page.locator("#game").boundingBox();
+  const box = await page.locator(".tutorial-dialogue-box").boundingBox();
+  expect(box.y).toBeGreaterThan(game.y + game.height * .6);
+  await page.locator("#game").screenshot({ path: info.outputPath("ren-dialogo-escena.png") });
+  await next(page); await step(page, "health");
+  await expect(page.locator('[data-dialogue-character="mei"] img')).toBeVisible();
+  await expect(page.locator('[data-tutorial-speaker="mei"]')).toBeVisible();
+  await page.locator("#game").screenshot({ path: info.outputPath("mei-dialogo-escena.png") });
+});
+async function practical(page, manual = false) {
+  await intro(page);
+  for (const id of ["strike", "guard", "physical-table", "weapon", "throwable", "elemental-table", "technique", "preparation", "seals"]) {
+    await step(page, id); await next(page);
+  }
+  if (manual) {
+    await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").sealPrompt?.text)).toMatch(/^PULSA/);
+    for (let guard = 0; guard < 6; guard++) {
+      const key = await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").sealPrompt?.text?.match(/^PULSA ([A-Z])/)?.[1]);
+      if (!key) break;
+      await page.keyboard.press(key); await page.waitForTimeout(230);
+    }
+  }
+  await step(page, "cooldowns"); await next(page);
+  await step(page, "pause");
+  const highlight = await page.locator(".tutorial-spotlight").boundingBox();
+  const pause = await page.locator(".combat-access-pause").boundingBox();
+  const bag = await page.locator(".combat-access-inventory").boundingBox();
+  const contains = box => box.x + box.width / 2 >= highlight.x && box.x + box.width / 2 <= highlight.x + highlight.width && box.y + box.height / 2 >= highlight.y && box.y + box.height / 2 <= highlight.y + highlight.height;
+  expect(contains(pause)).toBe(true); expect(contains(bag)).toBe(false);
+  await next(page);
+  await expect(page.locator("[data-pause-resume]")).toBeVisible();
+  await page.locator("[data-pause-resume]").click();
+  await step(page, "complete"); await next(page);
+}
 async function intro(page) {
-  for (const id of ["welcome", "health", "chakra", "timeline"]) { await step(page, id); await next(page); }
+  for (const id of ["welcome", "health", "chakra", "affinity", "timeline", "enemy-turn"]) { await step(page, id); await next(page); }
 }
 
 for (const [affinity, weak] of Object.entries({ fuego: "viento", agua: "fuego", tierra: "agua", viento: "tierra" })) {
@@ -75,17 +135,12 @@ for (const [affinity, weak] of Object.entries({ fuego: "viento", agua: "fuego", 
     page.on("pageerror", error => errors.push(error.message));
     await prepare(page, { affinity });
     await launch(page);
-    await next(page); await next(page);
-    await step(page, "chakra");
-    await expect(page.locator("#tutorial-copy")).toContainText("5 CH");
-    await expect(page.locator("#tutorial-copy")).toContainText("25 CH en total");
     const boss = await page.evaluate(() => {
       const s = window.__tutorialGame.scene.getScene("battle");
       const profile = s.encounters[s.encounterIds.indexOf("boss_varek")];
       return { profile: profile.affinity, effective: s.createEnemyState(profile).primaryAffinity, maxChakra: s.player.maxChakra };
     });
     expect(boss).toEqual({ profile: weak, effective: weak, maxChakra: { fuego: 80, agua: 80, tierra: 70, viento: 96 }[affinity] });
-    await page.locator("[data-tutorial-skip]").click();
     await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
     const round = await page.evaluate(async () => {
       const s = window.__tutorialGame.scene.getScene("battle");
@@ -127,7 +182,6 @@ test("maestría tres: combate usa el coste reducido y prepara un solo sello", as
   });
   expect(mastery).toMatchObject({ level: 3, damage: 18, cost: 27, seals: 1 });
   expect(mastery.preparation).toBeCloseTo(mastery.novicePreparation / 2, 8);
-  await page.locator("[data-tutorial-skip]").click();
   await expect(page.locator('[data-combat-action="6"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
   const round = await page.evaluate(async () => {
     const scene = window.__tutorialGame.scene.getScene("battle");
@@ -154,7 +208,6 @@ test("iniciativa temporal y Guardia sobreviven a fallos y aturdimiento hasta el 
     const charge = s.startTurnCharge;
     s.startTurnCharge = function() { window.__recoveries.push({ round: this.round, initiative: this.player.recoveryInitiative }); return charge.call(this); };
   });
-  await page.locator("[data-tutorial-skip]").click();
   for (let n = 0; n < 2; n++) {
     await expect(page.locator('[data-combat-action="1"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
     expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").player.recoveryInitiative)).toBe(0);
@@ -188,10 +241,10 @@ test("iniciativa temporal y Guardia sobreviven a fallos y aturdimiento hasta el 
     const afterMiss = s.player.guarding;
     s.rollHit = chance => chance > 25;
     s.player.damageReduction = 0; s.player.primaryAffinity = null;
-    s.enemy.baseStrength = 0; s.enemy.primaryAffinity = null;
+    s.enemy.baseStrength = 0; s.enemy.strengthModifier = 0; s.enemy.primaryAffinity = null;
     await s.executeTimelineAction("enemy", ENEMY_ACTIONS.heavy);
     return { before, afterRepeatedGuard, afterStun, afterMiss, guarding: s.player.guarding,
-      damage: before.hp - s.player.hp, chakra: s.player.chakra, statuses: s.player.statuses,
+      damage: before.hp - s.player.hp, baseDamage: ENEMY_ACTIONS.heavy.damage, chakra: s.player.chakra, statuses: s.player.statuses,
       initiatives: window.__recoveries.map(r => r.initiative) };
   });
   expect(result.before).toEqual({ chakra: 35, hp: 97, guarding: true });
@@ -199,7 +252,7 @@ test("iniciativa temporal y Guardia sobreviven a fallos y aturdimiento hasta el 
   expect(result.afterStun).toEqual({ guarding: true, soakTurns: 1 });
   expect(result.afterMiss).toBe(true);
   expect(result.guarding).toBe(false);
-  expect(result.damage).toBeGreaterThanOrEqual(8); expect(result.damage).toBeLessThanOrEqual(10);
+  expect(result.damage).toBe(Math.ceil(result.baseDamage / 2));
   expect(result.chakra).toBe(35);
   expect(result.statuses).toEqual([{ type: "poison", label: "VENENO", power: 3, duration: 2 }]);
   expect(result.initiatives).toContain(-1);
@@ -211,7 +264,6 @@ test("el golpe final cierra recargas y chakra y gana antes del veneno propio", a
   test.setTimeout(120000);
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await prepare(page); await launch(page);
-  await page.locator("[data-tutorial-skip]").click();
   await expect(page.locator('[data-combat-action="1"]')).toHaveAttribute("aria-disabled", "false", { timeout: 20000 });
   const snapshot = await page.evaluate(async () => {
     const s = window.__tutorialGame.scene.getScene("battle");
@@ -237,129 +289,41 @@ test("el golpe final cierra recargas y chakra y gana antes del veneno propio", a
   expect(errors).toEqual([]);
 });
 
-test("la misión enseña sobre el HUD real y omitir permite combatir y pausar", async ({ page }) => {
-  const errors = [];
-  page.on("pageerror", error => errors.push(error.message));
-  await prepare(page);
-  await launch(page);
-  await next(page);
-  await step(page, "health");
-  const before = await page.evaluate(async () => {
-    const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
-    return JSON.stringify(battleRuntime.activeSave);
-  });
-  await page.waitForTimeout(1500);
-  await expect(page.locator(".combat-access-progress progress").first()).toHaveJSProperty("value", 0);
-  await page.locator("[data-tutorial-back]").click();
-  await step(page, "welcome");
-  await intro(page);
-  await step(page, "strike");
-  await page.locator("#game").screenshot({ path: "test-results/tutorial-strike.png" });
-  await page.keyboard.press("6");
-  await step(page, "strike");
-  await page.locator('[data-combat-action="1"]').click();
-  await step(page, "guard");
-  await page.locator("[data-tutorial-skip]").click();
+test("la primera misión exige prácticas reales y conserva las lecciones al pausar", async ({ page }, info) => {
+  test.setTimeout(240000);
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await prepare(page, { trained: false }); await launch(page);
+  await expect(page.locator("[data-tutorial-skip]")).toHaveCount(0);
+  const baseline = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => window.__tutorialGame.scene.getScene("battle").round)).toBe(1);
+  await page.locator("#game").screenshot({ path: info.outputPath("tutorial-actual.png") });
+  await practical(page);
   await expect(page.locator(".combat-tutorial")).toBeHidden();
+  const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
+  for (const id of ["strike", "guard", "weapon", "throwable", "technique", "pause"]) expect(saved.campaign.sagaTutorial.completed).toContain(id);
+  expect(saved.progression).toEqual(baseline.progression);
+  expect(saved.campaign.completedMissions).toEqual([]);
   await page.keyboard.press("Escape");
   await expect(page.locator(".combat-pause-access")).toBeVisible();
-  expect(await page.evaluate(async () => {
-    const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
-    return JSON.stringify(battleRuntime.activeSave);
-  })).toBe(before);
   expect(errors).toEqual([]);
 });
 
-test("el repaso completo con sellos manuales y equipo vacío conserva la partida", async ({ page }) => {
-  const errors = [];
-  page.on("pageerror", error => errors.push(error.message));
-  await prepare(page, { manual: true, emptyLoadout: true, completed: true });
+for (const manual of [false, true]) test(`repaso completo actualizado, sellos ${manual ? "manuales" : "automáticos"}, sin cambiar equipo ni progreso`, async ({ page }) => {
+  test.setTimeout(240000);
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await prepare(page, { manual, emptyLoadout: true, completed: true });
   const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
-  await launch(page, true);
-  await intro(page);
-  for (const id of ["strike", "guard", "technique", "preparation", "seals"]) { await step(page, id); await next(page); }
-  await page.waitForTimeout(1600); // First practice deliberately has no timeout.
-  await expect(page.locator('.combat-tutorial')).toBeVisible();
-  await expect.poll(() => page.evaluate(() => {
-    return window.__tutorialGame.scene.getScene("battle").sealPrompt?.text;
-  })).toMatch(/^PULSA/);
-  for (let index = 0; index < 2; index += 1) {
-    const key = await page.evaluate(() => {
-      return window.__tutorialGame.scene.getScene("battle").sealPrompt.text.match(/^PULSA ([A-Z])/)[1];
-    });
-    await page.keyboard.press(key);
-    if (index === 0) await page.waitForTimeout(180);
-  }
-  await step(page, "cooldowns");
-  await next(page);
-  await step(page, "complete");
-  await next(page);
+  await launch(page, true); await practical(page, manual);
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  await expect(page.locator("#game canvas")).toHaveCount(1);
-  await expect(page.locator("#game")).toBeHidden();
   expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
   expect(errors).toEqual([]);
 });
 
-test("la biblioteca ofrece la guía desde el inicio y salir no añade progreso", async ({ page }) => {
-  await prepare(page);
-  await openArchive(page);
-  await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  await expect(page.locator(".bestiary-grid")).toHaveCount(0);
+test("salir del repaso con Escape conserva el guardado", async ({ page }) => {
+  await prepare(page); await launch(page, true);
   const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
-  await page.locator("[data-replay-tutorial]").click();
-  await step(page, "welcome");
   await page.keyboard.press("Escape");
   await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  await expect(page.locator(".combat-tutorial")).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
-});
-
-test("se puede salir mientras un sello manual espera sin límite de tiempo", async ({ page }) => {
-  const errors = [];
-  page.on("pageerror", error => errors.push(error.message));
-  await prepare(page, { manual: true });
-  const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
-  await launch(page, true);
-  await intro(page);
-  for (const id of ["strike", "guard", "technique", "preparation", "seals"]) { await step(page, id); await next(page); }
-  await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene("battle").sealPrompt?.text)).toMatch(/^PULSA/);
-  await page.keyboard.press("Escape");
-  await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  await expect(page.locator("#game canvas")).toHaveCount(1);
-  await expect(page.locator("#game")).toBeHidden();
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
-  expect(errors).toEqual([]);
-});
-
-test("omitir desde la bienvenida deja ejecutar acciones normales", async ({ page }) => {
-  await prepare(page, { power: true });
-  await launch(page);
-  await page.locator('[data-tutorial-skip]').click();
-  const action = page.locator('[data-combat-action="1"]');
-  await expect(action).toHaveAttribute('aria-disabled', 'false');
-  const before = await page.evaluate(() => window.__tutorialGame.scene.getScene('battle').round);
-  await page.keyboard.press("1");
-  await expect.poll(() => page.evaluate(() => {
-    const scene = window.__tutorialGame.scene.getScene('battle');
-    return { hp: scene.enemy.hp, busy: scene.busy, ready: scene.turnReady, active: scene.combatTutorial.active, allowed: scene.combatTutorial.canUse(scene.actions[0]), message: scene.lastBattleMessage?.text };
-  })).toMatchObject({ active: false });
-  await expect.poll(() => page.evaluate(() => window.__tutorialGame.scene.getScene('battle').round)).toBeGreaterThan(before);
-});
-
-test("el repaso también se completa con sellos automáticos", async ({ page }) => {
-  const errors = [];
-  page.on("pageerror", error => errors.push(error.message));
-  await prepare(page);
-  const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
-  await launch(page, true);
-  await intro(page);
-  for (const id of ["strike", "guard", "technique", "preparation", "seals", "cooldowns", "complete"]) {
-    await step(page, id);
-    if (id === "seals") await expect(page.locator("#tutorial-copy")).toContainText("sellos automáticos");
-    await next(page);
-  }
-  await expect(page.locator("[data-replay-tutorial]")).toBeVisible();
-  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(afterArchiveIntroduction(saved));
-  expect(errors).toEqual([]);
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
 });

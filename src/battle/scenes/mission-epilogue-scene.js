@@ -16,7 +16,8 @@ export class MissionEpilogueScene extends Phaser.Scene {
     this.cameras.main.setZoom(battleRuntime.renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     const lines = [
       "Seguí el rastro de estos bandidos. No era un grupo aislado: llevan semanas saqueando las aldeas vecinas.",
-      "Perdí su rastro en la Aldea de Kagemori. Cuando regreses, dejaré una misión de investigación en el Cuartel General."
+      "Perdí su rastro en la Aldea de Kagemori. Cuando regreses, dejaré una misión de investigación en el Cuartel General.",
+      "Hana abrirá su Tienda para ti al regresar. Usa tus primeras monedas para preparar suministros antes de investigar Kagemori."
     ];
     let lineIndex = 0;
 
@@ -37,7 +38,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
     const dialogue = this.add.text(462, 120, lines[0], {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "16px", color: "#f4f0e8", fontStyle: "bold", wordWrap: { width: 430 }, lineSpacing: 6
     }).setDepth(6);
-    const counter = this.add.text(462, 240, "1/2", {
+    const counter = this.add.text(462, 240, `1/${lines.length}`, {
       fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#aac1d2", fontStyle: "bold"
     }).setDepth(6);
     const button = this.add.rectangle(846, 238, 122, 38, 0x0d4668, 1).setStrokeStyle(1, 0x55c9ff, 1).setInteractive({ useHandCursor: true }).setDepth(6);
@@ -47,16 +48,15 @@ export class MissionEpilogueScene extends Phaser.Scene {
     button.on("pointerover", () => button.setFillStyle(0x17638d, 1));
     button.on("pointerout", () => button.setFillStyle(0x0d4668, 1));
     button.on("pointerup", () => {
-      if (lineIndex === 0) {
-        lineIndex = 1;
-        dialogue.setText(lines[1]);
-        counter.setText("2/2");
-        buttonLabel.setText("REGRESAR");
+      if (lineIndex < lines.length - 1) {
+        lineIndex += 1;
+        dialogue.setText(lines[lineIndex]);
+        counter.setText(`${lineIndex + 1}/${lines.length}`);
+        buttonLabel.setText(lineIndex === lines.length - 1 ? "REGRESAR" : "SIGUIENTE");
         return;
       }
       button.disableInteractive();
       battleRuntime.activeSave.campaign.sayoEncounterSeen = true;
-      battleRuntime.activeSave.campaign.secondaryBoardUnlocked = true;
       stageVictory(battleRuntime, battleRuntime.activeSave);
       this.scene.start("travel", { direction: "toVillage", result: data.result || {} });
     });

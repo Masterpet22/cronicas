@@ -7,6 +7,7 @@ async function visit(page, location) {
   const back = page.getByRole("button", { name: "← Volver al mapa", exact: true });
   if (await back.isVisible()) await back.click();
   await page.locator(`[data-go="${location}"]`).click();
+  await expect(page.locator(`[data-location-stage="${location}"]`)).toBeVisible();
   const next = page.locator('[data-stage-speech]:not(.leaving) [data-stage-next]');
   for (let i = 0; i < 6 && await next.isVisible(); i++) await next.click();
   if (location === "dojo") await page.locator('[data-dojo-tab="equipment"]').click();
@@ -15,13 +16,14 @@ async function visit(page, location) {
 test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kunai del cursor", async ({ page }, testInfo) => {
   test.setTimeout(180000);
   page.setDefaultTimeout(15000);
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize({ width: 1280, height: 720 });
   await page.goto("/");
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js");
     const save = createCharacter(createDefaultSave(), { name: "Armero", affinity: "fuego", bodyType: "male" });
-    save.progression.coins = 200; save.campaign.tutorialSeen = true;
+    save.progression.coins = 200; save.campaign.tutorialSeen = true; save.campaign.completedMissions = ["m01"];
     writeSave(save); sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off"); localStorage.setItem("seal-input-mode", "automatic");
   });
@@ -66,7 +68,9 @@ test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kuna
         if (!image || (sprite === "held-kunai" && !(scene.hero.body.x > 620 && scene.hero.joints.shoulderRight.angle < -60))
           || (sprite === "thrown-shuriken" && image.x < 400)) return;
         const source = image.texture.getSourceImage();
-        window.__weaponVisual = { texture: image.texture.key, size: [source.width, source.height] };
+        window.__weaponVisual = { texture: image.texture.key, size: [source.width, source.height],
+          trail: scene.children.list.some(child => child.name === "shuriken-trail"),
+          rim: scene.children.list.some(child => child.name === "shuriken-rim") };
         scene.events.off("postupdate", inspect);
         scene.scene.pause();
       };
@@ -77,6 +81,7 @@ test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kuna
     const visual = await page.evaluate(() => window.__weaponVisual);
     expect(visual.texture).toBe(action === "throwable_strike" ? "equipment-shuriken" : "equipment-kunai");
     expect(visual.size).toEqual(action === "throwable_strike" ? [50, 52] : [80, 69]);
+    if (action === "throwable_strike") expect(visual).toMatchObject({ trail: true, rim: true });
     await page.screenshot({ path: testInfo.outputPath(`${sprite}.png`) });
     await page.evaluate(() => window.__weaponGame.scene.resume("battle"));
     await trainingReady(page);
@@ -92,5 +97,53 @@ test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kuna
   await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
   await page.getByRole("button", { name: "VOLVER AL DOJO", exact: true }).click();
   await expect(page.locator('[data-gear-slot="throwable"]')).toContainText("Shuriken");
+  expect(errors).toEqual([]);
+});
+
+test("la estela funciona en Canvas y WebGL y limpia efectos al fallar o interrumpirse", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  await page.goto("/");
+  await ensurePhaser(page);
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  const results = await page.evaluate(async () => {
+    const { throwShuriken, queueWeaponTextures } = await import("/src/battle/weapon-effects.js?v=1.4.0");
+    const run = (type, options = {}) => new Promise((resolve, reject) => {
+      const parent = document.createElement("div"); document.body.append(parent);
+      let game;
+      game = new Phaser.Game({ type, parent, width: 640, height: 240, banner: false,
+        scene: {
+          preload() { queueWeaponTextures(this); },
+          create() {
+            this.hero = { body: { x: 80, y: 180 } }; this.foe = { body: { x: 540, y: 180 } };
+            this.playerProjectileOrigin = actor => ({ x: actor === "player" ? 110 : 510, y: 130 });
+            this.lightMode = Boolean(options.light); this.flashEffects = !options.noFlash;
+            const interruptions = [];
+            if (options.cancel) this.time.delayedCall(90, () => { this.finished = true; this.events.emit("shutdown"); });
+            const before = this.events.listenerCount("shutdown");
+            throwShuriken(this, Boolean(options.missed), options.actor || "player").then(() => {
+              const impact = this.children.list.some(child => child.name === "shuriken-impact");
+              interruptions.push(Math.max(0, this.events.listenerCount("shutdown") - before));
+              window.setTimeout(() => {
+                const remaining = this.children.list.filter(child => /shuriken/.test(child.name)).length;
+                const result = { impact, remaining, shutdownListeners: interruptions[0] };
+                game.destroy(true); parent.remove(); resolve(result);
+              }, 230);
+            }).catch(error => { game.destroy(true); parent.remove(); reject(error); });
+          }
+        }
+      });
+    });
+    return {
+      canvas: await run(Phaser.CANVAS),
+      webgl: await run(Phaser.WEBGL, { actor: "enemy" }),
+      miss: await run(Phaser.CANVAS, { missed: true }),
+      light: await run(Phaser.CANVAS, { light: true }),
+      noFlash: await run(Phaser.CANVAS, { noFlash: true }),
+      cancelled: await run(Phaser.CANVAS, { cancel: true })
+    };
+  });
+  expect(results.canvas).toEqual({ impact: true, remaining: 0, shutdownListeners: 0 });
+  expect(results.webgl).toEqual(results.canvas);
+  for (const mode of ["miss", "light", "noFlash", "cancelled"]) expect(results[mode]).toEqual({ impact: false, remaining: 0, shutdownListeners: 0 });
   expect(errors).toEqual([]);
 });

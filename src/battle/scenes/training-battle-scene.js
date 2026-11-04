@@ -1,6 +1,6 @@
 import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.137.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
-import { trainingActions } from "../../training.js?v=1.0.0";
+import { trainingActions, trainingDummyProfile } from "../../training.js?v=1.0.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";
 import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
@@ -24,8 +24,7 @@ export class TrainingBattleScene extends ArenaBattleScene {
   }
   createEnemyState(profile) {
     if (!this.mission.training) return super.createEnemyState(profile);
-    const dummy = { ...profile, name: "MARIONETA DE ENTRENAMIENTO", affinity: null, boss: false,
-      stats: { health: 10000, chakra: 0, strength: 0, speed: 1, luck: 0 }, accuracy: 0, pattern: [] };
+    const dummy = trainingDummyProfile(profile);
     this.encounters[this.enemyIndex] = dummy;
     return { ...createEnemyState(dummy, this.mission, this.saveData.campaign), evasion: -100, baseEvasion: -100 };
   }

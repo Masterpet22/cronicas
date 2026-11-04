@@ -185,12 +185,12 @@ const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ he
 
 export const ENEMY_ROSTER = {
   tutorial_bandit: {
-    name: "BANDIDO", level: 1, affinity: "tierra", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
+    name: "BANDIDO", level: 1, affinity: "normal", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
     pattern: ["strike", "strike", "physical_1"],
     colors: { cloth: 0x7b6a50, accent: 0x2c241d }
   },
   tutorial_bandit_second: {
-    name: "BANDIDO", level: 1, affinity: "viento", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
+    name: "BANDIDO", level: 1, affinity: "normal", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
     pattern: ["strike", "physical_1", "strike"],
     colors: { cloth: 0x596b4d, accent: 0x20291d }
   },

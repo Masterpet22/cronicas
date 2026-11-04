@@ -2,7 +2,7 @@ import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } fro
 
 export function mountSkillTableControl(scene, { root, actions, restorePerspective, refresh }) {
   let table = "elemental", switching = false, timer = null, removed = false, returnFocus = false;
-  const physical = physicalSkillActions(scene.saveData, scene.actions);
+  const physical = physicalSkillActions(scene.tutorialPracticeSave || scene.saveData, scene.actions);
   const training = Boolean(scene.mission.training);
   const pages = { elemental: 0, physical: 0 };
   const moves = training ? {
@@ -14,6 +14,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const heading = document.createElement("span"); heading.className = "combat-table-heading"; heading.setAttribute("aria-hidden", "true");
   const button = document.createElement("button"); button.type = "button"; button.className = "combat-table-switch";
   button.dataset.skillTableSwitch = ""; button.setAttribute("aria-controls", "combat-action-list");
+  button.setAttribute("aria-keyshortcuts", "0");
   button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4 4-4-4 4-4"/></svg><span class="combat-table-switch-label"></span>';
   const live = document.createElement("span"); live.className = "combat-table-announcement"; live.setAttribute("role", "status");
   tools.append(heading, button, live); root.insertBefore(tools, actions); actions.id = "combat-action-list";
@@ -37,18 +38,18 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const actionAt = index => training && index > 0 && index < 5 ? moves[table][pages[table] * 4 + index - 1] || null
     : table === "physical" ? physical[index] : scene.actions[index];
   const middle = index => index > 0 && index < 5;
-  const blocked = () => removed || root.hidden || root.inert || scene.finished || !scene.scene.isActive() || scene.combatTutorial?.active;
+  const blocked = () => removed || root.hidden || root.inert || scene.finished || !scene.scene.isActive() || (scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange);
   const refreshState = () => {
     const target = table === "elemental" ? "físicas" : "elementales";
     if (root.dataset.skillTable !== table) {
       root.dataset.skillTable = table;
       (training ? caption : heading).textContent = table === "elemental" ? "ELEMENTALES" : "FÍSICAS";
-      button.setAttribute("aria-label", `Cambiar a habilidades ${target}`);
+      button.setAttribute("aria-label", `Cambiar a habilidades ${target} (0)`);
       button.setAttribute("aria-pressed", String(table === "physical"));
-      button.querySelector("span").textContent = table === "elemental" ? "Físicas" : "Elementales";
+      button.querySelector("span").textContent = table === "elemental" ? "Físicas · 0" : "Elementales · 0";
     }
     button.disabled = switching || blocked();
-    button.title = scene.combatTutorial?.active ? "Completa la práctica guiada para cambiar de tabla." : `Cambiar a habilidades ${target}`;
+    button.title = scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange ? "La guía indicará cuándo cambiar de tabla con 0." : `Cambiar a habilidades ${target} · Tecla 0`;
     if (training) {
       const count = Math.max(1, Math.ceil(moves[table].length / 4));
       pagination.hidden = count === 1;
@@ -84,14 +85,15 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const commit = () => {
     if (removed || blocked()) { finish(); return; }
     table = table === "elemental" ? "physical" : "elemental";
+    scene.combatTutorial?.onTableChanged?.(table);
     live.textContent = table === "physical" ? "Tabla física. Golpe veloz y Guardia permanecen en 1 y 6." : "Tabla elemental. Golpe veloz y Guardia permanecen en 1 y 6.";
     refresh();
   };
-  button.addEventListener("click", () => {
-    if (switching || blocked()) return;
+  const toggle = () => {
+    if (switching || blocked()) return false;
     returnFocus = document.activeElement === button;
     restorePerspective();
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { commit(); layout(); return; }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { commit(); layout(); return true; }
     switching = true; scene.skillTableSwitching = true;
     actions.classList.add("is-turning-out"); refresh();
     timer = window.setTimeout(() => {
@@ -100,10 +102,12 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
       actions.classList.remove("is-turning-out"); actions.classList.add("is-turning-in");
       timer = window.setTimeout(finish, 160);
     }, 160);
-  });
+    return true;
+  };
+  button.addEventListener("click", toggle);
   refreshState(); layout();
   return {
-    actionAt, layout, refresh: refreshState,
+    actionAt, layout, refresh: refreshState, toggle,
     get physical() { return table === "physical"; },
     emptyAt: index => training ? { name: "Sin más movimientos", requirement: "—", description: "Aprende más movimientos en el Dojo.", locked: false } : physicalEmptySkill(index),
     slotAt: index => training || table === "physical" && middle(index) ? slots[index] : scene.actionSlots[index],

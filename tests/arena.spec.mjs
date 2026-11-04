@@ -1,4 +1,6 @@
 import { test, expect } from "@playwright/test";
+import { installArenaSagaForTest } from "./helpers/village-progress.mjs";
+test.beforeEach(async ({ page }) => installArenaSagaForTest(page));
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
 const stored = page => page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
@@ -13,6 +15,8 @@ async function prepareArena(page) {
   await page.evaluate(async () => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.119.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male", skinTone: "moreno" });
+    const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
+    unlockVillageForTest(save, { arena: true });
     save.progression.coins = 75;
     save.inventory.items.health_potion = 2; save.inventory.items.retry_scroll = 1;
     save.guild.room.wall = "plum"; save.campaign.tutorialSeen = true;

@@ -2,6 +2,10 @@
 .location-dojo [data-affinity-trials] { margin-top:6px; padding:6px 8px; border:1px solid #45677f; border-radius:5px; background:#102c40; color:#dff5ff; font:inherit; font-size:12px; cursor:pointer; }
 .location-dojo [data-affinity-trials]:hover,.location-dojo [data-affinity-trials]:focus-visible { border-color:#75dcff; background:#16415c; }
 .location-dojo .loadout-column .equipment-grid { min-height:0; overflow-y:auto; padding-right:3px; }
+.location-dojo .loadout-column .equipment-grid { grid-auto-rows:max-content; align-items:start; }
+.location-dojo .equipment-columns .gear-slot { height:auto; min-height:82px; align-self:start; align-content:start; align-items:start; overflow:hidden; }
+.location-dojo .equipment-columns .gear-copy { min-width:0; height:auto; }
+.location-dojo .equipment-columns .gear-copy em { display:block; white-space:normal; overflow-wrap:anywhere; line-height:1.4; }
 .location-stage.location-dojo .stage-character:first-child { left:0; right:auto; width:26%; height:80%; bottom:0; }
 .location-stage.location-dojo .stage-character span { font-size:13px; }
 .location-stage.location-dojo .stage-ambient { left:2%; right:auto; top:104px; bottom:auto; height:auto; width:23%; box-sizing:border-box; padding:13px; font-size:13px; }

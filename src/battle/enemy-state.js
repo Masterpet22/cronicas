@@ -1,4 +1,4 @@
-import { AFFINITY_CONFIG, AFFINITY_IDS, affinityCycleModifier, applyAffinityStatModifiers } from "../affinity-system.js?v=0.114.0";
+import { AFFINITY_CONFIG, AFFINITY_IDS, NORMAL_AFFINITY_ID, affinityCycleModifier, applyAffinityStatModifiers } from "../affinity-system.js?v=0.114.0";
 import { activeCombatModifiers } from "../combat-modifiers.js?v=0.114.0";
 import { missionStep } from "../mission-system.js?v=0.114.0";
 import { ABILITY_CATALOG, canonicalAbilityId } from "../data.js?v=1.5.0";
@@ -6,7 +6,7 @@ import { ELEMENTS, canAccessElement } from "../elements.js?v=0.20.0";
 import { BASIC_AFFINITY_TECHNIQUES, enemyAffinityOrder } from "./enemy-affinities.js?v=1.0.0";
 
 export function resolveEnemyProfileForBattle(profile, mission, playerAffinity) {
-  if (!profile.boss || !missionStep(mission, "combat")?.tutorial) return profile;
+  if (profile.affinity === NORMAL_AFFINITY_ID || !profile.boss || !missionStep(mission, "combat")?.tutorial) return profile;
   const affinity = AFFINITY_IDS.find(id => affinityCycleModifier(playerAffinity, id) > 0);
   if (!affinity) return profile;
   const adapt = pattern => pattern?.map(id => {

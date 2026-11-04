@@ -1,4 +1,4 @@
-import { AFFINITY_IDS, availableAffinitySlots, validateAffinityOrder } from "../affinity-system.js?v=0.114.0";
+import { AFFINITY_IDS, NORMAL_AFFINITY_ID, availableAffinitySlots, validateAffinityOrder } from "../affinity-system.js?v=0.114.0";
 import { canAccessElement } from "../elements.js?v=0.20.0";
 
 export const BASIC_AFFINITY_TECHNIQUES = Object.freeze({
@@ -7,6 +7,7 @@ export const BASIC_AFFINITY_TECHNIQUES = Object.freeze({
 
 export function enemyAffinityOrder(profile) {
   const order = profile.affinities ?? [profile.affinity];
+  if (profile.affinity === NORMAL_AFFINITY_ID && Array.isArray(order) && order.length === 1 && order[0] === NORMAL_AFFINITY_ID) return [NORMAL_AFFINITY_ID];
   if (!AFFINITY_IDS.includes(profile.affinity) || !validateAffinityOrder(order) || order[0] !== profile.affinity) {
     throw new Error(`${profile.name || "Enemigo"}: necesita una afinidad dominante válida y un orden de afinidades coherente`);
   }

@@ -36,7 +36,7 @@ for (const width of [1280, 1600]) test(`iluminación y etiqueta compacta siguen 
     await expect(page.locator("[data-building-light]")).toHaveAttribute("clip-path", `url(#village-clip-${id})`);
     await expect(page.locator(`[data-map-label="${id}"]`)).toHaveCSS("opacity", "1");
     await expect(page.locator(".map-label.visible")).toHaveCount(1);
-    await expect(page.locator(".map-label small")).toHaveCount(0);
+    await expect(page.locator(".map-label small")).toHaveCount(7);
     await page.screenshot({ path: testInfo.outputPath(`${id}-seleccionado.png`) });
   }
   // La misma iluminación se activa con el ratón y vuelve al foco al salir.
@@ -80,7 +80,7 @@ test("el texto de la misión actual abre directamente el edificio objetivo", asy
   await seed(page);
   const mission = page.locator(".story-mission-current");
   await expect(mission).toHaveAttribute("data-view", "headquarters");
-  await expect(mission).toContainText("IR A: CUARTEL GENERAL");
+  await expect(mission).toContainText("IR A: Cuartel General");
   await mission.click();
   await expect(page.locator('[data-location-stage="headquarters"]')).toBeVisible();
 });
@@ -112,6 +112,7 @@ test("con movimiento reducido todos los destinos abren sin esperar al destello",
       button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
       return Boolean(document.querySelector('[data-location-stage="headquarters"]'));
     })).toBe(true);
+    else if (await hotspot.getAttribute("aria-disabled") === "true") { await hotspot.press("Enter"); await expect(page.locator(".village-map")).toBeVisible(); continue; }
     else await hotspot.press("Enter");
     await expect(page.locator(`[data-location-stage="${id}"]`)).toBeVisible();
     await page.locator('[data-view="plaza"]').first().click();

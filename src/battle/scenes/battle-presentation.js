@@ -846,6 +846,10 @@ export class BattlePresentationMethods {
     // A physical key press must only activate its action once.
     const handledShortcutEvents = new WeakSet();
     this.onActionShortcut = (event) => {
+      if (event.key === "0" || event.code === "Numpad0") {
+        if (event.repeat || event.defaultPrevented || handledShortcutEvents.has(event) || event.target?.closest?.("input, textarea, select, [contenteditable=true]")) return;
+        handledShortcutEvents.add(event); event.preventDefault(); this.accessibleHud?.toggleSkillTable?.(); return;
+      }
       const index = Number(event.key) - 1;
       if (!Number.isInteger(index) || index < 0 || index >= this.actions.length || handledShortcutEvents.has(event)) return;
       handledShortcutEvents.add(event);

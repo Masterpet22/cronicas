@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { ELEMENTS, basicRequirements, canAccessElement, elementIconParts } from "../src/elements.js";
+import { BASIC_ELEMENT_IDS, ELEMENTS, basicRequirements, canAccessElement, elementIconParts, elementName, accessibleElements } from "../src/elements.js";
 import { webpDimensions } from "./webp.mjs";
 
 const root = new URL("../assets/elements/", import.meta.url);
@@ -33,6 +33,13 @@ for (const tier of manifest.tiers) {
 
 assert.equal(ids.size, 22, "El sistema debe contener exactamente 22 elementos únicos");
 assert.deepEqual(elementIconParts("desconocido"), []);
+assert.equal(elementName("normal"), "Normal");
+assert.equal(BASIC_ELEMENT_IDS.includes("normal"), false);
+assert.deepEqual(basicRequirements("normal"), []);
+assert.equal(canAccessElement("normal", ["normal"]), true);
+assert.equal(canAccessElement("fuego", ["normal"]), false);
+assert.equal(canAccessElement("normal", ["normal", "agua"]), false);
+assert.equal(accessibleElements(BASIC_ELEMENT_IDS, 3).includes("normal"), false, "Normal no entra en el árbol de afinidades del jugador");
 assert.equal(canAccessElement("vapor", ["agua", "fuego"], 2), true, "Dos afinidades deben habilitar una combinación secundaria");
 assert.equal(canAccessElement("vapor", ["agua", "fuego"], 1), false, "El rango 1 no debe habilitar combinaciones secundarias");
 assert.deepEqual(basicRequirements("tormenta").sort(), ["agua", "fuego", "viento"], "Una técnica terciaria debe exigir tres afinidades básicas");
