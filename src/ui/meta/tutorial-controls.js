@@ -2,6 +2,7 @@ import { skillTreeNodes } from "../../skills/progression.js?v=1.0.0";
 
 export function tutorialControl(root, step, save, view) {
   if (!step || step.view && step.view !== view) return null;
+  if (step.id === "command") return { element: root.querySelector(step.selector), instruction: "", reveal: true, response: "Ver las sagas" };
   const result = (selector, instruction, reveal = false, skill = null) => ({ element: root.querySelector(selector), instruction, reveal, skill });
   const equipmentSteps = ["equipment", "throwable-equipment", "mentor", "initial-kit"];
   const finalEquipment = step.id === "final-loadout" && (!save.equipment.weapon || !save.equipment.throwable);

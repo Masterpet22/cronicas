@@ -6,7 +6,7 @@ import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtim
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
 import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
-import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
+import { tutorialActor, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
 import { playerRankLabel } from "../../player-rank.js";
 import { lessonCompleted } from "../../tutorial-system.js";
 
@@ -150,7 +150,7 @@ export class LevelUpScene extends Phaser.Scene {
     explanation.setAttribute("aria-label", "Tu maestro explica la subida de nivel");
     const resonance = 2 * (report.afterLevel - report.beforeLevel);
     const teacher = tutorialActor(battleRuntime.activeSave, "battle");
-    explanation.innerHTML = `${tutorialCharacterMarkup(teacher)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(teacher)}</header><h3>Qué has ganado</h3><div class="tutorial-dialogue-body"><p>Los PX aumentan tu nivel. Tus atributos crecen automáticamente según tu afinidad; la tabla muestra cuánto.</p><p><strong>+${report.pointsGained} puntos de atributo:</strong> distribúyelos con + en Dojo → Estadísticas.</p><p><strong>+${resonance} PR:</strong> aprende o mejora habilidades en Dojo → Técnicas.</p><p>Tu rango actual es ${playerRankLabel(battleRuntime.activeSave)}. Las pruebas de afinidad permiten ascender. Estos beneficios se confirman al regresar con éxito.</p></div></section>`;
+    explanation.innerHTML = `<section class="tutorial-dialogue-box tutorial-voice"><header data-dialogue-speaker>${tutorialSpeakerMarkup(teacher)}</header><h3 class="tutorial-sr-only">Qué has ganado</h3><div class="tutorial-dialogue-body"><p>Has ganado ${report.pointsGained} puntos de atributo y ${resonance} PR. Cuando volvamos al Dojo, te enseñaré a usarlos para fortalecer tus atributos y aprender técnicas. La tabla muestra lo que ya ha crecido con tu nivel. Tu rango sigue siendo ${playerRankLabel(battleRuntime.activeSave)}; ascenderás al superar las pruebas de afinidad.</p></div></section>`;
     // La primera subida enseña atributos y PR. Las siguientes muestran el
     // resultado numérico sin repetir la misma explicación de formación.
     if (!lessonCompleted(battleRuntime.activeSave, "level-up")) this.game.canvas.parentElement?.append(explanation);

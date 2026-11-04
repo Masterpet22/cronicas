@@ -1,5 +1,5 @@
 import { lessonCompleted, tutorialCourseFor } from "../tutorial-system.js";
-import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup } from "../tutorial-speakers.js";
+import { tutorialActor, tutorialSpeakerMarkup } from "../tutorial-speakers.js";
 import { recordBattleLesson } from "./tutorial-progress.js";
 import { suspendPauseRendering } from "./pause-rendering.js?v=1.0.0";
 
@@ -8,10 +8,11 @@ export async function explainSagaEvent(scene, lesson, { title, copy, guardianCop
   const parent = scene.game.canvas.parentElement;
   const dialog = document.createElement("dialog"); dialog.className = "battle-lesson-dialog"; dialog.dataset.battleLesson = lesson;
   const heading = document.createElement("h2"); heading.textContent = title; heading.id = "battle-lesson-title";
+  heading.className = "tutorial-sr-only";
   const text = document.createElement("p"); text.textContent = copy;
   dialog.setAttribute("aria-labelledby", heading.id);
   const actor = tutorialActor(scene.saveData, "battle", "master");
-  dialog.innerHTML = `${tutorialCharacterMarkup(actor)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}</header><div class="tutorial-dialogue-body"></div><footer></footer></section>`;
+  dialog.innerHTML = `<section class="tutorial-dialogue-box tutorial-voice"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}</header><div class="tutorial-dialogue-body"></div><footer></footer></section>`;
   const button = document.createElement("button"); button.type = "button"; button.className = "primary-button"; button.textContent = "Entendido · Continuar";
   text.textContent = [guardianCopy, copy].filter(Boolean).join(" ");
   const box = dialog.querySelector(".tutorial-dialogue-box"); box.insertBefore(heading, box.querySelector(".tutorial-dialogue-body")); box.querySelector(".tutorial-dialogue-body").append(text); box.querySelector("footer").append(button);

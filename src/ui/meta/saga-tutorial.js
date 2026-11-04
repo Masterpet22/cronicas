@@ -3,7 +3,7 @@ import { BASIC_ELEMENT_IDS, elementName } from "../../elements.js?v=0.20.0";
 import { FIELD_LESSONS } from "../../content/sagas/futuro-prometedor/tutorial.js";
 import { resonancePoints } from "../../skills/progression.js?v=1.0.0";
 import { ITEMS } from "../../items.js?v=0.126.0";
-import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
+import { tutorialActor, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
 import { revealTutorialControl, tutorialControl } from "./tutorial-controls.js";
 
 export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
@@ -16,11 +16,11 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
     const pending = pendingTutorialPreparation(save);
     if (pending) return pending;
     const course = currentTutorialCourse(save);
-    return course && !["headquarters", "plaza", "debug"].includes(view) ? { id: "return-to-mission", view: "headquarters", title: "Ya estás preparado", text: "Vuelve al Cuartel General y abre la siguiente misión de Futuro prometedor.", destination: true } : null;
+    return course && !["headquarters", "plaza", "debug"].includes(view) ? { id: "return-to-mission", view: "headquarters", title: "Ya estás preparado", text: "Ya estás preparado. Vuelve al Cuartel General; allí podrás continuar con tu encargo.", destination: true } : null;
   };
   const event = value => {
     const before = getSave(), next = observeTutorialEvent(before, value);
-    if (next !== before) { notice = ""; clearTimeout(noticeTimer); persist(next); message = "Práctica registrada."; refresh(); }
+    if (next !== before) { notice = ""; clearTimeout(noticeTimer); persist(next); refresh(); }
   };
   const tell = text => {
     notice = text; dismissed = ""; clearTimeout(noticeTimer); refresh();
@@ -39,7 +39,7 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
     const requested = currentStep(), save = getSave();
     const destination = requested?.view && requested.view !== view ? requested.view : null;
     const places = { headquarters: "Cuartel General", dojo: "Dojo", shop: "Tienda", archive: "Biblioteca" };
-    const step = notice ? { id: "notice", view, title: "Un consejo antes de continuar", text: notice } : destination ? { ...requested, view, title: requested.destination ? requested.title : `Siguiente: ${places[destination]}`, text: requested.destination ? requested.text : `Tu próximo objetivo es «${requested.title}». Ve al ${places[destination]} para continuar.`, quiz: null } : requested;
+    const step = notice ? { id: "notice", view, title: "Un consejo antes de continuar", text: notice } : destination ? { ...requested, view, title: requested.destination ? requested.title : `Siguiente: ${places[destination]}`, text: requested.destination ? requested.text : `Antes de continuar, ve al ${places[destination]}. ${requested.id === "equipment" ? "Tu maestro te ayudará a preparar el equipo para salir al bosque." : "Allí podrás preparar lo que necesitas para tu encargo."}`, quiz: null } : requested;
     if (previousStep !== step?.id) { message = ""; previousStep = step?.id; }
     const options = root.querySelector("[data-stage-options]");
     if (view === "archive" && save.campaign.archiveUnlocked && !options?.hidden) {
@@ -54,6 +54,8 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
     const visible = Boolean(step && dismissed !== `${view}:${step.id}` && !blocked);
     if (host.hidden === visible) host.hidden = !visible;
     stage?.classList.toggle("has-guided-speaker", visible);
+    const actor = tutorialActor(save, view, view !== "dojo" && !["affinity-cycle", "field-pause"].includes(step?.id) ? "guardian" : "master");
+    stage?.querySelectorAll('[data-stage-npc]').forEach(character => character.classList.toggle("tutorial-speaking", visible && character.dataset.stageNpc === actor.id));
     if (ambient) {
       const wasTutorial = ambient.classList.contains("has-tutorial-dialogue");
       ambient.classList.toggle("has-tutorial-dialogue", visible);
@@ -70,12 +72,13 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
     }
     if (!visible) return;
     const aid = destination ? null : support(step);
-    const actor = tutorialActor(save, view, view !== "dojo" && !["affinity-cycle", "field-pause"].includes(step.id) ? "guardian" : "master");
     const key = JSON.stringify([step.id, step.text, control?.instruction, aid, message, actor.id, save.character.affinity]);
     if (key === signature) return;
     signature = key;
     host.dataset.coachStep = step.id;
-    host.innerHTML = `${tutorialCharacterMarkup(actor)}<section class="tutorial-dialogue-box"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}<button type="button" data-coach-close aria-label="Cerrar explicación">×</button></header><h3>${escape(step.title)}</h3><div class="tutorial-dialogue-body"><p>${escape(step.text)}</p>${notice || destination ? "" : `<p class="tutorial-control-instruction" role="status">${escape(control?.instruction || "Sigue la indicación de tu maestro.")}</p>`}${step.quiz === "affinity" ? `<div class="saga-coach-answers" role="group" aria-label="Rival vulnerable a ${escape(elementName(save.character.affinity))}">${BASIC_ELEMENT_IDS.map(id => `<button type="button" data-coach-answer="${id}">${elementName(id)}</button>`).join("")}</div>` : ""}<p class="saga-coach-message" role="status">${escape(message)}</p></div><footer><button type="button" data-coach-go>${notice ? "Entendido" : destination ? `Ir al ${places[destination]}` : control?.reveal ? "Abrir el paso indicado" : "Mostrar el control"}</button></footer></section>`;
+    const instruction = ["command", "equipment", "throwable-equipment", "mentor", "initial-kit"].includes(step.id) ? "" : control?.instruction?.replace(/^\d+\.\s*/, "");
+    const response = notice ? "Entendido" : destination ? `Ir al ${places[destination]}` : control?.response || (control?.reveal ? "Muéstrame" : "Señálamelo");
+    host.innerHTML = `<section class="tutorial-dialogue-box tutorial-conversation" role="region" aria-label="Conversación con ${escape(actor.name)}"><header data-dialogue-speaker>${tutorialSpeakerMarkup(actor)}<button type="button" data-coach-close aria-label="Cerrar conversación">×</button></header><h3 class="tutorial-sr-only">${escape(step.title)}</h3><div class="tutorial-dialogue-body"><p>${escape(step.text)}</p>${!notice && !destination && instruction && instruction !== "Usa el control resaltado." ? `<p class="tutorial-control-instruction" role="status">${escape(instruction)}</p>` : ""}${step.quiz === "affinity" ? `<div class="saga-coach-answers" role="group" aria-label="Rival vulnerable a ${escape(elementName(save.character.affinity))}">${BASIC_ELEMENT_IDS.map(id => `<button type="button" data-coach-answer="${id}">${elementName(id)}</button>`).join("")}</div>` : ""}<p class="saga-coach-message" role="status">${escape(message)}</p></div><footer><button type="button" data-coach-go>${response}</button></footer></section>`;
     if (aid) host.querySelector(".saga-coach-message").insertAdjacentHTML("beforebegin", aid.reset
       ? '<p>Puedes devolver todas las inversiones de técnicas y reasignarlas. Se retiran las mejoras compradas; conservas los atributos.</p><button type="button" data-coach-support>Recuperar PR invertidos</button>'
       : `<p>Tu maestro puede aportar las ${aid.coins} monedas que faltan, una sola vez para esta práctica.</p><button type="button" data-coach-support>Solicitar ayuda para materiales</button>`);

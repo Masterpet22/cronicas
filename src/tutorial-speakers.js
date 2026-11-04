@@ -1,6 +1,5 @@
 import { NPCS } from "./npcs.js?v=0.131.0";
 import { masterIdForCharacter } from "./save/character-state.js";
-import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 
 const GUARDIANS = { headquarters: "ren", shop: "hana", archive: "sayo", kagemori: "iori" };
 const HARU = { id: "haru", name: "Haru Takamine", title: "Médico errante" };
@@ -27,19 +26,14 @@ export function tutorialActor(save, area, role = "master") {
   return role === "guardian" && guardian.image ? guardian : master;
 }
 
-export function tutorialCharacterMarkup(actor) {
-  return `<div class="tutorial-character-stage story-character" data-dialogue-character="${actor.id}"><img src="${actor.image}?v=${META_ASSET_VERSION}" alt="${escape(actor.name)}" width="1145" height="1374" loading="eager" fetchpriority="high" decoding="async"></div>`;
-}
-
 export function tutorialSpeakerMarkup(actor) {
   return `<strong data-tutorial-speaker="${actor.id}">${escape(actor.name)}</strong><small>${escape(actor.title)}</small>`;
 }
 
 export function updateTutorialActor(root, actor) {
-  const character = root.querySelector("[data-dialogue-character]");
-  if (character.dataset.dialogueCharacter !== actor.id) {
-    character.dataset.dialogueCharacter = actor.id;
-    const image = character.querySelector("img"); image.src = `${actor.image}?v=${META_ASSET_VERSION}`; image.alt = actor.name;
-    root.querySelector("[data-dialogue-speaker]").innerHTML = tutorialSpeakerMarkup(actor);
+  const speaker = root.querySelector("[data-dialogue-speaker]");
+  if (speaker.dataset.dialogueActor !== actor.id) {
+    speaker.dataset.dialogueActor = actor.id;
+    speaker.innerHTML = tutorialSpeakerMarkup(actor);
   }
 }

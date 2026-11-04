@@ -1,7 +1,7 @@
 import { lessonCompleted, tutorialCourseFor } from "../tutorial-system.js";
 import { COMBAT_LESSONS } from "../content/sagas/futuro-prometedor/combat-lessons.js";
 import { recordBattleLesson } from "./tutorial-progress.js";
-import { tutorialActor, tutorialCharacterMarkup, tutorialSpeakerMarkup, updateTutorialActor } from "../tutorial-speakers.js";
+import { tutorialActor, tutorialSpeakerMarkup, updateTutorialActor } from "../tutorial-speakers.js";
 import { affinityTutorialCopy } from "../content/sagas/futuro-prometedor/affinity-advice.js";
 import { CHAKRA_BALANCE } from "../chakra-balance.js?v=1.0.0";
 
@@ -17,12 +17,11 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
   const parent = scene.game.canvas.parentElement;
   const root = document.createElement("div"); root.className = "combat-tutorial";
   const initialActor = tutorialActor(scene.saveData, "battle", "master");
-  root.innerHTML = `<div class="tutorial-shade"></div><div class="tutorial-spotlight" aria-hidden="true"></div><div class="tutorial-character-dialogue">${tutorialCharacterMarkup(initialActor)}<section class="tutorial-dialogue-box" role="dialog" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy"><header data-dialogue-speaker>${tutorialSpeakerMarkup(initialActor)}</header><p class="tutorial-kicker"></p><h2 id="tutorial-title"></h2><div class="tutorial-dialogue-body"><p id="tutorial-copy"></p></div><footer><p class="tutorial-hint"></p><button type="button" data-tutorial-next>Continuar</button></footer></section></div><button type="button" class="tutorial-skip" ${onReplayExit ? "data-tutorial-skip" : "data-tutorial-pause"}>${onReplayExit ? "Salir del repaso" : "Pausar formación"}</button>`;
+  root.innerHTML = `<div class="tutorial-shade"></div><div class="tutorial-spotlight" aria-hidden="true"></div><div class="tutorial-character-dialogue"><section class="tutorial-dialogue-box tutorial-voice" role="dialog" aria-labelledby="tutorial-title" aria-describedby="tutorial-copy"><header data-dialogue-speaker>${tutorialSpeakerMarkup(initialActor)}</header><h2 id="tutorial-title" class="tutorial-sr-only"></h2><div class="tutorial-dialogue-body"><p id="tutorial-copy"></p></div><footer><button type="button" data-tutorial-next>Entendido</button></footer></section></div><button type="button" class="tutorial-skip" ${onReplayExit ? "data-tutorial-skip" : "data-tutorial-pause"}>${onReplayExit ? "Salir del repaso" : "Pausar formación"}</button>`;
   parent.append(root);
   const presentation = root.querySelector(".tutorial-character-dialogue"), spotlight = root.querySelector(".tutorial-spotlight"), shade = root.querySelector(".tutorial-shade");
   const next = root.querySelector("[data-tutorial-next]"), exit = root.querySelector(".tutorial-skip");
   let active = true, current = null, pending = null, index = 0, phase = "intro", destroyed = false, sealsExplained = false, pauseAwaited = false;
-  const ids = [...plan.intro.map(step => step.id), ...plan.actions.flatMap(step => step.kind === "technique" ? [step.id, "preparation", "seals"] : [step.id]), ...(plan === COMBAT_LESSONS.basics ? ["cooldowns"] : []), ...(plan.pause ? ["pause"] : []), "complete"];
   const step = () => plan.actions[index];
   const actionFor = specification => {
     const actions = Array.from({ length: 6 }, (_, i) => scene.accessibleHud.getAction(i)).filter(Boolean);
@@ -70,13 +69,12 @@ export function mountCombatTutorial(scene, { onReplayExit } = {}) {
     root.classList.toggle("is-practicing", Boolean(item.practice));
     const actor = tutorialActor(scene.saveData, "battle", "master");
     updateTutorialActor(presentation, actor);
-    root.querySelector(".tutorial-kicker").textContent = `PASO ${ids.indexOf(item.id) + 1} DE ${ids.length}`;
     root.querySelector("#tutorial-title").textContent = item.title;
     root.querySelector("#tutorial-copy").textContent = item.id === "affinity" ? affinityTutorialCopy(scene.player.primaryAffinity) : item.copy;
-    root.querySelector(".tutorial-hint").textContent = item.practice ? "Usa el control resaltado o su tecla. El tiempo espera tu decisión." : "El combate espera mientras lees.";
-    next.textContent = item.button || (item.practice ? "Ir al control resaltado" : "Continuar");
+    next.textContent = item.button || "Entendido";
+    next.hidden = Boolean(item.practice && !item.button);
     next.onclick = item.practice && !item.button ? () => controlFor(item.target)?.focus({ preventScroll: true }) : callback;
-    position(); next.focus({ preventScroll: true });
+    position(); (next.hidden ? controlFor(item.target) : next)?.focus({ preventScroll: true });
   };
   const page = item => new Promise(resolve => {
     if (!active || destroyed) return resolve(false);

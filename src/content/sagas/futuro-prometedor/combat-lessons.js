@@ -1,12 +1,12 @@
 export const COMBAT_LESSONS = {
   basics: {
     intro: [
-      { id: "welcome", target: "health", title: "Protege tu vida", copy: "Estoy contigo, fuera del duelo. La barra PV es tu vida: si llega a cero, pierdes. Primero probaremos un golpe y una defensa. Mientras dure la guía, ninguno de los dos caerá." },
+      { id: "welcome", target: "health", title: "Protege tu vida", copy: "Estoy aquí, a tu lado. Mira tu barra de vida, marcada con PV: si se agota, pierdes el duelo. Primero probaremos un golpe y una defensa. No dejaré que ninguno caiga mientras practicamos." },
       { id: "timeline", target: "timeline", title: "Espera tu turno y elige", copy: "Tu marcador avanza por la barra inferior. Al llegar al 80 %, el combate se detiene para que elijas con calma. El rival tiene su propio marcador. Ahora espera tu primer turno." }
     ],
     actions: [
-      { id: "strike", kind: "strike", title: "Ejecuta Golpe veloz", copy: "Pulsa Golpe veloz (1). Es un ataque sin coste de vida ni chakra. Después del golpe, observa la vida del rival y espera tu siguiente turno.", lesson: "strike" },
-      { id: "guard", kind: "guard", title: "Prepara Guardia", copy: "Pulsa Guardia (6). Reduce a la mitad el próximo impacto y recupera chakra. El escudo permanece hasta recibir un golpe; mientras esté activo no puedes repetirla.", lesson: "guard" },
+      { id: "strike", kind: "strike", title: "Ejecuta Golpe veloz", copy: "Empieza con Golpe veloz, en el 1. No gastarás vida ni chakra. Mira cuánto baja la vida del rival después de golpear.", lesson: "strike" },
+      { id: "guard", kind: "guard", title: "Prepara Guardia", copy: "Ahora protégete con Guardia, en el 6. Reducirás a la mitad el próximo impacto y recuperarás chakra. El escudo seguirá contigo hasta que te alcancen.", lesson: "guard" },
       { id: "physical-table", kind: "table", table: "physical", title: "Abre la tabla física", copy: "Pulsa 0 o el control señalado para cambiar de tabla. El cambio no gasta tu acción. Golpe veloz y Guardia se mantienen en 1 y 6; las cuatro casillas centrales cambian." },
       { id: "weapon", kind: "weapon", title: "Ataca con tu kunai", copy: "Ejecuta Golpe de arma desde la tabla física. Solo está disponible si posees y llevas equipada un arma; su coste es 0 PV y 0 CH.", lesson: "weapon" },
       { id: "throwable", kind: "throwable", title: "Lanza el shuriken", copy: "Usa el shuriken de la tabla física. Es reutilizable: lanzarlo no gasta el objeto ni consume PV o CH. Sigue su estela hasta el blanco Normal.", lesson: "throwable" },

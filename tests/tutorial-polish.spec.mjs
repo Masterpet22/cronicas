@@ -36,7 +36,8 @@ test("rendimiento: la subida de nivel deja de dibujar escenas mientras espera", 
   await page.waitForTimeout(150);
   const renders = await sampleRendering(page);
   await info.attach("renderizado-subida", { body: JSON.stringify({ renders, milliseconds: 950 }), contentType: "application/json" });
-  await expect.poll(() => page.locator(".level-up-explanation .tutorial-character-stage img").evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
+  await expect(page.locator(".level-up-explanation img")).toHaveCount(0);
+  await expect(page.locator(".level-up-explanation [data-tutorial-speaker]")).toBeVisible();
   await page.screenshot({ path: info.outputPath("subida-dialogo-maestro.png") });
   console.log(`Subida de nivel: ${renders} renders / 950 ms`);
   if (!process.env.TUTORIAL_BASELINE) expect(renders).toBeLessThanOrEqual(2);
@@ -98,22 +99,28 @@ async function seedVillage(page, { trained = false, bodyType = "male" } = {}) {
 }
 
 for (const [bodyType, master] of [["male", "mei"], ["female", "daichi"]]) test(`Ren y ${master} aparecen en escena con su propio diálogo`, async ({ page }, info) => {
+  if (bodyType === "female") await page.setViewportSize({ width: 1280, height: 720 });
   await seedVillage(page, { bodyType });
   await expect(page.locator(".saga-tutorial-coach")).toHaveCount(0);
   await page.locator('[data-go="headquarters"]').click();
   const dialogue = page.locator(".saga-tutorial-coach");
   await expect(dialogue).toBeVisible();
   await expect(dialogue.locator('[data-tutorial-speaker="ren"]')).toBeVisible();
-  const portrait = await dialogue.locator('[data-dialogue-character="ren"] img').boundingBox();
-  expect(portrait.width).toBeGreaterThan(200); expect(portrait.height).toBeGreaterThan(300);
-  await expect(dialogue.locator(".tutorial-voices")).toHaveCount(0);
+  await expect(dialogue.locator('img')).toHaveCount(0);
+  const resident = page.locator('[data-stage-npc="ren"]');
+  await expect(resident).toBeVisible();
+  const floor = await page.locator('[data-location-stage]').boundingBox();
+  const portrait = await resident.boundingBox();
+  expect(Math.abs(portrait.y + portrait.height - floor.y - floor.height)).toBeLessThan(3);
+  const bubble = await dialogue.locator('.tutorial-conversation').boundingBox();
+  expect(bubble.y + bubble.height).toBeLessThan(portrait.y + 10);
+  await expect(dialogue.locator('h3')).toHaveClass(/tutorial-sr-only/);
   await dialogue.locator("[data-coach-close]").click(); await expect(dialogue).toBeHidden();
   await page.locator("[data-coach-open]").click(); await expect(dialogue).toBeVisible();
   await page.screenshot({ path: info.outputPath(`personaje-ren-${master}.png`) });
   await page.locator('[data-saga="saga-1"]').click(); await page.locator('[data-mission="m01"]').click();
-  await expect(page.locator(`[data-dialogue-character="${master}"] img`)).toBeVisible();
-  await expect.poll(() => page.locator(`[data-dialogue-character="${master}"] img`).evaluate(image => image.complete && image.naturalWidth > 0)).toBe(true);
-  await page.locator(`[data-dialogue-character="${master}"] img`).evaluate(image => image.decode());
+  await expect(page.locator(`[data-stage-npc="${master}"]`)).toBeVisible();
+  await expect(dialogue.locator('img')).toHaveCount(0);
   await expect(page.locator(`[data-tutorial-speaker="${master}"]`)).toBeVisible();
   await page.screenshot({ path: info.outputPath(`personaje-${master}-dojo.png`) });
 });
@@ -184,7 +191,7 @@ test("el maestro explica los nuevos duelos, la ventaja y la fase II cuando ocurr
   await expect(encounters).toBeVisible({ timeout: 20000 });
   await expect(encounters).toContainText("uno contra uno");
   await expect(encounters.locator('[data-tutorial-speaker="mei"]')).toBeVisible();
-  await expect(encounters.locator('[data-dialogue-character="mei"] img')).toBeVisible();
+  await expect(encounters.locator(".tutorial-character-stage, .story-character, [data-dialogue-character]")).toHaveCount(0);
   await encounters.locator("button").click();
   await page.evaluate(async () => {
     await window.__eventFlow;
@@ -193,7 +200,7 @@ test("el maestro explica los nuevos duelos, la ventaja y la fase II cuando ocurr
   });
   const affinity = page.locator('[data-battle-lesson="affinity-advantage"]');
   await expect(affinity).toBeVisible({ timeout: 20000 });
-  await expect(affinity.locator('[data-dialogue-character="mei"] img')).toBeVisible();
+  await expect(affinity.locator(".tutorial-character-stage, .story-character, [data-dialogue-character]")).toHaveCount(0);
   await expect(affinity).toContainText("20 %"); await expect(affinity).toContainText("Normal");
   await page.screenshot({ path: info.outputPath("ventaja-en-el-primer-jefe.png") });
   await affinity.locator("button").click();

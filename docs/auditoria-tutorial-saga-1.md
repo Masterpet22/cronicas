@@ -12,11 +12,11 @@ El problema no era la falta de texto. El tutorial confundía visitar una interfa
 | La visita al selector podía acreditar acciones sin un cambio de equipo. | Un clic se presentaba como aprendizaje. | Se registra la mutación del equipo, no la apertura del selector. Las partidas que ya tienen equipo preparado satisfacen el requisito sin repetirlo. |
 | Los eventos buscaban coincidencias en todos los pasos de preparación. | Una acción fuera de orden podía acreditar un objetivo futuro. | Solo el paso pendiente acepta su evento; los requisitos materiales se comprueban contra el estado actual. |
 | La ficha del maestro se acreditaba al abrirla. | La guía avanzaba detrás de una ventana todavía abierta. | El objetivo se acredita al cerrar la ficha; la guía espera durante la consulta. |
-| Introducción de local, conversación ambiental y guía podían competir. | Dos figuras y dos instrucciones a la vez, como en la primera captura. | La guía cede durante la introducción, el briefing, las decisiones, la consulta del maestro y la pausa. Los personajes ambientales se ocultan durante una explicación guiada. |
+| Introducción de local, conversación ambiental y guía podían competir. | Dos figuras y dos instrucciones a la vez, como en la primera captura. | La guía cede durante la introducción, el briefing, las decisiones, la consulta del maestro y la pausa. Reutiliza al habitante presente en lugar de añadir un recorte de su cuerpo. |
 | Ren presentaba la práctica y los encuentros en el bosque. | El jefe de la aldea parecía desplazarse con la misión sin justificación. | Ren recibe y encarga en el Cuartel. El maestro asignado acompaña y explica en campo; los responsables locales hablan en su propio lugar. |
 | Seis pantallas de teoría antes del primer golpe. | El jugador debía memorizar vida, chakra, pasivas, turnos y fases antes de actuar. | Dos explicaciones iniciales: vida y momento de decisión. Chakra y preparación aparecen al ejecutar la técnica; los enfriamientos, después de usarla. |
-| La práctica conservaba el personaje y el cuadro grande delante del combate. | El acompañamiento tapaba lo que se intentaba enseñar. | En una práctica desaparece el personaje y queda una instrucción compacta con el control resaltado. |
-| El botón de la explicación ejecutaba la acción. | Se podía recorrer la formación pulsando siempre el mismo botón. | «Ir al control resaltado» enfoca el botón real. El jugador debe pulsar ese control o su tecla. |
+| La práctica conservaba el personaje y el cuadro grande delante del combate. | El acompañamiento tapaba lo que se intentaba enseñar. | El maestro habla mediante subtítulos, sin cuerpo superpuesto, encabezado de tarea ni contador. Las conversaciones de aldea usan globos sobre personajes apoyados en el suelo. |
+| El botón de la explicación ejecutaba la acción. | Se podía recorrer la formación pulsando siempre el mismo botón. | Durante una práctica se enfoca directamente el control real y se retira el botón auxiliar. El jugador debe pulsar el control o su tecla. |
 | Kagemori exigía quitar y reponer técnicas, comprar dos pociones y vender una antes de investigar. | La investigación se detenía para hacer trámites sin una necesidad inmediata. | Kagemori enseña crecimiento e investigación. La poción se compra antes del Desfiladero, donde se usa. La venta sigue disponible en la tienda sin convertirse en una barrera de campaña. |
 | Al terminar una preparación desaparecía la ayuda. | No quedaba claro cómo continuar con el encargo. | Se muestra el destino siguiente y un acceso directo; al estar preparado, se indica volver al Cuartel. |
 | Era posible retirar todas las técnicas antes de la primera salida. | La práctica elemental se quedaba sin acción válida. | La preparación inicial también exige una técnica elemental y señala cómo equiparla si falta. |
@@ -61,7 +61,13 @@ Sí: esta formación se puede controlar paso a paso sin usar temporizadores arbi
 
 Para añadir un paso, hay que definir qué necesidad lo justifica, qué acción realiza el jugador, qué cambio observable demuestra el éxito y qué ocurre al recargar o abandonar. Si solo requiere un estado que ya existe, la guía debe reconocerlo en vez de inventar una confirmación.
 
-## Verificación ejecutada
+## Revisión visual posterior
+
+La revisión inicial todavía conservaba figuras flotantes y fichas de objetivos. Se retiró esa presentación: el habitante ya presente habla con un globo, con los pies apoyados en el suelo. En combate y en las subidas de nivel, el maestro habla mediante subtítulos sin un cuerpo superpuesto. Se reescribió el inicio como conversación, se ocultaron títulos y contadores de lecciones y se retiró el botón auxiliar durante las prácticas.
+
+Se aprobaron nueve casos distintos de navegador, incluyendo ambos maestros, la distribución de 1280 × 720, el recorrido de preparación, el primer combate completo, atributos, encuentros y subida de nivel. También pasaron las pruebas unitarias de saga, arquitectura, pausa, escritorio e interfaz de combate. Capturas revisadas: [aldea](../artifacts/tutorial-dialogue-review/aldea.png) y [combate](../artifacts/tutorial-dialogue-review/combate.png).
+
+## Verificación funcional anterior
 
 - 56 archivos de pruebas unitarias ejecutados y aprobados, incluyendo progresión, migración, equipo, economía, acciones y arquitectura.
 - 34 casos distintos de navegador aprobados entre la pasada general y las comprobaciones focalizadas. Cubren preparación real, orden, conversaciones excluyentes, ajustes, investigación, consulta de información, objetos, estados, fase de Raizen, repaso con ambos modos de sellos, subidas posteriores y regresiones de comercio y armas.
