@@ -1,0 +1,74 @@
+{
+  "surfaces": {
+    "b-tower": {
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Los cuatro desafíos elementales",
+        "Día de Agua",
+        "Día de Tierra",
+        "Día de Fuego",
+        "Día de Viento"
+      ],
+      "dialogs": []
+    },
+    "b-arena-local": {
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Demuestra tu técnica",
+        "Elige tu rival",
+        "Dificultad"
+      ],
+      "dialogs": []
+    },
+    "b-arena-online": {
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Demuestra tu técnica",
+        "Prepárate para medirte con otros jugadores"
+      ],
+      "dialogs": []
+    },
+    "b-arena-victory": {
+      "headings": [
+        "Victoria"
+      ],
+      "dialogs": [
+        {
+          "name": "arena-result-title",
+          "text": "ARENA DEL HORIZONTE · EXHIBICIÓN LOCAL\n\nVictoria\n\nHas superado al rival de entrenamiento.\n\nRival\nDUELISTA DE FUEGO\nDificultad\nEquilibrado\nTurnos resueltos\n1\nVida restante\n195/195\n\nLa exhibición no entrega PX, monedas ni puntos de clasificación. Tu campaña, tus objetos y tu bestiario se conservan.\n\nRevancha\nVolver a la Arena"
+        }
+      ]
+    },
+    "b-arena-defeat": {
+      "headings": [
+        "Derrota"
+      ],
+      "dialogs": [
+        {
+          "name": "arena-result-title",
+          "text": "ARENA DEL HORIZONTE · EXHIBICIÓN LOCAL\n\nDerrota\n\nAjusta tus técnicas y vuelve a intentarlo.\n\nRival\nDUELISTA DE FUEGO\nDificultad\nEquilibrado\nTurnos resueltos\n1\nVida restante\n0/195\n\nLa exhibición no entrega PX, monedas ni puntos de clasificación. Tu campaña, tus objetos y tu bestiario se conservan.\n\nRevancha\nVolver a la Arena"
+        }
+      ]
+    },
+    "b-doctor-route": {
+      "headings": [
+        "Crónicas del Sello",
+        "Tras el rastro de Haru",
+        "Elige tu primer camino"
+      ],
+      "dialogs": []
+    },
+    "b-doctor-cipher": {
+      "headings": [
+        "Crónicas del Sello",
+        "Descifra el mapa de Akumori",
+        "Revela las 36 casillas"
+      ],
+      "dialogs": []
+    }
+  },
+  "errors": []
+}

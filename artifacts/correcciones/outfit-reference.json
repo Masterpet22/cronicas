@@ -1,0 +1,156 @@
+[
+  {
+    "body": "male",
+    "id": "torso",
+    "cell": 0,
+    "x": 132.6875,
+    "y": 46,
+    "width": 246.609375,
+    "height": 420,
+    "naturalWidth": 293,
+    "naturalHeight": 499
+  },
+  {
+    "body": "male",
+    "id": "muslo_izquierdo",
+    "cell": 1,
+    "x": 684,
+    "y": 109,
+    "width": 168,
+    "height": 294,
+    "naturalWidth": 168,
+    "naturalHeight": 294
+  },
+  {
+    "body": "male",
+    "id": "pierna_izquierda",
+    "cell": 2,
+    "x": 1222.5,
+    "y": 133,
+    "width": 115,
+    "height": 246,
+    "naturalWidth": 115,
+    "naturalHeight": 246
+  },
+  {
+    "body": "male",
+    "id": "pie_izquierdo",
+    "cell": 3,
+    "x": 1704.5,
+    "y": 182,
+    "width": 175,
+    "height": 148,
+    "naturalWidth": 175,
+    "naturalHeight": 148
+  },
+  {
+    "body": "male",
+    "id": "muslo_derecho",
+    "cell": 4,
+    "x": 171.5,
+    "y": 615.5,
+    "width": 169,
+    "height": 305,
+    "naturalWidth": 169,
+    "naturalHeight": 305
+  },
+  {
+    "body": "male",
+    "id": "pierna_derecha",
+    "cell": 5,
+    "x": 708,
+    "y": 641,
+    "width": 120,
+    "height": 254,
+    "naturalWidth": 120,
+    "naturalHeight": 254
+  },
+  {
+    "body": "male",
+    "id": "pie_derecho",
+    "cell": 6,
+    "x": 1212,
+    "y": 694,
+    "width": 136,
+    "height": 148,
+    "naturalWidth": 136,
+    "naturalHeight": 148
+  },
+  {
+    "body": "female",
+    "id": "torso",
+    "cell": 8,
+    "x": 143.734375,
+    "y": 1070,
+    "width": 224.515625,
+    "height": 420,
+    "naturalWidth": 255,
+    "naturalHeight": 477
+  },
+  {
+    "body": "female",
+    "id": "muslo_izquierdo",
+    "cell": 9,
+    "x": 686.5,
+    "y": 1135,
+    "width": 163,
+    "height": 290,
+    "naturalWidth": 163,
+    "naturalHeight": 290
+  },
+  {
+    "body": "female",
+    "id": "pierna_izquierda",
+    "cell": 10,
+    "x": 1224.5,
+    "y": 1158,
+    "width": 111,
+    "height": 244,
+    "naturalWidth": 111,
+    "naturalHeight": 244
+  },
+  {
+    "body": "female",
+    "id": "pie_izquierdo",
+    "cell": 11,
+    "x": 1708,
+    "y": 1208,
+    "width": 168,
+    "height": 144,
+    "naturalWidth": 168,
+    "naturalHeight": 144
+  },
+  {
+    "body": "female",
+    "id": "muslo_derecho",
+    "cell": 12,
+    "x": 175.5,
+    "y": 1645.5,
+    "width": 161,
+    "height": 293,
+    "naturalWidth": 161,
+    "naturalHeight": 293
+  },
+  {
+    "body": "female",
+    "id": "pierna_derecha",
+    "cell": 13,
+    "x": 710.5,
+    "y": 1666.5,
+    "width": 115,
+    "height": 251,
+    "naturalWidth": 115,
+    "naturalHeight": 251
+  },
+  {
+    "body": "female",
+    "id": "pie_derecho",
+    "cell": 14,
+    "x": 1214.5,
+    "y": 1718.5,
+    "width": 131,
+    "height": 147,
+    "naturalWidth": 131,
+    "naturalHeight": 147
+  }
+]

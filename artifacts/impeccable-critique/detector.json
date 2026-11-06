@@ -1,0 +1,96 @@
+[
+  {
+    "antipattern": "dark-glow",
+    "name": "Glowing shadow accents",
+    "description": "Colored glow shadows — a zero-offset chromatic halo (box- or text-shadow) on any background, or any colored blurred shadow on a dark background — are the default \"cool\" look of AI-generated UIs. Use neutral elevation shadows and subtle, purposeful lighting instead.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "Zero-offset box-shadow glow (#49bff5)"
+  },
+  {
+    "antipattern": "undersized-ui-text",
+    "name": "Undersized functional text",
+    "description": "Interactive and content-bearing UI text (links, buttons, nav items, labels, table cells, meta rows, timecodes) below 11px is a legibility failure, not a style choice. WCAG sets no absolute pixel floor, but functional text under 11px is a defensible quality bar: it fails on high-DPI and small viewports and it degrades tap and read targets. The 11px floor holds even inside a footer; only non-interactive legal smallprint gets the softer 10px floor. Being ON the DESIGN.md size ramp does not exempt a value here: adding 8px to the ramp launders the token but not the legibility problem, and that is exactly the escape hatch this rule closes. Exempts sup/sub, visually-hidden (sr-only) text, and code/terminal contexts. Decorative letterspaced micro-labels are still functional and stay in scope.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "10.56px functional text \"CRÓNICAS DEL SELLO\" (below 11px floor)",
+    "advisory": true
+  },
+  {
+    "antipattern": "tiny-text",
+    "name": "Tiny body text",
+    "description": "Body text below 12px is hard to read, especially on high-DPI screens. Use at least 14px for body content, 16px is ideal.",
+    "severity": "advisory",
+    "category": "quality",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "9.28px body text",
+    "advisory": true
+  },
+  {
+    "antipattern": "wide-tracking",
+    "name": "Wide letter spacing on body text",
+    "description": "Letter spacing above 0.05em on body text disrupts natural character groupings and slows reading. Reserve wide tracking for short uppercase labels only.",
+    "severity": "warning",
+    "category": "quality",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "letter-spacing: 0.08em on body text"
+  },
+  {
+    "antipattern": "nested-cards",
+    "name": "Nested cards",
+    "description": "Cards inside cards create visual noise and excessive depth. Flatten the hierarchy — use spacing, typography, and dividers instead of nesting containers.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "Card inside card (div)"
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card — the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": ".save-slot::before — absolute 4px pseudo-element stripe (left: 0)"
+  },
+  {
+    "antipattern": "dark-glow",
+    "name": "Glowing shadow accents",
+    "description": "Colored glow shadows — a zero-offset chromatic halo (box- or text-shadow) on any background, or any colored blurred shadow on a dark background — are the default \"cool\" look of AI-generated UIs. Use neutral elevation shadows and subtle, purposeful lighting instead.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "Zero-offset box-shadow glow (#49bff5)"
+  },
+  {
+    "antipattern": "repeating-stripes-gradient",
+    "name": "Repeating-gradient stripes",
+    "description": "Repeating-gradient stripes used as surface decoration are a recurring generated-UI signature. Reach for a deliberate texture or leave the surface plain.",
+    "severity": "advisory",
+    "category": "slop",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "repeating-gradient decorative stripes",
+    "advisory": true
+  },
+  {
+    "antipattern": "codex-grid-background",
+    "name": "Decorative grid-line background",
+    "description": "A decorative grid or line-field background drawn with hairline linear-gradient layers tiled by a fixed pixel cell is a recurring generated-UI signature. Reserve grid overlays for actual canvas, map, blueprint, or measurement surfaces; elsewhere use product structure or a plain surface.",
+    "severity": "advisory",
+    "category": "slop",
+    "file": "D:\\Descargas\\peleas\\index.html",
+    "line": 0,
+    "snippet": "two-axis grid-line gradient background",
+    "advisory": true
+  }
+]

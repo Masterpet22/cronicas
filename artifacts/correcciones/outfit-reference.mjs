@@ -1,0 +1,13 @@
+import { chromium } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
+const parts = ['torso','muslo_izquierdo','pierna_izquierda','pie_izquierdo','muslo_derecho','pierna_derecha','pie_derecho'];
+const slots = ['male','female'].flatMap((body, row) => [...parts.map((id,index) => ({ body,id,cell:row*8+index })),null]);
+const browser = await chromium.launch({headless:true});
+const page = await browser.newPage({viewport:{width:2048,height:2048},deviceScaleFactor:1});
+await page.goto('http://127.0.0.1:4173/');
+await page.setContent(`<style>html,body{margin:0;background:transparent}body{display:grid;grid-template-columns:repeat(4,512px);grid-auto-rows:512px}.cell{display:grid;place-items:center}.cell img{max-width:420px;max-height:420px}</style>${slots.map(p=>`<div class="cell">${p?`<img src="http://127.0.0.1:4173/assets/modular/${p.body==='male'?'man':'woman'}_sprites/runtime/${p.id}.png">`:''}</div>`).join('')}`);
+await page.evaluate(()=>Promise.all([...document.images].map(img=>img.decode())));
+const entries=await page.locator('img').evaluateAll(imgs=>imgs.map(img=>{const rect=img.getBoundingClientRect();return {x:rect.x,y:rect.y,width:rect.width,height:rect.height,naturalWidth:img.naturalWidth,naturalHeight:img.naturalHeight};}));
+await page.screenshot({path:'artifacts/correcciones/outfit-reference.png',omitBackground:true});
+await writeFile('artifacts/correcciones/outfit-reference.json',JSON.stringify(slots.filter(Boolean).map((p,i)=>({...p,...entries[i]})),null,2));
+await browser.close();

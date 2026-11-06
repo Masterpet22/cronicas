@@ -1,0 +1,5807 @@
+{
+  "surfaces": {
+    "b-saves": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Elige una partida",
+        "Nueva partida",
+        "Nueva partida",
+        "Nueva partida"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "CRÓNICAS DEL SELLO",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1050,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "lead",
+          "text": "Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al cr",
+          "size": "18px",
+          "color": "rgb(174, 191, 203)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 720,
+          "h": 53
+        },
+        {
+          "tag": "SPAN",
+          "cls": "save-slot-number",
+          "text": "PARTIDA 1",
+          "size": "12.24px",
+          "color": "rgb(131, 216, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 14
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Crea un combatiente y comienza una historia independiente.",
+          "size": "18px",
+          "color": "rgb(159, 177, 190)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary-button",
+          "text": "CREAR PARTIDA",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 170,
+          "h": 49
+        },
+        {
+          "tag": "SPAN",
+          "cls": "save-slot-number",
+          "text": "PARTIDA 2",
+          "size": "12.24px",
+          "color": "rgb(131, 216, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 14
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Crea un combatiente y comienza una historia independiente.",
+          "size": "18px",
+          "color": "rgb(159, 177, 190)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary-button",
+          "text": "CREAR PARTIDA",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 170,
+          "h": 49
+        },
+        {
+          "tag": "SPAN",
+          "cls": "save-slot-number",
+          "text": "PARTIDA 3",
+          "size": "12.24px",
+          "color": "rgb(131, 216, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 14
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Crea un combatiente y comienza una historia independiente.",
+          "size": "18px",
+          "color": "rgb(159, 177, 190)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 292,
+          "h": 52
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary-button",
+          "text": "CREAR PARTIDA",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 170,
+          "h": 49
+        }
+      ],
+      "dialogs": []
+    },
+    "b-creator": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Crea tu combatiente"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "PRIMER PASO · PARTIDA 1",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 372,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Elige quién dará el primer paso en la Aldea del Horizonte.",
+          "size": "16px",
+          "color": "rgb(166, 189, 203)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 372,
+          "h": 19
+        },
+        {
+          "tag": "SPAN",
+          "cls": "creator-heading-mark",
+          "text": "始",
+          "size": "32px",
+          "color": "rgb(196, 161, 106)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 62,
+          "h": 62
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "TU COMBATIENTE",
+          "size": "14.625px",
+          "color": "rgb(125, 157, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 131,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Akio",
+          "size": "21px",
+          "color": "rgb(243, 233, 214)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 131,
+          "h": 28
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Fuego",
+          "size": "14px",
+          "color": "rgb(255, 120, 61)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 33,
+          "h": 17
+        },
+        {
+          "tag": "LABEL",
+          "cls": "cosmetic-label",
+          "text": "Peinado",
+          "size": "15.75px",
+          "color": "rgb(201, 216, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 219,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "‹",
+          "size": "15.75px",
+          "color": "rgb(188, 238, 255)",
+          "bg": "rgba(8, 45, 66, 0.84)",
+          "w": 28,
+          "h": 34
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "›",
+          "size": "15.75px",
+          "color": "rgb(188, 238, 255)",
+          "bg": "rgba(8, 45, 66, 0.84)",
+          "w": 28,
+          "h": 34
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "También puedes cambiarlo en el Dojo.",
+          "size": "14.625px",
+          "color": "rgb(133, 166, 185)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 219,
+          "h": 19
+        },
+        {
+          "tag": "SPAN",
+          "cls": "creator-coming-soon",
+          "text": "PRÓXIMAMENTE",
+          "size": "9px",
+          "color": "rgb(184, 161, 125)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 11
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "‹",
+          "size": "15.75px",
+          "color": "rgb(96, 120, 136)",
+          "bg": "rgba(8, 22, 32, 0.62)",
+          "w": 28,
+          "h": 34
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "›",
+          "size": "15.75px",
+          "color": "rgb(96, 120, 136)",
+          "bg": "rgba(8, 22, 32, 0.62)",
+          "w": 28,
+          "h": 34
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Compra los trajes en la tienda y selecciónalos en Apariencia del Dojo.",
+          "size": "14.625px",
+          "color": "rgb(133, 166, 185)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 219,
+          "h": 38
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "NOMBRE",
+          "size": "15.75px",
+          "color": "rgb(203, 217, 225)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 572,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Hasta 18 caracteres.",
+          "size": "14.625px",
+          "color": "rgb(121, 154, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 572,
+          "h": 20
+        },
+        {
+          "tag": "LABEL",
+          "cls": "cosmetic-label",
+          "text": "Género",
+          "size": "15.75px",
+          "color": "rgb(201, 216, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 172,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "‹",
+          "size": "15.75px",
+          "color": "rgb(188, 238, 255)",
+          "bg": "rgba(8, 45, 66, 0.84)",
+          "w": 36,
+          "h": 35
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "›",
+          "size": "15.75px",
+          "color": "rgb(188, 238, 255)",
+          "bg": "rgba(8, 45, 66, 0.84)",
+          "w": 36,
+          "h": 35
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Esta elección queda fija para esta partida.",
+          "size": "14.625px",
+          "color": "rgb(133, 166, 185)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 357,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "cosmetic-label",
+          "text": "Tono de piel",
+          "size": "13px",
+          "color": "rgb(203, 217, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 166,
+          "h": 16
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Claro",
+          "size": "15.75px",
+          "color": "rgb(245, 223, 175)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 49,
+          "h": 19
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Moreno",
+          "size": "15.75px",
+          "color": "rgb(189, 203, 213)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 19
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Fuego",
+          "size": "14px",
+          "color": "rgb(226, 232, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Afinidad básica",
+          "size": "14.625px",
+          "color": "rgb(132, 159, 172)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Agua",
+          "size": "14px",
+          "color": "rgb(226, 232, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Afinidad básica",
+          "size": "14.625px",
+          "color": "rgb(132, 159, 172)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Tierra",
+          "size": "14px",
+          "color": "rgb(226, 232, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Afinidad básica",
+          "size": "14.625px",
+          "color": "rgb(132, 159, 172)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Viento",
+          "size": "14px",
+          "color": "rgb(226, 232, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Afinidad básica",
+          "size": "14.625px",
+          "color": "rgb(132, 159, 172)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 87,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Comienzas con una afinidad básica. La segunda requiere nivel 15 y la tercera nivel 30; cad",
+          "size": "13px",
+          "color": "rgb(129, 155, 170)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 572,
+          "h": 38
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "primary-button",
+          "text": "CREAR PERSONAJE",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 281,
+          "h": 47
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "secondary-button",
+          "text": "VOLVER A PARTIDAS",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 281,
+          "h": 47
+        }
+      ],
+      "dialogs": []
+    },
+    "b-village": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EXPERTO",
+          "size": "14.625px",
+          "color": "rgb(219, 160, 91)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 160,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "NIVEL",
+          "size": "14.625px",
+          "color": "rgb(150, 138, 124)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 54,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "16",
+          "size": "16.56px",
+          "color": "rgb(231, 177, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 17,
+          "h": 22
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "0/720",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "PX",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "350",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "DEV",
+          "size": "14.625px",
+          "color": "rgb(226, 173, 104)",
+          "bg": "rgba(221, 160, 82, 0.16)",
+          "w": 37,
+          "h": 23
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Cuartel General",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 146,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Dojo",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 43,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Biblioteca",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Tienda",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 59,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Torre de Desafíos",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 154,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Arena de Combate",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 168,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Bloqueado · Requiere llegar a la saga 3 y tener nivel 16 o superior.",
+          "size": "14.625px",
+          "color": "rgb(215, 203, 185)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 168,
+          "h": 59
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Gremio",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 63,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Tablón de Misiones",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 165,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Plaza de Eventos",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 148,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Tutorial completado · Nuevos accesos",
+          "size": "12.96px",
+          "color": "rgb(255, 244, 223)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 378,
+          "h": 15
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Gremio · Tablón de Misiones · Plaza de Eventos",
+          "size": "10.26px",
+          "color": "rgb(240, 154, 62)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 260,
+          "h": 12
+        }
+      ],
+      "dialogs": []
+    },
+    "b-shop": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Prepara tu próximo viaje",
+        "Kunai equilibrado",
+        "Tanto veloz",
+        "Kunai de acero",
+        "Espada del horizonte",
+        "Hacha de combate",
+        "Shuriken",
+        "Sello del viento",
+        "Sello de vitalidad",
+        "Sello de precisión",
+        "Sello del viajero",
+        "Sello de la sombra",
+        "Sello del canalizador",
+        "Amuleto de chakra",
+        "Visor de halcón",
+        "Marca del erudito",
+        "Poción de vida",
+        "Poción de chakra",
+        "Tónico purificador",
+        "Elixir restaurador",
+        "Peinado corto",
+        "Peinado con coleta",
+        "Rostro con cicatriz",
+        "Máscara de viajero",
+        "Chaqueta de viajero",
+        "Túnica de la sombra",
+        "Pantalón de viajero",
+        "Pantalón de la sombra",
+        "Sandalias de combate",
+        "Traje de viajero",
+        "Traje de la sombra",
+        "Traje ceremonial del canalizador",
+        "Pared de ladrillo · Jade",
+        "Pared de ladrillo · Arena",
+        "Pared de ladrillo · Tinta",
+        "Pared de ladrillo · Ciruela",
+        "Pared de ladrillo · Marfil",
+        "Suelo de cedro",
+        "Suelo de nogal",
+        "Suelo de tatami",
+        "Suelo de piedra",
+        "Cuadro del horizonte",
+        "Pergamino de disciplina",
+        "Farol de papel",
+        "Bonsái",
+        "Mesa de té",
+        "Cojín granate",
+        "Insignia de novicio",
+        "Medalla de misión",
+        "Trofeo del viajero",
+        "Insignia de Guardián",
+        "Perrito de sustitución",
+        "Marioneta de sustitución",
+        "Contrato: El sello extraviado",
+        "Contrato: El pacto del sabueso",
+        "Pergamino de reintento"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EXPERTO",
+          "size": "14.625px",
+          "color": "rgb(219, 160, 91)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 160,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "NIVEL",
+          "size": "14.625px",
+          "color": "rgb(150, 138, 124)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 54,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "16",
+          "size": "16.56px",
+          "color": "rgb(231, 177, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 17,
+          "h": 22
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "0/720",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "PX",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "350",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "DEV",
+          "size": "14.625px",
+          "color": "rgb(226, 173, 104)",
+          "bg": "rgba(221, 160, 82, 0.16)",
+          "w": 37,
+          "h": 23
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "← Volver al mapa",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 176,
+          "h": 47
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Hana Kogane",
+          "size": "12.24px",
+          "color": "rgb(234, 246, 252)",
+          "bg": "rgba(3, 15, 28, 0.92)",
+          "w": 97,
+          "h": 30
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Gestiona equipo, apariencia y sustitución en el Dojo. Los contratos se juegan en el tablón",
+          "size": "14px",
+          "color": "rgb(174, 185, 194)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 703,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "MONEDAS",
+          "size": "14.625px",
+          "color": "rgb(239, 208, 141)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 76,
+          "h": 18
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(223, 198, 150)",
+          "bg": "rgb(87, 31, 42)",
+          "w": 93,
+          "h": 38
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Vender",
+          "size": "15.75px",
+          "color": "rgb(223, 198, 150)",
+          "bg": "rgb(11, 20, 34)",
+          "w": 83,
+          "h": 38
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Vendemos por el precio indicado y compramos a mitad de precio, redondeada hacia abajo.",
+          "size": "13px",
+          "color": "rgb(174, 185, 194)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 824,
+          "h": 16
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Todos",
+          "size": "15.75px",
+          "color": "rgb(255, 232, 180)",
+          "bg": "rgb(87, 31, 42)",
+          "w": 61,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Armas",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 65,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Armas arrojadizas",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 139,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Sellos",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 61,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Accesorios",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 90,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Apariencia",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 92,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Sustitución",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 95,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Consumibles",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 105,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Pergaminos",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 99,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Misiones",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 80,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Decoraciones",
+          "size": "15.75px",
+          "color": "rgb(184, 193, 199)",
+          "bg": "rgb(8, 15, 28)",
+          "w": 108,
+          "h": 32
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+2 daño",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+2 velocidad",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+4 fuerza, +2 precisión",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+6 fuerza, -1 velocidad",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+9 fuerza, -3 velocidad",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Arma arrojadiza reutilizable. Habilita su lanzamiento en la tabla física, sin gastar vida ",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+4 evasión",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+15 PV, -1 velocidad",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+4 precisión",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+12 PV, +1 velocidad",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+5 evasión, +2 velocidad",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+30 chakra, -1 coste de técnicas",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+20 chakra",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+3 precisión",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "+15 % experiencia",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Recupera un 35 % de tus PV máximos. Consume tu turno.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Recupera un 35 % de tu chakra máximo. Consume tu turno.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Elimina los estados negativos y Empapado. Consume tu turno.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Recupera un 50 % de PV y chakra. Consume tu turno.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 43
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 43
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Solo apariencia; sin bonificaciones de combate. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Traje especial: +15 chakra. Gráfico del personaje pendiente.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SPAN",
+          "cls": "item-price",
+          "text": "Inicial",
+          "size": "20px",
+          "color": "rgb(240, 205, 133)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 49,
+          "h": 24
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Acabado jade para las dos paredes de Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1 · En Mi espacio: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SPAN",
+          "cls": "item-price",
+          "text": "Inicial",
+          "size": "20px",
+          "color": "rgb(240, 205, 133)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 49,
+          "h": 24
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Acabado arena para las dos paredes de Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Acabado tinta para las dos paredes de Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Acabado ciruela para las dos paredes de Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Acabado marfil para las dos paredes de Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SPAN",
+          "cls": "item-price",
+          "text": "Inicial",
+          "size": "20px",
+          "color": "rgb(240, 205, 133)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 49,
+          "h": 24
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Desbloquea el suelo de cedro en Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1 · En Mi espacio: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Ya lo tienes",
+          "size": "15.75px",
+          "color": "rgb(142, 150, 156)",
+          "bg": "rgb(16, 24, 39)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Desbloquea el suelo de nogal en Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Desbloquea el suelo de tatami en Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Desbloquea el suelo de piedra en Mi espacio. Se compra una sola vez.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 63
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Montañas bajo la luna. Incluye una unidad para colocar en el Gremio; al retirarla puedes v",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Un recordatorio de tu camino. Incluye una unidad para colocar en el Gremio; al retirarla p",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Una luz cálida para tu rincón. Incluye una unidad para colocar en el Gremio; al retirarla ",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Un pequeño árbol en maceta. Incluye una unidad para colocar en el Gremio; al retirarla pue",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1 · En Mi espacio: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Té y descanso entre misiones. Incluye una unidad para colocar en el Gremio; al retirarla p",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Un asiento junto a la mesa. Incluye una unidad para colocar en el Gremio; al retirarla pue",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Tu primer rango en la aldea. Incluye una unidad para colocar en el Gremio; al retirarla pu",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 1 · En Mi espacio: 1",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Una medalla para recordar tus aventuras. Incluye una unidad para colocar en el Gremio; al ",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Un trofeo para tu rincón de la aldea. Incluye una unidad para colocar en el Gremio; al ret",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "El emblema dorado de los guardianes. Incluye una unidad para colocar en el Gremio; al reti",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Objeto que dejas al sustituirte. No se consume al usarlo.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 82
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Objeto que dejas al sustituirte. No se consume al usarlo.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Se juega desde el tablón. Nivel recomendado 3. Recompensa: Sello del guardián (+18 PV, +2 ",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Se juega desde el tablón. Nivel recomendado 8. Recompensa: Invocación: Sabueso del horizon",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 59
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 38
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas / unidad",
+          "size": "14.625px",
+          "color": "rgb(166, 169, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 102,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Repite el duelo perdido después de agotar los dos reintentos gratuitos.",
+          "size": "14px",
+          "color": "rgb(173, 185, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 39
+        },
+        {
+          "tag": "SMALL",
+          "cls": "shop-stock",
+          "text": "En inventario: 0",
+          "size": "14.625px",
+          "color": "rgb(163, 175, 166)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 299,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Comprar",
+          "size": "15.75px",
+          "color": "rgb(243, 220, 167)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 233,
+          "h": 38
+        }
+      ],
+      "dialogs": []
+    },
+    "b-dojo-techniques": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Rango 2 · Experto",
+        "Elementales",
+        "Núcleo de Resonancia",
+        "Ascuas veloces"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EXPERTO",
+          "size": "14.625px",
+          "color": "rgb(219, 160, 91)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 160,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "NIVEL",
+          "size": "14.625px",
+          "color": "rgb(150, 138, 124)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 54,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "16",
+          "size": "16.56px",
+          "color": "rgb(231, 177, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 17,
+          "h": 22
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "0/720",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "PX",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "350",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "DEV",
+          "size": "14.625px",
+          "color": "rgb(226, 173, 104)",
+          "bg": "rgba(221, 160, 82, 0.16)",
+          "w": 37,
+          "h": 23
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "← Volver al mapa",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 176,
+          "h": 47
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Mei Hayate",
+          "size": "13px",
+          "color": "rgb(234, 246, 252)",
+          "bg": "rgba(3, 15, 28, 0.92)",
+          "w": 90,
+          "h": 31
+        },
+        {
+          "tag": "SPAN",
+          "cls": "dojo-title-mark",
+          "text": "✦",
+          "size": "32.4px",
+          "color": "rgb(240, 184, 92)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 38,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "CONFIGURACIÓN DE COMBATE",
+          "size": "14.625px",
+          "color": "rgb(240, 214, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 411,
+          "h": 19
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Personaliza tus técnicas, mejora tus atributos y forja tu estilo de combate.",
+          "size": "14.625px",
+          "color": "rgb(146, 168, 186)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 411,
+          "h": 15
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Practicar movimientos",
+          "size": "14.625px",
+          "color": "rgb(189, 201, 197)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 127,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "NIVEL 16",
+          "size": "14.625px",
+          "color": "rgb(241, 196, 118)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 110,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "0/720 PX",
+          "size": "14.625px",
+          "color": "rgb(157, 177, 194)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 110,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Equipo",
+          "size": "15.75px",
+          "color": "rgb(157, 176, 194)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 44,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Técnicas",
+          "size": "15.75px",
+          "color": "rgb(216, 249, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 52,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Estadísticas",
+          "size": "15.75px",
+          "color": "rgb(157, 176, 194)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 74,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Apariencia",
+          "size": "15.75px",
+          "color": "rgb(157, 176, 194)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "technique-loadout-count ",
+          "text": "2/4 EQUIPADAS",
+          "size": "10px",
+          "color": "rgb(157, 229, 213)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 75,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "RANURA 1",
+          "size": "14.625px",
+          "color": "rgb(133, 204, 189)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 62,
+          "h": 19
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Ascuas veloces",
+          "size": "11px",
+          "color": "rgb(239, 241, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 64,
+          "h": 14
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "technique-loadout-remove",
+          "text": "×",
+          "size": "15.75px",
+          "color": "rgb(197, 223, 222)",
+          "bg": "rgb(22, 48, 64)",
+          "w": 25,
+          "h": 29
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "RANURA 2",
+          "size": "14.625px",
+          "color": "rgb(133, 204, 189)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 63,
+          "h": 19
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Aliento de brasa",
+          "size": "11px",
+          "color": "rgb(239, 241, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 71,
+          "h": 14
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "technique-loadout-remove",
+          "text": "×",
+          "size": "15.75px",
+          "color": "rgb(197, 223, 222)",
+          "bg": "rgb(22, 48, 64)",
+          "w": 25,
+          "h": 29
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "RANURA 3 · DISPONIBLE",
+          "size": "14.625px",
+          "color": "rgb(133, 204, 189)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 109,
+          "h": 19
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Ranura libre",
+          "size": "11px",
+          "color": "rgb(239, 241, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 109,
+          "h": 14
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "RANURA 4 · DISPONIBLE",
+          "size": "14.625px",
+          "color": "rgb(133, 204, 189)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 109,
+          "h": 19
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Ranura libre",
+          "size": "11px",
+          "color": "rgb(239, 241, 231)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 109,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "0/2 EQUIPADOS",
+          "size": "10px",
+          "color": "rgb(101, 127, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 62,
+          "h": 12
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "TAIJUTSU 1",
+          "size": "14.625px",
+          "color": "rgb(198, 176, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 92,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Elegir técnica",
+          "size": "11px",
+          "color": "rgb(236, 225, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 92,
+          "h": 14
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "TAIJUTSU 2",
+          "size": "14.625px",
+          "color": "rgb(198, 176, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 92,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Elegir técnica",
+          "size": "11px",
+          "color": "rgb(236, 225, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 92,
+          "h": 14
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Elige una técnica aprendida y pulsa Equipar para llevarla al combate.",
+          "size": "11px",
+          "color": "rgb(216, 197, 164)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 247,
+          "h": 30
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EL CAMINO DEL SHINOBI",
+          "size": "14.625px",
+          "color": "rgb(154, 139, 112)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 251,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "−",
+          "size": "15.75px",
+          "color": "rgb(225, 196, 136)",
+          "bg": "rgba(23, 28, 23, 0.937)",
+          "w": 32,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "+",
+          "size": "15.75px",
+          "color": "rgb(225, 196, 136)",
+          "bg": "rgba(23, 28, 23, 0.937)",
+          "w": 32,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "⛶",
+          "size": "15.75px",
+          "color": "rgb(225, 196, 136)",
+          "bg": "rgba(23, 28, 23, 0.937)",
+          "w": 32,
+          "h": 32
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "◎",
+          "size": "15.75px",
+          "color": "rgb(225, 196, 136)",
+          "bg": "rgba(23, 28, 23, 0.937)",
+          "w": 32,
+          "h": 32
+        },
+        {
+          "tag": "SPAN",
+          "cls": "resonance-navigation-hint",
+          "text": "Arrastra para explorar · Rueda para ampliar",
+          "size": "11px",
+          "color": "rgb(156, 158, 136)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 182,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "3/38 habilidades · Personaje central",
+          "size": "14.625px",
+          "color": "rgb(142, 150, 127)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 198,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "TÉCNICA ELEMENTAL",
+          "size": "14.625px",
+          "color": "rgb(183, 166, 123)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 224,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Fuego",
+          "size": "12px",
+          "color": "rgb(240, 212, 164)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 58,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "EN COMBATE",
+          "size": "11px",
+          "color": "rgb(157, 181, 198)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 58,
+          "h": 14
+        },
+        {
+          "tag": "P",
+          "cls": "technique-description",
+          "text": "Inflige daño y aplica quemadura durante 2 turno(s).",
+          "size": "14.625px",
+          "color": "rgb(184, 194, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 224,
+          "h": 41
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Ataque · Estado",
+          "size": "11px",
+          "color": "rgb(175, 193, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 66,
+          "h": 13
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "NIVEL 1 / 3",
+          "size": "11px",
+          "color": "rgb(228, 195, 132)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 44,
+          "h": 13
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "14",
+          "size": "15.75px",
+          "color": "rgb(233, 243, 246)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 30
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "DAÑO BASE",
+          "size": "14.625px",
+          "color": "rgb(140, 162, 178)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 30
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "30 CH",
+          "size": "15.75px",
+          "color": "rgb(233, 243, 246)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "COSTE EN COMBATE",
+          "size": "14.625px",
+          "color": "rgb(140, 162, 178)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "1 turnos",
+          "size": "15.75px",
+          "color": "rgb(233, 243, 246)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "RECARGA",
+          "size": "14.625px",
+          "color": "rgb(140, 162, 178)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "2",
+          "size": "15.75px",
+          "color": "rgb(233, 243, 246)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "SELLOS",
+          "size": "14.625px",
+          "color": "rgb(140, 162, 178)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 98,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Cada mejora añade +2 al daño y reduce el coste un 5 % del original. Al nivel 3 usa un sell",
+          "size": "12px",
+          "color": "rgb(173, 187, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 224,
+          "h": 67
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Desde el Núcleo de Resonancia",
+          "size": "12px",
+          "color": "rgb(173, 187, 169)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 224,
+          "h": 17
+        },
+        {
+          "tag": "P",
+          "cls": "is-met",
+          "text": "Requisitos cumplidos",
+          "size": "12px",
+          "color": "rgb(135, 201, 160)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 224,
+          "h": 17
+        },
+        {
+          "tag": "P",
+          "cls": "technique-accuracy",
+          "text": "+4% precisión · Nivel de personaje 1 · 0 PX de afinidad · desbloqueo con PR",
+          "size": "14.625px",
+          "color": "rgb(184, 194, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 224,
+          "h": 41
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "resonance-invest-button",
+          "text": "MEJORAR · 1 PR",
+          "size": "15.75px",
+          "color": "rgb(246, 228, 188)",
+          "bg": "rgb(100, 80, 43)",
+          "w": 245,
+          "h": 39
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "technique-equip-button",
+          "text": "QUITAR DEL COMBATE",
+          "size": "15.75px",
+          "color": "rgb(211, 229, 200)",
+          "bg": "rgb(37, 61, 48)",
+          "w": 245,
+          "h": 44
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Iniciativa 0 para la siguiente acción; no se acumula. La técnica seguirá aprendida.",
+          "size": "11px",
+          "color": "rgb(167, 180, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 245,
+          "h": 30
+        },
+        {
+          "tag": "P",
+          "cls": "dojo-message",
+          "text": "Los cambios se guardan automáticamente.",
+          "size": "18px",
+          "color": "rgb(246, 242, 233)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 1
+        }
+      ],
+      "dialogs": []
+    },
+    "b-guild-room": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Un lugar al que volver",
+        "Decoraciones"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EXPERTO",
+          "size": "14.625px",
+          "color": "rgb(219, 160, 91)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 160,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "NIVEL",
+          "size": "14.625px",
+          "color": "rgb(150, 138, 124)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 54,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "16",
+          "size": "16.56px",
+          "color": "rgb(231, 177, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 17,
+          "h": 22
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "0/720",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "PX",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "350",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "DEV",
+          "size": "14.625px",
+          "color": "rgb(226, 173, 104)",
+          "bg": "rgba(221, 160, 82, 0.16)",
+          "w": 37,
+          "h": 23
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "← Volver al mapa",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 176,
+          "h": 47
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Yuna Ametsuki",
+          "size": "12.24px",
+          "color": "rgb(234, 246, 252)",
+          "bg": "rgba(3, 15, 28, 0.92)",
+          "w": 107,
+          "h": 30
+        },
+        {
+          "tag": "SPAN",
+          "cls": "guild-personal-tag",
+          "text": "ESPACIO DE PRUEBA CRÍTICA",
+          "size": "11px",
+          "color": "rgb(198, 181, 141)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 169,
+          "h": 31
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Mi espacio",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 177)",
+          "bg": "rgb(87, 43, 57)",
+          "w": 140,
+          "h": 36
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Online próximamente",
+          "size": "14.625px",
+          "color": "rgb(189, 175, 152)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 125,
+          "h": 15
+        },
+        {
+          "tag": "P",
+          "cls": "guild-message",
+          "text": "Tu espacio se guarda automáticamente. Compra más colores, suelos y decoraciones en la Tien",
+          "size": "13px",
+          "color": "rgb(189, 203, 191)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 997,
+          "h": 18
+        },
+        {
+          "tag": "SPAN",
+          "cls": "guild-room-sign",
+          "text": "Prueba crítica · MI ESPACIO",
+          "size": "11px",
+          "color": "rgb(212, 189, 143)",
+          "bg": "rgba(10, 23, 34, 0.85)",
+          "w": 153,
+          "h": 21
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Sin selección",
+          "size": "13px",
+          "color": "rgb(236, 226, 206)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 66,
+          "h": 18
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "←",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 30,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "↑",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 22,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "↓",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 22,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "→",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 30,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Cambiar de pared",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 191,
+          "h": 40
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Al frente",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 111,
+          "h": 40
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Retirar",
+          "size": "15.75px",
+          "color": "rgb(229, 169, 151)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 111,
+          "h": 40
+        },
+        {
+          "tag": "SMALL",
+          "cls": "guild-room-help",
+          "text": "Arrastra para mover · Flechas: mover · Suprimir: retirar. Los cuadros e insignias van en l",
+          "size": "14.625px",
+          "color": "rgb(154, 176, 178)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 761,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "DALE TU ESTILO",
+          "size": "14.625px",
+          "color": "rgb(200, 167, 105)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 148,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "guild-room-count",
+          "text": "2/24",
+          "size": "16px",
+          "color": "rgb(230, 205, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 36,
+          "h": 22
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "✓",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 177)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 12,
+          "h": 16
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Todas",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 177)",
+          "bg": "rgb(87, 43, 57)",
+          "w": 42,
+          "h": 30
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Pared",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 42,
+          "h": 30
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Suelo",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 42,
+          "h": 30
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Insignias",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 61,
+          "h": 30
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Cuadro del horizonte",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 28
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Pergamino de disciplina",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 28
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Farol de papel",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 14
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Bonsái",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 33,
+          "h": 14
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "0 disponibles · 1 colocados",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Mesa de té",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 51,
+          "h": 14
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Cojín granate",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 64,
+          "h": 14
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Insignia de novicio",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 28
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "0 disponibles · 1 colocados",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Medalla de misión",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 28
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Trofeo del viajero",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 28
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Insignia de Guardián",
+          "size": "12px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 28
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Comprar en Tienda",
+          "size": "14.625px",
+          "color": "rgb(166, 186, 176)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 79,
+          "h": 39
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "guild-shop-link",
+          "text": "Comprar decoraciones en la Tienda",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 198,
+          "h": 50
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Colocar decoración",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(87, 43, 57)",
+          "w": 198,
+          "h": 36
+        }
+      ],
+      "dialogs": []
+    },
+    "b-guild-clans": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "Un lugar al que volver",
+        "Nombre del clan",
+        "Borrador de clan",
+        "Espacio del clan"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EXPERTO",
+          "size": "14.625px",
+          "color": "rgb(219, 160, 91)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 160,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "NIVEL",
+          "size": "14.625px",
+          "color": "rgb(150, 138, 124)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 54,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "16",
+          "size": "16.56px",
+          "color": "rgb(231, 177, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 17,
+          "h": 22
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "0/720",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "PX",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "350",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "DEV",
+          "size": "14.625px",
+          "color": "rgb(226, 173, 104)",
+          "bg": "rgba(221, 160, 82, 0.16)",
+          "w": 37,
+          "h": 23
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "← Volver al mapa",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 176,
+          "h": 47
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Yuna Ametsuki",
+          "size": "12.24px",
+          "color": "rgb(234, 246, 252)",
+          "bg": "rgba(3, 15, 28, 0.92)",
+          "w": 107,
+          "h": 30
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Yuna Ametsuki · Anfitriona del Gremio",
+          "size": "15.75px",
+          "color": "rgb(130, 211, 247)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 313,
+          "h": 54
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Podemos preparar tu nombre y tu emblema desde ahora. Reunir al clan vendrá con la conexión",
+          "size": "13px",
+          "color": "rgb(237, 245, 251)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 303,
+          "h": 38
+        },
+        {
+          "tag": "SPAN",
+          "cls": "guild-personal-tag",
+          "text": "ESPACIO DE PRUEBA CRÍTICA",
+          "size": "11px",
+          "color": "rgb(198, 181, 141)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 169,
+          "h": 31
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Mi espacio",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 140,
+          "h": 36
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Online próximamente",
+          "size": "14.625px",
+          "color": "rgb(189, 175, 152)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 125,
+          "h": 15
+        },
+        {
+          "tag": "P",
+          "cls": "guild-message",
+          "text": "Diseña y guarda tu identidad de clan. Las funciones online llegarán más adelante.",
+          "size": "13px",
+          "color": "rgb(189, 203, 191)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 997,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "TU FUTURO CLAN",
+          "size": "14.625px",
+          "color": "rgb(198, 170, 112)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 123,
+          "h": 15
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Un mismo camino. Un mismo emblema.",
+          "size": "13px",
+          "color": "rgb(165, 182, 183)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 211,
+          "h": 18
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "DISEÑA TU IDENTIDAD",
+          "size": "14.625px",
+          "color": "rgb(184, 157, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 324,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Guarda el nombre y el emblema en esta partida para cuando lleguen los clanes online.",
+          "size": "13px",
+          "color": "rgb(165, 182, 183)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 324,
+          "h": 36
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Sol",
+          "size": "15.75px",
+          "color": "rgb(255, 228, 177)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 19,
+          "h": 16
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Montaña",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 55,
+          "h": 16
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Loto",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 27,
+          "h": 16
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Luna",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 30,
+          "h": 16
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Guardar borrador",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(87, 43, 57)",
+          "w": 324,
+          "h": 36
+        },
+        {
+          "tag": "SPAN",
+          "cls": "guild-coming-soon",
+          "text": "ONLINE · PRÓXIMAMENTE",
+          "size": "10px",
+          "color": "rgb(212, 186, 131)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 144,
+          "h": 24
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Los clanes compartidos, sus miembros y las puntuaciones estarán disponibles al conectar el",
+          "size": "13px",
+          "color": "rgb(164, 181, 183)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 332,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Crear clan online",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 128,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Buscar y unirse a un clan",
+          "size": "15.75px",
+          "color": "rgb(233, 212, 173)",
+          "bg": "rgb(13, 26, 40)",
+          "w": 173,
+          "h": 36
+        },
+        {
+          "tag": "P",
+          "cls": "guild-local-note",
+          "text": "El borrador es personal. La creación del clan y las invitaciones se habilitarán junto con ",
+          "size": "12px",
+          "color": "rgb(164, 181, 183)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 332,
+          "h": 48
+        }
+      ],
+      "dialogs": []
+    },
+    "b-events": {
+      "width": 1440,
+      "height": 900,
+      "headings": [
+        "Crónicas del Sello",
+        "Prueba crítica",
+        "El calendario de la aldea",
+        "noviembre de 2026",
+        "Un día en la aldea"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "RPG 2D POR TURNOS",
+          "size": "14.625px",
+          "color": "rgb(239, 173, 97)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 1,
+          "h": 79
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "⚙",
+          "size": "26.1px",
+          "color": "rgb(248, 234, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 22,
+          "h": 38
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "EXPERTO",
+          "size": "14.625px",
+          "color": "rgb(219, 160, 91)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 160,
+          "h": 17
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "NIVEL",
+          "size": "14.625px",
+          "color": "rgb(150, 138, 124)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 54,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "16",
+          "size": "16.56px",
+          "color": "rgb(231, 177, 102)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 17,
+          "h": 22
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "0/720",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "PX",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 67,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "350",
+          "size": "15.75px",
+          "color": "rgb(246, 238, 226)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "monedas",
+          "size": "14.625px",
+          "color": "rgb(185, 173, 157)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 68,
+          "h": 20
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "DEV",
+          "size": "14.625px",
+          "color": "rgb(226, 173, 104)",
+          "bg": "rgba(221, 160, 82, 0.16)",
+          "w": 37,
+          "h": 23
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "← Volver al mapa",
+          "size": "15.75px",
+          "color": "rgb(247, 251, 255)",
+          "bg": "rgba(9, 35, 59, 0.98)",
+          "w": 176,
+          "h": 47
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Nao Matsuri",
+          "size": "13px",
+          "color": "rgb(234, 246, 252)",
+          "bg": "rgba(3, 15, 28, 0.92)",
+          "w": 96,
+          "h": 31
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Mi cumpleaños",
+          "size": "15.75px",
+          "color": "rgb(228, 210, 174)",
+          "bg": "rgb(11, 28, 43)",
+          "w": 119,
+          "h": 36
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "días",
+          "size": "14.625px",
+          "color": "rgb(241, 205, 133)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 24,
+          "h": 18
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "11 de noviembre de 2026",
+          "size": "14.625px",
+          "color": "rgb(158, 185, 191)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 138,
+          "h": 15
+        },
+        {
+          "tag": "SMALL",
+          "cls": "event-pending",
+          "text": "Pendiente de servidor",
+          "size": "14.625px",
+          "color": "rgb(158, 185, 191)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 268,
+          "h": 20
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "‹",
+          "size": "15.75px",
+          "color": "rgb(228, 210, 174)",
+          "bg": "rgb(11, 28, 43)",
+          "w": 36,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "›",
+          "size": "15.75px",
+          "color": "rgb(228, 210, 174)",
+          "bg": "rgb(11, 28, 43)",
+          "w": 36,
+          "h": 36
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "",
+          "text": "Hoy",
+          "size": "15.75px",
+          "color": "rgb(228, 210, 174)",
+          "bg": "rgb(11, 28, 43)",
+          "w": 49,
+          "h": 36
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "1",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "2",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Día de los difuntos",
+          "size": "10px",
+          "color": "rgb(219, 172, 96)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "3",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "4",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "5",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Agua",
+          "size": "10px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "6",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "7",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "8",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "9",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "10",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "11",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Bitsfury",
+          "size": "10px",
+          "color": "rgb(106, 190, 179)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "12",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Tierra",
+          "size": "10px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "13",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Visita",
+          "size": "10px",
+          "color": "rgb(106, 190, 179)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "14",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "15",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "16",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "17",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "18",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "19",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Fuego",
+          "size": "10px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "20",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "21",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "22",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "23",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "24",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "25",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "26",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Viento",
+          "size": "10px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "27",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Visita",
+          "size": "10px",
+          "color": "rgb(106, 190, 179)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "28",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Festival",
+          "size": "10px",
+          "color": "rgb(219, 172, 96)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "29",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Festival",
+          "size": "10px",
+          "color": "rgb(219, 172, 96)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "event-day-number",
+          "text": "30",
+          "size": "13px",
+          "color": "rgb(231, 214, 180)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Festival",
+          "size": "10px",
+          "color": "rgb(219, 172, 96)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "Fin de Aki",
+          "size": "10px",
+          "color": "rgb(131, 189, 133)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 91,
+          "h": 10
+        },
+        {
+          "tag": "SMALL",
+          "cls": "events-calendar-note",
+          "text": "Calendario anual y mensual · Hora de Bolivia · Semana de domingo a sábado.",
+          "size": "14.625px",
+          "color": "rgb(131, 159, 168)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 723,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "eyebrow",
+          "text": "6 de noviembre de 2026",
+          "size": "14.625px",
+          "color": "rgb(196, 164, 109)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 232,
+          "h": 20
+        },
+        {
+          "tag": "P",
+          "cls": "event-free-day",
+          "text": "No hay eventos programados para este día. Consulta las fechas marcadas del mes.",
+          "size": "13px",
+          "color": "rgb(163, 187, 196)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 232,
+          "h": 36
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Festival · 2",
+          "size": "14.625px",
+          "color": "rgb(219, 172, 96)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Día de los difuntos",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 96,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Elemental · 5",
+          "size": "14.625px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Día de Agua",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 62,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Visita · 11",
+          "size": "14.625px",
+          "color": "rgb(106, 190, 179)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Visita especial de Bitsfury Arena",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 166,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Elemental · 12",
+          "size": "14.625px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Día de Tierra",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 66,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Visita · 13",
+          "size": "14.625px",
+          "color": "rgb(106, 190, 179)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Visita del segundo viernes",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 134,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Elemental · 19",
+          "size": "14.625px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Día de Fuego",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 66,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Elemental · 26",
+          "size": "14.625px",
+          "color": "rgb(175, 146, 215)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Día de Viento",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 70,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Visita · 27",
+          "size": "14.625px",
+          "color": "rgb(106, 190, 179)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Visita del último viernes",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 125,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Festival · 28–30",
+          "size": "14.625px",
+          "color": "rgb(219, 172, 96)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Festival elemental",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 95,
+          "h": 13
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "Estación · 30",
+          "size": "14.625px",
+          "color": "rgb(131, 189, 133)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 206,
+          "h": 20
+        },
+        {
+          "tag": "STRONG",
+          "cls": "",
+          "text": "Fin de Aki",
+          "size": "13px",
+          "color": "rgb(218, 200, 163)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 51,
+          "h": 13
+        }
+      ],
+      "dialogs": []
+    },
+    "b-mobile-gate": {
+      "width": 390,
+      "height": 844,
+      "headings": [
+        "La aventura llegarápróximamente"
+      ],
+      "text": [
+        {
+          "tag": "P",
+          "cls": "mobile-gate-kicker",
+          "text": "CRÓNICAS DEL SELLO",
+          "size": "10.56px",
+          "color": "rgb(116, 212, 255)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 297,
+          "h": 14
+        },
+        {
+          "tag": "SPAN",
+          "cls": "",
+          "text": "próximamente",
+          "size": "31.2px",
+          "color": "rgb(240, 169, 87)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 232,
+          "h": 42
+        },
+        {
+          "tag": "P",
+          "cls": "",
+          "text": "Estamos preparando una experiencia creada especialmente para teléfonos. Por ahora, continú",
+          "size": "14.82px",
+          "color": "rgb(185, 201, 216)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 297,
+          "h": 92
+        },
+        {
+          "tag": "SMALL",
+          "cls": "",
+          "text": "EL SELLO AÚN SE ESTÁ FORJANDO",
+          "size": "9.28px",
+          "color": "rgb(127, 152, 170)",
+          "bg": "rgba(0, 0, 0, 0)",
+          "w": 201,
+          "h": 12
+        },
+        {
+          "tag": "BUTTON",
+          "cls": "mobile-combat-entry",
+          "text": "CONTINUAR CON CONTROLES COMPACTOS",
+          "size": "13px",
+          "color": "rgb(245, 225, 175)",
+          "bg": "rgb(10, 20, 41)",
+          "w": 263,
+          "h": 44
+        }
+      ],
+      "dialogs": []
+    }
+  },
+  "errors": [
+    "page.waitForFunction: Timeout 30000ms exceeded.\n    at bootPerformanceReference (D:\\Descargas\\peleas\\tests\\helpers\\performance-harness.mjs:12:14)\n    at async file:///D:/Descargas/peleas/artifacts/impeccable-critique/evidence-run.mjs:43:2"
+  ]
+}

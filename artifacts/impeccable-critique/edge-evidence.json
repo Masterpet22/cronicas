@@ -1,0 +1,75 @@
+{
+  "gate720": {
+    "gate": "grid",
+    "main": "none",
+    "html": "mobile-viewport",
+    "viewport": 720
+  },
+  "compactClick": {
+    "html": "mobile-viewport compact-game-enabled has-game-cursor",
+    "main": "block",
+    "gate": "none",
+    "session": "1"
+  },
+  "battle": [
+    {
+      "name": "Pausar combate (Escape)",
+      "w": 53.921875,
+      "h": 53.859375,
+      "size": "15.75px"
+    },
+    {
+      "name": "Abrir objetos de misión",
+      "w": 167.765625,
+      "h": 50.859375,
+      "size": "15.75px"
+    },
+    {
+      "name": "Cambiar a habilidades físicas (0)",
+      "w": 46.015625,
+      "h": 51.765625,
+      "size": "15.75px"
+    },
+    {
+      "name": "1. Golpe veloz, 0 CH",
+      "w": 200.133056640625,
+      "h": 136.03851318359375,
+      "size": "15.75px"
+    },
+    {
+      "name": "2. Ascuas veloces, 29 CH",
+      "w": 200.133056640625,
+      "h": 122.83474731445312,
+      "size": "15.75px"
+    },
+    {
+      "name": "3. Aliento de brasa, 40 CH",
+      "w": 200.133056640625,
+      "h": 109.6309814453125,
+      "size": "15.75px"
+    },
+    {
+      "name": "4. Arco de llama, 32 CH",
+      "w": 200.133056640625,
+      "h": 101.98077392578125,
+      "size": "15.75px"
+    },
+    {
+      "name": "5. Marca ardiente, 38 CH",
+      "w": 200.133056640625,
+      "h": 107.5343017578125,
+      "size": "15.75px"
+    },
+    {
+      "name": "6. Guardia, 0 CH",
+      "w": 200.133056640625,
+      "h": 120.7381591796875,
+      "size": "15.75px"
+    }
+  ],
+  "pause": {
+    "dialog": [],
+    "focus": "REANUDAR Esc"
+  },
+  "pauseEsc": false
+}
