@@ -32,6 +32,8 @@ for (const { viewport, bodyType, master } of [
   await expect(page.locator(".location-dojo [data-stage-npc]")).toHaveCount(1);
   await expect(host).toBeVisible();
   await host.locator("img").evaluate(image => image.decode());
+  const closeCoach = page.locator("[data-coach-close]");
+  if (await closeCoach.isVisible()) await closeCoach.click();
   await host.click();
   await expect(page.locator(".location-dojo [data-stage-ambient]")).toBeVisible();
   await expect(page.locator(".location-dojo [data-ambient-speaker]")).toContainText(master === "mei" ? "Mei Hayate" : "Daichi Kazan");

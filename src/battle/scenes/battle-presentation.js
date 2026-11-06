@@ -1,11 +1,11 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.131.0";
-import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.131.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.140.0";
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.140.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.132.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.140.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { ELEMENTS, elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
@@ -343,9 +343,11 @@ export class BattlePresentationMethods {
     if (this.playerMarkerHair) useFighterTextureRendering(this.playerMarkerHair);
     const tag = (name) => {
       const bg = this.add.graphics().setPosition(start, 518);
-      drawBeveledTag(bg);
       const text = this.add.text(start, 518, name.toUpperCase(), { fontFamily: HUD_ART.font, fontSize: "9px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0.5);
-      return { bg, text };
+      const width = Math.min(166, Math.max(68, text.width + 16));
+      if (text.width > width - 12) text.setScale((width - 12) / text.width);
+      drawBeveledTag(bg, width, 15);
+      return { bg, text, width };
     };
     this.playerTimelineTag = tag(this.saveData.character.name);
     this.enemyTimelineTag = tag(this.encounters[this.enemyIndex].name);
@@ -472,9 +474,16 @@ export class BattlePresentationMethods {
     this.playerMarkerHair?.setPosition(playerX + this.playerMarkerHairLayout.x, playerY + this.playerMarkerHairLayout.y);
     this.timelinePortraitMasks?.[0].setPosition(playerX, playerY);
     this.timelinePortraitMasks?.[1].setPosition(enemyX, enemyY);
-    const labelOverlap = Math.abs(playerX - enemyX) < 73;
-    const playerTagX = labelOverlap ? Math.min(playerX, enemyX) - 34 : playerX;
-    const enemyTagX = labelOverlap ? Math.max(playerX, enemyX) + 34 : enemyX;
+    const playerWidth = this.playerTimelineTag?.width || 68;
+    const enemyWidth = this.enemyTimelineTag?.width || 68;
+    const clampTag = (x, width) => Math.max(start - 22 + width / 2, Math.min(end + 22 - width / 2, x));
+    let playerTagX = clampTag(playerX, playerWidth), enemyTagX = clampTag(enemyX, enemyWidth);
+    const labelOverlap = Math.abs(playerTagX - enemyTagX) < (playerWidth + enemyWidth) / 2 + 8;
+    if (labelOverlap) {
+      const leftEdge = Math.max(start - 22, Math.min(end + 22 - playerWidth - enemyWidth - 8, Math.min(playerX, enemyX) - playerWidth / 2));
+      if (playerX <= enemyX) { playerTagX = leftEdge + playerWidth / 2; enemyTagX = leftEdge + playerWidth + 8 + enemyWidth / 2; }
+      else { enemyTagX = leftEdge + enemyWidth / 2; playerTagX = leftEdge + enemyWidth + 8 + playerWidth / 2; }
+    }
     for (const [tag, x] of [[this.playerTimelineTag, playerTagX], [this.enemyTimelineTag, enemyTagX]]) {
       tag?.bg.setX(x); tag?.text.setX(x);
     }

@@ -1,3 +1,4 @@
+import { isBaseOutfitPart, baseOutfitAsset } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterTextures } from "./battle/skin-textures.js?v=0.119.0";
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
@@ -104,7 +105,7 @@ export function fighterCombatPortraitLayout(appearance, flipped = false, radius 
 
 export function preparePlayerFighterTextures(scene, appearance) {
   const variant = puppetVariant(appearance);
-  const keys = variant.layers.map(({ id }) => fighterPuppetTextureKey(appearance, id));
+  const keys = variant.layers.filter(({ id }) => !isBaseOutfitPart(id)).map(({ id }) => fighterPuppetTextureKey(appearance, id));
   colorizeFighterTextures(scene, keys, appearance?.skinTone);
 }
 
@@ -112,7 +113,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   const variant = puppetVariant(appearance);
   variant.layers.forEach(({ id, assetId = id }) => {
     const key = puppetSpriteKey(variant, id, appearance?.skinTone);
-    if (!scene.textures.exists(key)) scene.load.image(key, `${variant.root}/${assetId}.png?v=0.108.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, isBaseOutfitPart(id) ? baseOutfitAsset(appearance?.bodyType,id) : `${variant.root}/${assetId}.png?v=0.108.0`);
   });
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {

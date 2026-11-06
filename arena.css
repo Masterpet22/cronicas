@@ -98,3 +98,4 @@
   .arena-rivals { grid-template-columns:1fr; }
   .arena-result-dialog { padding:20px; }
 }
+.arena-rankings > summary { cursor:pointer; color:#dfc996; font-size:15px; font-weight:700; padding:8px 0; }

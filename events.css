@@ -8,7 +8,7 @@
 .events-heading-actions { display:flex; gap:7px; flex-wrap:wrap; justify-content:flex-end; }
 .event-pending { display:block; color:#cfb584; font-size:11px; margin-top:5px; letter-spacing:0; }
 .event-day-marks { position:relative; }
-.event-day-marks>small { position:absolute; right:0; top:-20px; color:#d0b88a; font-size:9px; }
+.event-day-marks>small { position:absolute; right:0; top:-20px; color:#d0b88a; font-size:12px; }
 .event-announcement { display:grid; justify-items:start; gap:12px; margin:auto 0; padding:15px; border:1px solid #92784c55; border-radius:8px; background:#071b2788; }
 .event-announcement>span { color:var(--event-color); font:36px serif; }
 .event-announcement h3 { margin:0; color:#e5ce9e; font-size:18px; }
@@ -51,7 +51,7 @@
 .events-countdown { display:flex; align-items:center; gap:17px; padding:10px 16px; border:1px solid #a3874e66; border-radius:8px; background:linear-gradient(100deg,#5d2c3b88,#152c3677); }
 .events-countdown>strong { display:flex; align-items:baseline; gap:7px; color:#f1cd85; font:700 32px Cinzel,Georgia,serif; }
 .events-countdown>strong small { font:700 14px "Alegreya Sans",sans-serif; }
-.events-countdown>span { font-size:10px; letter-spacing:.08em; color:#bda677; }
+.events-countdown>span { font-size:12px; letter-spacing:.08em; color:#bda677; }
 .events-countdown b { display:block; color:#f0dbb5; font:700 15px Cinzel,Georgia,serif; letter-spacing:0; margin:3px 0; }
 .events-countdown>span small { color:#9eb9bf; font-size:12px; letter-spacing:0; }
 .events-feedback { margin:0; color:#a9c7b9; font-size:13px; }
@@ -71,7 +71,7 @@
 .events-calendar button[aria-current=date]::after { content:""; position:absolute; right:5px; top:7px; width:5px; height:5px; border-radius:50%; background:#7bd7d5; box-shadow:0 0 5px #7bd7d5aa; }
 .event-day-number { font-size:13px; line-height:14px; color:#e7d6b4; }
 .event-day-marks { display:grid; gap:1px; width:100%; }
-.event-day-marks>span { display:block; white-space:nowrap; border-left:3px solid var(--event-color); padding-left:3px; font-size:10px; font-weight:700; line-height:10px; color:var(--event-color); overflow:hidden; text-overflow:ellipsis; }
+.event-day-marks>span { display:block; white-space:nowrap; border-left:3px solid var(--event-color); padding-left:3px; font-size:12px; font-weight:700; line-height:14px; color:var(--event-color); overflow:hidden; text-overflow:ellipsis; }
 .events-legend { display:flex; gap:15px; align-items:center; flex-wrap:wrap; padding:3px 5px; }
 .events-legend span { display:flex; gap:6px; align-items:center; color:#aec2c6; font-size:12px; }
 .events-legend i { width:8px; height:8px; border-radius:2px; background:var(--event-color); }
@@ -167,7 +167,7 @@
   .events-heading { align-items:flex-start; flex-direction:column; gap:8px; }
   .events-countdown b { font-size:13px; }
   .events-calendar td button { padding:4px; }
-  .event-day-marks>span { font-size:9px; padding-left:2px; }
+  .event-day-marks>span { font-size:12px; padding-left:2px; }
   .event-guest { grid-template-columns:100px minmax(0,1fr); }
   .location-stage.location-tower { min-height:1500px; }
   .location-stage.location-tower .stage-character:first-child { width:35%; height:240px; top:0; bottom:auto; }

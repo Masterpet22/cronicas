@@ -45,12 +45,12 @@ test("compra, apila, equipa y conserva el equipo al recargar", async ({ page }) 
   await potion.getByRole("button", { name: "Comprar", exact: true }).click();
   expect((await stored(page)).inventory.items.health_potion).toBe(2);
   expect((await stored(page)).progression.coins).toBe(1964);
-  await page.locator('[data-shop-category="weapons"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('weapons');
   await page.locator('[data-shop-item="axe"]').getByRole("button", { name: "Comprar" }).click();
   await expect(page.locator('[data-shop-item="axe"] button')).toBeDisabled();
-  await page.locator('[data-shop-category="seals"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('seals');
   await page.locator('[data-shop-item="seal_shadow"]').getByRole("button", { name: "Comprar" }).click();
-  await page.locator('[data-shop-category="scrolls"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('scrolls');
   await expect(page.locator('[data-shop-item="affinity_scroll"]')).toHaveCount(0);
   await page.screenshot({ path: "test-results/shop/tienda.png" });
   await page.getByRole("button", { name: "← Volver al mapa" }).click();
@@ -102,7 +102,7 @@ test("vende a mitad de precio y selecciona solo apariencia y sustitución compra
   await seedShop(page);
   await page.locator('[data-shop-item="health_potion"] input').fill("3");
   await page.locator('[data-shop-item="health_potion"] button').click();
-  await page.locator('[data-shop-category="seals"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('seals');
   await page.locator('[data-shop-item="seal_shadow"] button').click();
   await page.locator('[data-shop-mode="sell"]').click();
   await expect(page.locator('[data-shop-item="kunai"] button')).toBeDisabled();
@@ -114,7 +114,7 @@ test("vende a mitad de precio y selecciona solo apariencia y sustitución compra
   await page.screenshot({ path: "test-results/shop/venta.png" });
   await page.locator('[data-shop-mode="buy"]').click();
   for (const [category, ids] of [["substitution", ["substitution_dog", "substitution_puppet"]], ["appearance", ["hair_ponytail", "face_mask", "top_traveler", "bottom_traveler", "shoes_sandals", "shadow_outfit"]]]) {
-    await page.locator(`[data-shop-category="${category}"]`).click();
+    await page.locator("[data-shop-category-select]").selectOption(category);
     for (const id of ids) await page.locator(`[data-shop-item="${id}"] button`).click();
   }
   await page.getByRole("button", { name: "← Volver al mapa" }).click();
@@ -141,7 +141,7 @@ test("vende a mitad de precio y selecciona solo apariencia y sustitución compra
 test("un contrato comprado se juega en el tablón y desbloquea un compañero al cobrar la victoria", async ({ page }) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await seedShop(page);
-  await page.locator('[data-shop-category="contracts"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('contracts');
   await page.locator('[data-shop-item="contract_hound"] button').click();
   await page.getByRole("button", { name: "← Volver al mapa" }).click();
   await page.locator('[data-go="missions"]').click();
@@ -266,7 +266,7 @@ for (const [slot, level, chosen] of [[2, 15, "viento"], [3, 30, "agua"]]) {
 test("la tienda y el equipo comprado caben en una ventana de 1280 × 720", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 720 });
   await seedShop(page);
-  await page.locator('[data-shop-category="weapons"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('weapons');
   const axe = page.locator('[data-shop-item="axe"]');
   await axe.getByRole("button", { name: "Comprar" }).click();
   await expect(page.locator(".shop-panel")).toBeVisible();

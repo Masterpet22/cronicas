@@ -32,9 +32,16 @@ export function treeBounds(nodes) {
 }
 export const viewBox = view => `${view.x} ${view.y} ${view.width} ${view.height}`;
 
-export function resonanceTreeMarkup(save,deps,selectedId,view) {
-  const escape = deps.escapeHtml;
+export function resonanceVisibleNodes(save, showFuture = false) {
   const nodes = skillTreeNodes(save);
+  if (showFuture) return nodes;
+  return nodes.filter(node => skillState(save,node) !== "locked" ||
+    node.unlockLevel <= save.progression.level + 5 && node.affinityIds.every(id => save.character.affinities.includes(id)));
+}
+
+export function resonanceTreeMarkup(save,deps,selectedId,view,showFuture = false) {
+  const escape = deps.escapeHtml;
+  const nodes = resonanceVisibleNodes(save,showFuture);
   const cells = nodes;
   const selected = nodes.find(node => node.id===selectedId);
   const colorOf = cell => skillRegionColor(save,cell);
@@ -74,18 +81,18 @@ export function resonanceTreeMarkup(save,deps,selectedId,view) {
   const core=`<g class="resonance-core ${selectedId === "core" ? "is-selected" : ""}" role="button" tabindex="0" aria-label="Núcleo de ${escape(save.character.name)}. ${escape(identity.label)}. Centrar el árbol" data-tree-core data-core-color="${coreColors.fill}" style="--core-color:${coreColors.fill};--core-ink:${coreColors.ink}" data-character-symbol="${identity.symbol}"><title>${escape(save.character.name)} · ${escape(identity.label)}</title><polygon points="${hexPoints(44)}"/>${emblem}<text class="resonance-core-label" text-anchor="middle" y="33">PERSONAJE</text></g>`;
   const categories=[
     [regionColors.get("physical"),"Físicas"],
-    ...[0,1,2].map(slot => [regionColors.get(`affinity-${slot+1}`),`A${slot+1}${save.character.affinities[slot] ? ` · ${deps.elementName(save.character.affinities[slot])}` : ""}`]),
-    ...SKILL_LAYOUT_BRIDGES.map(id => [regionColors.get(id),id.replace("affinity-", "A").replace("-"," + A")])
+    ...[0,1,2].filter(slot => showFuture || save.character.affinities[slot]).map(slot => [regionColors.get(`affinity-${slot+1}`),`A${slot+1}${save.character.affinities[slot] ? ` · ${deps.elementName(save.character.affinities[slot])}` : ""}`]),
+    ...SKILL_LAYOUT_BRIDGES.filter(id => showFuture || nodes.some(node => node.bridge === id)).map(id => [regionColors.get(id),id.replace("affinity-", "A").replace("-"," + A")])
   ].map(([color,label]) => `<span><i style="background:${color}"></i>${escape(label)}</span>`).join("");
   const developed=nodes.filter(n => skillLevel(save,n)>0 && skillState(save,n)!=="locked").length;
-  return `<section class="resonance-tree skill-tree" aria-label="Árbol de habilidades de Resonancia"><header class="resonance-heading"><div><p class="eyebrow">EL CAMINO DEL SHINOBI</p><h3>Núcleo de Resonancia</h3></div><span class="resonance-points"><b data-resonance-points>${resonancePoints(save)}</b><span>PR<br>DISPONIBLES</span></span></header><div class="resonance-viewport"><svg class="resonance-canvas" viewBox="${viewBox(view || bounds)}" aria-label="Panal de 39 celdas. Tab recorre, Enter selecciona, flechas desplazan y más o menos amplían." data-tree-canvas><g aria-hidden="true">${lines}</g>${regions}${renderedCells}${core}</svg><nav class="resonance-controls" aria-label="Navegación del árbol"><button type="button" data-tree-zoom="out" aria-label="Alejar árbol">−</button><button type="button" data-tree-zoom="in" aria-label="Acercar árbol">+</button><button type="button" data-tree-fit aria-label="Mostrar árbol completo">⛶</button><button type="button" data-tree-center aria-label="Centrar en Resonancia">◎</button></nav><span class="resonance-navigation-hint">Arrastra para explorar · Rueda para ampliar</span></div><footer><div class="resonance-category-legend">${categories}</div><div class="resonance-legend"><span><i class="locked"></i>Bloqueada</span><span><i class="available"></i>Disponible</span><span><i class="unlocked"></i>Aprendida</span><span><i class="upgraded"></i>Mejorada</span><small>${developed}/38 habilidades · Personaje central</small></div></footer></section>`;
+  return `<section class="resonance-tree skill-tree" aria-label="Árbol de habilidades de Resonancia"><header class="resonance-heading"><div><h3>Núcleo de Resonancia</h3></div><span class="resonance-points"><b data-resonance-points>${resonancePoints(save)}</b><span>PR<br>DISPONIBLES</span></span></header><div class="resonance-viewport"><svg class="resonance-canvas" viewBox="${viewBox(view || bounds)}" aria-label="Panal de 39 celdas. Tab recorre, Enter selecciona, flechas desplazan y más o menos amplían." data-tree-canvas><g aria-hidden="true">${lines}</g>${regions}${renderedCells}${core}</svg><nav class="resonance-controls" aria-label="Navegación del árbol"><button type="button" data-tree-zoom="out" aria-label="Alejar árbol">−</button><button type="button" data-tree-zoom="in" aria-label="Acercar árbol">+</button><button type="button" data-tree-fit aria-label="Mostrar árbol completo">⛶</button><button type="button" data-tree-center aria-label="Centrar en Resonancia">◎</button></nav><span class="resonance-navigation-hint">Arrastra para explorar · Rueda para ampliar</span></div><footer><label class="resonance-future-control"><input type="checkbox" data-tree-future ${showFuture ? "checked" : ""}> Mostrar árbol completo <span>38 habilidades</span></label><div class="resonance-category-legend">${categories}</div><div class="resonance-legend"><span><i class="locked"></i>Bloqueada</span><span><i class="available"></i>Disponible</span><span><i class="unlocked"></i>Aprendida</span><span><i class="upgraded"></i>Mejorada</span><small>${developed}/38 habilidades · Personaje central</small></div></footer></section>`;
 }
 
 export function mountResonanceNavigation(host,scope,callbacks) {
   let drag = null;
   let dragged = false;
   const svg = () => host.querySelector("[data-tree-canvas]");
-  const bounds = () => treeBounds(buildSkillTree(callbacks.getSave().character.affinities,callbacks.getSave().campaign.elementRank));
+  const bounds = () => callbacks.getBounds?.() || treeBounds(buildSkillTree(callbacks.getSave().character.affinities,callbacks.getSave().campaign.elementRank));
   const current = () => callbacks.getView() || bounds();
   const update = view => { callbacks.setView(view); svg()?.setAttribute("viewBox",viewBox(view)); };
   const point = event => {
@@ -133,14 +140,6 @@ export function mountResonanceNavigation(host,scope,callbacks) {
     else if (target.hasAttribute("data-tree-core") || target.hasAttribute("data-tree-center")) {
       const view = current(); update({ ...view,x:-view.width/2,y:-view.height/2 }); callbacks.onCore();
     } else zoom(target.dataset.treeZoom === "in" ? .8 : 1.25);
-  });
-  scope.listen(host,"pointerover",event => {
-    if (drag) return;
-    const node = event.target.closest("[data-skill-select]");
-    if (node && !node.contains(event.relatedTarget)) callbacks.onHover(node.dataset.skillSelect);
-  });
-  scope.listen(host,"pointerout",event => {
-    if (event.target.closest("[data-tree-canvas]") && !event.relatedTarget?.closest?.("[data-tree-canvas]")) callbacks.onHover(null);
   });
   scope.listen(host,"focusin",event => {
     const node = event.target.closest("[data-skill-select]");

@@ -1,5 +1,5 @@
-import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.126.0";
-import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
+import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.140.0";
+import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.140.0";
 import { GUILD_STARTER_ITEMS, GUILD_INVENTORY_VERSION, guildInventoryGrants } from "./guild-catalog.js?v=0.126.0";
 import { placedDecorationCount } from "./guild.js?v=0.126.0";
 

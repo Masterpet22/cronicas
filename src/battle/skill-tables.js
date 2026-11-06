@@ -1,4 +1,4 @@
-import { ITEMS } from "../items.js?v=0.126.0";
+import { ITEMS } from "../items.js?v=0.140.0";
 import { normalizeTaijutsuLoadout, taijutsuAction } from "../skills/taijutsu.js?v=1.0.0";
 import { EQUIPMENT_ACTIONS } from "../data.js?v=1.5.0";
 

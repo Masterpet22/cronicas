@@ -27,6 +27,11 @@
 .shop-purchase label { display: grid; gap: 3px; color: #a7b1bb; font-size: 11px; }
 .shop-purchase input { width: 58px; min-height: 38px; padding: 5px; box-sizing: border-box; border: 1px solid #7b6b50; border-radius: 4px; background: #080f1e; color: #f3e0b7; font: 700 15px "Alegreya Sans", sans-serif; }
 .shop-stock, .inventory-use-note { color: #a3afa6; font-size: 12px; line-height: 1.4; }
+.shop-art-pending { display:block; color:#f2cf91; font-size:13px; line-height:1.4; }
+.cosmetic-pending { display:block; color:#f2cf91; font:600 13px "Alegreya Sans",sans-serif; }
+.appearance-preview-note { grid-column:1/-1; margin:0; color:#c7d8df; font-size:14px; line-height:1.4; }
+.shop-category-filter { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin:12px 0 18px; color:#d3ddd8; font-size:14px; }
+.shop-category-filter select { min-height:44px; min-width:240px; max-width:100%; padding:8px 12px; border:1px solid #927445; border-radius:6px; background:#0b1422; color:#f3e0b7; font:700 15px "Alegreya Sans",sans-serif; }
 .inventory-empty { grid-column: 1 / -1; padding: 30px; border: 1px dashed #8a734c; border-radius: 7px; color: #b9c3ca; }
 .player-inventory-dialog { box-sizing: border-box; width: min(900px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); padding: 26px; border: 1px solid #cda65f; border-radius: 12px; background: linear-gradient(140deg, #172338, #060d19); color: #eae3d4; box-shadow: 0 22px 90px #000c; font-family: "Alegreya Sans", sans-serif; }
 .player-inventory-dialog::backdrop { background: #02060dbb; backdrop-filter: none; }

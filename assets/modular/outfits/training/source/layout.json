@@ -1,0 +1,100 @@
+[
+  {
+    "body": "male",
+    "id": "torso",
+    "cell": 0,
+    "naturalWidth": 293,
+    "naturalHeight": 499
+  },
+  {
+    "body": "male",
+    "id": "muslo_izquierdo",
+    "cell": 1,
+    "naturalWidth": 168,
+    "naturalHeight": 294
+  },
+  {
+    "body": "male",
+    "id": "pierna_izquierda",
+    "cell": 2,
+    "naturalWidth": 115,
+    "naturalHeight": 246
+  },
+  {
+    "body": "male",
+    "id": "pie_izquierdo",
+    "cell": 3,
+    "naturalWidth": 175,
+    "naturalHeight": 148
+  },
+  {
+    "body": "male",
+    "id": "muslo_derecho",
+    "cell": 4,
+    "naturalWidth": 169,
+    "naturalHeight": 305
+  },
+  {
+    "body": "male",
+    "id": "pierna_derecha",
+    "cell": 5,
+    "naturalWidth": 120,
+    "naturalHeight": 254
+  },
+  {
+    "body": "male",
+    "id": "pie_derecho",
+    "cell": 6,
+    "naturalWidth": 136,
+    "naturalHeight": 148
+  },
+  {
+    "body": "female",
+    "id": "torso",
+    "cell": 8,
+    "naturalWidth": 255,
+    "naturalHeight": 477
+  },
+  {
+    "body": "female",
+    "id": "muslo_izquierdo",
+    "cell": 9,
+    "naturalWidth": 163,
+    "naturalHeight": 290
+  },
+  {
+    "body": "female",
+    "id": "pierna_izquierda",
+    "cell": 10,
+    "naturalWidth": 111,
+    "naturalHeight": 244
+  },
+  {
+    "body": "female",
+    "id": "pie_izquierdo",
+    "cell": 11,
+    "naturalWidth": 168,
+    "naturalHeight": 144
+  },
+  {
+    "body": "female",
+    "id": "muslo_derecho",
+    "cell": 12,
+    "naturalWidth": 161,
+    "naturalHeight": 293
+  },
+  {
+    "body": "female",
+    "id": "pierna_derecha",
+    "cell": 13,
+    "naturalWidth": 115,
+    "naturalHeight": 251
+  },
+  {
+    "body": "female",
+    "id": "pie_derecho",
+    "cell": 14,
+    "naturalWidth": 131,
+    "naturalHeight": 147
+  }
+]

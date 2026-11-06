@@ -34,6 +34,7 @@ export function tutorialControl(root, step, save, view) {
 
 export function revealTutorialControl(control) {
   if (!control?.element) return;
+  for (let parent = control.element.parentElement; parent; parent = parent.parentElement) { if (parent.tagName === "DETAILS") parent.open = true; }
   if (control.reveal) control.element.dispatchEvent(new MouseEvent("click", { bubbles: true }));
   else {
     control.element.scrollIntoView({ block: "nearest", inline: "nearest" });

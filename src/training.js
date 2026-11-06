@@ -1,10 +1,10 @@
 import { BASE_ACTIONS, JUTSU_LIBRARY } from "./data.js?v=1.5.0";
-import { isTechniqueLearned } from "./save.js?v=0.131.0";
+import { isTechniqueLearned } from "./save.js?v=0.140.0";
 import { canAccessElement } from "./elements.js?v=0.20.0";
 import { TAIJUTSU_ACTIONS } from "./skills/definitions.js?v=1.4.0";
 import { taijutsuAction } from "./skills/taijutsu.js?v=1.0.0";
 import { upgradedTechnique } from "./skills/progression.js?v=1.0.0";
-import { physicalSkillActions } from "./battle/skill-tables.js?v=1.4.0";
+import { physicalSkillActions } from "./battle/skill-tables.js?v=0.140.0";
 import { NORMAL_AFFINITY_ID } from "./affinity-system.js?v=0.114.0";
 
 export function trainingDummyProfile(profile = {}) {

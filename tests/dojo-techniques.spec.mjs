@@ -23,6 +23,7 @@ async function enterDojo(page) {
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-view="dojo"]').click();
   await expect(page.locator(".dojo-technique-workspace")).toBeVisible();
+  await page.locator("[data-tree-future]").check();
 }
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
@@ -41,7 +42,7 @@ test("nivel y PX habilitan la compra, pero los padres y rangos son obligatorios"
   await page.locator('[data-skill-invest="fire_arc"]').click();
   await expect(page.locator('[data-technique-toggle="fire_arc"]')).toBeEnabled();
   await expect(page.locator('[data-skill-invest="fire_arc"]')).toBeDisabled();
-  await expect(page.locator(".resonance-requirements")).toContainText("Nivel de personaje 8 para rango 2");
+  await expect(page.locator(".resonance-requirements")).toContainText("Nivel de personaje 8 para nivel de técnica 2");
   await page.locator('[data-technique-toggle="fire_arc"]').click();
   await enterDojo(page);
   expect(await loadout(page)).toContain("fire_arc");
@@ -182,7 +183,9 @@ test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar t
   const physical = () => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).taijutsuLoadout);
   await expect(page.locator(".taijutsu-loadout-slot")).toHaveCount(2);
   await expect(page.locator("[data-taijutsu-count]")).toHaveText("0/2 EQUIPADOS");
+  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-choose="0"]').click();
+  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="0"]')).toBeDisabled();
   for (const id of ["physical_0","physical_1","physical_2"]) {
     await page.locator(`[data-skill-select="${id}"]`).click();
@@ -198,9 +201,12 @@ test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar t
   await expect(page.locator('[data-taijutsu-choose="0"]')).toContainText("Puño de hierro");
   await expect(page.locator('[data-taijutsu-choose="1"]')).toContainText("Paso fugaz");
   await expect(page.locator('[data-skill-select="physical_1"] .skill-state')).toHaveText("EN COMBATE · TAIJUTSU 1");
+  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-choose="0"]').click();
+  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="1"]').click();
   expect(await physical()).toEqual(["physical_2","physical_1"]);
+  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-remove="0"]').click();
   expect(await physical()).toEqual([null,"physical_1"]);
   expect(await loadout(page)).toEqual(original);
@@ -329,8 +335,10 @@ test("nivel 24 explica la capacidad y permite reemplazar una equipada por una ap
   await openDojo(page,{ level:24,loadout:["fire_embers","fire_breath","fire_arc","fire_brand"],learned:["fire_arc","fire_brand","fire_ring"] });
   await expect(page.locator("[data-equipped-count]")).toHaveText("4/4 EQUIPADAS");
   await expect(page.locator("[data-loadout-locked]")).toHaveCount(0);
+  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator("[data-technique-feedback]")).toBeVisible();
   await expect(page.locator("[data-technique-feedback]")).toContainText("ranuras están ocupadas");
+  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator('[data-skill-select="fire_ring"] .skill-state')).toHaveText("APRENDIDA");
   const original = await loadout(page);
   await page.locator('[data-skill-select="fire_ring"]').click();
@@ -353,6 +361,7 @@ test("nivel 24 explica la capacidad y permite reemplazar una equipada por una ap
   await expect(page.locator("[data-technique-feedback]")).toContainText("Ambas siguen aprendidas");
   await enterDojo(page);
   expect(await loadout(page)).toEqual(["fire_embers", "fire_ring", "fire_arc", "fire_brand"]);
+  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator('[data-loadout-inspect="fire_ring"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
@@ -369,7 +378,9 @@ test("una ranura libre permite equipar y consultar una bloqueada no cambia el eq
   await expect(page.locator('[data-technique-toggle="fire_phoenix"]')).toBeDisabled();
   await expect(page.locator(".technique-detail")).toContainText("280 PX de afinidad");
   expect(await loadout(page)).toEqual(["fire_embers", "fire_arc"]);
+  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-loadout-remove="0"]').click();
+  await page.locator(".technique-loadout-disclosure summary").click();
   expect(await loadout(page)).toEqual(["fire_arc"]);
   await expect(page.locator('[data-skill-select="fire_embers"] .skill-state')).toHaveText("MEJORADA");
   await page.locator('[data-dojo-tab="appearance"]').click();
@@ -405,8 +416,8 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
       const detail = panel.querySelector(".technique-detail").getBoundingClientRect();
       const actions = panel.querySelector(".technique-detail-actions").getBoundingClientRect();
       const equip = panel.querySelector(".technique-equip-button").getBoundingClientRect();
-      const loadout = panel.querySelector(".technique-loadout").getBoundingClientRect();
-      const catalog = panel.querySelector(".skill-tree").getBoundingClientRect();
+      const loadout = panel.querySelector(".technique-loadout-disclosure > summary").getBoundingClientRect();
+      const catalog = panel.querySelector(".resonance-tree").getBoundingClientRect();
       const contained = (child, parent) => child.top >= parent.top - 1 && child.bottom <= parent.bottom + 1 && child.left >= parent.left - 1 && child.right <= parent.right + 1;
       return { detail: contained(detail, outer), actions: contained(actions, detail), equip: contained(equip, actions), loadout: contained(loadout, outer), catalog: contained(catalog, outer), outerOverflow: panel.scrollHeight - panel.clientHeight, actionVisible: equip.height >= 44 };
     });

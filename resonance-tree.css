@@ -1,13 +1,12 @@
 /* Resonance: a compact axial honeycomb, independent of the old card catalog. */
-#dojo-panel-techniques .dojo-technique-workspace { display:grid; grid-template-columns:minmax(0,1fr) 265px; grid-template-rows:auto minmax(0,1fr); gap:12px; height:100%; min-height:0; }
-#dojo-panel-techniques .dojo-technique-layout { display:contents; }
-#dojo-panel-techniques .resonance-tree { grid-column:1; grid-row:1 / 3; position:relative; display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:0; min-height:0; height:100%; border:1px solid #786347; border-radius:5px; overflow:hidden; background:radial-gradient(ellipse at 50% 48%,#4b3d222e,transparent 65%),repeating-linear-gradient(115deg,#a0865410 0 1px,transparent 1px 7px),#121614; box-shadow:inset 0 0 80px #0008; }
+#dojo-panel-techniques .dojo-technique-workspace { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(320px,1fr); grid-template-rows:minmax(0,1fr); gap:12px; height:100%; min-height:0; }
+#dojo-panel-techniques .resonance-tree { grid-column:auto; grid-row:auto; position:relative; display:grid; grid-template-rows:auto minmax(0,1fr) auto; gap:0; min-height:0; height:100%; border:1px solid #786347; border-radius:5px; overflow:hidden; background:radial-gradient(ellipse at 50% 48%,#4b3d222e,transparent 65%),repeating-linear-gradient(115deg,#a0865410 0 1px,transparent 1px 7px),#121614; box-shadow:inset 0 0 80px #0008; }
 .resonance-heading { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:13px 15px 10px; border-bottom:1px solid #b49b6333; background:#171a16ba; }
 #dojo-panel-techniques .resonance-heading h3 { margin:0; color:#e8d8ad; font:700 18px "Cinzel",Georgia,serif; }
-#dojo-panel-techniques .resonance-heading .eyebrow { margin:0 0 5px; color:#9a8b70; font-size:10px; letter-spacing:2px; }
+#dojo-panel-techniques .resonance-heading .eyebrow { margin:0 0 5px; color:#9a8b70; font-size:12px; letter-spacing:2px; }
 .resonance-points { display:flex; align-items:center; gap:8px; padding:4px 8px; border:1px solid #d7b86d55; background:#c6a9660d; color:#d7b86d; }
 .resonance-points b { font:700 26px "Cinzel",Georgia,serif; }
-.resonance-points span { font-size:9px; line-height:1.3; letter-spacing:1px; }
+.resonance-points span { font-size:12px; line-height:1.3; letter-spacing:1px; }
 .resonance-viewport { position:relative; min-height:0; overflow:hidden; }
 .resonance-canvas { display:block; width:100%; height:100%; touch-action:none; user-select:none; cursor:grab; }
 .resonance-canvas:active { cursor:grabbing; }
@@ -60,52 +59,52 @@
 .resonance-core .resonance-yinyang .yin-dark { fill:var(--core-ink,#171b15); stroke:none; }
 .resonance-core .resonance-yinyang .yin-light { fill:var(--core-color,#e8edf5); stroke:none; }
 .resonance-category-legend { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:6px 12px; padding:7px; border-top:1px solid #b49b6333; background:#101611c9; }
-.resonance-category-legend > span { display:flex; align-items:center; gap:4px; color:#bdc5b3; font-size:11px; }
+.resonance-category-legend > span { display:flex; align-items:center; gap:4px; color:#bdc5b3; font-size:12px; }
 .resonance-category-legend i { width:8px; height:8px; border-radius:2px; }
 .resonance-caption { fill:#d8c898; pointer-events:none; font:700 17px "Cinzel",Georgia,serif; letter-spacing:1.7px; }
 .resonance-caption.physical { fill:#657fff; }
 .resonance-caption-sub { fill:#9b9c83; font:12px "Alegreya Sans",sans-serif; letter-spacing:1.3px; }
 .resonance-bridge-caption { pointer-events:none; font:700 14px "Alegreya Sans",sans-serif; letter-spacing:.5px; }
 .resonance-controls { position:absolute; right:10px; bottom:10px; display:flex; gap:4px; }
-.resonance-controls button { display:grid; place-items:center; width:32px; min-height:32px; padding:0; border:1px solid #8a7853; border-radius:3px; background:#171c17ef; color:#e1c488; font-size:19px; cursor:pointer; }
+.resonance-controls button { display:grid; place-items:center; width:36px; min-height:36px; padding:0; border:1px solid #8a7853; border-radius:3px; background:#171c17ef; color:#e1c488; font-size:19px; cursor:pointer; }
 .resonance-controls button:hover { background:#3d3926; border-color:#e0c084; }
-.resonance-navigation-hint { position:absolute; left:12px; bottom:16px; color:#9c9e88; font-size:11px; pointer-events:none; }
+.resonance-navigation-hint { position:absolute; left:12px; bottom:16px; color:#9c9e88; font-size:12px; pointer-events:none; }
 .resonance-legend { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px 12px; padding:9px; border-top:1px solid #b49b6333; background:#101611c9; }
-.resonance-legend > span { display:flex; align-items:center; gap:5px; font-size:11px; color:#c0c3ad; }
+.resonance-legend > span { display:flex; align-items:center; gap:5px; font-size:12px; color:#c0c3ad; }
 .resonance-legend i { display:block; width:8px; height:8px; border:1px solid #626e61; clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); }
 .resonance-legend .available { border-color:#d8c58e; }
 .resonance-legend .unlocked { background:#66bca5; border-color:#91dcc6; }
 .resonance-legend .upgraded { background:#dbb86d; border-color:#ffe4a2; }
-.resonance-legend small { color:#8e967f; font-size:10px; }
-#dojo-panel-techniques .technique-loadout { grid-column:2; grid-row:1; gap:5px; padding:8px; border-color:#74634888; background:#161d19f2; }
+.resonance-legend small { color:#8e967f; font-size:12px; }
+#dojo-panel-techniques .technique-loadout { grid-column:auto; grid-row:auto; gap:5px; padding:8px; border-color:#74634888; background:#161d19f2; }
 #dojo-panel-techniques .technique-loadout > header { display:block; }
 #dojo-panel-techniques .technique-loadout h3 { font-size:12px; }
-#dojo-panel-techniques .technique-loadout-count { font-size:10px; padding:2px 5px; }
+#dojo-panel-techniques .technique-loadout-count { font-size:12px; padding:2px 5px; }
 #dojo-panel-techniques .technique-loadout > header p { display:none; }
 #dojo-panel-techniques .technique-loadout-slots { grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
-#dojo-panel-techniques .technique-loadout-slot,#dojo-panel-techniques .technique-loadout-slot > button:first-child { min-height:36px; padding:5px; gap:2px; }
+#dojo-panel-techniques .technique-loadout-slot,#dojo-panel-techniques .technique-loadout-slot > button:first-child { min-height:52px; padding:8px; gap:2px; }
 #dojo-panel-techniques .technique-loadout-slot.is-equipped { padding:0; }
 #dojo-panel-techniques .technique-loadout-slot { border-color:#5c6656; background:#111a15; }
 #dojo-panel-techniques .technique-loadout-slot > button:first-child { padding-right:20px; }
-#dojo-panel-techniques .technique-loadout-slot small { display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:9px; }
-#dojo-panel-techniques .technique-loadout-slot strong { display:block; max-width:100%; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:11px; }
+#dojo-panel-techniques .technique-loadout-slot small { display:block; max-width:100%; white-space:normal; overflow-wrap:anywhere; font-size:12px; }
+#dojo-panel-techniques .technique-loadout-slot strong { display:block; max-width:100%; white-space:normal; overflow-wrap:anywhere; font-size:13px; }
 #dojo-panel-techniques .technique-loadout-slot > span { display:none; }
-#dojo-panel-techniques .technique-loadout-instruction p { font-size:11px; }
-#dojo-panel-techniques .technique-detail-wrap { grid-column:2; grid-row:2; min-height:0; height:100%; }
+#dojo-panel-techniques .technique-loadout-instruction p { font-size:13px; }
+#dojo-panel-techniques .technique-detail-wrap { grid-column:2; grid-row:1; min-height:0; height:100%; }
 #dojo-panel-techniques .technique-detail { border:1px solid #74634888; background:#17201bf5; }
 #dojo-panel-techniques .technique-detail-body { gap:9px; padding:12px; }
-#dojo-panel-techniques .technique-detail .eyebrow { font-size:10px; letter-spacing:1.5px; color:#b7a67b; }
+#dojo-panel-techniques .technique-detail .eyebrow { font-size:12px; letter-spacing:1.5px; color:#b7a67b; }
 #dojo-panel-techniques .technique-detail h3 { margin:0; font-size:19px; color:#eadbb6; }
 #dojo-panel-techniques .technique-element-art { padding:7px; gap:8px; background:color-mix(in srgb,var(--technique-color) 9%,#101a15); }
 #dojo-panel-techniques .technique-element-art .element-composition { width:35px; height:35px; }
 #dojo-panel-techniques .technique-element-art strong { font-size:12px; }
-#dojo-panel-techniques .technique-element-art span { font-size:11px; }
+#dojo-panel-techniques .technique-element-art span { font-size:13px; }
 #dojo-panel-techniques .technique-description,#dojo-panel-techniques .technique-accuracy { font-size:12px; color:#b8c2b4; }
 #dojo-panel-techniques .technique-metrics { gap:5px; }
 #dojo-panel-techniques .technique-metrics div { min-height:38px; padding:5px; background:#101a16; }
 #dojo-panel-techniques .technique-metrics strong { font-size:15px; }
-#dojo-panel-techniques .technique-metrics small { font-size:9px; }
-.resonance-rank { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:8px; border-bottom:1px solid #8e815a44; font-size:11px; color:#afc1a9; }
+#dojo-panel-techniques .technique-metrics small { font-size:12px; }
+.resonance-rank { display:flex; align-items:center; justify-content:space-between; gap:8px; padding-bottom:8px; border-bottom:1px solid #8e815a44; font-size:13px; color:#afc1a9; }
 .resonance-rank strong { color:#e4c384; white-space:nowrap; }
 .resonance-effects h4,.resonance-requirements h4 { margin:0 0 4px; color:#d5c49a; font-size:12px; }
 .resonance-effects p,.resonance-requirements p { margin:0 0 5px; color:#adbba9; font-size:12px; line-height:1.4; }
@@ -115,40 +114,44 @@
 .resonance-detail-emblem { align-self:center; color:#e4ce97; font-size:76px; }
 #dojo-panel-techniques .resonance-core-detail p:not(.eyebrow) { color:#b9c2b1; font-size:13px; line-height:1.5; margin:0; }
 #dojo-panel-techniques .technique-detail-actions { padding:9px; gap:6px; border-color:#74634888; background:#101a15; }
-#dojo-panel-techniques .technique-detail-actions p { font-size:11px; color:#a7b4a3; }
-.resonance-invest-button { width:100%; min-height:38px; padding:8px; border:1px solid #cfb77a; border-radius:4px; color:#f6e4bc; background:#64502b; font:700 12px "Cinzel",Georgia,serif; cursor:pointer; }
+#dojo-panel-techniques .technique-detail-actions p { font-size:13px; color:#a7b4a3; }
+.resonance-invest-button { width:100%; min-height:38px; padding:8px; border:1px solid #cfb77a; border-radius:4px; color:#f6e4bc; background:#64502b; font:700 13px "Cinzel",Georgia,serif; cursor:pointer; }
 .resonance-invest-button:disabled { background:#252a20; border-color:#65664d; color:#949a87; cursor:default; }
-#dojo-panel-techniques .technique-equip-button { min-height:44px; font-size:11px; background:#253d30; border-color:#60866b; color:#d3e5c8; }
+#dojo-panel-techniques .technique-equip-button { min-height:44px; font-size:13px; background:#253d30; border-color:#60866b; color:#d3e5c8; }
 .taijutsu-loadout { min-width:0; padding-top:6px; border-top:1px solid #657fff66; }
 .taijutsu-loadout > header { display:flex; align-items:center; justify-content:space-between; gap:6px; margin-bottom:5px; color:#657fff; }
 .taijutsu-loadout h4 { margin:0; font:700 11px "Cinzel",Georgia,serif; }
-.taijutsu-loadout > header span { font-size:10px; }
+.taijutsu-loadout > header span { font-size:12px; }
 .taijutsu-loadout-slots,.taijutsu-equip-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:5px; }
 .taijutsu-loadout-slot { position:relative; min-width:0; border:1px dashed #657fff99; border-radius:5px; background:#231c32; }
 .taijutsu-loadout-slot.is-equipped { border-style:solid; border-color:#657fff; }
-.taijutsu-loadout-slot > button:first-child { display:grid; gap:2px; width:100%; min-height:36px; padding:5px 21px 5px 6px; border:0; background:transparent; text-align:left; color:#ece1ff; cursor:pointer; }
-.taijutsu-loadout-slot small { font-size:9px; color:#c6b0ff; }
-.taijutsu-loadout-slot strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:11px; }
-.taijutsu-remove { position:absolute; top:2px; right:2px; width:20px; height:23px; padding:0; border:0; border-radius:3px; background:#443458; color:#e4d7ff; cursor:pointer; }
-.taijutsu-equip-actions button { min-height:38px; padding:6px 3px; border:1px solid #657fff; border-radius:4px; background:#423057; color:#eadeff; font-size:11px; cursor:pointer; }
+.taijutsu-loadout-slot > button:first-child { display:grid; gap:2px; width:100%; min-height:52px; padding:8px 32px 8px 8px; border:0; background:transparent; text-align:left; color:#ece1ff; cursor:pointer; }
+.taijutsu-loadout-slot small { font-size:12px; color:#c6b0ff; }
+.taijutsu-loadout-slot strong { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:13px; }
+.taijutsu-remove { position:absolute; top:2px; right:2px; width:28px; height:28px; padding:0; border:0; border-radius:3px; background:#443458; color:#e4d7ff; cursor:pointer; }
+.taijutsu-equip-actions button { min-height:38px; padding:6px 3px; border:1px solid #657fff; border-radius:4px; background:#423057; color:#eadeff; font-size:13px; cursor:pointer; }
 .taijutsu-equip-actions button:disabled { opacity:.55; cursor:default; }
-@media (min-width:981px) and (max-width:1300px) {
-  #dojo-panel-techniques .dojo-technique-workspace { grid-template-columns:minmax(0,1fr) 230px; gap:8px; }
-  .resonance-heading { padding:10px; }
-  #dojo-panel-techniques .resonance-heading h3 { font-size:15px; }
-  .resonance-points { gap:5px; padding:3px 5px; }
-  .resonance-points b { font-size:21px; }
-  .resonance-points span { font-size:8px; }
-  .resonance-navigation-hint { display:none; }
-  .resonance-legend { gap:7px; padding:7px 5px; }
-}
-@media (max-width:980px) {
-  #dojo-panel-techniques .dojo-technique-workspace { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:550px auto 430px; height:100%; overflow-y:auto; }
-  #dojo-panel-techniques .resonance-tree { grid-column:1; grid-row:1; }
-  #dojo-panel-techniques .technique-loadout { grid-column:1; grid-row:2; }
-  #dojo-panel-techniques .technique-detail-wrap { grid-column:1; grid-row:3; }
-  #dojo-panel-techniques .technique-loadout-slots { grid-template-columns:repeat(4,minmax(0,1fr)); }
+@media (max-width:1100px) {
+  #dojo-panel-techniques .dojo-technique-workspace { grid-template-columns:minmax(0,1fr); height:auto; min-height:100%; overflow:visible; }
+  .technique-learning { min-height:420px; }
+  #dojo-panel-techniques .technique-detail-wrap { grid-column:1; grid-row:2; min-height:480px; height:auto; }
+  #dojo-panel-techniques .technique-detail { min-height:480px; }
 }
 @media (prefers-reduced-motion:no-preference) {
   .resonance-hex { transition:fill .15s; }
 }
+
+.technique-learning { display:grid; grid-template-rows:minmax(0,1fr) auto; min-width:0; min-height:0; gap:12px; }
+.technique-loadout-disclosure { min-width:0; border-top:1px solid #746348; background:#101a19; }
+.technique-loadout-disclosure > summary { padding:12px; color:#e6d5ac; font-size:14px; font-weight:700; cursor:pointer; }
+.technique-loadout-disclosure[open] { max-height:260px; overflow-y:auto; }
+#dojo-panel-techniques .technique-loadout { border:0; border-radius:0; padding:12px; }
+#dojo-panel-techniques .technique-loadout > header p { display:block; font-size:13px; }
+#dojo-panel-techniques .technique-detail-body { padding:16px; gap:12px; }
+#dojo-panel-techniques .technique-description,#dojo-panel-techniques .technique-accuracy,.resonance-effects p,.resonance-requirements p { font-size:14px !important; line-height:1.45; }
+#dojo-panel-techniques .technique-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+#dojo-panel-techniques .technique-detail-actions { padding:12px; }
+.resonance-future-control { display:flex; align-items:center; gap:8px; padding:10px 12px; color:#e0dcc4; font-size:13px; }
+.resonance-future-control input { width:18px; height:18px; accent-color:#d7b86d; }
+.resonance-future-control span { margin-left:auto; color:#b8c2b4; font-size:12px; }
+.technique-loadout-disclosure > summary:focus-visible,.resonance-future-control input:focus-visible { outline:2px solid #92dfff; outline-offset:-2px; }

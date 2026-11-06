@@ -14,8 +14,8 @@ test("el tono se elige al crear, se cambia gratis en el Dojo y persiste al recar
   await page.locator('select[name="hair"]').selectOption("4");
   await page.locator('.creator-affinity-choice:has([value="agua"])').click();
   await expect(page.locator('[data-creator-preview] .raster-character-stage')).toHaveAttribute("data-skin-tone", "moreno");
-  const filters = await page.locator('.creator-preview .puppet-preview-layer').evaluateAll(layers => layers.map(layer => ({ hair: layer.classList.contains("puppet-preview-hair"), face: layer.classList.contains("puppet-preview-face"), filter: getComputedStyle(layer).filter })));
-  expect(filters.filter(layer => !layer.hair && !layer.face).every(layer => layer.filter.includes("skin-tone-moreno"))).toBe(true);
+  const filters = await page.locator('.creator-preview .puppet-preview-layer').evaluateAll(layers => layers.map(layer => ({ hair: layer.classList.contains("puppet-preview-hair"), face: layer.classList.contains("puppet-preview-face"), cloth: layer.classList.contains("puppet-preview-cloth"), filter: getComputedStyle(layer).filter })));
+  expect(filters.filter(layer => !layer.hair && !layer.face && !layer.cloth).every(layer => layer.filter.includes("skin-tone-moreno"))).toBe(true);
   expect(filters.find(layer => layer.hair).filter).toBe("none");
   expect(filters.find(layer => layer.face).filter).toBe("none");
   await expect(page.locator('.creator-preview .puppet-preview-face')).toHaveAttribute("src", /male_poker_moreno/);

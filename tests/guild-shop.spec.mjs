@@ -25,7 +25,7 @@ async function shop(page) {
   await page.getByRole("button", { name: "Comprar decoraciones en la Tienda", exact: true }).click();
   await dismissIntro(page); await expect(page.locator(".shop-panel")).toBeVisible();
   await page.locator('[data-shop-mode="buy"]').click();
-  await page.locator('[data-shop-category="decorations"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('decorations');
 }
 async function backToGuild(page) {
   await page.getByRole("button", { name: "← Volver al mapa" }).click(); await enterGuild(page);
@@ -91,7 +91,7 @@ test("Compra acabados y unidades decorativas, colócalas y vende solo las retira
   await page.reload(); await enterGuild(page);
   expect((await read(page)).guild).toEqual(save.guild);
   await shop(page); await page.locator('[data-shop-mode="sell"]').click();
-  await page.locator('[data-shop-category="decorations"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('decorations');
   await expect(page.locator('[data-shop-item="guild_wall_plum"] button')).toBeDisabled();
   await expect(page.locator('[data-shop-item="guild_decor_landscape"] button')).toBeDisabled();
   await expect(page.locator('[data-shop-item="guild_decor_table"] input')).toHaveAttribute("max", "1");
@@ -101,7 +101,7 @@ test("Compra acabados y unidades decorativas, colócalas y vende solo las retira
   await backToGuild(page);
   await page.locator(`[data-room-object="${table.id}"]`).click(); await page.locator("[data-room-remove]").click();
   await page.locator('[data-room-wall="jade"]').click();
-  await shop(page); await page.locator('[data-shop-mode="sell"]').click(); await page.locator('[data-shop-category="decorations"]').click();
+  await shop(page); await page.locator('[data-shop-mode="sell"]').click(); await page.locator('[data-shop-category-select]').selectOption('decorations');
   await page.locator('[data-shop-item="guild_decor_table"] button').click();
   await page.locator('[data-shop-item="guild_wall_plum"] button').click();
   save = await read(page);

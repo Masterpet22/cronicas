@@ -1,6 +1,7 @@
+import { AFFINITY_CONFIG } from "../../../affinity-system.js?v=0.114.0";
 import { skinToneControlMarkup, syncSkinToneControl } from "../../skin-tone-control.js?v=0.135.0";
 import { normalizeSkinTone } from "../../../skin-tones.js?v=0.135.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.135.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.140.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([
@@ -50,7 +51,7 @@ export function createSaveCreatorView(deps) {
   }
 
   function renderCreator() {
-    const affinityChoices = deps.basicElementIds.map((id, index) => `<label class="affinity-choice creator-affinity-choice" style="--affinity-color:#${deps.elements[id].color.toString(16).padStart(6, "0")}"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>Afinidad básica</small></span><b class="creator-affinity-check" aria-hidden="true">✓</b></label>`).join("");
+    const affinityChoices = deps.basicElementIds.map((id, index) => `<label class="affinity-choice creator-affinity-choice" style="--affinity-color:#${deps.elements[id].color.toString(16).padStart(6, "0")}"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>${({health:"Vida",strength:"Fuerza",speed:"Velocidad",chakra:"Chakra"})[AFFINITY_CONFIG.affinities[id].boosts]} +${Math.round(AFFINITY_CONFIG.slots[0].bonus*100)} % · ${({health:"Vida",strength:"Fuerza",speed:"Velocidad",chakra:"Chakra"})[AFFINITY_CONFIG.affinities[id].penalizes]} ${Math.round(AFFINITY_CONFIG.slots[0].penalty*100)} %</small></span><b class="creator-affinity-check" aria-hidden="true">✓</b></label>`).join("");
     const affinity = deps.basicElementIds[0];
     const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;
     const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", face: 1, hair: 1 } }, deps.assetVersion, { backdrop: elementParticlesMarkup(affinity) });
@@ -62,7 +63,7 @@ export function createSaveCreatorView(deps) {
         <form id="character-form" class="creator-form creator-layout">
           <div class="creator-preview-column">
             <div class="character-preview creator-preview" data-creator-preview data-body-type="male">${preview}</div>
-            <div class="creator-preview-caption"><div><small>TU COMBATIENTE</small><strong data-creator-name>Akio</strong></div><span class="creator-affinity-badge"><img data-creator-affinity-icon src="${deps.elementIcon(affinity)}" alt="" width="48" height="48"><span data-creator-affinity-name>${deps.elementName(affinity)}</span></span></div>
+            <div class="creator-preview-caption"><div><small>ATUENDO DE ENTRENAMIENTO INCLUIDO</small><strong data-creator-name>Akio</strong></div><span class="creator-affinity-badge"><img data-creator-affinity-icon src="${deps.elementIcon(affinity)}" alt="" width="48" height="48"><span data-creator-affinity-name>${deps.elementName(affinity)}</span></span></div>
             <div class="creator-appearance-controls" role="group" aria-label="Apariencia inicial">
               <div class="cosmetic-control creator-cosmetic-control creator-hair-control"><label class="cosmetic-label" for="creator-hair">Peinado</label><div class="cosmetic-stepper"><button type="button" data-creator-hair-step="-1" aria-label="Peinado anterior">‹</button><select id="creator-hair" name="hair" aria-describedby="creator-hair-note">${hairChoices}</select><button type="button" data-creator-hair-step="1" aria-label="Peinado siguiente">›</button></div><small id="creator-hair-note">También puedes cambiarlo en el Dojo.</small></div>
               <div class="cosmetic-control creator-cosmetic-control creator-face-control"><label class="cosmetic-label" for="creator-face">Rostro</label><div class="cosmetic-stepper"><button type="button" data-creator-face-step="-1" aria-label="Rostro anterior">‹</button><select id="creator-face" name="face" aria-describedby="creator-face-note">${faceChoices}</select><button type="button" data-creator-face-step="1" aria-label="Rostro siguiente">›</button></div><small id="creator-face-note">También puedes cambiarlo en el Dojo.</small></div>

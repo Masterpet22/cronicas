@@ -1,8 +1,8 @@
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.135.0";
-import { createDojoTechniques } from "../dojo-techniques.js?v=1.0.0";
-import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.135.0";
-import { countItem, equipItem } from "../../../inventory.js?v=0.126.0";
-import { createTraining } from "../../../training.js?v=1.0.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.140.0";
+import { createDojoTechniques } from "../dojo-techniques.js?v=0.140.0";
+import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.140.0";
+import { countItem, equipItem } from "../../../inventory.js?v=0.140.0";
+import { createTraining } from "../../../training.js?v=0.140.0";
 import { AFFINITY_TRIALS } from "../../../content/affinity-progression.js?v=1.0.0";
 import { MAX_CHARACTER_LEVEL } from "../../../progression-balance.js?v=0.94.0";
 const ATTRIBUTE_DEFINITIONS = Object.freeze([
@@ -124,7 +124,7 @@ export function createDojoView(deps) {
         <div id="dojo-panel-statistics" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="statistics"><section class="dojo-attributes"><header><p class="eyebrow">DISTRIBUCIÓN DE PUNTOS DE ESTADÍSTICAS</p><div class="dojo-attribute-actions"><strong><b data-attribute-points>${progression.attributePoints}</b> PUNTOS DE ATRIBUTO</strong></div></header><div class="statistics-layout">${preview("statistics-character-preview")}<div class="statistics-content"><div class="attribute-distribution-wrap">${attributeMarkup()}</div><section class="statistics-radar-card"><div class="stat-radar-wrap" data-stat-radar>${radarMarkup()}</div></section></div></div></section></div>
           <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance"><section class="appearance-panel xenoverse-appearance"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3></div></div><div class="appearance-customizer">${preview()}<div class="cosmetic-menu" aria-label="Opciones de apariencia">${cosmeticControls}</div></div></section></div><p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
         </section>
-      </div><div class="equipment-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-modal-title" hidden><div class="equipment-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">INVENTARIO</p><h2 id="equipment-modal-title">Elegir equipo</h2></div><button type="button" data-close-equipment aria-label="Cerrar">×</button></div><div class="equipment-modal-options"></div></div></div><div class="equipment-modal master-modal" role="dialog" aria-modal="true" aria-labelledby="master-modal-title" hidden><div class="equipment-modal-card master-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">ENTRENAMIENTO</p><h2 id="master-modal-title">Elegir maestro</h2></div><button type="button" data-close-master aria-label="Cerrar selector de maestros">×</button></div><p class="master-modal-note">${masterSelectionUnlocked ? "Elige el maestro cuya ventaja complemente mejor tu estilo." : "Completa la saga 1 para cambiar de maestro. Puedes consultar sus ventajas desde ahora."}</p><div class="master-modal-options">${masterCards}</div></div></div>`;
+      </div><dialog class="equipment-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-modal-title" hidden><div class="equipment-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">INVENTARIO</p><h2 id="equipment-modal-title">Elegir equipo</h2></div><button type="button" data-close-equipment aria-label="Cerrar">×</button></div><div class="equipment-modal-options"></div></div></dialog><dialog class="equipment-modal master-modal" role="dialog" aria-modal="true" aria-labelledby="master-modal-title" hidden><div class="equipment-modal-card master-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">ENTRENAMIENTO</p><h2 id="master-modal-title">Elegir maestro</h2></div><button type="button" data-close-master aria-label="Cerrar selector de maestros">×</button></div><p class="master-modal-note">${masterSelectionUnlocked ? "Elige el maestro cuya ventaja complemente mejor tu estilo." : "Completa la saga 1 para cambiar de maestro. Puedes consultar sus ventajas desde ahora."}</p><div class="master-modal-options">${masterCards}</div></div></dialog>`;
     },
 
     mount(root, scope) {
@@ -201,6 +201,7 @@ export function createDojoView(deps) {
       let equipmentReturnScroll = 0;
       let activeGearType = null;
       const closeEquipmentModal = () => {
+        if (equipmentModal.open) equipmentModal.close();
         equipmentModal.hidden = true;
         root.querySelector(`[data-gear-slot="${activeGearType}"]`)?.focus({ preventScroll: true });
         if (stageOptions) stageOptions.scrollTop = equipmentReturnScroll;
@@ -213,10 +214,12 @@ export function createDojoView(deps) {
         equipmentModalTitle.textContent = `Equipar ${renderModel.gearTitles[type].toLowerCase()}`;
         equipmentModalOptions.innerHTML = options.map((item) => `<button type="button" class="equipment-option ${save.equipment[type] === (item.id || null) ? "selected" : ""}" data-equipment-type="${type}" data-equipment-id="${item.id}"><span class="gear-icon" aria-hidden="true">${item.image ? `<img src="${item.image}" alt="" width="36" height="36">` : item.id ? renderModel.gearIcons[type] : "∅"}</span><span><strong>${item.name}</strong><small>${item.description}</small></span>${save.equipment[type] === (item.id || null) ? "<em>Equipado</em>" : ""}</button>`).join("");
         equipmentModal.hidden = false;
+        equipmentModal.showModal();
         equipmentModal.querySelector(".equipment-option")?.focus();
       };
       root.querySelectorAll("[data-gear-slot]").forEach((button) => scope.listen(button, "click", () => openEquipmentModal(button.dataset.gearSlot)));
       scope.listen(root.querySelector("[data-close-equipment]"), "click", closeEquipmentModal);
+      scope.listen(equipmentModal, "cancel", event => { event.preventDefault(); closeEquipmentModal(); });
       scope.listen(equipmentModal, "click", (event) => {
         const option = event.target.closest("[data-equipment-type]");
         if (option) {
@@ -229,6 +232,7 @@ export function createDojoView(deps) {
       const masterTrigger = root.querySelector("[data-open-master]");
       let masterReturnScroll = 0;
       const closeMasterModal = () => {
+        if (masterModal.open) masterModal.close();
         masterModal.hidden = true;
         masterTrigger?.focus({ preventScroll: true });
         if (stageOptions) stageOptions.scrollTop = masterReturnScroll;
@@ -236,10 +240,20 @@ export function createDojoView(deps) {
       const openMasterModal = () => {
         masterReturnScroll = stageOptions?.scrollTop || 0;
         masterModal.hidden = false;
+        masterModal.showModal();
         masterModal.querySelector("[data-master]:not([disabled]), [data-close-master]")?.focus();
       };
       scope.listen(masterTrigger, "click", openMasterModal);
       scope.listen(root.querySelector("[data-close-master]"), "click", closeMasterModal);
+      scope.listen(masterModal, "cancel", event => { event.preventDefault(); closeMasterModal(); });
+      scope.onCleanup(() => { if (equipmentModal.open) equipmentModal.close(); if (masterModal.open) masterModal.close(); });
+      for (const dialog of [equipmentModal,masterModal]) scope.listen(dialog,"keydown",event => {
+        if (event.key !== "Tab") return;
+        const controls = [...dialog.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),[tabindex="0"]')].filter(el => el.getClientRects().length);
+        const first = controls[0], last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      });
       scope.listen(masterModal, "click", (event) => {
         if (event.target === masterModal) closeMasterModal();
       });

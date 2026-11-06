@@ -12,7 +12,7 @@
 .guild-hall :focus-visible { outline:2px solid #ffe3a5; outline-offset:2px; }
 .guild-tabs button { min-width:140px; font-weight:700; }
 .guild-tabs button[aria-selected=true],.guild-hall button[aria-pressed=true]:not(.room-decoration) { border-color:#dab56d; background-color:#572b39; color:#ffe4b1; }
-.guild-tabs small { margin-left:9px; color:#bdaf98; font-size:11px; font-weight:400; }
+.guild-tabs small { margin-left:9px; color:#bdaf98; font-size:12px; font-weight:400; }
 .guild-message { min-height:18px; margin:0; color:#bdcbbf; font-size:13px; }
 .guild-body { flex:1; min-height:0; overflow:auto; scrollbar-color:#8c7047 #0b1924; padding:2px; }
 .guild-room-layout { display:grid; grid-template-columns:minmax(0,1fr) 290px; gap:18px; height:100%; min-height:0; }
@@ -145,3 +145,4 @@
   .location-inn .guild-hall { position:relative; inset:auto; margin:0; }
   .location-inn .stage-ambient { left:36%; top:25px; width:60%; }
 }
+.guild-clan-layout { grid-template-columns:minmax(0,1fr); } details.guild-online-panel { align-self:start; } .guild-online-panel > summary { cursor:pointer; color:#dfc996; font-size:15px; font-weight:700; }

@@ -1,6 +1,6 @@
 import { lessonCompleted, tutorialCourseFor } from "../tutorial-system.js";
 import { tutorialActor, tutorialSpeakerMarkup } from "../tutorial-speakers.js";
-import { recordBattleLesson } from "./tutorial-progress.js";
+import { recordBattleLesson } from "./tutorial-progress.js?v=0.140.0";
 import { suspendPauseRendering } from "./pause-rendering.js?v=1.0.0";
 
 export async function explainSagaEvent(scene, lesson, { title, copy, guardianCopy }) {

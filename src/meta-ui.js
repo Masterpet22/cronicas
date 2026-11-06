@@ -2,7 +2,7 @@ import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js
 import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.131.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.114.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.131.0";
-import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.131.0";
+import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.140.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementIconParts, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.114.0";
@@ -10,17 +10,17 @@ import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.114.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=1.4.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.115.0";
-import { createDojoView } from "./ui/meta/views/dojo.js?v=0.138.0";
+import { createDojoView } from "./ui/meta/views/dojo.js?v=0.140.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=1.1.0";
-import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.137.0";
-import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.135.0";
+import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.140.0";
+import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.140.0";
 import { createOverlayView } from "./ui/meta/views/overlays.js?v=1.1.0";
-import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.132.0";
+import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.140.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
 import { createLocationStage } from "./ui/meta/location-stage.js?v=0.131.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
-import { rememberIntroduction, retainIntroductions } from "./location-conversations.js?v=0.131.0"; import { ITEMS } from "./items.js?v=0.126.0";
-import { createSagaTutorialCoach } from "./ui/meta/saga-tutorial.js"; import { observeTutorialChanges, observeTutorialEvent, pendingTutorialPreparation, recordTutorialLesson } from "./tutorial-system.js"; import { locationAccess } from "./village-progression.js"; export { VILLAGE_LOCATIONS };
+import { rememberIntroduction, retainIntroductions } from "./location-conversations.js?v=0.131.0"; import { ITEMS } from "./items.js?v=0.140.0";
+import { createSagaTutorialCoach } from "./ui/meta/saga-tutorial.js?v=0.140.0"; import { observeTutorialChanges, observeTutorialEvent, pendingTutorialPreparation, recordTutorialLesson } from "./tutorial-system.js"; import { locationAccess } from "./village-progression.js"; export { VILLAGE_LOCATIONS };
 const masterForCharacter = (character) => NPCS[masterIdForCharacter(character)];
 const ASSET_VERSION = META_ASSET_VERSION; const LOCATION_BACKGROUNDS = { kagemori: "assets/locations/kagemori.webp" };
 const warmedImages = new Map();
@@ -69,11 +69,11 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const showDialogue = (...args) => overlayView.showDialogue(...args);
   const showMissionDecision = (...args) => overlayView.showMissionDecision(...args);
   const shellView = createMetaShell({
-    sagas: STORY_SAGAS, locations: VILLAGE_LOCATIONS,
+    debugEnabled: ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname), sagas: STORY_SAGAS, locations: VILLAGE_LOCATIONS,
     escapeHtml, xpForNextLevel, warmLocationAssets,
     onNavigate(nextView) { view = nextView; render(); },
     onSaveSlots() { choosingSaveSlot = true; render(); },
-    onDebug() {
+    onDebug() { if (!["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname)) return;
       if (!debugSnapshot) debugSnapshot = JSON.stringify(save);
       view = "debug";
       render();

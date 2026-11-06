@@ -41,10 +41,10 @@ for (const width of [1280, 1600]) test(`Objetos conserva el cursor y permite cer
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 });
   await boot(page);
-  await page.getByRole("button", { name: "Cambiar a habilidades físicas", exact: true }).click();
+  await page.getByRole("button", { name: "Cambiar a habilidades físicas (0)", exact: true }).click();
   await bag(page).click();
   await expect(dialog(page)).toBeVisible();
-  expect(await page.evaluate(() => window.__performanceReference.scene.scene.isPaused())).toBe(true);
+  await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isPaused())).toBe(true);
   await expect(page.locator("dialog:modal > .game-cursor")).toHaveCount(1);
   const close = page.getByRole("button", { name: "Cerrar objetos" });
   await close.hover();
@@ -73,7 +73,7 @@ for (const width of [1280, 1600]) test(`Objetos conserva el cursor y permite cer
   });
   await expect(bag(page)).toBeFocused();
   await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isActive())).toBe(true);
-  await page.getByRole("button", { name: "Cambiar a habilidades elementales", exact: true }).click();
+  await page.getByRole("button", { name: "Cambiar a habilidades elementales (0)", exact: true }).click();
   await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", "elemental");
   expect(errors).toEqual([]);
 });

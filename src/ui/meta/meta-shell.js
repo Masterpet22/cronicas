@@ -32,7 +32,7 @@ export function createMetaShell(deps) {
             </div>
           </section>`}
           <!-- RELEASE-BLOCKER 1.0: eliminar este acceso y todo renderDebugTools antes de publicar la versión final. -->
-          <button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas"><span>DEV</span> PRUEBAS</button>
+          ${deps.debugEnabled ? '<button class="debug-tools-trigger" type="button" aria-label="Abrir herramientas de pruebas"><span>DEV</span> PRUEBAS</button>' : ""}
           ${navigation}
           ${content}
         </div>`;

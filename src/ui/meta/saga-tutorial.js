@@ -2,9 +2,9 @@ import { currentTutorialCourse, lessonCompleted, observeTutorialEvent, pendingTu
 import { BASIC_ELEMENT_IDS, elementName } from "../../elements.js?v=0.20.0";
 import { FIELD_LESSONS } from "../../content/sagas/futuro-prometedor/tutorial.js";
 import { resonancePoints } from "../../skills/progression.js?v=1.0.0";
-import { ITEMS } from "../../items.js?v=0.126.0";
+import { ITEMS } from "../../items.js?v=0.140.0";
 import { tutorialActor, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
-import { revealTutorialControl, tutorialControl } from "./tutorial-controls.js";
+import { revealTutorialControl, tutorialControl } from "./tutorial-controls.js?v=0.140.0";
 
 export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
   let view, host, ambient, stage, launcher, marked, message = "", signature = "", dismissed = "", previousStep = "", notice = "", noticeTimer = 0;
@@ -98,7 +98,9 @@ export function createSagaTutorialCoach({ root, getSave, persist, navigate }) {
       host.dataset.dialogueArea = view;
       ambient = root.querySelector("[data-stage-ambient]");
       stage = root.querySelector("[data-location-stage]") || root.querySelector(".village-shell");
-      stage?.append(host);
+      const field = root.querySelector(".doctor-route-screen");
+      if (field) { host.classList.add("is-field-guidance"); field.querySelector("header")?.after(host); }
+      else stage?.append(host);
       launcher = document.createElement("button"); launcher.type = "button"; launcher.dataset.coachOpen = ""; launcher.className = "tutorial-help-button";
       (root.querySelector(".village-return") || root.querySelector(".mission-pause-trigger")?.parentElement)?.append(launcher);
       scope.listen(launcher, "click", () => {

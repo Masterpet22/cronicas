@@ -1,5 +1,5 @@
 import { EQUIPMENT } from "./data.js?v=1.5.0";
-import { COSMETICS } from "./cosmetics.js?v=0.114.0";
+import { COSMETICS } from "./cosmetics.js?v=0.140.0";
 import { TELEPORT_OBJECTS } from "./teleport-objects.js";
 import { CONTRACT_MISSIONS } from "./content/store-contracts.js?v=0.114.0";
 import { GUILD_ITEMS } from "./guild-catalog.js?v=0.126.0";

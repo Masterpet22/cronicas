@@ -19,11 +19,11 @@ import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, no
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.100.0";
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.114.0";
 import { createCompletedMissionProgress, migrateSaveToV18 } from "./save/save-migrations.js";
-import { createSlotRepository } from "./save/slot-repository.js";
+import { createSlotRepository } from "./save/slot-repository.js?v=0.140.0";
 import { teleportObject } from "./teleport-objects.js";
-import { ITEMS } from "./items.js?v=0.126.0";
-import { LEGACY_SEALS } from "./cosmetics.js?v=0.114.0";
-import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.126.0";
+import { ITEMS } from "./items.js?v=0.140.0";
+import { LEGACY_SEALS } from "./cosmetics.js?v=0.140.0";
+import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.140.0";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
 import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js?v=0.114.0";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, MAX_CHARACTER_LEVEL, addExperience, characterLevel, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";
@@ -267,7 +267,8 @@ const slotRepository = createSlotRepository({
   saveKey: SAVE_KEY, activeSlotKey: ACTIVE_SAVE_SLOT_KEY, maxSlots: MAX_SAVE_SLOTS,
   normalize: normalizeSave, createDefault: createDefaultSave
 });
-export const { saveSlotKey, activeSaveSlot, listSaveSlots, selectSaveSlot, deleteSaveSlot, loadSave, writeSave } = slotRepository;
+export const { saveSlotKey, activeSaveSlot, listSaveSlots, selectSaveSlot, deleteSaveSlot, loadSave, writeSave,
+  saveStatus, subscribeSaveStatus, retryPendingSaves, pendingSaveCopies } = slotRepository;
 
 export function startMissionProgress(save, missionId) {
   return markMissionStarted(normalizeSave(save), missionId);

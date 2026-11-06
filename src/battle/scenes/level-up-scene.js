@@ -1,4 +1,4 @@
-import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.119.0";
+import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.140.0";
 import { playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.92.0";
 import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-transition.js?v=1.1.0";

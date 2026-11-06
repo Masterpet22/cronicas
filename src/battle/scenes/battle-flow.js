@@ -1,13 +1,13 @@
-import { actionHealthCost } from "../skill-tables.js?v=1.4.0";
+import { actionHealthCost } from "../skill-tables.js?v=0.140.0";
 import { closeActionState, isFinalOpponent } from "../action-resolution.js?v=1.4.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
-import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.136.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.140.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.140.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
@@ -32,9 +32,9 @@ import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../tel
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
-import { recordBattleLesson } from "../tutorial-progress.js";
+import { recordBattleLesson } from "../tutorial-progress.js?v=0.140.0";
 import { lessonCompleted, tutorialCourseFor } from "../../tutorial-system.js";
-import { explainSagaEvent } from "../tutorial-events.js";
+import { explainSagaEvent } from "../tutorial-events.js?v=0.140.0";
 import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
 import { elementName } from "../../elements.js?v=0.20.0";
 

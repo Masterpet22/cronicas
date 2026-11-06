@@ -1,10 +1,10 @@
-import { skillFrameSvg } from "./hud-chrome.js?v=0.131.0";
+import { skillFrameSvg } from "./hud-chrome.js?v=0.140.0";
 import { initiativeLabel } from "./initiative.js?v=1.0.0";
-import { mountBattleInventory } from "./battle-inventory.js?v=0.136.0";
-import { emptySkillInfo } from './hud-art.js?v=0.131.0';
+import { mountBattleInventory } from "./battle-inventory.js?v=0.140.0";
+import { emptySkillInfo } from './hud-art.js?v=0.140.0';
 import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
-import { mountSkillTableControl } from './skill-table-control.js?v=0.135.0';
-import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=1.4.0';
+import { mountSkillTableControl } from './skill-table-control.js?v=0.140.0';
+import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.140.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.

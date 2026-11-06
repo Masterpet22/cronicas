@@ -1,5 +1,5 @@
 import { worldDate, monthOf, monthLength, eventsBetween, plazaSchedule, dateLabel, eventProgress } from "../../../plaza-events.js?v=0.130.0";
-import { createElementalChallenge } from "../../../tower.js?v=0.131.0";
+import { createElementalChallenge } from "../../../tower.js?v=0.140.0";
 
 export function createTowerView(deps) {
   let save, host, scope, timer, renderedDay;

@@ -2,10 +2,10 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.119.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.140.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.131.0";
-import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.131.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
+import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.114.0";
@@ -21,8 +21,8 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
-import { countItem } from "../../inventory.js?v=0.126.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.136.0";
+import { countItem } from "../../inventory.js?v=0.140.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.140.0";
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {

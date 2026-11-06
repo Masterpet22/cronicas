@@ -32,7 +32,7 @@ test("los taijutsus equipados ocupan 4 y 5 de la tabla física y se pagan con vi
     s.executeTimelineAction = async (actor,action) => window.__taijutsuUsed.push(action.id);
     s.refreshHud();
   });
-  await page.getByRole("button",{ name:"Cambiar a habilidades físicas",exact:true }).click();
+  await page.getByRole("button",{ name:"Cambiar a habilidades físicas (0)",exact:true }).click();
   await expect(button(page,4)).toContainText("Puño de hierro");
   await expect(button(page,4)).toContainText("8 PV");
   await expect(button(page,5)).toContainText("Paso fugaz");

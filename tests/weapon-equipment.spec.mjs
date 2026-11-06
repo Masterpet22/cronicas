@@ -38,14 +38,14 @@ test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kuna
   await page.reload(); await visit(page, "dojo");
   await expect(page.locator('[data-gear-slot="throwable"]')).toContainText("Nada equipado");
   await visit(page, "shop");
-  await page.locator('[data-shop-category="throwables"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('throwables');
   await expect(page.locator('[data-shop-item="shuriken"] button')).toHaveText("Ya lo tienes");
   await page.locator('[data-shop-mode="sell"]').click();
-  await page.locator('[data-shop-category="throwables"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('throwables');
   await page.locator('[data-shop-item="shuriken"] button').click();
   expect((await stored(page)).inventory.items.shuriken).toBeUndefined();
   await page.locator('[data-shop-mode="buy"]').click();
-  await page.locator('[data-shop-category="throwables"]').click();
+  await page.locator('[data-shop-category-select]').selectOption('throwables');
   await page.locator('[data-shop-item="shuriken"] button').click();
   expect((await stored(page)).inventory.items.shuriken).toBe(1);
   expect((await stored(page)).progression.coins).toBe(187);

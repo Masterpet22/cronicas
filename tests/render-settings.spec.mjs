@@ -16,6 +16,8 @@ test("la calidad manual se guarda sin activar Phaser ni el modo ligero", async (
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.106.0");
     const save = createCharacter(createDefaultSave(), { name: "Calidad", affinity: "fuego", bodyType: "male" });
     save.campaign.tutorialSeen = true;
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    learnedTutorialForTest(save);
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
   });
@@ -44,6 +46,8 @@ test("la pausa cambia la resolución real sin reiniciar la batalla ni imponer el
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.106.0");
     const save = createCharacter(createDefaultSave(), { name: "Calidad", affinity: "fuego", bodyType: "male" });
     save.campaign.tutorialSeen = true;
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    learnedTutorialForTest(save);
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off");

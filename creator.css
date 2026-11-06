@@ -45,7 +45,7 @@
 }
 .creator-preview-caption { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 18px; border-top: 1px solid rgba(88,195,230,.16); background: rgba(3,12,21,.88); }
 .creator-preview-caption > div { display: grid; gap: 4px; min-width: 0; }
-.creator-preview-caption small { color: #7d9dad; font-size: 11px; letter-spacing: .13em; }
+.creator-preview-caption small { color: #b6cfdb; font-size: 12px; letter-spacing: .04em; }
 .creator-preview-caption strong { overflow: hidden; color: #f3e9d6; font: 700 21px Cinzel, serif; text-overflow: ellipsis; white-space: nowrap; }
 .creator-affinity-badge { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; color: var(--creator-affinity); font-size: 14px; }
 .creator-affinity-badge img { width: 35px; height: 35px; object-fit: contain; }

@@ -1,15 +1,15 @@
 import { skinToneControlMarkup, syncSkinToneControl } from "../skin-tone-control.js?v=0.135.0";
 import { normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { ITEMS } from "../../items.js?v=0.126.0";
-import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.114.0";
-import { countItem, equipCosmetic } from "../../inventory.js?v=0.126.0";
+import { ITEMS } from "../../items.js?v=0.140.0";
+import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.140.0";
+import { countItem, equipCosmetic } from "../../inventory.js?v=0.140.0";
 
 const choices = (save, slot) => Object.values(ITEMS).filter(item => item.kind === "cosmetic" && item.cosmeticSlot === slot && countItem(save, item.id));
 export function appearanceControlsMarkup(save) {
-  return skinToneControlMarkup(save.character.skinTone) + Object.entries(COSMETIC_SLOTS).map(([slot, label]) => {
+  return '<p class="appearance-preview-note">Vista previa del atuendo de entrenamiento. Las prendas con gráfico pendiente conservan este aspecto.</p>' + skinToneControlMarkup(save.character.skinTone) + Object.entries(COSMETIC_SLOTS).map(([slot, label]) => {
     const owned = choices(save, slot), current = owned.find(item => item.value === save.character[slot]) || owned[0];
     const disabled = owned.length < 2 ? "disabled" : "";
-    return `<div class="cosmetic-control" data-cosmetic-control="${slot}"><span class="cosmetic-label">${label}</span><div class="cosmetic-stepper"><button type="button" data-cosmetic-step="${slot}" data-direction="-1" aria-label="${label} anterior" ${disabled}>‹</button><output data-cosmetic-value="${slot}">${current?.image ? `<img class="teleport-object-preview" src="${current.image}" alt="" width="30" height="30">` : ""}${current?.name || "Sin seleccionar"}</output><button type="button" data-cosmetic-step="${slot}" data-direction="1" aria-label="${label} siguiente" ${disabled}>›</button></div><small>${current?.description || ""} ${owned.length < 2 ? "Consigue otras opciones en la tienda." : ""}</small></div>`;
+    return `<div class="cosmetic-control" data-cosmetic-control="${slot}"><span class="cosmetic-label">${label}</span><div class="cosmetic-stepper"><button type="button" data-cosmetic-step="${slot}" data-direction="-1" aria-label="${label} anterior" ${disabled}>‹</button><output data-cosmetic-value="${slot}">${current?.image ? `<img class="teleport-object-preview" src="${current.image}" alt="" width="30" height="30">` : ""}${current?.name || "Sin seleccionar"}${current?.pendingArt ? '<span class="cosmetic-pending">Gráfico pendiente</span>' : ""}</output><button type="button" data-cosmetic-step="${slot}" data-direction="1" aria-label="${label} siguiente" ${disabled}>›</button></div><small>${current?.description || ""} ${owned.length < 2 ? "Consigue otras opciones en la tienda." : ""}</small></div>`;
   }).join("");
 }
 export function refreshDojoAppearance(root, save) {

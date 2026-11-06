@@ -1,6 +1,6 @@
 import { lessonCompleted, tutorialCourseFor } from "../tutorial-system.js";
 import { COMBAT_LESSONS } from "../content/sagas/futuro-prometedor/combat-lessons.js";
-import { recordBattleLesson } from "./tutorial-progress.js";
+import { recordBattleLesson } from "./tutorial-progress.js?v=0.140.0";
 import { tutorialActor, tutorialSpeakerMarkup, updateTutorialActor } from "../tutorial-speakers.js";
 import { affinityTutorialCopy } from "../content/sagas/futuro-prometedor/affinity-advice.js";
 import { CHAKRA_BALANCE } from "../chakra-balance.js?v=1.0.0";

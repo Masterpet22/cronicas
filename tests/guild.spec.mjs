@@ -194,6 +194,7 @@ test("Clanes permite guardar un diseño local y anuncia las funciones online pen
   await expect(page.locator("[data-clan-preview]")).toContainText("Cuervos del alba");
   await form.getByRole("button", { name: "Guardar borrador" }).click();
   expect((await read(page)).guild.clanDraft).toEqual({ name: "Cuervos del alba", tag: "ALBA", motto: "Un mismo camino.", emblem: "moon", color: "blue" });
+  await page.locator(".guild-online-panel > summary").click();
   await expect(page.getByRole("button", { name: "Crear clan online" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Buscar y unirse a un clan" })).toBeDisabled();
   await expect(page.locator(".guild-online-panel table")).toHaveCount(2);

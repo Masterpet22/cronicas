@@ -1,4 +1,4 @@
-import { createExhibition, arenaRivalProfile } from "./arena.js?v=0.131.0";
+import { createExhibition, arenaRivalProfile } from "./arena.js?v=0.140.0";
 import { eventByKey, plazaSchedule, worldDate, actOnPlazaEvent } from "./plaza-events.js?v=0.130.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 

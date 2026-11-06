@@ -1,5 +1,5 @@
-import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.126.0";
-import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.126.0";
+import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.140.0";
+import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.140.0";
 import { itemIcon } from "../../item-icons.js?v=0.126.0";
 
 export function createShopView(deps) {
@@ -14,23 +14,24 @@ export function createShopView(deps) {
       const reason = selling ? saleBlockReason(save, item.id) : completed ? "Contrato completado" : owned ? "Ya lo tienes" : count >= item.stackLimit ? "Capacidad máxima" : save.progression.coins < item.price ? "Sin monedas" : "";
       const maximum = selling ? sellableItemCount(save, item.id) : item.stackLimit - count;
       const placed = item.kind === "decoration" ? count - sellableItemCount(save, item.id) : 0;
-      return `<form class="item-card shop-item" data-shop-item="${item.id}"><div class="item-card-top"><span class="item-art">${itemIcon(item)}</span><span class="item-price">${item.price === 0 ? "Inicial" : `${selling ? sellPrice(item) : item.price} <small>monedas / unidad</small>`}</span></div><h3>${escape(item.name)}</h3><p>${escape(item.description)}</p><small class="shop-stock">En inventario: ${count}${placed ? ` · En Mi espacio: ${placed}` : ""}${reason && selling ? `<br>${escape(reason)}` : ""}</small><div class="shop-purchase">${item.stackLimit > 1 ? `<label>Cantidad<input type="number" min="1" max="${Math.max(1, maximum)}" value="1" aria-label="Cantidad de ${escape(item.name)}" ${maximum < 1 ? "disabled" : ""}></label>` : ""}<button type="submit" ${reason ? "disabled" : ""}>${selling ? "Vender" : reason || "Comprar"}</button></div></form>`;
+      return `<form class="item-card shop-item" data-shop-item="${item.id}"><div class="item-card-top"><span class="item-art">${itemIcon(item)}</span><span class="item-price">${item.price === 0 ? "Inicial" : `${selling ? sellPrice(item) : item.price} <small>monedas / unidad</small>`}</span></div><h3>${escape(item.name)}</h3>${item.pendingArt ? '<strong class="shop-art-pending">Gráfico pendiente · Se mantiene el atuendo de entrenamiento</strong>' : ""}<p>${escape(item.description)}</p><small class="shop-stock">En inventario: ${count}${placed ? ` · En Mi espacio: ${placed}` : ""}${reason && selling ? `<br>${escape(reason)}` : ""}</small><div class="shop-purchase">${item.stackLimit > 1 ? `<label>Cantidad<input type="number" min="1" max="${Math.max(1, maximum)}" value="1" aria-label="Cantidad de ${escape(item.name)}" ${maximum < 1 ? "disabled" : ""}></label>` : ""}<button type="submit" ${reason ? "disabled" : ""}>${selling ? "Vender" : reason || "Comprar"}</button></div></form>`;
     }).join("") || '<p class="inventory-empty">No tienes objetos para vender en esta categoría.</p>';
   }
   function contents() {
-    return `<header class="shop-heading"><div><h2>Prepara tu próximo viaje</h2><p>Gestiona equipo, apariencia y sustitución en el Dojo. Los contratos se juegan en el tablón y las decoraciones se colocan en el Gremio.</p></div><strong class="shop-wallet">${save.progression.coins}<small>MONEDAS</small></strong></header><nav class="shop-tabs" aria-label="Operación de la tienda"><button type="button" data-shop-mode="buy" aria-pressed="${mode === "buy"}">Comprar</button><button type="button" data-shop-mode="sell" aria-pressed="${mode === "sell"}">Vender</button><span>Vendemos por el precio indicado y compramos a mitad de precio, redondeada hacia abajo.</span></nav><p class="shop-feedback" role="status">${escape(message)}</p><nav class="shop-categories" aria-label="Tipos de objetos">${Object.entries(ITEM_CATEGORIES).map(([id, label]) => `<button type="button" data-shop-category="${id}" aria-pressed="${category === id}">${label}</button>`).join("")}</nav><div class="shop-items">${catalog()}</div>`;
+    return `<header class="shop-heading"><div><h2>Prepara tu próximo viaje</h2><p>Gestiona equipo, apariencia y sustitución en el Dojo. Los contratos se juegan en el tablón y las decoraciones se colocan en el Gremio.</p></div><strong class="shop-wallet">${save.progression.coins}<small>MONEDAS</small></strong></header><nav class="shop-tabs" aria-label="Operación de la tienda"><button type="button" data-shop-mode="buy" aria-pressed="${mode === "buy"}">Comprar</button><button type="button" data-shop-mode="sell" aria-pressed="${mode === "sell"}">Vender</button><span>Vendemos por el precio indicado y compramos a mitad de precio, redondeada hacia abajo.</span></nav><p class="shop-feedback" role="status">${escape(message)}</p><label class="shop-category-filter">Tipo de objeto<select data-shop-category-select><option value="all" ${category === "all" ? "selected" : ""}>Todos los objetos</option>${[["Equipo",["weapons","throwables","seals","accessories"]],["Suministros y misiones",["consumables","scrolls","contracts"]],["Apariencia y hogar",["appearance","substitution","decorations"]]].map(([label,ids]) => `<optgroup label="${label}">${ids.map(id => `<option value="${id}" ${category === id ? "selected" : ""}>${ITEM_CATEGORIES[id]}</option>`).join("")}</optgroup>`).join("")}</select></label><div class="shop-items">${catalog()}</div>`;
   }
-  const refresh = () => { host.innerHTML = contents(); };
+  const refresh = selector => { host.innerHTML = contents(); if (selector) host.querySelector(selector)?.focus({ preventScroll:true }); };
   return {
     id: "shop",
     render(state) { save = state.save; return `<section class="shop-panel" aria-label="Tienda">${contents()}</section>`; },
     mount(root, scope) {
       host = root.querySelector(".shop-panel");
       scope.listen(host, "click", event => {
-        const tab = event.target.closest("[data-shop-mode]"), filter = event.target.closest("[data-shop-category]");
-        if (tab) { mode = tab.dataset.shopMode; category = "all"; message = ""; refresh(); }
-        if (filter) { category = filter.dataset.shopCategory; refresh(); }
+        const tab = event.target.closest("[data-shop-mode]");
+        if (tab) { mode = tab.dataset.shopMode; category = "all"; message = ""; refresh(`[data-shop-mode="${mode}"]`); }
+
       });
+      scope.listen(host, "change", event => { if (event.target.matches("[data-shop-category-select]")) { category = event.target.value; refresh("[data-shop-category-select]"); } });
       scope.listen(host, "submit", event => {
         event.preventDefault();
         const form = event.target.closest("[data-shop-item]");
@@ -39,6 +40,8 @@ export function createShopView(deps) {
         if (result.ok) save = deps.onPersist(result.save);
         message = result.message;
         refresh();
+        const nextAction = host.querySelector(`[data-shop-item="${form.dataset.shopItem}"] button:not([disabled])`) || host.querySelector("[data-shop-category-select]");
+        nextAction?.focus({ preventScroll:true });
         const coins = root.querySelector(".summary-item:last-child strong");
         if (coins) { coins.textContent = save.progression.coins; coins.parentElement.setAttribute("aria-label", `${save.progression.coins} monedas`); }
       });

@@ -1,8 +1,8 @@
 import { villageMapHotspots, mountVillageMap } from "../village-map.js?v=0.134.0";
-import { createTowerView } from "./tower.js?v=0.131.0";
-import { createShopView } from "./shop.js?v=0.131.0";
-import { createGuildView } from "./guild.js?v=0.131.0";
-import { createArenaView } from "./arena.js?v=0.137.0";
+import { createTowerView } from "./tower.js?v=0.140.0";
+import { createShopView } from "./shop.js?v=0.140.0";
+import { createGuildView } from "./guild.js?v=0.140.0";
+import { createArenaView } from "./arena.js?v=0.140.0";
 import { createEventsView } from "./events.js?v=0.131.0";
 import { locationAccess } from "../../../village-progression.js";
 import { GAME_TERMS } from "../../../content/game-dictionary.js";
@@ -89,7 +89,7 @@ export function createVillageView(deps) {
     const locations = VILLAGE_LOCATIONS.map(location => ({ ...location, name: GAME_TERMS[location.id], ...locationAccess(location.id, save) }));
     const hotspots = villageMapHotspots(locations, mapImage, deps.escapeHtml, missionTargetIds);
     const labels = locations.map((location) => {
-      return `<span class="map-label" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong>${location.unlocked ? "" : `<small>Bloqueado · ${deps.escapeHtml(location.reason)}</small>`}</span></span>`;
+      return `<span class="map-label ${location.unlocked ? "is-unlocked" : ""}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong>${location.unlocked ? "" : `<small>Bloqueado · ${deps.escapeHtml(location.reason)}</small>`}</span></span>`;
     }).join("");
     currentState = { ...currentState, secondaryObjectives, unseenSecondaryObjectives };
     return `<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="${mapImage}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}<div class="village-entry-shade" aria-hidden="true"></div></figure>${missionDock}</section>`;
