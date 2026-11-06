@@ -43,6 +43,13 @@ for (const body of ["man", "woman"]) {
   }));
 }
 
+for (const face of ["poker", "angry", "happy"]) for (const tone of [null, "muy-claro", "claro", "dorado", "medio", "oliva", "canela", "moreno", "oscuro", "ebano"]) {
+  const asset = `male_${face}${tone ? `_${tone}` : ""}.png`;
+  const png = await readFile(new URL(`../assets/modular/faces/${asset}`, import.meta.url));
+  assert.deepEqual([png.readUInt32BE(16), png.readUInt32BE(20)], [441, 593], `${asset} debe conservar el encuadre normalizado de los rostros`);
+  assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
+}
+
 for (const asset of ["basic-strike.webp", "guard.webp"]) {
   const image = webpDimensions(await readFile(new URL(`../assets/actions/${asset}`, import.meta.url)), asset);
   assert.equal(image.width, 512, `${asset} debe medir 512 px de ancho`);

@@ -25,8 +25,8 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await expect(page.locator("[data-creator-preview]")).toHaveAttribute("data-body-type", "male");
     await expect(page.locator(".creator-preview img").first()).toHaveAttribute("src", /man_sprites/);
     await expect(page.locator('select[name="hair"]')).toHaveValue("1");
-    await expect(page.locator('select[name="outfit"]')).toBeDisabled();
-    await expect(page.locator('.creator-outfit-control')).toContainText("PRÓXIMAMENTE");
+    await expect(page.locator('select[name="face"]')).toHaveValue("1");
+    await expect(page.locator('.creator-preview .puppet-preview-face')).toHaveAttribute("src", /male_poker/);
     await expect(page.locator('input[type="color"]')).toHaveCount(0);
     await page.screenshot({ path: `test-results/character-creator/masculino-${viewport.width}.png` });
 
@@ -40,6 +40,9 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await expect(page.locator('select[name="hair"]')).toHaveValue("1");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveAttribute("src", /hair_corto/);
     await page.locator('select[name="hair"]').selectOption("4");
+    await page.locator('[data-creator-face-step="-1"]').click();
+    await expect(page.locator('select[name="face"]')).toHaveValue("3");
+    await expect(page.locator('.creator-preview .puppet-preview-face')).toHaveAttribute("src", /male_happy/);
 
     await page.locator('[data-creator-gender-step="1"]').click();
     await expect(page.locator('select[name="bodyType"]')).toHaveValue("female");
@@ -80,7 +83,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     const previewLayers = await page.locator(".creator-preview .puppet-preview-layer").evaluateAll((layers) => layers.map((layer) => ({ src: layer.getAttribute("src"), geometry: layer.getAttribute("style") })));
     await page.locator("#character-form").getByRole("button", { name: "CREAR PERSONAJE" }).click();
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
-    expect(saved.character).toMatchObject({ name: "Mika", bodyType: "female", affinity: "agua", affinities: ["agua"], hair: 4, appearance: "#55bfff" });
+    expect(saved.character).toMatchObject({ name: "Mika", bodyType: "female", affinity: "agua", affinities: ["agua"], face: 3, hair: 4, appearance: "#55bfff" });
     expect(saved.character.outfit).toBeNull();
     const dialogue = page.locator(".dialogue-overlay");
     for (let i = 0; i < 6 && await dialogue.isVisible(); i += 1) await dialogue.locator(".primary-button").click();

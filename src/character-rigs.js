@@ -51,8 +51,14 @@ export const WOMAN_SPRITE_JOINTS = Object.freeze({
 });
 
 export const CHARACTER_HAIR = Object.freeze({
-  1: { id: "corto", width: 295, height: 229, x: -26, y: -273 },
+  1: { id: "corto", width: 283, height: 238, x: -4, y: -281 },
   4: { id: "coleta", width: 392, height: 314, x: -59, y: -246 }
+});
+
+export const CHARACTER_FACES = Object.freeze({
+  1: { id: "poker", label: "Neutral" },
+  2: { id: "angry", label: "Enojado" },
+  3: { id: "happy", label: "Feliz" }
 });
 
 const layersById = (layers) => Object.fromEntries(layers.map((part) => [part.id, part]));

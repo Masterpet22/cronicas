@@ -8,7 +8,7 @@ import { missionXpPlan } from "./mission-rewards.js?v=1.0.0";
 import { resolveEncounterIds } from "./combat-modifiers.js?v=0.114.0";
 import { normalizeTaijutsuLoadout } from "./skills/taijutsu.js?v=1.0.0";
 import { normalizeIntroductions } from "./location-conversations.js?v=0.131.0";
-import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
+import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { defaultGuildState, normalizeGuildState } from "./guild.js?v=0.126.0";
 import { defaultEventState, normalizeEventState } from "./plaza-events.js?v=0.130.0";
 import { canonicalAbilityId, ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=1.5.0";
@@ -110,7 +110,7 @@ function normalizeHairStyle(value) {
   return hair === 0 || hair === 1 || hair === 4 ? hair : 1;
 }
 
-export function createCharacter(save, { name, affinity, appearance, bodyType, hair, skinTone, birthday, teleportObject: selectedObject }) {
+export function createCharacter(save, { name, affinity, appearance, bodyType, face, hair, skinTone, birthday, teleportObject: selectedObject }) {
   const cleanName = String(name || "").trim().slice(0, 18) || "Akio";
   const cleanAffinity = BASIC_ELEMENT_IDS.includes(affinity) ? affinity : "fuego";
   const cleanAppearance = /^#[0-9a-f]{6}$/i.test(appearance || "") ? appearance : "#e8edf5";
@@ -118,10 +118,10 @@ export function createCharacter(save, { name, affinity, appearance, bodyType, ha
     ...createDefaultSave(),
     ...save,
     version: SAVE_VERSION,
-    character: { birthday: normalizeBirthday(birthday), name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", skinTone: normalizeSkinTone(skinTone), masterId: assignedMasterId(bodyType), face: 1, hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
+    character: { birthday: normalizeBirthday(birthday), name: cleanName, affinity: cleanAffinity, affinities: [cleanAffinity], knownAffinities: [cleanAffinity], affinityXp: Object.fromEntries(BASIC_ELEMENT_IDS.map((id) => [id, id === cleanAffinity ? 50 : 0])), appearance: cleanAppearance, bodyType: bodyType === "female" ? "female" : "male", skinTone: normalizeSkinTone(skinTone), masterId: assignedMasterId(bodyType), face: Math.min(3, Math.max(1, Math.floor(Number(face) || 1))), hair: normalizeHairStyle(hair), teleportObject: teleportObject(selectedObject).id, top: 1, bottom: 1, shoes: 1 },
     progression: { ...createDefaultSave().progression },
     equipment: { ...DEFAULT_EQUIPMENT, weapon: null, throwable: null },
-    inventory: starterInventory({ hair: normalizeHairStyle(hair) }),
+    inventory: starterInventory({ face: Math.min(3, Math.max(1, Math.floor(Number(face) || 1))), hair: normalizeHairStyle(hair) }),
     guild: defaultGuildState(),
     events: defaultEventState(),
     loadout: initialLoadout(cleanAffinity),

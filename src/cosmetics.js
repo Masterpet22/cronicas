@@ -1,11 +1,11 @@
 // Los valores se comparten con el personaje y con sus capas de apariencia.
 export const COSMETICS = Object.freeze([
   { id: "hair_none", name: "Sin cabello", cosmeticSlot: "hair", value: 0, price: 0 },
-  { id: "hair_short", name: "Peinado corto", cosmeticSlot: "hair", value: 1, price: 40, image: "assets/modular/hair/hair_corto.png?v=0.101.0" },
+  { id: "hair_short", name: "Peinado corto", cosmeticSlot: "hair", value: 1, price: 40, image: "assets/modular/hair/hair_corto.png?v=0.137.0" },
   { id: "hair_ponytail", name: "Peinado con coleta", cosmeticSlot: "hair", value: 4, price: 70, image: "assets/modular/hair/hair_coleta.png?v=0.79.0" },
-  { id: "face_plain", name: "Rostro natural", cosmeticSlot: "face", value: 1, price: 0 },
-  { id: "face_scar", name: "Rostro con cicatriz", cosmeticSlot: "face", value: 2, price: 50, pendingArt: true },
-  { id: "face_mask", name: "Máscara de viajero", cosmeticSlot: "face", value: 3, price: 75, pendingArt: true },
+  { id: "face_plain", name: "Rostro neutral", cosmeticSlot: "face", value: 1, price: 0, image: "assets/modular/faces/male_poker.png?v=0.135.0" },
+  { id: "face_scar", name: "Rostro enojado", cosmeticSlot: "face", value: 2, price: 50, image: "assets/modular/faces/male_angry.png?v=0.135.0" },
+  { id: "face_mask", name: "Rostro feliz", cosmeticSlot: "face", value: 3, price: 75, image: "assets/modular/faces/male_happy.png?v=0.135.0" },
   { id: "top_none", name: "Sin prenda superior", cosmeticSlot: "top", value: 1, price: 0 },
   { id: "top_traveler", name: "Chaqueta de viajero", cosmeticSlot: "top", value: 2, price: 60, pendingArt: true },
   { id: "top_shadow", name: "Túnica de la sombra", cosmeticSlot: "top", value: 3, price: 90, pendingArt: true },

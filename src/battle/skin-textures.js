@@ -1,4 +1,4 @@
-import { colorizeSkinPixels, normalizeSkinTone } from "../skin-tones.js?v=0.119.0";
+import { colorizeSkinPixels, normalizeSkinTone } from "../skin-tones.js?v=0.135.0";
 
 // Cada tono tiene su propia textura. Pintar a un actor no modifica al rival
 // ni a otra escena que reutilice el mismo cuerpo o las imágenes originales.

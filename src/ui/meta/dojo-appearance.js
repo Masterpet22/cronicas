@@ -1,5 +1,5 @@
-import { skinToneControlMarkup } from "../skin-tone-control.js?v=0.119.0";
-import { normalizeSkinTone } from "../../skin-tones.js?v=0.119.0";
+import { skinToneControlMarkup, syncSkinToneControl } from "../skin-tone-control.js?v=0.135.0";
+import { normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
 import { ITEMS } from "../../items.js?v=0.126.0";
 import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.114.0";
 import { countItem, equipCosmetic } from "../../inventory.js?v=0.126.0";
@@ -17,11 +17,15 @@ export function refreshDojoAppearance(root, save) {
   if (menu) menu.innerHTML = appearanceControlsMarkup(save);
 }
 export function mountDojoAppearance(root, scope, { getSave, persist }) {
+  scope.listen(root.querySelector(".cosmetic-menu"), "input", event => {
+    if (event.target.name !== "skinTone") return;
+    syncSkinToneControl(event.target.closest(".skin-tone-control"), event.target.value);
+  });
   scope.listen(root.querySelector(".cosmetic-menu"), "change", event => {
     if (event.target.name !== "skinTone") return;
     const save = getSave(), tone = normalizeSkinTone(event.target.value);
     persist({ ...save, character: { ...save.character, skinTone: tone } });
-    root.querySelector(`[name="skinTone"][value="${tone}"]`)?.focus();
+    root.querySelector('[name="skinTone"]')?.focus();
   });
   scope.listen(root.querySelector(".cosmetic-menu"), "click", event => {
     const button = event.target.closest("[data-cosmetic-step]");

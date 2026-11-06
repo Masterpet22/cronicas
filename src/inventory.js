@@ -10,7 +10,7 @@ export const countItem = (save, id) => {
 export const starterInventory = (character = {}) => ({ items: Object.fromEntries([
   ...Object.values(STARTER_EQUIPMENT).filter(Boolean),
   ...GUILD_STARTER_ITEMS,
-  ...Object.values(ITEMS).filter(item => item.kind === "cosmetic" && (item.price === 0 || item.cosmeticSlot === "hair" && item.value === (character.hair ?? 1))).map(item => item.id)
+  ...Object.values(ITEMS).filter(item => item.kind === "cosmetic" && (item.price === 0 || ["hair", "face"].includes(item.cosmeticSlot) && item.value === (character[item.cosmeticSlot] ?? 1))).map(item => item.id)
 ].map(id => [id, 1])), extraAffinityUnlocked: false });
 
 export function normalizeInventory(save) {

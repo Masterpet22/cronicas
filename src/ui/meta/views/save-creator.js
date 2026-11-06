@@ -1,9 +1,13 @@
-import { skinToneControlMarkup } from "../../skin-tone-control.js?v=0.119.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.119.0";
+import { skinToneControlMarkup, syncSkinToneControl } from "../../skin-tone-control.js?v=0.135.0";
+import { normalizeSkinTone } from "../../../skin-tones.js?v=0.135.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.135.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([
   { id: 0, label: "Sin cabello" }, { id: 1, label: "Corto" }, { id: 4, label: "Coleta" }
+]);
+const CREATOR_FACES = Object.freeze([
+  { id: 1, label: "Neutral" }, { id: 2, label: "Enojado" }, { id: 3, label: "Feliz" }
 ]);
 
 export function createSaveCreatorView(deps) {
@@ -49,8 +53,9 @@ export function createSaveCreatorView(deps) {
     const affinityChoices = deps.basicElementIds.map((id, index) => `<label class="affinity-choice creator-affinity-choice" style="--affinity-color:#${deps.elements[id].color.toString(16).padStart(6, "0")}"><input type="radio" name="affinity" value="${id}" ${index === 0 ? "checked" : ""}><img src="${deps.elementIcon(id)}" alt="" width="512" height="512"><span><strong>${deps.elementName(id)}</strong><small>Afinidad básica</small></span><b class="creator-affinity-check" aria-hidden="true">✓</b></label>`).join("");
     const affinity = deps.basicElementIds[0];
     const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;
-    const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", hair: 1 } }, "0.108.0", { backdrop: elementParticlesMarkup(affinity) });
+    const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", face: 1, hair: 1 } }, deps.assetVersion, { backdrop: elementParticlesMarkup(affinity) });
     const hairChoices = CREATOR_HAIR_STYLES.map(({ id, label }) => `<option value="${id}" ${id === 1 ? "selected" : ""}>${label}</option>`).join("");
+    const faceChoices = CREATOR_FACES.map(({ id, label }) => `<option value="${id}" ${id === 1 ? "selected" : ""}>${label}</option>`).join("");
     return `
       <section class="dojo-card creator-card creator-customizer" style="--creator-affinity:${color}">
         <header class="creator-heading"><div><p class="eyebrow">PRIMER PASO · PARTIDA ${deps.activeSaveSlot()}</p><h2>Crea tu combatiente</h2><p>Elige quién dará el primer paso en la Aldea del Horizonte.</p></div><span class="creator-heading-mark" aria-hidden="true">始</span></header>
@@ -60,7 +65,7 @@ export function createSaveCreatorView(deps) {
             <div class="creator-preview-caption"><div><small>TU COMBATIENTE</small><strong data-creator-name>Akio</strong></div><span class="creator-affinity-badge"><img data-creator-affinity-icon src="${deps.elementIcon(affinity)}" alt="" width="48" height="48"><span data-creator-affinity-name>${deps.elementName(affinity)}</span></span></div>
             <div class="creator-appearance-controls" role="group" aria-label="Apariencia inicial">
               <div class="cosmetic-control creator-cosmetic-control creator-hair-control"><label class="cosmetic-label" for="creator-hair">Peinado</label><div class="cosmetic-stepper"><button type="button" data-creator-hair-step="-1" aria-label="Peinado anterior">‹</button><select id="creator-hair" name="hair" aria-describedby="creator-hair-note">${hairChoices}</select><button type="button" data-creator-hair-step="1" aria-label="Peinado siguiente">›</button></div><small id="creator-hair-note">También puedes cambiarlo en el Dojo.</small></div>
-              <div class="cosmetic-control creator-cosmetic-control creator-outfit-control unavailable"><label class="cosmetic-label" for="creator-outfit">Traje <span class="creator-coming-soon">PRÓXIMAMENTE</span></label><div class="cosmetic-stepper"><button type="button" disabled aria-label="Traje anterior">‹</button><select id="creator-outfit" name="outfit" disabled aria-describedby="creator-outfit-note"><option value="">Sin traje</option></select><button type="button" disabled aria-label="Traje siguiente">›</button></div><small id="creator-outfit-note">Compra los trajes en la tienda y selecciónalos en Apariencia del Dojo.</small></div>
+              <div class="cosmetic-control creator-cosmetic-control creator-face-control"><label class="cosmetic-label" for="creator-face">Rostro</label><div class="cosmetic-stepper"><button type="button" data-creator-face-step="-1" aria-label="Rostro anterior">‹</button><select id="creator-face" name="face" aria-describedby="creator-face-note">${faceChoices}</select><button type="button" data-creator-face-step="1" aria-label="Rostro siguiente">›</button></div><small id="creator-face-note">También puedes cambiarlo en el Dojo.</small></div>
             </div>
           </div>
           <div class="creator-controls">
@@ -97,18 +102,26 @@ export function createSaveCreatorView(deps) {
       const form = root.querySelector("#character-form");
       const name = form.elements.namedItem("name");
       const gender = form.elements.namedItem("bodyType");
+      const face = form.elements.namedItem("face");
       const hair = form.elements.namedItem("hair");
+      const skinTone = form.elements.namedItem("skinTone");
       const preview = root.querySelector("[data-creator-preview]");
       const updateGender = () => {
         preview.dataset.bodyType = gender.value;
         const affinity = form.querySelector('input[name="affinity"]:checked').value;
-        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, hair: Number(hair.value), skinTone: form.querySelector('[name="skinTone"]:checked').value } }, "0.108.0", { backdrop: elementParticlesMarkup(affinity) });
+        preview.innerHTML = rasterCharacterPreviewMarkup({ character: { bodyType: gender.value, face: Number(face.value), hair: Number(hair.value), skinTone: normalizeSkinTone(skinTone.value) } }, deps.assetVersion, { backdrop: elementParticlesMarkup(affinity) });
       };
       scope.listen(name, "input", () => { name.setCustomValidity(""); root.querySelector("[data-creator-name]").textContent = name.value.trim() || "Tu combatiente"; });
       scope.listen(gender, "change", updateGender);
+      scope.listen(face, "change", updateGender);
       scope.listen(hair, "change", updateGender);
+      scope.listen(skinTone, "input", () => { syncSkinToneControl(skinTone.closest(".skin-tone-control"), skinTone.value); updateGender(); });
       root.querySelectorAll("[data-creator-hair-step]").forEach((button) => scope.listen(button, "click", () => {
         hair.selectedIndex = (hair.selectedIndex + Number(button.dataset.creatorHairStep) + hair.options.length) % hair.options.length;
+        updateGender();
+      }));
+      root.querySelectorAll("[data-creator-face-step]").forEach((button) => scope.listen(button, "click", () => {
+        face.selectedIndex = (face.selectedIndex + Number(button.dataset.creatorFaceStep) + face.options.length) % face.options.length;
         updateGender();
       }));
       root.querySelectorAll("[data-creator-gender-step]").forEach((button) => scope.listen(button, "click", () => {
@@ -117,7 +130,7 @@ export function createSaveCreatorView(deps) {
         updateGender();
       }));
       scope.listen(form, "change", (event) => {
-        if (event.target.name === "skinTone") { updateGender(); return; }
+        if (event.target.name === "skinTone") return;
         if (event.target.name !== "affinity") return;
         const affinity = event.target.value;
         const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;

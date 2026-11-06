@@ -1,9 +1,10 @@
-import { normalizeSkinTone } from "./skin-tones.js?v=0.119.0";
+import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterTextures } from "./battle/skin-textures.js?v=0.119.0";
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
 import { createPuppetAnimationController } from "./animations/controller.js?v=0.119.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.119.0";
 import {
+  CHARACTER_FACES,
   CHARACTER_HAIR,
   CHARACTER_RIGS,
   MAN_SPRITE_JOINTS as UPDATED_MAN_SPRITE_JOINTS,
@@ -55,6 +56,11 @@ export function useFighterTextureRendering(image) {
 
 function hairTextureKey(style) {
   return CHARACTER_HAIR[style] ? `player-hair-${CHARACTER_HAIR[style].id}` : null;
+}
+
+export function fighterFaceTextureKey(appearance) {
+  const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
+  return `player-face-${normalizeSkinTone(appearance?.skinTone)}-${face.id}`;
 }
 
 function fighterHairConfig(appearance) {
@@ -110,8 +116,11 @@ export function queuePlayerFighterTextures(scene, appearance) {
   });
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
-    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.101.0" : "0.79.0"}`);
+    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.137.0" : "0.79.0"}`);
   }
+  const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
+  const faceKey = fighterFaceTextureKey(appearance);
+  if (!scene.textures.exists(faceKey)) scene.load.image(faceKey, `assets/modular/faces/male_${face.id}_${normalizeSkinTone(appearance?.skinTone)}.png?v=0.135.0`);
   return "modular";
 }
 
@@ -313,6 +322,13 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   joints.neck = createJoint(scene, rig, "neck", spriteJoints.neck);
   const head = addPart(scene, joints.neck, variant, "cabeza", spriteJoints.neck);
   layers.push(head);
+  const headPart = variant.byId.cabeza;
+  const face = scene.add.image(head.x, head.y, fighterFaceTextureKey(appearance));
+  face.setDisplaySize(headPart.width * (headPart.scaleX || 1), headPart.height * (headPart.scaleY || headPart.scaleX || 1));
+  face.name = "rostro";
+  useFighterTextureRendering(face);
+  joints.neck.add(face);
+  layers.push(face);
   const hairConfig = fighterHairConfig(appearance);
   let hair = null;
   if (hairConfig) {
@@ -326,7 +342,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
 
   const animationClips = { ...PUPPET_ANIMATION_CLIPS,
     "prepare-technique": preparationClipForRig(PUPPET_ANIMATION_CLIPS["prepare-technique"], variant) };
-  const fighter = { shadow, body, head, hair, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
+  const fighter = { shadow, body, head, face, hair, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
   fighter.animations = createPuppetAnimationController(scene, fighter);
   startPlayerBreathing(scene, fighter);
   return fighter;

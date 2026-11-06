@@ -1,12 +1,31 @@
-const tone = (id, name, color, colors) => Object.freeze({ id, name, color, colors: Object.freeze(colors.map(rgb => Object.freeze(rgb))) });
-// Las dos paletas conservan tinta negra y progresan de sombra a luz natural.
-export const SKIN_TONES = Object.freeze([
-  tone("claro", "Claro", "#deb28b", [[0,0,0],[24,16,13],[66,41,29],[118,75,50],[174,117,81],[214,160,117],[239,192,149],[251,218,181],[255,239,211]]),
-  tone("moreno", "Moreno", "#956141", [[0,0,0],[15,10,8],[37,23,17],[65,38,26],[100,59,39],[137,86,56],[173,117,80],[208,158,115],[235,198,156]])
-]);
 export const DEFAULT_SKIN_TONE = "claro";
-export const skinTone = id => SKIN_TONES.find(entry => entry.id === id) || SKIN_TONES[0];
+const HIGHLIGHT = [255, 239, 218];
+const mix = (from, to, weight) => from.map((channel, index) => Math.round(channel + (to[index] - channel) * weight));
+const paletteFor = base => Object.freeze([
+  [0, 0, 0], ...[.12, .28, .46, .65, .82, 1].map(weight => mix([0, 0, 0], base, weight)),
+  mix(base, HIGHLIGHT, .45), mix(base, HIGHLIGHT, .72)
+].map(rgb => Object.freeze(rgb)));
+const tone = (id, name, color, base) => Object.freeze({ id, name, color, colors: paletteFor(base) });
+
+// Nueve pasos ofrecen una gama amplia sin introducir valores arbitrarios en el guardado.
+export const SKIN_TONES = Object.freeze([
+  tone("muy-claro", "Muy claro", "#f8cdae", [248,205,174]),
+  tone("claro", "Claro", "#e2ae84", [226,174,132]),
+  tone("dorado", "Dorado", "#cd9260", [205,146,96]),
+  tone("medio", "Medio", "#b7794c", [183,121,76]),
+  tone("oliva", "Oliva", "#9d6641", [157,102,65]),
+  tone("canela", "Canela", "#845031", [132,80,49]),
+  tone("moreno", "Moreno", "#6d4028", [109,64,40]),
+  tone("oscuro", "Oscuro", "#4f2d1f", [79,45,31]),
+  tone("ebano", "Ébano", "#341e18", [52,30,24])
+]);
+export function skinTone(id) {
+  const numeric = Number(id);
+  if ((typeof id === "number" || typeof id === "string" && /^\d+$/.test(id)) && Number.isInteger(numeric)) return SKIN_TONES[numeric] || SKIN_TONES.find(entry => entry.id === DEFAULT_SKIN_TONE);
+  return SKIN_TONES.find(entry => entry.id === id) || SKIN_TONES.find(entry => entry.id === DEFAULT_SKIN_TONE);
+}
 export const normalizeSkinTone = id => skinTone(id).id;
+export const skinToneIndex = id => SKIN_TONES.findIndex(entry => entry.id === normalizeSkinTone(id));
 
 export function skinPalette(id) {
   const colors = skinTone(id).colors;
