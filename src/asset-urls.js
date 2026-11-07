@@ -1,4 +1,4 @@
-export const META_ASSET_VERSION = "0.135.0";
+export const META_ASSET_VERSION = "0.150.0";
 
 export function versionedAsset(path, version) {
   return `${path}?v=${version}`;

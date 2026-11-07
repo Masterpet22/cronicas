@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "generatedAt": "2026-11-06T04:53:14.575Z",
+  "generatedAt": "2026-11-07T12:07:32.200Z",
   "technicalIntegrity": {
     "passed": true,
     "errors": []
@@ -176,15 +176,16 @@
       "bodyBounds": {
         "left": -264.0207,
         "right": 298.3048,
-        "top": -694.684,
+        "top": -708.4253,
         "bottom": 800.3159
       },
       "geometricHeadHeight": 290.5723,
-      "bodyHeadRatio": 5.145,
+      "bodyHeadRatio": 5.1923,
       "maxTransformError": 0.0078,
       "geometryDifferences": [],
       "layerOrderMatches": false,
       "runtimeOrder": [
+        "tail-coleta",
         "brazo_izquierdo",
         "antebrazo_izquierdo",
         "mano_izquierda",
@@ -203,6 +204,7 @@
         "hair-coleta"
       ],
       "dojoOrder": [
+        "tail-coleta",
         "pie_izquierdo",
         "pie_derecho",
         "antebrazo_izquierdo",
@@ -387,15 +389,16 @@
       "bodyBounds": {
         "left": -227.0759,
         "right": 273.048,
-        "top": -615.98,
+        "top": -629.0534,
         "bottom": 692.07
       },
       "geometricHeadHeight": 276.4496,
-      "bodyHeadRatio": 4.7316,
+      "bodyHeadRatio": 4.7789,
       "maxTransformError": 0.0079,
       "geometryDifferences": [],
       "layerOrderMatches": false,
       "runtimeOrder": [
+        "tail-coleta",
         "brazo_izquierdo",
         "antebrazo_izquierdo",
         "mano_izquierda",
@@ -414,6 +417,7 @@
         "hair-coleta"
       ],
       "dojoOrder": [
+        "tail-coleta",
         "pie_izquierdo",
         "pie_derecho",
         "brazo_izquierdo",
@@ -455,18 +459,18 @@
   ],
   "assets": [
     {
-      "asset": "assets/modular/man_sprites/runtime/pie_izquierdo.png",
+      "asset": "assets/modular/outfits/training/male/pie_izquierdo.png",
       "width": 175,
       "height": 148,
       "rgba": true,
-      "sha256": "f05d40c823b9c8c5ed740e91065019736b64eddbe51de9ab0409e23a6c82d14b"
+      "sha256": "14a3f389aa63045efedc9a303352ebb62f6461f4a18a4c142bfd03971b384f06"
     },
     {
-      "asset": "assets/modular/man_sprites/runtime/pie_derecho.png",
+      "asset": "assets/modular/outfits/training/male/pie_derecho.png",
       "width": 136,
       "height": 148,
       "rgba": true,
-      "sha256": "8d4428242cc92defd88e06f10f758e0bfcf5bdf33a01fffd94b23df062cadb0d"
+      "sha256": "cd2620aba39ecd3d489966459dd56cd4c6a93bcf7905feca2dfe8aabd917d479"
     },
     {
       "asset": "assets/modular/man_sprites/runtime/antebrazo_izquierdo.png",
@@ -490,46 +494,46 @@
       "sha256": "8eac91f5a14df6092435ba878bbfce907f83d7f01daf8f6e8d5186b773c2738d"
     },
     {
-      "asset": "assets/modular/man_sprites/runtime/muslo_izquierdo.png",
+      "asset": "assets/modular/outfits/training/male/muslo_izquierdo.png",
       "width": 168,
       "height": 294,
       "rgba": true,
-      "sha256": "8af4a195536dca03e9687a5fe57d41632d1b4ba778ac13cc5063f2d9a4128394"
+      "sha256": "eac27bfac15c686be954168879eaacc0ea68b0e09a9f5d33f95e7c6643f54a47"
     },
     {
-      "asset": "assets/modular/man_sprites/runtime/pierna_izquierda.png",
+      "asset": "assets/modular/outfits/training/male/pierna_izquierda.png",
       "width": 115,
       "height": 246,
       "rgba": true,
-      "sha256": "b6e0b771a5a96e260cdfd280bd0eecb43c1e2ddc817ea45e0e3343a34f3f6785"
+      "sha256": "512f505956a94ccbb9b98e132a49639eeb8bfa6607e52fa8e07e934d4b1a5aa8"
     },
     {
-      "asset": "assets/modular/man_sprites/runtime/torso.png",
+      "asset": "assets/modular/outfits/training/male/torso.png",
       "width": 293,
       "height": 499,
       "rgba": true,
-      "sha256": "76eec68904eeaadcd1cfb3177af8985bc26193a5425e7213564b819694476cba"
+      "sha256": "f0b616f61238e5f6e7259305eb1f96070d6a7d588788270f447d4001f07abf16"
     },
     {
-      "asset": "assets/modular/man_sprites/runtime/muslo_derecho.png",
+      "asset": "assets/modular/outfits/training/male/muslo_derecho.png",
       "width": 169,
       "height": 305,
       "rgba": true,
-      "sha256": "b47fdea48a5b0c0edc9fb811fb9990a42b13b58ccd47994c4364bb1715bd0c7c"
+      "sha256": "01c8dfb39792d573e380d6f0b16cdada8b91bf8e202d056baab806682d79b1fe"
     },
     {
-      "asset": "assets/modular/man_sprites/runtime/pierna_derecha.png",
+      "asset": "assets/modular/outfits/training/male/pierna_derecha.png",
       "width": 120,
       "height": 254,
       "rgba": true,
-      "sha256": "5ce998eb4b453520693b0c87ce5323f45cbce19db9d35e06b7a6c608e5a9c55d"
+      "sha256": "3221a113f48b42de2a084863ac78ebbf886940aaba46edd25787c9d42539b38d"
     },
     {
       "asset": "assets/modular/man_sprites/runtime/cabeza.png",
       "width": 174,
       "height": 229,
       "rgba": true,
-      "sha256": "81d6be8467d70d25a3a3c409541797893500d6b664773e4cc2d19d8c5e5c9939"
+      "sha256": "1f3bb198f4ed526b9ceb78215dc8d45ad070c551da983ba694a67397059ce60a"
     },
     {
       "asset": "assets/modular/man_sprites/runtime/antebrazo_derecho.png",
@@ -568,24 +572,31 @@
     },
     {
       "asset": "assets/modular/hair/hair_coleta.png",
-      "width": 1000,
-      "height": 800,
+      "width": 460,
+      "height": 413,
       "rgba": true,
-      "sha256": "83b6717c5c0caf176dba2e0b7393f41cdab3de88cbbc4a878499835172ab177c"
+      "sha256": "a5eaceaf8d42ddfc02bfc0281602c4f10b338a6867a24a14a4e925b81c607ce7"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/pie_izquierdo.png",
+      "asset": "assets/modular/hair/tail_coleta.png",
+      "width": 205,
+      "height": 697,
+      "rgba": true,
+      "sha256": "a1baa9003a7d7a90f071858b0b3ed6a776415f2948e67fdfab4a64abb524d4e5"
+    },
+    {
+      "asset": "assets/modular/outfits/training/female/pie_izquierdo.png",
       "width": 168,
       "height": 144,
       "rgba": true,
-      "sha256": "26c77fb88d1cda1ecef2e8b3fb9f37b588f76e2338a6529f4d30c16243fbeec8"
+      "sha256": "1e5ff63d80735a3d314196af42b3408b1bdbd030c189176ac952e08a88304480"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/pie_derecho.png",
+      "asset": "assets/modular/outfits/training/female/pie_derecho.png",
       "width": 131,
       "height": 147,
       "rgba": true,
-      "sha256": "b8b4b2b8f04091b94e8b13277db7350bc5355210b11057524110d0fd217196e3"
+      "sha256": "f78616d2d8a7de380ea9843a4429b9aa9bdee72e95c65fff1122f4dd3326d632"
     },
     {
       "asset": "assets/modular/woman_sprites/runtime/brazo_izquierdo.png",
@@ -609,39 +620,39 @@
       "sha256": "47e5d675b22d7d1a1db8750d57b1fae5567e244bfc6d203c57fed5678c06a178"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/pierna_izquierda.png",
+      "asset": "assets/modular/outfits/training/female/pierna_izquierda.png",
       "width": 111,
       "height": 244,
       "rgba": true,
-      "sha256": "baca0b7b5809e0d27cd9d06c80d6b5211585184c4a13d00f14da2700dcf61b14"
+      "sha256": "7e755645c3aadf0742c596019669be7060ef41221022ba7f0ba73378ac4ec8ee"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/pierna_derecha.png",
+      "asset": "assets/modular/outfits/training/female/pierna_derecha.png",
       "width": 115,
       "height": 251,
       "rgba": true,
-      "sha256": "b51661f12f04e763d551ae6672eb876c60073f91eb194a4a37695df3b2c57fbd"
+      "sha256": "b49422fc665cabccdfa5772fdfb692d027189354a187a9a99dfc35ff52747ad3"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/muslo_izquierdo.png",
+      "asset": "assets/modular/outfits/training/female/muslo_izquierdo.png",
       "width": 163,
       "height": 290,
       "rgba": true,
-      "sha256": "93cdf996449adc4fe6175778bcd961792e74c022fd5351ecfad2321d1b48204c"
+      "sha256": "641ca6ac726ae6d0573beac1d80d2a62ae9bc15b35d916390b809c06e1ca6e2e"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/torso.png",
+      "asset": "assets/modular/outfits/training/female/torso.png",
       "width": 255,
       "height": 477,
       "rgba": true,
-      "sha256": "9996a33a6b0d4856e95440430b02653aedac85677c883bcfc42f9f03015b061d"
+      "sha256": "1e45ebf0cb3d4faa5cb2b82006d66cede025acf5ff49345d09e2925e0655a1fa"
     },
     {
-      "asset": "assets/modular/woman_sprites/runtime/muslo_derecho.png",
+      "asset": "assets/modular/outfits/training/female/muslo_derecho.png",
       "width": 161,
       "height": 293,
       "rgba": true,
-      "sha256": "6aae7d1ffda4b517d6eb4f27453ac8cbac6853a387984886de7405f061b842d7"
+      "sha256": "2450a84080188ef5146ba56ff54864a60617b167f92053375f02d6bcb1145c2c"
     },
     {
       "asset": "assets/modular/woman_sprites/runtime/cabeza.png",

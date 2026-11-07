@@ -23,7 +23,7 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await expect(page.locator(".creator-preview .raster-character-aura")).toHaveCount(0);
     await expect(page.locator("[data-affinity-particles]")).toHaveAttribute("data-element", "fuego");
     await expect(page.locator("[data-creator-preview]")).toHaveAttribute("data-body-type", "male");
-    await expect(page.locator(".creator-preview img").first()).toHaveAttribute("src", /outfits\/training\/male/);
+    await expect(page.locator(".creator-preview .puppet-preview-cloth").first()).toHaveAttribute("src", /outfits\/training\/male/);
     await expect(page.locator('select[name="hair"]')).toHaveValue("1");
     await expect(page.locator('select[name="face"]')).toHaveValue("1");
     await expect(page.locator('.creator-preview .puppet-preview-face')).toHaveAttribute("src", /male_poker/);
@@ -33,9 +33,11 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await page.locator('[data-creator-hair-step="1"]').click();
     await expect(page.locator('select[name="hair"]')).toHaveValue("4");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveAttribute("src", /hair_coleta/);
+    await expect(page.locator('.creator-preview .puppet-preview-tail')).toHaveAttribute("src", /tail_coleta/);
     await page.locator('[data-creator-hair-step="1"]').click();
     await expect(page.locator('select[name="hair"]')).toHaveValue("0");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveCount(0);
+    await expect(page.locator('.creator-preview .puppet-preview-tail')).toHaveCount(0);
     await page.locator('[data-creator-hair-step="1"]').click();
     await expect(page.locator('select[name="hair"]')).toHaveValue("1");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveAttribute("src", /hair_corto/);
@@ -46,9 +48,10 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
 
     await page.locator('[data-creator-gender-step="1"]').click();
     await expect(page.locator('select[name="bodyType"]')).toHaveValue("female");
-    await expect(page.locator(".creator-preview img").first()).toHaveAttribute("src", /outfits\/training\/female/);
+    await expect(page.locator(".creator-preview .puppet-preview-cloth").first()).toHaveAttribute("src", /outfits\/training\/female/);
     await expect(page.locator('select[name="hair"]')).toHaveValue("4");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveAttribute("src", /hair_coleta/);
+    await expect(page.locator('.creator-preview .puppet-preview-tail')).toHaveAttribute("src", /tail_coleta/);
     await page.locator('[data-creator-gender-step="-1"]').click();
     await expect(page.locator('select[name="bodyType"]')).toHaveValue("male");
     await page.locator('select[name="bodyType"]').selectOption("female");

@@ -25,7 +25,8 @@ assert.match(fighterPreviewSvg({ bodyType: "female", hair: 1 }), /hair_corto\.pn
 assert.match(fighterPreviewSvg({ bodyType: "male", hair: 1 }), /x="-44" y="-140" width="94" height="79"/, "Corto debe conservar la posición y proporción aprobadas");
 assert.match(fighterPreviewSvg({ bodyType: "male", hair: 4 }), /hair_coleta\.png/, "Coleta debe usar el recurso aprobado en el cuerpo masculino");
 assert.match(fighterPreviewSvg({ bodyType: "female", hair: 4 }), /hair_coleta\.png/, "Coleta debe estar disponible en el cuerpo femenino");
-assert.match(fighterPreviewSvg({ bodyType: "male", hair: 4 }), /x="-80\.45" y="-146\.91" width="166" height="133"/, "Coleta debe conservar su proporción y reflejar el desplazamiento vertical");
+assert.match(fighterPreviewSvg({ bodyType: "male", hair: 4 }), /hair_coleta\.png[^>]+x="-38\.0745" y="-111\.729" width="88\.749" height="68\.058"/, "El corte frontal debe conservar la proporción, el desplazamiento y la escala de la coleta completa");
+assert.match(fighterPreviewSvg({ bodyType: "male", hair: 4 }), /tail_coleta\.png[^>]+x="-46\.65375" y="-111\.156" width="31\.2075" height="114\.912"/, "La cola debe dibujarse escalada como una capa independiente detrás del cuerpo");
 assert.equal(resolveFighterAppearance({ hair: 0 }).hair, 0, "TIPO 01 debe conservar la variante sin cabello");
 assert.doesNotMatch(fighterPreviewSvg({ hair: 0 }), /hair_(?:corto|coleta)\.png/, "La variante sin cabello no debe dibujar una capa de peinado");
 assert.equal(resolveFighterAppearance({ hair: 2 }).hair, 1, "Los peinados experimentales deben migrar a Corto");
@@ -81,7 +82,7 @@ assert.deepEqual(
 );
 assert.deepEqual(
   Object.fromEntries(Object.entries(fighterHairPortraitLayout(4, 42, 64, true)).map(([key, value]) => [key, Number(value.toFixed(2))])),
-  { x: 7.8, y: -10.17, width: 63.32, height: 51.27 },
+  { x: -0.59, y: -12.61, width: 43.34, height: 44.21 },
   "La coleta debe conservar su posición en retratos reflejados"
 );
 assert.equal(fighterHairPortraitLayout(0, 42, 64), null, "El retrato sin peinado no debe crear una capa de cabello");
@@ -99,6 +100,7 @@ assert.ok(!shortHairLoaded.includes("player-man-claro-torso"), "El perfil femeni
 const ponytailLoaded = [];
 queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.includes(key) }, load: { image: (key) => ponytailLoaded.push(key) } }, { ...playerApp, hair: 4, bodyType: "male" });
 assert.ok(ponytailLoaded.includes("player-hair-coleta"), "Coleta debe cargarse también para el cuerpo masculino");
+assert.ok(ponytailLoaded.includes("player-tail-coleta"), "La cola trasera debe cargarse como una textura independiente");
 const baldLoaded = [];
 queuePlayerFighterTextures({ textures: { exists: (key) => baldLoaded.includes(key) }, load: { image: (key) => baldLoaded.push(key) } }, { ...playerApp, hair: 0 });
 assert.equal(baldLoaded.length, 15, "La variante sin cabello debe cargar las catorce piezas y el rostro");
@@ -133,6 +135,10 @@ assert.deepEqual({ x: assembledWoman.joints.neck.x, y: assembledWoman.joints.nec
 assert.deepEqual({ x: assembledWoman.rig.x, y: assembledWoman.rig.y, scale: assembledWoman.rig.scaleX }, { x: 5.958584, y: -52.269376, scale: 0.153583112 }, "El cuerpo femenino debe recuperar la altura, suelo y centro visual anteriores sin deformarse");
 const assembledMan = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "male", hair: 0 });
 assert.deepEqual({ x: assembledMan.rig.x, y: assembledMan.rig.y, scale: assembledMan.rig.scaleX }, { x: 5.777497, y: -61.562716, scale: 0.1649537 }, "El cuerpo masculino debe recuperar la altura, suelo y centro visual anteriores sin deformarse");
+const assembledPonytail = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "male", hair: 4 });
+assert.ok(assembledPonytail.tail, "La coleta debe ensamblar una cola trasera independiente");
+assert.ok(assembledPonytail.rig.children.indexOf(assembledPonytail.joints.tail) < assembledPonytail.rig.children.indexOf(assembledPonytail.sprite), "La cola debe insertarse detrás del torso y del resto del cuerpo");
+assert.ok(assembledPonytail.joints.neck.children.indexOf(assembledPonytail.hair) > assembledPonytail.joints.neck.children.indexOf(assembledPonytail.face), "El corte frontal debe superponerse a la cabeza y al rostro");
 assert.deepEqual({ x: assembledWoman.sprite.x, y: assembledWoman.sprite.y, scaleX: assembledWoman.sprite.scaleX }, { x: -29.576222, y: -21.737617, scaleX: 1 }, "El torso debe usar centro y escala de Kinetra");
 assert.equal(assembledWoman.joints.shoulderRight.children[0].angle, 0, "La pose ensamblada debe aplicar la rotacion de reposo del brazo");
 const rightUpperArm = MAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho");

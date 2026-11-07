@@ -13,7 +13,7 @@ import {
   WOMAN_SPRITE_JOINTS as UPDATED_WOMAN_SPRITE_JOINTS,
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
   characterHairConfig
-} from "./character-rigs.js?v=0.115.0";
+} from "./character-rigs.js?v=0.149.0";
 
 export const MAN_SPRITE_SHADOW_OFFSET = 60;
 const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
@@ -57,6 +57,10 @@ export function useFighterTextureRendering(image) {
 
 function hairTextureKey(style) {
   return CHARACTER_HAIR[style] ? `player-hair-${CHARACTER_HAIR[style].id}` : null;
+}
+
+function tailTextureKey(style) {
+  return CHARACTER_HAIR[style]?.tail ? `player-tail-${CHARACTER_HAIR[style].id}` : null;
 }
 
 export function fighterFaceTextureKey(appearance) {
@@ -113,11 +117,14 @@ export function queuePlayerFighterTextures(scene, appearance) {
   const variant = puppetVariant(appearance);
   variant.layers.forEach(({ id, assetId = id }) => {
     const key = puppetSpriteKey(variant, id, appearance?.skinTone);
-    if (!scene.textures.exists(key)) scene.load.image(key, isBaseOutfitPart(id) ? baseOutfitAsset(appearance?.bodyType,id) : `${variant.root}/${assetId}.png?v=0.108.0`);
+    if (!scene.textures.exists(key)) scene.load.image(key, isBaseOutfitPart(id) ? baseOutfitAsset(appearance?.bodyType,id) : `${variant.root}/${assetId}.png?v=${id === "cabeza" && variant.id === "man" ? "0.150.0" : "0.108.0"}`);
   });
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
-    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.137.0" : "0.79.0"}`);
+    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.137.0" : "0.141.0"}`);
+  }
+  if (hair?.tail && !scene.textures.exists(tailTextureKey(appearance.hair))) {
+    scene.load.image(tailTextureKey(appearance.hair), `assets/modular/hair/tail_${hair.id}.png?v=0.141.0`);
   }
   const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
   const faceKey = fighterFaceTextureKey(appearance);
@@ -286,6 +293,19 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
 
   const joints = {};
   const layers = [];
+  const hairConfig = fighterHairConfig(appearance);
+  let tail = null;
+
+  // La cola larga se inserta primero para permanecer detrás del cuerpo.
+  if (hairConfig?.tail) {
+    joints.tail = createJoint(scene, rig, "tail", spriteJoints.neck);
+    tail = scene.add.image(hairConfig.tail.x, hairConfig.tail.y, tailTextureKey(appearance.hair))
+      .setDisplaySize(hairConfig.tail.width, hairConfig.tail.height);
+    tail.name = `tail-${hairConfig.id}`;
+    useFighterTextureRendering(tail);
+    joints.tail.add(tail);
+    layers.push(tail);
+  }
 
   // Lado izquierdo anatómico: se ve a la derecha y queda detrás del torso.
   joints.shoulderLeft = createJoint(scene, rig, "shoulderLeft", spriteJoints.shoulderLeft);
@@ -330,7 +350,6 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   useFighterTextureRendering(face);
   joints.neck.add(face);
   layers.push(face);
-  const hairConfig = fighterHairConfig(appearance);
   let hair = null;
   if (hairConfig) {
     const key = hairTextureKey(appearance.hair);
@@ -343,7 +362,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
 
   const animationClips = { ...PUPPET_ANIMATION_CLIPS,
     "prepare-technique": preparationClipForRig(PUPPET_ANIMATION_CLIPS["prepare-technique"], variant) };
-  const fighter = { shadow, body, head, face, hair, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
+  const fighter = { shadow, body, head, face, hair, tail, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
   fighter.animations = createPuppetAnimationController(scene, fighter);
   startPlayerBreathing(scene, fighter);
   return fighter;

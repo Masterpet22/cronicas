@@ -52,7 +52,15 @@ export const WOMAN_SPRITE_JOINTS = Object.freeze({
 
 export const CHARACTER_HAIR = Object.freeze({
   1: { id: "corto", width: 283, height: 238, x: -4, y: -281 },
-  4: { id: "coleta", width: 392, height: 314, x: -59, y: -246 }
+  4: {
+    id: "coleta",
+    anchorToHead: true,
+    x: 3.9,
+    y: -105.6,
+    width: 179.55,
+    height: 158.175,
+    tail: { x: -71.5, y: -52, width: 63.27, height: 267.615 }
+  }
 });
 
 export const CHARACTER_FACES = Object.freeze({
@@ -83,11 +91,31 @@ export const CHARACTER_RIGS = Object.freeze({
 // Reproyectarlos sobre el rectángulo de cada cabeza evita conservar los
 // desplazamientos del cuello anterior después de importar un rig nuevo.
 const HAIR_REFERENCE = Object.freeze({ headX: -10.737, headY: -498.684, width: 260, height: 392, neckX: 0, neckY: -315 });
+const HEAD_ANCHORED_HAIR_REFERENCE = Object.freeze({
+  width: 174,
+  height: 229,
+  centerX: MAN_SPRITE_LAYERS.find(({ id }) => id === "cabeza").x - MAN_SPRITE_JOINTS.neck.x,
+  centerY: MAN_SPRITE_LAYERS.find(({ id }) => id === "cabeza").y - MAN_SPRITE_JOINTS.neck.y
+});
 export function characterHairConfig(bodyType, style) {
   const hair = CHARACTER_HAIR[style];
   if (!hair) return null;
   const rig = CHARACTER_RIGS[bodyType === "female" ? "female" : "male"];
   const head = rig.byId.cabeza;
+  if (hair.anchorToHead) {
+    const headCenterX = head.x - rig.joints.neck.x;
+    const headCenterY = head.y - rig.joints.neck.y;
+    const scaleX = head.width * (head.scaleX || 1) / HEAD_ANCHORED_HAIR_REFERENCE.width;
+    const scaleY = head.height * (head.scaleY || head.scaleX || 1) / HEAD_ANCHORED_HAIR_REFERENCE.height;
+    const project = layer => ({
+      ...layer,
+      x: headCenterX + (layer.x - HEAD_ANCHORED_HAIR_REFERENCE.centerX) * scaleX,
+      y: headCenterY + (layer.y - HEAD_ANCHORED_HAIR_REFERENCE.centerY) * scaleY,
+      width: layer.width * scaleX,
+      height: layer.height * scaleY
+    });
+    return { ...project(hair), id: hair.id, anchorToHead: true, tail: project(hair.tail) };
+  }
   const scaleX = head.width * (head.scaleX || 1) / HAIR_REFERENCE.width;
   const scaleY = head.height * (head.scaleY || head.scaleX || 1) / HAIR_REFERENCE.height;
   return {

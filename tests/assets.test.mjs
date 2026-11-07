@@ -2,11 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { webpDimensions } from "./webp.mjs";
 
-for (const asset of ["hair_corto.png", "hair_coleta.png"]) {
+for (const asset of ["hair_corto.png", "hair_coleta.png", "tail_coleta.png"]) {
   const png = await readFile(new URL(`../assets/modular/hair/${asset}`, import.meta.url));
   assert.equal(png.subarray(1, 4).toString("ascii"), "PNG", `${asset} debe ser un PNG válido`);
-  assert.ok(png.readUInt32BE(16) >= 700, `${asset} debe conservar resolución suficiente para combate y vista previa`);
-  assert.ok(png.readUInt32BE(20) >= 600, `${asset} debe conservar resolución suficiente para combate y vista previa`);
   assert.equal(png[25], 6, `${asset} debe conservar transparencia alfa real`);
 }
 
@@ -14,7 +12,9 @@ const shortHair = await readFile(new URL("../assets/modular/hair/hair_corto.png"
 assert.deepEqual([shortHair.readUInt32BE(16), shortHair.readUInt32BE(20)], [1500, 1163], "El cabello corto debe conservar la resolución exacta del recurso aprobado");
 
 const ponytailHair = await readFile(new URL("../assets/modular/hair/hair_coleta.png", import.meta.url));
-assert.deepEqual([ponytailHair.readUInt32BE(16), ponytailHair.readUInt32BE(20)], [1000, 800], "La coleta debe conservar la resolución exacta del recurso aprobado");
+assert.deepEqual([ponytailHair.readUInt32BE(16), ponytailHair.readUInt32BE(20)], [460, 413], "El corte frontal de la coleta debe conservar el recorte exacto de la capa hair");
+const ponytailTail = await readFile(new URL("../assets/modular/hair/tail_coleta.png", import.meta.url));
+assert.deepEqual([ponytailTail.readUInt32BE(16), ponytailTail.readUInt32BE(20)], [205, 697], "La cola trasera debe conservar el recorte exacto de la capa tail");
 
 const coinSheet = await readFile(new URL("../assets/vfx/coin-spin-spritesheet.png", import.meta.url));
 assert.deepEqual([coinSheet.readUInt32BE(16), coinSheet.readUInt32BE(20)], [1280, 512], "Las diez monedas deben formar una cuadrícula normalizada de 5 × 2");

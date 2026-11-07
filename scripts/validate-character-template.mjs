@@ -52,7 +52,8 @@ function dojoLayers(character) {
   return [...render({ character }, "validation").matchAll(/<img\b[^>]+>/g)].map(([tag]) => {
     const src = tag.match(/src="([^"]+)"/)[1].split("?")[0];
     const value = (name) => Number(tag.match(new RegExp(`--puppet-${name}:([-\\d.]+)`))?.[1] || 0);
-    const id = tag.includes("puppet-preview-hair") ? `hair-${character.hair === 1 ? "corto" : "coleta"}`
+    const id = tag.includes("puppet-preview-tail") ? "tail-coleta"
+      : tag.includes("puppet-preview-hair") ? `hair-${character.hair === 1 ? "corto" : "coleta"}`
       : tag.includes("puppet-preview-face") ? "rostro"
       : rigLayers[value("z")].id;
     return { id, asset: src, width: value("w")*11, height: value("h")*16,

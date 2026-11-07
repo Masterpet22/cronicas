@@ -3,7 +3,11 @@ const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
 export const HAIR_STYLE_LABELS = Object.freeze(["Sin cabello", "Corto", "Coleta"]);
 const RASTER_HAIR = Object.freeze({
   1: { asset: "assets/modular/hair/hair_corto.png?v=0.137.0", x: -44, y: -140, width: 94, height: 79 },
-  4: { asset: "assets/modular/hair/hair_coleta.png?v=0.79.0", x: -80.45, y: -146.91, width: 166, height: 133 }
+  4: {
+    asset: "assets/modular/hair/hair_coleta.png?v=0.141.0",
+    x: -38.0745, y: -111.729, width: 88.749, height: 68.058,
+    tail: { asset: "assets/modular/hair/tail_coleta.png?v=0.141.0", x: -46.65375, y: -111.156, width: 31.2075, height: 114.912 }
+  }
 });
 const WEAPON_MAP = { kunai: "kunai", tanto: "sword", staff: "staff" };
 
@@ -84,7 +88,12 @@ function hairSvg(style, color, ink) {
 function rasterHairSvg(style) {
   const hair = RASTER_HAIR[style];
   if (!hair) return "";
-  return `<image href="${hair.asset}" x="${hair.x}" y="${hair.y}" width="${hair.width}" height="${hair.height}" preserveAspectRatio="xMidYMid meet" style="image-rendering:pixelated"/>`;
+  return `<image href="${hair.asset}" x="${hair.x}" y="${hair.y}" width="${hair.width}" height="${hair.height}" preserveAspectRatio="xMidYMid meet"${style === 1 ? ' style="image-rendering:pixelated"' : ""}/>`;
+}
+
+function rasterHairTailSvg(style) {
+  const tail = RASTER_HAIR[style]?.tail;
+  return tail ? `<image href="${tail.asset}" x="${tail.x}" y="${tail.y}" width="${tail.width}" height="${tail.height}" preserveAspectRatio="xMidYMid meet"/>` : "";
 }
 
 export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {}) {
@@ -101,6 +110,7 @@ export function fighterPreviewSvg(appearance, { shadow = true, scale = 0 } = {})
   return `<svg viewBox="${box.x} ${box.y} ${box.width} ${box.height}"${size} xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Vista previa personalizada">
     ${shadow ? `<ellipse cx="0" cy="117" rx="68" ry="10" fill="#05070a" opacity=".35"/>` : ""}
     ${a.hair === 2 ? hairSvg(a.hair, a.hairColor, a.ink) : ""}
+    ${rasterHairTailSvg(a.hair)}
     <path d="M-${legWidth + 5} 36 L-5 36 L-${legWidth - 2} 101 L-${legWidth + 20} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>
     <path d="M5 36 L${legWidth + 5} 36 L${legWidth + 20} 101 L${legWidth - 2} 101 Z" fill="${a.accent}" stroke="${a.ink}" stroke-width="5"/>
     <path d="M-${legWidth + 23} ${98 - shoeHeight / 2} Q-${legWidth + 25} 114 -${legWidth + 2} 115 L-5 115 L-7 ${98 - shoeHeight / 2} Z" fill="#293242" stroke="${a.ink}" stroke-width="5"/>
