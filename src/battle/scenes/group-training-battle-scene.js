@@ -2,14 +2,14 @@ import { TrainingBattleScene } from "./training-battle-scene.js?v=0.143.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.140.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { trainingOpponentProfile } from "../../training.js?v=0.143.0";
-import { createPlayerFighter, startPlayerBreathing, startPlayerPreparing, stopPlayerPreparing } from "../../fighters.js?v=0.140.0";
+import { createPlayerFighter, startPlayerBreathing, startPlayerPreparing, stopPlayerBreathing, stopPlayerPreparing } from "../../fighters.js?v=0.140.0";
 import { chooseEnemyAbility } from "../enemy-abilities.js?v=0.140.0";
 import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { combatantEvasion } from "../turn.js?v=1.4.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { nextGroupTimelineStep } from "../group-timeline.js?v=0.143.0";
 import { physicalActionAvailable, actionHealthCost } from "../skill-tables.js?v=0.143.0";
-import { mountTrainingTargets, mountGroupTimeline, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.143.0";
+import { mountTrainingTargets, mountGroupTimeline, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.144.0";
 
 // A Dojo-only experiment. The campaign and passive practice keep their existing
 // execution paths; shared damage, costs, guard and enemy AI are reused unchanged.
@@ -45,18 +45,21 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     super.createFighters();
     if (!this.mission.groupTraining) return;
     const firstProfile = this.encounters[0], firstState = this.enemy;
-    const positions = this.encounters.length === 2 ? [600, 800] : [540, 700, 860];
-    this.trainingTargets = positions.map((x, index) => {
+    const positions = this.encounters.length === 2
+      ? [{ x: 650, y: 372 }, { x: 770, y: 372 }]
+      : [{ x: 600, y: 372 }, { x: 700, y: 338 }, { x: 800, y: 372 }];
+    this.trainingTargets = positions.map(({ x, y }, index) => {
       this.enemyIndex = index;
       const profile = index === 0 ? firstProfile : trainingOpponentProfile(this.encounters[index], this.saveData, index);
       this.encounters[index] = profile;
       const state = index === 0 ? firstState : createEnemyState(profile, this.mission);
-      const fighter = index === 0 ? this.foe : createPlayerFighter(this, x, 372, this.enemyAppearance(), true);
+      const fighter = index === 0 ? this.foe : createPlayerFighter(this, x, y, this.enemyAppearance(), true);
       fighter.body.x = fighter.shadow.x = x;
+      fighter.body.setDepth(6 + (y - 372) / 1000);
       if (index === 0) { fighter.layers.forEach(layer => layer.clearTint()); startPlayerBreathing(this, fighter); }
       const ring = this.add.ellipse(x, fighter.shadow.y, 150, 24, 0xd7a857, 0)
         .setStrokeStyle(3, 0xffd784, 1).setDepth(5);
-      return { state, fighter, ring, profile, progress: 0, pending: null, turns: 0, retired: false };
+      return { state, fighter, ring, profile, position: { x, y }, progress: 0, pending: null, turns: 0, retired: false };
     });
     this.setGroupContext(0);
   }
@@ -200,11 +203,17 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   retireGroupTargets() {
-    this.trainingTargets.forEach(target => {
+    this.trainingTargets.forEach((target, index) => {
       if (target.state.hp > 0 || target.retired) return;
       target.retired = true; target.pending = null; target.progress = 0; target.state.reservedAction = null;
       stopPlayerPreparing(this, target.fighter);
-      target.fighter.body.setAlpha(.25); target.ring.setVisible(false);
+      stopPlayerBreathing(target.fighter);
+      this.stopFighterFlash(target.fighter);
+      target.fighter.body.setVisible(false);
+      target.fighter.shadow.setVisible(false);
+      target.ring.setVisible(false);
+      const marker = this.groupMarkers?.[index];
+      if (marker) [marker.marker, marker.halo, marker.label].forEach(part => part.setVisible(false));
     });
     if (this.trainingTargets[this.selectedTargetIndex].state.hp <= 0) {
       const next = this.trainingTargets.findIndex(target => target.state.hp > 0);

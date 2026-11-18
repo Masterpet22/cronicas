@@ -17,15 +17,16 @@ export function mountTrainingTargets(scene) {
   const layout = () => {
     const canvas = scene.game.canvas.getBoundingClientRect(), base = root.getBoundingClientRect();
     controls.forEach((button, index) => {
-      const x = scene.trainingTargets[index].ring.x;
-      Object.assign(button.style, { left: `${canvas.left - base.left + (x - 65) * canvas.width / 960}px`,
-        top: `${canvas.top - base.top + 205 * canvas.height / 540}px`,
-        width: `${130 * canvas.width / 960}px`, height: `${240 * canvas.height / 540}px` });
+      const { x, y } = scene.trainingTargets[index].position;
+      Object.assign(button.style, { left: `${canvas.left - base.left + (x - 48) * canvas.width / 960}px`,
+        top: `${canvas.top - base.top + (y - 167) * canvas.height / 540}px`,
+        width: `${96 * canvas.width / 960}px`, height: `${240 * canvas.height / 540}px` });
     });
   };
   const refresh = () => {
     controls.forEach((button, index) => {
       const { state, profile } = scene.trainingTargets[index];
+      button.hidden = state.hp <= 0;
       button.disabled = scene.busy || scene.finished || scene.scene.isPaused() || Boolean(scene.pendingActions.player) || state.hp <= 0;
       button.setAttribute("aria-pressed", String(index === scene.selectedTargetIndex));
       button.setAttribute("aria-label", `Elegir ${profile.name}, ${state.hp}/${state.maxHp} PV${state.hp <= 0 ? ", derrotado" : ""}`);

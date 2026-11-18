@@ -116,6 +116,11 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
       await expect(target).toHaveAttribute("aria-pressed", "true");
     };
     const beforeSelection = await targets();
+    expect(await page.evaluate(() => {
+      const t = window.__trainingGame.scene.getScene("battle").trainingTargets;
+      return t[1].position.y < t[0].position.y && t[1].position.y < t[2].position.y
+        && t[2].position.x - t[0].position.x < 320;
+    })).toBe(true);
     await choose(2);
     const afterSelection = await targets();
     expect(afterSelection.progress).toEqual(beforeSelection.progress);
@@ -170,6 +175,12 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
         await trainingReady(page);
         expect((await targets()).finished).toBe(false);
         await expect(page.locator(`[data-training-target="${index}"]`)).toBeDisabled();
+        await expect(page.locator(`[data-training-target="${index}"]`)).toBeHidden();
+        expect(await page.evaluate(i => {
+          const s = window.__trainingGame.scene.getScene("battle"), t = s.trainingTargets[i], m = s.groupMarkers[i];
+          return [t.fighter.body, t.fighter.shadow, t.ring, m.marker, m.halo, m.label].every(part => !part.visible);
+        }, index)).toBe(true);
+        if (index === 0) await page.screenshot({ path: testInfo.outputPath("dojo-group-after-knockout.png"), fullPage: true });
       }
     }
     await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toBeVisible({ timeout: 25000 });
