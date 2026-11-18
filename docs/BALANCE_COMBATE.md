@@ -241,7 +241,7 @@ se resuelven antes de avanzar; si derrotan al jugador se ofrece reintento.
 
 ## Prueba de combate de grupo en el Dojo
 
-En la rama `combate`, elegir dos o tres rivales activa una exhibición de grupo.
+En el Dojo, elegir dos o tres rivales activa una exhibición de grupo.
 Una marioneta mantiene la práctica libre original. Cada rival activo conserva su
 propio reloj, velocidad efectiva, iniciativa, preparación, patrón, chakra,
 enfriamientos y estados. Las preparaciones avanzan en paralelo; las acciones se

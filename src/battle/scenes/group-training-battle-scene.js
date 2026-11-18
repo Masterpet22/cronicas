@@ -8,6 +8,7 @@ import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { combatantEvasion } from "../turn.js?v=1.4.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { nextGroupTimelineStep } from "../group-timeline.js?v=0.143.0";
+import { teleportSmoke } from "../teleport-transition.js?v=1.1.0";
 import { physicalActionAvailable, actionHealthCost } from "../skill-tables.js?v=0.143.0";
 import { mountTrainingTargets, mountGroupTimeline, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.144.0";
 
@@ -202,15 +203,18 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     return this.executeGroupAction(actor, action, this.groupReservation?.target ?? this.selectedTargetIndex);
   }
 
-  retireGroupTargets() {
+  async retireGroupTargets() {
+    const effects = [];
     this.trainingTargets.forEach((target, index) => {
       if (target.state.hp > 0 || target.retired) return;
       target.retired = true; target.pending = null; target.progress = 0; target.state.reservedAction = null;
       stopPlayerPreparing(this, target.fighter);
       stopPlayerBreathing(target.fighter);
       this.stopFighterFlash(target.fighter);
-      target.fighter.body.setVisible(false);
-      target.fighter.shadow.setVisible(false);
+      effects.push(teleportSmoke(this, target.fighter.body.x, target.fighter.body.y - 48, () => {
+        target.fighter.body.setVisible(false);
+        target.fighter.shadow.setVisible(false);
+      }, { pace: "substitution" }));
       target.ring.setVisible(false);
       const marker = this.groupMarkers?.[index];
       if (marker) [marker.marker, marker.halo, marker.label].forEach(part => part.setVisible(false));
@@ -219,6 +223,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
       const next = this.trainingTargets.findIndex(target => target.state.hp > 0);
       if (next >= 0) this.selectedTargetIndex = next;
     }
+    this.targetControls?.refresh();
+    await Promise.all(effects);
   }
 
   async executeGroupAction(actor, action, index) {
@@ -248,7 +254,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
         if (action.type === "guard") await this.playerGuard(); else await this.playerAttack(action, casting);
         if (!current()) return;
         closeActionState(this, "player", action); this.groupReservation = null;
-        this.retireGroupTargets();
+        await this.retireGroupTargets();
+        if (!current()) return;
         if (this.trainingTargets.every(entry => entry.state.hp <= 0) && this.player.hp > 0) return this.finishBattle(true);
         if (this.player.hp <= 0) return this.finishBattle(false);
         await this.resolveCombatantStatusTick(this.player, this.hero);
@@ -262,7 +269,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
         if (target.state.hp > 0) await this.resolveCombatantStatusTick(target.state, target.fighter);
       }
       if (!current()) return;
-      this.retireGroupTargets();
+      await this.retireGroupTargets();
+      if (!current()) return;
       if (this.player.hp <= 0) return this.finishBattle(false);
       if (this.trainingTargets.every(entry => entry.state.hp <= 0)) return this.finishBattle(true);
     } finally {
@@ -281,7 +289,10 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     this.finished = true; this.busy = true; this.turnReady = false; this.timelinePaused = true;
     this.stopTurnTimeline(); this.clearPreparationFeedback("player");
     this.trainingTargets.forEach(target => stopPlayerPreparing(this, target.fighter));
-    this.retireGroupTargets(); this.setGroupContext(this.selectedTargetIndex);
+    const epoch = this.groupEpoch;
+    await this.retireGroupTargets();
+    if (epoch !== this.groupEpoch || !this.scene.isActive()) return;
+    this.setGroupContext(this.selectedTargetIndex);
     this.refreshHud();
     showGroupTrainingResult(this, won);
   }

@@ -240,3 +240,59 @@ test("el HUD de tablet conserva ocultas las barras del canvas al seleccionar y r
   await page.setViewportSize({ width: 960, height: 720 });
   await expect.poll(layers).toEqual([false, false, false, false]);
 });
+
+
+test("el rival derrotado desaparece dentro de una nube de humo sin dejar objetos", async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  const errors = []; page.on("pageerror", error => errors.push(error.message));
+  await prepare(page, "dojo");
+  const baseline = await stored(page);
+  await page.locator("[data-training-count]").selectOption("3");
+  await page.locator("[data-start-training]").click();
+  await expect(page.locator("[data-training-target]")).toHaveCount(3, { timeout: 45000 });
+  await trainingReady(page);
+  await page.evaluate(() => {
+    const s = window.__trainingGame.scene.getScene("battle");
+    s.stopTurnTimeline(); s.busy = true; s.timelinePaused = true;
+    s.tweens.timeScale = .05;
+    s.trainingTargets[0].state.hp = 0;
+    const body = s.trainingTargets[0].fighter.body, setVisible = body.setVisible.bind(body);
+    body.setVisible = value => {
+      body.setVisible = setVisible;
+      const result = setVisible(value);
+      if (!value) { s.tweens.timeScale = 0; window.__smokeCovered = true; }
+      return result;
+    };
+    window.__retirement = s.retireGroupTargets();
+  });
+  await expect.poll(() => page.evaluate(() => Boolean(window.__smokeCovered))).toBe(true);
+  await page.screenshot({ path: testInfo.outputPath("dojo-defeat-smoke.png"), fullPage: true });
+  await page.evaluate(async () => {
+    const s = window.__trainingGame.scene.getScene("battle");
+    s.tweens.timeScale = 1;
+    await window.__retirement; s.refreshHud();
+  });
+  expect(await page.evaluate(() => {
+    const s = window.__trainingGame.scene.getScene("battle"), t = s.trainingTargets[0];
+    return { smoke: Boolean(s.children.getByName("teleport-smoke")),
+      prop: Boolean(s.children.getByName("teleport-object")), body: t.fighter.body.visible,
+      shadow: t.fighter.shadow.visible, nextTarget: s.selectedTargetIndex };
+  })).toEqual({ smoke: false, prop: false, body: false, shadow: false, nextTarget: 1 });
+  await page.evaluate(() => {
+    const s = window.__trainingGame.scene.getScene("battle");
+    s.trainingTargets[1].state.hp = 0; s.trainingTargets[2].state.hp = 0;
+    s.tweens.timeScale = .1;
+    window.__finalSmoke = s.finishBattle(true);
+  });
+  await expect.poll(() => page.evaluate(() => Boolean(window.__trainingGame.scene.getScene("battle").children.getByName("teleport-smoke")))).toBe(true);
+  await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toHaveCount(0);
+  await page.evaluate(async () => {
+    window.__trainingGame.scene.getScene("battle").tweens.timeScale = 1;
+    await window.__finalSmoke;
+  });
+  await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toBeVisible();
+  await page.locator("[data-group-return]").click();
+  await expect(page.locator(".dojo-layout")).toBeVisible();
+  expect(await stored(page)).toBe(baseline);
+  expect(errors).toEqual([]);
+});
