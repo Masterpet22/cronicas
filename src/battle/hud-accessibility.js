@@ -3,8 +3,8 @@ import { initiativeLabel } from "./initiative.js?v=1.0.0";
 import { mountBattleInventory } from "./battle-inventory.js?v=0.140.0";
 import { emptySkillInfo } from './hud-art.js?v=0.140.0';
 import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
-import { mountSkillTableControl } from './skill-table-control.js?v=0.140.0';
-import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.140.0';
+import { mountSkillTableControl } from './skill-table-control.js?v=0.143.0';
+import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.143.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -236,7 +236,7 @@ export function mountAccessibleBattleHud(scene) {
       const empty = action ? null : physical || scene.mission.training ? tables.emptyAt(index) : emptySkillInfo(scene, index);
       const cooldown = action ? scene.cooldowns[action.id] || 0 : 0;
       const health = actionHealthCost(action);
-      const affordable = action && (scene.mission.training || scene.player.hp > health && scene.player.chakra >= scene.actionCost(action));
+      const affordable = action && (scene.mission.training && !scene.mission.groupTraining || scene.player.hp > health && scene.player.chakra >= scene.actionCost(action));
       const resource = action ? skillResourceLabel(scene, action, physical) : empty.requirement;
       const requirement = action ? `${resource}${cooldown ? ` · CD ${cooldown}` : !affordable ? health ? ' · Sin vida suficiente' : ' · Sin chakra' : ''}` : empty.requirement;
       control.paint(action, physical);
@@ -263,7 +263,7 @@ export function mountAccessibleBattleHud(scene) {
     restorePerspective();
     root.classList.toggle('compact', query.matches);
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
-    scene.timelineLayer.setVisible(!query.matches && !scene.mission.training);
+    scene.timelineLayer.setVisible(scene.mission.groupTraining || !query.matches && !scene.mission.training);
     scene.pauseButton.bg.setVisible(!query.matches);
     scene.pauseButton.label.setVisible(!query.matches);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);

@@ -29,7 +29,7 @@ export function physicalEmptySkill(index) {
 }
 
 export function physicalActionAvailable(scene, action) {
-  if (scene.mission?.training) return Boolean(action && !scene.busy && !scene.finished && scene.turnReady && !scene.scene.isPaused());
+  if (scene.mission?.training && !scene.mission.groupTraining) return Boolean(action && !scene.busy && !scene.finished && scene.turnReady && !scene.scene.isPaused());
   return Boolean(action && !scene.busy && !scene.finished && scene.turnReady && !scene.scene.isPaused()
     && (!scene.combatTutorial?.active || scene.combatTutorial.canUse(action))
     && scene.player.hp > actionHealthCost(action) && scene.player.chakra >= scene.actionCost(action)

@@ -27,8 +27,9 @@ for (const [value, expected] of [[-1, 1], [0, 1], [1, 1], [2, 2], [3, 3], [100, 
   assert.equal(trainingTargetCount(value), expected);
   assert.equal(createTraining({ targetCount: value }).trainingTargetCount, expected);
 }
-assert.deepEqual(createTraining({ targetCount: 3 }).encounters, createTraining().encounters,
-  "Los blancos simultáneos no deben convertirse en encuentros consecutivos de campaña");
+assert.equal(createTraining({ targetCount: 3 }).groupTraining, true);
+assert.equal(createTraining({ targetCount: 3 }).encounters.length, 3);
+assert.equal(createTraining().groupTraining, false);
 const originalProfile = { ...ENEMY_ROSTER.boss_varek, affinities: ["fuego", "agua"], completedAffinityTrials: ["affinity_trial_2"] };
 const originalSnapshot = structuredClone(originalProfile);
 const dummyProfile = trainingDummyProfile(originalProfile);

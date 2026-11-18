@@ -1,66 +1,91 @@
-// Native controls share the HUD's pause/visibility lifecycle and work with touch.
+import { HUD_ART } from "./hud-art.js?v=0.140.0";
+import { ELEMENTS } from "../elements.js?v=0.20.0";
+import { timelineMarkerPosition } from "./timeline.js?v=0.69.0";
+
+// Hit areas sit on the actual fighters. The existing portrait shows selection.
 export function mountTrainingTargets(scene) {
-  const root = scene.game.canvas.parentElement.querySelector(".combat-access");
-  const panel = document.createElement("section");
-  panel.className = "training-target-panel";
-  panel.setAttribute("aria-label", "Objetivos de entrenamiento");
-  const heading = document.createElement("strong");
-  heading.textContent = "Elige a quién atacar";
-  const list = document.createElement("div");
-  list.className = "training-target-list";
+  const host = scene.game.canvas.parentElement;
+  const root = host.querySelector(".combat-access");
   const controls = scene.trainingTargets.map((target, index) => {
     const button = document.createElement("button");
-    button.type = "button";
+    button.type = "button"; button.className = "training-target-hit";
     button.dataset.trainingTarget = index;
-    const name = document.createElement("strong"), health = document.createElement("span");
-    const meter = document.createElement("progress");
-    meter.max = target.state.maxHp;
-    meter.setAttribute("aria-label", `Vida de marioneta ${index + 1}`);
-    button.append(name, meter, health);
     button.addEventListener("click", () => scene.selectTrainingTarget(index));
-    list.append(button);
-    return { button, name, health, meter };
+    root.append(button);
+    return button;
   });
-  const footer = document.createElement("div");
-  footer.className = "training-target-footer";
-  const note = document.createElement("span");
-  note.textContent = "Rivales pasivos · Daño individual · Sin recompensas";
-  const reset = document.createElement("button");
-  reset.type = "button";
-  reset.dataset.resetTrainingTargets = "";
-  reset.textContent = "Restaurar objetivos";
-  reset.addEventListener("click", () => {
-    if (scene.busy || scene.finished || scene.scene.isPaused()) return;
-    scene.resetTraining();
-    scene.selectTrainingTarget(0);
-    scene.startTurnCharge();
-    scene.setMessage("Marionetas restauradas. Elige un objetivo y sigue practicando.");
-  });
-  footer.append(note, reset);
-  panel.append(heading, list, footer);
-  root.insertBefore(panel, root.querySelector(".combat-table-tools"));
-  const refresh = () => {
-    const blocked = scene.busy || scene.finished || scene.scene.isPaused();
-    controls.forEach(({ button, name, health, meter }, index) => {
-      const { state } = scene.trainingTargets[index];
-      const selected = index === scene.enemyIndex;
-      name.textContent = `Marioneta ${index + 1}${selected ? " · Objetivo" : ""}`;
-      health.textContent = state.hp > 0 ? `${state.hp} / ${state.maxHp} PV` : "Derribada";
-      meter.value = state.hp;
-      button.disabled = blocked || state.hp <= 0;
-      button.setAttribute("aria-pressed", String(selected));
-      button.setAttribute("aria-label", `${name.textContent}, ${health.textContent}`);
+  const layout = () => {
+    const canvas = scene.game.canvas.getBoundingClientRect(), base = root.getBoundingClientRect();
+    controls.forEach((button, index) => {
+      const x = scene.trainingTargets[index].ring.x;
+      Object.assign(button.style, { left: `${canvas.left - base.left + (x - 65) * canvas.width / 960}px`,
+        top: `${canvas.top - base.top + 205 * canvas.height / 540}px`,
+        width: `${130 * canvas.width / 960}px`, height: `${240 * canvas.height / 540}px` });
     });
-    reset.disabled = blocked;
   };
-  const onPause = () => refresh();
-  scene.events.on("pause", onPause);
-  scene.events.on("resume", onPause);
+  const refresh = () => {
+    controls.forEach((button, index) => {
+      const { state, profile } = scene.trainingTargets[index];
+      button.disabled = scene.busy || scene.finished || scene.scene.isPaused() || Boolean(scene.pendingActions.player) || state.hp <= 0;
+      button.setAttribute("aria-pressed", String(index === scene.selectedTargetIndex));
+      button.setAttribute("aria-label", `Elegir ${profile.name}, ${state.hp}/${state.maxHp} PV${state.hp <= 0 ? ", derrotado" : ""}`);
+    });
+  };
+  const observer = new ResizeObserver(layout);
+  observer.observe(root); observer.observe(scene.game.canvas);
+  scene.game.scale.on("resize", layout);
+  layout(); refresh();
   scene.events.once("shutdown", () => {
-    scene.events.off("pause", onPause);
-    scene.events.off("resume", onPause);
-    panel.remove();
+    observer.disconnect(); scene.game.scale.off("resize", layout);
+    controls.forEach(button => button.remove());
   });
-  refresh();
   return { refresh };
+}
+
+export function mountGroupTimeline(scene) {
+  const { start, trackY } = HUD_ART.timeline;
+  scene.enemyTimelineTag.bg.setVisible(false); scene.enemyTimelineTag.text.setVisible(false);
+  scene.groupMarkers = scene.trainingTargets.map((target, index) => {
+    const marker = index === 0 ? scene.enemyTurnMarker : scene.add.image(start, trackY, scene.enemyTurnMarker.texture.key).setDisplaySize(18, 28);
+    const halo = index === 0 ? scene.enemyMarkerHalo : scene.add.circle(start, trackY, 15, 0x07101d, 1);
+    marker.setDisplaySize(18, 28);
+    const label = scene.add.text(start, trackY + 21, String(index + 1), scene.textStyle(10, "#ffe1a4", "800")).setOrigin(.5);
+    scene.timelineLayer.add([halo, marker, label]);
+    return { marker, halo, label };
+  });
+  updateGroupTimeline(scene);
+}
+
+export function updateGroupTimeline(scene) {
+  const { start, end, trackY } = HUD_ART.timeline;
+  const x = timelineMarkerPosition(scene.timelineProgress.player, start, end);
+  scene.playerTurnMarker.setPosition(x, trackY - 10);
+  scene.playerMarkerHalo.setPosition(x, trackY - 10);
+  scene.playerMarkerHair?.setPosition(x + scene.playerMarkerHairLayout.x, trackY - 10 + scene.playerMarkerHairLayout.y);
+  scene.playerTimelineTag.bg.setX(x); scene.playerTimelineTag.text.setX(x);
+  scene.groupMarkers.forEach(({ marker, halo, label }, index) => {
+    const target = scene.trainingTargets[index], alive = target.state.hp > 0;
+    const markerX = timelineMarkerPosition(target.progress, start, end);
+    const markerY = trackY + (index - 1) * 12;
+    marker.setPosition(markerX, markerY).setVisible(alive);
+    halo.setPosition(markerX, markerY).setVisible(alive).setStrokeStyle(index === scene.selectedTargetIndex ? 2.5 : 1.5,
+      ELEMENTS[target.state.primaryAffinity].color, 1);
+    label.setPosition(markerX + 17, markerY).setVisible(alive);
+  });
+  scene.timelineThemeParts.progressGlow.width = Math.max(0, x - start);
+  scene.accessibleHud?.updateProgress({ player: scene.timelineProgress.player, enemy: scene.trainingTargets[scene.selectedTargetIndex].progress });
+}
+
+export function showGroupTrainingResult(scene, won) {
+  const host = scene.game.canvas.parentElement;
+  const dialog = document.createElement("dialog");
+  dialog.className = "arena-result-dialog";
+  dialog.setAttribute("aria-labelledby", "group-result-title");
+  dialog.innerHTML = `<h2 id="group-result-title">${won ? "Victoria" : "Derrota"}</h2><p>${won ? "Has derrotado a todos los rivales." : "El grupo ha ganado este combate. Ajusta tu estrategia y vuelve a probar."}</p><div class="arena-result-stats"><span>Rivales derrotados<strong>${scene.trainingTargets.filter(target => target.state.hp <= 0).length}/${scene.trainingTargets.length}</strong></span><span>Vida restante<strong>${scene.player.hp}/${scene.player.maxHp}</strong></span></div><p class="arena-practice-note">Entrenamiento sin recompensas. Tu partida, equipo, inventario y bestiario se conservan.</p><footer><button type="button" data-group-rematch>Revancha</button><button type="button" data-group-return>Volver al Dojo</button></footer>`;
+  const close = () => { scene.events.off("shutdown", close); dialog.close(); dialog.remove(); };
+  dialog.querySelector("[data-group-rematch]").addEventListener("click", () => { close(); scene.scene.restart(); });
+  dialog.querySelector("[data-group-return]").addEventListener("click", () => { close(); scene.leaveExhibition(); });
+  dialog.addEventListener("cancel", event => { event.preventDefault(); close(); scene.leaveExhibition(); });
+  scene.events.once("shutdown", close);
+  host.append(dialog); dialog.showModal(); dialog.querySelector("[data-group-rematch]").focus();
 }

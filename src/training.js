@@ -1,5 +1,5 @@
 import { BASE_ACTIONS, JUTSU_LIBRARY } from "./data.js?v=1.5.0";
-import { isTechniqueLearned } from "./save.js?v=0.140.0";
+import { derivedStats, isTechniqueLearned } from "./save.js?v=0.140.0";
 import { canAccessElement } from "./elements.js?v=0.20.0";
 import { TAIJUTSU_ACTIONS } from "./skills/definitions.js?v=1.4.0";
 import { taijutsuAction } from "./skills/taijutsu.js?v=1.0.0";
@@ -28,8 +28,20 @@ export function trainingTargetCount(value = 1) {
 }
 
 export function createTraining({ targetCount = 1 } = {}) {
+  const count = trainingTargetCount(targetCount);
   return { id: "free-training", type: "exhibition", category: "arena", exhibition: true, training: true,
-    trainingTargetCount: trainingTargetCount(targetCount),
+    trainingTargetCount: count, groupTraining: count > 1,
     trainingOrigin: "dojo", title: "Entrenamiento libre", location: "Dojo de entrenamiento",
-    number: 1, encounters: ["reed_bandit"], flow: [{ type: "combat" }] };
+    number: 1, encounters: ["reed_bandit", "ash_adept", "stone_hunter"].slice(0, count), flow: [{ type: "combat" }] };
+}
+
+export function trainingOpponentProfile(profile, save, index = 0) {
+  const player = derivedStats(save);
+  return { ...profile, level: save.progression.level, boss: false,
+    name: `${profile.name} · ${index + 1}`,
+    stats: { health: Math.max(28, Math.round(player.maxHp * .28)),
+      strength: Math.max(1, Math.round(player.baseStrength * .3)),
+      speed: Math.max(3, Math.round(player.baseSpeed * [.65, .8, .95][index % 3])),
+      chakra: Math.max(60, Math.round(player.maxChakra * .7)), luck: 0 },
+    accuracy: 90, phase2Pattern: [] };
 }

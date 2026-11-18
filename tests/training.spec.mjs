@@ -91,91 +91,107 @@ for (const { origin, viewport } of [
   expect(errors).toEqual([]);
 });
 
-for (const tablet of [false, true]) test.describe(`objetivos simultáneos: ${tablet ? "tablet táctil" : "ordenador"}`, () => {
+for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? "tablet táctil" : "ordenador"}`, () => {
   test.use({ viewport: tablet ? { width: 960, height: 720 } : { width: 1440, height: 900 }, hasTouch: tablet });
-  test("selección, daño aislado, bloqueo durante ataque, derrota, restauración y salida", async ({ page }, testInfo) => {
+  test("turnos propios, objetivo fijo, costes, pausa, victoria, derrota y revancha", async ({ page }, testInfo) => {
     test.setTimeout(300000);
-    const errors = [];
-    page.on("pageerror", error => errors.push(error.message));
+    const errors = []; page.on("pageerror", error => errors.push(error.message));
     await prepare(page, "dojo");
     const baseline = await stored(page);
     await page.locator("[data-training-count]").selectOption("3");
     await page.locator("[data-start-training]").click();
-    const panel = page.locator(".training-target-panel");
-    await expect(panel).toBeVisible({ timeout: 45000 });
-    await expect(panel.locator("[data-training-target]")).toHaveCount(3);
-    const snapshot = () => page.evaluate(() => {
+    await expect(page.locator("[data-training-target]")).toHaveCount(3, { timeout: 45000 });
+    await expect(page.locator(".training-target-panel, [data-reset-training-targets]")).toHaveCount(0);
+    await trainingReady(page);
+    const targets = () => page.evaluate(() => {
       const s = window.__trainingGame.scene.getScene("battle");
-      return { selected: s.enemyIndex, targets: s.trainingTargets.map(t => ({ hp: t.state.hp,
-        maxHp: t.state.maxHp, statuses: t.state.statuses.map(v => v.type), alpha: t.fighter.body.alpha })),
-        full: s.player.hp === s.player.maxHp && s.player.chakra === s.player.maxChakra };
+      return { selected: s.selectedTargetIndex, hp: s.trainingTargets.map(t => t.state.hp),
+        turns: s.trainingTargets.map(t => t.turns), progress: s.trainingTargets.map(t => t.progress),
+        playerHp: s.player.hp, chakra: s.player.chakra, cooldown: s.cooldowns.fire_embers || 0,
+        finished: s.finished, pending: Boolean(s.pendingActions.player), name: s.enemyName.text };
     });
-    const activateTarget = async index => {
-      const button = page.locator(`[data-training-target="${index}"]`);
-      if (tablet) await button.tap(); else await button.click();
-      await expect(button).toHaveAttribute("aria-pressed", "true");
+    const choose = async index => {
+      const target = page.locator(`[data-training-target="${index}"]`);
+      if (tablet) await target.tap(); else await target.click();
+      await expect(target).toHaveAttribute("aria-pressed", "true");
     };
-    const strike = await trainingAction(page, "strike");
-    await strike.click();
-    await trainingReady(page);
-    const first = await snapshot();
-    expect(first.targets[0].hp).toBeLessThan(first.targets[0].maxHp);
-    expect(first.targets[1].hp).toBe(first.targets[1].maxHp);
-    expect(first.targets[2].hp).toBe(first.targets[2].maxHp);
-    await activateTarget(1);
+    const beforeSelection = await targets();
+    await choose(2);
+    const afterSelection = await targets();
+    expect(afterSelection.progress).toEqual(beforeSelection.progress);
+    expect(afterSelection.turns).toEqual(beforeSelection.turns);
+    expect(afterSelection.name).toContain("CAZADOR DE PIEDRA");
+    expect(await page.evaluate(() => {
+      const s = window.__trainingGame.scene.getScene("battle");
+      return { hp: s.enemyHpBar.valueText.text, expected: `${s.trainingTargets[2].state.hp}/${s.trainingTargets[2].state.maxHp}`,
+        portrait: s.enemyPortrait.affinity, affinity: s.trainingTargets[2].state.primaryAffinity };
+    })).toEqual(expect.objectContaining({ portrait: "tierra", affinity: "tierra", hp: expect.any(String), expected: expect.any(String) }));
+    await page.screenshot({ path: testInfo.outputPath("dojo-group-combat.png"), fullPage: true });
+    // Keep a long, deterministic bout to verify repeated real enemy actions.
+    await page.evaluate(() => {
+      const s = window.__trainingGame.scene.getScene("battle");
+      s.rollHit = () => true;
+      s.player.hp = s.player.maxHp = 1000;
+      s.trainingTargets.forEach(t => { t.state.hp = t.state.maxHp = 1000; t.profile.pattern = ["strike"]; });
+      s.refreshHud();
+    });
     await (await trainingAction(page, "fire_embers")).click();
-    await expect.poll(() => page.evaluate(() => window.__trainingGame.scene.getScene("battle").busy)).toBe(true);
-    await expect(page.locator('[data-training-target="2"]')).toBeDisabled();
-    expect(await page.evaluate(() => window.__trainingGame.scene.getScene("battle").selectTrainingTarget(2))).toBe(false);
+    await expect.poll(() => page.evaluate(() => Boolean(window.__trainingGame.scene.getScene("battle").groupReservation))).toBe(true);
+    expect(await page.evaluate(() => window.__trainingGame.scene.getScene("battle").selectTrainingTarget(0))).toBe(false);
     await trainingReady(page);
-    const second = await snapshot();
-    expect(second.targets[0].hp).toBe(first.targets[0].hp);
-    expect(second.targets[1].hp).toBeLessThan(second.targets[1].maxHp);
-    expect(second.targets[1].statuses).toContain("burn");
-    expect(second.targets[2].hp).toBe(second.targets[2].maxHp);
-    expect(second.full).toBe(true);
-    // Selecting the body uses the same target contract as the native buttons.
-    const canvas = page.locator("#game > canvas");
-    const bounds = await canvas.boundingBox();
-    const position = { x: bounds.x + bounds.width * 860 / 960, y: bounds.y + bounds.height * 310 / 540 };
-    if (tablet) await page.touchscreen.tap(position.x, position.y); else await page.mouse.click(position.x, position.y);
-    await expect(page.locator('[data-training-target="2"]')).toHaveAttribute("aria-pressed", "true");
-    const panelBounds = await panel.boundingBox();
-    const viewport = page.viewportSize();
-    expect(panelBounds.x).toBeGreaterThanOrEqual(0);
-    expect(panelBounds.x + panelBounds.width).toBeLessThanOrEqual(viewport.width + 1);
-    if (!tablet) {
-      const panelTop = (panelBounds.y - bounds.y) * 540 / bounds.height;
-      const feet = await page.evaluate(() => window.__trainingGame.scene.getScene("battle").trainingTargets.map(t => t.fighter.shadow.y));
-      expect(feet.every(y => y + 12 < panelTop)).toBe(true);
-    }
-    await page.screenshot({ path: testInfo.outputPath("training-multiple.png"), fullPage: true });
+    const attacked = await targets();
+    expect(attacked.hp[0]).toBe(1000); expect(attacked.hp[1]).toBe(1000); expect(attacked.hp[2]).toBeLessThan(1000);
+    expect(attacked.chakra).toBeLessThan(await page.evaluate(() => window.__trainingGame.scene.getScene("battle").player.maxChakra));
+    expect(attacked.cooldown).toBeGreaterThan(0);
+    await choose(0);
+    await (await trainingAction(page, "strike")).click();
+    await trainingReady(page);
+    expect((await targets()).turns.every(turn => turn > 0)).toBe(true);
+    expect((await targets()).playerHp).toBeLessThan(1000);
+    // Pause while clocks are actually advancing, rather than at a decision.
+    await (await trainingAction(page, "strike")).click();
+    await expect.poll(() => page.evaluate(() => !window.__trainingGame.scene.getScene("battle").busy)).toBe(true);
     await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
-    await expect(panel).toBeHidden();
+    await expect(page.getByRole("heading", { name: "ENTRENAMIENTO EN PAUSA" })).toBeVisible();
+    const paused = await targets();
+    await page.waitForTimeout(250);
+    expect(await targets()).toEqual(paused);
     await page.getByRole("button", { name: "REANUDAR", exact: true }).click();
-    await expect(panel).toBeVisible();
-    expect((await snapshot()).targets.map(t => t.hp)).toEqual(second.targets.map(t => t.hp));
-    await page.locator("[data-reset-training-targets]").click();
-    expect((await snapshot()).targets.every(t => t.hp === t.maxHp && t.statuses.length === 0)).toBe(true);
-    // Low remaining HP exercises actual knockout and all-targets-down handling.
-    for (let index = 0; index < 3; index++) {
-      await activateTarget(index);
-      await page.evaluate(i => { window.__trainingGame.scene.getScene("battle").trainingTargets[i].state.hp = 1; }, index);
-      await (await trainingAction(page, "strike")).click();
-      await expect(page.locator(`[data-training-target="${index}"]`)).toContainText("Derribada", { timeout: 25000 });
-      await expect.poll(() => page.evaluate(() => window.__trainingGame.scene.getScene("battle").busy)).toBe(false);
-      await expect(page.locator(`[data-training-target="${index}"]`)).toBeDisabled();
-    }
-    expect((await snapshot()).targets.every(t => t.hp === 0)).toBe(true);
-    await page.locator("[data-reset-training-targets]").click();
     await trainingReady(page);
-    await expect(page.locator('[data-training-target="0"]')).toHaveAttribute("aria-pressed", "true");
-    expect((await snapshot()).targets.every(t => t.hp === t.maxHp)).toBe(true);
+    // Two knockouts must not end the fight; only defeating the entire group wins.
+    for (let index = 0; index < 3; index++) {
+      await choose(index);
+      await page.evaluate(i => {
+        const s = window.__trainingGame.scene.getScene("battle");
+        s.trainingTargets[i].state.hp = 1; s.trainingTargets[i].state.statuses = []; s.refreshHud();
+      }, index);
+      await (await trainingAction(page, "strike")).click();
+      if (index < 2) {
+        await trainingReady(page);
+        expect((await targets()).finished).toBe(false);
+        await expect(page.locator(`[data-training-target="${index}"]`)).toBeDisabled();
+      }
+    }
+    await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toBeVisible({ timeout: 25000 });
+    expect((await targets()).hp.every(hp => hp === 0)).toBe(true);
     expect(await stored(page)).toBe(baseline);
-    await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
-    await page.getByRole("button", { name: "VOLVER AL DOJO", exact: true }).click();
+    await page.locator("[data-group-rematch]").click();
+    await trainingReady(page);
+    expect((await targets()).hp.every(hp => hp > 0)).toBe(true);
+    // A real enemy hit can lose the bout; returning never persists the damage.
+    await page.evaluate(() => {
+      const s = window.__trainingGame.scene.getScene("battle");
+      s.rollHit = () => true; s.player.hp = 1;
+      s.player.statuses = []; s.player.guarding = false;
+      s.player.baseEvasion = -100;
+      s.trainingTargets.forEach(t => { t.profile.pattern = ["strike"]; t.state.statuses = []; });
+    });
+    await (await trainingAction(page, "strike")).click();
+    await expect(page.getByRole("heading", { name: "Derrota", exact: true })).toBeVisible({ timeout: 30000 });
+    await page.locator("[data-group-return]").click();
     await expect(page.locator(".dojo-layout")).toBeVisible();
-    await expect(panel).toHaveCount(0);
+    await expect(page.locator("[data-training-target]")).toHaveCount(0);
+    expect(await stored(page)).toBe(baseline);
     await page.locator("[data-training-count]").selectOption("2");
     await page.locator("[data-start-training]").click();
     await expect(page.locator("[data-training-target]")).toHaveCount(2);
@@ -184,4 +200,32 @@ for (const tablet of [false, true]) test.describe(`objetivos simultáneos: ${tab
     expect(await stored(page)).toBe(baseline);
     expect(errors).toEqual([]);
   });
+});
+
+
+test("el HUD de tablet conserva ocultas las barras del canvas al seleccionar y redimensionar", async ({ page }, testInfo) => {
+  test.setTimeout(120000);
+  await page.setViewportSize({ width: 960, height: 720 });
+  await prepare(page, "dojo");
+  await page.locator("[data-training-count]").selectOption("3");
+  await page.locator("[data-start-training]").click();
+  await expect(page.locator("[data-training-target]")).toHaveCount(3, { timeout: 45000 });
+  await trainingReady(page);
+  const layers = () => page.evaluate(() => {
+    const s = window.__trainingGame.scene.getScene("battle");
+    return [s.playerHpBar, s.chakraBar, s.enemyHpBar, s.enemyChakraBar].map(bar => bar.fill.visible);
+  });
+  await page.locator('[data-training-target="2"]').click();
+  expect(await layers()).toEqual([false, false, false, false]);
+  await page.evaluate(() => {
+    const s = window.__trainingGame.scene.getScene("battle");
+    s.player.hp -= 5; s.player.chakra -= 5; s.enemy.hp -= 5; s.refreshHud();
+  });
+  expect(await layers()).toEqual([false, false, false, false]);
+  await page.screenshot({ path: testInfo.outputPath("dojo-group-tablet-clean.png"), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await expect.poll(layers).toEqual([true, true, true, true]);
+  await page.screenshot({ path: testInfo.outputPath("dojo-group-desktop-clean.png"), fullPage: true });
+  await page.setViewportSize({ width: 960, height: 720 });
+  await expect.poll(layers).toEqual([false, false, false, false]);
 });

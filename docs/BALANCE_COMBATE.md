@@ -239,6 +239,26 @@ Un golpe final que derrota al último rival concede victoria si el jugador sigue
 vivo, antes de un daño periódico posterior. En encuentros intermedios, los estados
 se resuelven antes de avanzar; si derrotan al jugador se ofrece reintento.
 
+## Prueba de combate de grupo en el Dojo
+
+En la rama `combate`, elegir dos o tres rivales activa una exhibición de grupo.
+Una marioneta mantiene la práctica libre original. Cada rival activo conserva su
+propio reloj, velocidad efectiva, iniciativa, preparación, patrón, chakra,
+enfriamientos y estados. Las preparaciones avanzan en paralelo; las acciones se
+resuelven una a una. El modo de espera se mantiene al elegir la acción del jugador.
+
+Elegir objetivo no consume acción ni reinicia los relojes. El objetivo queda
+fijado al confirmar la técnica y el HUD superior conserva la selección mientras
+actúan otros enemigos. Un rival derrotado deja de preparar y actuar. Si el objetivo
+de una técnica cae durante su preparación, se cancela esa reserva y se devuelve
+su coste, sin restaurar el daño recibido entretanto.
+
+Se aplican los costes, Guardia, recuperación por acción y recargas habituales;
+no se restauran recursos entre movimientos ni se entregan recompensas. Solo se
+gana al derrotar a todo el grupo; la derrota, la salida y la revancha conservan
+la partida. Los perfiles de prueba adaptan vida, fuerza, velocidad y chakra al
+personaje; no constituyen todavía un balance definitivo de campaña.
+
 ## Validación y mantenimiento
 
 - `src/progression-balance.js`: curva de nivel, crecimiento, recuperación y pesos.

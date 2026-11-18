@@ -1,12 +1,11 @@
-import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.140.0";
+import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.143.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
-import { trainingActions, trainingDummyProfile, trainingTargetCount } from "../../training.js?v=0.142.0";
+import { trainingActions, trainingDummyProfile } from "../../training.js?v=0.143.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";
 import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { META_ASSET_VERSION } from "../../asset-urls.js?v=0.115.0";
-import { createPlayerFighter, stopPlayerBreathing } from "../../fighters.js?v=0.140.0";
-import { mountTrainingTargets } from "../training-targets.js?v=0.142.0";
+import { stopPlayerBreathing } from "../../fighters.js?v=0.140.0";
 
 export class TrainingBattleScene extends ArenaBattleScene {
   battleLoadoutForMission() {
@@ -32,62 +31,15 @@ export class TrainingBattleScene extends ArenaBattleScene {
   createFighters() {
     super.createFighters();
     if (this.mission.training) {
-      const count = trainingTargetCount(this.mission.trainingTargetCount);
-      const positions = count === 1 ? [740] : count === 2 ? [600, 800] : [540, 700, 860];
-      const fighterY = count > 1 ? 332 : 372;
-      const offsetY = fighterY - 372;
-      this.hero.body.y += offsetY;
-      this.hero.shadow.y += offsetY;
-      const profile = this.encounters[0];
-      this.trainingTargets = positions.map((x, index) => {
-        const state = index === 0 ? this.enemy : { ...createEnemyState(profile, this.mission), evasion: -100, baseEvasion: -100 };
-        const fighter = index === 0 ? this.foe : createPlayerFighter(this, x, fighterY, this.enemyAppearance(), true);
-        if (index === 0) { fighter.body.y += offsetY; fighter.shadow.y += offsetY; }
-        fighter.body.x = fighter.shadow.x = x;
-        stopPlayerBreathing(fighter);
-        fighter.layers.forEach(layer => layer.setTint([0xc89a60, 0xa4b8bf, 0xb5a1c9][index]));
-        const ring = count > 1 ? this.add.ellipse(x, fighter.shadow.y, 150, 24, 0xd7a857, 0)
-          .setStrokeStyle(3, 0xffd784, 1).setDepth(5) : null;
-        const hitArea = count > 1 ? this.add.zone(x, 310, 130, 240).setDepth(12).setInteractive({ useHandCursor: true }) : null;
-        hitArea?.on("pointerup", () => this.selectTrainingTarget(index));
-        return { state, fighter, ring, hitArea };
-      });
-      if (count > 1) {
-        this.encounters = positions.map((_, index) => ({ ...profile, name: `MARIONETA ${index + 1}` }));
-        this.encounterIds = positions.map(() => this.encounterIds[0]);
-      }
-      this.refreshTrainingTargets();
+      stopPlayerBreathing(this.foe);
+      this.foe.layers.forEach(layer => layer.setTint(0xc89a60));
     }
-  }
-  selectTrainingTarget(index) {
-    const target = this.trainingTargets?.[index];
-    if (!target || target.state.hp <= 0 || this.busy || this.finished || this.scene.isPaused()) return false;
-    this.enemyIndex = index;
-    this.enemy = target.state;
-    this.foe = target.fighter;
-    this.startTurnCharge();
-    this.refreshTrainingTargets();
-    this.setMessage(`Objetivo: marioneta ${index + 1}. Elige un movimiento para atacarla.`);
-    return true;
-  }
-  refreshTrainingTargets() {
-    this.trainingTargets?.forEach(({ state, fighter, ring }, index) => {
-      ring?.setVisible(index === this.enemyIndex && state.hp > 0);
-      fighter.body.setAlpha(state.hp > 0 ? 1 : .3);
-    });
-    this.trainingTargetControls?.refresh();
-  }
-  refreshHud() {
-    super.refreshHud();
-    if (this.mission.training) this.refreshTrainingTargets();
   }
   combatantEvasion(combatant) {
     if (this.mission.training && combatant === this.enemy) return -100;
     return super.combatantEvasion(combatant);
   }
   create() {
-    this.trainingTargets = null;
-    this.trainingTargetControls = null;
     this.trainingMoves = this.mission.training ? trainingActions(this.saveData)
       .map(action => action.seals?.length ? { ...action, iconTexture: `element-${action.element}` } : action) : null;
     super.create();
@@ -96,10 +48,7 @@ export class TrainingBattleScene extends ArenaBattleScene {
     const host = this.game.canvas.parentElement;
     host.classList.add("training-mode");
     this.events.once("shutdown", () => host.classList.remove("training-mode"));
-    if (this.trainingTargets.length > 1) {
-      this.trainingTargetControls = mountTrainingTargets(this);
-      this.setMessage("Elige una marioneta con clic o toque, o con los botones de objetivos. Cada una conserva su daño y estados; tus recursos se restauran. Vuelve al Dojo desde la pausa.");
-    } else this.setMessage("Entrenamiento libre: usa la tabla de ataques. La marioneta no ataca y los recursos se restauran en cada prueba. Puedes volver al Dojo desde la pausa.");
+    this.setMessage("Entrenamiento libre: usa la tabla de ataques. La marioneta no ataca y los recursos se restauran en cada prueba. Puedes volver al Dojo desde la pausa.");
     // The table switch becomes available once Phaser finishes creating the scene.
     this.time.delayedCall(0, () => this.accessibleHud?.refresh());
   }
@@ -107,16 +56,13 @@ export class TrainingBattleScene extends ArenaBattleScene {
     if (!this.mission.training) return super.startTurnCharge();
     if (this.finished) return;
     this.stopTurnTimeline();
-    this.timelinePaused = true; this.busy = false;
-    this.turnReady = this.enemy.hp > 0;
-    this.setButtonsEnabled(this.turnReady); this.refreshHud();
+    this.timelinePaused = true; this.busy = false; this.turnReady = true;
+    this.setButtonsEnabled(true); this.refreshHud();
   }
-  resetTraining({ targets = true } = {}) {
+  resetTraining() {
     this.clearGuard();
     Object.assign(this.player, { hp: this.player.maxHp, chakra: this.player.maxChakra, statuses: [], soak: null, guarding: false, recoveryInitiative: 0 });
-    if (targets) for (const { state } of this.trainingTargets) {
-      Object.assign(state, { hp: state.maxHp, chakra: 0, statuses: [], soak: null, guarding: false, recoveryInitiative: 0 });
-    }
+    Object.assign(this.enemy, { hp: this.enemy.maxHp, chakra: 0, statuses: [], soak: null, guarding: false, recoveryInitiative: 0 });
     this.cooldowns = {};
     this.refreshHud();
   }
@@ -126,12 +72,8 @@ export class TrainingBattleScene extends ArenaBattleScene {
     // Only learned moves may be invoked, including through the regular HUD.
     const move = this.trainingMoves.find(candidate => candidate.id === action.id);
     if (!move) return;
-    const multiple = this.trainingTargets.length > 1;
-    this.resetTraining({ targets: !multiple });
-    const targetHp = this.enemy.hp;
-    const targetName = this.encounters[this.enemyIndex].name;
+    this.resetTraining();
     this.busy = true; this.turnReady = false;
-    this.refreshTrainingTargets();
     this.setButtonsEnabled(false);
     const cost = this.actionCost(move), healthCost = move.healthCost || 0;
     this.player.chakra = Math.max(0, this.player.chakra - cost);
@@ -144,17 +86,17 @@ export class TrainingBattleScene extends ArenaBattleScene {
       else await this.playerAttack(move, casting);
       if (this.finished) return;
       closeActionState(this, "player", move);
-      const damage = targetHp - this.enemy.hp;
+      const damage = this.enemy.maxHp - this.enemy.hp;
       const statuses = this.enemy.statuses.map(status => `${status.label} (${status.duration} turnos)${status.power > 0 ? `: ${status.power} de daño por turno` : ""}`).join(" · ");
       const soak = this.enemy.soak?.stacks ? ` · Empapado ×${this.enemy.soak.stacks}` : "";
       const result = move.type === "guard" ? `${move.name}: reduce el daño recibido un 50 % y recupera ${CHAKRA_BALANCE.guardRecovery} CH en total.`
         : `${move.name}: ${damage} de daño${statuses ? ` · ${statuses}` : ""}${soak}. Coste: ${healthCost ? `${healthCost} PV` : `${cost} CH`}.`;
-      this.setMessage(`${multiple ? `${targetName} · ` : ""}${result}${multiple && this.enemy.hp <= 0 ? " Objetivo derribado: selecciona otro o restaura los objetivos." : ""}`);
+      this.setMessage(result);
     } finally {
       if (!this.finished) {
         this.player.hp = this.player.maxHp; this.player.chakra = this.player.maxChakra;
         this.player.recoveryInitiative = 0;
-        if (!multiple) this.enemy.hp = this.enemy.maxHp;
+        this.enemy.hp = this.enemy.maxHp;
         this.startTurnCharge();
       }
     }

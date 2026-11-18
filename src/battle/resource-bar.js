@@ -29,9 +29,17 @@ export function createResourceLayer(scene, x, y, width, height, color, alpha = 1
   };
   const image = scene.add.image(x, y, textureFor(color)).setOrigin(0, .5).setDisplaySize(width, height).setAlpha(alpha);
   let visibleWidth = width;
+  // Cropping controls empty fills; the layout separately controls whether the
+  // entire layer is shown. A resource update must not reveal a hidden HUD.
+  let layoutVisible = true;
+  const setNativeVisible = image.setVisible.bind(image);
+  image.setVisible = value => {
+    layoutVisible = Boolean(value);
+    return setNativeVisible(layoutVisible && visibleWidth > 0);
+  };
   const crop = value => {
     visibleWidth = Math.max(0, Math.min(width, Number(value) || 0));
-    image.setVisible(visibleWidth > 0);
+    setNativeVisible(layoutVisible && visibleWidth > 0);
     const pixels = Math.max(1, Math.round(visibleWidth * density));
     const cropX = direction === "rtl" ? width * density - pixels : 0;
     const frame = `pill-${cropX}-${pixels}`;
