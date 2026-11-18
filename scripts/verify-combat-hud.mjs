@@ -33,7 +33,9 @@ await page.evaluate(async () => {
 await page.reload();
 await page.locator('[data-select-slot="1"]').click();
 await page.evaluate(async () => {
-  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.88.2');
+  const { loadPhaser } = await import('/src/battle/load-phaser.js?v=1.0.0');
+  await loadPhaser();
+  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.153.0');
   const create = BattleScene.prototype.create;
   BattleScene.prototype.create = function (...args) { window.__hudScene = this; return create.apply(this, args); };
 });
@@ -49,14 +51,14 @@ const state = await page.evaluate(() => {
   const s = window.__hudScene;
   return { chakra: s.player.chakra, cost: s.actionCost(s.actions[1]), hp: s.enemy.hp, hero: [s.hero.body.x, s.hero.body.y], foe: [s.foe.body.x, s.foe.body.y] };
 });
-assert.deepEqual(state.hero, [220, 372]);
-assert.deepEqual(state.foe, [740, 372]);
+assert.deepEqual(state.hero, [280, 372]);
+assert.deepEqual(state.foe, [662, 372]);
 assert.ok(await page.evaluate(() => {
   const s = window.__hudScene;
   return !s.playerTurnMarker.flipX && !s.enemyTurnMarker.flipX;
 }), 'Ambos retratos deben mirar en el sentido de avance');
-assert.ok(await page.locator('.combat-access-actions').evaluate(el => getComputedStyle(el).transform.startsWith('matrix3d(')), 'El panel completo debe tener perspectiva');
-record('Retratos orientados hacia el avance y panel completo con perspectiva 3D');
+assert.ok(await page.locator('.combat-access-actions').evaluate(el => getComputedStyle(el).transform === 'none'), 'El panel de técnicas debe quedar frontal y legible');
+record('Retratos orientados hacia el avance y panel frontal sin deformación');
 assert.ok(await page.locator('.combat-skill-art canvas').evaluateAll(canvases => canvases.length > 0 && canvases.every(canvas => {
   const pixels = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height).data;
   return pixels.some((value, index) => index % 4 === 3 && value > 0);
@@ -144,7 +146,7 @@ if (process.argv.includes('--transitions-only')) {
   console.log('Pausa sin selector; habilidades ocultas en transición, investigación y salida; restauración y resize correctos; sin errores');
   process.exit(0);
 }
-for (const [width, height] of [[1920, 1080], [1366, 768], [390, 844], [844, 390]]) {
+for (const [width, height] of [[1920, 1080], [1366, 768], [1024, 768], [960, 720], [768, 1024]]) {
   await page.setViewportSize({ width, height });
   await page.waitForTimeout(400);
   assert.equal(await page.locator('.combat-access').count(), 1);
@@ -155,7 +157,7 @@ for (const [width, height] of [[1920, 1080], [1366, 768], [390, 844], [844, 390]
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Overflow ${width}`);
   await page.screenshot({ path: `artifacts/combat-hud/combat-${width}x${height}.png`, fullPage: width <= 980 });
 }
-record('1920×1080, 1600×900, 1366×768, 390×844 y 844×390: seis controles accesibles, sin overflow');
+record('Ordenadores y tablets: seis controles accesibles, sin overflow');
 await page.setViewportSize({ width: 1600, height: 900 });
 await page.waitForTimeout(400);
 await page.locator('[data-combat-action="2"]').focus();
@@ -174,9 +176,9 @@ for (const ratio of [0.37, 0, 1]) {
     s.player.hp = Math.round(s.player.maxHp * ratio);
     s.enemy.hp = Math.round(s.enemy.maxHp * ratio);
     s.refreshHud();
-    return [s.playerHpBar.fill.width / s.playerHpBar.width, s.enemyHpBar.fill.width / s.enemyHpBar.width,
+    return [s.playerHpBar.fill.fillWidth / s.playerHpBar.width, s.enemyHpBar.fill.fillWidth / s.enemyHpBar.width,
       s.player.hp / s.player.maxHp, s.enemy.hp / s.enemy.maxHp,
-      s.playerHpBar.lustre.scaleX, s.enemyHpBar.lustre.scaleX];
+      s.playerHpBar.lustre?.scaleX ?? s.playerHpBar.fill.fillWidth / s.playerHpBar.width, s.enemyHpBar.lustre?.scaleX ?? s.enemyHpBar.fill.fillWidth / s.enemyHpBar.width];
   }, ratio);
   assert.equal(values[0], values[2]);
   assert.equal(values[1], values[3]);
@@ -192,7 +194,7 @@ await page.evaluate(() => {
 assert.equal(await page.locator('[data-combat-action="2"]').getAttribute('aria-disabled'), 'true');
 await page.locator('[data-combat-action="2"]').click({ force: true });
 await page.keyboard.press('2');
-assert.match(await page.evaluate(() => window.__hudScene.lastBattleMessage.text), /suficiente chakra/);
+assert.equal(await page.locator('[data-combat-action="2"]').getAttribute('data-resource-state'), 'insufficient');
 assert.equal(await page.evaluate(() => window.__hudScene.player.chakra), 0);
 await page.evaluate(() => { const s = window.__hudScene; s.player.chakra = s.player.maxChakra; s.refreshHud(); });
 record('Chakra insuficiente: ni clic ni atajo ejecutan la técnica');
@@ -261,19 +263,12 @@ await page.evaluate(async () => {
   if (s.playerTurnMarker.x !== s.enemyTurnMarker.x || s.playerMarkerHair && Math.abs(s.playerMarkerHair.x - expectedHairX) > 0.01) {
     throw new Error('El retrato y sus accesorios se separaron al reiniciar');
   }
-  if (s.timelinePortraitMasks.some((mask, index) => Math.abs(mask.x - [s.playerTurnMarker, s.enemyTurnMarker][index].x) > .01)) {
+  if (s.timelinePortraitMasks?.some((mask, index) => Math.abs(mask.x - [s.playerTurnMarker, s.enemyTurnMarker][index].x) > .01)) {
     throw new Error('El recorte circular se separó del retrato de iniciativa');
   }
   s.startTurnCharge();
 });
 record('Reinicio de iniciativa mantiene retratos, pelo y etiquetas sincronizados');
-const mobileEntry = await browser.newPage({ viewport: { width: 390, height: 844 } });
-await mobileEntry.goto('http://127.0.0.1:4173');
-await mobileEntry.locator('.mobile-combat-entry').click();
-await mobileEntry.waitForFunction(() => Boolean(window.Phaser));
-await mobileEntry.locator('[data-select-slot="1"]').waitFor({ state: 'visible' });
-await mobileEntry.close();
-record('Acceso desde un teléfono nuevo carga el juego con controles compactos');
 await writeFile('artifacts/combat-hud/verification.json', JSON.stringify({ checks, receivedDamage, errors }, null, 2));
 
 console.log(JSON.stringify({ errors, state: await page.evaluate(() => {

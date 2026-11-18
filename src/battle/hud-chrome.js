@@ -42,6 +42,13 @@ export function drawScroll(g, x, y, sx = 1, sy = 1) {
   SCROLLS.forEach(commands => chromePath(g, commands, { x, y, sx, sy, width: 1.15 }));
 }
 
+export function hudPanelOrnaments() {
+  const scroll = SCROLLS.map(commands => `<path d="${commands.map(c => c.join(' ')).join(' ')}"/>`).join('');
+  const corners = [[2, 2, .65, .65], [318, 2, -.65, .65], [2, 78, .65, -.65], [318, 78, -.65, -.65]]
+    .map(([x, y, sx, sy]) => `<g transform="translate(${x} ${y}) scale(${sx} ${sy})">${scroll}</g>`).join('');
+  return `<svg class="combat-panel-ornaments" viewBox="0 0 320 80" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">${corners}</g></svg>`;
+}
+
 export function skillFrameSvg() {
   const scroll = SCROLLS.map(commands => `<path d="${commands.map(c => c.join(' ')).join(' ')}"/>`).join('');
   const corners = [[2, 2, .7, .7], [178, 2, -.7, .7], [2, 406, .7, -.7], [178, 406, -.7, -.7]]

@@ -55,7 +55,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
       const state = index === 0 ? firstState : createEnemyState(profile, this.mission);
       const fighter = index === 0 ? this.foe : this.createEnemyFighterAt(position);
       if (index === 0) { fighter.layers.forEach(layer => layer.clearTint()); startPlayerBreathing(this, fighter); }
-      const ring = this.add.ellipse(position.x, fighter.shadow.y, 150, 24, 0xd7a857, 0)
+      const ring = this.add.ellipse(position.x, fighter.shadow.y, 100, 18, 0xd7a857, 0)
         .setStrokeStyle(3, 0xffd784, 1).setDepth(5);
       return { state, fighter, ring, profile, position, progress: 0, pending: null, turns: 0, retired: false };
     });
@@ -236,6 +236,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     this.setButtonsEnabled(false);
     this.setGroupContext(index);
     const target = this.trainingTargets[index];
+    const activeFighter = actor === "player" ? this.hero : target.fighter;
+    this.hudActiveFighter = activeFighter;
     try {
       if (actor === "player") {
         if (!action.seals?.length) this.clearPreparationFeedback("player");
@@ -275,6 +277,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
       if (this.player.hp <= 0) return this.finishBattle(false);
       if (this.trainingTargets.every(entry => entry.state.hp <= 0)) return this.finishBattle(true);
     } finally {
+      if (this.hudActiveFighter === activeFighter) this.hudActiveFighter = null;
       if (this.groupExecuting === execution) this.groupExecuting = null;
       if (current()) {
         this.setGroupContext(this.selectedTargetIndex);

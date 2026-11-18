@@ -45,7 +45,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
     const disabled = Boolean(switching || blocked());
     if (root.dataset.skillTable !== table) {
       root.dataset.skillTable = table;
-      (training ? caption : heading).textContent = table === "elemental" ? "ELEMENTALES" : "FÍSICAS";
+      (training ? caption : heading).textContent = training ? table === "elemental" ? "ELEMENTALES" : "FÍSICAS" : "TÉCNICAS";
       button.setAttribute("aria-label", `Cambiar a habilidades ${target} (0)`);
       button.setAttribute("aria-pressed", String(table === "physical"));
       button.querySelector("span").textContent = table === "elemental" ? "Físicas · 0" : "Elementales · 0";
@@ -71,10 +71,10 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const layout = () => {
     if (root.classList.contains("compact")) { button.style.left = ""; button.style.top = ""; heading.style.left = ""; heading.style.top = ""; pagination.style.left = ""; pagination.style.top = ""; return; }
     const rect = actions.getBoundingClientRect(), base = root.getBoundingClientRect();
-    button.style.left = `${rect.right - base.left + button.offsetWidth * .18}px`;
-    button.style.top = `${rect.top - base.top + rect.height / 2}px`;
+    button.style.left = `${rect.right - base.left - button.offsetWidth / 2 - 8}px`;
+    button.style.top = `${rect.top - base.top - root.clientWidth * .015}px`;
     heading.style.left = `${rect.left - base.left + rect.width / 2}px`;
-    heading.style.top = `${rect.top - base.top - 18}px`;
+    heading.style.top = `${rect.top - base.top - heading.offsetHeight - 6}px`;
     if (training) {
       pagination.style.left = `${rect.right - base.left + 12}px`;
       pagination.style.top = `${rect.top - base.top}px`;

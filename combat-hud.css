@@ -36,39 +36,38 @@
 }
 .combat-access:not(.compact) .combat-access-actions {
   position: absolute;
-  left: 2.1%;
-  top: 20.8%;
-  width: 18.3%;
-  height: 76.2%;
+  left: 1.2%;
+  top: 36.7%;
+  width: 19.2%;
+  height: 51.5%;
   display: grid;
   grid-template-rows: repeat(6, minmax(0, 1fr));
-  transform: perspective(48cqw) rotateY(24deg) skewY(2deg);
+  transform: none;
   transform-origin: left center;
   transform-style: preserve-3d;
   border: 1.4px solid var(--hud-gold);
   border-radius: 1.3cqw;
   background: linear-gradient(105deg, #0e1b30fc, #050e1df7 60%, #091428fa);
-  box-shadow: inset 3px 0 0 #030914, inset 5px 0 0 #d7a85780, 2px 3px 6px #0006;
+  box-shadow: inset 0 0 0 3px #030914, 2px 3px 6px #0006;
   pointer-events: none;
 }
 .combat-access:not(.compact) .combat-access-actions button {
   position: relative;
   display: grid;
-  grid-template-columns: 52% 48%;
+  grid-template-columns: 33% 67%;
   align-items: center;
   min-height: 0;
   min-width: 0;
-  margin: 0 4px;
-  padding: 0 8px;
-  border: 0;
-  border-bottom: 1px solid #d7a85780;
-  border-radius: 0;
-  background: transparent;
+  margin: 3px 5px;
+  padding: 0 6px;
+  border: 1px solid #d7a857;
+  border-radius: 6px;
+  background: #050e1df2;
   color: var(--hud-text);
   box-shadow: none;
   text-align: left;
-  width: calc(100% - 8px);
-  height: 100%;
+  width: calc(100% - 10px);
+  height: calc(100% - 6px);
   transform-origin: 0 0;
   transform-style: preserve-3d;
   transition: box-shadow var(--hud-transition), background-color var(--hud-transition);
@@ -171,7 +170,7 @@ html:not(.mobile-viewport) .compact .combat-access-phase { display: flex; justif
 .compact .combat-access-progress progress::-webkit-progress-value { background: linear-gradient(#d7a857, #a67b3a); }
 .compact .combat-access-message { margin: 0; min-height: 20px; font-size: 14px; text-align: center; }
 #game.compact-combat { position: relative; width: 100%; height: auto; aspect-ratio: auto; overflow: visible; background: #050c19; }
-#game.compact-combat canvas { position: absolute; top: 156px; left: 0; width: 100% !important; height: auto !important; margin: 0 !important; }
+#game.compact-combat canvas { position: absolute; top: var(--combat-scene-top, 156px); left: 0; width: 100% !important; height: auto !important; margin: 0 !important; }
 html.mobile-viewport:has(.compact-combat) body > main { display: block; }
 html.mobile-viewport:has(.compact-combat) .mobile-gate { display: none; }
 body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; aspect-ratio: auto; margin: 0; padding: 0; overflow: visible; }
@@ -272,3 +271,73 @@ body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; as
 }
 
 .combat-access[data-skill-table=physical] .combat-skill-row:not([data-skill-row="1"]):not([data-skill-row="6"]) button[data-resource-state=insufficient] .combat-skill-cost { color:#ff998d; }
+
+/* Combat composition: lacquer plates, a flat six-technique rail and open arena. */
+.combat-access *, .combat-access *::before, .combat-access *::after { box-sizing: border-box; }
+.combat-panel-ornaments { position: absolute; inset: 0; width: 100%; height: 100%; color: #edbd65; pointer-events: none; }
+.combat-access:not(.compact) .combat-skill-art { height: 83%; max-height: 4.15cqw; margin-right: 5px; border-width: .17cqw; }
+.combat-access:not(.compact) .combat-skill-shortcut { left: -.2cqw; top: .2cqw; width: 1.9cqw; height: 1.9cqw; font-size: 1.3cqw; }
+.combat-access:not(.compact) .combat-skill-info { height: 100%; gap: .2cqw; padding: .4cqw 0; }
+.combat-access:not(.compact) .combat-skill-name { max-width: 11.2cqw; font-size: 1.25cqw; line-height: 1.04; }
+.combat-access:not(.compact) .combat-skill-cost { justify-self: end; min-width: 0; padding: 0 .25cqw; border: 0; background: transparent; box-shadow: none; font-size: 1cqw; color: #d6f2ff; }
+.combat-access:not(.compact) .combat-access-actions button[aria-disabled=true] { cursor: default; }
+.combat-access:not(.compact) .combat-access-actions button:hover:not([aria-disabled=true]),
+.combat-access:not(.compact) .combat-access-actions button:focus-visible { background: #19293b; border-color: #ffe4a1; }
+.combat-access:not(.compact) .combat-access-actions .combat-skill-row:first-of-type button,
+.combat-access:not(.compact) .combat-access-actions .combat-skill-row:last-child button { border: 1px solid #d7a857; border-radius: 6px; }
+.combat-access:not(.compact) .combat-table-heading { padding: .35cqw 1cqw; border-radius: 12px; background: #58151d; font: 700 1.2cqw Georgia, serif; color: #ffe5a6; }
+.combat-access:not(.compact) .combat-table-switch { width: max(44px, 2.7cqw); height: max(44px, 2.7cqw); border-radius: 50%; }
+.combat-access:not(.compact) .combat-access-utilities { top: 11.9%; gap: 1.2cqw; }
+.combat-access:not(.compact) .combat-access-utilities > button { background: linear-gradient(#742b32, #41151f); color: #ffe3a2; border-color: #edbf69; }
+.combat-mission-objective { position: absolute; top: 18.5%; left: 36.5%; width: 27%; min-height: 7%; padding: 1.4cqw .8cqw .65cqw; border: 1px solid #d7a857; border-radius: 12px; background: #07101ded; text-align: center; color: #fff1d1; }
+.combat-mission-objective > strong { position: absolute; left: 50%; top: -.8cqw; transform: translateX(-50%); width: max-content; padding: .1cqw 1cqw; border: 1px solid #d7a857; border-radius: 14px; background: #07101d; color: #ffe4a1; font: 700 1.3cqw Georgia, serif; }
+.combat-mission-objective > span { display: block; font: 600 1.05cqw/1.3 Georgia, serif; text-wrap: pretty; }
+.combat-roster { position: absolute; top: 19%; width: 24%; display: grid; gap: .5cqw; }
+.combat-roster-allies { left: 2.4%; }
+.combat-roster-enemies { right: 2.4%; }
+.combat-roster[hidden], .combat-roster-card[hidden] { display: none; }
+.combat-access .combat-roster-card { position: relative; display: flex; align-items: center; gap: .7cqw; width: 100%; min-width: 0; height: 5.2cqw; padding: .35cqw .6cqw; border: 1px solid #d7a857; border-radius: 14px; background: #050c19f5; color: #f5e1af; box-shadow: inset 0 0 0 3px #050c19, inset 0 0 0 4px #d7a85770; text-align: left; }
+.combat-roster-enemies .combat-roster-card { flex-direction: row-reverse; }
+#game .combat-roster-card canvas { display: block; position: static !important; width: 4.1cqw !important; height: 4.1cqw !important; margin: 0 !important; border: 2px solid #d7a857; border-radius: 50%; background: #1a2938; flex: 0 0 auto; }
+.combat-roster-info { min-width: 0; flex: 1; }
+.combat-roster-title { display: flex; align-items: center; justify-content: space-between; gap: .4cqw; margin-bottom: .35cqw; }
+.combat-roster-title strong { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 1.15cqw Georgia, serif; }
+.combat-roster-title small { flex: 0 0 auto; padding: .1cqw .35cqw; border: 1px solid #c39249; border-radius: 3px; background: #58151d; font: 700 .8cqw Georgia, serif; }
+/* Metagame typography has !important size floors; combat scales with its canvas. */
+#game .combat-roster-title small { display: inline-block; margin: 0; font-size: .8cqw !important; line-height: 1.1; }
+#game .combat-roster-info label { font-size: .9cqw !important; line-height: 1.1; }
+.combat-roster-info label { position: relative; display: grid; grid-template-columns: 1.8cqw minmax(0, 1fr); align-items: center; margin-top: .3cqw; color: #ffe4a1; font: 700 .9cqw Georgia, serif; }
+.combat-roster-info label b { position: absolute; right: .4cqw; color: #fff7da; font: 700 .95cqw 'Alegreya Sans', sans-serif; text-shadow: 1px 1px 2px #000, -1px -1px 2px #000; font-variant-numeric: tabular-nums; }
+.combat-roster-info progress { appearance: none; width: 100%; height: 1.05cqw; overflow: hidden; border: 1px solid #e9b45a; border-radius: 12px; background: #020710; }
+.combat-roster-info progress::-webkit-progress-bar { background: #020710; }
+.combat-roster-info progress::-webkit-progress-value { background: linear-gradient(#5aff8d, #00b84c); }
+.combat-roster-info label:last-child progress::-webkit-progress-value { background: linear-gradient(#4cddff, #0088d7); }
+.combat-roster-info progress::-moz-progress-bar { background: #00bd55; }
+.combat-roster-info label:last-child progress::-moz-progress-bar { background: #009fe9; }
+.combat-roster-card.is-defeated { opacity: .5; }
+.combat-access .combat-roster-card:hover:not(:disabled) { border-color: #ffe7a6; background: #17253a; }
+.compact .combat-roster { position: static; width: auto; }
+.compact .combat-roster-card { height: auto; min-height: 74px; padding: 8px; gap: 8px; }
+.compact .combat-roster-enemies:not([hidden]) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); order: 2; }
+.compact .combat-roster-allies { grid-column: 1 / -1; }
+#game .compact .combat-roster-card canvas { width: 50px !important; height: 50px !important; }
+.compact .combat-roster-title strong { font-size: 14px; }
+.compact .combat-roster-title small, .compact .combat-roster-info label, .compact .combat-roster-info label b { font-size: 12px; }
+#game .compact .combat-roster-title small, #game .compact .combat-roster-info label { font-size: 12px !important; }
+.compact .combat-roster-info label { grid-template-columns: 25px 1fr; margin-top: 4px; }
+.compact .combat-roster-info progress { height: 14px; }
+.compact .combat-mission-objective { position: relative; inset: auto; width: auto; padding: 12px; }
+.compact .combat-mission-objective > strong { position: static; display: block; transform: none; width: auto; border: 0; font-size: 14px; margin-bottom: 4px; }
+.compact .combat-mission-objective > span { font-size: 13px; }
+.compact .combat-access-summary { order: 0; }
+.compact .combat-mission-objective { order: 1; }
+.compact .combat-roster-allies { order: 2; }
+.compact .combat-access-scene { order: 3; }
+.compact .combat-table-tools { order: 4; }
+.compact .combat-access-actions { order: 5; }
+.compact .combat-access-progress { order: 6; }
+.compact .combat-access-message { order: 7; }
+.group-training-mode .compact .combat-access-progress { display: none; }
+@media (min-width: 900px) and (max-width: 1100px) {
+  .combat-access:not(.compact) .combat-access-actions button { min-height: 44px; margin-block: 0; height: 100%; }
+}

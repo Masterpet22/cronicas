@@ -238,6 +238,8 @@ export class BattleActionMethods {
     const usesEarthFistProjectile = jutsu.id === "earth_fist";
     const removeWeapon = usesWeapon && ["kunai", "steel_kunai"].includes(jutsu.weaponId) ? holdKunai(this, actor) : null;
     const critical = this.rollHit(attacker.criticalChance);
+    const previousActiveFighter = this.hudActiveFighter;
+    this.hudActiveFighter = source;
     try {
       if (usesPuppetPunch) {
         await preparePlayerPunch(this, source);
@@ -354,7 +356,10 @@ export class BattleActionMethods {
       await this.delay(usesPuppetPunch || usesCastPose || usesEarthWallCast || usesEarthFistProjectile ? 150 : 430);
       source.body.x = originX;
       source.shadow.x = originShadowX;
-    } finally { removeWeapon?.(); }
+    } finally {
+      if (this.hudActiveFighter === source) this.hudActiveFighter = previousActiveFighter;
+      removeWeapon?.();
+    }
   }
 
   playTechniqueEffect(jutsuId, actor = "player") {

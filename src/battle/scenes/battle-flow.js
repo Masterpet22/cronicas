@@ -87,6 +87,8 @@ export class BattleFlowMethods {
     if (this.finished || this.actionExecution) return;
     const execution = Symbol("action");
     this.actionExecution = execution;
+    const activeFighter = actor === "player" ? this.hero : this.foe;
+    this.hudActiveFighter = activeFighter;
     const playerAtStart = this.player;
     const current = () => !this.finished && this.player === playerAtStart && (this.scene?.isActive?.() !== false || this.scene?.isPaused?.());
     try {
@@ -148,6 +150,7 @@ export class BattleFlowMethods {
       this.timelinePaused = false;
       this.startTurnCharge();
     } finally {
+      if (this.hudActiveFighter === activeFighter) this.hudActiveFighter = null;
       if (this.actionExecution === execution) this.actionExecution = null;
     }
   }

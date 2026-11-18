@@ -10,8 +10,8 @@ export const HUD_ART = Object.freeze({
   ink: 0x0a1429, inkDeep: 0x050c19, gold: 0xd7a857, light: 0xf2cb7b,
   wine: 0x58151d, health: 0x06d45a, chakra: 0x009fe9,
   text: "#f5e1af", muted: "#a59d91", font: '"Cinzel", Georgia, serif',
-  skills: Object.freeze({ x: 20, y: 114, width: 140, rowHeight: 68, iconX: 69 }),
-  timeline: Object.freeze({ x: 208, y: 466, width: 606, height: 51, start: 257, end: 790, trackY: 490 })
+  skills: Object.freeze({ x: 12, y: 198, width: 184, rowHeight: 46, iconX: 55 }),
+  timeline: Object.freeze({ x: 158, y: 480, width: 650, height: 49, start: 218, end: 790, trackY: 504 })
 });
 
 export function drawOrnatePanel(g, x, y, width, height, { fill = HUD_ART.ink, alpha = 0.94, radius = 15 } = {}) {

@@ -3,12 +3,12 @@
 const slot = (id, side, role, x, y) => Object.freeze({ id, side, role, x, y });
 
 export const COMBAT_SLOTS = Object.freeze({
-  protagonist: slot("protagonist", "ally", "fighter", 220, 372),
-  companion: slot("companion", "ally", "fighter", 305, 340),
+  protagonist: slot("protagonist", "ally", "fighter", 280, 372),
+  companion: slot("companion", "ally", "fighter", 360, 340),
   pet: slot("pet", "ally", "support", 240, 396),
-  protect: slot("protect", "ally", "protect", 365, 391),
+  protect: slot("protect", "ally", "protect", 486, 391),
   enemyCenter: slot("enemyCenter", "enemy", "fighter", 662, 372),
-  enemyUpper: slot("enemyUpper", "enemy", "fighter", 765, 330),
+  enemyUpper: slot("enemyUpper", "enemy", "fighter", 765, 360),
   enemyLower: slot("enemyLower", "enemy", "fighter", 868, 395),
   destroy: slot("destroy", "enemy", "destroy", 600, 393)
 });

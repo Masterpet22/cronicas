@@ -104,8 +104,8 @@ export class BattlePresentationMethods {
     const firstHudChild = this.children.list.length;
     const healthFrameY = 49;
     const chakraFrameY = 72;
-    const healthBarWidth = 202;
-    const chakraBarWidth = 202;
+    const healthBarWidth = 170;
+    const chakraBarWidth = 170;
     const playerHealthX = 148;
     const playerChakraX = 148;
     const enemyHealthX = WIDTH - playerHealthX - healthBarWidth;
@@ -122,7 +122,7 @@ export class BattlePresentationMethods {
     this.hudBarCenters = { healthFrameY, chakraFrameY };
     for (const { iconX, labelOffset, labelOrigin } of [
       { iconX: 111, labelOffset: 13, labelOrigin: 0 },
-      { iconX: WIDTH - 111, labelOffset: -13, labelOrigin: 1 }
+      { iconX: WIDTH - 111, labelOffset: -16, labelOrigin: 1 }
     ]) {
       drawResourceEmblem(this, "health", iconX, healthFrameY);
       drawResourceEmblem(this, "chakra", iconX, chakraFrameY);
@@ -130,14 +130,14 @@ export class BattlePresentationMethods {
         this.add.text(iconX + labelOffset, y, label, { fontFamily: HUD_ART.font, fontSize: "11px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(labelOrigin, 0.5).setDepth(25);
       }
     }
-    this.playerRankStar = this.createLevelBadge(325, 25, `NV ${this.saveData.progression.level}`);
+    this.playerRankStar = this.createLevelBadge(295, 25, `NV ${this.saveData.progression.level}`);
     this.playerRankNumber = this.playerRankStar.text;
-    this.enemyRankStar = this.createLevelBadge(634, 25, `NV ${this.enemyRankForProfile(this.encounters[this.enemyIndex])}`);
+    this.enemyRankStar = this.createLevelBadge(650, 25, `NV ${this.enemyRankForProfile(this.encounters[this.enemyIndex])}`);
     this.enemyRankNumber = this.enemyRankStar.text;
     this.playerPortrait = this.createCombatPortrait(61, 50, this.playerAppearance(), false);
     this.enemyPortrait = this.createCombatPortrait(900, 50, this.enemyAppearance(), true);
-    this.playerStatusSlots = this.createStatusRow(168, 93, "ltr");
-    this.enemyStatusSlots = this.createStatusRow(WIDTH - 168, 93, "rtl");
+    this.playerStatusSlots = this.createStatusRow(168, 86, "ltr");
+    this.enemyStatusSlots = this.createStatusRow(WIDTH - 168, 86, "rtl");
     this.hudFrames = { health: [], chakra: [] };
     this.applyHudTheme(this.hudTheme);
     [this.playerHpBar, this.chakraBar, this.enemyHpBar, this.enemyChakraBar].forEach((bar) => {
@@ -148,8 +148,8 @@ export class BattlePresentationMethods {
       bar.valueText.setOrigin(mirrored ? 0 : 1, 0.5).setX(mirrored ? bar.x + 8 : bar.x + bar.width - 8).setFontSize(12).setDepth(25);
     });
     const phaseChrome = this.add.graphics().setDepth(24);
-    drawCloudPlate(phaseChrome, 380, 17, 200, 28);
-    this.phaseLabel = this.add.text(480, 31, "INICIATIVA", {
+    drawCloudPlate(phaseChrome, 356, 12, 248, 30);
+    this.phaseLabel = this.add.text(480, 27, "INICIATIVA", {
       fontFamily: HUD_ART.font, fontSize: "14px", fontStyle: "bold", color: HUD_ART.text, stroke: "#170607", strokeThickness: 2
     }).setOrigin(0.5).setDepth(25);
     this.refreshHud();
@@ -160,8 +160,8 @@ export class BattlePresentationMethods {
   paintHudLacquerChrome({ playerHealthX, playerChakraX, enemyHealthX, enemyChakraX, healthFrameY, chakraFrameY, healthBarWidth, chakraBarWidth }) {
     const g = this.hudLacquerChrome;
     g.clear();
-    drawStatusPanel(g, 23, 12, 341, 94);
-    drawStatusPanel(g, 596, 12, 341, 94, true);
+    drawStatusPanel(g, 23, 12, 310, 84);
+    drawStatusPanel(g, 627, 12, 310, 84, true);
     for (const [x, y, width] of [[playerHealthX, healthFrameY, healthBarWidth], [enemyHealthX, healthFrameY, healthBarWidth], [playerChakraX, chakraFrameY, chakraBarWidth], [enemyChakraX, chakraFrameY, chakraBarWidth]]) {
       g.fillStyle(0x02070d, 1).fillRoundedRect(x - 3, y - 10, width + 6, 20, 10);
       g.lineStyle(1.2, HUD_ART.gold, 1).strokeRoundedRect(x - 2, y - 9, width + 4, 18, 9);
@@ -302,7 +302,7 @@ export class BattlePresentationMethods {
       drawTimelineTail(chrome, start - 13, trackY);
       chromePath(chrome, [['M', -16, -11], ['L', 5, 0], ['L', -16, 11], ['L', -12, 0], ['Z']], { x: end, y: trackY, fill: HUD_ART.gold, stroke: 0xf4ce7e, width: .7 });
       chrome.lineStyle(1, HUD_ART.light, 0.8).lineBetween(preparationStart, trackY - 9, preparationStart, trackY + 9);
-      drawCloudPlate(chrome, 401, 453, 173, 19, HUD_ART.inkDeep);
+      drawCloudPlate(chrome, 381, 456, 210, 22, HUD_ART.inkDeep);
       ticks.clear();
       timelineMilestones(start, end).filter((tick) => tick < preparationStart).forEach((tick) => {
         ticks.fillStyle(HUD_ART.gold, 1).fillTriangle(tick, trackY - 9, tick - 2, trackY - 5, tick + 2, trackY - 5);
@@ -325,14 +325,16 @@ export class BattlePresentationMethods {
     const chrome = this.add.graphics();
     const ticks = this.add.graphics();
     const progressGlow = this.add.rectangle(start, trackY, 1, 6, HUD_ART.light, 0.3).setOrigin(0, 0.5);
-    const title = this.add.text(487, 463, "ORDEN DE TURNO", { fontFamily: HUD_ART.font, fontSize: "11px", fontStyle: "bold", color: HUD_ART.text }).setOrigin(0.5);
+    const title = this.add.text(486, 467, "ORDEN DE TURNO", { fontFamily: HUD_ART.font, fontSize: "13px", fontStyle: "bold", color: HUD_ART.text }).setOrigin(0.5);
     // Keep both phases explicit: this is the real 80–100 % preparation zone.
-    const preparationLabel = this.add.text((preparationStart + end) / 2, 477, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "7px", color: "#d4b77a" }).setOrigin(0.5);
+    const preparationLabel = this.add.text((preparationStart + end) / 2, 490, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "8px", color: "#f5e1af" }).setOrigin(0.5);
     this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
     this.enemyMarkerHalo = this.add.circle(start, trackY, 17, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
     const markerHairStyle = this.playerAppearance()?.hair;
     this.playerTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.playerAppearance()), "cabeza").setDisplaySize(22, 34);
     this.enemyTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.enemyAppearance()), "cabeza").setDisplaySize(21, 32).setFlipX(false);
+    this.playerMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.playerAppearance())).setDisplaySize(22, 34));
+    this.enemyMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setDisplaySize(21, 32));
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[markerHairStyle];
     this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34, false, this.playerAppearance()?.bodyType);
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
@@ -340,8 +342,8 @@ export class BattlePresentationMethods {
       : null;
     if (this.playerMarkerHair) useFighterTextureRendering(this.playerMarkerHair);
     const tag = (name) => {
-      const bg = this.add.graphics().setPosition(start, 518);
-      const text = this.add.text(start, 518, name.toUpperCase(), { fontFamily: HUD_ART.font, fontSize: "9px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0.5);
+      const bg = this.add.graphics().setPosition(start, 526);
+      const text = this.add.text(start, 526, name.toUpperCase(), { fontFamily: HUD_ART.font, fontSize: "8px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0.5);
       const width = Math.min(166, Math.max(68, text.width + 16));
       if (text.width > width - 12) text.setScale((width - 12) / text.width);
       drawBeveledTag(bg, width, 15);
@@ -351,6 +353,7 @@ export class BattlePresentationMethods {
     this.enemyTimelineTag = tag(this.encounters[this.enemyIndex].name);
     this.timelineLayer.add([chrome, progressGlow, ticks, preparationLabel, title,
       this.playerMarkerHalo, this.enemyMarkerHalo, this.playerTurnMarker, this.enemyTurnMarker,
+      this.playerMarkerFace, this.enemyMarkerFace,
       ...[this.playerMarkerHair].filter(Boolean),
       this.playerTimelineTag.bg, this.playerTimelineTag.text, this.enemyTimelineTag.bg, this.enemyTimelineTag.text]);
     this.timelineThemeParts = { chrome, ticks, progressGlow, title, preparationLabel, preparationStart, trackY };
@@ -458,6 +461,8 @@ export class BattlePresentationMethods {
     const enemyY = overlap ? trackY + 10 : trackY;
     this.playerTurnMarker.setPosition(playerX, playerY);
     this.enemyTurnMarker.setPosition(enemyX, enemyY);
+    this.playerMarkerFace?.setPosition(playerX, playerY);
+    this.enemyMarkerFace?.setPosition(enemyX, enemyY);
     this.playerMarkerHalo?.setPosition(playerX, playerY);
     this.enemyMarkerHalo?.setPosition(enemyX, enemyY);
     this.playerMarkerHair?.setPosition(playerX + this.playerMarkerHairLayout.x, playerY + this.playerMarkerHairLayout.y);

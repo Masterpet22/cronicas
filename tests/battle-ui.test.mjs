@@ -49,7 +49,7 @@ assert.doesNotMatch(html, /select id="hud-theme"/, "Opciones ya no debe mostrar 
 assert.doesNotMatch(battle, /makeHudThemeControl|MARCO DEL HUD/, "La pausa no debe ofrecer el selector de marco retirado");
 assert.match(battle, /RANK_LEVELS/, "El rango del HUD debe representarse mediante un nivel numérico escalable");
 assert.match(battle, /displayWidth: 360/, "Los marcos de vida deben mantener una escala compacta");
-assert.match(battle, /const healthBarWidth = 202/, "Las barras de vida deben permanecer compactas y separadas de las esquinas");
+assert.match(battle, /const healthBarWidth = 170/, "Las barras de vida deben permanecer compactas y separadas de las esquinas");
 assert.match(battle, /healthBarWidth, 14, HUD_ART.health/, "La vida debe usar el verde de referencia en el marco ornamental");
 assert.match(battle, /chakraBarWidth, 14, HUD_ART.chakra/, "El chakra debe compartir altura con la vida");
 assert.match(battle, /enemyHealthX[\s\S]*direction: "rtl"/, "La vida enemiga debe quedar anclada a la derecha y vaciarse desde el centro");
@@ -61,7 +61,7 @@ assert.match(battle, /setBarRatio\(this\.enemyChakraBar/, "El chakra enemigo deb
 assert.match(battle, /ghostColor: 0xf1d57a/, "La vida debe conservar una estela amarilla de daño reciente");
 assert.doesNotMatch(ui, /createGeometryMask\(\)/, "El HUD no debe depender de máscaras geométricas incompatibles con WebGL en Phaser 4");
 assert.match(battle, /barOffset: Object\.freeze/, "Cada marco debe declarar su compensación vertical de barras");
-assert.match(battle, /createLevelBadge\(325, 25, `NV /, "El jugador debe mostrar el nivel como sello compacto");
+assert.match(battle, /createLevelBadge\(295, 25, `NV /, "El jugador debe mostrar el nivel como sello compacto");
 assert.match(battle, /enemyRankStar = this\.createLevelBadge/, "El enemigo debe mostrar un nivel simétrico");
 assert.match(battle, /createCombatPortrait\(900, 50, this\.enemyAppearance\(\), true\)/, "El retrato enemigo debe mirar hacia el campo de batalla");
 assert.match(fighters, /fighterHairPortraitLayout\(style, width, height, flipped = false, bodyType = "male"\)/, "Los retratos deben calcular el cabello desde la geometría compartida del combatiente");
@@ -218,7 +218,7 @@ assert.match(ui, /String\(index \+ 1\)/, "Cada acción debe mostrar su atajo num
 assert.match(ui, /const ACTION_POSITIONS = Array\.from\([\s\S]*HUD_ART.skills.rowHeight/, "Las acciones deben formar una columna vertical alineada");
 assert.match(battle, /HUD_ART.skills[\s\S]*drawOrnatePanel\(parts.surface/, "La columna de habilidades debe descansar sobre un fondo vertical compacto");
 assert.match(battle, /renderer\.type === Phaser\.WEBGL && !this\.lightMode[\s\S]*parts\.haze\.enableFilters\(\)\.filters\.internal\.addBlur\(/, "El fondo de habilidades debe usar filtros de Phaser 4 solo bajo WebGL y fuera del modo ligero");
-assert.match(battle, /drawStatusPanel\(g, 23, 12, 341, 94/, "El fondo debe combinar laca roja e índigo translúcido");
+assert.match(battle, /drawStatusPanel\(g, 23, 12, 310, 84/, "El fondo debe combinar laca roja e índigo translúcido");
 assert.doesNotMatch(ui, /drawNamePlate|namePlate/, "La semirrueda no debe repetir nombres que ya aparecen en el tooltip");
 assert.doesNotMatch(battle, /abilityArc|actionArc|actionThemeParts|drawCubicBezier\(rail/, "La columna de habilidades no debe conservar arcos ni guías vectoriales");
 assert.match(ui, /x \+ width \/ 2/, "Los valores de vida y chakra deben quedar en el centro horizontal de la barra");
@@ -234,7 +234,7 @@ assert.doesNotMatch(battle, /ORDEN DEL TURNO/, "La interfaz no debe recuperar la
 assert.doesNotMatch(battle, /messagePlate/, "El combate no debe mostrar una banda de mensajes persistente");
 assert.doesNotMatch(battle, /Ronda \$\{this\.round\}/, "El HUD no debe anunciar el número de ronda");
 assert.match(battle, /setSealPrompt\(/, "Las instrucciones de sellos deben vivir dentro del minijuego y no en una banda de batalla");
-assert.match(battle, /protagonist: slot\("protagonist", "ally", "fighter", 220, 372\)/, "La posición del protagonista conserva su anclaje al suelo");
+assert.match(battle, /protagonist: slot\("protagonist", "ally", "fighter", 280, 372\)/, "La posición del protagonista conserva su anclaje al suelo");
 assert.doesNotMatch(battle, /heroAura/, "El aura decorativa permanente del jugador debe eliminarse");
 assert.match(battle, /cssScale \* pixelRatio/, "El lienzo debe combinar la escala visible con el DPR del dispositivo");
 assert.match(battle, /width: renderSize\.width/, "El framebuffer debe usar el tamaño físico medido del escenario");

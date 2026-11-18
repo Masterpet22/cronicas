@@ -6,6 +6,8 @@ import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
 import { mountSkillTableControl } from './skill-table-control.js?v=0.147.0';
 import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.143.0';
 import { setHudAttribute, setHudProgress, setHudText } from './hud-dom.js?v=1.0.0';
+import { mountHudRoster } from './hud-roster.js?v=1.0.0';
+import { mountFighterIndicators } from './fighter-indicators.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -192,7 +194,9 @@ export function mountAccessibleBattleHud(scene) {
   message.className = 'combat-access-message';
   message.setAttribute('role', 'status');
   root.append(summary, spacer, actions, progress, message);
+  const roster = mountHudRoster(scene, root);
   scene.game.canvas.parentElement.append(root);
+  scene.combatIndicators = mountFighterIndicators(scene, root);
   let visibilityLocks = 0;
   let sleeping = false;
   const refreshVisibility = () => {
@@ -200,6 +204,7 @@ export function mountAccessibleBattleHud(scene) {
     if (hidden) restorePerspective();
     if (root.hidden !== hidden) root.hidden = hidden;
     if (root.inert !== hidden) root.inert = hidden;
+    scene.combatIndicators.refresh();
     tables?.refresh();
   };
   const suspend = () => {
@@ -219,6 +224,7 @@ export function mountAccessibleBattleHud(scene) {
   const statusText = unit => [...(unit.guarding ? [{ label: 'Guardia' }] : []), ...(unit.recoveryInitiative ? [{ label: initiativeLabel({ initiative: unit.recoveryInitiative }) }] : []), ...(unit.statuses || []), ...(unit.soak?.stacks ? [{ label: `Empapado ×${unit.soak.stacks}`, duration: unit.soak.turns }] : [])]
     .map(s => `${s.label || s.type}${s.duration ? ` (${s.duration})` : ''}`).join(' · ');
   const refresh = () => {
+    roster.refresh();
     inventory.refresh();
     refreshVisibility();
     const compact = root.classList.contains('compact');
@@ -258,14 +264,28 @@ export function mountAccessibleBattleHud(scene) {
     markers.forEach(({ name, actor }) => setHudText(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
   tables = mountSkillTableControl(scene, { root, actions, restorePerspective, refresh });
-  const query = window.matchMedia('(max-width: 980px)');
+  const query = window.matchMedia('(max-width: 899px)');
   // The existing Phaser actions remain the execution contract; the native layer
   // supplies the projected presentation and pointer geometry at every size.
   scene.actionCanvasLayer = scene.add.container(0, 0, scene.actionCanvasParts).setDepth(30).setVisible(false);
   const originals = new Map([...scene.hudCanvasParts, ...scene.actionCanvasParts].map(part => [part, part.visible]));
+  const syncCanvasBounds = () => {
+    if (root.classList.contains('compact')) {
+      for (const key of ['width', 'height', 'left', 'top']) root.style.removeProperty(key);
+      scene.game.canvas.parentElement.style.setProperty('--combat-scene-top', `${root.offsetTop + spacer.offsetTop}px`);
+      return;
+    }
+    scene.game.canvas.parentElement.style.removeProperty('--combat-scene-top');
+    const canvas = scene.game.canvas.getBoundingClientRect();
+    const host = scene.game.canvas.parentElement;
+    const bounds = host.getBoundingClientRect();
+    Object.assign(root.style, { width: `${canvas.width}px`, height: `${canvas.height}px`,
+      left: `${canvas.left - bounds.left - host.clientLeft}px`, top: `${canvas.top - bounds.top - host.clientTop}px` });
+  };
   const layout = () => {
     restorePerspective();
     root.classList.toggle('compact', query.matches);
+    syncCanvasBounds();
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
     scene.timelineLayer.setVisible(scene.mission.groupTraining || !query.matches && !scene.mission.training);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
@@ -276,10 +296,13 @@ export function mountAccessibleBattleHud(scene) {
   };
   query.addEventListener('change', layout);
   const resizeObserver = new ResizeObserver(() => {
+    syncCanvasBounds();
     tables.layout();
     if (frontSkill) faceSkill(frontSkill.row, frontSkill.button, frontSkill.slot);
   });
   resizeObserver.observe(actions);
+  resizeObserver.observe(scene.game.canvas);
+  resizeObserver.observe(root);
   const onSleep = () => { sleeping = true; refreshVisibility(); };
   const onWake = () => { sleeping = false; refreshVisibility(); };
   scene.events.on('pause', refreshVisibility);
@@ -297,6 +320,7 @@ export function mountAccessibleBattleHud(scene) {
     scene.events.off('wake', onWake);
     root.remove();
     scene.game.canvas.parentElement?.classList.remove('compact-combat');
+    scene.game.canvas.parentElement?.style.removeProperty('--combat-scene-top');
   };
   scene.events.once('shutdown', remove);
   layout();

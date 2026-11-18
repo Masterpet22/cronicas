@@ -2,6 +2,8 @@ import { HUD_ART } from "./hud-art.js?v=0.140.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { timelineMarkerPosition } from "./timeline.js?v=0.69.0";
 import { setHudAttribute } from "./hud-dom.js?v=1.0.0";
+import { fighterFaceTextureKey, useFighterTextureRendering } from '../fighters.js?v=0.153.0';
+import { enemyFighterAppearance } from '../character.js?v=0.119.0';
 
 // Hit areas sit on the actual fighters. The existing portrait shows selection.
 export function mountTrainingTargets(scene) {
@@ -48,15 +50,21 @@ export function mountTrainingTargets(scene) {
 }
 
 export function mountGroupTimeline(scene) {
+  // A wave can replace its fighters before mounting the next set of markers.
+  scene.groupMarkers?.forEach(({ marker, face }) => { if (!marker.scene) face?.destroy(); });
   const { start, trackY } = HUD_ART.timeline;
   scene.enemyTimelineTag.bg.setVisible(false); scene.enemyTimelineTag.text.setVisible(false);
   scene.groupMarkers = scene.trainingTargets.map((target, index) => {
     const marker = index === 0 ? scene.enemyTurnMarker : scene.add.image(start, trackY, scene.enemyTurnMarker.texture.key, scene.enemyTurnMarker.frame.name).setDisplaySize(18, 28);
     const halo = index === 0 ? scene.enemyMarkerHalo : scene.add.circle(start, trackY, 15, 0x07101d, 1);
     marker.setDisplaySize(18, 28);
+    const face = index === 0 && scene.enemyMarkerFace?.scene ? scene.enemyMarkerFace : useFighterTextureRendering(scene.add.image(start, trackY,
+      fighterFaceTextureKey(enemyFighterAppearance(target.profile))));
+    if (index === 0) scene.enemyMarkerFace = face;
+    face.setDisplaySize(18, 28);
     const label = scene.add.text(start, trackY + 21, String(index + 1), scene.textStyle(10, "#ffe1a4", "800")).setOrigin(.5);
-    scene.timelineLayer.add([halo, marker, label]);
-    return { marker, halo, label };
+    scene.timelineLayer.add([halo, marker, face, label]);
+    return { marker, face, halo, label };
   });
   updateGroupTimeline(scene);
 }
@@ -69,16 +77,18 @@ export function updateGroupTimeline(scene) {
   const { start, end, trackY } = HUD_ART.timeline;
   const x = timelineMarkerPosition(scene.timelineProgress.player, start, end);
   positionMarker(scene.playerTurnMarker, x, trackY - 10);
+  if (scene.playerMarkerFace) positionMarker(scene.playerMarkerFace, x, trackY - 10);
   positionMarker(scene.playerMarkerHalo, x, trackY - 10);
   if (scene.playerMarkerHair) positionMarker(scene.playerMarkerHair,
     x + scene.playerMarkerHairLayout.x, trackY - 10 + scene.playerMarkerHairLayout.y);
   const { bg, text } = scene.playerTimelineTag;
   if (bg.x !== x) bg.setX(x);
   if (text.x !== x) text.setX(x);
-  scene.groupMarkers.forEach(({ marker, halo, label }, index) => {
+  scene.groupMarkers.forEach(({ marker, face, halo, label }, index) => {
     const target = scene.trainingTargets[index], alive = target.state.hp > 0;
     if (marker.visible !== alive) {
       marker.setVisible(alive);
+      face.setVisible(alive);
       halo.setVisible(alive);
       label.setVisible(alive);
     }
@@ -86,6 +96,7 @@ export function updateGroupTimeline(scene) {
     const markerX = timelineMarkerPosition(target.progress, start, end);
     const markerY = trackY + (index - 1) * 12;
     positionMarker(marker, markerX, markerY);
+    positionMarker(face, markerX, markerY);
     positionMarker(halo, markerX, markerY);
     positionMarker(label, markerX + 17, markerY);
     const width = index === scene.selectedTargetIndex ? 2.5 : 1.5;
