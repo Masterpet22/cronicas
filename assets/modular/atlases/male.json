@@ -8,7 +8,8 @@
         "h": 499
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/torso.png"
     },
     "muslo_derecho": {
       "frame": {
@@ -18,7 +19,8 @@
         "h": 305
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/muslo_derecho.png"
     },
     "muslo_izquierdo": {
       "frame": {
@@ -28,7 +30,8 @@
         "h": 294
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/muslo_izquierdo.png"
     },
     "pierna_derecha": {
       "frame": {
@@ -38,7 +41,8 @@
         "h": 254
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/pierna_derecha.png"
     },
     "pierna_izquierda": {
       "frame": {
@@ -48,7 +52,8 @@
         "h": 246
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/pierna_izquierda.png"
     },
     "brazo_izquierdo": {
       "frame": {
@@ -58,7 +63,8 @@
         "h": 238
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/brazo_izquierdo.png"
     },
     "brazo_derecho": {
       "frame": {
@@ -68,7 +74,8 @@
         "h": 232
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/brazo_derecho.png"
     },
     "cabeza": {
       "frame": {
@@ -78,7 +85,8 @@
         "h": 229
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/cabeza.png"
     },
     "antebrazo_derecho": {
       "frame": {
@@ -88,7 +96,8 @@
         "h": 211
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/antebrazo_derecho.png"
     },
     "antebrazo_izquierdo": {
       "frame": {
@@ -98,7 +107,8 @@
         "h": 205
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/antebrazo_izquierdo.png"
     },
     "mano_izquierda": {
       "frame": {
@@ -108,7 +118,8 @@
         "h": 180
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/mano_izquierda.png"
     },
     "mano_derecha": {
       "frame": {
@@ -118,7 +129,8 @@
         "h": 179
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/man_sprites/runtime/mano_derecha.png"
     },
     "pie_derecho": {
       "frame": {
@@ -128,7 +140,8 @@
         "h": 148
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/pie_derecho.png"
     },
     "pie_izquierdo": {
       "frame": {
@@ -138,7 +151,8 @@
         "h": 148
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/male/pie_izquierdo.png"
     }
   },
   "meta": {

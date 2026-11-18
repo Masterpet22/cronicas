@@ -74,7 +74,7 @@ def main():
             paste_with_padding(sheet, part, frames[name]["x"], frames[name]["y"])
         sheet.save(directory / f"{body}.png", optimize=True)
         metadata = {
-            "frames": {name: {"frame": frame, "rotated": False, "trimmed": False}
+            "frames": {name: {"frame": frame, "rotated": False, "trimmed": False, "source": files[name]}
                        for name, frame in frames.items()},
             "meta": {"size": dict(zip(("w", "h"), size)), "padding": PADDING},
         }

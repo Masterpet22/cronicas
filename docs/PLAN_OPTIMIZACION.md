@@ -69,7 +69,7 @@ Las cifras son medianas de las tres repeticiones. El tiempo de Muro Pétreo mide
 
 Cada cuerpo carga un atlas con sus 14 piezas de piel y atuendo. El juego prepara una variante por cuerpo y tono usados, con el tinte aplicado a los fotogramas de piel. Las caras y el pelo siguen siendo capas con su carga propia, según las selecciones de la partida. Las piezas conservan su tamaño, alfa, anclajes y orden. Los retratos y los marcadores usan el fotograma de cabeza del mismo atlas.
 
-Los atlas base miden 768 × 937 y 768 × 897. PNG y manifiesto suman 568 kB y 508 kB, frente a 741 kB y 676 kB de los PNG individuales de cada cuerpo. Las fuentes de arte también sirven al creador y al metajuego. Para regenerar las hojas, ejecutar `python scripts/pack-fighter-atlases.py` con Pillow y Node instalados.
+Los atlas base miden 768 × 937 y 768 × 897. PNG y manifiesto suman aproximadamente 0,57 MB y 0,51 MB, frente a 0,74 MB y 0,68 MB de los PNG individuales de cada cuerpo. Las fuentes de arte también sirven al creador y al metajuego. Para regenerar las hojas, ejecutar `python scripts/pack-fighter-atlases.py` con Pillow y Node instalados.
 
 ### Antes y después de los atlas en el Dojo
 

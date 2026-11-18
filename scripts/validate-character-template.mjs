@@ -68,21 +68,31 @@ async function pngInfo(asset) {
 }
 async function assemble(character, images) {
   const textures = new Map();
-  queuePlayerFighterTextures({ textures: { exists: () => false }, load: { image: (key, asset) => textures.set(key,asset.split("?")[0]) } },character);
-  for (const asset of textures.values()) if (!images.has(asset)) images.set(asset,await pngInfo(asset));
-  const node = (x=0,y=0,key=null) => ({ x,y,key,angle:0,scaleX:1,scaleY:1,children:[],
+  let atlasPath;
+  queuePlayerFighterTextures({ textures: { exists: () => false }, load: {
+    image: (key, asset) => textures.set(key, asset.split("?")[0]),
+    atlas: (_key, _image, metadata) => { atlasPath = metadata.split("?")[0]; }
+  } }, character);
+  const { frames } = JSON.parse(await readFile(resolve(root, atlasPath), "utf8"));
+  for (const asset of [...textures.values(), ...Object.values(frames).map(frame => frame.source)]) {
+    if (!images.has(asset)) images.set(asset, await pngInfo(asset));
+  }
+  const node = (x=0,y=0,key=null,frame=null) => ({ x,y,key,frame,angle:0,scaleX:1,scaleY:1,children:[],
     add(child) { this.children.push(child);return this; },setDepth(){return this;},
     setScale(x,y=x){this.scaleX=x;this.scaleY=y;return this;},setAngle(a){this.angle=a;return this;},
     setDisplaySize(w,h){const p=images.get(textures.get(this.key));this.scaleX=w/p.width;this.scaleY=h/p.height;return this;}
   });
-  const scene = {add:{ellipse:(x,y)=>node(x,y),container:(x,y)=>node(x,y),image:(x,y,key)=>node(x,y,key)},textures:{get:()=>({setFilter(){}})},tweens:{add:()=>({stop(){}})}};
+  const scene = {add:{ellipse:(x,y)=>node(x,y),container:(x,y)=>node(x,y),image:node},textures:{get:()=>({setFilter(){}})},tweens:{add:()=>({stop(){}})}};
   const fighter = createPlayerFighter(scene,0,0,character);
   fighter.animations.stop({reset:true});
   const layers = [];
   const visit = (part,parent=identity) => {
     const m=multiply(parent,transform(part.x,part.y,part.angle,part.scaleX,part.scaleY));
     if (part.key) {
-      const asset=textures.get(part.key), image=images.get(asset);
+      const frame = part.frame ? frames[part.frame] : null;
+      if (part.frame && !frame) throw new Error(`Falta el fotograma ${part.frame} en ${atlasPath}`);
+      const asset = frame?.source ?? textures.get(part.key);
+      const image = frame ? { width: frame.frame.w, height: frame.frame.h } : images.get(asset);
       // Escalas de la imagen dentro de la matriz, dimensiones nativas para el SVG.
       const width=image.width*part.scaleX,height=image.height*part.scaleY;
       const normalized=multiply(parent,transform(part.x,part.y,part.angle));

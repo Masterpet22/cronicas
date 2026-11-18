@@ -8,7 +8,8 @@
         "h": 477
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/torso.png"
     },
     "muslo_derecho": {
       "frame": {
@@ -18,7 +19,8 @@
         "h": 293
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/muslo_derecho.png"
     },
     "muslo_izquierdo": {
       "frame": {
@@ -28,7 +30,8 @@
         "h": 290
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/muslo_izquierdo.png"
     },
     "pierna_derecha": {
       "frame": {
@@ -38,7 +41,8 @@
         "h": 251
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/pierna_derecha.png"
     },
     "pierna_izquierda": {
       "frame": {
@@ -48,7 +52,8 @@
         "h": 244
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/pierna_izquierda.png"
     },
     "brazo_izquierdo": {
       "frame": {
@@ -58,7 +63,8 @@
         "h": 236
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/brazo_izquierdo.png"
     },
     "cabeza": {
       "frame": {
@@ -68,7 +74,8 @@
         "h": 234
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/cabeza.png"
     },
     "brazo_derecho": {
       "frame": {
@@ -78,7 +85,8 @@
         "h": 227
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/brazo_derecho.png"
     },
     "antebrazo_derecho": {
       "frame": {
@@ -88,7 +96,8 @@
         "h": 210
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/antebrazo_derecho.png"
     },
     "antebrazo_izquierdo": {
       "frame": {
@@ -98,7 +107,8 @@
         "h": 205
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/antebrazo_izquierdo.png"
     },
     "mano_izquierda": {
       "frame": {
@@ -108,7 +118,8 @@
         "h": 164
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/mano_izquierda.png"
     },
     "mano_derecha": {
       "frame": {
@@ -118,7 +129,8 @@
         "h": 162
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/woman_sprites/runtime/mano_derecha.png"
     },
     "pie_derecho": {
       "frame": {
@@ -128,7 +140,8 @@
         "h": 147
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/pie_derecho.png"
     },
     "pie_izquierdo": {
       "frame": {
@@ -138,7 +151,8 @@
         "h": 144
       },
       "rotated": false,
-      "trimmed": false
+      "trimmed": false,
+      "source": "assets/modular/outfits/training/female/pie_izquierdo.png"
     }
   },
   "meta": {
