@@ -48,20 +48,22 @@ for (const renderer of ["Canvas", "WebGL"]) test(`${renderer}: cuerpo y retratos
   await bootPerformanceReference(page, { renderer, skinTone: "moreno", bodyType: "female" });
   const result = await page.evaluate(async () => {
     const scene = window.__performanceReference.scene;
-    const api = await import("/src/fighters.js?v=0.118.0");
+    const api = await import("/src/fighters.js?v=0.148.0");
     const appearance = scene.playerAppearance();
-    const headKey = api.fighterPuppetTextureKey(appearance, "cabeza");
-    const enemyKey = api.fighterPuppetTextureKey(scene.enemyAppearance(), "cabeza");
+    const headKey = api.fighterAtlasKey(appearance);
+    const enemyKey = api.fighterAtlasKey(scene.enemyAppearance());
     const texture = scene.textures.get(headKey);
     const source = texture.getSourceImage();
-    const pixels = source.getContext("2d").getImageData(0, 0, source.width, source.height).data;
+    const frame = texture.get("cabeza");
+    const pixels = source.getContext("2d").getImageData(frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight).data;
     let skinPixels = 0;
     for (let i = 0; i < pixels.length; i += 4) if (pixels[i+3] > 200 && pixels[i] > pixels[i+1] + 10 && pixels[i+1] > pixels[i+2]) skinPixels++;
     const before = source.toDataURL();
+    const bodyLayers = scene.hero.layers.filter(layer => layer.texture === texture);
     api.preparePlayerFighterTextures(scene, appearance);
     const portraitsFit = [scene.playerPortrait, scene.enemyPortrait].every(portrait => [portrait.head, portrait.hair].filter(Boolean).every(layer => [-1, 1].every(sx => [-1, 1].every(sy => Math.hypot(layer.x - portrait.wash.x + sx * layer.displayWidth / 2, layer.y - portrait.wash.y + sy * layer.displayHeight / 2) <= 28.001))));
     scene.busy = false; scene.turnReady = true; scene.refreshHud();
-    return { headKey, enemyKey, tone: texture.skinTone, enemyTone: scene.textures.get(enemyKey).skinTone, portrait: scene.playerPortrait.head.texture.key, portraitsFit, skinPixels, stable: before === source.toDataURL(), hairTone: scene.playerPortrait.hair?.texture.skinTone ?? null };
+    return { headKey, enemyKey, tone: texture.skinTone, enemyTone: scene.textures.get(enemyKey).skinTone, portrait: scene.playerPortrait.head.texture.key, portraitsFit, skinPixels, bodyFrames: bodyLayers.map(layer => layer.frame.name), stable: before === source.toDataURL(), hairTone: scene.playerPortrait.hair?.texture.skinTone ?? null };
   });
   expect(result.tone).toBe("moreno");
   expect(result.enemyTone).toBe("claro");
@@ -69,6 +71,7 @@ for (const renderer of ["Canvas", "WebGL"]) test(`${renderer}: cuerpo y retratos
   expect(result.portrait).toBe(result.headKey);
   expect(result.portraitsFit).toBe(true);
   expect(result.skinPixels).toBeGreaterThan(100);
+  expect(new Set(result.bodyFrames).size).toBe(14);
   expect(result.stable).toBe(true);
   expect(result.hairTone).toBeNull();
   await page.screenshot({ path: testInfo.outputPath("combate-dos-tonos.png") });

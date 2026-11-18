@@ -237,7 +237,7 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await page.locator("[data-perf-enabled]").check();
   await ensurePhaser(page);
   await page.evaluate(async () => {
-    const { TrainingBattleScene } = await import("/src/battle/scenes/training-battle-scene.js?v=0.147.0");
+    const { TrainingBattleScene } = await import("/src/battle/scenes/training-battle-scene.js?v=0.148.0");
     const create = TrainingBattleScene.prototype.create;
     TrainingBattleScene.prototype.create = function (...args) {
       const result = create.apply(this, args);

@@ -2,7 +2,7 @@ import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail,
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.140.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.147.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.148.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.143.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -184,8 +184,7 @@ export class BattlePresentationMethods {
     const shadow = this.add.circle(x, y + 2, 34, 0x02050a, 0.9).setDepth(23);
     const wash = this.add.circle(x, y, 30, 0x182536, 0.96).setDepth(24);
     const layout = fighterCombatPortraitLayout(appearance, flipped);
-    const head = this.add.image(x + layout.head.x, y + layout.head.y, fighterPuppetTextureKey(appearance, "cabeza")).setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25);
-    useFighterTextureRendering(head);
+    const head = this.add.image(x + layout.head.x, y + layout.head.y, fighterAtlasKey(appearance), "cabeza").setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25);
     const face = this.add.image(x + layout.head.x, y + layout.head.y, fighterFaceTextureKey(appearance)).setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25.5);
     useFighterTextureRendering(face);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[appearance?.hair];
@@ -332,9 +331,8 @@ export class BattlePresentationMethods {
     this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
     this.enemyMarkerHalo = this.add.circle(start, trackY, 17, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
     const markerHairStyle = this.playerAppearance()?.hair;
-    this.playerTurnMarker = this.add.image(start, trackY, fighterPuppetTextureKey(this.playerAppearance(), "cabeza")).setDisplaySize(22, 34);
-    this.enemyTurnMarker = this.add.image(start, trackY, fighterPuppetTextureKey(this.enemyAppearance(), "cabeza")).setDisplaySize(21, 32).setFlipX(false);
-    [this.playerTurnMarker, this.enemyTurnMarker].forEach(useFighterTextureRendering);
+    this.playerTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.playerAppearance()), "cabeza").setDisplaySize(22, 34);
+    this.enemyTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.enemyAppearance()), "cabeza").setDisplaySize(21, 32).setFlipX(false);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[markerHairStyle];
     this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34, false, this.playerAppearance()?.bodyType);
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey)

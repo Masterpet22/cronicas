@@ -1,6 +1,6 @@
-import { isBaseOutfitPart, baseOutfitAsset } from "./base-outfit.js?v=0.140.0";
+import { isBaseOutfitPart } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
-import { colorizeFighterTextures } from "./battle/skin-textures.js?v=0.119.0";
+import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.148.0";
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
 import { createPuppetAnimationController } from "./animations/controller.js?v=0.147.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.119.0";
@@ -16,15 +16,9 @@ import {
 } from "./character-rigs.js?v=0.149.0";
 
 export const MAN_SPRITE_SHADOW_OFFSET = 60;
-const MAN_SPRITE_ROOT = "assets/modular/man_sprites/runtime";
-const WOMAN_SPRITE_ROOT = "assets/modular/woman_sprites/runtime";
 const PUPPET_VARIANTS = Object.freeze({
-  male: { id: "man", root: MAN_SPRITE_ROOT, ...CHARACTER_RIGS.male },
-  female: {
-    id: "woman",
-    root: WOMAN_SPRITE_ROOT,
-    ...CHARACTER_RIGS.female
-  }
+  male: { bodyType: "male", ...CHARACTER_RIGS.male },
+  female: { bodyType: "female", ...CHARACTER_RIGS.female }
 });
 
 // Los lados se nombran desde la perspectiva anatómica del personaje, no desde
@@ -40,18 +34,20 @@ function puppetVariant(appearance) {
   return PUPPET_VARIANTS[appearance?.bodyType === "female" ? "female" : "male"];
 }
 
-function puppetSpriteKey(variant, id, selectedTone) {
-  return `player-${variant.id}-${normalizeSkinTone(selectedTone)}-${id}`;
+function sourceAtlasKey(variant) {
+  return `fighter-atlas-${variant.bodyType}`;
 }
 
-export function fighterPuppetTextureKey(appearance, id) {
-  return puppetSpriteKey(puppetVariant(appearance), id, appearance?.skinTone);
+export function fighterAtlasKey(appearance) {
+  return `${sourceAtlasKey(puppetVariant(appearance))}-${normalizeSkinTone(appearance?.skinTone)}`;
 }
 
 export function useFighterTextureRendering(image) {
-  // Phaser 4 puede mezclar los vértices de piezas con texturas distintas.
-  // El nodo individual evita recortes sin cambiar el batching del resto del HUD.
-  image.setRenderNodeRole?.("BatchHandler", "BatchHandlerQuadSingle");
+  // Las piezas de un atlas comparten textura. Las capas cosméticas independientes
+  // mantienen el nodo individual para evitar los recortes al mezclar texturas.
+  if (!image.texture?.key.startsWith("fighter-atlas-")) {
+    image.setRenderNodeRole?.("BatchHandler", "BatchHandlerQuadSingle");
+  }
   return image;
 }
 
@@ -109,16 +105,17 @@ export function fighterCombatPortraitLayout(appearance, flipped = false, radius 
 
 export function preparePlayerFighterTextures(scene, appearance) {
   const variant = puppetVariant(appearance);
-  const keys = variant.layers.filter(({ id }) => !isBaseOutfitPart(id)).map(({ id }) => fighterPuppetTextureKey(appearance, id));
-  colorizeFighterTextures(scene, keys, appearance?.skinTone);
+  const skinParts = variant.layers.map(({ id }) => id).filter(id => !isBaseOutfitPart(id));
+  colorizeFighterAtlas(scene, sourceAtlasKey(variant), fighterAtlasKey(appearance), skinParts, appearance?.skinTone);
 }
 
 export function queuePlayerFighterTextures(scene, appearance) {
   const variant = puppetVariant(appearance);
-  variant.layers.forEach(({ id, assetId = id }) => {
-    const key = puppetSpriteKey(variant, id, appearance?.skinTone);
-    if (!scene.textures.exists(key)) scene.load.image(key, isBaseOutfitPart(id) ? baseOutfitAsset(appearance?.bodyType,id) : `${variant.root}/${assetId}.png?v=${id === "cabeza" && variant.id === "man" ? "0.150.0" : "0.108.0"}`);
-  });
+  const key = sourceAtlasKey(variant);
+  if (!scene.textures.exists(key)) {
+    const url = `assets/modular/atlases/${variant.bodyType}`;
+    scene.load.atlas(key, `${url}.png?v=1.0.0`, `${url}.json?v=1.0.0`);
+  }
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
     scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.137.0" : "0.141.0"}`);
@@ -141,8 +138,7 @@ function createJoint(scene, parent, name, point, parentPoint = { x: 0, y: 0 }) {
 
 function addPart(scene, parent, variant, id, parentPoint = { x: 0, y: 0 }) {
   const part = variant.byId[id];
-  const image = scene.add.image(part.x - parentPoint.x, part.y - parentPoint.y, puppetSpriteKey(variant, id, variant.skinTone));
-  useFighterTextureRendering(image);
+  const image = scene.add.image(part.x - parentPoint.x, part.y - parentPoint.y, variant.atlasKey, id);
   if (part.scaleX || part.scaleY) image.setScale(part.scaleX || 1, part.scaleY || part.scaleX || 1);
   if (part.restRotation) image.setAngle(part.restRotation);
   image.name = id;
@@ -281,15 +277,13 @@ export async function playEarthWallCast(scene, fighter) {
 
 export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   preparePlayerFighterTextures(scene, appearance);
-  const variant = { ...puppetVariant(appearance), skinTone: normalizeSkinTone(appearance?.skinTone) };
+  const variant = { ...puppetVariant(appearance), atlasKey: fighterAtlasKey(appearance) };
   const spriteJoints = variant.joints;
   const shadow = scene.add.ellipse(x, y + MAN_SPRITE_SHADOW_OFFSET, 158, 22, 0x000000, 0.4).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);
   if (flipped) body.setScale(-1, 1);
   const rig = scene.add.container(variant.combat.x, variant.combat.y).setScale(variant.combat.scale);
   body.add(rig);
-  const linear = globalThis.Phaser?.Textures?.FilterMode?.LINEAR ?? 0;
-  variant.layers.forEach(({ id }) => scene.textures.get(puppetSpriteKey(variant, id, variant.skinTone)).setFilter(linear));
 
   const joints = {};
   const layers = [];

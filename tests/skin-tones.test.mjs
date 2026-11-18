@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { SKIN_TONES, normalizeSkinTone, colorizeSkinPixels, skinPalette, skinToneIndex } from "../src/skin-tones.js";
 import { createCharacter, createDefaultSave, normalizeSave, writeSave, loadSave, selectSaveSlot, derivedStats } from "../src/save.js";
-import { fighterPuppetTextureKey } from "../src/fighters.js";
+import { fighterAtlasKey } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 
 assert.deepEqual(SKIN_TONES.map(tone => tone.id), ["muy-claro", "claro", "dorado", "medio", "oliva", "canela", "moreno", "oscuro", "ebano"]);
@@ -42,6 +42,6 @@ for (const tone of SKIN_TONES) {
 assert.notDeepEqual(skinPalette("claro"), skinPalette("moreno"));
 assert.ok(SKIN_TONES.every((tone, index) => index === 0 || tone.colors[6][0] < SKIN_TONES[index - 1].colors[6][0]), "La escala debe oscurecerse de forma progresiva");
 for (const bodyType of ["male", "female"]) {
-  assert.notEqual(fighterPuppetTextureKey({ bodyType, skinTone: "claro" }, "cabeza"), fighterPuppetTextureKey({ bodyType, skinTone: "moreno" }, "cabeza"), "Los rivales no comparten una textura mutable");
+  assert.notEqual(fighterAtlasKey({ bodyType, skinTone: "claro" }), fighterAtlasKey({ bodyType, skinTone: "moreno" }), "Los rivales no comparten una textura mutable");
 }
 console.log("Tonos de piel: paletas naturales, migración, partidas y texturas independientes correctas.");

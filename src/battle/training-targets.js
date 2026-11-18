@@ -51,7 +51,7 @@ export function mountGroupTimeline(scene) {
   const { start, trackY } = HUD_ART.timeline;
   scene.enemyTimelineTag.bg.setVisible(false); scene.enemyTimelineTag.text.setVisible(false);
   scene.groupMarkers = scene.trainingTargets.map((target, index) => {
-    const marker = index === 0 ? scene.enemyTurnMarker : scene.add.image(start, trackY, scene.enemyTurnMarker.texture.key).setDisplaySize(18, 28);
+    const marker = index === 0 ? scene.enemyTurnMarker : scene.add.image(start, trackY, scene.enemyTurnMarker.texture.key, scene.enemyTurnMarker.frame.name).setDisplaySize(18, 28);
     const halo = index === 0 ? scene.enemyMarkerHalo : scene.add.circle(start, trackY, 15, 0x07101d, 1);
     marker.setDisplaySize(18, 28);
     const label = scene.add.text(start, trackY + 21, String(index + 1), scene.textStyle(10, "#ffe1a4", "800")).setOrigin(.5);

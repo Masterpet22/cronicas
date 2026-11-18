@@ -1,6 +1,6 @@
 # Plan de optimización del juego
 
-18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Cursor, pausa, animaciones y HUD actualizados
+18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Cursor, pausa, animaciones, HUD y atlas de combatientes actualizados
 
 La prioridad es recuperar una respuesta fluida del cursor al jugar y al abrir ventanas, empezando por la pausa. El trabajo cubre el navegador en ordenador y tablet. El objetivo de la primera ronda es reducir la carga dentro de Phaser 4 y de la interfaz HTML, con mediciones comparables para cada cambio.
 
@@ -67,11 +67,25 @@ Las cifras son medianas de las tres repeticiones. El tiempo de Muro Pétreo mide
 
 ## 4. Agrupar texturas en atlas
 
-- Hacer un piloto con las piezas que los combatientes dibujan juntos. Mantener un mapa de nombres, recortes, origen y orden de capas. Prever variantes de piel y ropa sin duplicar toda la hoja por cada combinación. Separar fondos grandes y efectos que se cargan ocasionalmente. Las secuencias que ya son hojas de sprites se evalúan aparte.
-- Generar atlas pequeños por familia y cargar solo los necesarios. Mantener el alfa, los anclajes y el orden de las piezas en ambos cuerpos, así como la coleta y los tonos de piel. Verificar el Dojo, el combate, los viajes y los retratos, con WebGL y Canvas.
-- Comparar cambios de textura, llamadas de dibujo, tiempo de primera carga y memoria estimada de texturas decodificadas. Conservar el piloto si reduce el coste que se midió y mantiene el presupuesto de memoria en tablet.
+Cada cuerpo carga un atlas con sus 14 piezas de piel y atuendo. El juego prepara una variante por cuerpo y tono usados, con el tinte aplicado a los fotogramas de piel. Las caras y el pelo siguen siendo capas con su carga propia, según las selecciones de la partida. Las piezas conservan su tamaño, alfa, anclajes y orden. Los retratos y los marcadores usan el fotograma de cabeza del mismo atlas.
 
-[Carga de combatientes](../src/fighters.js) · [Rigs](../src/character-rigs.js) · [Validación artística](VALIDACION_PLANTILLA_ARTISTICA.md)
+Los atlas base miden 768 × 937 y 768 × 897. PNG y manifiesto suman 568 kB y 508 kB, frente a 741 kB y 676 kB de los PNG individuales de cada cuerpo. Las fuentes de arte también sirven al creador y al metajuego. Para regenerar las hojas, ejecutar `python scripts/pack-fighter-atlases.py` con Pillow y Node instalados.
+
+### Antes y después de los atlas en el Dojo
+
+Tres repeticiones por versión a partir de `67bcbab`. Se usaron las mismas tres rondas, ventana de 1440 × 900 y canvas de 960 × 540 de la prueba anterior, con Chromium headless y SwiftShader. Se instrumentaron las llamadas de dibujo WebGL en ambos lados. Una repetición de la base tuvo una variación en el daño. Coincidieron los turnos y objetivos.
+
+| Medida | Antes | Después |
+| --- | ---: | ---: |
+| Texturas por combatiente, incluidas las cosméticas | 15–16 | 2–3 |
+| Llamadas de dibujo WebGL por fotograma, escena completa | 93,49 | 38,33 |
+| CPU medida por paso de Phaser | 7,60 ms | 6,89 ms |
+| FPS del navegador | 16,43 | 16,30 |
+| p95 del intervalo entre fotogramas | 66,7 ms | 66,7 ms |
+
+Las llamadas de dibujo bajaron un 59 % y el tiempo de CPU por paso un 9 %. La cadencia de fotogramas quedó prácticamente igual en SwiftShader. La prueba de rendimiento se hizo con WebGL por software. La comprobación de compatibilidad cubre Canvas y WebGL.
+
+[Carga de combatientes](../src/fighters.js) · [Generador de atlas](../scripts/pack-fighter-atlases.py) · [Rigs](../src/character-rigs.js)
 
 ## 5. Reutilizar efectos y objetos
 

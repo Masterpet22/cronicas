@@ -41,7 +41,7 @@ import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "..
 import { PuppetAnimationController } from "../src/animations/controller.js";
 import { validateAnimationCatalog } from "../src/animations/schema.js";
 import { animationClipDuration, createKeyframeSampler, sampleAnimationPose } from "../src/animations/runtime.js";
-import { createPlayerFighter, fighterFaceTextureKey, fighterHairPortraitLayout, fighterPuppetTextureKey, MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, WOMAN_SPRITE_JOINTS, WOMAN_SPRITE_LAYERS, playEarthWallCast, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
+import { createPlayerFighter, fighterFaceTextureKey, fighterHairPortraitLayout, fighterAtlasKey, MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, WOMAN_SPRITE_JOINTS, WOMAN_SPRITE_LAYERS, playEarthWallCast, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 import { fighterCombatPortraitLayout } from "../src/fighters.js";
 
@@ -68,10 +68,10 @@ assert.equal(playerApp.clothColor, "#e64c3c");
 const loaded = [];
 const mockScene = {
   textures: { exists: (k) => loaded.includes(k) },
-  load: { image: (k, url) => loaded.push(k) }
+  load: { image: k => loaded.push(k), atlas: k => loaded.push(k) }
 };
 assert.equal(queuePlayerFighterTextures(mockScene, playerApp), "modular", "El cuerpo masculino debe usar los sprites modulares");
-assert.equal(loaded.length, 16, "Deben cargarse las catorce partes del cuerpo, el rostro y el peinado elegidos");
+assert.equal(loaded.length, 3, "Un atlas contiene el cuerpo y el atuendo. Cargar también el rostro y el peinado elegidos");
 assert.ok(loaded.includes("player-face-claro-angry"), "El rostro elegido debe cargarse como una capa independiente por tono");
 assert.equal(fighterFaceTextureKey({ face: 3, skinTone: "moreno" }), "player-face-moreno-happy", "Cada selección debe resolver su propia textura de rostro y tono");
 assert.ok(!loaded.includes("player-head-corto"), "El retrato debe dibujar el cabello con la misma capa que el combatiente");
@@ -86,30 +86,38 @@ assert.deepEqual(
   "La coleta debe conservar su posición en retratos reflejados"
 );
 assert.equal(fighterHairPortraitLayout(0, 42, 64), null, "El retrato sin peinado no debe crear una capa de cabello");
-assert.equal(fighterPuppetTextureKey({ bodyType: "female" }, "cabeza"), "player-woman-claro-cabeza", "Los retratos femeninos deben usar su propia cabeza y tono");
+assert.equal(fighterAtlasKey({ bodyType: "female" }), "fighter-atlas-female-claro", "Los retratos femeninos deben usar su propia cabeza y tono");
 assert.deepEqual(
   Object.fromEntries(Object.entries(fighterHairPortraitLayout(1, 42, 64, false, "female")).map(([key, value]) => [key, Number(value.toFixed(2))])),
   { x: 1.09, y: -15.89, width: 45.72, height: 38.86 },
   "El cabello debe conservar su encaje relativo al pasar al rig femenino"
 );
 const shortHairLoaded = [];
-queuePlayerFighterTextures({ textures: { exists: (key) => shortHairLoaded.includes(key) }, load: { image: (key) => shortHairLoaded.push(key) } }, { ...playerApp, hair: 1, bodyType: "female" });
+queuePlayerFighterTextures({ textures: { exists: (key) => shortHairLoaded.includes(key) }, load: { image: key => shortHairLoaded.push(key), atlas: key => shortHairLoaded.push(key) } }, { ...playerApp, hair: 1, bodyType: "female" });
 assert.ok(shortHairLoaded.includes("player-hair-corto"), "Corto debe cargarse también para el cuerpo femenino");
-assert.ok(shortHairLoaded.includes("player-woman-claro-torso"), "El perfil femenino debe cargar la marioneta femenina");
-assert.ok(!shortHairLoaded.includes("player-man-claro-torso"), "El perfil femenino no debe cargar el torso masculino");
+assert.ok(shortHairLoaded.includes("fighter-atlas-female"), "El perfil femenino debe cargar la marioneta femenina");
+assert.ok(!shortHairLoaded.includes("fighter-atlas-male"), "El perfil femenino no debe cargar el torso masculino");
 const ponytailLoaded = [];
-queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.includes(key) }, load: { image: (key) => ponytailLoaded.push(key) } }, { ...playerApp, hair: 4, bodyType: "male" });
+queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.includes(key) }, load: { image: key => ponytailLoaded.push(key), atlas: key => ponytailLoaded.push(key) } }, { ...playerApp, hair: 4, bodyType: "male" });
 assert.ok(ponytailLoaded.includes("player-hair-coleta"), "Coleta debe cargarse también para el cuerpo masculino");
 assert.ok(ponytailLoaded.includes("player-tail-coleta"), "La cola trasera debe cargarse como una textura independiente");
 const baldLoaded = [];
-queuePlayerFighterTextures({ textures: { exists: (key) => baldLoaded.includes(key) }, load: { image: (key) => baldLoaded.push(key) } }, { ...playerApp, hair: 0 });
-assert.equal(baldLoaded.length, 15, "La variante sin cabello debe cargar las catorce piezas y el rostro");
+queuePlayerFighterTextures({ textures: { exists: (key) => baldLoaded.includes(key) }, load: { image: key => baldLoaded.push(key), atlas: key => baldLoaded.push(key) } }, { ...playerApp, hair: 0 });
+assert.equal(baldLoaded.length, 2, "La variante sin cabello debe cargar el atlas y el rostro");
 assert.ok(!baldLoaded.some((key) => key.startsWith("player-hair-")), "La variante sin cabello no debe encolar una textura de peinado");
 assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [
   "antebrazo_derecho", "antebrazo_izquierdo", "brazo_derecho", "brazo_izquierdo", "cabeza", "mano_derecha", "mano_izquierda",
   "muslo_derecho", "muslo_izquierdo", "pie_derecho", "pie_izquierdo", "pierna_derecha", "pierna_izquierda", "torso"
 ].sort(), "La composición debe incluir todas las capas exportadas");
 assert.deepEqual(WOMAN_SPRITE_LAYERS.map(({ id }) => id).sort(), MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), "La marioneta femenina debe cubrir el mismo esqueleto articulado");
+for (const [body, layers] of [["male", MAN_SPRITE_LAYERS], ["female", WOMAN_SPRITE_LAYERS]]) {
+  const atlas = JSON.parse(readFileSync(new URL(`../assets/modular/atlases/${body}.json`, import.meta.url), "utf8"));
+  assert.deepEqual(Object.keys(atlas.frames).sort(), layers.map(({ id }) => id).sort());
+  for (const { id, width, height } of layers) {
+    const { frame, rotated, trimmed } = atlas.frames[id];
+    assert.deepEqual([frame.w, frame.h, rotated, trimmed], [width, height, false, false], `${body}: ${id} conserva su geometría`);
+  }
+}
 assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho").assetId, undefined, "El rig nuevo debe usar el nombre anatomico correcto sin intercambiar recursos");
 assert.deepEqual(WOMAN_SPRITE_JOINTS.neck, { x: -21.784863, y: -261.418351 }, "El cuerpo femenino debe usar el cuello calibrado en Kinetra");
 assert.deepEqual(WOMAN_SPRITE_JOINTS.ankleRight, { x: -147.047822, y: 567.512689 }, "El tobillo femenino debe conservar el anclaje de Kinetra");
@@ -148,7 +156,7 @@ assert.equal(rightUpperArm.assetId, undefined, "El PNG superior derecho nuevo de
 assert.equal(leftUpperArm.assetId, undefined, "El PNG superior izquierdo nuevo debe respetar su nombre anatomico");
 assert.ok(MAN_SPRITE_JOINTS.shoulderRight.x < 0 && MAN_SPRITE_JOINTS.hipRight.x < 0, "Las articulaciones derechas deben coincidir con brazo, mano y pierna derechos");
 assert.ok(MAN_SPRITE_SHADOW_OFFSET > 0 && MAN_SPRITE_SHADOW_OFFSET <= 82, "La sombra debe permanecer cerca de los pies de la marioneta modular");
-assert.match(readFileSync(new URL("../src/fighters.js", import.meta.url), "utf8"), /FilterMode\?\.LINEAR/, "Las ilustraciones modulares deben usar filtrado lineal y no pixel art");
+assert.match(readFileSync(new URL("../src/battle/skin-textures.js", import.meta.url), "utf8"), /FilterMode\?\.LINEAR/, "Las ilustraciones modulares deben usar filtrado lineal y no pixel art");
 
 const makeTransform = () => {
   const target = { calls: [] };

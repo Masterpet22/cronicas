@@ -1,0 +1,151 @@
+{
+  "frames": {
+    "torso": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 255,
+        "h": 477
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "muslo_derecho": {
+      "frame": {
+        "x": 261,
+        "y": 2,
+        "w": 161,
+        "h": 293
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "muslo_izquierdo": {
+      "frame": {
+        "x": 426,
+        "y": 2,
+        "w": 163,
+        "h": 290
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "pierna_derecha": {
+      "frame": {
+        "x": 593,
+        "y": 2,
+        "w": 115,
+        "h": 251
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "pierna_izquierda": {
+      "frame": {
+        "x": 2,
+        "y": 483,
+        "w": 111,
+        "h": 244
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "brazo_izquierdo": {
+      "frame": {
+        "x": 117,
+        "y": 483,
+        "w": 106,
+        "h": 236
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "cabeza": {
+      "frame": {
+        "x": 227,
+        "y": 483,
+        "w": 194,
+        "h": 234
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "brazo_derecho": {
+      "frame": {
+        "x": 425,
+        "y": 483,
+        "w": 117,
+        "h": 227
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "antebrazo_derecho": {
+      "frame": {
+        "x": 546,
+        "y": 483,
+        "w": 89,
+        "h": 210
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "antebrazo_izquierdo": {
+      "frame": {
+        "x": 639,
+        "y": 483,
+        "w": 88,
+        "h": 205
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "mano_izquierda": {
+      "frame": {
+        "x": 2,
+        "y": 731,
+        "w": 113,
+        "h": 164
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "mano_derecha": {
+      "frame": {
+        "x": 119,
+        "y": 731,
+        "w": 113,
+        "h": 162
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "pie_derecho": {
+      "frame": {
+        "x": 236,
+        "y": 731,
+        "w": 131,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false
+    },
+    "pie_izquierdo": {
+      "frame": {
+        "x": 371,
+        "y": 731,
+        "w": 168,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": false
+    }
+  },
+  "meta": {
+    "size": {
+      "w": 768,
+      "h": 897
+    },
+    "padding": 2
+  }
+}
