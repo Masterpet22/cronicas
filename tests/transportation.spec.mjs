@@ -15,7 +15,7 @@ test("la evasión usa el objeto elegido y la salida por nivel comparte sus tiemp
     const { BattleActionMethods } = await import("/src/battle/scenes/battle-actions.js?v=1.4.0");
     const { playLevelUpFlash } = await import("/src/battle/level-up-transition.js?v=1.4.0");
     const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
-    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");
+    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.2.0");
     return new Promise(resolve => {
       const host = document.createElement("div"); document.body.append(host);
       let game;
@@ -74,7 +74,7 @@ test("los tres objetos cumplen el orden de seis pasos y la interrupción libera 
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   const results = await page.evaluate(async () => {
-    const { playTeleportTransition, queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");
+    const { playTeleportTransition, queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.2.0");
     const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
     const render = object => new Promise(resolve => {
       const host = document.createElement("div");
@@ -181,7 +181,7 @@ test("el cambio al segundo encuentro respeta su configuración de transportació
   const result = await page.evaluate(async () => {
     const { BattleFlowMethods } = await import("/src/battle/scenes/battle-flow.js?v=1.2.0");
     const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
-    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");
+    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.2.0");
     return new Promise(resolve => {
       const host = document.createElement("div"); document.body.append(host);
       let game;

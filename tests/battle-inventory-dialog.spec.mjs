@@ -27,6 +27,18 @@ test("el navegador muestra el kunai dentro y fuera de los modales y respeta la c
     document.getElementById("first").showModal();
   });
   await expect(page.locator("#first button")).toHaveCSS("cursor", kunai);
+  expect(await page.locator("#first").evaluate(dialog => {
+    const button = dialog.querySelector("button");
+    const fire = x => {
+      button.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerType: "mouse", clientX: x }));
+      return dialog.querySelector(".game-cursor-click:last-child");
+    };
+    const first = fire(20);
+    const overlapping = fire(40);
+    first.dispatchEvent(new Event("animationend"));
+    const reused = fire(60);
+    return { independent: first !== overlapping, reused: reused === first, position: reused.style.left };
+  })).toEqual({ independent: true, reused: true, position: "60px" });
   await page.evaluate(() => document.getElementById("second").showModal());
   await expect(page.locator("#second button")).toHaveCSS("cursor", kunai);
   await page.evaluate(() => document.getElementById("second").close());

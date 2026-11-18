@@ -15,8 +15,9 @@ export function installGameCursor(root = document.querySelector("main")) {
   if (!root || !finePointer.matches) return () => {};
 
   const refreshBusyState = () => root.classList.toggle("is-game-cursor-busy", hasVisibleBusyState(root));
-  const burst = event => {
-    if (event.button !== 0 || event.pointerType !== "mouse" || !finePointer.matches) return;
+  const idleBursts = [];
+  const activeBursts = new Set();
+  const makeBurst = () => {
     const effect = document.createElement("img");
     effect.className = "game-cursor-click";
     effect.src = "assets/ui/cursor/click-burst.png?v=0.1.0";
@@ -25,14 +26,24 @@ export function installGameCursor(root = document.querySelector("main")) {
     effect.height = 96;
     effect.draggable = false;
     effect.setAttribute("aria-hidden", "true");
+    return effect;
+  };
+  const burst = event => {
+    if (event.button !== 0 || event.pointerType !== "mouse" || !finePointer.matches) return;
+    const effect = idleBursts.pop() || makeBurst();
     effect.style.left = `${event.clientX}px`;
     effect.style.top = `${event.clientY}px`;
     (event.target.closest("dialog:modal") || document.body).append(effect);
-    const timeout = window.setTimeout(() => effect.remove(), 500);
-    effect.addEventListener("animationend", () => {
+    const finish = () => {
+      if (!activeBursts.delete(finish)) return;
       window.clearTimeout(timeout);
+      effect.removeEventListener("animationend", finish);
       effect.remove();
-    }, { once: true });
+      if (idleBursts.length < 4) idleBursts.push(effect);
+    };
+    const timeout = window.setTimeout(finish, 500);
+    activeBursts.add(finish);
+    effect.addEventListener("animationend", finish);
   };
 
   root.classList.add("has-game-cursor");
@@ -54,6 +65,8 @@ export function installGameCursor(root = document.querySelector("main")) {
     observer.disconnect();
     if (busyFrame) cancelAnimationFrame(busyFrame);
     root.removeEventListener("pointerdown", burst, true);
+    for (const finish of activeBursts) finish();
+    idleBursts.length = 0;
     root.classList.remove("has-game-cursor", "is-game-cursor-busy");
   };
 }

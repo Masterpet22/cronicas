@@ -1,5 +1,5 @@
 import { HEIGHT, Phaser } from "./runtime.js?v=0.91.0";
-import { teleportDeparture } from "./teleport-transition.js?v=1.1.0";
+import { teleportDeparture } from "./teleport-transition.js?v=1.2.0";
 import { applyFillTint } from "./phaser-compat.js?v=1.0.0";
 import { isSceneActive } from "./scene-lifecycle.js?v=1.0.0";
 
@@ -19,7 +19,7 @@ const tween = (scene, config) => new Promise((resolve) => {
   });
 });
 
-export { teleportSmoke as playTeleportSmoke } from "./teleport-transition.js?v=1.1.0";
+export { teleportSmoke as playTeleportSmoke } from "./teleport-transition.js?v=1.2.0";
 
 export async function playLevelUpFlash(scene, fighter) {
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;

@@ -1,5 +1,6 @@
 import { teleportObject, TELEPORT_OBJECTS } from "../teleport-objects.js";
 import { HEIGHT, WIDTH } from "./runtime.js?v=0.91.0";
+import { acquireEffect } from "./effect-pool.js?v=1.0.0";
 
 export function queueTeleportObjects(scene) {
   TELEPORT_OBJECTS.forEach(object => {
@@ -38,25 +39,45 @@ function wait(scene, duration) {
   });
 }
 
+function smokeTexture(scene, reduced) {
+  const key = reduced ? "teleport-cloud-reduced" : "teleport-cloud";
+  if (scene.textures.exists(key)) return key;
+  const texture = scene.textures.createCanvas(key, 256, 256);
+  const context = texture.context;
+  const puff = (x, y, radius, color, alpha) => {
+    context.fillStyle = color;
+    context.globalAlpha = alpha;
+    context.beginPath();
+    context.arc(128 + x, 128 + y, radius, 0, Math.PI * 2);
+    context.fill();
+  };
+  const colors = ["#e8edef", "#c4cfd5", "#a4b1b9"];
+  const count = reduced ? 7 : 13;
+  for (let index = 0; index < count; index += 1) {
+    const angle = index * Math.PI * 2 / count;
+    puff(Math.cos(angle) * 57, Math.sin(angle) * 59, 34 + index % 3 * 6, colors[index % 3], .94);
+  }
+  puff(0, 0, 67, "#d9e1e5", .98);
+  context.globalAlpha = 1;
+  texture.refresh();
+  return key;
+}
+
 export async function teleportSmoke(scene, x, y, onCovered = () => {}, { pace = "travel", arrival = false } = {}) {
   const reduced = reducedMotion();
   const quick = pace === "substitution";
   const durationIn = quick ? (arrival ? SUBSTITUTION_TIMING.arrivalIn : SUBSTITUTION_TIMING.smokeIn) : reduced ? 90 : 170;
   const durationOut = quick ? (arrival ? SUBSTITUTION_TIMING.arrivalOut : SUBSTITUTION_TIMING.smokeOut) : reduced ? 150 : 340;
-  const cloud = scene.add.container(x, y).setDepth(92).setAlpha(0).setScale(.4).setName("teleport-smoke");
-  const count = reduced ? 7 : 13;
-  for (let index = 0; index < count; index += 1) {
-    const angle = index * Math.PI * 2 / count;
-    cloud.add(scene.add.circle(Math.cos(angle) * 57, Math.sin(angle) * 59, 34 + index % 3 * 6,
-      [0xe8edef, 0xc4cfd5, 0xa4b1b9][index % 3], .94));
-  }
-  cloud.add(scene.add.circle(0, 0, 67, 0xd9e1e5, .98));
+  const texture = smokeTexture(scene, reduced);
+  const { objects: [cloud], release } = acquireEffect(scene, "teleport-smoke",
+    () => [scene.add.image(x, y, texture).setDepth(92).setName("teleport-smoke")]);
+  cloud.setTexture(texture).setPosition(x, y).setAlpha(0).setScale(.4);
   try {
     if (!await animate(scene, { targets: cloud, alpha: 1, scale: 1, duration: durationIn, ease: "Cubic.out" })) return false;
     onCovered();
     return await animate(scene, { targets: cloud, alpha: 0, scale: reduced ? 1.08 : 1.4, y: y - 22,
       duration: durationOut, ease: "Sine.out" });
-  } finally { destroy(cloud); }
+  } finally { release(); }
 }
 
 export async function teleportDeparture(scene, fighter, objectId = "log", { pace = "travel", leaveObject = true } = {}) {
@@ -64,7 +85,7 @@ export async function teleportDeparture(scene, fighter, objectId = "log", { pace
   const quick = pace === "substitution";
   const x = fighter.body.x;
   const groundY = fighter.shadow.y + 8;
-  let prop;
+  let prop, releaseProp;
   let grow;
   stage(scene, "departure-smoke", object);
   try {
@@ -72,8 +93,12 @@ export async function teleportDeparture(scene, fighter, objectId = "log", { pace
       fighter.body.setAlpha(0);
       fighter.shadow.setAlpha(0);
       if (!leaveObject) return;
-      prop = scene.add.image(x, groundY, object.texture).setOrigin(.5, 1)
-        .setDisplaySize(object.width, object.height).setDepth(85).setName("teleport-object");
+      const lease = acquireEffect(scene, "teleport-prop", () => [
+        scene.add.image(x, groundY, object.texture).setOrigin(.5, 1).setDepth(85).setName("teleport-object")
+      ]);
+      [prop] = lease.objects;
+      releaseProp = lease.release;
+      prop.setTexture(object.texture).setPosition(x, groundY).setDisplaySize(object.width, object.height).setAlpha(1);
       if (quick) {
         const scaleX = prop.scaleX;
         const scaleY = prop.scaleY;
@@ -87,10 +112,10 @@ export async function teleportDeparture(scene, fighter, objectId = "log", { pace
     if (!await wait(scene, quick ? SUBSTITUTION_TIMING.objectHold : reducedMotion() ? 180 : 420)) return false;
     if (!await animate(scene, { targets: prop, alpha: 0, scaleX: prop.scaleX * .72, scaleY: prop.scaleY * .72,
       duration: quick ? SUBSTITUTION_TIMING.objectOut : reducedMotion() ? 110 : 200, ease: "Sine.in" })) return false;
-    destroy(prop);
+    releaseProp();
     stage(scene, "object-disappears", object);
     return true;
-  } finally { destroy(prop); }
+  } finally { releaseProp?.(); }
 }
 
 export async function teleportArrival(scene, fighter, { bodyAlpha = 1, shadowAlpha = .16, pace = "travel" } = {}) {

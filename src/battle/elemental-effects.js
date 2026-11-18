@@ -1,4 +1,5 @@
 import { Phaser } from "./runtime.js?v=0.91.0";
+import { acquireEffect } from "./effect-pool.js?v=1.0.0";
 
 const ELEMENT_FAMILIES = Object.freeze({
   fuego: "fuego", ceniza: "fuego", magma: "fuego",
@@ -57,7 +58,9 @@ export function showElementalImpact(scene, action, x, y, intensity = 1) {
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const lightweight = scene.lightMode || reducedMotion;
   const color = action.color || profile.color;
-  const glyph = scene.add.graphics({ x, y }).setDepth(17);
+  const { objects: [glyph], release: releaseGlyph } = acquireEffect(scene, "elemental-glyph",
+    () => [scene.add.graphics().setDepth(17)]);
+  glyph.clear().setPosition(x, y);
   drawImpactGlyph(glyph, profile.family, color);
   glyph.setScale(0.55 * intensity).setAlpha(0.9);
   scene.tweens.add({
@@ -66,11 +69,13 @@ export function showElementalImpact(scene, action, x, y, intensity = 1) {
     alpha: 0,
     duration: lightweight ? 190 : 400,
     ease: "Cubic.out",
-    onComplete: () => glyph.destroy()
+    onComplete: releaseGlyph
   });
   if (lightweight || !scene.textures.exists("preparation-mote")) return;
 
-  const emitter = scene.add.particles(0, 0, "preparation-mote", {
+  const { objects: [emitter], release: releaseEmitter } = acquireEffect(scene, "elemental-emitter",
+    () => [scene.add.particles(0, 0, "preparation-mote", { emitting: false }).setDepth(18)]);
+  emitter.setConfig({
     emitting: false,
     frequency: -1,
     lifespan: { min: 240, max: 450 },
@@ -82,17 +87,20 @@ export function showElementalImpact(scene, action, x, y, intensity = 1) {
     alpha: { start: 0.95, end: 0 },
     tint: [color, profile.highlight],
     blendMode: "ADD"
-  }).setDepth(18);
-  emitter.stop();
+  });
   emitter.emitParticleAt(x, y, Math.round(8 * intensity));
-  scene.time.delayedCall(500, () => { if (emitter.active) emitter.destroy(); });
+  scene.time.delayedCall(500, () => {
+    if (emitter.scene) emitter.killAll();
+    releaseEmitter();
+  });
 
   if (scene.game.renderer.type !== Phaser.WEBGL) return;
-  const glint = scene.add.image(x, y, "preparation-mote")
+  const { objects: [glint], release: releaseGlint } = acquireEffect(scene, "elemental-glint",
+    () => [scene.add.image(x, y, "preparation-mote").setDepth(19)]);
+  glint.setPosition(x, y)
     .setTint(profile.highlight)
     .setDisplaySize(18 * intensity, 18 * intensity)
-    .setAlpha(0.78)
-    .setDepth(19);
+    .setAlpha(0.78);
   glint.enableFilters().filters.internal.addGlow(color, 1.8, 0, 1, false, 4, 6);
   scene.tweens.add({
     targets: glint,
@@ -100,6 +108,6 @@ export function showElementalImpact(scene, action, x, y, intensity = 1) {
     alpha: 0,
     duration: 240,
     ease: "Quad.out",
-    onComplete: () => glint.destroy()
+    onComplete: () => { glint.filters.internal.clear(); releaseGlint(); }
   });
 }

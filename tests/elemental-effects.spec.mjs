@@ -37,7 +37,7 @@ test("los cinco impactos elementales funcionan en Canvas, WebGL y modo ligero", 
   const browserErrors = [];
   page.on("pageerror", (error) => browserErrors.push(error.message));
   const results = await page.evaluate(async () => {
-    const { elementalImpactProfile, showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.92.0");
+    const { elementalImpactProfile, showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.93.0");
     const { JUTSU_LIBRARY } = await import("/src/data.js?v=1.5.0");
     const unmappedElements = [...new Set(JUTSU_LIBRARY.filter((jutsu) => !elementalImpactProfile(jutsu.element)).map((jutsu) => jutsu.element))];
     const elements = ["fuego", "agua", "tierra", "viento", "rayo"];
@@ -66,7 +66,16 @@ test("los cinco impactos elementales funcionan en Canvas, WebGL y modo ligero", 
               const emitters = activeEmitters.length;
               const particles = activeEmitters.reduce((count, emitter) => count + emitter.getAliveParticleCount(), 0);
               const renderer = this.game.renderer.type;
-              this.time.delayedCall(600, () => finish({ filters, emitters, particles, renderer, remaining: this.children.list.length }));
+              const originalEffects = new Set(this.children.list);
+              this.time.delayedCall(600, () => {
+                const remaining = this.children.list.length;
+                showElementalImpact(this, { element: "agua" }, 120, 90);
+                const reused = this.children.list.length > 0 && this.children.list.every(effect => originalEffects.has(effect));
+                const reusedEmitter = this.children.list.find(object => object.type === "ParticleEmitter");
+                const reusedParticles = reusedEmitter?.getAliveParticleCount() || 0;
+                this.time.delayedCall(600, () => finish({ filters, emitters, particles, renderer, remaining,
+                  reused, reusedParticles, remainingAfterReuse: this.children.list.length }));
+              });
             } catch (error) {
               game.destroy(true);
               parent.remove();
@@ -86,5 +95,8 @@ test("los cinco impactos elementales funcionan en Canvas, WebGL y modo ligero", 
   expect(results.canvas).toMatchObject({ filters: 0, emitters: 5, particles: 40, remaining: 0 });
   expect(results.light).toMatchObject({ filters: 0, emitters: 0, particles: 0, remaining: 0 });
   if (results.webgl) expect(results.webgl).toMatchObject({ filters: 5, emitters: 5, particles: 40, remaining: 0 });
+  for (const result of [results.canvas, results.light, results.webgl].filter(Boolean)) {
+    expect(result).toMatchObject({ reused: true, reusedParticles: result.emitters ? 8 : 0, remainingAfterReuse: 0 });
+  }
   expect(browserErrors).toEqual([]);
 });

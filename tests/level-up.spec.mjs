@@ -84,7 +84,7 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     const { createPlayerFighter, queuePlayerFighterTextures } = await import("/src/fighters.js?v=0.81.0");
     const { playerFighterAppearance } = await import("/src/character.js?v=0.76.0");
-    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.1.0");
+    const { queueTeleportObjects } = await import("/src/battle/teleport-transition.js?v=1.2.0");
     const { createCharacter, createDefaultSave, derivedStats, writeSave } = await import("/src/save.js?v=0.94.0");
     const seed = createCharacter(createDefaultSave(), { name: "Kira", affinity: "fuego", bodyType: "female", teleportObject: "dog" });
     seed.inventory.items.substitution_dog = 1;

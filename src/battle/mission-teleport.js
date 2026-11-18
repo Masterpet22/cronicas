@@ -1,7 +1,7 @@
 import { createPlayerFighter, destroyFighter } from "../fighters.js?v=0.148.0";
 import { playerFighterAppearance } from "../character.js?v=0.119.0";
 import { missionTravelPresentation } from "./mission-travel-presentation.js?v=0.96.0";
-import { playTeleportTransition } from "./teleport-transition.js?v=1.1.0";
+import { playTeleportTransition } from "./teleport-transition.js?v=1.2.0";
 import { BATTLE_ARENAS, HEIGHT, WIDTH, battleRuntime, sharpenTextTree } from "./runtime.js?v=0.91.0";
 
 export async function playMissionTeleport(scene, data) {

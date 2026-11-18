@@ -20,13 +20,13 @@ import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRe
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { encounterRecovery } from "../../progression-balance.js?v=0.94.0";
-import { playLevelUpFlash } from "../level-up-transition.js?v=1.5.0";
+import { playLevelUpFlash } from "../level-up-transition.js?v=1.6.0";
 import { playBossPhaseTransition } from "../phase-transition.js?v=0.97.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { createTravelProgress } from "../travel-progress.js?v=1.0.0";
 import { missionTravelPresentation } from "../mission-travel-presentation.js?v=0.96.0";
 import { missionTransitionMode } from "../../mission-transitions.js";
-import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../teleport-transition.js?v=1.1.0";
+import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../teleport-transition.js?v=1.2.0";
 
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";

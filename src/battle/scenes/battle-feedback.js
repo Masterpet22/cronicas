@@ -23,6 +23,7 @@ import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.140.0";
 import { consumeBattleItem } from "../battle-inventory.js?v=0.147.0";
+import { acquireEffect } from "../effect-pool.js?v=1.0.0";
 
 const statusGlyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guard: "守", poison: "毒", slow: "鈍", seal: "封" };
 const statusColors = { burn: 0xe57343, bleed: 0xc6534f, stun: 0xe0bd55, soak: 0x59b9d1, guard: 0x8fb39f, poison: 0x9d7ab6, slow: 0x7790a4 };
@@ -37,10 +38,14 @@ function fitHudName(name, text) {
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {
-    const ring = this.add.circle(x, y, 12, color, 0.26).setStrokeStyle(7, color, 1).setDepth(15);
-    const slash = this.add.rectangle(x, y, 145 * scale, 10, 0xffffff, 0.94).setAngle(-32).setDepth(16);
-    this.tweens.add({ targets: ring, radius: 72 * scale, alpha: 0, duration: 260, onComplete: () => ring.destroy() });
-    this.tweens.add({ targets: slash, scaleX: 0.2, alpha: 0, duration: 220, onComplete: () => slash.destroy() });
+    const { objects: [ring], release: releaseRing } = acquireEffect(this, "impact-ring",
+      () => [this.add.circle(x, y, 12).setDepth(15)]);
+    const { objects: [slash], release: releaseSlash } = acquireEffect(this, "impact-slash",
+      () => [this.add.rectangle(x, y, 145, 10, 0xffffff, 0.94).setAngle(-32).setDepth(16)]);
+    ring.setPosition(x, y).setRadius(12).setFillStyle(color, 0.26).setStrokeStyle(7, color, 1).setAlpha(1);
+    slash.setPosition(x, y).setSize(145 * scale, 10).setScale(1).setAlpha(1);
+    this.tweens.add({ targets: ring, radius: 72 * scale, alpha: 0, duration: 260, onComplete: releaseRing });
+    this.tweens.add({ targets: slash, scaleX: 0.2, alpha: 0, duration: 220, onComplete: releaseSlash });
   }
 
   flashFighter(fighter) {
@@ -89,37 +94,48 @@ export class BattleFeedbackMethods {
   }
 
   floatHealthLoss(x, y, amount) {
-    const icon = createUiIcon(this, "healthLoss", x - 19, y, { size: 20, tint: 0xff4057, depth: 41 });
-    const label = this.add.text(x + 7, y, `-${amount}`, this.textStyle(30, "#ff4057", "800"))
-      .setOrigin(0.5).setDepth(41).setStroke("#35040b", 4);
+    const { objects, release } = acquireEffect(this, "health-loss-label", () => [
+      createUiIcon(this, "healthLoss", x - 19, y, { size: 20, tint: 0xff4057, depth: 41 }),
+      this.add.text(x + 7, y, "", this.textStyle(30, "#ff4057", "800"))
+        .setOrigin(0.5).setDepth(41).setStroke("#35040b", 4)
+    ]);
+    const [icon, label] = objects;
+    icon.setPosition(x - 19, y).setDisplaySize(20, 20).setAlpha(1);
+    label.setPosition(x + 7, y).setText(`-${amount}`).setScale(1).setAlpha(1);
     this.tweens.add({
-      targets: [icon, label],
+      targets: objects,
       y: y - 46,
       alpha: 0,
       scaleX: 1.12,
       scaleY: 1.12,
       duration: 820,
       ease: "Cubic.out",
-      onComplete: () => { icon.destroy(); label.destroy(); }
+      onComplete: release
     });
   }
 
   healthLossPulse(fighter) {
-    const pulse = this.add.circle(fighter.body.x, fighter.body.y - 18, 34, 0xff4057, 0.08)
-      .setStrokeStyle(4, 0xff4057, 0.72).setDepth(14);
+    const { objects: [pulse], release } = acquireEffect(this, "health-loss-pulse", () => [
+      this.add.circle(0, 0, 34, 0xff4057, 0.08).setStrokeStyle(4, 0xff4057, 0.72).setDepth(14)
+    ]);
+    pulse.setPosition(fighter.body.x, fighter.body.y - 18).setScale(1).setAlpha(1);
     this.tweens.add({
       targets: pulse,
       scale: 1.9,
       alpha: 0,
       duration: 320,
       ease: "Quad.out",
-      onComplete: () => pulse.destroy()
+      onComplete: release
     });
   }
 
   floatLabel(x, y, text, color) {
-    const label = this.add.text(x, y, text, this.textStyle(21, `#${color.toString(16).padStart(6, "0")}`, "800")).setOrigin(0.5).setDepth(40);
-    this.tweens.add({ targets: label, y: y - 32, alpha: 0, duration: 720, ease: "Cubic.out", onComplete: () => label.destroy() });
+    const labelColor = `#${color.toString(16).padStart(6, "0")}`;
+    const { objects: [label], release } = acquireEffect(this, "battle-label", () => [
+      this.add.text(x, y, "", this.textStyle(21, labelColor, "800")).setOrigin(0.5).setDepth(40)
+    ]);
+    label.setPosition(x, y).setColor(labelColor).setText(text).setAlpha(1);
+    this.tweens.add({ targets: label, y: y - 32, alpha: 0, duration: 720, ease: "Cubic.out", onComplete: release });
   }
 
   async finishBattle(won) {

@@ -19,7 +19,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     const { MISSIONS } = await import("/src/content/index.js");
     const { createPerformanceMonitor } = await import("/src/dev/performance-monitor.js?v=1.3.0");
     const { JUTSU_LIBRARY } = await import("/src/data.js?v=1.5.0");
-    const { showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.92.0");
+    const { showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.93.0");
     document.getElementById("light-mode").checked = lightMode;
     document.getElementById("manual-seals").checked = false;
     document.getElementById("music-enabled").checked = false;

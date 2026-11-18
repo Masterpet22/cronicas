@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { EventEmitter } from "node:events";
 import { BASE_ACTIONS, ENEMY_ACTIONS, JUTSU_LIBRARY } from "../src/data.js";
 import { closeActionState } from "../src/battle/action-resolution.js";
 import { actionInitiative, recoverySpeed } from "../src/battle/initiative.js";
@@ -20,6 +21,7 @@ function battle(count = 1) {
     pendingActions: { player: null, enemy: null }, timelineProgress: { player: 0, enemy: 0 },
     cooldowns: { other: 3 }, round: 1, turnReady: true, combatFeatures: { announcedActionIds: [] },
     eventsLog: [], ticks: 0, resultCalls: 0, rolls: [false, false], scene: { isActive: () => true },
+    events: new EventEmitter(),
     clearPreparationFeedback: noop, stopTurnTimeline: noop, setButtonsEnabled: noop,
     setTimelineMarkerState: noop, updateTimelineMarkers: noop, refreshHud: noop, startTurnCharge: noop,
     setMessage: noop, shake: noop, showPreparationFeedback: noop, playTimelineReadyBrush: noop,

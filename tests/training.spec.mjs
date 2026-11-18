@@ -277,6 +277,7 @@ test("el rival derrotado desaparece dentro de una nube de humo sin dejar objetos
       return result;
     };
     window.__retirement = s.retireGroupTargets();
+    window.__firstSmoke = s.children.getByName("teleport-smoke");
   });
   await expect.poll(() => page.evaluate(() => Boolean(window.__smokeCovered))).toBe(true);
   await page.screenshot({ path: testInfo.outputPath("dojo-defeat-smoke.png"), fullPage: true });
@@ -298,6 +299,11 @@ test("el rival derrotado desaparece dentro de una nube de humo sin dejar objetos
     window.__finalSmoke = s.finishBattle(true);
   });
   await expect.poll(() => page.evaluate(() => Boolean(window.__trainingGame.scene.getScene("battle").children.getByName("teleport-smoke")))).toBe(true);
+  expect(await page.evaluate(() => {
+    const s = window.__trainingGame.scene.getScene("battle");
+    const clouds = s.children.list.filter(child => child.name === "teleport-smoke");
+    return { simultaneous: clouds.length, reused: clouds.includes(window.__firstSmoke) };
+  })).toEqual({ simultaneous: 2, reused: true });
   await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toHaveCount(0);
   await page.evaluate(async () => {
     window.__trainingGame.scene.getScene("battle").tweens.timeScale = 1;

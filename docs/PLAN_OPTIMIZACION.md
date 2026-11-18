@@ -1,6 +1,6 @@
 # Plan de optimización del juego
 
-18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Cursor, pausa, animaciones, HUD y atlas de combatientes actualizados
+18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Cinco pasos de implementación aplicados
 
 La prioridad es recuperar una respuesta fluida del cursor al jugar y al abrir ventanas, empezando por la pausa. El trabajo cubre el navegador en ordenador y tablet. El objetivo de la primera ronda es reducir la carga dentro de Phaser 4 y de la interfaz HTML, con mediciones comparables para cada cambio.
 
@@ -89,9 +89,24 @@ Las llamadas de dibujo bajaron un 59 % y el tiempo de CPU por paso un 9 %. La ca
 
 ## 5. Reutilizar efectos y objetos
 
-- Medir primero qué se crea y destruye con mayor frecuencia. Empezar con el destello del clic, las etiquetas de daño y los impactos repetidos. Probar un conjunto pequeño con un límite fijo. Para el humo, comparar reutilizar una textura dibujada una vez con reconstruir todos sus círculos al aparecer.
-- Al devolver un efecto al conjunto, detener tweens, emisores, callbacks y temporizadores y restablecer posición, alfa, profundidad y estado. Vaciar el conjunto al desmontar una escena cuando los efectos le pertenezcan.
-- Repetir ataques, clics y reapariciones del Dojo. Verificar que el número de objetos se estabiliza, que no quedan efectos activos al salir y que cada efecto vuelve a verse completo al reutilizarlo.
+La reserva por escena conserva hasta cuatro efectos libres por tipo. Reutiliza etiquetas de daño y de estado, impactos, pulsos, glifos, emisores elementales, destellos y objetos de sustitución. Las instancias concurrentes se mantienen independientes. Al terminar cada efecto se retira de la lista de dibujo y al salir se destruyen los objetos de la escena. El cursor también conserva una reserva pequeña de destellos.
+
+El humo de derrota y transporte usa una textura compartida por modo de movimiento. En modo normal, cada aparición pasó de un contenedor y 14 círculos a una imagen reutilizable. Se mantuvo el momento en que desaparece el rival durante la nube.
+
+### Antes y después de reutilizar los efectos en el Dojo
+
+Tres repeticiones por versión a partir de `4e15a20`, con el recorrido de tres rondas contra tres rivales, ventana de 1440 × 900, canvas de 960 × 540 y Chromium headless con SwiftShader. Las creaciones son llamadas a las fábricas de objetos Phaser instrumentadas durante las rondas. El recorrido conserva turnos y objetivos. Hubo variación en el daño de una repetición por versión.
+
+| Medida | Antes | Después |
+| --- | ---: | ---: |
+| Objetos creados durante las tres rondas | 139 | 52 |
+| Creaciones durante la ronda de Golpe veloz | 21 | 0 |
+| CPU medida por paso de Phaser | 6,36 ms | 7,01 ms |
+| Llamadas de dibujo por fotograma | 38,32 | 38,32 |
+| FPS del navegador | 17,34 | 16,34 |
+| p95 del intervalo entre fotogramas | 66,7 ms | 66,7 ms |
+
+Se crearon un 63 % menos de objetos. La mediana de FPS quedó un fotograma por segundo por debajo de la base en este entorno. La prueba de rendimiento mide las rondas de ataque. La desaparición con humo y su reutilización se comprueban en la prueba de derrotas del Dojo.
 
 [Cursor y destello](../src/game-cursor.js) · [Impactos y etiquetas](../src/battle/scenes/battle-feedback.js) · [Humo](../src/battle/teleport-transition.js)
 

@@ -1,5 +1,5 @@
-import { TrainingBattleScene } from "./training-battle-scene.js?v=0.148.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.148.0";
+import { TrainingBattleScene } from "./training-battle-scene.js?v=0.149.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.149.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { trainingOpponentProfile } from "../../training.js?v=0.143.0";
 import { createPlayerFighter, startPlayerBreathing, startPlayerPreparing, stopPlayerBreathing, stopPlayerPreparing } from "../../fighters.js?v=0.148.0";
@@ -8,7 +8,7 @@ import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { combatantEvasion } from "../turn.js?v=1.4.0";
 import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { nextGroupTimelineStep } from "../group-timeline.js?v=0.143.0";
-import { teleportSmoke } from "../teleport-transition.js?v=1.1.0";
+import { teleportSmoke } from "../teleport-transition.js?v=1.2.0";
 import { physicalActionAvailable, actionHealthCost } from "../skill-tables.js?v=0.143.0";
 import { mountTrainingTargets, mountGroupTimeline, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.148.0";
 
