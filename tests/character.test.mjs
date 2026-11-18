@@ -267,7 +267,7 @@ const preparationFighter = {
 };
 startPlayerPreparing({}, preparationFighter);
 assert.ok(preparationRig.getIndex(rearArmBranch) > preparationRig.getIndex(preparationTorso), "La mano trasera debe pasar al frente mientras cruza el torso");
-stopPlayerPreparing({}, preparationFighter);
+stopPlayerPreparing({}, preparationFighter, { immediate: true });
 assert.equal(preparationRig.getIndex(rearArmBranch), 0, "La jerarquía anatómica original debe restaurarse al terminar la preparación");
 
 const controllerTarget = () => ({ x: 0, y: 0, angle: 0, scaleX: 1, scaleY: 1, alpha: 1 });

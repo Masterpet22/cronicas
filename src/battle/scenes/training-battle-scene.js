@@ -1,11 +1,11 @@
-import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.150.0";
+import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.152.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
 import { trainingActions, trainingDummyProfile } from "../../training.js?v=0.143.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";
 import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { META_ASSET_VERSION } from "../../asset-urls.js?v=0.115.0";
-import { stopPlayerBreathing } from "../../fighters.js?v=0.150.0";
+import { stopPlayerBreathing } from "../../fighters.js?v=0.152.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
 export class TrainingBattleScene extends ArenaBattleScene {
@@ -31,8 +31,8 @@ export class TrainingBattleScene extends ArenaBattleScene {
     this.encounters[this.enemyIndex] = dummy;
     return { ...createEnemyState(dummy, this.mission, this.saveData.campaign), evasion: -100, baseEvasion: -100 };
   }
-  createFighters() {
-    super.createFighters();
+  createFighters(enemyPosition) {
+    super.createFighters(enemyPosition);
     if (this.mission.training) {
       stopPlayerBreathing(this.foe);
       this.foe.layers.forEach(layer => layer.setTint(0xc89a60));

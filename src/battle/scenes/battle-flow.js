@@ -1,12 +1,12 @@
 import { actionHealthCost } from "../skill-tables.js?v=0.140.0";
 import { closeActionState, isFinalOpponent } from "../action-resolution.js?v=1.4.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
-import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.147.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.151.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.152.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -90,7 +90,7 @@ export class BattleFlowMethods {
     const playerAtStart = this.player;
     const current = () => !this.finished && this.player === playerAtStart && (this.scene?.isActive?.() !== false || this.scene?.isPaused?.());
     try {
-      this.clearPreparationFeedback(actor);
+      if (!action.seals?.length) this.clearPreparationFeedback(actor);
       this.stopTurnTimeline();
       this.timelinePaused = true;
       this.busy = true;
@@ -384,8 +384,7 @@ export class BattleFlowMethods {
       this.recordEnemyObservation({ encounter: true });
       this.enemyName.setText(profile.name);
       this.enemyRankNumber.setText(`NV ${this.enemyRankForProfile(profile)}`);
-      this.foe = createPlayerFighter(this, 810, 372, this.enemyAppearance(), true);
-      this.styleFighterGrounding(this.foe);
+      this.foe = this.createEnemyFighterAt(undefined, 70);
       this.foe.targets.forEach((target) => target.setAlpha(0));
       this.foe.shadow.setAlpha(0);
       this.tweens.add({ targets: this.foe.targets, x: "-=70", alpha: 1, duration: 520, ease: "Cubic.out" });

@@ -141,6 +141,31 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
       return writes;
     })).toBe(0);
     await page.screenshot({ path: testInfo.outputPath("dojo-group-combat.png"), fullPage: true });
+    const healthTrail = await page.evaluate(() => {
+      const s = window.__trainingGame.scene.getScene("battle"), bar = s.enemyHpBar;
+      const snapshot = () => ({ text: bar.valueText.text, fill: Math.round(bar.fill.fillWidth * 100 / bar.width),
+        trail: Math.round(bar.ghost.fillWidth * 100 / bar.width) });
+      s.trainingTargets.forEach(({ state }) => { state.hp = state.maxHp = 100; });
+      s.refreshHud();
+      s.loseHealth(s.enemy, s.foe, 30, { react: false });
+      const afterHit = snapshot();
+      s.selectTrainingTarget(1);
+      const other = snapshot();
+      s.selectTrainingTarget(2);
+      const reselected = snapshot();
+      s.selectTrainingTarget(1);
+      s.selectTrainingTarget(2);
+      const reselectedAgain = snapshot();
+      s.loseHealth(s.enemy, s.foe, 20, { react: false });
+      return { afterHit, other, reselected, reselectedAgain, afterSecondHit: snapshot() };
+    });
+    expect(healthTrail).toEqual({
+      afterHit: { text: "70/100", fill: 70, trail: 100 },
+      other: { text: "100/100", fill: 100, trail: 100 },
+      reselected: { text: "70/100", fill: 70, trail: 70 },
+      reselectedAgain: { text: "70/100", fill: 70, trail: 70 },
+      afterSecondHit: { text: "50/100", fill: 50, trail: 70 }
+    });
     // Keep a long, deterministic bout to verify repeated real enemy actions.
     await page.evaluate(() => {
       const s = window.__trainingGame.scene.getScene("battle");

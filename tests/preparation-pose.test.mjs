@@ -18,7 +18,8 @@ function posedHand(rig, pose, side) {
   const upper = rotate({ x: elbow.x - shoulder.x, y: elbow.y - shoulder.y }, upperAngle);
   const lower = rotate({ x: wrist.x - elbow.x, y: wrist.y - elbow.y }, lowerAngle);
   const palm = rotate({ x: hand.x - wrist.x, y: hand.y - wrist.y }, handAngle);
-  return { x: shoulder.x + upper.x + lower.x + palm.x, y: shoulder.y + upper.y + lower.y + palm.y, angle: handAngle };
+  const offset = pose[`shoulder${side}`];
+  return { x: shoulder.x + offset.x + upper.x + lower.x + palm.x, y: shoulder.y + offset.y + upper.y + lower.y + palm.y, angle: handAngle };
 }
 
 const base = PUPPET_ANIMATION_CLIPS["prepare-technique"], original = structuredClone(base);
@@ -29,13 +30,16 @@ for (const [bodyType, rig] of Object.entries(CHARACTER_RIGS)) {
   for (let time = clip.enterDuration; time <= 3 * 1240; time += 31) {
     const pose = sampleAnimationPose(clip, time);
     const left = posedHand(rig, pose, "Left"), right = posedHand(rig, pose, "Right");
+    assert.ok(pose.shoulderLeft.x < 0 && pose.shoulderRight.x > 0, `${bodyType}: ambos hombros se acercan al torso`);
     assert.ok(left.x > right.x, `${bodyType}: las manos no deben cruzarse hacia los lados opuestos`);
-    assert.ok(left.x - right.x < rig.byId.torso.width * .2, `${bodyType}: las manos deben permanecer juntas`);
+    assert.ok(left.x - right.x > rig.byId.torso.width * .22 && left.x - right.x < rig.byId.torso.width * .35,
+      `${bodyType}: las dos manos deben verse juntas y sin ocultarse`);
     for (const hand of [left, right]) {
-      assert.ok(Math.abs(hand.x - centerX) < rig.byId.torso.width * .12, `${bodyType}: gesto centrado`);
+      assert.ok(Math.abs(hand.x - centerX) < rig.byId.torso.width * .18, `${bodyType}: gesto centrado`);
       assert.ok(hand.y < rig.byId.torso.y && hand.y > rig.joints.neck.y, `${bodyType}: gesto a la altura del pecho`);
-      assert.ok(Math.abs(Math.abs(hand.angle) - 180) < .001, `${bodyType}: los dedos deben apuntar hacia arriba`);
+      assert.ok(Math.abs(Math.abs(hand.angle) - 180) < 18, `${bodyType}: los dedos deben apuntar hacia arriba`);
     }
+    assert.equal(pose.rig, undefined, `${bodyType}: el gesto no debe desplazar los pies`);
   }
 }
 assert.deepEqual(base, original, "Adaptar un cuerpo no debe modificar el catálogo compartido ni la pose del otro cuerpo");

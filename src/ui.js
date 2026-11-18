@@ -11,12 +11,17 @@ export function createBar(scene, x, y, width, height, color, {
   edgeColor = 0xc29a53
 } = {}) {
   const radius = Math.min(height / 2, 8);
+  // El trazo del bisel está centrado sobre su contorno. El hueco interior
+  // deja sitio para ese trazo y para el suavizado de los extremos curvos.
+  const inset = 1.5;
+  const trackX = x + inset, trackWidth = width - 2 * inset, trackHeight = height - 2 * inset;
   const bg = createResourceLayer(scene, x, y, width, height, 0x03070d, .98);
-  const slot = createResourceLayer(scene, x, y, width, height, slotColor, .98);
-  const ghost = ghostColor === null ? null : createResourceLayer(scene, x, y, width, height, ghostColor, .92, { direction });
-  const fill = createResourceLayer(scene, x, y, width, height, color, 1, { direction, gloss: true });
+  const slot = createResourceLayer(scene, trackX, y, trackWidth, trackHeight, slotColor, .98);
+  const ghost = ghostColor === null ? null : createResourceLayer(scene, trackX, y, trackWidth, trackHeight, ghostColor, .92, { direction });
+  const fill = createResourceLayer(scene, trackX, y, trackWidth, trackHeight, color, 1, { direction, gloss: true });
   const edge = scene.add.graphics({ x, y });
   edge.lineStyle(1, edgeColor, 0.86).strokeRoundedRect(0, -height / 2, width, height, radius);
+  edge.lineStyle(.6, 0xe7fbd4, .55).lineBetween(radius + 1, -height / 2 + 2, width - radius - 1, -height / 2 + 2);
   const valueText = scene.add.text(x + width / 2, y, "", {
     fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif',
     fontSize: height <= 12 ? "9px" : "13px",
@@ -25,7 +30,7 @@ export function createBar(scene, x, y, width, height, color, {
     stroke: "#080706",
     strokeThickness: 3
   }).setOrigin(0.5);
-  return { bg, slot, ghost, fill, edge, valueText, width, height, x, direction, currentRatio: null };
+  return { bg, slot, ghost, fill, edge, valueText, width: trackWidth, x: trackX, direction };
 }
 
 export function actionLines(action) {

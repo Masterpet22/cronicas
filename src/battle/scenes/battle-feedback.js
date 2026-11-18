@@ -2,9 +2,9 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.152.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -22,7 +22,7 @@ import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, 
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.140.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.147.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.151.0";
 import { acquireEffect } from "../effect-pool.js?v=1.0.0";
 
 const statusGlyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guard: "守", poison: "毒", slow: "鈍", seal: "封" };
@@ -162,8 +162,7 @@ export class BattleFeedbackMethods {
         this.stopFighterFlash(this.foe);
         destroyFighter(this.foe);
         restoreDuel(this);
-        this.foe = createPlayerFighter(this, 740, 372, this.enemyAppearance(), true);
-        this.styleFighterGrounding(this.foe);
+        this.foe = this.createEnemyFighterAt();
         this.finished = false;
         this.refreshHud();
         await this.resetTurnTimeline();
@@ -261,9 +260,9 @@ export class BattleFeedbackMethods {
   refreshHud() {
     this.playerPortrait?.setAffinity?.(this.player.primaryAffinity);
     this.enemyPortrait?.setAffinity?.(this.enemy.primaryAffinity);
-    this.updateHealthBar(this.playerHpBar, this.player.hp, this.player.maxHp);
-    this.setBarRatio(this.chakraBar, this.player.chakra / this.player.maxChakra);
-    this.updateHealthBar(this.enemyHpBar, this.enemy.hp, this.enemy.maxHp);
+    this.updateHealthBar(this.playerHpBar, this.player);
+    this.setBarRatio(this.chakraBar, this.player.maxChakra > 0 ? this.player.chakra / this.player.maxChakra : 0);
+    this.updateHealthBar(this.enemyHpBar, this.enemy);
 
     this.playerHpBar.valueText.setText(`${this.player.hp}/${this.player.maxHp}`);
     this.chakraBar.valueText.setText(`${this.player.chakra}/${this.player.maxChakra}`);
@@ -284,29 +283,30 @@ export class BattleFeedbackMethods {
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
   }
 
-  updateHealthBar(bar, hp, maxHp) {
-    const ratio = Phaser.Math.Clamp(hp / maxHp, 0, 1);
-    const previousRatio = bar.currentRatio;
-    // Estados, chakra y otros datos pueden refrescar el HUD tras el impacto.
-    // Si la vida no cambió, la estela debe continuar su animación actual.
-    if (ratio === previousRatio) return;
+  updateHealthBar(bar, combatant) {
+    const { hp, maxHp } = combatant;
+    const ratio = maxHp > 0 ? Phaser.Math.Clamp(hp / maxHp, 0, 1) : 0;
+    const previous = bar.health;
+    const sameCombatant = previous?.combatant === combatant;
+    if (sameCombatant && previous.hp === hp && previous.ratio === ratio) return;
+    bar.health = { combatant, hp, ratio };
     if (bar.ghost) {
       this.tweens.killTweensOf(bar.ghost);
-      if (previousRatio !== null && ratio < previousRatio) {
-        const previousWidth = Math.max(bar.ghost.fillWidth, bar.width * previousRatio);
-        const nextWidth = bar.width * ratio;
+      const nextWidth = bar.width * ratio;
+      // La estela pertenece al luchador que recibe el daño. Al cambiar de
+      // objetivo, la barra compartida se sincroniza con la vida del nuevo rival.
+      if (sameCombatant && hp < previous.hp && ratio < previous.ratio) {
+        const previousWidth = Math.max(bar.ghost.fillWidth, bar.width * previous.ratio);
         bar.ghost.setFillWidth(previousWidth);
         this.tweens.add({ targets: bar.ghost, fillWidth: nextWidth, delay: 260, duration: 720, ease: "Cubic.out" });
       } else {
-        const width = bar.width * ratio;
-        bar.ghost.setFillWidth(width);
+        bar.ghost.setFillWidth(nextWidth);
       }
     }
     this.setBarRatio(bar, ratio);
-    if (previousRatio === null || (ratio <= 0.25) !== (previousRatio <= 0.25)) {
+    if (!previous || (ratio <= 0.25) !== (previous.ratio <= 0.25)) {
       bar.fill.setFillStyle(ratio <= 0.25 ? 0xe06b52 : 0x06d45a, 1);
     }
-    bar.currentRatio = ratio;
   }
 
   refreshStatusSlots(slots, statuses = [], guarding = false, soak = null) {

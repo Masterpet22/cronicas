@@ -1,6 +1,6 @@
 import { skillFrameSvg } from "./hud-chrome.js?v=0.140.0";
 import { initiativeLabel } from "./initiative.js?v=1.0.0";
-import { mountBattleInventory } from "./battle-inventory.js?v=0.147.0";
+import { mountBattleInventory } from "./battle-inventory.js?v=0.151.0";
 import { emptySkillInfo } from './hud-art.js?v=0.140.0';
 import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
 import { mountSkillTableControl } from './skill-table-control.js?v=0.147.0';
@@ -47,10 +47,13 @@ export function mountAccessibleBattleHud(scene) {
   pause.type = 'button';
   pause.className = 'combat-access-pause';
   pause.setAttribute('aria-label', 'Pausar combate (Escape)');
-  pause.textContent = 'Ⅱ';
+  pause.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5v14m6-14v14"/></svg>';
   pause.addEventListener('click', () => scene.openBattlePause());
-  phase.append(phaseText, pause);
-  const inventory = mountBattleInventory(scene, phase);
+  const utilities = document.createElement('div');
+  utilities.className = 'combat-access-utilities';
+  utilities.append(pause);
+  const inventory = mountBattleInventory(scene, utilities);
+  phase.append(phaseText, utilities);
   summary.append(phase);
   const spacer = document.createElement('div');
   spacer.className = 'combat-access-scene';
@@ -265,8 +268,6 @@ export function mountAccessibleBattleHud(scene) {
     root.classList.toggle('compact', query.matches);
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
     scene.timelineLayer.setVisible(scene.mission.groupTraining || !query.matches && !scene.mission.training);
-    scene.pauseButton.bg.setVisible(!query.matches);
-    scene.pauseButton.label.setVisible(!query.matches);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
     if (query.matches) scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
     if (query.matches) [...scene.playerStatusSlots, ...scene.enemyStatusSlots].forEach(slot => slot.detail.setVisible(false));

@@ -2,9 +2,9 @@ import { isBaseOutfitPart } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.147.0";
-import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.119.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.151.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.151.0";
+import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.152.0";
 import {
   CHARACTER_FACES,
   CHARACTER_HAIR,
@@ -190,20 +190,37 @@ export function stopPlayerBreathing(fighter) {
 }
 
 export function startPlayerPreparing(scene, fighter) {
-  if (!fighter?.animations) return false;
-  stopPlayerBreathing(fighter);
+  const animations = fighter?.animations;
+  if (!animations) return false;
+  const clipId = animations.supports("prepare-technique") ? "prepare-technique" : "idle-alert";
+  if (fighter.preparing && (animations.clipId === clipId || animations.state === "hit")) return true;
   fighter.preparing = true;
-  bringPreparationArmForward(fighter);
-  const clipId = fighter.animations.supports("prepare-technique") ? "prepare-technique" : "idle-alert";
-  return fighter.animations.loop(clipId, { force: true });
+  fighter.breathingTweens = [];
+  if (clipId === "prepare-technique") bringPreparationArmForward(fighter);
+  const blendFromCurrent = clipId === "prepare-technique" && (!animations.state || animations.state === "idle");
+  return animations.loop(clipId, { force: true, blendFromCurrent });
 }
 
-export function stopPlayerPreparing(scene, fighter) {
+export function stopPlayerPreparing(scene, fighter, { immediate = false } = {}) {
   if (!fighter?.animations) return;
+  if (!fighter.preparing && !immediate) return;
   fighter.preparing = false;
-  restorePreparationArmDepth(fighter);
-  if (["prepare-technique", "idle-alert"].includes(fighter.animations.clipId)) fighter.animations.stop({ reset: true });
-  startPlayerBreathing(scene, fighter);
+  const { animations } = fighter;
+  if (immediate) {
+    animations.stop({ reset: true });
+    restorePreparationArmDepth(fighter);
+    return;
+  }
+  const rest = () => {
+    restorePreparationArmDepth(fighter);
+    if (fighter.body?.active !== false) startPlayerBreathing(scene, fighter);
+  };
+  if (animations.clipId === "prepare-technique") {
+    animations.settle(220, rest);
+    return;
+  }
+  if (animations.clipId === "idle-alert") animations.stop({ reset: true });
+  rest();
 }
 
 export function startPlayerGuard(scene, fighter) {
@@ -221,14 +238,15 @@ export function stopPlayerGuard(scene, fighter) {
 
 export async function playFighterDamageReaction(scene, fighter, { guarded = false, heavy = false } = {}) {
   if (!fighter?.animations) return false;
-  const resumePreparation = Boolean(fighter.preparing);
+  restorePreparationArmDepth(fighter);
   stopPlayerBreathing(fighter);
   const articulatedClip = guarded ? "guard-impact" : heavy ? "hit-heavy" : "hit-light";
   const simpleClip = guarded ? "guard-impact-simple" : heavy ? "hit-heavy-simple" : "hit-light-simple";
   const clipId = fighter.animations.supports(articulatedClip) ? articulatedClip : simpleClip;
   const completed = await fighter.animations.playOnce(clipId, { force: true });
+  if (!completed || fighter.body?.active === false) return completed;
   if (guarded) startPlayerGuard(scene, fighter);
-  else if (resumePreparation) startPlayerPreparing(scene, fighter);
+  else if (fighter.preparing) startPlayerPreparing(scene, fighter);
   else startPlayerBreathing(scene, fighter);
   return completed;
 }

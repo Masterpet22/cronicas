@@ -65,6 +65,15 @@ for (const width of [1280, 1600]) test(`Objetos conserva el cursor y permite cer
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 });
   await boot(page);
+  await expect(bag(page)).toHaveText("");
+  await expect(bag(page).locator("svg")).toBeVisible();
+  await expect(bag(page)).toHaveAttribute("title", "Objetos");
+  const pauseBounds = await page.getByRole("button", { name: "Pausar combate (Escape)" }).boundingBox();
+  const bagBounds = await bag(page).boundingBox();
+  const hudBounds = await page.locator(".combat-access").boundingBox();
+  expect(pauseBounds.width).toBeCloseTo(bagBounds.width);
+  expect(pauseBounds.y).toBeCloseTo(bagBounds.y);
+  expect((pauseBounds.x + bagBounds.x + bagBounds.width) / 2).toBeCloseTo(hudBounds.x + hudBounds.width / 2, 0);
   await page.getByRole("button", { name: "Cambiar a habilidades físicas (0)", exact: true }).click();
   await bag(page).click();
   await expect(dialog(page)).toBeVisible();

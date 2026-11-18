@@ -77,16 +77,17 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
     state: ANIMATION_STATES.ACTION,
     status: "integrated",
     loop: true,
-    enterDuration: 150,
-    requires: Object.freeze(["rig", "shoulderLeft", "shoulderRight", "elbowLeft", "elbowRight", "wristLeft", "wristRight"]),
+    enterDuration: 220,
+    requires: Object.freeze(["torso", "neck", "shoulderLeft", "shoulderRight", "elbowLeft", "elbowRight", "wristLeft", "wristRight"]),
     tracks: Object.freeze([
-      { target: "shoulderLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: 42 }, to: { angle: 46 } },
+      { target: "shoulderLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { y: 0, angle: 42 }, to: { y: 0, angle: 46 } },
       { target: "elbowLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: 58 }, to: { angle: 62 } },
       { target: "wristLeft", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: 8 }, to: { angle: 5 } },
-      { target: "shoulderRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: -42 }, to: { angle: -46 } },
+      { target: "shoulderRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { y: 0, angle: -42 }, to: { y: 0, angle: -46 } },
       { target: "elbowRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: -58 }, to: { angle: -62 } },
       { target: "wristRight", duration: 620, yoyo: true, ease: "Sine.inOut", from: { angle: -8 }, to: { angle: -5 } },
-      { target: "rig", duration: 620, yoyo: true, ease: "Sine.inOut", from: { y: 1, angle: 0 }, to: { y: -1, angle: -0.6 } }
+      { target: "torso", duration: 620, yoyo: true, from: { y: 0, scaleY: 0 }, to: { y: -1, scaleY: 0.002 } },
+      { target: "neck", duration: 620, yoyo: true, from: { y: 0, angle: 0 }, to: { y: -1, angle: 0.3 } }
     ])
   }),
   "earth-wall-cast": Object.freeze({

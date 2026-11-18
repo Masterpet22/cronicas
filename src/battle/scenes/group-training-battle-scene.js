@@ -1,8 +1,9 @@
-import { TrainingBattleScene } from "./training-battle-scene.js?v=0.150.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.150.0";
+import { TrainingBattleScene } from "./training-battle-scene.js?v=0.152.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.152.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { trainingOpponentProfile } from "../../training.js?v=0.143.0";
-import { createPlayerFighter, startPlayerBreathing, startPlayerPreparing, stopPlayerBreathing, stopPlayerPreparing } from "../../fighters.js?v=0.150.0";
+import { startPlayerBreathing, startPlayerPreparing, stopPlayerBreathing, stopPlayerPreparing } from "../../fighters.js?v=0.152.0";
+import { enemyFormation } from "../combat-positions.js?v=0.152.0";
 import { chooseEnemyAbility } from "../enemy-abilities.js?v=0.140.0";
 import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { combatantEvasion } from "../turn.js?v=1.4.0";
@@ -31,7 +32,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     this.setMessage("Combate real: toca un rival para elegir objetivo. Cada enemigo tiene su propio turno. Derrota al grupo; tus recursos y recargas se mantienen durante la pelea.");
     this.events.once("shutdown", () => {
       this.game.canvas.parentElement.classList.remove("group-training-mode");
-      this.trainingTargets.forEach(target => stopPlayerPreparing(this, target.fighter));
+      this.trainingTargets.forEach(target => stopPlayerPreparing(this, target.fighter, { immediate: true }));
     });
   }
 
@@ -43,24 +44,20 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   createFighters() {
-    super.createFighters();
-    if (!this.mission.groupTraining) return;
+    if (!this.mission.groupTraining) return super.createFighters();
+    const positions = enemyFormation(this.encounters.length);
+    super.createFighters(positions[0]);
     const firstProfile = this.encounters[0], firstState = this.enemy;
-    const positions = this.encounters.length === 2
-      ? [{ x: 650, y: 372 }, { x: 770, y: 372 }]
-      : [{ x: 600, y: 372 }, { x: 700, y: 338 }, { x: 800, y: 372 }];
-    this.trainingTargets = positions.map(({ x, y }, index) => {
+    this.trainingTargets = positions.map((position, index) => {
       this.enemyIndex = index;
       const profile = index === 0 ? firstProfile : trainingOpponentProfile(this.encounters[index], this.saveData, index);
       this.encounters[index] = profile;
       const state = index === 0 ? firstState : createEnemyState(profile, this.mission);
-      const fighter = index === 0 ? this.foe : createPlayerFighter(this, x, y, this.enemyAppearance(), true);
-      fighter.body.x = fighter.shadow.x = x;
-      fighter.body.setDepth(6 + (y - 372) / 1000);
+      const fighter = index === 0 ? this.foe : this.createEnemyFighterAt(position);
       if (index === 0) { fighter.layers.forEach(layer => layer.clearTint()); startPlayerBreathing(this, fighter); }
-      const ring = this.add.ellipse(x, fighter.shadow.y, 150, 24, 0xd7a857, 0)
+      const ring = this.add.ellipse(position.x, fighter.shadow.y, 150, 24, 0xd7a857, 0)
         .setStrokeStyle(3, 0xffd784, 1).setDepth(5);
-      return { state, fighter, ring, profile, position: { x, y }, progress: 0, pending: null, turns: 0, retired: false };
+      return { state, fighter, ring, profile, position, progress: 0, pending: null, turns: 0, retired: false };
     });
     this.setGroupContext(0);
   }
@@ -211,7 +208,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     this.trainingTargets.forEach((target, index) => {
       if (target.state.hp > 0 || target.retired) return;
       target.retired = true; target.pending = null; target.progress = 0; target.state.reservedAction = null;
-      stopPlayerPreparing(this, target.fighter);
+      stopPlayerPreparing(this, target.fighter, { immediate: true });
       stopPlayerBreathing(target.fighter);
       this.stopFighterFlash(target.fighter);
       effects.push(teleportSmoke(this, target.fighter.body.x, target.fighter.body.y - 48, () => {
@@ -241,10 +238,11 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     const target = this.trainingTargets[index];
     try {
       if (actor === "player") {
-        this.clearPreparationFeedback("player");
+        if (!action.seals?.length) this.clearPreparationFeedback("player");
         // A reserved target can die from its own burn while the player prepares.
         // Cancel and refund only this reservation, never restore earlier HP.
         if (target.state.hp <= 0 && action.type !== "guard") {
+          this.clearPreparationFeedback("player");
           this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + (this.groupReservation?.cost || 0));
           this.player.hp = Math.min(this.player.maxHp, this.player.hp + (this.groupReservation?.health || 0));
           this.cooldowns[action.id] = this.groupReservation?.previousCooldown || 0;
@@ -263,7 +261,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
         if (this.player.hp <= 0) return this.finishBattle(false);
         await this.resolveCombatantStatusTick(this.player, this.hero);
       } else {
-        stopPlayerPreparing(this, target.fighter);
+        if (!action.seals?.length) stopPlayerPreparing(this, target.fighter);
         const result = await this.executeEnemyAction(action);
         if (!current()) return;
         closeActionState(this, "enemy", action, { skipped: Boolean(result?.skipped) });

@@ -1,4 +1,4 @@
-import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.115.0";
+import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.151.0";
 import { addAnimationOffsets, createKeyframeSampler, isKeyframeAnimationClip, TRANSFORM_PROPERTIES } from "./runtime.js?v=0.147.0";
 
 const catalogSamplers = new WeakMap();
@@ -47,13 +47,13 @@ export class PuppetAnimationController {
     return ANIMATION_PRIORITIES[clip.state] >= ANIMATION_PRIORITIES[this.current.state];
   }
 
-  play(id, { force = false, timeScale = 1 } = {}) {
+  play(id, { force = false, timeScale = 1, blendFromCurrent = false } = {}) {
     const clip = this.clips[id];
     if (!clip) throw new Error(`Clip de animación desconocido: ${id}`);
     if (!this.supports(clip)) return false;
     if (this.current?.id === id) return true;
     if (!force && !this.canPlay(clip)) return false;
-    this.stop({ reset: true });
+    this.stop({ reset: !blendFromCurrent });
     this.current = clip;
     const generation = this.generation;
     if (isKeyframeAnimationClip(clip)) return this.playKeyframeClip(clip, { generation, timeScale });
@@ -155,6 +155,29 @@ export class PuppetAnimationController {
   async playOnce(id, options) {
     if (!this.play(id, options)) return false;
     return this.finished;
+  }
+
+  settle(duration, onComplete) {
+    const targets = new Map(this.touched);
+    this.stop({ reset: false });
+    this.touched = targets;
+    const generation = this.generation;
+    let remaining = targets.size;
+    const settled = () => {
+      if (generation !== this.generation) return;
+      this.complete();
+      onComplete();
+    };
+    for (const [target, base] of targets) {
+      this.tweens.push(this.scene.tweens.add({
+        targets: target,
+        ...base,
+        duration,
+        ease: "Sine.inOut",
+        onComplete: () => { if (--remaining === 0) settled(); }
+      }));
+    }
+    if (!remaining) settled();
   }
 
   complete() {

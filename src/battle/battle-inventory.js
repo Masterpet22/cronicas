@@ -48,7 +48,8 @@ export function mountBattleInventory(scene, parent) {
   button.type = "button";
   button.className = "combat-access-inventory";
   button.setAttribute("aria-label", "Abrir objetos de misión");
-  button.innerHTML = `${itemIcon({ category: "consumables" })}<span>Objetos</span>`;
+  button.title = "Objetos";
+  button.innerHTML = itemIcon({ category: "consumables" });
   parent.append(button);
   let dialog = null;
   const restoreFocus = () => {

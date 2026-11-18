@@ -198,7 +198,7 @@ assert.equal((battle.match(/\.hp = Math\.max\(0/g) || []).length, 1, "No debe ha
 assert.match(battle, /createUiIcon\(this, "healthLoss"/, "La pérdida de vida debe mostrar una gota roja junto al número");
 assert.match(battle, /ratio <= 0\.25 \? 0xe06b52 : 0x06d45a/, "La barra de vida debe conservar el jade y apagarse solamente en estado crítico");
 assert.match(battle, /\[\.\.\.this\.foe\.targets, this\.foe\.shadow\]/, "La sombra enemiga debe desvanecerse junto con el cuerpo");
-assert.match(battle, /this\.foe = createPlayerFighter\(this, 740, fighterY, this\.enemyAppearance\(\), true\)/, "El rival debe usar su apariencia registrada y mirar hacia el jugador");
+assert.match(battle, /createEnemyFighterAt\(position = enemyFormation\(1\)\[0\][\s\S]*createPlayerFighter\(this, position\.x \+ entryOffset, position\.y, this\.enemyAppearance\(\), true\)/, "El rival debe ocupar su posición de combate con su apariencia registrada y mirar hacia el jugador");
 assert.match(battle, /battle-mist-marsh-water\.webp/, "La marisma debe usar el fondo optimizado sin plataforma de piedra");
 assert.match(battle, /styleFighterGrounding\(fighter\)[\s\S]*profile\.grounding[\s\S]*setStrokeStyle\(ground\.strokeWidth/, "El contacto de ambos combatientes con el suelo debe proceder del perfil visual de la arena");
 assert.match(battle, /queueTeleportObjects\(this\)/, "El combate debe cargar los objetos de apariencia para la Sustitución");
@@ -234,7 +234,7 @@ assert.doesNotMatch(battle, /ORDEN DEL TURNO/, "La interfaz no debe recuperar la
 assert.doesNotMatch(battle, /messagePlate/, "El combate no debe mostrar una banda de mensajes persistente");
 assert.doesNotMatch(battle, /Ronda \$\{this\.round\}/, "El HUD no debe anunciar el número de ronda");
 assert.match(battle, /setSealPrompt\(/, "Las instrucciones de sellos deben vivir dentro del minijuego y no en una banda de batalla");
-assert.match(battle, /const fighterY = 372/, "Los combatientes deben quedar más cerca del suelo");
+assert.match(battle, /protagonist: slot\("protagonist", "ally", "fighter", 220, 372\)/, "La posición del protagonista conserva su anclaje al suelo");
 assert.doesNotMatch(battle, /heroAura/, "El aura decorativa permanente del jugador debe eliminarse");
 assert.match(battle, /cssScale \* pixelRatio/, "El lienzo debe combinar la escala visible con el DPR del dispositivo");
 assert.match(battle, /width: renderSize\.width/, "El framebuffer debe usar el tamaño físico medido del escenario");

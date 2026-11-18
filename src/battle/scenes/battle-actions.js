@@ -1,9 +1,9 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
+import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.152.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -26,6 +26,7 @@ import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, 
 export class BattleActionMethods {
   async playSeals(jutsu, { actor = "player" } = {}) {
     const playerCasting = actor === "player";
+    startPlayerPreparing(this, playerCasting ? this.hero : this.foe);
     const manualCasting = playerCasting && this.manualSeals;
     const speedFactor = playerCasting && this.seenJutsus.has(jutsu.id) ? 0.55 : 1;
     this.sealPrompt = this.add.text(0, jutsu.cinematic ? 195 : 66, "", this.textStyle(12, "#eaf7ff", "800"))
@@ -103,6 +104,7 @@ export class BattleActionMethods {
           : "Secuencia inestable: daño reducido.";
     const qualityColor = !manualCasting || mistakes <= 2 ? (manualCasting && mistakes === 0 ? "#79e8b5" : "#f7d6a5") : "#ff9d8d";
     this.setSealPrompt(quality, qualityColor);
+    this.clearPreparationFeedback(actor);
     await this.delay(320);
     this.tone(580, 0.11);
     this.tweens.add({ targets: this.sealLayer, scale: 1.08, duration: 90, yoyo: true });
@@ -596,6 +598,7 @@ export class BattleActionMethods {
   async executeEnemyAction(action) {
     const stun = this.enemy.statuses.find((status) => status.type === "stun");
     if (stun) {
+      this.clearPreparationFeedback("enemy");
       this.enemy.statuses = this.enemy.statuses.filter((status) => status !== stun);
       this.refreshHud();
       this.setMessage("El rival está aturdido y pierde su acción.", "#8fc7ff");
@@ -603,7 +606,10 @@ export class BattleActionMethods {
       await this.delay(620);
       return { skipped: true };
     }
-    if (!reserveEnemyAbility(this.enemy, action)) return { skipped: true };
+    if (!reserveEnemyAbility(this.enemy, action)) {
+      this.clearPreparationFeedback("enemy");
+      return { skipped: true };
+    }
     this.refreshHud();
     if (action.seals?.length) {
       await this.playSeals(action, { actor: "enemy" });

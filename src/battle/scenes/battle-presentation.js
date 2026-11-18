@@ -2,9 +2,9 @@ import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail,
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.140.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.152.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.143.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
 import { ELEMENTS, elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
@@ -17,6 +17,7 @@ import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, re
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
+import { COMBAT_SLOTS, combatFighterDepth, enemyFormation } from "../combat-positions.js?v=0.152.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
@@ -143,9 +144,8 @@ export class BattlePresentationMethods {
       bar.bg.setDepth(21); bar.slot.setDepth(21);
       bar.ghost?.setDepth(22); bar.fill.setDepth(22);
       bar.edge.setDepth(24);
-      bar.edge.lineStyle(.6, 0xe7fbd4, .55).lineBetween(8, -5, bar.width - 8, -5);
       const mirrored = bar.direction === "rtl";
-      bar.valueText.setOrigin(mirrored ? 0 : 1, 0.5).setX(mirrored ? bar.x + 6 : bar.x + bar.width - 6).setFontSize(12).setDepth(25);
+      bar.valueText.setOrigin(mirrored ? 0 : 1, 0.5).setX(mirrored ? bar.x + 8 : bar.x + bar.width - 8).setFontSize(12).setDepth(25);
     });
     const phaseChrome = this.add.graphics().setDepth(24);
     drawCloudPlate(phaseChrome, 380, 17, 200, 28);
@@ -380,15 +380,8 @@ export class BattlePresentationMethods {
     this.accessibleHud?.refresh();
   }
 
-  createPauseButton() {
+  bindBattlePause() {
     this.pauseOpening = false;
-    const bg = this.add.circle(430, 67, 18, HUD_ART.wine, 0.96).setStrokeStyle(1.1, HUD_ART.gold, 1)
-      .setDepth(25).setInteractive({ useHandCursor: true });
-    const label = this.add.graphics().setDepth(26);
-    label.fillStyle(HUD_ART.light, 1).fillRect(425.5, 61, 3, 13).fillRect(431.5, 61, 3, 13);
-    bg.on("pointerover", () => bg.setFillStyle(0x722b32, 1));
-    bg.on("pointerout", () => bg.setFillStyle(HUD_ART.wine, 0.96));
-    bg.on("pointerdown", () => bg.setFillStyle(HUD_ART.wine, 1));
     this.openBattlePause = () => {
       if (this.finished || this.pauseOpening || !isSceneActive(this.scene)) return;
       // launch/pause se encolan hasta el siguiente frame; bloquear también ese intervalo.
@@ -401,7 +394,6 @@ export class BattlePresentationMethods {
       }
       this.refreshBattlePhase();
     };
-    bg.on("pointerup", this.openBattlePause);
     this.input.keyboard.on("keydown-ESC", this.openBattlePause);
     const onResume = () => { this.pauseOpening = false; this.refreshBattlePhase(); };
     this.events.on(Phaser.Scenes.Events.RESUME, onResume);
@@ -409,7 +401,6 @@ export class BattlePresentationMethods {
       this.events.off(Phaser.Scenes.Events.RESUME, onResume);
       this.input.keyboard.off("keydown-ESC", this.openBattlePause);
     });
-    this.pauseButton = { bg, label };
   }
 
   startTurnCharge() {
@@ -526,11 +517,13 @@ export class BattlePresentationMethods {
   }
 
   showPreparationFeedback(actor, action) {
-    this.clearPreparationFeedback(actor);
     const fighter = actor === "player" ? this.hero : this.foe;
     if (!fighter?.body || !action) return;
     startPlayerPreparing(this, fighter);
     this.setTimelineMarkerState(actor, "preparing", action);
+    const previous = this.preparationFeedback[actor];
+    if (previous?.fighter === fighter && previous.action === action && previous.ribbon.active) return;
+    this.destroyPreparationVisual(actor);
     if (this.lightMode) return;
     const ribbon = this.add.image(0, -58, "preparation-ribbons")
       .setDisplaySize(116, 70)
@@ -541,7 +534,7 @@ export class BattlePresentationMethods {
     const targetScaleY = ribbon.scaleY;
     ribbon.setScale(targetScaleX * 0.72, targetScaleY * 0.72);
     const particleFeedback = this.createPreparationParticles(fighter, action);
-    const feedback = { ribbon, ...particleFeedback };
+    const feedback = { fighter, action, ribbon, ...particleFeedback };
     this.preparationFeedback[actor] = feedback;
     this.tweens.add({
       targets: ribbon,
@@ -717,13 +710,19 @@ export class BattlePresentationMethods {
     await this.executeTimelineAction("enemy", action);
   }
 
-  createFighters() {
-    const fighterY = 372;
-    this.hero = createPlayerFighter(this, 220, fighterY, this.playerAppearance());
-    this.foe = createPlayerFighter(this, 740, fighterY, this.enemyAppearance(), true);
+  createFighters(enemyPosition) {
+    const { x, y } = COMBAT_SLOTS.protagonist;
+    this.hero = createPlayerFighter(this, x, y, this.playerAppearance());
     this.styleFighterGrounding(this.hero);
-    this.styleFighterGrounding(this.foe);
+    this.foe = this.createEnemyFighterAt(enemyPosition);
     this.bossPhaseSilhouette = null;
+  }
+
+  createEnemyFighterAt(position = enemyFormation(1)[0], entryOffset = 0) {
+    const fighter = createPlayerFighter(this, position.x + entryOffset, position.y, this.enemyAppearance(), true);
+    fighter.body.setDepth(combatFighterDepth(position));
+    this.styleFighterGrounding(fighter);
+    return fighter;
   }
 
   styleFighterGrounding(fighter) {

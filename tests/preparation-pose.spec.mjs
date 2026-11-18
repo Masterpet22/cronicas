@@ -9,7 +9,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
     await expect(page.locator(".save-selector")).toBeVisible();
     await ensurePhaser(page);
     await page.evaluate(async renderer => {
-      const api = await import("/src/fighters.js?v=0.150.0");
+      const api = await import("/src/fighters.js?v=0.152.0");
       document.querySelector("main").hidden = true;
       const host = document.createElement("div");
       host.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;background:#18293b";
@@ -24,8 +24,10 @@ for (const renderer of ["Canvas", "WebGL"]) {
             fighter.body.setScale(flipped ? -1.5 : 1.5, 1.5);
             api.stopPlayerBreathing(fighter);
             const neutral = Object.fromEntries(Object.entries(fighter.joints).map(([key, node]) => [key, { x: node.x, y: node.y, angle: node.angle }]));
+            const feet = fighter.joints.ankleRight.getWorldTransformMatrix().transformPoint(0, 0, {});
+            const armDepth = fighter.rig.getIndex(fighter.joints.shoulderLeft);
             api.startPlayerPreparing(this, fighter);
-            fighters.push({ fighter, neutral, bodyType, flipped });
+            fighters.push({ fighter, neutral, feet, armDepth });
             this.add.text(70 + index * 360, 120, `${bodyType} · ${flipped ? "reflejado" : "normal"}`, { fontSize: 20 });
           }
           window.__preparationTest = { scene: this, fighters, api };
@@ -35,24 +37,47 @@ for (const renderer of ["Canvas", "WebGL"]) {
     }, renderer);
     await page.waitForFunction(() => window.__preparationTest);
     await page.waitForTimeout(450);
-    const centered = () => page.evaluate(() => window.__preparationTest.fighters.map(({ fighter }) => {
+    const centered = () => page.evaluate(() => window.__preparationTest.fighters.map(({ fighter, feet }) => {
       const palms = ["mano_izquierda", "mano_derecha"].map(name => fighter.layers.find(layer => layer.name === name).getWorldTransformMatrix().transformPoint(0, 0, {}));
       const center = fighter.sprite.getWorldTransformMatrix().transformPoint(0, 0, {});
       const width = fighter.sprite.displayWidth * Math.abs(fighter.rig.scaleX * fighter.body.scaleX);
-      return Math.abs(palms[0].x - palms[1].x) < width * .2 && palms.every(palm => Math.abs(palm.x - center.x) < width * .2 && palm.y < center.y);
+      const distance = Math.abs(palms[0].x - palms[1].x);
+      const ankle = fighter.joints.ankleRight.getWorldTransformMatrix().transformPoint(0, 0, {});
+      return distance > width * .22 && distance < width * .35 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
+        && Math.abs(ankle.x - feet.x) < .01 && Math.abs(ankle.y - feet.y) < .01;
     }));
     await expect.poll(centered).toEqual([true, true, true, true]);
+    const continues = await page.evaluate(() => {
+      const { scene, fighters, api } = window.__preparationTest;
+      return fighters.every(({ fighter }) => {
+        const tweens = fighter.animations.tweens;
+        api.startPlayerPreparing(scene, fighter);
+        return fighter.animations.tweens === tweens;
+      });
+    });
+    expect(continues).toBe(true);
     await page.screenshot({ path: testInfo.outputPath("preparacion-corregida.png") });
     await page.evaluate(async () => {
       const { scene, fighters, api } = window.__preparationTest;
       await Promise.all(fighters.map(({ fighter }) => api.playFighterDamageReaction(scene, fighter, { heavy: true })));
     });
     await expect.poll(centered).toEqual([true, true, true, true]);
-    const restored = await page.evaluate(() => {
+    const beginsExitFromPose = await page.evaluate(() => {
       const { scene, fighters, api } = window.__preparationTest;
-      return fighters.map(({ fighter, neutral }) => {
-        api.stopPlayerPreparing(scene, fighter); api.stopPlayerBreathing(fighter);
-        return Object.entries(neutral).every(([key, base]) => ["x", "y", "angle"].every(property => Math.abs(fighter.joints[key][property] - base[property]) < .001));
+      return fighters.every(({ fighter }) => {
+        const angle = fighter.joints.elbowRight.angle;
+        api.stopPlayerPreparing(scene, fighter);
+        return Math.abs(angle) > 1 && fighter.joints.elbowRight.angle === angle;
+      });
+    });
+    expect(beginsExitFromPose).toBe(true);
+    await expect.poll(() => page.evaluate(() => window.__preparationTest.fighters.every(({ fighter }) => fighter.animations.state === "idle"))).toBe(true);
+    const restored = await page.evaluate(() => {
+      const { fighters, api } = window.__preparationTest;
+      return fighters.map(({ fighter, neutral, armDepth }) => {
+        api.stopPlayerBreathing(fighter);
+        return fighter.rig.getIndex(fighter.joints.shoulderLeft) === armDepth
+          && Object.entries(neutral).every(([key, base]) => ["x", "y", "angle"].every(property => Math.abs(fighter.joints[key][property] - base[property]) < .001));
       });
     });
     expect(restored).toEqual([true, true, true, true]);

@@ -1,4 +1,4 @@
-import { BattleScene } from "./battle-scene.js?v=0.150.0";
+import { BattleScene } from "./battle-scene.js?v=0.152.0";
 import { arenaRivalProfile, ARENA_BACKGROUND } from "../../arena.js?v=0.140.0";
 import { showExhibitionResult } from "../exhibition-results.js?v=0.140.0";
 import { WIDTH, HEIGHT, battleRuntime } from "../runtime.js?v=0.91.0";
