@@ -10,7 +10,7 @@ import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.114.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=1.4.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.115.0";
-import { createDojoView } from "./ui/meta/views/dojo.js?v=0.140.0";
+import { createDojoView } from "./ui/meta/views/dojo.js?v=0.142.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=1.1.0";
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.140.0";
 import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.140.0";

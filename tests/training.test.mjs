@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { createTraining, trainingActions, trainingDummyProfile } from "../src/training.js";
+import { createTraining, trainingActions, trainingDummyProfile, trainingTargetCount } from "../src/training.js";
 import { createDefaultSave, createCharacter } from "../src/save.js";
 import { ENEMY_ROSTER } from "../src/data.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
@@ -23,6 +23,12 @@ assert.equal(new Set(actions.map(action => action.id)).size, actions.length);
 assert.equal(JSON.stringify(save), baseline, "Practice must not change equipment or progress");
 assert.equal(createTraining().trainingOrigin, "dojo");
 assert.equal(createTraining().exhibition, true);
+for (const [value, expected] of [[-1, 1], [0, 1], [1, 1], [2, 2], [3, 3], [100, 3], [NaN, 1], [2.5, 1], ["3", 1]]) {
+  assert.equal(trainingTargetCount(value), expected);
+  assert.equal(createTraining({ targetCount: value }).trainingTargetCount, expected);
+}
+assert.deepEqual(createTraining({ targetCount: 3 }).encounters, createTraining().encounters,
+  "Los blancos simultáneos no deben convertirse en encuentros consecutivos de campaña");
 const originalProfile = { ...ENEMY_ROSTER.boss_varek, affinities: ["fuego", "agua"], completedAffinityTrials: ["affinity_trial_2"] };
 const originalSnapshot = structuredClone(originalProfile);
 const dummyProfile = trainingDummyProfile(originalProfile);

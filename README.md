@@ -2,6 +2,8 @@
 
 RPG 2D por turnos inspirado en los RPG sociales de navegador. La versión actual incluye una aldea navegable, una primera saga de siete misiones principales y progresión persistente. Nuevas sagas y misiones se incorporarán en futuras etapas del desarrollo.
 
+**Plataformas objetivo:** navegadores en tablets y ordenadores. Por ahora no se desarrollan adaptaciones para teléfonos móviles; los ajustes móviles heredados pueden dejarse de lado, conservando el aviso para móviles. El soporte táctil para tablets sigue dentro del alcance.
+
 **Versión pública:** https://masterpet22.github.io/cronicas/
 
 La arquitectura y el flujo de aprobación de la marioneta están documentados en
@@ -33,6 +35,7 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 
 ## Controles
 
+- **Dojo → Entrenamiento:** elige de 1 a 3 marionetas simultáneas. Con varias, selecciona el cuerpo con clic/toque o usa los botones de objetivos; cada marioneta conserva su vida y estados. La selección se bloquea durante el movimiento. «Restaurar objetivos» permite repetir la prueba; el jugador recupera sus recursos tras actuar. Una sola marioneta conserva la práctica original con restauración tras cada movimiento. Es una prueba de selección de objetivos con rivales pasivos, sin recompensas ni cambios en la partida; no incorpora turnos de varios enemigos ni aliados.
 - Crea un personaje eligiendo nombre, género, peinado, tono de piel y afinidad inicial, con la misma vista previa de Apariencia. Los tonos naturales Claro y Moreno se pueden cambiar gratis en **Dojo → Apariencia** y se conservan por partida, en los retratos y en todas las escenas del combatiente. La piel conserva sombras y contornos sin teñir el cabello; las partidas anteriores comienzan con Claro.
 - **Gremio → Mi espacio:** sala isométrica con dos paredes. La colección inicial incluye ladrillo en Jade/Arena, suelo de Cedro, una insignia de novicio y un bonsái. En la **Tienda → Decoraciones** compras más colores, suelos, muebles, cuadros e insignias. Los acabados se desbloquean una vez; muebles e insignias se compran por unidad, con venta a mitad de precio únicamente de las unidades retiradas o acabados sin usar. Retirar una decoración permite volver a colocarla. La migración v24 conserva las piezas y acabados ya colocados, sin desbloquear el resto del catálogo. Las bases definen los límites del suelo y los objetos se ordenan por profundidad; el orden también se puede cambiar manualmente. Arrastra, usa flechas, cambia tamaño o pared y retira con Suprimir. Los controles permanecen visibles y desactivados sin selección para conservar el tamaño de la sala. Máximo 24 decoraciones por partida.
 - **Gremio → Clanes:** editor local de nombre, sigla, lema, emblema y color con guardado de borrador por partida. Crear/unirse, miembros y clasificaciones compartidas están señalados como próximos hasta disponer de servidor. No se generan puntuaciones ni clanes ficticios.

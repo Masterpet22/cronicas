@@ -23,8 +23,13 @@ export function trainingActions(save) {
   return [BASE_ACTIONS[0], ...elemental, ...weapons, ...physical, BASE_ACTIONS[1]];
 }
 
-export function createTraining() {
+export function trainingTargetCount(value = 1) {
+  return Number.isInteger(value) ? Math.max(1, Math.min(3, value)) : 1;
+}
+
+export function createTraining({ targetCount = 1 } = {}) {
   return { id: "free-training", type: "exhibition", category: "arena", exhibition: true, training: true,
+    trainingTargetCount: trainingTargetCount(targetCount),
     trainingOrigin: "dojo", title: "Entrenamiento libre", location: "Dojo de entrenamiento",
     number: 1, encounters: ["reed_bandit"], flow: [{ type: "combat" }] };
 }

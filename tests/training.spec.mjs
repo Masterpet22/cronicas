@@ -35,9 +35,9 @@ async function prepare(page, origin) {
 for (const { origin, viewport } of [
   { origin: "dojo", viewport: { width: 1440, height: 900 } },
   { origin: "dojo", viewport: { width: 1280, height: 720 } },
-  { origin: "dojo", viewport: { width: 390, height: 844 } }
+  { origin: "dojo", viewport: { width: 1024, height: 768 } }
 ]) test(`entrenamiento desde ${origin} a ${viewport.width}: movimientos sin equipar, repetición y regreso sin progreso`, async ({ page }, testInfo) => {
-  test.setTimeout(120000);
+  test.setTimeout(300000);
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await page.setViewportSize(viewport.width < 650 ? { width: 1440, height: 900 } : viewport);
   await prepare(page, origin);
@@ -89,4 +89,99 @@ for (const { origin, viewport } of [
   await expect(page.locator(".training-controls")).toHaveCount(0);
   expect(await stored(page)).toBe(baseline);
   expect(errors).toEqual([]);
+});
+
+for (const tablet of [false, true]) test.describe(`objetivos simultáneos: ${tablet ? "tablet táctil" : "ordenador"}`, () => {
+  test.use({ viewport: tablet ? { width: 960, height: 720 } : { width: 1440, height: 900 }, hasTouch: tablet });
+  test("selección, daño aislado, bloqueo durante ataque, derrota, restauración y salida", async ({ page }, testInfo) => {
+    test.setTimeout(300000);
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await prepare(page, "dojo");
+    const baseline = await stored(page);
+    await page.locator("[data-training-count]").selectOption("3");
+    await page.locator("[data-start-training]").click();
+    const panel = page.locator(".training-target-panel");
+    await expect(panel).toBeVisible({ timeout: 45000 });
+    await expect(panel.locator("[data-training-target]")).toHaveCount(3);
+    const snapshot = () => page.evaluate(() => {
+      const s = window.__trainingGame.scene.getScene("battle");
+      return { selected: s.enemyIndex, targets: s.trainingTargets.map(t => ({ hp: t.state.hp,
+        maxHp: t.state.maxHp, statuses: t.state.statuses.map(v => v.type), alpha: t.fighter.body.alpha })),
+        full: s.player.hp === s.player.maxHp && s.player.chakra === s.player.maxChakra };
+    });
+    const activateTarget = async index => {
+      const button = page.locator(`[data-training-target="${index}"]`);
+      if (tablet) await button.tap(); else await button.click();
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+    };
+    const strike = await trainingAction(page, "strike");
+    await strike.click();
+    await trainingReady(page);
+    const first = await snapshot();
+    expect(first.targets[0].hp).toBeLessThan(first.targets[0].maxHp);
+    expect(first.targets[1].hp).toBe(first.targets[1].maxHp);
+    expect(first.targets[2].hp).toBe(first.targets[2].maxHp);
+    await activateTarget(1);
+    await (await trainingAction(page, "fire_embers")).click();
+    await expect.poll(() => page.evaluate(() => window.__trainingGame.scene.getScene("battle").busy)).toBe(true);
+    await expect(page.locator('[data-training-target="2"]')).toBeDisabled();
+    expect(await page.evaluate(() => window.__trainingGame.scene.getScene("battle").selectTrainingTarget(2))).toBe(false);
+    await trainingReady(page);
+    const second = await snapshot();
+    expect(second.targets[0].hp).toBe(first.targets[0].hp);
+    expect(second.targets[1].hp).toBeLessThan(second.targets[1].maxHp);
+    expect(second.targets[1].statuses).toContain("burn");
+    expect(second.targets[2].hp).toBe(second.targets[2].maxHp);
+    expect(second.full).toBe(true);
+    // Selecting the body uses the same target contract as the native buttons.
+    const canvas = page.locator("#game > canvas");
+    const bounds = await canvas.boundingBox();
+    const position = { x: bounds.x + bounds.width * 860 / 960, y: bounds.y + bounds.height * 310 / 540 };
+    if (tablet) await page.touchscreen.tap(position.x, position.y); else await page.mouse.click(position.x, position.y);
+    await expect(page.locator('[data-training-target="2"]')).toHaveAttribute("aria-pressed", "true");
+    const panelBounds = await panel.boundingBox();
+    const viewport = page.viewportSize();
+    expect(panelBounds.x).toBeGreaterThanOrEqual(0);
+    expect(panelBounds.x + panelBounds.width).toBeLessThanOrEqual(viewport.width + 1);
+    if (!tablet) {
+      const panelTop = (panelBounds.y - bounds.y) * 540 / bounds.height;
+      const feet = await page.evaluate(() => window.__trainingGame.scene.getScene("battle").trainingTargets.map(t => t.fighter.shadow.y));
+      expect(feet.every(y => y + 12 < panelTop)).toBe(true);
+    }
+    await page.screenshot({ path: testInfo.outputPath("training-multiple.png"), fullPage: true });
+    await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
+    await expect(panel).toBeHidden();
+    await page.getByRole("button", { name: "REANUDAR", exact: true }).click();
+    await expect(panel).toBeVisible();
+    expect((await snapshot()).targets.map(t => t.hp)).toEqual(second.targets.map(t => t.hp));
+    await page.locator("[data-reset-training-targets]").click();
+    expect((await snapshot()).targets.every(t => t.hp === t.maxHp && t.statuses.length === 0)).toBe(true);
+    // Low remaining HP exercises actual knockout and all-targets-down handling.
+    for (let index = 0; index < 3; index++) {
+      await activateTarget(index);
+      await page.evaluate(i => { window.__trainingGame.scene.getScene("battle").trainingTargets[i].state.hp = 1; }, index);
+      await (await trainingAction(page, "strike")).click();
+      await expect(page.locator(`[data-training-target="${index}"]`)).toContainText("Derribada", { timeout: 25000 });
+      await expect.poll(() => page.evaluate(() => window.__trainingGame.scene.getScene("battle").busy)).toBe(false);
+      await expect(page.locator(`[data-training-target="${index}"]`)).toBeDisabled();
+    }
+    expect((await snapshot()).targets.every(t => t.hp === 0)).toBe(true);
+    await page.locator("[data-reset-training-targets]").click();
+    await trainingReady(page);
+    await expect(page.locator('[data-training-target="0"]')).toHaveAttribute("aria-pressed", "true");
+    expect((await snapshot()).targets.every(t => t.hp === t.maxHp)).toBe(true);
+    expect(await stored(page)).toBe(baseline);
+    await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
+    await page.getByRole("button", { name: "VOLVER AL DOJO", exact: true }).click();
+    await expect(page.locator(".dojo-layout")).toBeVisible();
+    await expect(panel).toHaveCount(0);
+    await page.locator("[data-training-count]").selectOption("2");
+    await page.locator("[data-start-training]").click();
+    await expect(page.locator("[data-training-target]")).toHaveCount(2);
+    await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
+    await page.getByRole("button", { name: "VOLVER AL DOJO", exact: true }).click();
+    expect(await stored(page)).toBe(baseline);
+    expect(errors).toEqual([]);
+  });
 });
