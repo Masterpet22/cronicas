@@ -1,4 +1,4 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.146.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.154.0";
 import { mountSaveRecovery } from "./src/ui/save-recovery.js?v=0.140.0";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.140.0";
 import { battleRuntime } from "./src/battle/session.js?v=1.0.0";

@@ -1,22 +1,32 @@
 import { test, expect } from "@playwright/test";
 
-async function seed(page) {
+async function seed(page, bookPending = false) {
   await page.goto("/");
-  await page.evaluate(async () => {
+  await page.evaluate(async pending => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.131.0");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego" });
-    save.campaign.tutorialSeen = true; writeSave(save);
+    save.campaign.tutorialSeen = true;
+    save.campaign.doctorBookDeliveryPending = pending;
+    writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1"); localStorage.setItem("music-enabled", "off");
-  });
+  }, bookPending);
   await page.reload(); await page.locator(".village-map > img").evaluate(image => image.decode());
 }
 const ids = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
+const visibleLabelIds = page => page.locator("[data-map-label]").evaluateAll(labels => labels
+  .filter(label => Number(getComputedStyle(label).opacity) > 0).map(label => label.dataset.mapLabel));
 
 for (const width of [1280, 1600]) test(`iluminación y etiqueta compacta siguen los nueve edificios a ${width}`, async ({ page }, testInfo) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.setViewportSize({ width, height: width === 1280 ? 720 : 900 }); await seed(page);
   await expect(page.locator(".map-label.visible")).toHaveCount(0);
+  await expect.poll(() => visibleLabelIds(page)).toEqual(["headquarters"]);
+  await page.locator('.village-hotspot[data-go="shop"]').hover();
+  await expect.poll(() => visibleLabelIds(page)).toEqual(["headquarters", "shop"]);
+  await page.mouse.move(1, 1);
+  await expect.poll(() => visibleLabelIds(page)).toEqual(["headquarters"]);
+  await page.screenshot({ path: testInfo.outputPath("aldea-solo-objetivo.png") });
   const missionLight = page.locator('[data-mission-light="headquarters"]');
   await expect(missionLight).toHaveCount(1);
   await expect(page.locator('.village-hotspot[data-go="headquarters"]')).toHaveAttribute("data-mission-target", "");
@@ -36,6 +46,7 @@ for (const width of [1280, 1600]) test(`iluminación y etiqueta compacta siguen 
     await expect(page.locator("[data-building-light]")).toHaveAttribute("clip-path", `url(#village-clip-${id})`);
     await expect(page.locator(`[data-map-label="${id}"]`)).toHaveCSS("opacity", "1");
     await expect(page.locator(".map-label.visible")).toHaveCount(1);
+    await expect.poll(() => visibleLabelIds(page)).toEqual(id === "headquarters" ? [id] : ["headquarters", id]);
     await expect(page.locator(".map-label small")).toHaveCount(7);
     await page.screenshot({ path: testInfo.outputPath(`${id}-seleccionado.png`) });
   }
@@ -46,6 +57,12 @@ for (const width of [1280, 1600]) test(`iluminación y etiqueta compacta siguen 
   await expect(page.locator('.village-hotspot[data-go="event"]')).toHaveClass(/is-highlighted/);
   expect(await page.locator(".village-map").evaluate(map => map.scrollWidth <= map.clientWidth && map.getBoundingClientRect().right <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
+});
+
+test("la entrega obligatoria deja visible solo la Biblioteca como siguiente objetivo", async ({ page }) => {
+  await seed(page, true);
+  await expect(page.locator(".story-mission-current")).toHaveAttribute("data-view", "archive");
+  await expect.poll(() => visibleLabelIds(page)).toEqual(["archive"]);
 });
 
 test("los bordes visibles excluyen el paisaje que rodea los edificios", async ({ page }) => {
@@ -88,9 +105,10 @@ test("el texto de la misión actual abre directamente el edificio objetivo", asy
 test("el destello respeta la elección, evita entradas dobles y se puede cancelar", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" }); await seed(page);
   const dojo = page.locator('.village-hotspot[data-go="dojo"]'), map = page.locator(".village-map");
-  await dojo.focus(); await dojo.press("Enter");
+  await dojo.dispatchEvent("click");
   await expect(map).toHaveClass(/is-entering/);
   await expect(dojo).toHaveClass(/is-entering/);
+  await expect(page.locator('[data-map-label="dojo"]')).toHaveClass(/visible/);
   await expect(map).toHaveAttribute("aria-busy", "true");
   await dojo.press("Escape");
   await expect(map).not.toHaveClass(/is-entering/);

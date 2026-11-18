@@ -32,8 +32,7 @@
 .village-map .map-label {
   opacity: 0; max-width: 190px; transform: translate(-50%, 5px); animation: none;
 }
-.village-map .map-label.visible { opacity: 1; transform: translate(-50%, 0); }
-.village-map .map-label.is-unlocked { opacity:1; transform:translate(-50%,0); }
+.village-map .map-label:is(.visible, .is-next-objective) { opacity: 1; transform: translate(-50%, 0); }
 .village-map .map-label-box {
   padding: 5px 10px; border: 1px solid rgba(241, 197, 111, .7); border-radius: 6px;
   background: rgba(5, 14, 24, .94); box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
@@ -41,9 +40,8 @@
 .village-map .map-label-box strong { color: #ffe4a9; font-size: 13px; white-space: normal; }
 .hotspot-entry { opacity: 0; }
 .hotspot-entry-ring { fill: none; stroke: #ffe2a0; stroke-width: 2px; vector-effect: non-scaling-stroke; }
-.village-entry-shade { position: absolute; z-index: 5; inset: 0; background: #030a12; opacity: 0; pointer-events: none; }
+.village-entry-shade { position: absolute; z-index: 9; inset: 0; background: #030a12; opacity: 0; pointer-events: none; }
 .village-map.is-entering .village-hotspots, .village-map.is-entering .hotspot-shape { pointer-events: none; }
-.village-map.is-entering .map-label { opacity: 0; }
 .village-map.is-entering .village-hotspot.is-entering .hotspot-entry { animation: village-door-flash 380ms ease-out both; }
 .village-map.is-entering .village-entry-shade { animation: village-entry-fade 380ms ease-in both; }
 .village-arrival { animation: village-arrival 260ms ease-out both; }
