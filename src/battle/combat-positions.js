@@ -14,18 +14,14 @@ export const COMBAT_SLOTS = Object.freeze({
 });
 
 const { protagonist, enemyCenter, enemyUpper, enemyLower } = COMBAT_SLOTS;
-const proposedEnemies = Object.freeze([enemyCenter, enemyUpper, enemyLower]);
-const at = (position, x, y = position.y) => Object.freeze({ ...position, x, y });
-
-// Coordenadas en uso mientras se revisa la propuesta del Dojo.
-const currentFormations = Object.freeze([
-  Object.freeze([at(enemyCenter, 740)]),
-  Object.freeze([at(enemyCenter, 650), at(enemyUpper, 770, enemyCenter.y)]),
-  Object.freeze([at(enemyCenter, 600), at(enemyUpper, 700, 338), at(enemyLower, 800, enemyCenter.y)])
+const enemyFormations = Object.freeze([
+  Object.freeze([enemyCenter]),
+  Object.freeze([enemyCenter, enemyUpper]),
+  Object.freeze([enemyCenter, enemyUpper, enemyLower])
 ]);
 
-export function enemyFormation(count, { preview = false } = {}) {
-  return preview ? proposedEnemies.slice(0, count) : currentFormations[count - 1];
+export function enemyFormation(count) {
+  return enemyFormations[count - 1];
 }
 
 export function combatFighterDepth({ y }) {

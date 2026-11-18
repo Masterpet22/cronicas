@@ -16,10 +16,20 @@ import {
   characterHairConfig
 } from "./character-rigs.js?v=0.149.0";
 
-export const MAN_SPRITE_SHADOW_OFFSET = 60;
+const FIGHTER_GROUND_OFFSET = 60;
+export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;
+
+function fighterGrounding({ byId, combat }) {
+  const boots = [byId.pie_izquierdo, byId.pie_derecho];
+  const sole = Math.max(...boots.map(boot => boot.y + boot.height / 2));
+  const left = Math.min(...boots.map(boot => boot.x - boot.width / 2));
+  const right = Math.max(...boots.map(boot => boot.x + boot.width / 2));
+  return { rigY: FIGHTER_GROUND_OFFSET - sole * combat.scale, shadowWidth: (right - left) * combat.scale + 22 };
+}
+
 const PUPPET_VARIANTS = Object.freeze({
-  male: { bodyType: "male", ...CHARACTER_RIGS.male },
-  female: { bodyType: "female", ...CHARACTER_RIGS.female }
+  male: { bodyType: "male", ...CHARACTER_RIGS.male, ground: fighterGrounding(CHARACTER_RIGS.male) },
+  female: { bodyType: "female", ...CHARACTER_RIGS.female, ground: fighterGrounding(CHARACTER_RIGS.female) }
 });
 
 // Los lados se nombran desde la perspectiva anatómica del personaje, no desde
@@ -160,27 +170,35 @@ export function startPlayerBreathing(scene, fighter) {
   fighter.breathingTweens = [...fighter.animations.tweens];
 }
 
-function bringPreparationArmForward(fighter) {
-  const branch = fighter?.joints?.shoulderLeft;
-  const rig = fighter?.rig;
-  const torso = fighter?.sprite;
-  if (!branch || !torso || typeof rig?.getIndex !== "function" || typeof rig?.moveTo !== "function") return;
-  if (!fighter.preparationLayerOrder) {
-    fighter.preparationLayerOrder = { branch, index: rig.getIndex(branch) };
+function bringPreparationForearmForward(scene, fighter) {
+  const { rig, sprite: torso, joints: { shoulderLeft, elbowLeft } } = fighter;
+  if (!fighter.preparationForearm) {
+    // El hombro conserva su capa detrás del torso. Solo el antebrazo y la
+    // mano cruzan por delante mediante un pivote con la misma transformación.
+    const pivot = scene.add.container();
+    rig.addAt(pivot, rig.getIndex(torso) + 1);
+    const sync = () => pivot.setPosition(shoulderLeft.x, shoulderLeft.y)
+      .setRotation(shoulderLeft.rotation).setScale(shoulderLeft.scaleX, shoulderLeft.scaleY);
+    const detach = () => scene.events.off("postupdate", sync);
+    pivot.once("destroy", detach);
+    fighter.preparationForearm = { pivot, sync, detach };
   }
-  const branchIndex = rig.getIndex(branch);
-  const torsoIndex = rig.getIndex(torso);
-  if (branchIndex < 0 || torsoIndex < 0 || branchIndex > torsoIndex) return;
-  // Al retirar una rama situada antes del torso, este retrocede una posición.
-  // Insertarla en el índice que tenía el torso la deja inmediatamente delante.
-  rig.moveTo(branch, torsoIndex);
+  const { pivot, sync } = fighter.preparationForearm;
+  if (elbowLeft.parentContainer === pivot) return;
+  shoulderLeft.remove(elbowLeft);
+  pivot.add(elbowLeft);
+  sync();
+  scene.events.on("postupdate", sync);
 }
 
 function restorePreparationArmDepth(fighter) {
-  const saved = fighter?.preparationLayerOrder;
-  if (!saved || typeof fighter.rig?.moveTo !== "function") return;
-  fighter.rig.moveTo(saved.branch, saved.index);
-  fighter.preparationLayerOrder = null;
+  const forearm = fighter.preparationForearm;
+  if (!forearm) return;
+  const { shoulderLeft, elbowLeft } = fighter.joints;
+  if (elbowLeft.parentContainer !== forearm.pivot) return;
+  forearm.detach();
+  forearm.pivot.remove(elbowLeft);
+  shoulderLeft.add(elbowLeft);
 }
 
 export function stopPlayerBreathing(fighter) {
@@ -196,7 +214,7 @@ export function startPlayerPreparing(scene, fighter) {
   if (fighter.preparing && (animations.clipId === clipId || animations.state === "hit")) return true;
   fighter.preparing = true;
   fighter.breathingTweens = [];
-  if (clipId === "prepare-technique") bringPreparationArmForward(fighter);
+  if (clipId === "prepare-technique") bringPreparationForearmForward(scene, fighter);
   const blendFromCurrent = clipId === "prepare-technique" && (!animations.state || animations.state === "idle");
   return animations.loop(clipId, { force: true, blendFromCurrent });
 }
@@ -299,10 +317,10 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   preparePlayerFighterTextures(scene, appearance);
   const variant = { ...puppetVariant(appearance), atlasKey: fighterAtlasKey(appearance) };
   const spriteJoints = variant.joints;
-  const shadow = scene.add.ellipse(x, y + MAN_SPRITE_SHADOW_OFFSET, 158, 22, 0x000000, 0.4).setDepth(4);
+  const shadow = scene.add.ellipse(x, y + FIGHTER_GROUND_OFFSET, variant.ground.shadowWidth, 14, 0x000000, 0.4).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);
   if (flipped) body.setScale(-1, 1);
-  const rig = scene.add.container(variant.combat.x, variant.combat.y).setScale(variant.combat.scale);
+  const rig = scene.add.container(variant.combat.x, variant.ground.rigY).setScale(variant.combat.scale);
   body.add(rig);
 
   const joints = {};
@@ -384,8 +402,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
 
 export function destroyFighter(fighter) {
   if (!fighter) return;
-  stopPlayerBreathing(fighter);
-  stopPlayerRunning(fighter);
+  fighter.animations?.stop({ reset: true });
   fighter.shadow.destroy();
   [...new Set(fighter.targets || [fighter.body, fighter.head])].forEach((target) => target?.destroy(true));
 }

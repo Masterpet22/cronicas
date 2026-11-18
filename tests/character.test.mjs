@@ -140,9 +140,14 @@ const assemblyScene = {
 };
 const assembledWoman = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "female", hair: 0 });
 assert.deepEqual({ x: assembledWoman.joints.neck.x, y: assembledWoman.joints.neck.y }, WOMAN_SPRITE_JOINTS.neck, "El constructor debe aplicar las articulaciones femeninas");
-assert.deepEqual({ x: assembledWoman.rig.x, y: assembledWoman.rig.y, scale: assembledWoman.rig.scaleX }, { x: 5.958584, y: -52.269376, scale: 0.153583112 }, "El cuerpo femenino debe recuperar la altura, suelo y centro visual anteriores sin deformarse");
+assert.deepEqual({ x: assembledWoman.rig.x, scale: assembledWoman.rig.scaleX }, { x: 5.958584, scale: 0.153583112 }, "El cuerpo femenino conserva escala y centro horizontal");
 const assembledMan = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "male", hair: 0 });
-assert.deepEqual({ x: assembledMan.rig.x, y: assembledMan.rig.y, scale: assembledMan.rig.scaleX }, { x: 5.777497, y: -61.562716, scale: 0.1649537 }, "El cuerpo masculino debe recuperar la altura, suelo y centro visual anteriores sin deformarse");
+assert.deepEqual({ x: assembledMan.rig.x, scale: assembledMan.rig.scaleX }, { x: 5.777497, scale: 0.1649537 }, "El cuerpo masculino conserva escala y centro horizontal");
+for (const [fighter, layers] of [[assembledWoman, WOMAN_SPRITE_LAYERS], [assembledMan, MAN_SPRITE_LAYERS]]) {
+  const sole = Math.max(...layers.filter(({ id }) => id.startsWith("pie_")).map(({ y, height }) => y + height / 2));
+  const groundY = fighter.rig.y + sole * fighter.rig.scaleY;
+  assert.ok(Math.abs(groundY - MAN_SPRITE_SHADOW_OFFSET) < .001, "Las botas y la sombra deben compartir la línea del suelo");
+}
 const assembledPonytail = createPlayerFighter(assemblyScene, 0, 0, { bodyType: "male", hair: 4 });
 assert.ok(assembledPonytail.tail, "La coleta debe ensamblar una cola trasera independiente");
 assert.ok(assembledPonytail.rig.children.indexOf(assembledPonytail.joints.tail) < assembledPonytail.rig.children.indexOf(assembledPonytail.sprite), "La cola debe insertarse detrás del torso y del resto del cuerpo");
@@ -238,37 +243,6 @@ assert.equal(typeof startPlayerPreparing, "function");
 assert.equal(typeof stopPlayerPreparing, "function");
 assert.equal(typeof playPlayerDamageReaction, "function");
 assert.equal(playPlayerDamageReaction, playFighterDamageReaction, "El alias anterior debe conservar compatibilidad con llamadas existentes");
-
-const rearArmBranch = {};
-const rearLegBranch = {};
-const preparationTorso = {};
-const preparationRig = {
-  children: [rearArmBranch, rearLegBranch, preparationTorso],
-  getIndex(child) { return this.children.indexOf(child); },
-  moveTo(child, index) {
-    this.children.splice(this.children.indexOf(child), 1);
-    this.children.splice(index, 0, child);
-  }
-};
-const preparationAnimations = {
-  state: "idle",
-  clipId: DEFAULT_IDLE_CLIP,
-  tweens: [],
-  supports() { return true; },
-  stop() { this.state = null; this.clipId = null; },
-  loop(id) { this.clipId = id; this.state = id.startsWith("idle") ? "idle" : "action"; return true; }
-};
-const preparationFighter = {
-  rig: preparationRig,
-  sprite: preparationTorso,
-  joints: { shoulderLeft: rearArmBranch },
-  animations: preparationAnimations,
-  breathingTweens: []
-};
-startPlayerPreparing({}, preparationFighter);
-assert.ok(preparationRig.getIndex(rearArmBranch) > preparationRig.getIndex(preparationTorso), "La mano trasera debe pasar al frente mientras cruza el torso");
-stopPlayerPreparing({}, preparationFighter, { immediate: true });
-assert.equal(preparationRig.getIndex(rearArmBranch), 0, "La jerarquía anatómica original debe restaurarse al terminar la preparación");
 
 const controllerTarget = () => ({ x: 0, y: 0, angle: 0, scaleX: 1, scaleY: 1, alpha: 1 });
 const controllerConfigs = [];

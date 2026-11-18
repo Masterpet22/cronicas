@@ -3,6 +3,7 @@ import { createTraining, trainingActions, trainingDummyProfile, trainingTargetCo
 import { createDefaultSave, createCharacter } from "../src/save.js";
 import { ENEMY_ROSTER } from "../src/data.js";
 import { createEnemyState } from "../src/battle/enemy-state.js";
+import { COMBAT_SLOTS, enemyFormation } from "../src/battle/combat-positions.js";
 import { affinityCycleModifier, validateAffinityOrder } from "../src/affinity-system.js";
 
 const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType: "male" });
@@ -30,6 +31,11 @@ for (const [value, expected] of [[-1, 1], [0, 1], [1, 1], [2, 2], [3, 3], [100, 
 assert.equal(createTraining({ targetCount: 3 }).groupTraining, true);
 assert.equal(createTraining({ targetCount: 3 }).encounters.length, 3);
 assert.equal(createTraining().groupTraining, false);
+const { enemyCenter, enemyUpper, enemyLower } = COMBAT_SLOTS;
+assert.deepEqual(enemyFormation(1), [enemyCenter]);
+assert.deepEqual(enemyFormation(2), [enemyCenter, enemyUpper]);
+assert.deepEqual(enemyFormation(3), [enemyCenter, enemyUpper, enemyLower]);
+assert.ok(enemyUpper.y < enemyCenter.y && enemyCenter.y < enemyLower.y, "La formación conserva un espacio arriba y otro abajo");
 const originalProfile = { ...ENEMY_ROSTER.boss_varek, affinities: ["fuego", "agua"], completedAffinityTrials: ["affinity_trial_2"] };
 const originalSnapshot = structuredClone(originalProfile);
 const dummyProfile = trainingDummyProfile(originalProfile);

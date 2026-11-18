@@ -9,7 +9,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
     await expect(page.locator(".save-selector")).toBeVisible();
     await ensurePhaser(page);
     await page.evaluate(async renderer => {
-      const api = await import("/src/fighters.js?v=0.152.0");
+      const api = await import("/src/fighters.js?v=0.153.0");
       document.querySelector("main").hidden = true;
       const host = document.createElement("div");
       host.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;background:#18293b";
@@ -18,10 +18,12 @@ for (const renderer of ["Canvas", "WebGL"]) {
         preload() { for (const bodyType of ["male", "female"]) api.queuePlayerFighterTextures(this, { bodyType, hair: 0 }); }
         create() {
           const fighters = [];
+          const idleListeners = this.events.listenerCount("postupdate");
           for (const [index, bodyType] of ["male", "male", "female", "female"].entries()) {
             const flipped = index % 2 === 1;
             const fighter = api.createPlayerFighter(this, 180 + index * 360, 490, { bodyType, hair: 0 }, flipped);
             fighter.body.setScale(flipped ? -1.5 : 1.5, 1.5);
+            fighter.shadow.setY(fighter.body.y + api.MAN_SPRITE_SHADOW_OFFSET * 1.5).setScale(1.5);
             api.stopPlayerBreathing(fighter);
             const neutral = Object.fromEntries(Object.entries(fighter.joints).map(([key, node]) => [key, { x: node.x, y: node.y, angle: node.angle }]));
             const feet = fighter.joints.ankleRight.getWorldTransformMatrix().transformPoint(0, 0, {});
@@ -30,7 +32,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
             fighters.push({ fighter, neutral, feet, armDepth });
             this.add.text(70 + index * 360, 120, `${bodyType} · ${flipped ? "reflejado" : "normal"}`, { fontSize: 20 });
           }
-          window.__preparationTest = { scene: this, fighters, api };
+          window.__preparationTest = { scene: this, fighters, api, idleListeners };
         }
       }
       new Phaser.Game({ type: renderer === "Canvas" ? Phaser.CANVAS : Phaser.WEBGL, parent: host, width: 1440, height: 720, backgroundColor: "#18293b", scene: [PoseScene], audio: { noAudio: true }, render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false } });
@@ -43,8 +45,17 @@ for (const renderer of ["Canvas", "WebGL"]) {
       const width = fighter.sprite.displayWidth * Math.abs(fighter.rig.scaleX * fighter.body.scaleX);
       const distance = Math.abs(palms[0].x - palms[1].x);
       const ankle = fighter.joints.ankleRight.getWorldTransformMatrix().transformPoint(0, 0, {});
+      const bootSoles = fighter.layers.filter(layer => layer.name.startsWith("pie_")).map(boot =>
+        boot.getWorldTransformMatrix().transformPoint(0, boot.height / 2, {}).y);
+      const { shoulderLeft, elbowLeft } = fighter.joints;
+      const forearmPivot = elbowLeft.parentContainer;
+      const torsoIndex = fighter.rig.getIndex(fighter.sprite);
       return distance > width * .22 && distance < width * .35 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
-        && Math.abs(ankle.x - feet.x) < .01 && Math.abs(ankle.y - feet.y) < .01;
+        && Math.abs(ankle.x - feet.x) < .01 && Math.abs(ankle.y - feet.y) < .01
+        && bootSoles.every(y => Math.abs(y - fighter.shadow.y) < 1)
+        && fighter.rig.getIndex(shoulderLeft) < torsoIndex && fighter.rig.getIndex(forearmPivot) > torsoIndex
+        && fighter.layers.find(layer => layer.name === "brazo_izquierdo").parentContainer === shoulderLeft
+        && Math.abs(forearmPivot.rotation - shoulderLeft.rotation) < .001;
     }));
     await expect.poll(centered).toEqual([true, true, true, true]);
     const continues = await page.evaluate(() => {
@@ -77,10 +88,21 @@ for (const renderer of ["Canvas", "WebGL"]) {
       return fighters.map(({ fighter, neutral, armDepth }) => {
         api.stopPlayerBreathing(fighter);
         return fighter.rig.getIndex(fighter.joints.shoulderLeft) === armDepth
+          && fighter.joints.elbowLeft.parentContainer === fighter.joints.shoulderLeft
           && Object.entries(neutral).every(([key, base]) => ["x", "y", "angle"].every(property => Math.abs(fighter.joints[key][property] - base[property]) < .001));
       });
     });
     expect(restored).toEqual([true, true, true, true]);
+    const listeners = await page.evaluate(() => {
+      const { scene, fighters, api, idleListeners } = window.__preparationTest;
+      const restored = scene.events.listenerCount("postupdate");
+      fighters.forEach(({ fighter }) => api.startPlayerPreparing(scene, fighter));
+      const preparing = scene.events.listenerCount("postupdate");
+      fighters.forEach(({ fighter }) => api.destroyFighter(fighter));
+      return { restored: restored - idleListeners, preparing: preparing - idleListeners,
+        destroyed: scene.events.listenerCount("postupdate") - idleListeners };
+    });
+    expect(listeners).toEqual({ restored: 0, preparing: 4, destroyed: 0 });
     expect(errors).toEqual([]);
   });
 }

@@ -198,7 +198,7 @@ assert.equal((battle.match(/\.hp = Math\.max\(0/g) || []).length, 1, "No debe ha
 assert.match(battle, /createUiIcon\(this, "healthLoss"/, "La pérdida de vida debe mostrar una gota roja junto al número");
 assert.match(battle, /ratio <= 0\.25 \? 0xe06b52 : 0x06d45a/, "La barra de vida debe conservar el jade y apagarse solamente en estado crítico");
 assert.match(battle, /\[\.\.\.this\.foe\.targets, this\.foe\.shadow\]/, "La sombra enemiga debe desvanecerse junto con el cuerpo");
-assert.match(battle, /createEnemyFighterAt\(position = enemyFormation\(1\)\[0\][\s\S]*createPlayerFighter\(this, position\.x \+ entryOffset, position\.y, this\.enemyAppearance\(\), true\)/, "El rival debe ocupar su posición de combate con su apariencia registrada y mirar hacia el jugador");
+assert.match(battle, /createEnemyFighterAt\(position = COMBAT_SLOTS\.enemyCenter[\s\S]*createPlayerFighter\(this, position\.x \+ entryOffset, position\.y, this\.enemyAppearance\(\), true\)/, "El rival debe ocupar su posición de combate con su apariencia registrada y mirar hacia el jugador");
 assert.match(battle, /battle-mist-marsh-water\.webp/, "La marisma debe usar el fondo optimizado sin plataforma de piedra");
 assert.match(battle, /styleFighterGrounding\(fighter\)[\s\S]*profile\.grounding[\s\S]*setStrokeStyle\(ground\.strokeWidth/, "El contacto de ambos combatientes con el suelo debe proceder del perfil visual de la arena");
 assert.match(battle, /queueTeleportObjects\(this\)/, "El combate debe cargar los objetos de apariencia para la Sustitución");

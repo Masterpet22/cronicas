@@ -1,8 +1,9 @@
-import { createPlayerFighter, destroyFighter } from "../fighters.js?v=0.152.0";
+import { createPlayerFighter, destroyFighter } from "../fighters.js?v=0.153.0";
 import { playerFighterAppearance } from "../character.js?v=0.119.0";
 import { missionTravelPresentation } from "./mission-travel-presentation.js?v=0.96.0";
 import { playTeleportTransition } from "./teleport-transition.js?v=1.2.0";
 import { BATTLE_ARENAS, HEIGHT, WIDTH, battleRuntime, sharpenTextTree } from "./runtime.js?v=0.91.0";
+import { COMBAT_SLOTS } from "./combat-positions.js?v=0.153.0";
 
 export async function playMissionTeleport(scene, data) {
   const returning = data.direction === "toVillage" || data.direction === "toDoctorRoute";
@@ -19,7 +20,8 @@ export async function playMissionTeleport(scene, data) {
   const location = scene.add.text(480, 125, returning ? presentation.departure : "ALDEA", {
     fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "16px", color: "#d6e7e4"
   }).setOrigin(.5).setDepth(12);
-  const fighter = createPlayerFighter(scene, 220, 372, playerFighterAppearance(battleRuntime.activeSave));
+  const { x, y } = COMBAT_SLOTS.protagonist;
+  const fighter = createPlayerFighter(scene, x, y, playerFighterAppearance(battleRuntime.activeSave));
   fighter.body.setName("teleport-traveler");
   try {
     sharpenTextTree(scene.children.list);

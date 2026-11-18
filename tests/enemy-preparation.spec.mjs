@@ -85,17 +85,25 @@ for (const renderer of ["Canvas", "WebGL"]) for (const ability of [
     }, ability);
     expect(start).toEqual({ sheet: true, seals: ability.seals, attacked: false, preparing: true });
     await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.sealLayer.list.filter(part => part.type === "Container").length), { timeout: 20_000 }).toBe(ability.seals.length);
-    const cards = await page.evaluate(() => {
+    const cards = await page.evaluate(async () => {
       const state = window.__performanceReference, scene = state.scene;
+      const { COMBAT_SLOTS } = await import("/src/battle/combat-positions.js?v=0.153.0");
+      const fighter = scene.foe;
+      const { shoulderLeft, elbowLeft } = fighter.joints;
+      const torsoIndex = fighter.rig.getIndex(fighter.sprite);
       return { options: state.castOptions, prompt: scene.sealPrompt.text,
         labels: scene.sealLayer.list.filter(part => part.type === "Container")
           .flatMap(card => card.list.filter(part => part.type === "Text").map(part => part.text)),
-        preparationMs: state.castStartedAt - state.preparationStartedAt, attacked: state.attackStarted };
+        preparationMs: state.castStartedAt - state.preparationStartedAt, attacked: state.attackStarted,
+        layeredArm: fighter.rig.getIndex(shoulderLeft) < torsoIndex && fighter.rig.getIndex(elbowLeft.parentContainer) > torsoIndex,
+        centralSlot: fighter.body.x === COMBAT_SLOTS.enemyCenter.x && fighter.body.y === COMBAT_SLOTS.enemyCenter.y };
     });
     expect(cards.options).toEqual({ actor: "enemy" });
     expect(cards.prompt).toContain("SELLOS DEL RIVAL");
     expect(cards.labels.sort()).toEqual(ability.labels);
     expect(cards.attacked).toBe(false);
+    expect(cards.layeredArm).toBe(true);
+    expect(cards.centralSlot).toBe(true);
     expect(cards.preparationMs).toBeGreaterThanOrEqual(ability.seals.length * 300);
     await page.screenshot({ path: `test-results/enemy-seals-${renderer}-${ability.id}.png` });
     await page.evaluate(() => window.__performanceReference.releasePreview());

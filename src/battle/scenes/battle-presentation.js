@@ -2,7 +2,7 @@ import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail,
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.140.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.152.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -17,7 +17,7 @@ import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, re
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
-import { COMBAT_SLOTS, combatFighterDepth, enemyFormation } from "../combat-positions.js?v=0.152.0";
+import { COMBAT_SLOTS, combatFighterDepth } from "../combat-positions.js?v=0.153.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
@@ -718,7 +718,7 @@ export class BattlePresentationMethods {
     this.bossPhaseSilhouette = null;
   }
 
-  createEnemyFighterAt(position = enemyFormation(1)[0], entryOffset = 0) {
+  createEnemyFighterAt(position = COMBAT_SLOTS.enemyCenter, entryOffset = 0) {
     const fighter = createPlayerFighter(this, position.x + entryOffset, position.y, this.enemyAppearance(), true);
     fighter.body.setDepth(combatFighterDepth(position));
     this.styleFighterGrounding(fighter);
