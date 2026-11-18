@@ -2,7 +2,7 @@ import { isBaseOutfitPart, baseOutfitAsset } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterTextures } from "./battle/skin-textures.js?v=0.119.0";
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.119.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.147.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.119.0";
 import {
   CHARACTER_FACES,

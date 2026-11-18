@@ -1,5 +1,7 @@
 import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.115.0";
-import { addAnimationOffsets, isKeyframeAnimationClip, sampleKeyframeAnimationPose, TRANSFORM_PROPERTIES } from "./runtime.js";
+import { addAnimationOffsets, createKeyframeSampler, isKeyframeAnimationClip, TRANSFORM_PROPERTIES } from "./runtime.js?v=0.147.0";
+
+const catalogSamplers = new WeakMap();
 
 function targetFor(fighter, name) {
   if (name === "torso") return fighter.sprite;
@@ -11,11 +13,11 @@ function snapshot(target) {
   return Object.fromEntries(TRANSFORM_PROPERTIES.map((property) => [property, Number(target?.[property] ?? (property.startsWith("scale") || property === "alpha" ? 1 : 0))]));
 }
 
-function worldPoint(target) {
+function worldPoint(target, point = {}) {
   const matrix = target?.getWorldTransformMatrix?.();
   if (!matrix?.transformPoint) return null;
-  const point = matrix.transformPoint(0, 0, {});
-  return Number.isFinite(point?.x) && Number.isFinite(point?.y) ? point : null;
+  const result = matrix.transformPoint(0, 0, point);
+  return Number.isFinite(result?.x) && Number.isFinite(result?.y) ? result : null;
 }
 
 export class PuppetAnimationController {
@@ -104,16 +106,23 @@ export class PuppetAnimationController {
     });
     const anchorTarget = clip.anchor ? targetFor(this.fighter, clip.anchor) : null;
     const anchorPoint = worldPoint(anchorTarget);
+    const anchorBuffer = {};
     const rigEntry = targets.get("rig");
+    const shared = PUPPET_ANIMATION_CLIPS[clip.id] === clip;
+    let sample = shared ? catalogSamplers.get(clip) : null;
+    if (!sample) {
+      sample = createKeyframeSampler(clip);
+      if (shared) catalogSamplers.set(clip, sample);
+    }
+    const applyOffset = (name, property, value) => {
+      const entry = targets.get(name);
+      if (entry) entry.target[property] = entry.base[property] + value;
+    };
 
     const applyAt = (elapsed) => {
       if (rigEntry) Object.assign(rigEntry.target, rigEntry.base);
-      const pose = sampleKeyframeAnimationPose(clip, elapsed);
-      Object.entries(pose).forEach(([name, offsets]) => {
-        const entry = targets.get(name);
-        if (entry) Object.assign(entry.target, addAnimationOffsets(entry.base, offsets));
-      });
-      const currentAnchor = worldPoint(anchorTarget);
+      sample(elapsed, applyOffset);
+      const currentAnchor = worldPoint(anchorTarget, anchorBuffer);
       if (anchorPoint && currentAnchor && rigEntry) {
         const scaleX = Number(this.fighter.body?.scaleX) || 1;
         const scaleY = Number(this.fighter.body?.scaleY) || 1;

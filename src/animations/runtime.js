@@ -70,9 +70,7 @@ export function isKeyframeAnimationClip(clip) {
   return Boolean(clip?.keys && typeof clip.keys === "object" && !Array.isArray(clip.keys));
 }
 
-function sampleKeyframeProperty(frames, property, time) {
-  const keys = frames.filter((frame) => Number.isFinite(frame[property]));
-  if (!keys.length) return undefined;
+function sampleKeyframeProperty(keys, property, time) {
   if (time <= keys[0].t) return keys[0][property];
   if (time >= keys[keys.length - 1].t) return keys[keys.length - 1][property];
   for (let index = 1; index < keys.length; index += 1) {
@@ -88,23 +86,35 @@ function sampleKeyframeProperty(frames, property, time) {
   return keys[keys.length - 1][property];
 }
 
+/** Prepara las pistas una vez para todo el recorrido de un clip. */
+export function createKeyframeSampler(clip) {
+  const duration = Math.max(1, Number(clip.duration || 0));
+  const loop = clip.loop;
+  const tracks = Object.entries(clip.keys).map(([target, original]) => {
+    const frames = [...original].sort((left, right) => left.t - right.t);
+    const properties = TRANSFORM_PROPERTIES.map(property => ({
+      property, keys: frames.filter(frame => Number.isFinite(frame[property]))
+    })).filter(({ keys }) => keys.length > 0);
+    return { target, properties };
+  });
+  return (elapsed, apply) => {
+    const time = loop
+      ? ((elapsed % duration) + duration) % duration
+      : Math.max(0, Math.min(duration, elapsed));
+    for (const { target, properties } of tracks) {
+      for (const { property, keys } of properties) {
+        apply(target, property, sampleKeyframeProperty(keys, property, time));
+      }
+    }
+  };
+}
+
 /** Muestrea offsets relativos de un clip del catálogo del juego. */
 export function sampleKeyframeAnimationPose(clip, elapsed) {
   if (!isKeyframeAnimationClip(clip)) return {};
-  const duration = Math.max(1, Number(clip.duration || 0));
-  const time = clip.loop
-    ? ((elapsed % duration) + duration) % duration
-    : Math.max(0, Math.min(duration, elapsed));
   const pose = {};
-  Object.entries(clip.keys).forEach(([target, original]) => {
-    const frames = [...original].sort((left, right) => left.t - right.t);
-    if (!frames.length) return;
-    const transform = {};
-    TRANSFORM_PROPERTIES.forEach((property) => {
-      const value = sampleKeyframeProperty(frames, property, time);
-      if (value !== undefined) transform[property] = value;
-    });
-    if (Object.keys(transform).length) pose[target] = transform;
+  createKeyframeSampler(clip)(elapsed, (target, property, value) => {
+    (pose[target] ||= {})[property] = value;
   });
   return pose;
 }

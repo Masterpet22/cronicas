@@ -103,5 +103,8 @@ export function mountBattleInventory(scene, parent) {
     dialog?.remove(); dialog = null; scene.inventoryDialogOpen = false;
     scene.events.off("resume", restoreFocus);
   });
-  return { refresh() { button.disabled = Boolean(scene.mission.exhibition || scene.finished || scene.busy); }, button };
+  return { refresh() {
+    const disabled = Boolean(scene.mission.exhibition || scene.finished || scene.busy);
+    if (button.disabled !== disabled) button.disabled = disabled;
+  }, button };
 }

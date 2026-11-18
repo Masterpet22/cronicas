@@ -1,6 +1,6 @@
 # Plan de optimización del juego
 
-18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Primera intervención aplicada
+18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Cursor, pausa, animaciones y HUD actualizados
 
 La prioridad es recuperar una respuesta fluida del cursor al jugar y al abrir ventanas, empezando por la pausa. El trabajo cubre el navegador en ordenador y tablet. El objetivo de la primera ronda es reducir la carga dentro de Phaser 4 y de la interfaz HTML, con mediciones comparables para cada cambio.
 
@@ -36,7 +36,7 @@ Punto de partida para repetir casos y extender la medición al Dojo de grupo. [P
 ## 2. Reducir trabajo repetido
 
 - **Cursor y pausa.** Primera intervención aplicada. Medir la experiencia en el equipo afectado y ampliar el recorrido al combate de grupo y al toque en tablet.
-- **Animaciones.** Ordenar fotogramas e indexar propiedades al preparar cada clip. Reutilizar esas tablas en el muestreo de poses, que hoy ordena fotogramas y filtra pistas en cada llamada. Medir también los cálculos de matrices de los efectos unidos a las manos cuando varios rivales se preparan.
+- **Animaciones.** El controlador prepara los fotogramas de cada propiedad al iniciar el clip y aplica los offsets directamente al personaje. Los combatientes comparten las pistas preparadas de los clips del catálogo. Las partículas de preparación reutilizan las matrices y calculan solo la posición de cada mano.
 - **Medición.** Comparar coste de CPU y asignaciones con cuatro personajes, antes y después. Verificar tiempos de preparación, posición de manos y orden de turnos. En una pausa estable, el reloj de cada combatiente debe quedar fijo y el canvas no debe redibujarse por mover el cursor.
 
 [Muestreo de animaciones](../src/animations/runtime.js) · [Presentación de combate](../src/battle/scenes/battle-presentation.js)
@@ -48,6 +48,22 @@ Punto de partida para repetir casos y extender la medición al Dojo de grupo. [P
 - Verificar que recibir un golpe, cambiar de rival y reanudar la pausa refrescan los datos correspondientes. Medir las escrituras al DOM y su impacto sobre la latencia del cursor con un duelo y con tres rivales.
 
 [HUD accesible](../src/battle/hud-accessibility.js) · [Marcadores de grupo](../src/battle/training-targets.js)
+
+### Antes y después en el Dojo contra tres rivales
+
+Tres repeticiones por versión en Chromium headless con WebGL por software (SwiftShader), ventana de 1440 × 900, canvas de 960 × 540 y modo ligero desactivado. La base fue `90c1bf8`. Cada recorrido usó dos técnicas de fuego y un golpe veloz contra los tres objetivos, con golpes acertados y el mismo patrón de ataque de los rivales, incluido Muro Pétreo. Coincidieron el objetivo, los turnos, la vida y el chakra en cada final de ronda.
+
+| Medida | Antes | Después | Cambio |
+| --- | ---: | ---: | ---: |
+| CPU por actualización de Muro Pétreo, incluido el anclaje | 0,165 ms | 0,069 ms | −58 % |
+| CPU acumulada de Muro Pétreo en el recorrido | 5,6 ms | 2,5 ms | −55 % |
+| Mutaciones del HUD HTML en el recorrido | 6.187 | 224 | −96,4 % |
+| Mutaciones al pedir 120 refrescos con datos idénticos | 6.360 | 0 | −100 % |
+| Tiempo de esos 120 refrescos, incluido el HUD de Phaser | 211,1 ms | 10,3 ms | −95,1 % |
+| FPS del navegador | 16,23 | 16,61 | +0,38 FPS |
+| p95 del intervalo entre fotogramas | 66,8 ms | 66,8 ms | 0 ms |
+
+Las cifras son medianas de las tres repeticiones. El tiempo de Muro Pétreo mide el callback que muestrea la pose y la aplica al personaje. El recorrido cuenta las mutaciones bajo `.combat-access` durante las tres rondas. Los FPS se calcularon con los intervalos de `requestAnimationFrame`, y el p95 resume los p95 de las tres rondas de cada repetición. La mejora se concentró en el trabajo de JavaScript y del HUD. La cadencia de fotogramas quedó prácticamente igual en este renderer por software.
 
 ## 4. Agrupar texturas en atlas
 

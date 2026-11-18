@@ -2,7 +2,7 @@ import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail,
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.140.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.140.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterPuppetTextureKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.147.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.143.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -575,11 +575,15 @@ export class BattlePresentationMethods {
       tint: action.color || 0xf0b85c,
       blendMode: "ADD"
     }).setDepth(8));
+    const world = new Phaser.GameObjects.Components.TransformMatrix();
+    const parent = new Phaser.GameObjects.Components.TransformMatrix();
+    const point = { x: 0, y: 0 };
     const sync = () => {
       hands.forEach((hand, index) => {
-        if (!hand?.active || !emitters[index]?.active) return;
-        const pose = hand.getWorldTransformMatrix().decomposeMatrix();
-        emitters[index].setPosition(pose.translateX, pose.translateY);
+        const emitter = emitters[index];
+        if (!hand?.active || !emitter?.active) return;
+        hand.getWorldTransformMatrix(world, parent).transformPoint(0, 0, point);
+        if (emitter.x !== point.x || emitter.y !== point.y) emitter.setPosition(point.x, point.y);
       });
     };
     this.events.on(Phaser.Scenes.Events.POST_UPDATE, sync);

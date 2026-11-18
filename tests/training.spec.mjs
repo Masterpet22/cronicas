@@ -131,6 +131,15 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
       return { hp: s.enemyHpBar.valueText.text, expected: `${s.trainingTargets[2].state.hp}/${s.trainingTargets[2].state.maxHp}`,
         portrait: s.enemyPortrait.affinity, affinity: s.trainingTargets[2].state.primaryAffinity };
     })).toEqual(expect.objectContaining({ portrait: "tierra", affinity: "tierra", hp: expect.any(String), expected: expect.any(String) }));
+    expect(await page.evaluate(() => {
+      const scene = window.__trainingGame.scene.getScene("battle");
+      const observer = new MutationObserver(() => {});
+      observer.observe(document.querySelector(".combat-access"), { subtree: true, attributes: true, childList: true, characterData: true });
+      for (let i = 0; i < 3; i++) scene.refreshHud();
+      const writes = observer.takeRecords().length;
+      observer.disconnect();
+      return writes;
+    })).toBe(0);
     await page.screenshot({ path: testInfo.outputPath("dojo-group-combat.png"), fullPage: true });
     // Keep a long, deterministic bout to verify repeated real enemy actions.
     await page.evaluate(() => {

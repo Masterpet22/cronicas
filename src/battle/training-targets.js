@@ -1,6 +1,7 @@
 import { HUD_ART } from "./hud-art.js?v=0.140.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { timelineMarkerPosition } from "./timeline.js?v=0.69.0";
+import { setHudAttribute } from "./hud-dom.js?v=1.0.0";
 
 // Hit areas sit on the actual fighters. The existing portrait shows selection.
 export function mountTrainingTargets(scene) {
@@ -24,12 +25,15 @@ export function mountTrainingTargets(scene) {
     });
   };
   const refresh = () => {
+    const locked = scene.busy || scene.finished || scene.scene.isPaused() || Boolean(scene.pendingActions.player);
     controls.forEach((button, index) => {
       const { state, profile } = scene.trainingTargets[index];
-      button.hidden = state.hp <= 0;
-      button.disabled = scene.busy || scene.finished || scene.scene.isPaused() || Boolean(scene.pendingActions.player) || state.hp <= 0;
-      button.setAttribute("aria-pressed", String(index === scene.selectedTargetIndex));
-      button.setAttribute("aria-label", `Elegir ${profile.name}, ${state.hp}/${state.maxHp} PV${state.hp <= 0 ? ", derrotado" : ""}`);
+      const defeated = state.hp <= 0;
+      const disabled = locked || defeated;
+      if (button.hidden !== defeated) button.hidden = defeated;
+      if (button.disabled !== disabled) button.disabled = disabled;
+      setHudAttribute(button, "aria-pressed", index === scene.selectedTargetIndex);
+      setHudAttribute(button, "aria-label", `Elegir ${profile.name}, ${state.hp}/${state.maxHp} PV${defeated ? ", derrotado" : ""}`);
     });
   };
   const observer = new ResizeObserver(layout);
@@ -57,24 +61,40 @@ export function mountGroupTimeline(scene) {
   updateGroupTimeline(scene);
 }
 
+function positionMarker(marker, x, y) {
+  if (marker.x !== x || marker.y !== y) marker.setPosition(x, y);
+}
+
 export function updateGroupTimeline(scene) {
   const { start, end, trackY } = HUD_ART.timeline;
   const x = timelineMarkerPosition(scene.timelineProgress.player, start, end);
-  scene.playerTurnMarker.setPosition(x, trackY - 10);
-  scene.playerMarkerHalo.setPosition(x, trackY - 10);
-  scene.playerMarkerHair?.setPosition(x + scene.playerMarkerHairLayout.x, trackY - 10 + scene.playerMarkerHairLayout.y);
-  scene.playerTimelineTag.bg.setX(x); scene.playerTimelineTag.text.setX(x);
+  positionMarker(scene.playerTurnMarker, x, trackY - 10);
+  positionMarker(scene.playerMarkerHalo, x, trackY - 10);
+  if (scene.playerMarkerHair) positionMarker(scene.playerMarkerHair,
+    x + scene.playerMarkerHairLayout.x, trackY - 10 + scene.playerMarkerHairLayout.y);
+  const { bg, text } = scene.playerTimelineTag;
+  if (bg.x !== x) bg.setX(x);
+  if (text.x !== x) text.setX(x);
   scene.groupMarkers.forEach(({ marker, halo, label }, index) => {
     const target = scene.trainingTargets[index], alive = target.state.hp > 0;
+    if (marker.visible !== alive) {
+      marker.setVisible(alive);
+      halo.setVisible(alive);
+      label.setVisible(alive);
+    }
+    if (!alive) return;
     const markerX = timelineMarkerPosition(target.progress, start, end);
     const markerY = trackY + (index - 1) * 12;
-    marker.setPosition(markerX, markerY).setVisible(alive);
-    halo.setPosition(markerX, markerY).setVisible(alive).setStrokeStyle(index === scene.selectedTargetIndex ? 2.5 : 1.5,
-      ELEMENTS[target.state.primaryAffinity].color, 1);
-    label.setPosition(markerX + 17, markerY).setVisible(alive);
+    positionMarker(marker, markerX, markerY);
+    positionMarker(halo, markerX, markerY);
+    positionMarker(label, markerX + 17, markerY);
+    const width = index === scene.selectedTargetIndex ? 2.5 : 1.5;
+    const color = ELEMENTS[target.state.primaryAffinity].color;
+    if (halo.lineWidth !== width || halo.strokeColor !== color) halo.setStrokeStyle(width, color, 1);
   });
-  scene.timelineThemeParts.progressGlow.width = Math.max(0, x - start);
-  scene.accessibleHud?.updateProgress({ player: scene.timelineProgress.player, enemy: scene.trainingTargets[scene.selectedTargetIndex].progress });
+  const glow = scene.timelineThemeParts.progressGlow;
+  const width = Math.max(0, x - start);
+  if (glow.width !== width) glow.width = width;
 }
 
 export function showGroupTrainingResult(scene, won) {

@@ -2,7 +2,7 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.140.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.147.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
 import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -22,7 +22,18 @@ import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, 
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.140.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.140.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.147.0";
+
+const statusGlyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guard: "守", poison: "毒", slow: "鈍", seal: "封" };
+const statusColors = { burn: 0xe57343, bleed: 0xc6534f, stun: 0xe0bd55, soak: 0x59b9d1, guard: 0x8fb39f, poison: 0x9d7ab6, slow: 0x7790a4 };
+const fittedNames = new WeakMap();
+
+function fitHudName(name, text) {
+  if (fittedNames.get(name) === text && name.text === text) return;
+  name.setText(text).setFontSize(17);
+  if (name.width > 183) name.setFontSize(Math.max(10, Math.floor(17 * 183 / name.width)));
+  fittedNames.set(name, text);
+}
 
 export class BattleFeedbackMethods {
   createImpact(x, y, color, scale) {
@@ -203,18 +214,25 @@ export class BattleFeedbackMethods {
   setButtonsEnabled(enabled) {
     this.buttons.forEach((button) => {
       const { jutsu } = button;
-      const affordable = this.player.chakra >= this.actionCost(jutsu);
+      const chakraCost = this.actionCost(jutsu);
+      const affordable = this.player.chakra >= chakraCost;
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const guardAvailable = jutsu.type !== "guard" || !this.player.guarding;
       const available = enabled && this.turnReady && affordable && cooldown === 0 && guardAvailable && (!this.combatTutorial?.active || this.combatTutorial.canUse(jutsu));
       button.available = available;
-      const visualAlpha = available ? 1 : affordable && cooldown === 0 && guardAvailable ? 0.76 : 0.42;
-      button.visualParts.forEach((part) => part.setAlpha(Math.max(0.6, visualAlpha)));
-      button.cost?.setText(`${this.actionCost(jutsu)} CH`).setColor(affordable ? "#b2e5ff" : "#ff998d");
+      const visualAlpha = available ? 1 : affordable && cooldown === 0 && guardAvailable ? 0.76 : 0.6;
+      button.visualParts.forEach((part) => {
+        if (part.alpha !== visualAlpha) part.setAlpha(visualAlpha);
+      });
+      if (button.cost) {
+        const color = affordable ? "#b2e5ff" : "#ff998d";
+        button.cost.setText(`${chakraCost} CH`);
+        if (button.cost.style?.color !== color) button.cost.setColor(color);
+      }
       button.availability?.setText(cooldown > 0 ? `CD ${cooldown}` : !affordable ? "SIN CH" : "");
 
       const [baseCost, damage, timing] = actionLines(jutsu);
-      const cost = this.actionCost(jutsu) > 0 ? `${this.actionCost(jutsu)} chakra` : baseCost;
+      const cost = chakraCost > 0 ? `${chakraCost} chakra` : baseCost;
       const liveTiming = cooldown > 0 ? `Recarga: ${cooldown}` : timing;
       const liveStats = jutsu.type === "guard"
         ? [baseCost, damage, timing]
@@ -236,14 +254,15 @@ export class BattleFeedbackMethods {
     this.enemyHpBar.valueText.setText(`${this.enemy.hp}/${this.enemy.maxHp}`);
     this.setBarRatio(this.enemyChakraBar, this.enemy.maxChakra > 0 ? this.enemy.chakra / this.enemy.maxChakra : 0);
     this.enemyChakraBar.valueText.setText(`${this.enemy.chakra}/${this.enemy.maxChakra}`);
-    this.enemyName.setText(this.encounters[this.enemyIndex].name.toUpperCase());
-    this.enemyTimelineTag?.text.setText(this.encounters[this.enemyIndex].name.toUpperCase());
-    this.playerRankNumber.setText(`NV ${this.saveData.progression.level}`);
-    for (const name of [this.playerName, this.enemyName]) {
-      name.setFontSize(17);
-      if (name.width > 183) name.setFontSize(Math.max(10, Math.floor(17 * 183 / name.width)));
+    const enemyName = this.encounters[this.enemyIndex].name.toUpperCase();
+    fitHudName(this.playerName, this.playerName.text);
+    fitHudName(this.enemyName, enemyName);
+    const enemyTag = this.enemyTimelineTag?.text;
+    if (enemyTag) {
+      enemyTag.setText(enemyName);
+      if (enemyTag.width > 62 && enemyTag.style.fontSize !== "7px") enemyTag.setFontSize(7);
     }
-    if (this.enemyTimelineTag?.text.width > 62) this.enemyTimelineTag.text.setFontSize(7);
+    this.playerRankNumber.setText(`NV ${this.saveData.progression.level}`);
     this.refreshStatusSlots(this.playerStatusSlots, this.player.statuses, this.player.guarding, this.player.soak);
     this.refreshStatusSlots(this.enemyStatusSlots, this.enemy.statuses, this.enemy.guarding, this.enemy.soak);
     if (this.buttons) this.setButtonsEnabled(!this.busy && !this.finished && this.turnReady);
@@ -268,7 +287,9 @@ export class BattleFeedbackMethods {
       }
     }
     this.setBarRatio(bar, ratio);
-    bar.fill.setFillStyle(ratio <= 0.25 ? 0xe06b52 : 0x06d45a, 1);
+    if (previousRatio === null || (ratio <= 0.25) !== (previousRatio <= 0.25)) {
+      bar.fill.setFillStyle(ratio <= 0.25 ? 0xe06b52 : 0x06d45a, 1);
+    }
     bar.currentRatio = ratio;
   }
 
@@ -277,23 +298,28 @@ export class BattleFeedbackMethods {
     const entries = [...statuses];
     if (soak?.stacks) entries.push({ type: "soak", label: `EMPAPADO ×${soak.stacks}`, duration: soak.turns });
     if (guarding) entries.unshift({ type: "guard", label: "GUARDIA" });
-    const glyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guard: "守", poison: "毒", slow: "鈍", seal: "封" };
-    const colors = { burn: 0xe57343, bleed: 0xc6534f, stun: 0xe0bd55, soak: 0x59b9d1, guard: 0x8fb39f, poison: 0x9d7ab6, slow: 0x7790a4 };
     slots.forEach((slot, index) => {
       const status = entries[index];
-      slot.status = status ? `${status.label || status.type}${status.duration ? ` · ${status.duration} turno(s)` : ""}` : null;
-      if (!slot.status) slot.detail?.setVisible(false);
-      else if (slot.detail?.visible) slot.detail.setText(slot.status);
-      slot.glyph.setText(status ? (glyphs[status.type] || "印") : "");
-      slot.glyph.setColor(status ? `#${(colors[status.type] || 0xd1b36d).toString(16).padStart(6, "0")}` : "#667176");
+      const description = status ? `${status.label || status.type}${status.duration ? ` · ${status.duration} turno(s)` : ""}` : null;
+      if (slot.status !== description) {
+        slot.status = description;
+        if (!description) slot.detail?.setVisible(false);
+        else if (slot.detail?.visible) slot.detail.setText(description);
+      }
+      const type = status ? status.type || "" : null;
+      if (slot.statusType === type) return;
+      slot.statusType = type;
+      const color = statusColors[type] || 0xd1b36d;
+      slot.glyph.setText(status ? statusGlyphs[type] || "印" : "");
+      slot.glyph.setColor(status ? `#${color.toString(16).padStart(6, "0")}` : "#667176");
       slot.bg.setFillStyle(status ? 0x125c81 : 0x07101a, status ? 0.98 : 0.78)
-        .setStrokeStyle(1, status ? (colors[status.type] || 0xd1b36d) : 0x76552f, status ? 0.9 : 0.5);
+        .setStrokeStyle(1, status ? color : 0x76552f, status ? 0.9 : 0.5);
     });
   }
 
   setBarRatio(bar, ratio) {
     const fillWidth = bar.width * Phaser.Math.Clamp(ratio, 0, 1);
-    bar.fill.setFillWidth(fillWidth);
+    if (bar.fill.fillWidth !== fillWidth) bar.fill.setFillWidth(fillWidth);
   }
 
   setMessage(text, color = "#edf7fd") {

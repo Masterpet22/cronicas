@@ -1,10 +1,11 @@
 import { skillFrameSvg } from "./hud-chrome.js?v=0.140.0";
 import { initiativeLabel } from "./initiative.js?v=1.0.0";
-import { mountBattleInventory } from "./battle-inventory.js?v=0.140.0";
+import { mountBattleInventory } from "./battle-inventory.js?v=0.147.0";
 import { emptySkillInfo } from './hud-art.js?v=0.140.0';
 import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
-import { mountSkillTableControl } from './skill-table-control.js?v=0.143.0';
+import { mountSkillTableControl } from './skill-table-control.js?v=0.147.0';
 import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.143.0';
+import { setHudAttribute, setHudProgress, setHudText } from './hud-dom.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -192,10 +193,10 @@ export function mountAccessibleBattleHud(scene) {
   let visibilityLocks = 0;
   let sleeping = false;
   const refreshVisibility = () => {
-    const hidden = visibilityLocks > 0 || sleeping || scene.scene.isPaused() || scene.finished;
+    const hidden = Boolean(visibilityLocks > 0 || sleeping || scene.scene.isPaused() || scene.finished);
     if (hidden) restorePerspective();
-    root.hidden = Boolean(hidden);
-    root.inert = Boolean(hidden);
+    if (root.hidden !== hidden) root.hidden = hidden;
+    if (root.inert !== hidden) root.inert = hidden;
     tables?.refresh();
   };
   const suspend = () => {
@@ -212,23 +213,22 @@ export function mountAccessibleBattleHud(scene) {
       refreshVisibility();
     };
   };
-  const put = (el, text) => { if (el.textContent !== String(text)) el.textContent = text; };
   const statusText = unit => [...(unit.guarding ? [{ label: 'Guardia' }] : []), ...(unit.recoveryInitiative ? [{ label: initiativeLabel({ initiative: unit.recoveryInitiative }) }] : []), ...(unit.statuses || []), ...(unit.soak?.stacks ? [{ label: `Empapado ×${unit.soak.stacks}`, duration: unit.soak.turns }] : [])]
     .map(s => `${s.label || s.type}${s.duration ? ` (${s.duration})` : ''}`).join(' · ');
   const refresh = () => {
     inventory.refresh();
     refreshVisibility();
+    const compact = root.classList.contains('compact');
     for (const [ui, unit, name] of [[player, scene.player, scene.saveData.character.name], [enemy, scene.enemy, scene.encounters[scene.enemyIndex].name]]) {
-      put(ui.name, name.toUpperCase());
+      setHudText(ui.name, name.toUpperCase());
       [[unit.hp, unit.maxHp], [unit.chakra, unit.maxChakra]].forEach(([value, max], index) => {
-        const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0;
-        if (ui.bars[index].meter.value !== ratio) ui.bars[index].meter.value = ratio;
-        put(ui.bars[index].value, `${value}/${max}`);
+        setHudProgress(ui.bars[index].meter, max > 0 ? value / max : 0);
+        setHudText(ui.bars[index].value, `${value}/${max}`);
       });
-      put(ui.statuses, statusText(unit));
+      setHudText(ui.statuses, statusText(unit));
     }
-    put(phaseText, scene.phaseLabel.text);
-    put(message, scene.lastBattleMessage?.text || '');
+    setHudText(phaseText, scene.phaseLabel.text);
+    setHudText(message, scene.lastBattleMessage?.text || '');
     controls.forEach(control => {
       const { button, name, cost, availability, slot, index } = control;
       const action = tables ? tables.actionAt(index) : scene.actions[index];
@@ -239,19 +239,20 @@ export function mountAccessibleBattleHud(scene) {
       const affordable = action && (scene.mission.training && !scene.mission.groupTraining || scene.player.hp > health && scene.player.chakra >= scene.actionCost(action));
       const resource = action ? skillResourceLabel(scene, action, physical) : empty.requirement;
       const requirement = action ? `${resource}${cooldown ? ` · CD ${cooldown}` : !affordable ? health ? ' · Sin vida suficiente' : ' · Sin chakra' : ''}` : empty.requirement;
+      const actionName = action?.name || empty.name;
       control.paint(action, physical);
       button.classList.toggle('is-empty', !action);
-      if (action) button.dataset.actionId = action.id; else delete button.dataset.actionId;
-      put(name, action?.name || empty.name);
-      put(cost, root.classList.contains('compact') ? requirement : resource);
-      put(availability, action ? cooldown ? `CD ${cooldown}` : !affordable ? health ? 'SIN PV' : 'SIN CH' : '' : '');
-      button.dataset.resourceState = action && !affordable ? 'insufficient' : cooldown ? 'cooldown' : 'normal';
-      button.setAttribute('aria-label', `${index + 1}. ${name.textContent}${action?.equipmentName ? `, ${action.equipmentName}` : ''}, ${requirement}`);
-      button.setAttribute('aria-disabled', String(Boolean(!slot.available || scene.skillTableSwitching && index > 0 && index < 5)));
-      button.setAttribute('aria-pressed', String(Boolean(action && action.id === scene.selectedHudActionId)));
-      button.title = action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement} · ${initiativeLabel(action)} para la siguiente acción` : physical || scene.mission.training ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`;
+      setHudAttribute(button, 'data-action-id', action?.id ?? null);
+      setHudText(name, actionName);
+      setHudText(cost, compact ? requirement : resource);
+      setHudText(availability, action ? cooldown ? `CD ${cooldown}` : !affordable ? health ? 'SIN PV' : 'SIN CH' : '' : '');
+      setHudAttribute(button, 'data-resource-state', action && !affordable ? 'insufficient' : cooldown ? 'cooldown' : 'normal');
+      setHudAttribute(button, 'aria-label', `${index + 1}. ${actionName}${action?.equipmentName ? `, ${action.equipmentName}` : ''}, ${requirement}`);
+      setHudAttribute(button, 'aria-disabled', Boolean(!slot.available || scene.skillTableSwitching && index > 0 && index < 5));
+      setHudAttribute(button, 'aria-pressed', Boolean(action && action.id === scene.selectedHudActionId));
+      setHudAttribute(button, 'title', action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement} · ${initiativeLabel(action)} para la siguiente acción` : physical || scene.mission.training ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`);
     });
-    markers.forEach(({ name, actor }) => put(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
+    markers.forEach(({ name, actor }) => setHudText(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
   tables = mountSkillTableControl(scene, { root, actions, restorePerspective, refresh });
   const query = window.matchMedia('(max-width: 980px)');
@@ -298,9 +299,9 @@ export function mountAccessibleBattleHud(scene) {
   };
   scene.events.once('shutdown', remove);
   layout();
-  refresh();
   return { refresh, suspend, getAction: tables.actionAt, activateAction: tables.activate, toggleSkillTable: tables.toggle, updateProgress(values) {
-    markers.forEach(({ actor, meter }) => { meter.value = Math.max(0, Math.min(1, values[actor])); });
+    if (scene.mission.training) return;
+    markers.forEach(({ actor, meter }) => setHudProgress(meter, values[actor]));
   } };
 }
 

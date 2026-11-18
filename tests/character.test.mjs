@@ -40,7 +40,7 @@ assert.deepEqual(
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS, animationClipList } from "../src/animations/clips.js";
 import { PuppetAnimationController } from "../src/animations/controller.js";
 import { validateAnimationCatalog } from "../src/animations/schema.js";
-import { animationClipDuration, sampleAnimationPose } from "../src/animations/runtime.js";
+import { animationClipDuration, createKeyframeSampler, sampleAnimationPose } from "../src/animations/runtime.js";
 import { createPlayerFighter, fighterFaceTextureKey, fighterHairPortraitLayout, fighterPuppetTextureKey, MAN_SPRITE_JOINTS, MAN_SPRITE_LAYERS, MAN_SPRITE_SHADOW_OFFSET, WOMAN_SPRITE_JOINTS, WOMAN_SPRITE_LAYERS, playEarthWallCast, playFighterDamageReaction, playPlayerDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerBreathing, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../src/fighters.js";
 import { playerFighterAppearance } from "../src/character.js";
 import { fighterCombatPortraitLayout } from "../src/fighters.js";
@@ -186,6 +186,19 @@ const earthWallPeakPose = sampleAnimationPose(PUPPET_ANIMATION_CLIPS["earth-wall
 assert.equal(earthWallPeakPose.rig.angle, -17.898053433406837, "La pose clave de Muro Pétreo debe conservar el giro de Kinetra");
 assert.equal(earthWallPeakPose.rig.x, undefined, "Muro Pétreo no debe desplazar al personaje horizontalmente");
 assert.equal(earthWallPeakPose.rig.y, undefined, "Muro Pétreo no debe desplazar al personaje verticalmente");
+const sparseClip = { duration: 100, loop: true, keys: { rig: [
+  { t: 80, x: 8, ease: "Quad.in" }, { t: 40, angle: 10 }, { t: 0, x: 0 }
+] } };
+const sampleSparseClip = createKeyframeSampler(sparseClip);
+const sampleRig = time => {
+  const rig = {};
+  sampleSparseClip(time, (target, property, value) => { rig[property] = value; });
+  return rig;
+};
+assert.deepEqual(sampleRig(40), { x: 2, angle: 10 });
+assert.deepEqual(sampleRig(-10), { x: 8, angle: 10 });
+assert.deepEqual(sampleRig(100), { x: 0, angle: 10 });
+assert.deepEqual(sparseClip.keys.rig.map(frame => frame.t), [80, 40, 0]);
 const earthWallEvents = [];
 const earthWallFighter = {
   rig: {},

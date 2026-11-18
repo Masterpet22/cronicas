@@ -1,4 +1,5 @@
 import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.143.0";
+import { setHudAttribute, setHudText } from "./hud-dom.js?v=1.0.0";
 
 export function mountSkillTableControl(scene, { root, actions, restorePerspective, refresh }) {
   let table = "elemental", switching = false, timer = null, removed = false, returnFocus = false;
@@ -41,6 +42,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const blocked = () => removed || root.hidden || root.inert || scene.finished || !scene.scene.isActive() || (scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange);
   const refreshState = () => {
     const target = table === "elemental" ? "físicas" : "elementales";
+    const disabled = Boolean(switching || blocked());
     if (root.dataset.skillTable !== table) {
       root.dataset.skillTable = table;
       (training ? caption : heading).textContent = table === "elemental" ? "ELEMENTALES" : "FÍSICAS";
@@ -48,18 +50,22 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
       button.setAttribute("aria-pressed", String(table === "physical"));
       button.querySelector("span").textContent = table === "elemental" ? "Físicas · 0" : "Elementales · 0";
     }
-    button.disabled = switching || blocked();
-    button.title = scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange ? "La guía indicará cuándo cambiar de tabla con 0." : `Cambiar a habilidades ${target} · Tecla 0`;
+    if (button.disabled !== disabled) button.disabled = disabled;
+    setHudAttribute(button, "title", scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange ? "La guía indicará cuándo cambiar de tabla con 0." : `Cambiar a habilidades ${target} · Tecla 0`);
     if (training) {
       const count = Math.max(1, Math.ceil(moves[table].length / 4));
-      pagination.hidden = count === 1;
-      pageLabel.textContent = `${pages[table] + 1}/${count}`;
-      previous.disabled = switching || blocked() || scene.busy || pages[table] === 0;
-      next.disabled = switching || blocked() || scene.busy || pages[table] + 1 >= count;
+      const hidden = count === 1;
+      const previousDisabled = disabled || Boolean(scene.busy) || pages[table] === 0;
+      const nextDisabled = disabled || Boolean(scene.busy) || pages[table] + 1 >= count;
+      if (pagination.hidden !== hidden) pagination.hidden = hidden;
+      if (previous.disabled !== previousDisabled) previous.disabled = previousDisabled;
+      if (next.disabled !== nextDisabled) next.disabled = nextDisabled;
+      setHudText(pageLabel, `${pages[table] + 1}/${count}`);
     }
     slots.forEach((slot, index) => {
-      slot.available = !(switching && middle(index)) && physicalActionAvailable(scene, actionAt(index));
-      slot.selected = actionAt(index)?.id === scene.selectedHudActionId;
+      const action = actionAt(index);
+      slot.available = !(switching && middle(index)) && physicalActionAvailable(scene, action);
+      slot.selected = action?.id === scene.selectedHudActionId;
     });
   };
   const layout = () => {
