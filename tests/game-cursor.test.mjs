@@ -23,7 +23,8 @@ assert.equal(hasVisibleBusyState({ querySelectorAll: () => [visible] }), true, "
 assert.equal(hasVisibleBusyState({ querySelectorAll: () => [hidden] }), false, "Un estado ocupado oculto no debe cambiar el cursor");
 assert.equal(hasVisibleBusyState(null), false, "Sin superficie no debe existir un estado de carga");
 
-const cursorSource = await readFile(new URL("../src/game-cursor.js", import.meta.url), "utf8");
-assert.match(cursorSource, /class="game-cursor-kunai"[^>]+width="56" height="48"/, "El kunai debe mostrarse al 70 % de su tamaño original");
+const cursorStyles = await readFile(new URL("../cursor.css", import.meta.url), "utf8");
+assert.match(cursorStyles, /kunai\.png[^)]+\) 1 1, auto/, "El cursor del navegador debe apuntar con la punta del kunai");
+assert.match(cursorStyles, /shuriken\.png[^)]+\) 25 26, progress/, "El shuriken debe usar su centro");
 
 console.log("Cursor kunai, shuriken de carga y destello de clic verificados.");

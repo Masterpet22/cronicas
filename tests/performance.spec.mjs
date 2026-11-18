@@ -14,6 +14,8 @@ for (const renderer of ["Canvas", "WebGL"]) {
       const state = window.__performanceReference;
       state.normalStep = state.game.loop.callback;
       state.draws = 0;
+      state.steps = 0;
+      state.game.events.on("step", () => { state.steps += 1; });
       state.resizeListeners = state.game.scale.listenerCount("resize");
       const preRender = state.game.renderer.preRender;
       state.game.renderer.preRender = function (...args) { state.draws += 1; return preRender.apply(this, args); };
@@ -25,14 +27,14 @@ for (const renderer of ["Canvas", "WebGL"]) {
     await expect.poll(async () => (await readPerformanceReference(page)).renderingSuspended).toBe(true);
     const frozen = await page.evaluate(() => {
       const state = window.__performanceReference;
-      return { draws: state.draws, time: state.scene.time.now, player: JSON.stringify(state.scene.player),
+      return { draws: state.draws, steps: state.steps, time: state.scene.time.now, player: JSON.stringify(state.scene.player),
         browserFrames: state.monitor.snapshot().browserTiming.frames };
     });
     await expect.poll(async () => (await readPerformanceReference(page)).browserTiming.frames).toBeGreaterThan(frozen.browserFrames + 8);
     expect(await page.evaluate(() => {
       const state = window.__performanceReference;
-      return { draws: state.draws, time: state.scene.time.now, player: JSON.stringify(state.scene.player) };
-    })).toEqual({ draws: frozen.draws, time: frozen.time, player: frozen.player });
+      return { draws: state.draws, steps: state.steps, time: state.scene.time.now, player: JSON.stringify(state.scene.player) };
+    })).toEqual({ draws: frozen.draws, steps: frozen.steps, time: frozen.time, player: frozen.player });
     await page.screenshot({ path: `test-results/pause-frozen-${renderer}.png` });
     // Un cambio de resolución solicita un frame real y vuelve a suspender el render.
     await page.evaluate(() => window.__performanceReference.game.scale.resize(1200, 675));
@@ -118,7 +120,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
     });
     await expect.poll(async () => (await readPerformanceReference(page)).scenes[0].current.filters).toBe(renderer === "WebGL" ? 1 : 0);
     const cleanup = await page.evaluate(async () => {
-      const { performanceTools, installPerformanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+      const { performanceTools, installPerformanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
       const { game, monitor } = window.__performanceReference;
       monitor.dispose();
       const before = game.events.listenerCount("postrender");
@@ -155,7 +157,7 @@ test("la pausa permite medir, separa combate y navegador y registra bloqueos y e
   page.on("pageerror", error => errors.push(error.message));
   await bootPerformanceReference(page, { renderer: "Canvas" });
   await page.evaluate(async () => {
-    const { installPerformanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { installPerformanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     const state = window.__performanceReference;
     state.monitor.dispose();
     installPerformanceTools(state.game, document.getElementById("game"));
@@ -167,17 +169,19 @@ test("la pausa permite medir, separa combate y navegador y registra bloqueos y e
   await expect(page.locator("[data-pause-performance]")).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator(".performance-panel")).toBeVisible();
   const report = () => page.evaluate(async () => {
-    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     return performanceTools.snapshot();
   });
-  await expect.poll(async () => (await report()).timing.frames).toBeGreaterThan(5);
+  await expect.poll(async () => (await report()).browserTiming.frames).toBeGreaterThan(5);
   await page.locator("[data-pause-resume]").click();
   await expect.poll(async () => (await report()).context).toBe("battle");
   await expect.poll(async () => (await report()).timing.frames).toBeGreaterThan(5);
   await page.locator(".combat-access-pause").click();
   await expect.poll(async () => (await report()).context).toBe("pause");
-  await expect.poll(async () => (await report()).timing.frames).toBeGreaterThan(5);
+  await expect.poll(async () => (await report()).browserTiming.frames).toBeGreaterThan(5);
   const paused = await report();
+  expect(paused.renderingSuspended).toBe(true);
+  expect(paused.timing.frames).toBe(0);
   expect(paused.segments.some(part => part.context === "battle" && part.timing.frames > 5)).toBe(true);
   expect(paused.scenes.map(scene => [scene.key, scene.status])).toEqual([["battle", "paused"], ["pause", "active"]]);
   await page.getByRole("slider", { name: "Volumen" }).focus();
@@ -193,7 +197,7 @@ test("la pausa permite medir, separa combate y navegador y registra bloqueos y e
   }
   // Si Phaser duerme, el medidor del navegador sigue mostrando la cadencia del menú.
   const sleeping = await page.evaluate(async () => {
-    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     window.__performanceReference.game.loop.sleep();
     return performanceTools.snapshot();
   });
@@ -233,9 +237,9 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await page.locator("[data-perf-enabled]").check();
   await ensurePhaser(page);
   await page.evaluate(async () => {
-    const { TrainingBattleScene: BattleScene } = await import("/src/battle/scenes/training-battle-scene.js?v=1.0.0");
-    const create = BattleScene.prototype.create;
-    BattleScene.prototype.create = function (...args) {
+    const { TrainingBattleScene } = await import("/src/battle/scenes/training-battle-scene.js?v=0.146.0");
+    const create = TrainingBattleScene.prototype.create;
+    TrainingBattleScene.prototype.create = function (...args) {
       const result = create.apply(this, args);
       window.__liveArenaController = this.arenaVisuals;
       return result;
@@ -244,7 +248,7 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await page.locator('[data-debug-mission="m02"]').click();
   await expect(page.locator(".performance-panel")).toHaveCount(1);
   await expect.poll(() => page.evaluate(async () => {
-    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     const report = performanceTools.snapshot();
     return report?.activeScenes.includes("battle") && report.timing.frames > 5;
   }), { timeout: 30_000 }).toBe(true);
@@ -264,14 +268,14 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   expect(await page.evaluate(() => ({ destroyed: window.__liveArenaController.destroyed, owned: window.__liveArenaController.ownedCount })))
     .toEqual({ destroyed: true, owned: 0 });
   const lastCapture = await page.evaluate(async () => {
-    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     const report = performanceTools.snapshot();
     if (report.resolution.width <= 0 || report.displaySize.width <= 0) throw new Error("La muestra final debe conservar la resolución visible");
     return report.capturedAt;
   });
   await page.waitForTimeout(600);
   expect(await page.evaluate(async () => {
-    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     return performanceTools.snapshot().capturedAt;
   })).toBe(lastCapture);
   await page.locator(".debug-tools-trigger").click();
@@ -279,7 +283,7 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await expect(page.locator(".performance-panel")).toHaveCount(1);
   expect(await page.evaluate(() => document.querySelector("#game canvas") === window.__parkedGameCanvas)).toBe(true);
   await expect.poll(() => page.evaluate(async () => {
-    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.2.0");
+    const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     return performanceTools.snapshot()?.activeScenes.includes("battle");
   }), { timeout: 30_000 }).toBe(true);
   await page.evaluate(async () => {

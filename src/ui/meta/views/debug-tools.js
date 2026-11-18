@@ -1,4 +1,4 @@
-import { performanceTools } from "../../../dev/performance-tools.js?v=1.2.0";
+import { performanceTools } from "../../../dev/performance-tools.js?v=1.3.0";
 import { abilityCatalogMarkup, mountAbilityCatalog } from "../ability-catalog.js?v=1.5.0";
 
 export function createDebugToolsView(deps) {

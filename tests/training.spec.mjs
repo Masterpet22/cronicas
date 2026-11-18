@@ -140,9 +140,13 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
       s.trainingTargets.forEach(t => { t.state.hp = t.state.maxHp = 1000; t.profile.pattern = ["strike"]; });
       s.refreshHud();
     });
-    await (await trainingAction(page, "fire_embers")).click();
-    await expect.poll(() => page.evaluate(() => Boolean(window.__trainingGame.scene.getScene("battle").groupReservation))).toBe(true);
-    expect(await page.evaluate(() => window.__trainingGame.scene.getScene("battle").selectTrainingTarget(0))).toBe(false);
+    const technique = await trainingAction(page, "fire_embers");
+    const reservation = await technique.evaluate(button => {
+      const scene = window.__trainingGame.scene.getScene("battle");
+      button.click();
+      return { target: scene.groupReservation?.target, canChange: scene.selectTrainingTarget(0) };
+    });
+    expect(reservation).toEqual({ target: 2, canChange: false });
     await trainingReady(page);
     const attacked = await targets();
     expect(attacked.hp[0]).toBe(1000); expect(attacked.hp[1]).toBe(1000); expect(attacked.hp[2]).toBeLessThan(1000);

@@ -1,20 +1,29 @@
 // Comparte una suspensión por juego: menús anidados no dejan callbacks congelados.
 const suspensions = new WeakMap();
 
-export function suspendPauseRendering(scene) {
+export function isPauseRenderingIdle(game) {
+  const state = suspensions.get(game);
+  return Boolean(state?.idleOwners && !state.dirty);
+}
+
+export function suspendPauseRendering(scene, { htmlOnly = false } = {}) {
   const game = scene.game;
   let state = suspensions.get(game);
   if (!state) {
-    state = { originalStep: game.loop.callback, owners: new Set(), dirty: true };
+    state = { originalStep: game.loop.callback, owners: 0, idleOwners: 0, dirty: true };
     state.step = (time, delta) => {
-      if (state.dirty || game.pendingDestroy) { state.dirty = false; state.originalStep(time, delta); }
-      else game.headlessStep(time, delta);
+      if (state.dirty || game.pendingDestroy) {
+        state.dirty = false;
+        state.originalStep(time, delta);
+      } else if (!state.idleOwners) game.headlessStep(time, delta);
     };
     suspensions.set(game, state);
     game.loop.callback = state.step;
   }
-  const token = {}, controller = new AbortController();
-  state.owners.add(token); state.dirty = true;
+  const controller = new AbortController();
+  state.owners += 1;
+  if (htmlOnly) state.idleOwners += 1;
+  state.dirty = true;
   let disposed = false;
   const invalidate = () => { state.dirty = true; };
   const onOption = event => {
@@ -23,8 +32,9 @@ export function suspendPauseRendering(scene) {
   const dispose = () => {
     if (disposed) return;
     disposed = true;
-    state.owners.delete(token);
-    if (!state.owners.size) {
+    state.owners -= 1;
+    if (htmlOnly) state.idleOwners -= 1;
+    if (!state.owners) {
       if (game.loop.callback === state.step) game.loop.callback = state.originalStep;
       suspensions.delete(game);
     } else invalidate();

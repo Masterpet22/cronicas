@@ -1,7 +1,7 @@
 import { HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
-import { mountAccessiblePause } from "../hud-accessibility.js?v=0.140.0";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=0.146.0";
 import { resumeSceneIfPaused, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
-import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
+import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
 
 export class PauseScene extends Phaser.Scene {
   constructor() { super("pause"); }
@@ -13,16 +13,36 @@ export class PauseScene extends Phaser.Scene {
     this.closeAbandonWarning = null;
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x02050a, .4).setOrigin(0).setDepth(100);
     this.pauseAccess = mountAccessiblePause(this);
-    this.input.keyboard.on("keydown-ESC", () => {
+    const controller = new AbortController();
+    const { input } = this.game;
+    const inputEnabled = input.enabled;
+    const keyboardEnabled = input.keyboard.enabled;
+    input.enabled = false;
+    input.keyboard.enabled = false;
+    const restoreInput = () => {
+      controller.abort();
+      input.enabled = inputEnabled;
+      if (input.keyboard) input.keyboard.enabled = keyboardEnabled;
+      this.events.off("shutdown", restoreInput);
+      this.events.off("destroy", restoreInput);
+    };
+    this.events.once("shutdown", restoreInput);
+    this.events.once("destroy", restoreInput);
+    document.addEventListener("keydown", event => {
+      if (event.key !== "Escape" || event.defaultPrevented) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.repeat) return;
       if (this.abandonWarningOpen) this.closeAbandonWarning?.();
       else this.resumeMission();
-    });
-    suspendPauseRendering(this);
+    }, { signal: controller.signal });
+    this.pauseRendering = suspendPauseRendering(this, { htmlOnly: true });
   }
 
   resumeMission() {
     resumeSceneIfPaused(this.scene, "battle");
     stopSceneIfRunning(this.scene);
+    this.pauseRendering.invalidate();
   }
 
   showAbandonWarning() {
@@ -58,6 +78,7 @@ export class PauseScene extends Phaser.Scene {
       stopSceneIfRunning(this.scene, "battle");
       if (this.battle.mission.type === "route-combat") this.scene.start("travel", { direction: "toVillage", secondaryResult: true, result: payload });
       else this.scene.start("travel", { direction: "toVillage", result: payload });
+      this.pauseRendering.invalidate();
     };
     this.closeAbandonWarning = close;
     dialog.querySelector("[data-stay]").addEventListener("click", close);

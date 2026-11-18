@@ -1,12 +1,29 @@
 # Plan de optimización del juego
 
-18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Implementación pendiente
+18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Primera intervención aplicada
 
 La prioridad es recuperar una respuesta fluida del cursor al jugar y al abrir ventanas, empezando por la pausa. El trabajo cubre el navegador en ordenador y tablet. El objetivo de la primera ronda es reducir la carga dentro de Phaser 4 y de la interfaz HTML, con mediciones comparables para cada cambio.
 
 ## 1. Reproducir la lentitud del cursor y la pausa
 
-La pausa ya conserva un fotograma del combate mediante `suspendPauseRendering` y llama a `game.headlessStep()` mientras la imagen está estable. Sigue habiendo un bucle por fotograma. El cursor personalizado oculta el del navegador y actualiza su posición con `pointermove` y `requestAnimationFrame`. Además, un `MutationObserver` sobre todo `main` reevalúa el estado de carga y los diálogos cuando cambian atributos como `class` y `style`. Son rutas concretas para investigar la latencia descrita.
+En la base, la pausa conservaba un fotograma del combate y llamaba a `game.headlessStep()` en cada iteración. El cursor actualizaba su posición desde JavaScript en respuesta a `pointermove` mediante `requestAnimationFrame`. Un `MutationObserver` sobre todo `main` reevaluaba carga y diálogos al cambiar atributos como `class` y `style`.
+
+La primera intervención trasladó el cursor kunai al navegador y dejó el shuriken de carga estático. El observador agrupa las comprobaciones de carga y el destello de clic sigue disponible. La pausa mantiene la imagen del combate y omite el paso de Phaser entre cambios. El menú responde a entradas HTML y solicita un fotograma al cambiar ajustes gráficos, redimensionar, reanudar o abandonar.
+
+La comparación usó Chromium headless, superficie de 1280 × 720, canvas de 960 × 540, el mismo duelo de referencia y tres recorridos de ratón de 1,7 s por caso. Las cifras son medianas de las tres muestras. En WebGL se usó SwiftShader.
+
+| Contexto | Renderer | p95 de fotograma, ms | p95 de entrada a siguiente rAF, ms | Pasos Phaser por muestra en pausa |
+| --- | --- | ---: | ---: | ---: |
+| Duelo | Canvas | 33,4 → 33,4 | 20,2 → 19,9 | — |
+| Duelo | WebGL por software | 66,6 → 50,1 | 18,0 → 20,8 | — |
+| Pausa | Canvas | 16,7 → 16,7 | 14,1 → 14,5 | 102 → 0 |
+| Pausa | WebGL por software | 16,7 → 16,7 | 13,7 → 14,3 | 102 → 0 |
+
+El menú ya estaba cerca de 60 FPS en este entorno. El p95 de entrada mide el tiempo del evento al siguiente callback de animación, mientras que la posición visible del cursor depende del navegador y del sistema. El ritmo medio del duelo quedó cerca de 40 FPS en Canvas y de 20 FPS con WebGL por software en ambas mediciones. Queda pendiente reproducir la lentitud en el equipo afectado y medir el toque en una tablet física.
+
+Una prueba aislada del cursor simuló 25 cambios de clase y estilo del HUD y 24 eventos de ratón. Las búsquedas de estados de carga bajaron de 25 a 0 y las escrituras de posición del cursor en el DOM bajaron de 24 a 0.
+
+Los siguientes pasos amplían la medición a más equipos, escenarios y resoluciones.
 
 - Medir tres veces por caso en el equipo que presenta el problema y repetir una muestra en tablet. Usar la misma partida, tamaño de ventana y resolución física. Registrar el navegador, el renderer y la GPU efectiva, incluido SwiftShader si aparece.
 - Repetir el mismo movimiento de puntero en el Dojo, en un duelo de campaña y contra tres rivales. Comparar antes de abrir una ventana, con la pausa visible y al reanudar. Añadir una ventana de equipo o maestro y la mochila de combate. En tablet, comprobar el retraso del toque y la respuesta del menú.
@@ -18,7 +35,7 @@ Punto de partida para repetir casos y extender la medición al Dojo de grupo. [P
 
 ## 2. Reducir trabajo repetido
 
-- **Cursor y pausa.** Probar el cursor nativo primero como referencia y alternativa de bajo coste. Si se conserva el cursor del juego, limitar el observador a cambios de carga y apertura de diálogos, agrupar las comprobaciones y evitar lecturas de layout y búsquedas por todo `main` al cambiar el HUD. Comparar el coste del filtro de sombra del cursor. Con la pausa visible, retirar actualizaciones e interacciones del combate que sigan activas y evaluar qué parte del bucle puede dormirse mientras el menú HTML conserva teclado y puntero. Solicitar un render al abrir el menú, cambiar resolución, redimensionar o restaurar el contexto gráfico.
+- **Cursor y pausa.** Primera intervención aplicada. Medir la experiencia en el equipo afectado y ampliar el recorrido al combate de grupo y al toque en tablet.
 - **Animaciones.** Ordenar fotogramas e indexar propiedades al preparar cada clip. Reutilizar esas tablas en el muestreo de poses, que hoy ordena fotogramas y filtra pistas en cada llamada. Medir también los cálculos de matrices de los efectos unidos a las manos cuando varios rivales se preparan.
 - **Medición.** Comparar coste de CPU y asignaciones con cuatro personajes, antes y después. Verificar tiempos de preparación, posición de manos y orden de turnos. En una pausa estable, el reloj de cada combatiente debe quedar fijo y el canvas no debe redibujarse por mover el cursor.
 

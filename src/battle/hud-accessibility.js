@@ -304,4 +304,4 @@ export function mountAccessibleBattleHud(scene) {
   } };
 }
 
-export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=1.2.0";
+export { mountPauseMenu as mountAccessiblePause } from "./pause-menu.js?v=1.3.0";

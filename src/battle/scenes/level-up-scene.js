@@ -5,7 +5,7 @@ import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-tr
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
-import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
+import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
 import { tutorialActor, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
 import { playerRankLabel } from "../../player-rank.js";
 import { lessonCompleted } from "../../tutorial-system.js";

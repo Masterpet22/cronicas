@@ -13,9 +13,11 @@ async function boot(page) {
 const bag = page => page.getByRole("button", { name: "Abrir objetos de misión" });
 const dialog = page => page.getByRole("dialog", { name: "Objetos de misión" });
 
-test("el cursor sigue la ventana modal activa y vuelve al documento al cerrarla", async ({ page }) => {
+test("el navegador muestra el kunai dentro y fuera de los modales y respeta la carga", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator(".game-cursor")).toHaveCount(1);
+  const main = page.locator("main");
+  const kunai = /kunai\.png/;
+  await expect(main).toHaveCSS("cursor", kunai);
   await page.evaluate(() => {
     for (const id of ["first", "second"]) {
       const modal = document.createElement("dialog"); modal.id = id;
@@ -24,17 +26,27 @@ test("el cursor sigue la ventana modal activa y vuelve al documento al cerrarla"
     }
     document.getElementById("first").showModal();
   });
-  await expect(page.locator("#first > .game-cursor")).toHaveCount(1);
+  await expect(page.locator("#first button")).toHaveCSS("cursor", kunai);
   await page.evaluate(() => document.getElementById("second").showModal());
-  await expect(page.locator("#second > .game-cursor")).toHaveCount(1);
+  await expect(page.locator("#second button")).toHaveCSS("cursor", kunai);
   await page.evaluate(() => document.getElementById("second").close());
-  await expect(page.locator("#first > .game-cursor")).toHaveCount(1);
+  await expect(page.locator("#first button")).toHaveCSS("cursor", kunai);
   await page.evaluate(() => document.getElementById("first").close());
-  await expect(page.locator("body > .game-cursor")).toHaveCount(1);
-  await page.evaluate(() => document.getElementById("first").showModal());
-  await expect(page.locator("#first > .game-cursor")).toHaveCount(1);
-  await page.evaluate(() => document.getElementById("first").remove());
-  await expect(page.locator("body > .game-cursor")).toHaveCount(1);
+  await expect(main).toHaveCSS("cursor", kunai);
+  await main.evaluate(element => {
+    const loader = document.createElement("div");
+    loader.id = "test-cursor-loader";
+    loader.setAttribute("aria-busy", "true");
+    element.append(loader);
+  });
+  await expect(main).toHaveCSS("cursor", /shuriken\.png/);
+  await page.locator("#test-cursor-loader").evaluate(loader => { loader.hidden = true; });
+  await expect(main).toHaveCSS("cursor", kunai);
+  await page.locator("#test-cursor-loader").evaluate(loader => { loader.hidden = false; });
+  await expect(main).toHaveCSS("cursor", /shuriken\.png/);
+  await page.locator("#test-cursor-loader").evaluate(loader => loader.remove());
+  await expect(main).toHaveCSS("cursor", kunai);
+  await expect(page.locator(".game-cursor")).toHaveCount(0);
 });
 
 for (const width of [1280, 1600]) test(`Objetos conserva el cursor y permite cerrar y continuar a ${width}`, async ({ page }, testInfo) => {
@@ -45,22 +57,17 @@ for (const width of [1280, 1600]) test(`Objetos conserva el cursor y permite cer
   await bag(page).click();
   await expect(dialog(page)).toBeVisible();
   await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isPaused())).toBe(true);
-  await expect(page.locator("dialog:modal > .game-cursor")).toHaveCount(1);
   const close = page.getByRole("button", { name: "Cerrar objetos" });
+  await expect(close).toHaveCSS("cursor", /kunai\.png/);
   await close.hover();
   const bounds = await close.boundingBox();
   const x = bounds.x + bounds.width / 2, y = bounds.y + bounds.height / 2;
-  await expect.poll(() => page.locator(".game-cursor").evaluate(el => {
-    const b = el.getBoundingClientRect(); return { x: Math.round(b.x), y: Math.round(b.y) };
-  })).toEqual({ x: Math.round(x - 1), y: Math.round(y - 1) });
   expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest("button")?.hasAttribute("data-bag-close"), { x, y })).toBe(true);
-  await expect(page.locator(".game-cursor")).toHaveCSS("pointer-events", "none");
-  await expect(page.locator(".game-cursor")).toHaveCSS("opacity", "1");
   await page.screenshot({ path: testInfo.outputPath("objetos-cursor.png") });
   await close.click();
   await expect(dialog(page)).toHaveCount(0);
   await expect(bag(page)).toBeFocused();
-  await expect(page.locator("body > .game-cursor")).toHaveCount(1);
+  await expect(bag(page)).toHaveCSS("cursor", /kunai\.png/);
   expect(await page.evaluate(() => window.__performanceReference.scene.scene.isActive())).toBe(true);
   await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", "physical");
   await bag(page).click(); await page.keyboard.press("Escape");
@@ -94,12 +101,11 @@ test("Objetos permite usar una poción y recupera la interacción al cerrar por 
     return { hp: s.player.hp, expected: 10 + Math.round(s.player.maxHp * .35), count: s.saveData.inventory.items.health_potion, active: s.scene.isActive() };
   });
   expect(result).toEqual({ hp: result.expected, expected: result.expected, count: 1, active: true });
-  await expect(page.locator("body > .game-cursor")).toHaveCount(1);
   await bag(page).click();
   await expect(dialog(page)).toBeVisible();
   await expect(page.locator('[data-use-item="health_potion"]')).toBeDisabled();
   await page.evaluate(() => window.__performanceReference.game.scene.stop("battle"));
   await expect(dialog(page)).toHaveCount(0);
-  await expect(page.locator("body > .game-cursor")).toHaveCount(1);
+  await expect(page.locator("main")).toHaveCSS("cursor", /kunai\.png/);
   expect(errors).toEqual([]);
 });

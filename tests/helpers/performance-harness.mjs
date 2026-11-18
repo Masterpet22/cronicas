@@ -17,7 +17,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     const { configureRenderResolution } = await import("/src/battle/render-resolution.js?v=1.0.0");
     const { createCharacter, createDefaultSave } = await import("/src/save.js?v=0.94.0");
     const { MISSIONS } = await import("/src/content/index.js");
-    const { createPerformanceMonitor } = await import("/src/dev/performance-monitor.js?v=1.2.0");
+    const { createPerformanceMonitor } = await import("/src/dev/performance-monitor.js?v=1.3.0");
     const { JUTSU_LIBRARY } = await import("/src/data.js?v=1.5.0");
     const { showElementalImpact } = await import("/src/battle/elemental-effects.js?v=0.92.0");
     document.getElementById("light-mode").checked = lightMode;

@@ -5,7 +5,10 @@ async function openDojo(page) {
   await expect(page.locator(".save-selector")).toBeVisible();
   await page.evaluate(async () => {
     const s = await import("/src/save.js?v=0.131.0");
-    s.writeSave(s.applyDebugCheckpoint(s.createCharacter(s.createDefaultSave(), { name: "Ventanas", affinity: "fuego" }), "mission-3-ready"));
+    const { learnedTutorialForTest } = await import("/tests/helpers/saga-tutorial.mjs");
+    const save = s.applyDebugCheckpoint(s.createCharacter(s.createDefaultSave(), { name: "Ventanas", affinity: "fuego" }), "mission-3-ready");
+    learnedTutorialForTest(save);
+    s.writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
     localStorage.setItem("music-enabled", "off");
   });
@@ -16,18 +19,14 @@ async function openDojo(page) {
   await page.locator(".location-dojo img:visible").evaluateAll(images => Promise.all(images.map(image => image.decode().catch(() => {}))));
 }
 
-// Mover el cursor en cada frame reproduce el coste de composición sin añadir
-// la latencia de los mensajes de automatización al muestreo del navegador.
 async function measure(page) {
-  return page.evaluate(() => new Promise(resolve => {
+  const sample = page.evaluate(() => new Promise(resolve => {
     const intervals = [];
-    const target = document.querySelector('dialog:modal, .equipment-modal:not([hidden]), .mission-decision-overlay') || document.querySelector("main");
     let start, previous;
     const frame = now => {
       start ??= now;
       if (previous !== undefined) intervals.push(now - previous);
       previous = now;
-      target.dispatchEvent(new PointerEvent("pointermove", { clientX: 250 + (now - start) % 700, clientY: 260 + Math.sin(now / 150) * 90, bubbles: true }));
       if (now - start < 1400) { requestAnimationFrame(frame); return; }
       intervals.sort((a, b) => a - b);
       resolve({ frames: intervals.length, fps: intervals.length * 1000 / (now - start),
@@ -35,6 +34,10 @@ async function measure(page) {
     };
     requestAnimationFrame(frame);
   }));
+  await page.mouse.move(350, 300);
+  await page.mouse.move(850, 420, { steps: 24 });
+  await page.mouse.move(350, 300, { steps: 24 });
+  return sample;
 }
 
 async function checkWindow(page, baseline, samples, name) {
@@ -43,7 +46,7 @@ async function checkWindow(page, baseline, samples, name) {
   // El presupuesto se adapta al equipo y deja margen para variación del runner.
   expect(sample.mean, `${name}: ${JSON.stringify(sample)}`).toBeLessThan(Math.max(50, baseline.mean * 2));
   expect(sample.p95, `${name}: ${JSON.stringify(sample)}`).toBeLessThanOrEqual(Math.max(100, baseline.p95 * 3));
-  await expect(page.locator(".game-cursor.is-visible")).toHaveCount(1);
+  await expect(page.locator("main")).toHaveCSS("cursor", /kunai\.png/);
 }
 
 async function expectNoBackdropFilters(page) {
@@ -99,17 +102,17 @@ test("los fondos de diálogos nativos y la preparación de misión evitan la mis
       document.querySelector("main").append(dialog);
       dialog.showModal();
     }, className);
-    await expect(page.locator("#performance-dialog > .game-cursor")).toHaveCount(1);
+    await expect(page.locator("#performance-dialog button")).toHaveCSS("cursor", /kunai\.png/);
     await expectNoBackdropFilters(page);
     await checkWindow(page, baseline, samples, className);
     await page.evaluate(() => document.getElementById("performance-dialog").remove());
-    await expect(page.locator("body > .game-cursor")).toHaveCount(1);
   }
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-view="headquarters"]').click();
   await page.locator('[data-saga="saga-1"]').click();
   await page.locator('[data-mission="m03"]').click();
   const next = page.locator(".dialogue-overlay .primary-button");
+  await expect(next).toBeVisible();
   for (let i = 0; i < 20 && await next.textContent() === "SIGUIENTE"; i++) await next.click();
   await next.click();
   await expect(page.locator(".mission-decision-overlay")).toBeVisible();

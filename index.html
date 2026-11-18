@@ -57,7 +57,7 @@
   <link rel="stylesheet" href="arena.css?v=0.140.0">
   <link rel="stylesheet" href="events.css?v=0.140.0">
   <link rel="stylesheet" href="village-map.css?v=0.140.0">
-  <link rel="stylesheet" href="cursor.css?v=1.0.0">
+  <link rel="stylesheet" href="cursor.css?v=1.1.0">
   <link rel="stylesheet" href="resonance-tree.css?v=0.140.0">
   <link rel="stylesheet" href="dictionary.css?v=1.0.0">
 </head>
@@ -129,9 +129,9 @@
     document.documentElement.classList.toggle('compact-game-enabled', compactEnabled);
 
     if (!mobileViewport.matches || compactEnabled) {
-      const { installGameCursor } = await import("./src/game-cursor.js?v=0.3.0");
+      const { installGameCursor } = await import("./src/game-cursor.js?v=0.4.0");
       installGameCursor(document.querySelector("main"));
-      await import("./game.js?v=0.145.0");
+      await import("./game.js?v=0.146.0");
     }
   </script>
 </body>

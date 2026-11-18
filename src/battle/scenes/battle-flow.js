@@ -34,8 +34,8 @@ import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
 import { recordBattleLesson } from "../tutorial-progress.js?v=0.140.0";
 import { lessonCompleted, tutorialCourseFor } from "../../tutorial-system.js";
-import { explainSagaEvent } from "../tutorial-events.js?v=0.140.0";
-import { suspendPauseRendering } from "../pause-rendering.js?v=1.0.0";
+import { explainSagaEvent } from "../tutorial-events.js?v=0.146.0";
+import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
 import { elementName } from "../../elements.js?v=0.20.0";
 
 export class BattleFlowMethods {

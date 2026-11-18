@@ -8,7 +8,7 @@ import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, ca
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.114.0";
 import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro-prometedor/s02-medico/routes.js";
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.114.0";
-import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=1.4.0";
+import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=1.5.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.115.0";
 import { createDojoView } from "./ui/meta/views/dojo.js?v=0.143.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=1.1.0";

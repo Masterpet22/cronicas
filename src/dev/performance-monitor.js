@@ -1,4 +1,5 @@
 import { sceneResourceUsage } from "../battle/visual-resources.js?v=0.99.0";
+import { isPauseRenderingIdle } from "../battle/pause-rendering.js?v=1.1.0";
 import { createDurationWindow, createFrameWindow, resourceViolations, sceneBudget } from "./performance-metrics.js?v=1.1.0";
 
 export function createPerformanceMonitor(game, { logicalWidth = 960, logicalHeight = 540, renderScale = 1, renderProfile = null } = {}) {
@@ -92,6 +93,15 @@ export function createPerformanceMonitor(game, { logicalWidth = 960, logicalHeig
     if (disposed) return;
     const now = performance.now();
     if (!document.hidden) {
+      if (!renderingSuspended && isPauseRenderingIdle(game)) {
+        syncContext();
+        renderingSuspended = true;
+        lastFrame = null;
+        if (lastResourceSample === -Infinity) {
+          sampleResources();
+          lastResourceSample = now;
+        }
+      }
       if (lastBrowserFrame !== null) browserFrames.add(now - lastBrowserFrame);
       lastBrowserFrame = now;
       for (const input of pendingInputs) {

@@ -1,5 +1,5 @@
 import { mountRenderQualityControl } from "../render-settings.js?v=0.119.0";
-import { performanceTools } from "../dev/performance-tools.js?v=1.2.0";
+import { performanceTools } from "../dev/performance-tools.js?v=1.3.0";
 
 const SETTINGS = [
   ["manual-seals", "Sellos manuales", "Completa las secuencias con el teclado."],

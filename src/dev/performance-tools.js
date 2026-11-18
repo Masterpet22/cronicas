@@ -1,4 +1,4 @@
-import { createPerformanceMonitor } from "./performance-monitor.js?v=1.2.0";
+import { createPerformanceMonitor } from "./performance-monitor.js?v=1.3.0";
 import { mountPerformancePanel } from "./performance-panel.js?v=1.2.0";
 
 const preference = "dev-performance-enabled";

@@ -28,20 +28,18 @@ Se retiró el desenfoque sobre el canvas: en una comprobación local con Chromiu
 Canvas pasó aproximadamente de 10 a 44 FPS al quitar solo ese filtro, manteniendo resolución
 y escena. Es una muestra del entorno de pruebas, no una garantía para otras GPU o equipos.
 
-Además, la pausa conserva el último frame del canvas: después de dibujar la capa oscura,
-el bucle usa `Game.headlessStep` para procesar teclado y operaciones de escenas sin reenviar
-el combate a la GPU. No reduce el límite de FPS ni duerme la interfaz. Cambiar resolución,
-efectos o recuperar el contexto gráfico solicita un único render; reanudar, abandonar o
-destruir el juego restaura el callback original y retira los listeners de la suspensión.
-Una guarda también impide encolar dos aperturas antes de que Phaser procese la primera.
+La pausa conserva el último fotograma del canvas. Entre cambios, el bucle omite el
+paso de Phaser y el navegador mantiene activos los controles HTML del menú. Cambiar
+resolución o efectos, redimensionar y recuperar el contexto gráfico solicitan un render.
+Reanudar y abandonar solicitan un paso para procesar las órdenes de escena. Al salir o
+destruir el juego se restauran el callback y la entrada de Phaser. Una guarda impide
+encolar dos aperturas antes de que Phaser procese la primera.
 
 El panel indica **Canvas congelado · menú y teclado activos** y exporta
-`renderingSuspended` en el informe y sus tramos. Los FPS del bucle en pausa representan
-actualizaciones sin dibujo; los FPS de rAF siguen midiendo la cadencia del navegador.
-En una muestra de dos segundos por estado con WebGL/SwiftShader, congelar el render
-elevó la cadencia del navegador de 14,28 a 60,20 FPS (p95 de 75,3 a 18,1 ms) a igual
-resolución y escena. La prueba funcional verifica además cero renders entre cambios,
-teclado operativo, estado de combate inmóvil y restauración al salir.
+`renderingSuspended` en el informe y sus tramos. Puede haber cero fotogramas del motor
+en pausa, mientras los FPS de rAF siguen midiendo la cadencia del navegador. La prueba
+funcional verifica cero pasos y renders entre cambios, teclado operativo, estado de
+combate inmóvil y restauración al salir. [Comparación de la primera intervención](PLAN_OPTIMIZACION.md#1-reproducir-la-lentitud-del-cursor-y-la-pausa)
 
 ## Carga bajo demanda
 

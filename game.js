@@ -1,10 +1,10 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.143.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.146.0";
 import { mountSaveRecovery } from "./src/ui/save-recovery.js?v=0.140.0";
 import { loadSave, startMissionProgress, writeSave } from "./src/save.js?v=0.140.0";
 import { battleRuntime } from "./src/battle/session.js?v=1.0.0";
 import { loadPhaser } from "./src/battle/load-phaser.js?v=1.0.0";
 import { commitVictory as commitPendingVictory, discardVictory, stageVictory } from "./src/battle/victory-transaction.js?v=0.95.0";
-import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=1.2.0";
+import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=1.3.0";
 import { bindRenderSettings } from "./src/render-settings.js?v=0.119.0";
 import { settleExhibitionSave } from "./src/tower.js?v=0.140.0";
 let game = null;
@@ -18,7 +18,7 @@ let gameLaunchRevision = 0;
 
 function loadBattleBundle() {
   if (!battleBundlePromise) battleBundlePromise = loadPhaser()
-    .then(() => import("./src/battle/bundle.js?v=0.145.0"))
+    .then(() => import("./src/battle/bundle.js?v=0.146.0"))
     .catch((error) => { battleBundlePromise = null; throw error; });
   return battleBundlePromise;
 }
