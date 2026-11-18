@@ -2,7 +2,7 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.148.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
 import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -404,16 +404,29 @@ export class BattleFeedbackMethods {
   tone(frequency, duration, gainAmount = 0.045) {
     if (this.volume <= 0) return;
     try {
-      this.audioContext = this.audioContext || new (window.AudioContext || window.webkitAudioContext)();
-      const oscillator = this.audioContext.createOscillator();
-      const gain = this.audioContext.createGain();
+      const context = this.game?.sound?.context
+        || (this.audioContext ||= new (window.AudioContext || window.webkitAudioContext)());
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
       oscillator.type = "triangle";
       oscillator.frequency.value = frequency;
-      gain.gain.setValueAtTime(gainAmount * this.volume, this.audioContext.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-      oscillator.connect(gain).connect(this.audioContext.destination);
+      gain.gain.setValueAtTime(gainAmount * this.volume, context.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + duration);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.onended = () => {
+        oscillator.disconnect();
+        gain.disconnect();
+      };
       oscillator.start();
-      oscillator.stop(this.audioContext.currentTime + duration);
+      oscillator.stop(context.currentTime + duration);
     } catch (_) { /* El audio es decorativo; el juego funciona sin él. */ }
-  }}
+  }
+
+  stopBattleAudio() {
+    this.musicEvent = null;
+    const context = this.audioContext;
+    this.audioContext = null;
+    if (context && context.state !== "closed") void context.close().catch(() => {});
+  }
+}
 

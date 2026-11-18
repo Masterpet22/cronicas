@@ -9,7 +9,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
     await expect(page.locator(".save-selector")).toBeVisible();
     await ensurePhaser(page);
     await page.evaluate(async renderer => {
-      const api = await import("/src/fighters.js?v=0.148.0");
+      const api = await import("/src/fighters.js?v=0.150.0");
       document.querySelector("main").hidden = true;
       const host = document.createElement("div");
       host.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;background:#18293b";

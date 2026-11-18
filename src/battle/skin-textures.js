@@ -1,11 +1,14 @@
 import { colorizeSkinPixels, normalizeSkinTone } from "../skin-tones.js?v=0.135.0";
+import { rememberCombatTexture } from "./combat-textures.js?v=1.0.0";
 
 // Coincide con el borde extruido de scripts/pack-fighter-atlases.py.
 const PADDING = 2;
 
 export function colorizeFighterAtlas(scene, sourceKey, key, skinParts, selectedTone) {
   const textures = scene.textures;
-  if (typeof document === "undefined" || textures.exists(key) || !textures.exists(sourceKey)) return;
+  if (typeof document === "undefined" || !textures.exists(sourceKey)) return;
+  rememberCombatTexture(scene, key);
+  if (textures.exists(key)) return;
   const original = textures.get(sourceKey);
   const source = original.getSourceImage();
   const tone = normalizeSkinTone(selectedTone);

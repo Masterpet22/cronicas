@@ -1,11 +1,12 @@
-import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.149.0";
+import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.150.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
 import { trainingActions, trainingDummyProfile } from "../../training.js?v=0.143.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";
 import { closeActionState } from "../action-resolution.js?v=1.4.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { META_ASSET_VERSION } from "../../asset-urls.js?v=0.115.0";
-import { stopPlayerBreathing } from "../../fighters.js?v=0.148.0";
+import { stopPlayerBreathing } from "../../fighters.js?v=0.150.0";
+import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
 export class TrainingBattleScene extends ArenaBattleScene {
   battleLoadoutForMission() {
@@ -14,7 +15,9 @@ export class TrainingBattleScene extends ArenaBattleScene {
   }
   preload() {
     super.preload();
-    if (this.mission.training && !this.textures.exists("training-dojo")) this.load.image("training-dojo", `assets/locations/dojo.webp?v=${META_ASSET_VERSION}`);
+    if (!this.mission.training) return;
+    rememberCombatTexture(this, "training-dojo");
+    if (!this.textures.exists("training-dojo")) this.load.image("training-dojo", `assets/locations/dojo.webp?v=${META_ASSET_VERSION}`);
   }
   drawArena() {
     if (!this.mission.training) return super.drawArena();

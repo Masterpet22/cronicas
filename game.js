@@ -7,6 +7,7 @@ import { commitVictory as commitPendingVictory, discardVictory, stageVictory } f
 import { installPerformanceTools, uninstallPerformanceTools } from "./src/dev/performance-tools.js?v=1.3.0";
 import { bindRenderSettings } from "./src/render-settings.js?v=0.119.0";
 import { settleExhibitionSave } from "./src/tower.js?v=0.140.0";
+import { parkCombatGame, stopGameScenes } from "./src/battle/game-lifecycle.js?v=1.0.0";
 let game = null;
 let metaUi = null;
 let battleBundlePromise = null;
@@ -18,23 +19,14 @@ let gameLaunchRevision = 0;
 
 function loadBattleBundle() {
   if (!battleBundlePromise) battleBundlePromise = loadPhaser()
-    .then(() => import("./src/battle/bundle.js?v=0.149.0"))
+    .then(() => import("./src/battle/bundle.js?v=0.150.0"))
     .catch((error) => { battleBundlePromise = null; throw error; });
   return battleBundlePromise;
 }
 
-function stopGameScenes(instance) {
-  instance.scene.scenes.forEach((scene) => {
-    scene.arenaVisuals?.destroy();
-    if (scene.scene.isActive() || scene.scene.isPaused() || scene.scene.isSleeping()) instance.scene.stop(scene.scene.key);
-  });
-}
-
 function parkGameInstance(instance = game) {
   if (!instance || instance !== game) return;
-  stopGameScenes(instance);
-  uninstallPerformanceTools(instance);
-  instance.loop.sleep();
+  parkCombatGame(instance);
   gameRoot.removeAttribute("aria-busy");
 }
 

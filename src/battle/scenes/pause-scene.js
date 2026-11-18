@@ -23,6 +23,8 @@ export class PauseScene extends Phaser.Scene {
       controller.abort();
       input.enabled = inputEnabled;
       if (input.keyboard) input.keyboard.enabled = keyboardEnabled;
+      this.pauseAccess = null;
+      this.closeAbandonWarning = null;
       this.events.off("shutdown", restoreInput);
       this.events.off("destroy", restoreInput);
     };

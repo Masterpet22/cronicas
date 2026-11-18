@@ -353,7 +353,8 @@ assert.match(desktop, /location-stage\.location-kagemori \.stage-speech \{[\s\S]
 assert.doesNotMatch(travelScene, /kagemori-investigation|iori-kagemori|nami-kurose/, "La transición no debe duplicar en Phaser los recursos de la investigación HTML");
 assert.match(travelScene, /(?:battleRuntime\.)?releaseGameToMeta\("kagemori"\)/, "La transición debe entregar Kagemori al controlador único de vistas");
 assert.equal((battle.match(/new Phaser\.Game\(/g) || []).length, 1, "La sesión debe crear una sola instancia reutilizable de Phaser");
-assert.match(battle, /function parkGameInstance[\s\S]*stopGameScenes\(instance\)[\s\S]*instance\.loop\.sleep\(\)/, "Al volver a HTML deben detenerse las escenas y aparcarse el bucle sin perder la caché de texturas");
+assert.match(battle, /function parkGameInstance\(instance = game\) \{[\s\S]*?parkCombatGame\(instance\)/, "Al volver a HTML se debe aparcar Phaser");
+assert.match(battle, /function parkCombatGame\(game\) \{\s*stopGameScenes\(game\);\s*trimParkedCombatTextures\(game\);\s*uninstallPerformanceTools\(game\);\s*game\.loop\.sleep\(\)/, "La limpieza de texturas debe ocurrir con las escenas detenidas");
 assert.match(battle, /if \(!game\)[\s\S]*createGame\(renderSize, bundle\)[\s\S]*game\.scale\.resize[\s\S]*game\.loop\.wake\(\)[\s\S]*game\.scene\.start\(battleRuntime\.activeMission\.exhibition \? "battle" : "travel", \{\}\)/, "La instancia existente debe reactivarse con combate directo para exhibición y viaje para misiones");
 assert.match(battle, /GAME_SCENES = Object\.freeze\(\[[\s\S]*MissionTravelScene, BattleScene, MissionEpilogueScene, LevelUpScene, SecondaryResultsScene, ResultsScene, PauseScene/, "La instancia compartida debe registrar recorridos principales y secundarios");
 assert.match(battle, /pendingSecondaryResults[\s\S]*void launchGame\(\)/, "Los resultados secundarios deben reutilizar la instancia y mostrar la subida durante el regreso antes del informe");

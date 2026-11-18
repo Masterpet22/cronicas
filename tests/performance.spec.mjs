@@ -237,11 +237,12 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   await page.locator("[data-perf-enabled]").check();
   await ensurePhaser(page);
   await page.evaluate(async () => {
-    const { TrainingBattleScene } = await import("/src/battle/scenes/training-battle-scene.js?v=0.149.0");
+    const { TrainingBattleScene } = await import("/src/battle/scenes/training-battle-scene.js?v=0.150.0");
     const create = TrainingBattleScene.prototype.create;
     TrainingBattleScene.prototype.create = function (...args) {
       const result = create.apply(this, args);
       window.__liveArenaController = this.arenaVisuals;
+      window.__liveBattle = this;
       return result;
     };
   });
@@ -260,11 +261,13 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
   expect(exported.captures.at(-1).timing.frames).toBeGreaterThan(5);
   await page.evaluate(async () => {
     window.__parkedGameCanvas = document.querySelector("#game canvas");
+    window.__parkedFighterAtlas = window.__liveBattle.hero.head.texture;
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     battleRuntime.releaseGameToMeta("plaza");
   });
   await expect(page.locator("#meta")).toBeVisible();
   await expect(page.locator(".performance-panel")).toHaveCount(0);
+  expect(await page.evaluate(() => window.__liveBattle.accessibleHud)).toBeNull();
   expect(await page.evaluate(() => ({ destroyed: window.__liveArenaController.destroyed, owned: window.__liveArenaController.ownedCount })))
     .toEqual({ destroyed: true, owned: 0 });
   const lastCapture = await page.evaluate(async () => {
@@ -286,6 +289,7 @@ test("PRUEBAS activa el panel, exporta muestras y libera la medición al volver 
     const { performanceTools } = await import("/src/dev/performance-tools.js?v=1.3.0");
     return performanceTools.snapshot()?.activeScenes.includes("battle");
   }), { timeout: 30_000 }).toBe(true);
+  expect(await page.evaluate(() => window.__liveBattle.hero.head.texture === window.__parkedFighterAtlas)).toBe(true);
   await page.evaluate(async () => {
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
     battleRuntime.releaseGameToMeta("plaza");

@@ -1,6 +1,6 @@
 # Plan de optimización del juego
 
-18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Cinco pasos de implementación aplicados
+18 de noviembre de 2026 · Rama `optimizacion` · Base `d375ec1` · Seis pasos de implementación aplicados
 
 La prioridad es recuperar una respuesta fluida del cursor al jugar y al abrir ventanas, empezando por la pausa. El trabajo cubre el navegador en ordenador y tablet. El objetivo de la primera ronda es reducir la carga dentro de Phaser 4 y de la interfaz HTML, con mediciones comparables para cada cambio.
 
@@ -112,9 +112,38 @@ Se crearon un 63 % menos de objetos. La mediana de FPS quedó un fotograma por s
 
 ## 6. Liberar recursos fuera de uso
 
-- Medir escenas, listeners, temporizadores, filtros, emisores, audio y texturas antes y después de diez ciclos de entrar, pausar, reanudar y volver al Dojo. Añadir varios ciclos de revancha. Distinguir memoria residente de los recursos que se mantienen a propósito para la siguiente entrada.
-- Eliminar referencias de escenas desmontadas. Limitar las cachés de variantes gráficas solo después de medir su crecimiento y conservar los recursos compartidos necesarios para evitar nuevas descargas en cada combate. La instancia ya se aparca al regresar a la aldea. Comprobar que también se detienen los efectos y observadores ligados a la escena anterior.
-- Resolver la limpieza de disco por separado. Retirar primero trazas archivables y separar del paquete de publicación las fuentes y evidencias que solo se usan en desarrollo. Verificar los recursos que dependen de rutas dinámicas y de pruebas antes de retirar archivos. [Inventario de recursos](INVENTARIO_RECURSOS.md) · [Ciclo del juego](../game.js)
+Al volver al Dojo, Phaser se detiene y libera los atlas, rostros, fondos y efectos del combate anterior que el recorrido más reciente dejó de usar. Las animaciones que referencian texturas retiradas también se eliminan. Se conserva la instancia de Phaser y su caché del último recorrido para que un combate repetido pueda usar los mismos recursos. El Dojo omite la precarga de fondos de campaña, de exhibición y de recompensas que no aparecen en el entrenamiento.
+
+El combate usa el contexto de audio de Phaser y desconecta los nodos al terminar las notas. El contexto privado se cierra al desmontar la escena si el navegador necesita ese respaldo. Los manejadores de las interfaces de combate y pausa se sueltan al salir.
+
+### Memoria en el Dojo antes y después de liberar recursos
+
+Se hicieron diez ciclos por versión con tres rivales, alternando los tonos de piel y volviendo al tono inicial. Cada ciclo entró, pausó, reanudó y regresó al Dojo. El primer ciclo incluyó tres revanchas. Se solicitó una recolección de basura mediante CDP antes de medir el heap. La memoria de texturas es una estimación RGBA de cuatro bytes por píxel de cada fuente registrada en Phaser.
+
+| Tras el décimo regreso | Antes | Después |
+| --- | ---: | ---: |
+| Texturas de Phaser registradas | 60 | 38 |
+| Memoria estimada de texturas | 154,85 MB | 101,30 MB |
+| Atlas de tono retenidos | 9 | 1 |
+| Contextos de audio creados durante el recorrido | 14 | 1 |
+| Heap de JavaScript tras recolección | 12,39 MB | 12,36 MB |
+
+Del segundo al noveno regreso, la caché dejó de crecer con cada tono. Se mantuvo en 40 texturas y 105,23 MB estimados, con dos tonos en uso. En los diez regresos quedaron cero escenas activas, objetos visibles, emisores, filtros activos y temporizadores de combate. El total de listeners internos de escenas aparcadas se mantuvo en 168. Durante las tres revanchas se conservó el mismo contexto de audio y el mismo atlas del jugador. La reducción de 53,55 MB corresponde a las fuentes de textura registradas. El heap de JavaScript se mantuvo en un rango cercano al de la base.
+
+En una comprobación posterior de 16 entradas con el mismo tono, el Dojo conservó un contexto de audio. Retuvo 36 texturas en los tres primeros regresos y se mantuvo en 37 desde el cuarto. El heap creció más en las primeras entradas y pasó de 12,08 a 12,20 MB entre los regresos 10 y 16. Estas muestras distinguen el tamaño de la caché de texturas del heap de JavaScript.
+
+### FPS en el Dojo antes y después de liberar recursos
+
+Tres repeticiones por versión frente a `01aa097`, con el mismo recorrido de tres rondas, ventana de 1440 × 900, canvas de 960 × 540 y Chromium headless con WebGL por software (SwiftShader).
+
+| Medida | Antes | Después |
+| --- | ---: | ---: |
+| FPS del navegador, mediana | 16,53 | 16,52 |
+| p95 del intervalo entre fotogramas | 66,7 ms | 66,7 ms |
+
+La reducción de memoria se observó al cargar y aparcar el juego. El ritmo del combate se mantuvo prácticamente igual en el entorno medido.
+
+El paquete de Pages generado localmente contiene unos 41,45 MB sin comprimir, frente a los 322,87 MB versionados del repositorio base. El código de desarrollo, las capturas y las fuentes de arte se conservan en Git. Se verificó la entrada al Dojo empaquetado, un combate de tres rivales y el regreso sin recursos faltantes. [Inventario de recursos](INVENTARIO_RECURSOS.md) · [Preparación de Pages](../scripts/stage-pages.mjs) · [Ciclo del juego](../src/battle/game-lifecycle.js)
 
 ## Validación de la entrega
 

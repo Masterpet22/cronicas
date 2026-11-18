@@ -26,9 +26,11 @@ jobs:
       - name: Configurar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Preparar sitio estático
+        run: node scripts/stage-pages.mjs "$RUNNER_TEMP/cronicas-pages"
+      - name: Empaquetar sitio estático
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: ${{ runner.temp }}/cronicas-pages
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4

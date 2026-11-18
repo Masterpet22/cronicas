@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { isSceneActive, pauseSceneIfActive, resumeSceneIfPaused, stopSceneIfRunning } from "../src/battle/scene-lifecycle.js";
 import { acquireEffect } from "../src/battle/effect-pool.js";
+import { rememberCombatTexture, trimParkedCombatTextures } from "../src/battle/combat-textures.js";
 
 function scenePlugin(initial = {}) {
   const state = { active: false, paused: false, sleeping: false, ...initial };
@@ -67,5 +68,23 @@ const restarted = acquireEffect(scene, "impact", makeEffect);
 assert.notEqual(restarted.objects[0], first.objects[0]);
 scene.events.emit("destroy");
 assert.equal(restarted.objects[0].scene, null);
+
+const textures = new Set(["shared", "old", "recent", "next"]);
+const animations = new Set(["old-animation"]);
+const game = {
+  textures: { exists: key => textures.has(key), remove: key => textures.delete(key) },
+  anims: { exists: key => animations.has(key), remove: key => animations.delete(key) }
+};
+const visualScene = { textures: game.textures };
+rememberCombatTexture(visualScene, "old", "old-animation");
+rememberCombatTexture(visualScene, "recent");
+trimParkedCombatTextures(game);
+assert.ok(textures.has("old"), "El último combate puede reaprovechar sus propios recursos");
+rememberCombatTexture(visualScene, "recent");
+rememberCombatTexture(visualScene, "next");
+trimParkedCombatTextures(game);
+trimParkedCombatTextures(game); // Un segundo paso por el menú no vacía la caché caliente.
+assert.deepEqual([...textures], ["shared", "recent", "next"]);
+assert.equal(animations.size, 0);
 
 console.log("Guardas de ciclo de vida de escenas verificadas.");

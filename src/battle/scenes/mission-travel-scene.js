@@ -1,25 +1,29 @@
-import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.148.0";
+import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
 import { playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { shouldShowLevelUp } from "./level-up-scene.js?v=0.149.0";
+import { shouldShowLevelUp } from "./level-up-scene.js?v=0.150.0";
 import { missionTravelPresentation } from "../mission-travel-presentation.js?v=0.96.0";
 import { createTravelProgress } from "../travel-progress.js?v=1.0.0";
 import { missionTransitionMode } from "../../mission-transitions.js";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.2.0";
-import { playMissionTeleport } from "../mission-teleport.js?v=0.149.0";
+import { playMissionTeleport } from "../mission-teleport.js?v=0.150.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
+import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
 export class MissionTravelScene extends Phaser.Scene {
   constructor() { super("travel"); }
 
   preload() {
     queueTeleportObjects(this);
+    rememberCombatTexture(this, "forest-road");
+    rememberCombatTexture(this, "village-outskirts-branches");
     if (!this.textures.exists("village-outskirts")) this.load.image("village-outskirts", SHARED_BATTLE_ASSETS.villageOutskirts);
     if (!this.textures.exists("forest-road")) this.load.image("forest-road", SHARED_BATTLE_ASSETS.forestRoad);
     if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", SHARED_BATTLE_ASSETS.villageOutskirtsBranches);
     if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
     if (battleRuntime.activeMission?.encounters?.length) {
       const arena = BATTLE_ARENAS[((battleRuntime.activeMission.arenaNumber || battleRuntime.activeMission.number || 1) - 1) % BATTLE_ARENAS.length];
+      rememberCombatTexture(this, arena.texture);
       if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
     }
     queuePlayerFighterTextures(this, playerFighterAppearance(battleRuntime.activeSave));

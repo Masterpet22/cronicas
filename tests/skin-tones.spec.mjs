@@ -48,7 +48,7 @@ for (const renderer of ["Canvas", "WebGL"]) test(`${renderer}: cuerpo y retratos
   await bootPerformanceReference(page, { renderer, skinTone: "moreno", bodyType: "female" });
   const result = await page.evaluate(async () => {
     const scene = window.__performanceReference.scene;
-    const api = await import("/src/fighters.js?v=0.148.0");
+    const api = await import("/src/fighters.js?v=0.150.0");
     const appearance = scene.playerAppearance();
     const headKey = api.fighterAtlasKey(appearance);
     const enemyKey = api.fighterAtlasKey(scene.enemyAppearance());

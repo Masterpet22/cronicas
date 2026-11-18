@@ -1,16 +1,19 @@
-import { BattleScene } from "./battle-scene.js?v=0.149.0";
+import { BattleScene } from "./battle-scene.js?v=0.150.0";
 import { arenaRivalProfile, ARENA_BACKGROUND } from "../../arena.js?v=0.140.0";
 import { showExhibitionResult } from "../exhibition-results.js?v=0.140.0";
 import { WIDTH, HEIGHT, battleRuntime } from "../runtime.js?v=0.91.0";
 import { TOWER_BACKGROUND, towerRivalProfile } from "../../tower.js?v=0.140.0";
+import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
 // Comparte el combate y la clave de escena. Las misiones conservan sus reglas;
 // las exhibiciones sustituyen únicamente persistencia, rival y desenlace.
 export class ArenaBattleScene extends BattleScene {
   preload() {
     super.preload();
+    if (!this.mission.exhibition || this.mission.training) return;
     const key = this.mission.tower ? "elemental-tower" : "exhibition-arena";
-    if (this.mission.exhibition && !this.textures.exists(key)) this.load.image(key, this.mission.tower ? TOWER_BACKGROUND : ARENA_BACKGROUND);
+    rememberCombatTexture(this, key);
+    if (!this.textures.exists(key)) this.load.image(key, this.mission.tower ? TOWER_BACKGROUND : ARENA_BACKGROUND);
   }
   create() {
     super.create();

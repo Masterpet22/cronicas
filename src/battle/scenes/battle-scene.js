@@ -1,4 +1,5 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.147.0";
+import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
 import { mountCombatTutorial, needsCombatTutorial } from "../combat-tutorial.js?v=0.140.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.2.0";
@@ -6,7 +7,7 @@ import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.148.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.150.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.140.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -25,10 +26,10 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.148.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.149.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.149.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.149.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.150.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.150.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.150.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.150.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { FREE_MISSION_RETRIES } from "../mission-retries.js?v=0.114.0";
@@ -47,22 +48,31 @@ export class BattleScene extends Phaser.Scene {
     const arenaIndex = ((battleRuntime.activeMission?.arenaNumber || battleRuntime.activeMission?.number || 1) - 1) % BATTLE_ARENAS.length;
     const arena = BATTLE_ARENAS[arenaIndex];
     this.battleBackgroundKey = arena.texture;
-    if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
+    const mission = battleRuntime.activeMission;
+    if (!mission.exhibition) {
+      rememberCombatTexture(this, arena.texture);
+      if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
+      for (const [key, file] of [["forest-road", SHARED_BATTLE_ASSETS.forestRoad],
+        ["village-outskirts-branches", SHARED_BATTLE_ASSETS.villageOutskirtsBranches]]) {
+        rememberCombatTexture(this, key);
+        if (!this.textures.exists(key)) this.load.image(key, file);
+      }
+      rememberCombatTexture(this, "coin-drop", "coin-drop-spin");
+      if (!this.textures.exists("coin-drop")) this.load.spritesheet("coin-drop", `assets/vfx/${COIN_DROP_VFX.file}?v=0.89.0`, {
+        frameWidth: COIN_DROP_VFX.frameWidth,
+        frameHeight: COIN_DROP_VFX.frameHeight,
+        endFrame: COIN_DROP_VFX.frames - 1
+      });
+      rememberCombatTexture(this, "experience-drop", "experience-drop-spin");
+      if (!this.textures.exists("experience-drop")) this.load.spritesheet("experience-drop", `assets/vfx/${EXPERIENCE_DROP_VFX.file}?v=0.91.0`, {
+        frameWidth: EXPERIENCE_DROP_VFX.frameWidth,
+        frameHeight: EXPERIENCE_DROP_VFX.frameHeight,
+        endFrame: EXPERIENCE_DROP_VFX.frames - 1
+      });
+    }
     if (!this.textures.exists("timeline-ready-brush")) this.load.image("timeline-ready-brush", "assets/vfx/feedback/timeline-ready-brush.png?v=0.70.0");
     if (!this.textures.exists("preparation-ribbons")) this.load.image("preparation-ribbons", "assets/vfx/feedback/preparation-ribbons.png?v=0.70.0");
     if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
-    if (!this.textures.exists("forest-road")) this.load.image("forest-road", SHARED_BATTLE_ASSETS.forestRoad);
-    if (!this.textures.exists("village-outskirts-branches")) this.load.image("village-outskirts-branches", SHARED_BATTLE_ASSETS.villageOutskirtsBranches);
-    if (!this.textures.exists("coin-drop")) this.load.spritesheet("coin-drop", `assets/vfx/${COIN_DROP_VFX.file}?v=0.89.0`, {
-      frameWidth: COIN_DROP_VFX.frameWidth,
-      frameHeight: COIN_DROP_VFX.frameHeight,
-      endFrame: COIN_DROP_VFX.frames - 1
-    });
-    if (!this.textures.exists("experience-drop")) this.load.spritesheet("experience-drop", `assets/vfx/${EXPERIENCE_DROP_VFX.file}?v=0.91.0`, {
-      frameWidth: EXPERIENCE_DROP_VFX.frameWidth,
-      frameHeight: EXPERIENCE_DROP_VFX.frameHeight,
-      endFrame: EXPERIENCE_DROP_VFX.frames - 1
-    });
 
     // An empty loadout must not prevent learning seals. The loaned technique
     // exists only in this battle and never changes the player's saved loadout.
@@ -87,6 +97,7 @@ export class BattleScene extends Phaser.Scene {
       if (effect.creationFile) {
         [["creation", effect.creationFile], ["destruction", effect.destructionFile]].filter(([, file]) => file).forEach(([phase, file]) => {
           const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
+          rememberCombatTexture(this, phaseTexture, `${phaseTexture}-animation`);
           if (!this.textures.exists(phaseTexture)) this.load.spritesheet(phaseTexture, `assets/vfx/${file}?v=0.81.0`, {
             frameWidth: effect.frameWidth,
             frameHeight: effect.frameHeight,
@@ -95,11 +106,13 @@ export class BattleScene extends Phaser.Scene {
         });
         if (effect.projectileFile) {
           const projectileTexture = `technique-vfx-${jutsuId}-projectile`;
+          rememberCombatTexture(this, projectileTexture);
           if (!this.textures.exists(projectileTexture)) this.load.image(projectileTexture, `assets/vfx/${effect.projectileFile}?v=0.81.0`);
         }
         return;
       }
       const texture = `technique-vfx-${jutsuId}`;
+      rememberCombatTexture(this, texture, `${texture}-animation`);
       if (this.textures.exists(texture)) return;
       const source = `assets/vfx/${effect.file}?v=${effect.version || "0.81.0"}`;
       if (Number.isFinite(effect.sourceY)) this.load.image(texture, source);
@@ -251,11 +264,26 @@ export class BattleScene extends Phaser.Scene {
     }
     this.createActionPanel();
     this.createTurnTimeline();
+    const stopAudio = () => {
+      this.events.off("shutdown", stopAudio);
+      this.events.off("destroy", stopAudio);
+      this.stopBattleAudio();
+    };
+    this.events.once("shutdown", stopAudio);
+    this.events.once("destroy", stopAudio);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.finished = true;
       this.combatTutorial?.destroy();
       this.stopTurnTimeline?.();
       this.clearBossPhaseSilhouette?.({ restoreIdle: false });
+      // Los demás limpiadores de shutdown todavía pueden consultar el HUD.
+      const hud = this.accessibleHud;
+      queueMicrotask(() => {
+        if (this.accessibleHud !== hud) return;
+        this.accessibleHud = null;
+        this.combatTutorial = null;
+        this.targetControls = null;
+      });
     });
     this.createPauseButton();
     this.accessibleHud = mountAccessibleBattleHud(this);

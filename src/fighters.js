@@ -1,6 +1,7 @@
 import { isBaseOutfitPart } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
-import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.148.0";
+import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
+import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.115.0";
 import { createPuppetAnimationController } from "./animations/controller.js?v=0.147.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.119.0";
@@ -125,6 +126,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
   const faceKey = fighterFaceTextureKey(appearance);
+  rememberCombatTexture(scene, faceKey);
   if (!scene.textures.exists(faceKey)) scene.load.image(faceKey, `assets/modular/faces/male_${face.id}_${normalizeSkinTone(appearance?.skinTone)}.png?v=0.135.0`);
   return "modular";
 }

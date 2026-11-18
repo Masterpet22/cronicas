@@ -10,7 +10,7 @@ Las **24 trazas ZIP de Playwright retiradas en `optimizacion` sumaban 486,12 MB*
 | `assets/` | 194 | 60,02 MB | Recursos del juego, fuentes de arte, catálogos y referencias |
 | `modelos-interfaz/` | 3 | 6,78 MB | Tres propuestas visuales de diseño |
 
-GitHub Pages prepara el sitio con `path: .`. Cambiar el paquete de despliegue para incluir solo los archivos del juego permite quitar fuentes y evidencias del sitio conservándolas en el repositorio. Retirar archivos en un nuevo commit reduce la copia de trabajo. Los objetos de commits anteriores seguirán ocupando espacio en `.git`. Las trazas y fuentes que el navegador nunca solicita tampoco explican sus FPS. [Flujo de publicación](../.github/workflows/deploy-pages.yml)
+El flujo de GitHub Pages ahora prepara un directorio con el sitio, los módulos y los recursos de ejecución. Las fuentes de arte, evidencias y herramientas se conservan en el repositorio. Retirar archivos en un nuevo commit reduce la copia de trabajo. Los objetos de commits anteriores seguirán ocupando espacio en `.git`. [Flujo de publicación](../.github/workflows/deploy-pages.yml)
 
 ## Primer lote retirado
 
@@ -61,6 +61,6 @@ La comparación SHA-256 de imágenes y ZIP en `assets/`, `artifacts/` y `modelos
 ## Orden para ejecutar la limpieza
 
 1. Retirar las 24 trazas antiguas. Completado en `optimizacion`.
-2. Excluir del despliegue fuentes de edición y evidencias. Verificar el sitio resultante con rutas de carga directas y dinámicas, incluidos Dojo, combate, viajes y catálogo.
+2. Excluir del despliegue fuentes de edición y evidencias. El paquete local se verificó con el Dojo y el combate contra tres rivales.
 3. Retirar la hoja antigua de sellos y resolver los PNG del HUD que aún referencian las pruebas. Revisar las capas sustituidas y las duplicadas con los scripts de producción antes de moverlas.
 4. Comparar tamaño de la copia de trabajo y del paquete publicado por separado. Ejecutar `npm test`, `npm run art:validate` y los recorridos de carga que correspondan. Los archivos de este inventario permanecen disponibles en el commit de referencia.
