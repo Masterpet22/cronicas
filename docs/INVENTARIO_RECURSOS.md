@@ -2,7 +2,7 @@
 
 18 de noviembre de 2026 · Base `d375ec1` · Tamaño en MB decimales, medido sobre los archivos versionados presentes en disco.
 
-Las **24 trazas ZIP de Playwright suman 486,12 MB**, alrededor del 60 % de los 807,92 MB versionados en la copia de trabajo. Son el primer lote para archivar. El juego no consulta `artifacts/` ni `modelos-interfaz/`. Parte de esos directorios sí documenta decisiones, pruebas y procesos de producción.
+Las **24 trazas ZIP de Playwright retiradas en `optimizacion` sumaban 486,12 MB**, alrededor del 60 % de los 807,92 MB versionados en la copia de trabajo de la base. El juego no consulta `artifacts/` ni `modelos-interfaz/`. Parte de esos directorios documenta decisiones, pruebas y procesos de producción.
 
 | Directorio | Archivos | Tamaño | Uso |
 | --- | ---: | ---: | --- |
@@ -12,9 +12,9 @@ Las **24 trazas ZIP de Playwright suman 486,12 MB**, alrededor del 60 % de los 8
 
 GitHub Pages prepara el sitio con `path: .`. Cambiar el paquete de despliegue para incluir solo los archivos del juego permite quitar fuentes y evidencias del sitio conservándolas en el repositorio. Retirar archivos en un nuevo commit reduce la copia de trabajo. Los objetos de commits anteriores seguirán ocupando espacio en `.git`. Las trazas y fuentes que el navegador nunca solicita tampoco explican sus FPS. [Flujo de publicación](../.github/workflows/deploy-pages.yml)
 
-## Primer lote para archivar
+## Primer lote retirado
 
-Las siguientes carpetas contienen las 24 trazas. El inventario cuenta exclusivamente los ZIP dentro de cada carpeta, incluidos sus subdirectorios. Los informes JSON y capturas vinculadas se revisan de forma separada.
+Las siguientes carpetas contenían las 24 trazas en la base `d375ec1`. El inventario cuenta exclusivamente los ZIP de cada carpeta, incluidos sus subdirectorios. Los informes JSON y las capturas se conservaron.
 
 | Carpeta bajo `artifacts/` | ZIP | Bytes |
 | --- | ---: | ---: |
@@ -31,7 +31,7 @@ Las siguientes carpetas contienen las 24 trazas. El inventario cuenta exclusivam
 | `progression-regression-tests/` | 1 | 1 196 383 |
 | **Total** | **24** | **486 115 953** |
 
-No se encontraron consumidores de los ZIP en los scripts de prueba actuales. Son trazas históricas de diagnóstico. Se pueden conservar fuera de la distribución y recuperar del commit base si hace falta revisar un fallo antiguo. Las próximas ejecuciones pueden guardar sus trazas en `test-results/`, que ya está ignorado por Git.
+Las trazas históricas se pueden recuperar del commit base para revisar un fallo antiguo. Las próximas ejecuciones guardan sus trazas en `test-results/`, que ya está ignorado por Git.
 
 ## Archivos de `assets/` que el juego no carga
 
@@ -60,7 +60,7 @@ La comparación SHA-256 de imágenes y ZIP en `assets/`, `artifacts/` y `modelos
 
 ## Orden para ejecutar la limpieza
 
-1. Archivar las trazas antiguas y revisar los enlaces que las mencionan. Mantener sus informes ligeros cuando documenten una regresión.
+1. Retirar las 24 trazas antiguas. Completado en `optimizacion`.
 2. Excluir del despliegue fuentes de edición y evidencias. Verificar el sitio resultante con rutas de carga directas y dinámicas, incluidos Dojo, combate, viajes y catálogo.
 3. Retirar la hoja antigua de sellos y resolver los PNG del HUD que aún referencian las pruebas. Revisar las capas sustituidas y las duplicadas con los scripts de producción antes de moverlas.
 4. Comparar tamaño de la copia de trabajo y del paquete publicado por separado. Ejecutar `npm test`, `npm run art:validate` y los recorridos de carga que correspondan. Los archivos de este inventario permanecen disponibles en el commit de referencia.
