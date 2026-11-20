@@ -38,6 +38,13 @@ for (const renderer of ["Canvas", "WebGL"]) {
       new Phaser.Game({ type: renderer === "Canvas" ? Phaser.CANVAS : Phaser.WEBGL, parent: host, width: 1440, height: 720, backgroundColor: "#18293b", scene: [PoseScene], audio: { noAudio: true }, render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false } });
     }, renderer);
     await page.waitForFunction(() => window.__preparationTest);
+    const bootsBehindWraps = () => page.evaluate(() => window.__preparationTest.fighters.every(({ fighter }) =>
+      ["Left", "Right"].every(side => {
+        const knee = fighter.joints[`knee${side}`], ankle = fighter.joints[`ankle${side}`];
+        const shin = fighter.layers.find(layer => layer.name === (side === "Left" ? "pierna_izquierda" : "pierna_derecha"));
+        return ankle.parentContainer === knee && knee.getIndex(ankle) < knee.getIndex(shin);
+      })));
+    expect(await bootsBehindWraps()).toBe(true);
     await page.waitForTimeout(450);
     const centered = () => page.evaluate(() => window.__preparationTest.fighters.map(({ fighter, feet }) => {
       const palms = ["mano_izquierda", "mano_derecha"].map(name => fighter.layers.find(layer => layer.name === name).getWorldTransformMatrix().transformPoint(0, 0, {}));
@@ -58,6 +65,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
         && Math.abs(forearmPivot.rotation - shoulderLeft.rotation) < .001;
     }));
     await expect.poll(centered).toEqual([true, true, true, true]);
+    expect(await bootsBehindWraps()).toBe(true);
     const continues = await page.evaluate(() => {
       const { scene, fighters, api } = window.__preparationTest;
       return fighters.every(({ fighter }) => {
@@ -93,6 +101,20 @@ for (const renderer of ["Canvas", "WebGL"]) {
       });
     });
     expect(restored).toEqual([true, true, true, true]);
+    // La carrera mueve piernas y tobillos: la superposición se conserva durante
+    // el ciclo y al volver a la pose de combate, para ambos cuerpos y orientaciones.
+    await page.evaluate(() => {
+      const { scene, fighters, api } = window.__preparationTest;
+      fighters.forEach(({ fighter }) => api.startPlayerRunning(scene, fighter));
+    });
+    await page.waitForTimeout(240);
+    expect(await bootsBehindWraps()).toBe(true);
+    await page.evaluate(() => {
+      const { fighters, api } = window.__preparationTest;
+      fighters.forEach(({ fighter }) => api.stopPlayerRunning(fighter));
+    });
+    expect(await bootsBehindWraps()).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("botas-tras-animacion.png") });
     const listeners = await page.evaluate(() => {
       const { scene, fighters, api, idleListeners } = window.__preparationTest;
       const restored = scene.events.listenerCount("postupdate");

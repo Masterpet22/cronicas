@@ -1,6 +1,6 @@
 import { ITEMS } from "../items.js?v=0.140.0";
 import { countItem, missionItemEffect, removeItem } from "../inventory.js?v=0.140.0";
-import { writeSave } from "../save.js?v=0.140.0";
+import { writeSave } from "../save.js?v=0.155.0";
 import { battleRuntime } from "./session.js?v=1.0.0";
 import { itemIcon } from "../ui/item-icons.js?v=0.126.0";
 
@@ -22,7 +22,6 @@ export function consumeBattleItem(scene, itemId, persist = writeSave) {
 export function itemUseReason(scene, id) {
   if (scene.mission.exhibition) return "Los consumibles están desactivados en las exhibiciones.";
   if (!countItem(scene.saveData, id)) return "No tienes este objeto.";
-  if (scene.mission.tutorialReplay || (scene.combatTutorial?.active && !scene.combatTutorial.canUse({ type: "item", itemId: id }))) return "En esta práctica utiliza el objeto indicado por la guía.";
   if (scene.finished || scene.busy || !scene.turnReady) return "Espera a tu turno para usar un objeto.";
   const effect = missionItemEffect(id, scene.player);
   return effect.ok ? "" : effect.reason;

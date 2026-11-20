@@ -1,24 +1,23 @@
-import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.152.0";
+import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.155.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
-import { mountCombatTutorial, needsCombatTutorial } from "../combat-tutorial.js?v=0.140.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.2.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.155.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";
 import { queueElementIcons, composeElementIcons } from "../element-icons.js?v=1.0.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { missionStep } from "../../mission-system.js?v=0.155.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.155.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.155.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState, resolveEnemyProfileForBattle } from "../enemy-state.js?v=1.5.0";
-import { affinityTrialProfile } from "../affinity-trial-combat.js?v=0.140.0";
+import { createEnemyState, resolveEnemyProfileForBattle } from "../enemy-state.js?v=0.155.0";
+import { affinityTrialProfile } from "../affinity-trial-combat.js?v=0.155.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
@@ -26,15 +25,15 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.153.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.153.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.153.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.153.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.155.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.155.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.155.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.155.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { FREE_MISSION_RETRIES } from "../mission-retries.js?v=0.114.0";
 import { queueWeaponTextures } from "../weapon-effects.js?v=1.4.0";
-import { chooseEnemyAbility } from "../enemy-abilities.js?v=0.140.0";
+import { chooseEnemyAbility } from "../enemy-abilities.js?v=0.155.0";
 
 export class BattleScene extends Phaser.Scene {
   constructor() {
@@ -74,16 +73,7 @@ export class BattleScene extends Phaser.Scene {
     if (!this.textures.exists("preparation-ribbons")) this.load.image("preparation-ribbons", "assets/vfx/feedback/preparation-ribbons.png?v=0.70.0");
     if (!this.textures.exists("preparation-mote")) this.load.image("preparation-mote", SHARED_BATTLE_ASSETS.preparationMote);
 
-    // An empty loadout must not prevent learning seals. The loaned technique
-    // exists only in this battle and never changes the player's saved loadout.
     this.battleLoadout = this.battleLoadoutForMission();
-    this.practiceTechnique = false;
-    this.tutorialRequested = Boolean(battleRuntime.activeMission.tutorialReplay || needsCombatTutorial(battleRuntime.activeSave, battleRuntime.activeMission));
-    if (this.tutorialRequested
-      && !this.battleLoadout.some(id => JUTSU_LIBRARY.find(jutsu => jutsu.id === id)?.seals.length)) {
-      const practice = JUTSU_LIBRARY.find(jutsu => jutsu.element === battleRuntime.activeSave.character.affinity && jutsu.seals?.length);
-      if (practice) { this.battleLoadout[0] = practice.id; this.practiceTechnique = true; }
-    }
     const playerAffinity = battleRuntime.activeSave.character.affinities?.[0] || battleRuntime.activeSave.character.affinity;
     const enemyAbilities = resolveEncounterIds(battleRuntime.activeMission, battleRuntime.activeSave.campaign)
       .map(id => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], battleRuntime.activeMission, playerAffinity))
@@ -132,7 +122,6 @@ export class BattleScene extends Phaser.Scene {
     this.saveData = battleRuntime.activeSave;
     this.missionStartSave = JSON.parse(JSON.stringify(battleRuntime.activeSave));
     this.mission = battleRuntime.activeMission;
-    this.tutorialPracticeSave = this.mission.tutorialReplay ? { ...this.saveData, equipment: { ...this.saveData.equipment, weapon: "kunai", throwable: "shuriken" }, inventory: { ...this.saveData.inventory, items: { ...this.saveData.inventory.items, kunai: 1, shuriken: 1 } } } : null;
     this.combatFeatures = combatFeatures(this.mission, this.saveData.campaign);
     battleRuntime.activeMission.encounters.forEach((enemyId) => queuePlayerFighterTextures(this, enemyFighterAppearance(ENEMY_ROSTER[enemyId], enemyId)));
     BASE_ACTIONS.forEach((action) => {
@@ -158,7 +147,6 @@ export class BattleScene extends Phaser.Scene {
     this.playerTimelineTag = null;
     this.enemyTimelineTag = null;
     this.accessibleHud = null;
-    this.combatTutorial = null;
     // La resolución lógica se escala explícitamente para conservar un HUD nítido.
     // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
@@ -214,7 +202,6 @@ export class BattleScene extends Phaser.Scene {
       });
     }
     this.mission = battleRuntime.activeMission;
-    this.tutorialPracticeSave = this.mission.tutorialReplay ? { ...this.saveData, equipment: { ...this.saveData.equipment, weapon: "kunai", throwable: "shuriken" }, inventory: { ...this.saveData.inventory, items: { ...this.saveData.inventory.items, kunai: 1, shuriken: 1 } } } : null;
     this.encounterIds = resolveEncounterIds(this.mission, this.saveData.campaign);
     this.encounters = this.encounterIds.map((id) => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], this.mission,
       this.saveData.character.affinities?.[0] || this.saveData.character.affinity));
@@ -273,7 +260,6 @@ export class BattleScene extends Phaser.Scene {
     this.events.once("destroy", stopAudio);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.finished = true;
-      this.combatTutorial?.destroy();
       this.stopTurnTimeline?.();
       this.clearBossPhaseSilhouette?.({ restoreIdle: false });
       // Los demás limpiadores de shutdown todavía pueden consultar el HUD.
@@ -281,19 +267,14 @@ export class BattleScene extends Phaser.Scene {
       queueMicrotask(() => {
         if (this.accessibleHud !== hud) return;
         this.accessibleHud = null;
-        this.combatTutorial = null;
         this.targetControls = null;
       });
     });
     this.bindBattlePause();
     this.accessibleHud = mountAccessibleBattleHud(this);
     this.startMusic();
-    if (this.tutorialRequested) {
-      this.combatTutorial = mountCombatTutorial(this, { onReplayExit: this.mission.tutorialReplay ? () => this.exitTutorialReplay() : null });
-    }
-    if (this.tutorialRequested || this.combatFeatures.secretEntry || this.combatFeatures.lieutenantIntervention) {
+    if (this.combatFeatures.secretEntry || this.combatFeatures.lieutenantIntervention) {
       this.time.delayedCall(120, async () => {
-        if (this.combatTutorial) await this.playSagaTutorial();
         if (!this.finished && this.combatFeatures.secretEntry) await this.playSecretWarehouse();
         if (!this.finished && this.combatFeatures.lieutenantIntervention) await this.playLieutenantIntervention();
         if (!this.finished) this.startTurnCharge();
@@ -303,18 +284,10 @@ export class BattleScene extends Phaser.Scene {
   }
 
   recordEnemyObservation(observation) {
-    if (this.mission.tutorialReplay || this.mission.affinitySlot) return;
+    if (this.mission.affinitySlot) return;
     const entry = bestiaryObservation(this.encounterIds, this.enemyIndex, observation);
     this.saveData = writeSave(recordBestiaryObservation(this.saveData, entry.enemyId, entry.observation));
     battleRuntime.activeSave = this.saveData;
-  }
-
-  exitTutorialReplay() {
-    if (this.finished) return;
-    this.finished = true;
-    this.stopTurnTimeline?.();
-    this.combatTutorial?.destroy();
-    battleRuntime.releaseGameToMeta("archive");
   }
 
   configureSealMode() {

@@ -2,17 +2,17 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { fighterAtlasKey, fighterFaceTextureKey, fighterHairPortraitLayout, createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
+import { fighterAtlasKey, fighterFaceTextureKey, fighterHairPortraitLayout, createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.155.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
-import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
+import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { missionStep } from "../../mission-system.js?v=0.155.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.155.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.155.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState } from "../enemy-state.js?v=1.5.0";
+import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
@@ -22,7 +22,7 @@ import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, 
 import { discardVictory } from "../victory-transaction.js?v=0.95.0";
 import { availableRetries, consumeRetry, restoreDuel, showRetryDialog } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.140.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.151.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.155.0";
 import { acquireEffect } from "../effect-pool.js?v=1.0.0";
 
 const statusGlyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guard: "守", poison: "毒", slow: "鈍", seal: "封" };
@@ -140,7 +140,6 @@ export class BattleFeedbackMethods {
 
   async finishBattle(won) {
     if (this.finished) return;
-    if (this.mission.tutorialReplay) return this.exitTutorialReplay();
     this.stopTurnTimeline?.();
     this.clearPreparationFeedback?.("player");
     this.clearPreparationFeedback?.("enemy");
@@ -190,7 +189,7 @@ export class BattleFeedbackMethods {
     });
     await this.delay(950);
     const result = this.resultPayload(won ? "completed" : "failed");
-    if (won && this.combatFeatures.tutorial && !battleRuntime.activeSave.campaign.sayoEncounterSeen) {
+    if (won && this.combatFeatures.sayoEncounter && !battleRuntime.activeSave.campaign.sayoEncounterSeen) {
       this.scene.start("epilogue", { result });
       return;
     }
@@ -214,7 +213,6 @@ export class BattleFeedbackMethods {
     };
   }
   abandonPayload() {
-    if (this.mission.tutorialReplay) return this.resultPayload("abandoned");
     discardVictory(battleRuntime);
     const routeStats = this.mission.type === "route-combat" ? { ...this.saveData.campaign.doctorRoute } : null;
     this.missionStartSave.bestiary = this.saveData.bestiary;
@@ -233,7 +231,7 @@ export class BattleFeedbackMethods {
       const affordable = this.player.chakra >= chakraCost;
       const cooldown = this.cooldowns[jutsu.id] || 0;
       const guardAvailable = jutsu.type !== "guard" || !this.player.guarding;
-      const available = enabled && this.turnReady && affordable && cooldown === 0 && guardAvailable && (!this.combatTutorial?.active || this.combatTutorial.canUse(jutsu));
+      const available = enabled && this.turnReady && affordable && cooldown === 0 && guardAvailable;
       button.available = available;
       const visualAlpha = available ? 1 : affordable && cooldown === 0 && guardAvailable ? 0.76 : 0.6;
       button.visualParts.forEach((part) => {

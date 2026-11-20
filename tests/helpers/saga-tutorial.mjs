@@ -1,11 +1,9 @@
-import { SAGA_TUTORIAL, SHARED_TUTORIAL_PRACTICES } from "../../src/content/sagas/futuro-prometedor/tutorial.js";
-import { COMBAT_LESSONS } from "../../src/content/sagas/futuro-prometedor/combat-lessons.js";
+import { TUTORIAL_LESSON_IDS } from "../../src/content/sagas/futuro-prometedor/tutorial.js";
 
-// Los escenarios ajenos a la formación parten de un jugador que ya la practicó.
-// Los casos de currículo utilizan partidas nuevas y controles reales por separado.
+// Fixture de partidas anteriores con equipo e historial del tutorial retirado.
 export function learnedTutorialForTest(save) {
   save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
-  save.campaign.sagaTutorial.completed = [...new Set([...SAGA_TUTORIAL.flatMap(course => course.before.map(step => step.id)), ...Object.values(COMBAT_LESSONS).flatMap(plan => plan.actions.map(step => step.lesson).filter(Boolean)), ...SHARED_TUTORIAL_PRACTICES])];
+  save.campaign.sagaTutorial.completed = TUTORIAL_LESSON_IDS.filter(id => !id.startsWith("clue-"));
   return save;
 }
 

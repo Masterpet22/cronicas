@@ -1,7 +1,7 @@
 import { ensurePhaser } from "./phaser-loader.mjs";
 
 // La misma receta se usa en las regresiones y en npm run performance:baseline.
-export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false, arenaIndex = 1, skinTone = "claro", bodyType = "male", investments = {}, taijutsuLoadout = [null,null], loadout = ["fire_embers", "fire_breath", "fire_arc", "fire_brand"] } = {}) {
+export async function bootPerformanceReference(page, { renderer = "Canvas", lightMode = false, arenaIndex = 1, completed = true, skinTone = "claro", bodyType = "male", investments = {}, taijutsuLoadout = [null,null], loadout = ["fire_embers", "fire_breath", "fire_arc", "fire_brand"] } = {}) {
   await page.addInitScript(() => {
     sessionStorage.setItem("compact-combat-enabled", "1");
     localStorage.setItem("music-enabled", "off");
@@ -10,7 +10,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
   await page.goto("/");
   await ensurePhaser(page);
   await page.waitForFunction(() => window.Phaser && document.querySelector('[data-select-slot="1"]'));
-  await page.evaluate(async ({ renderer, lightMode, arenaIndex, loadout, skinTone, bodyType, investments, taijutsuLoadout }) => {
+  await page.evaluate(async ({ renderer, lightMode, arenaIndex, completed, loadout, skinTone, bodyType, investments, taijutsuLoadout }) => {
     const { BattleScene } = await import("/src/battle/scenes/battle-scene.js?v=1.5.0");
     const { PauseScene } = await import("/src/battle/scenes/pause-scene.js?v=1.2.0");
     const { battleRuntime } = await import("/src/battle/runtime.js?v=0.91.0");
@@ -46,7 +46,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
     save.taijutsuLoadout = taijutsuLoadout;
     save.character.affinityXp.fuego = 1000;
     save.loadout = loadout;
-    save.campaign.completedMissions = [mission.id];
+    save.campaign.completedMissions = completed ? [mission.id] : [];
     battleRuntime.activeSave = save;
     battleRuntime.activeMission = mission;
     const root = document.getElementById("game");
@@ -79,7 +79,7 @@ export async function bootPerformanceReference(page, { renderer = "Canvas", ligh
       render: { antialias: true, antialiasGL: true, pixelArt: false, roundPixels: false },
       scale: { mode: window.Phaser.Scale.FIT, autoCenter: window.Phaser.Scale.CENTER_BOTH }
     });
-  }, { renderer, lightMode, arenaIndex, loadout, skinTone, bodyType, investments, taijutsuLoadout });
+  }, { renderer, lightMode, arenaIndex, completed, loadout, skinTone, bodyType, investments, taijutsuLoadout });
   await page.waitForFunction(() => window.__performanceReference?.ready, null, { timeout: 30_000 });
 }
 

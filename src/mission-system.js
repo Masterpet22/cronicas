@@ -1,4 +1,4 @@
-import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.114.0";
+import { MISSIONS, SECONDARY_MISSIONS } from "./content/index.js?v=0.155.0";
 import { validateMissionTransitions } from "./mission-transitions.js";
 import { missionXpPlan } from "./mission-rewards.js?v=1.0.0";
 

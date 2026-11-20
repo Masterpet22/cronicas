@@ -126,6 +126,7 @@ assert.equal(WOMAN_SPRITE_LAYERS.find(({ id }) => id === "brazo_derecho").restRo
 const puppetNode = (x = 0, y = 0, key = null) => ({
   x, y, key, angle: 0, scaleX: 1, scaleY: 1, children: [],
   add(child) { this.children.push(child); return this; },
+  sendToBack(child) { this.children.splice(this.children.indexOf(child), 1); this.children.unshift(child); return this; },
   setDepth() { return this; }, setScale(scaleX, scaleY = scaleX) { this.scaleX = scaleX; this.scaleY = scaleY; return this; },
   setAngle(angle) { this.angle = angle; return this; }, setDisplaySize(width, height) { this.displayWidth = width; this.displayHeight = height; return this; }
 });

@@ -1,4 +1,4 @@
-import { searchGameDictionary } from "../../content/game-dictionary.js";
+import { searchGameDictionary } from "../../content/game-dictionary.js?v=0.155.0";
 
 export function dictionaryEntriesMarkup(query, escape) {
   const entries = searchGameDictionary(query);

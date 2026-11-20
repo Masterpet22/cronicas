@@ -1,8 +1,8 @@
 import { COMPANIONS, chooseCompanion } from "../../../kurogane.js";
 import { COMPANION_BRIEFINGS, COMPANION_PRESENTATION, COMPANION_SELECTION_RESPONSE } from "../../../content/sagas/hermanos-kurogane/saga.js";
 import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
-import { campaignFlag } from "../../../mission-system.js?v=0.114.0";
-import { lessonCompleted, tutorialCourseFor } from "../../../tutorial-system.js";
+import { campaignFlag } from "../../../mission-system.js?v=0.155.0";
+import { lessonCompleted } from "../../../tutorial-system.js?v=0.155.0";
 import { renderDoctorRouteMap } from "../doctor-route-map.js";
 import { mountDoctorCipher, renderDoctorCipher } from "../doctor-cipher.js?v=0.114.0";
 
@@ -72,8 +72,7 @@ export function createMissionBoardsView(deps) {
       const inProgress = progressStatus === "in-progress";
       const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? mission.type ? "COMPLETADA" : "REPETIR" : progressStatus === "failed" ? "REINTENTAR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
       const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
-      const formation = tutorialCourseFor(mission);
-      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${formation ? `Tutorial: ${formation.title} · ` : ""}${activityLabels} · ${mission.duration} · ${mission.reward.totalXp} PX totales · ${mission.reward.coins} monedas`;
+      const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.totalXp} PX totales · ${mission.reward.coins} monedas`;
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
     const completedInSaga = missions.filter((mission) => completed.has(mission.id)).length;
@@ -157,7 +156,6 @@ export function createMissionBoardsView(deps) {
         root.querySelectorAll("[data-mission]").forEach((button) => scope.listen(button, "click", () => {
           const mission = missionById(button.dataset.mission);
           if (!mission || mission.comingSoon || !deps.missionState(mission, getSave()).unlocked) return;
-          if (deps.onPrepare?.(mission)) return;
           if (mission.type) { if (!deps.missionState(mission, getSave()).completed) launchFieldMission(mission); return; }
           const inProgress = getSave().campaign.missionProgress[mission.id]?.status === "in-progress";
           if (inProgress) {
@@ -210,7 +208,7 @@ export function createMissionBoardsView(deps) {
             const clue = KAGEMORI_CLUES.find((entry) => entry.id === area.dataset.clue);
             if (!clue || state.investigatedClues.has(clue.id)) return;
             state.investigatedClues.add(clue.id);
-            if (deps.onTutorialLesson) state.save = deps.onTutorialLesson(`clue-${clue.id}`);
+            if (deps.onInvestigationClue) state.save = deps.onInvestigationClue(clue.id);
             area.classList.add("found");
             if (label) label.querySelector("strong").textContent = `✓ ${clue.label}`;
             root.querySelector("[data-clue-count]").textContent = `${state.investigatedClues.size}/3 pistas`;

@@ -21,6 +21,6 @@ export function closeActionState(battle, actor, action, { skipped = false } = {}
 }
 
 export function isFinalOpponent(battle) {
-  return Boolean(battle.mission?.exhibition || battle.mission?.tutorialReplay || battle.mission?.type === "route-combat"
+  return Boolean(battle.mission?.exhibition || battle.mission?.type === "route-combat"
     || battle.enemyIndex === battle.encounters?.length - 1);
 }

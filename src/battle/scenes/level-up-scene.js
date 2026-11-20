@@ -1,4 +1,4 @@
-import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.153.0";
+import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.155.0";
 import { playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.93.0";
 import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-transition.js?v=1.2.0";
@@ -6,9 +6,6 @@ import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtim
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { applyFillTint } from "../phaser-compat.js?v=1.0.0";
 import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
-import { tutorialActor, tutorialSpeakerMarkup } from "../../tutorial-speakers.js";
-import { playerRankLabel } from "../../player-rank.js";
-import { lessonCompleted } from "../../tutorial-system.js";
 
 const THEMES = Object.freeze({
   fuego: { color: 0xff914f, ink: "#ffb17d", title: "FUEGO" },
@@ -145,15 +142,7 @@ export class LevelUpScene extends Phaser.Scene {
       }
     };
     document.addEventListener("keydown", onKeydown);
-    const explanation = document.createElement("section"); explanation.className = "level-up-explanation";
-    explanation.tabIndex = 0;
-    explanation.setAttribute("aria-label", "Tu maestro explica la subida de nivel");
     const resonance = 2 * (report.afterLevel - report.beforeLevel);
-    const teacher = tutorialActor(battleRuntime.activeSave, "battle");
-    explanation.innerHTML = `<section class="tutorial-dialogue-box tutorial-voice"><header data-dialogue-speaker>${tutorialSpeakerMarkup(teacher)}</header><h3 class="tutorial-sr-only">Qué has ganado</h3><div class="tutorial-dialogue-body"><p>Has ganado ${report.pointsGained} puntos de atributo y ${resonance} PR. Cuando volvamos al Dojo, te enseñaré a usarlos para fortalecer tus atributos y aprender técnicas. La tabla muestra lo que ya ha crecido con tu nivel. Tu rango sigue siendo ${playerRankLabel(battleRuntime.activeSave)}; ascenderás al superar las pruebas de afinidad.</p></div></section>`;
-    // La primera subida enseña atributos y PR. Las siguientes muestran el
-    // resultado numérico sin repetir la misma explicación de formación.
-    if (!lessonCompleted(battleRuntime.activeSave, "level-up")) this.game.canvas.parentElement?.append(explanation);
     const accessibleDialog = document.createElement("div");
     accessibleDialog.className = "level-up-accessible";
     accessibleDialog.setAttribute("role", "dialog");
@@ -166,7 +155,7 @@ export class LevelUpScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       document.removeEventListener("keydown", onKeydown);
       accessibleDialog.remove();
-      explanation.remove(); frozen?.dispose();
+      frozen?.dispose();
     });
     this.tweens.add({ targets: panel, alpha: 1, scale: 1, delay: reducedMotion ? 0 : 90, duration: reducedMotion ? 100 : 180, ease: "Back.out",
       onComplete: async () => {

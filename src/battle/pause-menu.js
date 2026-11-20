@@ -25,7 +25,7 @@ export function mountPauseMenu(scene) {
       <section class="pause-settings-section"><h3><span aria-hidden="true">二</span> IMAGEN Y SONIDO</h3><div data-pause-quality></div><div data-pause-effects></div><label class="pause-volume"><span>Volumen <output></output></span><input type="range" min="0" max="100" aria-label="Volumen"></label></section>
     </div>
     <button type="button" class="pause-performance" data-pause-performance aria-pressed="false">MEDIR RENDIMIENTO · FPS</button>
-    <footer class="pause-actions"><button type="button" class="pause-resume" data-pause-resume>REANUDAR <kbd aria-hidden="true">Esc</kbd></button><button type="button" class="pause-leave" data-pause-leave>${scene.battle.mission.training ? "VOLVER AL DOJO" : scene.battle.mission.tower ? "VOLVER A LA TORRE" : scene.battle.mission.exhibition ? "VOLVER A LA ARENA" : scene.battle.mission.tutorialReplay ? "SALIR" : "ABANDONAR"}</button></footer>
+    <footer class="pause-actions"><button type="button" class="pause-resume" data-pause-resume>REANUDAR <kbd aria-hidden="true">Esc</kbd></button><button type="button" class="pause-leave" data-pause-leave>${scene.battle.mission.training ? "VOLVER AL DOJO" : scene.battle.mission.tower ? "VOLVER A LA TORRE" : scene.battle.mission.exhibition ? "VOLVER A LA ARENA" : "ABANDONAR"}</button></footer>
   </div>`;
   ["pointerdown", "pointerup", "mousedown", "mouseup", "touchstart", "touchend"].forEach(type => {
     root.addEventListener(type, event => event.stopPropagation());
@@ -75,7 +75,6 @@ export function mountPauseMenu(scene) {
   root.querySelector("[data-pause-resume]").addEventListener("click", () => scene.resumeMission());
   root.querySelector("[data-pause-leave]").addEventListener("click", () => {
     if (scene.battle.mission.exhibition) scene.battle.leaveExhibition();
-    else if (scene.battle.mission.tutorialReplay) scene.battle.exitTutorialReplay();
     else scene.showAbandonWarning();
   });
   const removeQuality = mountRenderQualityControl(root.querySelector("[data-pause-quality]"));

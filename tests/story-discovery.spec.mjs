@@ -66,6 +66,7 @@ test("Kagemori se inicia y completa como principal desde el Cuartel", async ({ p
   for (const [index, id] of ["cart", "hall", "well"].entries()) {
     await page.locator(`[data-clue="${id}"]`).click();
     await expect(page.locator("[data-clue-count]")).toHaveText(`${index + 1}/3 pistas`);
+    expect(await page.evaluate(id => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).campaign.sagaTutorial.completed.includes(`clue-${id}`), id)).toBe(true);
   }
   await page.getByRole("button", { name: "Pausar misión" }).click();
   await expect(pause).toBeVisible();

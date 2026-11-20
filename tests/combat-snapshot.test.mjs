@@ -18,10 +18,13 @@ function digest(value) {
 
 function snapshotCase(mission, campaign, playerAffinity) {
   const encounterIds = resolveEncounterIds(mission, campaign);
+  const { sayoEncounter, ...features } = combatFeatures(mission, campaign);
   return {
     encounterIds,
     fieldSupplies: fieldSuppliesForBattle(mission, campaign),
-    features: combatFeatures(mission, campaign),
+    // Mantener la clave de la línea base comprueba que retirar las guías no
+    // cambia rivales, afinidades, modificadores ni el encuentro narrativo con Sayo.
+    features: { tutorial: sayoEncounter, ...features },
     interludes: interludePlan(mission),
     enemies: encounterIds.map((id) => ({ id, state: createEnemyState(ENEMY_ROSTER[id], mission, campaign, playerAffinity) }))
   };

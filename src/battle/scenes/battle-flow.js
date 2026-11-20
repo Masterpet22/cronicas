@@ -1,20 +1,20 @@
-import { actionHealthCost } from "../skill-tables.js?v=0.140.0";
-import { closeActionState, isFinalOpponent } from "../action-resolution.js?v=1.4.0";
+import { actionHealthCost } from "../skill-tables.js?v=0.155.0";
+import { closeActionState, isFinalOpponent } from "../action-resolution.js?v=0.155.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
-import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.151.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.155.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.155.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { missionStep } from "../../mission-system.js?v=0.155.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.155.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.155.0";
 import { resolveDamage } from "../damage.js?v=0.114.0";
-import { createEnemyState } from "../enemy-state.js?v=1.5.0";
+import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards, visibleRewardCountForEncounter } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
@@ -32,9 +32,6 @@ import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../tel
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
-import { recordBattleLesson } from "../tutorial-progress.js?v=0.140.0";
-import { lessonCompleted, tutorialCourseFor } from "../../tutorial-system.js";
-import { explainSagaEvent } from "../tutorial-events.js?v=0.146.0";
 import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
 import { elementName } from "../../elements.js?v=0.20.0";
 
@@ -42,7 +39,6 @@ export class BattleFlowMethods {
   async useJutsu(jutsu) {
     if (this.busy || this.finished || !this.turnReady) return;
     if (jutsu.type === "item" && itemUseReason(this, jutsu.itemId)) return;
-    if (this.combatTutorial && !this.combatTutorial.canUse(jutsu)) return;
     if (jutsu.type === "guard" && this.player.guarding) {
       this.setMessage("La Guardia ya está preparada.", "#f0c77c");
       return;
@@ -61,7 +57,6 @@ export class BattleFlowMethods {
     }
 
     this.busy = true;
-    this.combatTutorial?.selected();
     this.turnReady = false;
     this.timelinePaused = true;
     this.player.chakra -= cost;
@@ -75,7 +70,6 @@ export class BattleFlowMethods {
       this.setMessage(`Preparando ${jutsu.name}: debe recorrer el tramo final de la barra.`, "#f0c77c");
       this.busy = false;
       this.timelinePaused = false;
-      await this.combatTutorial?.preparation();
       if (this.finished) return;
       this.startTurnCharge();
       return;
@@ -111,13 +105,8 @@ export class BattleFlowMethods {
         this.setTimelineMarkerState("player", "charging");
         this.updateTimelineMarkers();
 
-        await this.combatTutorial?.afterAction(action);
         if (!current()) return;
 
-        if (this.combatTutorial?.active) {
-          this.player.hp = Math.max(1, this.player.hp);
-          this.enemy.hp = Math.max(1, this.enemy.hp);
-        }
         // Dar el golpe final gana antes del veneno propio; los encuentros
         // intermedios sí deben cerrar sus estados antes de cambiar de rival.
         if (this.player.hp > 0 && this.enemy.hp <= 0 && isFinalOpponent(this)) {
@@ -126,7 +115,6 @@ export class BattleFlowMethods {
         if (this.player.hp <= 0) return this.finishBattle(false);
         await this.resolveCombatantStatusTick(this.player, this.hero);
         if (!current()) return;
-        if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
         if (this.player.hp <= 0) return this.finishBattle(false);
         if (await this.resolveEnemyOutcome()) return;
 
@@ -137,7 +125,6 @@ export class BattleFlowMethods {
         this.setTimelineMarkerState("enemy", "charging");
         this.updateTimelineMarkers();
 
-        if (this.combatTutorial?.active) this.player.hp = Math.max(1, this.player.hp);
         if (this.player.hp <= 0) return this.finishBattle(false);
         if (this.enemy.hp > 0) await this.resolveCombatantStatusTick(this.enemy, this.foe);
         if (!current()) return;
@@ -156,25 +143,7 @@ export class BattleFlowMethods {
   }
 
   async resolveEnemyOutcome() {
-    // Keep the practice partner standing until every guided action is tried.
-    if (this.combatTutorial?.active && this.enemy.hp <= 0) {
-      this.enemy.hp = 1;
-      this.refreshHud();
-      return false;
-    }
-    if (this.mission.tutorialReplay && this.enemy.hp <= 0) {
-      this.exitTutorialReplay();
-      return true;
-    }
     const profile = this.encounters[this.enemyIndex];
-    // La evaluación siempre deja ver la segunda fase, incluso con un golpe letal.
-    const tutorialBattle = tutorialCourseFor(this.mission)?.battle;
-    if ((tutorialBattle === "final" || tutorialBattle === "basics" && !lessonCompleted(this.saveData, "enemy-phase")) && profile.boss && !this.saveData.campaign.completedMissions.includes(this.mission.id)
-      && this.enemy.phase === 1 && this.enemy.hp <= this.enemy.maxHp / 2) {
-      this.enemy.hp = Math.max(1, this.enemy.hp);
-      await this.triggerBossPhaseTwo();
-      return false;
-    }
     if (this.enemy.hp <= 0) {
       this.clearPreparationFeedback("enemy");
       this.recordEnemyObservation({ defeated: true });
@@ -212,8 +181,6 @@ export class BattleFlowMethods {
         this.saveData = completion.save;
         this.rewardPreviewSave = this.saveData;
         this.missionReward = completion;
-        if (tutorialCourseFor(this.mission)?.battle === "final") recordBattleLesson(this, "graduation");
-        if (this.combatFeatures.relicDecision) recordBattleLesson(this, "relic");
         this.battleRewards = addBattleReward(this.battleRewards, completion);
         await this.showPendingLevelUp(this.saveData);
         stageVictory(battleRuntime, this.saveData);
@@ -279,7 +246,6 @@ export class BattleFlowMethods {
         this.player.hp = Math.min(this.player.maxHp, this.player.hp + this.player.maxHp - oldHp);
         this.player.chakra = Math.min(this.player.maxChakra, this.player.chakra + this.player.maxChakra - oldChakra);
         this.lastShownLevel = report.afterLevel;
-        recordBattleLesson(this, "level-up");
         this.refreshHud();
         await teleportArrival(this, this.hero, arrivalAppearance);
         restoreHud();
@@ -403,16 +369,7 @@ export class BattleFlowMethods {
       this.refreshHud();
       await this.delay(620);
       await this.resetTurnTimeline();
-      if (tutorialCourseFor(this.mission)?.battle === "basics") {
-        await explainSagaEvent(this, "enemy-encounters", { title: "Un nuevo rival, otro duelo", guardianCopy: `Encuentro ${this.enemyIndex + 1} de ${this.encounters.length}: ${profile.name}. Los combates siguen siendo uno contra uno.`, copy: `El rival anterior está derrotado. Entre duelos recuperas hasta ${recovery.hp} PV y ${recovery.chakra} CH y se limpian las recargas. Aplica ahora tus ataques y tu Guardia. Las recompensas se confirman al regresar con éxito.` });
-        if (this.enemy.primaryAffinity !== "normal") await explainSagaEvent(this, "affinity-advantage", { title: "Tu primera ventaja elemental", guardianCopy: `El aro del rival indica ${elementName(this.enemy.primaryAffinity)}; tu afinidad es ${elementName(this.player.primaryAffinity)}.`, copy: "Tu elemento tiene ventaja contra el suyo: tus técnicas elementales hacen un 20 % más de daño. Los bandidos de afinidad Normal no tenían debilidad elemental. Prueba ahora tu técnica; más adelante consultarás el ciclo completo en la Biblioteca." });
-      }
-      const tutorialMessages = [
-        "Observa la barra de velocidad: cada marcador avanza según la velocidad del combatiente; al 80 % se puede elegir una acción.",
-        "Prueba Guardia para reducir el próximo impacto y recuperar chakra.",
-        "Combina lo aprendido: lee el ritmo, administra chakra y usa una técnica elemental."
-      ];
-      this.setMessage(this.combatFeatures.tutorial ? tutorialMessages[this.enemyIndex] : `Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
+      this.setMessage(`Encuentro ${this.enemyIndex + 1}/${this.encounters.length}: ${profile.name}.`);
       this.startTurnCharge();
     } finally {
       restoreHud?.();
@@ -459,25 +416,15 @@ export class BattleFlowMethods {
       .join("\n\n");
   }
 
-  async playSagaTutorial() {
-    await this.combatTutorial.start();
-    if (!this.finished) this.setMessage("Observa los retratos: al alcanzar el 80 % podrás elegir una acción.", "#83d8ff");
-  }
-
   async playResourceChoice() {
     const masterName = masterIdForCharacter(this.saveData.character) === "mei" ? "Mei Hayate" : "Daichi Kazan";
     const choices = [{ value: "conserve", label: "CONSERVAR", detail: "Recuperación menor; guardas los suministros." }];
     if (this.fieldSupplies > 0) choices.unshift({ value: "rest", label: "DESCANSAR", detail: `Recuperación amplia; consume 1 de ${this.fieldSupplies}.`, primary: true });
-    const guided = !this.saveData.campaign.completedMissions.includes(this.mission.id);
-    const required = guided && !lessonCompleted(this.saveData, "rest") ? "rest" : guided && !lessonCompleted(this.saveData, "conserve") ? "conserve" : null;
-    choices.forEach(option => { option.disabled = Boolean(required && option.value !== required); });
-    const explanation = this.missionSceneText("resource-choice", { master: masterName }) + (required === "rest" ? "\n\nPráctica 1: descansa. Consume un suministro, recupera 70 PV y 55 CH y limpia estados." : required === "conserve" ? "\n\nPráctica 2: conserva. Recupera 10 PV y 8 CH y mantén tus suministros; los estados continúan." : "");
-    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", explanation, choices);
+    const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", this.missionSceneText("resource-choice", { master: masterName }), choices);
     if (choice === "rest") {
       this.fieldSupplies -= 1;
       this.nextRecovery = { hp: 70, chakra: 55, clearStatuses: true };
     } else this.nextRecovery = { hp: 10, chakra: 8, clearStatuses: false };
-    recordBattleLesson(this, choice);
     this.saveData.campaign.hideoutSupplies = this.fieldSupplies;
     this.saveData = writeSave(this.saveData);
     battleRuntime.activeSave = this.saveData;
@@ -490,7 +437,6 @@ export class BattleFlowMethods {
       { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
     ]);
     this.saveData.campaign.hideoutDiscoveryChoice = choice;
-    recordBattleLesson(this, "discovery");
     this.saveData = recordBestiaryObservation(this.saveData, "boss_raizen", { document: choice === "documents", vulnerability: "agua" });
     this.saveData = writeSave(this.saveData);
     battleRuntime.activeSave = this.saveData;
@@ -540,7 +486,6 @@ export class BattleFlowMethods {
       }));
       frozen.dispose();
       this.saveData.campaign.banditPrisonerChoice = choice;
-      recordBattleLesson(this, "lieutenant-choice");
       choices.forEach(({ bg }) => bg.disableInteractive());
       const response = add(this.add.text(WIDTH / 2, 414, this.missionSceneText(choice === "interrogate" ? "prisoner-interrogate" : "prisoner-eliminate"), this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
       await this.delay(1100);
@@ -623,7 +568,6 @@ export class BattleFlowMethods {
   async triggerBossPhaseTwo() {
     const profile = this.encounters[this.enemyIndex];
     this.enemy.phase = 2;
-    if (tutorialCourseFor(this.mission)?.battle === "final") recordBattleLesson(this, "boss-phase");
     this.enemy.patternIndex = 0;
     this.enemy.baseSpeed += 3;
     this.enemy.speed = this.combatantSpeed(this.enemy);
@@ -636,7 +580,6 @@ export class BattleFlowMethods {
     this.screenFlash(220, 130, 55, 180);
     this.tone(95, 0.35);
     await playBossPhaseTransition(this, { fighter: this.foe, name: profile.name, detail: bossPhaseMessage(this.mission) });
-    await explainSagaEvent(this, "enemy-phase", { title: "El jefe ha entrado en fase II", guardianCopy: `${profile.name} sigue siendo el mismo rival: no comienza otro duelo ni se reparten recompensas todavía.`, copy: "Al bajar de la mitad de vida, cambia su patrón. Ahora tiene +3 de velocidad, +4 de precisión y +2 de evasión. Conserva el daño y los estados del duelo. Observa su marcador, prepara Guardia y administra el chakra; su nueva fase no reinicia tu vida ni tus recargas." });
     this.refreshHud();
   }
 

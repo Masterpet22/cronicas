@@ -1,6 +1,6 @@
 import { worldDate, monthOf, monthLength, shiftMonth, calendarMonth, monthLabel, dateLabel, eventDateLabel, dateNumber, addDays, eventsBetween, plazaSchedule, EVENT_TYPES, eventProgress, eventCatalog, calendarDayComment, calendarDayActions, actOnPlazaEvent } from "../../../plaza-events.js?v=0.130.0";
 import { normalizeBirthday, BIRTHDAY_MONTHS } from "../../../birthday.js?v=0.127.0";
-import { locationAccess } from "../../../village-progression.js";
+import { locationAccess } from "../../../village-progression.js?v=0.155.0";
 
 export function createEventsView(deps) {
   let save, host, scope, today, month, selectedDay, timer = null, selectedEvent = null, message = "";

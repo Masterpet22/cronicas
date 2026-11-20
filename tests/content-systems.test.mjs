@@ -71,7 +71,6 @@ const localized = getDialogue("mission.m02.briefing", { variables: { master: "Me
 assert.equal(localized.length, 3, "El briefing traducible debe conservar todas sus líneas");
 assert.match(localized[1].text, /Mei Hayate/, "Las traducciones deben admitir variables de contexto");
 assert.deepEqual(getDialogue("mission.m02.briefing", { placement: { surface: "location-intro", owner: "ren" } }), [], "Un diálogo no debe renderizarse fuera de la vista y propietario declarados");
-assert.match(getMissionSceneDialogue("m01", "combat-tutorial", { variables: { master: "Daichi Kazan" } })[0].text, /Daichi Kazan/, "Las escenas internas deben usar el mismo catálogo traducible");
 assert.deepEqual(getDialogue("mission.m01.combat-tutorial", { placement: { surface: "mission-scene", owner: "m02.combat-tutorial" } }), [], "Una escena de misión no debe reutilizarse en otra misión");
 
 class FakeRoot {

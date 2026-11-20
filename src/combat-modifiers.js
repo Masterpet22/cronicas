@@ -1,4 +1,4 @@
-import { missionStep, requirementMet } from "./mission-system.js?v=0.114.0";
+import { missionStep, requirementMet } from "./mission-system.js?v=0.155.0";
 
 export function missionCombatModifiers(mission, type = null) {
   return (mission?.flow || [])
@@ -28,7 +28,7 @@ export function fieldSuppliesForBattle(mission, campaign = {}) {
 }
 
 export function combatFeatures(mission, campaign = {}) {
-  const tutorial = Boolean(missionStep(mission, "combat")?.tutorial);
+  const sayoEncounter = Boolean(missionStep(mission, "combat")?.sayoEncounter);
   const relicDecision = Boolean(missionStep(mission, "choice")?.relicDecision);
   const route = activeCombatModifiers(mission, campaign, "encounter-route")[0];
   const secretEntry = route?.openingEvent === "secret-warehouse";
@@ -36,7 +36,7 @@ export function combatFeatures(mission, campaign = {}) {
   const defense = activeCombatModifiers(mission, campaign, "enemy-defense")[0];
   const combatStep = missionStep(mission, "combat");
   return {
-    tutorial,
+    sayoEncounter,
     secretEntry,
     lieutenantIntervention: opening?.openingEvent === "lieutenant-intervention",
     defenseAura: defense?.presentation === "defense-aura",

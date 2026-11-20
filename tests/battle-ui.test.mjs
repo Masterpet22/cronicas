@@ -174,7 +174,7 @@ assert.match(battle, /Aldea de Kagemori/, "Sayo debe señalar Kagemori como el l
 assert.match(battle, /activeMission\?\.type === "investigation"/, "El viaje de investigación debe abrir la zona explorable en lugar de iniciar un combate");
 assert.match(battle, /class SecondaryResultsScene extends Phaser\.Scene/, "Las investigaciones secundarias deben tener resultados propios");
 assert.doesNotMatch(battle, /playInvestigationPhase|playChakraTracking/, "La misión del desfiladero debe continuar al siguiente duelo sin la fase de investigación retirada");
-assert.match(battle, /playSagaTutorial\(\)/, "El combate debe ejecutar el módulo de formación correspondiente a la misión");
+assert.doesNotMatch(battle, /playSagaTutorial|mountCombatTutorial/, "El combate comienza sin guías de formación");
 assert.match(battle, /this\.pendingActions\.player = jutsu;[\s\S]*actionNeedsPreparation\(jutsu\)/, "Las técnicas preparadas deben comprometerse en la línea temporal");
 assert.match(battle, /millisecondsToTimelineThreshold\(this\.timelineProgress\[actor\], speed, action, this\[actor\]\.recoveryInitiative\)/, "Cada combatiente debe calcular su siguiente llegada con su velocidad e iniciativa temporal");
 assert.match(battle, /this\.timelineProgress = \{ player: 0, enemy: 0 \}/, "La línea temporal debe mantener progreso independiente para ambos combatientes");

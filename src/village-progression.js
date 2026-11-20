@@ -1,4 +1,4 @@
-import { STORY_SAGAS } from "./content/index.js";
+import { STORY_SAGAS } from "./content/index.js?v=0.155.0";
 import { VILLAGE_UNLOCKS } from "./content/village-progression.js";
 import { playerRank } from "./player-rank.js";
 

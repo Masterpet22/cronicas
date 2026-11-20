@@ -1,4 +1,4 @@
-import { M01 } from "./m01-gato/mission.js";
+import { M01 } from "./m01-gato/mission.js?v=0.155.0";
 import { M02 } from "./m02-desfiladero/mission.js";
 import { M03 } from "./m03-umbral/mission.js";
 import { M04 } from "./m04-corazon/mission.js";
@@ -6,7 +6,7 @@ import { M05 } from "./m05-raizen/mission.js";
 import { S01 } from "./s01-kagemori/mission.js";
 import { S02 } from "./s02-medico/mission.js";
 
-export const STORY_SAGA = { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Formación de Novicio · Tutorial completo de la aldea", missionIds: ["m01", "s01", "m02", "s02", "m03", "m04", "m05"] };
+export const STORY_SAGA = { id: "saga-1", number: 1, title: "Futuro prometedor", subtitle: "Primeros encargos de la aldea", missionIds: ["m01", "s01", "m02", "s02", "m03", "m04", "m05"] };
 export const STORY_SAGAS = [STORY_SAGA];
 export const MISSIONS = [M01, S01, M02, S02, M03, M04, M05];
 export const SECONDARY_MISSIONS = [];

@@ -131,7 +131,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   const key = sourceAtlasKey(variant);
   if (!scene.textures.exists(key)) {
     const url = `assets/modular/atlases/${variant.bodyType}`;
-    scene.load.atlas(key, `${url}.png?v=1.0.0`, `${url}.json?v=1.0.0`);
+    scene.load.atlas(key, `${url}.png?v=1.0.1`, `${url}.json?v=1.0.1`);
   }
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
@@ -358,6 +358,8 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   joints.kneeLeft = createJoint(scene, joints.hipLeft, "kneeLeft", spriteJoints.kneeLeft, spriteJoints.hipLeft);
   layers.push(addPart(scene, joints.kneeLeft, variant, "pierna_izquierda", spriteJoints.kneeLeft));
   joints.ankleLeft = createJoint(scene, joints.kneeLeft, "ankleLeft", spriteJoints.ankleLeft, spriteJoints.kneeLeft);
+  // La venda se dibuja sobre la caña de la bota, también durante las animaciones.
+  joints.kneeLeft.sendToBack(joints.ankleLeft);
   layers.push(addPart(scene, joints.ankleLeft, variant, "pie_izquierdo", spriteJoints.ankleLeft));
 
   const torso = addPart(scene, rig, variant, "torso");
@@ -369,6 +371,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   joints.kneeRight = createJoint(scene, joints.hipRight, "kneeRight", spriteJoints.kneeRight, spriteJoints.hipRight);
   layers.push(addPart(scene, joints.kneeRight, variant, "pierna_derecha", spriteJoints.kneeRight));
   joints.ankleRight = createJoint(scene, joints.kneeRight, "ankleRight", spriteJoints.ankleRight, spriteJoints.kneeRight);
+  joints.kneeRight.sendToBack(joints.ankleRight);
   layers.push(addPart(scene, joints.ankleRight, variant, "pie_derecho", spriteJoints.ankleRight));
 
   joints.shoulderRight = createJoint(scene, rig, "shoulderRight", spriteJoints.shoulderRight);

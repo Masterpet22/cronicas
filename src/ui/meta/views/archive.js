@@ -1,11 +1,9 @@
-import { resolveEnemyProfileForBattle } from "../../../battle/enemy-state.js?v=1.5.0";
-import { campaignFlag } from "../../../mission-system.js?v=0.114.0";
-import { dictionaryEntriesMarkup, gameDictionaryMarkup } from "../game-dictionary.js";
+import { resolveEnemyProfileForBattle } from "../../../battle/enemy-state.js?v=0.155.0";
+import { campaignFlag } from "../../../mission-system.js?v=0.155.0";
+import { dictionaryEntriesMarkup, gameDictionaryMarkup } from "../game-dictionary.js?v=0.155.0";
 import { NORMAL_AFFINITY_ID } from "../../../affinity-system.js?v=0.114.0";
-import { SAGA_TUTORIAL } from "../../../content/sagas/futuro-prometedor/tutorial.js";
-import { lessonCompleted, tutorialStepSatisfied } from "../../../tutorial-system.js";
 
-const TABS = [["dictionary", "Diccionario"], ["tutorial", "Tutorial"], ["bestiary", "Bestiario"], ["chronicle", "Crónica"]];
+const TABS = [["dictionary", "Diccionario"], ["bestiary", "Bestiario"], ["chronicle", "Crónica"]];
 
 export function createArchiveView(deps) {
   let currentState = null, activeTab = "dictionary", dictionaryQuery = "";
@@ -52,12 +50,7 @@ export function createArchiveView(deps) {
       const records = unlocked ? recordsMarkup(save) : null;
       const lockedBestiary = `<div class="archive-empty"><h3>El bestiario espera su primer registro</h3><p>Entrega a Sayo el libro de Haru para activar las fichas de criaturas y combatientes.</p></div>`;
       const lockedChronicle = `<div class="archive-empty"><h3>Tu crónica está por abrirse</h3><p>Sayo registrará tu historia al recibir el libro de Haru.</p></div>`;
-      const curriculum = SAGA_TUTORIAL.map((course, index) => {
-        const count = course.before.filter(step => lessonCompleted(save, step.id) || tutorialStepSatisfied(step, save)).length + course.practices.filter(id => lessonCompleted(save, id)).length;
-        return `<details class="tutorial-course"><summary>${index + 1}. ${deps.escapeHtml(course.title)} <small>${save.campaign.completedMissions.includes(course.missionId) ? "Completado" : `${count}/${course.before.length + course.practices.length} prácticas`}</small></summary><ul>${course.before.map(step => `<li>${deps.escapeHtml(step.title)}</li>`).join("")}<li>Práctica en misión: ${course.practices.length} objetivos comprobados.</li></ul></details>`;
-      }).join("");
-      const tutorial = `<div class="archive-scroll" tabindex="0" aria-label="Formación de Novicio"><section class="archive-tutorial"><p class="eyebrow">MANUAL DEL COMBATIENTE</p><h3>Saga 1 · Formación de Novicio</h3><button class="primary-button" type="button" data-replay-tutorial>REPETIR TUTORIAL GUIADO</button>${curriculum}</section></div>`;
-      const content = { dictionary: gameDictionaryMarkup(deps.escapeHtml, dictionaryQuery), tutorial, bestiary: records?.bestiary || lockedBestiary, chronicle: records?.chronicle || lockedChronicle };
+      const content = { dictionary: gameDictionaryMarkup(deps.escapeHtml, dictionaryQuery), bestiary: records?.bestiary || lockedBestiary, chronicle: records?.chronicle || lockedChronicle };
       return `<section class="stage-panel archive-card archive-workspace" aria-label="Biblioteca"><header class="archive-heading"><div><p class="eyebrow">BIBLIOTECA</p><h2>El conocimiento de la aldea</h2></div><span>Archivo de Sayo</span></header>${pending ? `<aside class="archive-delivery book-delivery" aria-label="Entrega pendiente"><div><strong>El libro de Haru Takamine</strong></div><button class="primary-button" type="button" data-deliver-book>ENTREGAR LIBRO</button></aside>` : ""}<nav class="archive-tabs" role="tablist" aria-label="Secciones de la Biblioteca">${TABS.map(([id, label]) => `<button type="button" id="archive-tab-${id}" data-archive-tab="${id}" role="tab" aria-selected="${activeTab === id}" aria-controls="archive-panel-${id}" tabindex="${activeTab === id ? 0 : -1}">${label}${!unlocked && ["bestiary", "chronicle"].includes(id) ? '<small>Pendiente</small>' : ""}</button>`).join("")}</nav><div class="archive-panels">${TABS.map(([id]) => `<section id="archive-panel-${id}" class="archive-panel" data-archive-panel="${id}" role="tabpanel" aria-labelledby="archive-tab-${id}" ${activeTab === id ? "" : "hidden"}>${content[id]}</section>`).join("")}</div></section>`;
     },
 
@@ -83,10 +76,6 @@ export function createArchiveView(deps) {
         dictionaryQuery = event.target.value;
         root.querySelector("[data-dictionary-entries]").innerHTML = dictionaryEntriesMarkup(dictionaryQuery, deps.escapeHtml);
         root.querySelector("[data-dictionary-entries]").scrollTop = 0;
-      });
-      scope.listen(root.querySelector("[data-replay-tutorial]"), "click", () => {
-        const mission = deps.missions.find(entry => entry.flow?.some(step => step.type === "combat" && step.tutorial));
-        if (mission) deps.onStartMission(currentState.save, { ...mission, tutorialReplay: true });
       });
       scope.listen(root.querySelector("[data-deliver-book]"), "click", () => {
         const secretMarked = currentState.save.campaign.banditPrisonerChoice === "interrogate";

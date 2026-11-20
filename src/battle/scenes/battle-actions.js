@@ -1,21 +1,21 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
+import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.155.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
-import { missionStep } from "../../mission-system.js?v=0.114.0";
-import { getMissionSceneDialogue } from "../../dialogues.js?v=0.131.0";
-import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.114.0";
+import { missionStep } from "../../mission-system.js?v=0.155.0";
+import { getMissionSceneDialogue } from "../../dialogues.js?v=0.155.0";
+import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.155.0";
 import { attackBaseDamage, resolveDamage, splitDamageAcrossHits } from "../damage.js?v=0.114.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.93.0";
 import { holdKunai, throwShuriken } from "../weapon-effects.js?v=1.4.0";
 import { playCombatSubstitution } from "../teleport-transition.js?v=1.2.0";
-import { reserveEnemyAbility } from "../enemy-abilities.js?v=0.140.0";
-import { createEnemyState } from "../enemy-state.js?v=1.5.0";
+import { reserveEnemyAbility } from "../enemy-abilities.js?v=0.155.0";
+import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { advanceCooldowns, combatantEvasion, combatantSpeed, nextEnemyAction, resolveStatusTick, soakAfterTurn, waterSoakAfterAttack } from "../turn.js?v=1.4.0";
 import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRewards } from "../rewards.js?v=0.114.0";
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
@@ -74,7 +74,6 @@ export class BattleActionMethods {
     }
 
     let mistakes = 0;
-    if (playerCasting) await this.combatTutorial?.seals();
     if (this.finished) return { mistakes: 0, multiplier: 1 };
     for (let i = 0; i < cards.length; i += 1) {
       const current = cards[i];
@@ -125,9 +124,7 @@ export class BattleActionMethods {
     }
     if (playerCasting) {
       this.seenJutsus.add(jutsu.id);
-      if (!this.mission.tutorialReplay) {
-        try { window.localStorage.setItem("seen-jutsus", JSON.stringify([...this.seenJutsus])); } catch (_) { /* La aceleración sigue activa durante la sesión. */ }
-      }
+      try { window.localStorage.setItem("seen-jutsus", JSON.stringify([...this.seenJutsus])); } catch (_) { /* La aceleración sigue activa durante la sesión. */ }
     }
     return { mistakes, multiplier };
   }
@@ -137,7 +134,6 @@ export class BattleActionMethods {
       let mistakes = 0;
       let done = false;
       let timedOut = false;
-      let onTutorialSkip;
 
       // La barra de tiempo queda fuera de la tarjeta para no tapar
       // la tecla ni el nombre del sello.
@@ -146,17 +142,14 @@ export class BattleActionMethods {
       const timerFill = this.add.rectangle(-(card.width - 12) / 2, timerY, card.width - 12, 5, 0xf5c96b, 1).setOrigin(0, 0.5);
       card.add([timerBg, timerFill]);
 
-      const guided = this.combatTutorial?.sealPractice;
-      timerBg.setVisible(!guided);
-      timerFill.setVisible(!guided);
-      const timerTween = !guided && this.tweens.add({
+      const timerTween = this.tweens.add({
         targets: timerFill,
         scaleX: 0,
         duration: timeoutMs,
         ease: "Linear"
       });
 
-      const timeoutEvent = !guided && this.time.delayedCall(timeoutMs, () => {
+      const timeoutEvent = this.time.delayedCall(timeoutMs, () => {
         if (done) return;
         timedOut = true;
         mistakes += 1;
@@ -172,7 +165,6 @@ export class BattleActionMethods {
         if (timeoutEvent) timeoutEvent.remove(false);
         if (timerTween) timerTween.stop();
         this.input?.keyboard?.off("keydown", onKey);
-        this.game.canvas.parentElement?.querySelector("[data-tutorial-skip]")?.removeEventListener("click", onTutorialSkip);
         this.events.off("shutdown", finish);
         if (card.scene) card.disableInteractive();
         resolve({ mistakes, timedOut });
@@ -193,11 +185,6 @@ export class BattleActionMethods {
       };
 
       this.input.keyboard.on("keydown", onKey);
-      // Omitting the guide also releases an untimed seal practice.
-      if (guided) {
-        onTutorialSkip = () => { if (!this.combatTutorial?.active) finish(); };
-        this.game.canvas.parentElement.querySelector("[data-tutorial-skip]")?.addEventListener("click", onTutorialSkip, { once: true });
-      }
       this.events.once("shutdown", finish);
       card.setInteractive({ useHandCursor: true });
       card.once("pointerdown", finish);

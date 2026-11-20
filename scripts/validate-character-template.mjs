@@ -79,6 +79,7 @@ async function assemble(character, images) {
   }
   const node = (x=0,y=0,key=null,frame=null) => ({ x,y,key,frame,angle:0,scaleX:1,scaleY:1,children:[],
     add(child) { this.children.push(child);return this; },setDepth(){return this;},
+    sendToBack(child) { this.children.splice(this.children.indexOf(child), 1); this.children.unshift(child); return this; },
     setScale(x,y=x){this.scaleX=x;this.scaleY=y;return this;},setAngle(a){this.angle=a;return this;},
     setDisplaySize(w,h){const p=images.get(textures.get(this.key));this.scaleX=w/p.width;this.scaleY=h/p.height;return this;}
   });

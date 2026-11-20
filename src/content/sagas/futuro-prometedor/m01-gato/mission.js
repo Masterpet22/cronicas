@@ -4,5 +4,5 @@ export const M01 = {
     reward: { coins: 40 },
     transitions: { departure: "route", betweenEncounters: "route", return: "route" },
     requirements: [], dialogueId: "mission.m01.briefing",
-    flow: [{ type: "dialogue" }, { type: "combat", id: "forest-bandits", tutorial: true }]
+    flow: [{ type: "dialogue" }, { type: "combat", id: "forest-bandits", adaptBossAffinity: true, sayoEncounter: true }]
   };

@@ -1,6 +1,6 @@
 import { ENEMY_ROSTER } from "./data.js?v=1.5.0";
-import { derivedStats } from "./save.js?v=0.140.0";
-import { createEnemyState } from "./battle/enemy-state.js?v=1.5.0";
+import { derivedStats } from "./save.js?v=0.155.0";
+import { createEnemyState } from "./battle/enemy-state.js?v=0.155.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 
 export const ARENA_BACKGROUND = `assets/locations/arena.webp?v=${META_ASSET_VERSION}`;

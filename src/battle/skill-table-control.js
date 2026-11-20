@@ -1,9 +1,9 @@
-import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.143.0";
+import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.155.0";
 import { setHudAttribute, setHudText } from "./hud-dom.js?v=1.0.0";
 
 export function mountSkillTableControl(scene, { root, actions, restorePerspective, refresh }) {
   let table = "elemental", switching = false, timer = null, removed = false, returnFocus = false;
-  const physical = physicalSkillActions(scene.tutorialPracticeSave || scene.saveData, scene.actions);
+  const physical = physicalSkillActions(scene.saveData, scene.actions);
   const training = Boolean(scene.mission.training);
   const pages = { elemental: 0, physical: 0 };
   const moves = training ? {
@@ -39,7 +39,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const actionAt = index => training && index > 0 && index < 5 ? moves[table][pages[table] * 4 + index - 1] || null
     : table === "physical" ? physical[index] : scene.actions[index];
   const middle = index => index > 0 && index < 5;
-  const blocked = () => removed || root.hidden || root.inert || scene.finished || !scene.scene.isActive() || (scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange);
+  const blocked = () => removed || root.hidden || root.inert || scene.finished || !scene.scene.isActive();
   const refreshState = () => {
     const target = table === "elemental" ? "físicas" : "elementales";
     const disabled = Boolean(switching || blocked());
@@ -51,7 +51,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
       button.querySelector("span").textContent = table === "elemental" ? "Física · Tab" : "Elemento · Tab";
     }
     if (button.disabled !== disabled) button.disabled = disabled;
-    setHudAttribute(button, "title", scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange ? "La guía indicará cuándo cambiar de tabla con Tab." : `Cambiar a habilidades ${target} · Tab`);
+    setHudAttribute(button, "title", `Cambiar a habilidades ${target} · Tab`);
     if (training) {
       const count = Math.max(1, Math.ceil(moves[table].length / 4));
       const hidden = count === 1;
@@ -91,7 +91,6 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const commit = () => {
     if (removed || blocked()) { finish(); return; }
     table = table === "elemental" ? "physical" : "elemental";
-    scene.combatTutorial?.onTableChanged?.(table);
     live.textContent = table === "physical" ? "Tabla física. Golpe veloz y Guardia permanecen en 1 y 6." : "Tabla elemental. Golpe veloz y Guardia permanecen en 1 y 6.";
     refresh();
   };

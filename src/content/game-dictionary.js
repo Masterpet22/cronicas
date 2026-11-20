@@ -3,7 +3,7 @@ import { PLAYER_RANK_LABELS } from "../player-rank.js";
 // no nombres alternativos para nuevos textos. No sustituir IDs de guardado.
 const entry = (id, term, category, definition, aliases = []) => Object.freeze({ id, term, category, definition, aliases: Object.freeze(aliases) });
 export const GAME_DICTIONARY = Object.freeze([
-  entry("saga", "Saga", "Progresión", "Arco de la historia principal que agrupa varias misiones. La saga 1, Futuro prometedor, es el tutorial."),
+  entry("saga", "Saga", "Progresión", "Arco de la historia principal que agrupa varias misiones. La saga 1, Futuro prometedor, narra tus primeros encargos."),
   entry("mission", "Misión principal", "Progresión", "Encargo de la historia, disponible en el Cuartel General. Completarlo descubre la siguiente misión."),
   entry("secondary", "Misión secundaria", "Progresión", "Encargo opcional del Tablón de Misiones, incluidos contratos y pruebas de afinidad."),
   entry("mission-class", "Clase de misión", "Progresión", "Categoría del encargo, como clase D o Especial. Es distinta del rango del jugador.", ["rango de misión"]),
@@ -35,7 +35,7 @@ export const GAME_DICTIONARY = Object.freeze([
   entry("boss-phase", "Fase de jefe", "Combate", "Cambio de patrón y atributos del mismo jefe durante un duelo, como la fase II al llegar a la mitad de vida. No inicia otro encuentro ni reinicia tu vida o tus enfriamientos.", ["fase de enemigo", "fase II"]),
   entry("headquarters", "Cuartel General", "Lugares", "Centro de la historia principal y las sagas. Ren abre su acceso en el prólogo.", ["cuartel"]),
   entry("dojo", "Dojo", "Lugares", "Lugar para preparar técnicas, atributos, afinidades, equipo, apariencia y maestro. Disponible desde el prólogo."),
-  entry("archive", "Biblioteca", "Lugares", "Conserva el diccionario, el tutorial de combate, la crónica y el bestiario. Se abre al regresar con el libro de Haru; Sayo activa el bestiario al recibirlo.", ["archivo"]),
+  entry("archive", "Biblioteca", "Lugares", "Conserva el diccionario, la crónica y el bestiario. Se abre al regresar con el libro de Haru; Sayo activa el bestiario al recibirlo.", ["archivo"]),
   entry("bestiary", "Bestiario", "Lugares", "Registro de enemigos que se completa mediante encuentros, técnicas observadas, debilidades, victorias y documentos."),
   entry("shop", "Tienda", "Lugares", "Comercio de Hana para comprar y vender. Se abre al completar «Tras las huellas del gato»."),
   entry("inn", "Gremio", "Lugares", "Reúne Mi espacio y la preparación de clanes. Se abre al pasar a la saga 2.", ["posada"]),
