@@ -287,7 +287,7 @@ export function mountAccessibleBattleHud(scene) {
     root.classList.toggle('compact', query.matches);
     syncCanvasBounds();
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
-    scene.timelineLayer.setVisible(scene.mission.groupTraining || !query.matches && !scene.mission.training);
+    scene.timelineLayer.setVisible(scene.mission.groupTraining || scene.mission.groupCombat || !query.matches && !scene.mission.training);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
     if (query.matches) scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
     if (query.matches) [...scene.playerStatusSlots, ...scene.enemyStatusSlots].forEach(slot => slot.detail.setVisible(false));

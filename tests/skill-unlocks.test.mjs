@@ -65,6 +65,6 @@ console.log("Desbloqueos: compra explícita, rutas y rangos obligatorios, 24 ór
 
 const maxLevel=fresh(); maxLevel.progression.level=60;
 const previousLevel=structuredClone(maxLevel); previousLevel.progression.level=59;
-assert.equal(awardEncounter(maxLevel,"boss_raizen",{ mission:MISSIONS.at(-1) }).xp,0);
-assert.equal(awardEncounter(maxLevel,"boss_raizen",{ mission:MISSIONS.at(-1) }).affinityXp,awardEncounter(previousLevel,"boss_raizen",{ mission:MISSIONS.at(-1) }).affinityXp,"Llegar a 60 no reduce el entrenamiento de afinidad");
+assert.equal(awardEncounter(maxLevel,"boss_raizen",{ mission:MISSIONS.find(m => m.id === "m05") }).xp,0);
+assert.equal(awardEncounter(maxLevel,"boss_raizen",{ mission:MISSIONS.find(m => m.id === "m05") }).affinityXp,awardEncounter(previousLevel,"boss_raizen",{ mission:MISSIONS.find(m => m.id === "m05") }).affinityXp,"Llegar a 60 no reduce el entrenamiento de afinidad");
 for(const jutsu of JUTSU_LIBRARY) if(SKILLS_BY_ID.has(jutsu.id)) assert.equal(jutsu.unlockLevel,SKILLS_BY_ID.get(jutsu.id).unlockLevel);

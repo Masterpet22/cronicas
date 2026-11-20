@@ -1,6 +1,6 @@
 # Personajes y eventos — reparto vigente
 
-Este registro contiene solo personajes y funciones presentes en **Futuro prometedor** o en las ubicaciones actualmente navegables. Cualquier incorporación futura deberá añadirse cuando su misión haya sido aprobada e integrada.
+Este registro contiene solo personajes y funciones presentes en **Futuro prometedor**, **Los hermanos Kurogane** o en las ubicaciones actualmente navegables. Cualquier incorporación futura deberá añadirse cuando su misión haya sido aprobada e integrada.
 
 ## Protagonista y mentores
 
@@ -88,3 +88,13 @@ Creación del combatiente
 ```
 
 Las decisiones modifican información, recursos o recompensas, pero convergen en esta secuencia principal.
+
+
+## Saga 2 — Equipo y antagonistas
+
+- **Haruto Kazehara:** novicio de Viento, ofensivo y veloz. Su rivalidad amistosa evoluciona hacia un trabajo en equipo más prudente. Usa Corte de Vendaval y actúa mediante CPU.
+- **Akari Mizunose:** novicia de Agua, disciplinada y observadora. Aprende a confiar en las decisiones del protagonista. Usa Barrera de Agua y técnicas de control mediante CPU.
+- **Renji Kurogane:** jefe de Tierra que utiliza defensa y barreras. Protege a Tatsu durante el combate del santuario.
+- **Tatsu Kurogane:** jefe de Fuego, agresivo y provocador. Responde cuando Renji recibe un impacto importante y sus ataques pueden alcanzar a varios aliados.
+
+Los dos novicios siguen apareciendo en conversaciones aunque solo uno acompañe al protagonista. La elección permanece fija durante la segunda saga y puede cambiarse después en el Dojo. Renji y Tatsu sobreviven y quedan capturados. Su pasado y sus motivaciones no se cuentan en esta campaña; tampoco se establece un parentesco con Raizen por compartir apellido.

@@ -7,8 +7,8 @@ import { campaignFlag } from "../src/mission-system.js";
 
 let save = createCharacter(createDefaultSave(), { name: "  Kira  ", affinity: "viento", appearance: "#34bbaa", bodyType: "female", hair: "4" });
 assert.equal(SAVE_VERSION, 29, "La versión incorpora los máximos 60/3 y las pruebas de afinidad");
-assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "El catálogo principal debe utilizar una numeración continua");
-assert.deepEqual(STORY_SAGAS[0].missionIds, MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
+assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05", "k01", "k02", "k03", "k04", "k05"], "El catálogo principal debe utilizar una numeración continua");
+assert.deepEqual(STORY_SAGAS.flatMap(saga => saga.missionIds), MISSIONS.map((mission) => mission.id), "La saga y el catálogo principal deben compartir una sola lista de misiones");
 assert.equal(save.character.name, "Kira", "El nombre debe limpiarse");
 assert.equal(save.character.affinity, "viento", "La afinidad seleccionada debe guardarse");
 assert.deepEqual(save.character.affinities, ["viento"], "El rango elemental 1 debe comenzar con una afinidad");
@@ -72,7 +72,7 @@ const resetTraining = resetAttributes(save);
 assert.deepEqual(resetTraining.progression.attributes, { health: 0, strength: 0, speed: 0, chakra: 0, luck: 0 }, "Reiniciar atributos debe devolver la distribución a cero");
 assert.equal(resetTraining.progression.attributePoints, 5, "Reiniciar atributos debe reembolsar todos los puntos invertidos");
 
-const reward = awardEncounter(save, "boss_raizen", { mission:MISSIONS.at(-1) });
+const reward = awardEncounter(save, "boss_raizen", { mission:MISSIONS.find(m => m.id === "m05") });
 assert.equal(reward.coins, 75, "El jefe final debe entregar una recompensa propia");
 assert.equal(reward.save.progression.level, 2, "La recompensa fija de una misión de nivel 5 supera el umbral de un personaje de nivel 1");
 assert.ok(reward.save.character.affinityXp.viento > save.character.affinityXp.viento, "Combatir debe entrenar las afinidades activas");

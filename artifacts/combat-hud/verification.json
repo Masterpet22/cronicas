@@ -1,8 +1,8 @@
 {
   "checks": [
-    "Retratos orientados hacia el avance y panel completo con perspectiva 3D",
+    "Retratos orientados hacia el avance y panel frontal sin deformación",
     "Iconos encuadrados en sus aros y placas de coste sin desbordamiento",
-    "1920×1080, 1600×900, 1366×768, 390×844 y 844×390: seis controles accesibles, sin overflow",
+    "Ordenadores y tablets: seis controles accesibles, sin overflow",
     "Foco, tooltip y ranura bloqueada con ratón y atajo",
     "Vida máxima, parcial, cero y recuperación en ambos paneles",
     "Chakra insuficiente: ni clic ni atajo ejecutan la técnica",
@@ -13,8 +13,7 @@
     "Guardia conserva la sexta posición y responde al ratón",
     "Marcadores con nombres y separación cuando coinciden",
     "Menú de pausa compacto con ajustes existentes y reanudación táctil",
-    "Reinicio de iniciativa mantiene retratos, pelo y etiquetas sincronizados",
-    "Acceso desde un teléfono nuevo carga el juego con controles compactos"
+    "Reinicio de iniciativa mantiene retratos, pelo y etiquetas sincronizados"
   ],
   "receivedDamage": true,
   "errors": []

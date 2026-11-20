@@ -1,3 +1,5 @@
+import { COMPANIONS, chooseCompanion } from "../../../kurogane.js";
+import { COMPANION_BRIEFINGS, COMPANION_PRESENTATION, COMPANION_SELECTION_RESPONSE } from "../../../content/sagas/hermanos-kurogane/saga.js";
 import { KAGEMORI_CLUES } from "../../../content/sagas/futuro-prometedor/s01-kagemori/clues.js";
 import { campaignFlag } from "../../../mission-system.js?v=0.114.0";
 import { lessonCompleted, tutorialCourseFor } from "../../../tutorial-system.js";
@@ -17,6 +19,12 @@ export function createMissionBoardsView(deps) {
     const master = deps.masterForCharacter(save.character);
     const localized = deps.getDialogue(mission.dialogueId, { save, variables: { master: master.name }, placement: { surface: "mission-briefing", owner: mission.id } })
       .map((line) => [line.speaker === "master" ? master.name : deps.npcName(line.speaker), line.text]);
+    if (mission.groupCombat) {
+      const id = save.campaign.kuroganeCompanion;
+      if (id) localized.push([COMPANIONS[id].name, COMPANION_BRIEFINGS[id][mission.sagaMissionNumber - 1]]);
+      const other = id === "haruto" ? "Akari Mizunose" : "Haruto Kazehara";
+      localized.push([other, id === "haruto" ? "Compararé las rutas desde el Cuartel. No os adelantéis sin observar el terreno." : "¡Yo vigilaré los informes del Cuartel! Avisadme cuando encontréis una pista."]);
+    }
     if (!mission.tacticalBriefing) return localized;
     const counterAffinity = { fuego: "agua", viento: "fuego", tierra: "viento", agua: "tierra" };
     const identifiedEnemies = mission.encounters.filter((enemyId) => {
@@ -50,9 +58,11 @@ export function createMissionBoardsView(deps) {
       }).join("");
       const missionIds = deps.sagas.flatMap((saga) => visibleSagaMissions(saga).map((mission) => mission.id));
       const completedStory = missionIds.filter((id) => completed.has(id)).length;
-      return `<section class="stage-panel mission-board saga-selector" data-comment="La campaña está dividida en sagas. Completa una saga para desbloquear la siguiente."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Selecciona una saga</h2></div><strong>${completedStory}/${missionIds.length} completadas</strong></div><p class="lead">Cada saga agrupa un arco de la historia principal. Entra en una para ver sus misiones.</p><div class="saga-grid">${sagaCards}</div></section>`;
+      return `<section class="stage-panel mission-board saga-selector" data-comment="La campaña está dividida en sagas. Completa una saga para desbloquear la siguiente."><div class="section-heading"><div><p class="eyebrow">CENTRO DE MANDO</p><h2>Selecciona una saga</h2></div><strong>${completedStory}/${missionIds.length} completadas</strong></div><div class="saga-grid">${sagaCards}</div></section>`;
     }
     if (!sagaUnlocked(activeSaga, deps.sagas.indexOf(activeSaga))) return "";
+    const prologue = activeSaga.id === "saga-2" && !save.campaign.kuroganePrologueCompleted
+      ? `<section class="notice-card"><div><h3>Un lugar al que pertenecer</h3><button type="button" data-kurogane-prologue>Visitar el Gremio</button></div></section>` : "";
     const missions = visibleSagaMissions(activeSaga);
     const mechanics = { combat: "combate", investigation: "investigación", route: "rutas", choice: "decisiones", resource: "recursos", consequence: "consecuencias" };
     const cards = missions.map((mission) => {
@@ -67,7 +77,7 @@ export function createMissionBoardsView(deps) {
       return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button></article>`;
     }).join("");
     const completedInSaga = missions.filter((mission) => completed.has(mission.id)).length;
-    return `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${deps.escapeHtml(activeSaga.title)}</h2><p>${deps.escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${missions.length}</strong></div><div class="mission-list">${cards}</div></section>`;
+    return `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${deps.escapeHtml(activeSaga.title)}</h2><p>${deps.escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${missions.length}</strong></div>${prologue}<div class="mission-list">${cards}</div></section>`;
   }
 
   function renderSecondaryBoard(state) {
@@ -80,7 +90,7 @@ export function createMissionBoardsView(deps) {
       : save.campaign.banditPrisonerChoice === "eliminate" ? `<div class="notice-card"><strong>Ventaja táctica</strong><span>Akumori no recibió refuerzos; se perdieron la entrada secreta y el aliado futuro.</span></div>` : "";
     const availableCount = cardModels.filter(({ state: missionStatus }) => missionStatus.unlocked && !missionStatus.completed).length;
     const cards = cardModels.map(({ mission, state: missionStatus, disabled, detail, actionLabel }) => `<article class="mission-card ${missionStatus.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.affinitySlot ? "PRUEBA DE AFINIDAD" : "ENCARGO DE SAYO"} · CLASE ${mission.rank}</p><h3>${deps.escapeHtml(mission.title)}</h3><p>${deps.escapeHtml(detail)}</p></div><button type="button" data-secondary-mission="${deps.escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button></article>`).join("");
-    return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div><p class="lead">Compra contratos en la tienda para conseguir objetos especiales e invocaciones. Sus recompensas se entregan una sola vez. En los niveles 15 y 30, supera aquí las pruebas para aprender nuevas afinidades.</p>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
+    return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
   }
 
   function renderKagemori(state) {
@@ -141,6 +151,7 @@ export function createMissionBoardsView(deps) {
       };
 
       if (state.view === "headquarters") {
+        scope.listen(root.querySelector("[data-kurogane-prologue]"), "click", () => deps.onNavigate("inn"));
         root.querySelectorAll("[data-saga]").forEach((button) => scope.listen(button, "click", () => { if (!button.disabled) deps.onSagaSelected(button.dataset.saga); }));
         scope.listen(root.querySelector("[data-back-sagas]"), "click", () => deps.onSagaSelected(null));
         root.querySelectorAll("[data-mission]").forEach((button) => scope.listen(button, "click", () => {
@@ -153,7 +164,13 @@ export function createMissionBoardsView(deps) {
             deps.onStartMission(getSave(), mission);
             return;
           }
-          const launch = () => deps.onStartMission(getSave(), mission);
+          const launch = () => {
+            if (!mission.groupCombat || getSave().campaign.kuroganeCompanion) return deps.onStartMission(getSave(), mission);
+            deps.showDialogue(COMPANION_PRESENTATION, () => deps.showMissionDecision({ title: "Elige a tu compañero", text: "La elección se mantiene durante toda la saga. Al completarla podrás cambiar en el Dojo.", options: Object.values(COMPANIONS).map(c => ({ id: c.id, label: c.name, description: `${c.role} · ${c.technique}` })) }, id => {
+              state.save = deps.onPersist(chooseCompanion(getSave(), id));
+              if (state.save.campaign.kuroganeCompanion) deps.showDialogue([[COMPANIONS[id].name, COMPANION_SELECTION_RESPONSE[id]]], () => deps.onStartMission(getSave(), mission), "COMENZAR MISIÓN", "story", preparation);
+            }, preparation), "ELEGIR COMPAÑERO", "story", preparation);
+          };
           const preparation = { cancellable: true, onCancel: () => button.focus() };
           const hasEntryChoice = Boolean(deps.missionStep(mission, "choice")?.beforeCombat);
           const afterBriefing = hasEntryChoice ? () => {

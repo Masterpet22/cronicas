@@ -1,5 +1,10 @@
 // Pesos para repartir el presupuesto de PX de la misión y monedas por enemigo.
 export const ENCOUNTER_REWARDS = Object.freeze({
+  kurogane_scout: Object.freeze({ xpWeight: 1, coins: 24 }),
+  kurogane_raider: Object.freeze({ xpWeight: 1, coins: 28 }),
+  kurogane_sentry: Object.freeze({ xpWeight: 1, coins: 30 }),
+  kurogane_renji: Object.freeze({ xpWeight: 3, coins: 85 }),
+  kurogane_tatsu: Object.freeze({ xpWeight: 3, coins: 75 }),
   tutorial_bandit: Object.freeze({ xpWeight: 1, coins: 12 }),
   tutorial_bandit_second: Object.freeze({ xpWeight: 1, coins: 16 }),
   boss_varek: Object.freeze({ xpWeight: 3, coins: 32 }),

@@ -4,7 +4,7 @@
 
 Revisión de formación v3: consulta la [auditoría de secuencia, coherencia y controles](auditoria-tutorial-saga-1.md).
 
-Documento de diseño narrativo y tutorial para las siete misiones principales `m01`, `s01`, `m02`, `s02`, `m03`, `m04` y `m05`. Esta es la campaña completa disponible hoy. Consulta también [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md).
+Documento de diseño narrativo y tutorial para las siete misiones principales `m01`, `s01`, `m02`, `s02`, `m03`, `m04` y `m05`. Esta es la formación inicial; continúa en [Saga 2 — Los hermanos Kurogane](saga-2-kurogane.md). Consulta también [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md).
 
 ## Reglas de la saga
 
@@ -25,10 +25,10 @@ Los edificios permanecen visibles en el mapa. Un lugar bloqueado muestra su requ
 | Regreso victorioso de «Tras las huellas del gato» | Tienda | Sayo anuncia la apertura del comercio de Hana en el epílogo. El briefing de Kagemori recuerda comprar suministros. |
 | Regreso de «El médico errante» con el libro | Biblioteca | Haru envía al jugador a Sayo. La Biblioteca ofrece diccionario y repaso; entregar el libro activa el bestiario y permite continuar hacia la guarida. |
 | Final de la saga 1 / paso a saga 2 | Gremio, Tablón de Misiones y Plaza de Eventos | Ren anuncia estos accesos en el briefing de Raizen; se conceden al completar la saga. La aldea muestra el aviso de nuevos accesos. |
-| Paso a saga 3 y nivel superior a 15 | Arena de Combate | Exige completar la saga 2 y nivel 16 o más. La introducción de su misión se escribirá con la saga 2. |
+| Paso a saga 3 y nivel superior a 15 | Arena de Combate | Exige completar la saga 2 y nivel 16 o más. El cierre de la saga 2 anuncia este acceso. |
 | Rango 2 del jugador o superior | Torre de Desafíos | Se concede con el ascenso tras la prueba de la segunda afinidad. Kureha recuerda el rango y las fechas de cada desafío. |
 
-Solo la saga 1 tiene misiones actualmente. La Arena permanece bloqueada hasta que se incorpore y complete la saga 2. Los servicios de saga 2 ya se pueden visitar al terminar la primera saga; no se añaden misiones ficticias para simular las sagas futuras.
+La saga 2 continúa esta formación con cinco misiones. La Arena requiere completar esa saga y alcanzar nivel 16. Los servicios de saga 2 ya se pueden visitar al terminar la primera saga; no se añaden misiones ficticias para simular las sagas futuras.
 
 Las reglas están en `src/content/village-progression.js`; `src/village-progression.js` consulta el historial real y el catálogo ordenado de sagas. No se concede acceso por leer un diálogo, fallar o abandonar. Las partidas anteriores recalculan los accesos desde sus misiones y pruebas completadas.
 

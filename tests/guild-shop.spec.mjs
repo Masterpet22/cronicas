@@ -16,6 +16,12 @@ async function open(page) {
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego" });
     const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
     unlockVillageForTest(save, {});
+    // Editor de una habitación cuyos recuerdos ya se recibieron y colocaron.
+    save.campaign.kuroganePrologueCompleted = true;
+    save.guild.room = { wall: "jade", floor: "cedar", nextId: 3, decorations: [
+      { id: "decor-1", type: "novice", x: 220, y: 190, scale: 1 },
+      { id: "decor-2", type: "plant", x: 520, y: 510, scale: 1 }
+    ] };
     save.progression.coins = 2000; save.campaign.tutorialSeen = true; writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
   });
@@ -31,7 +37,7 @@ async function backToGuild(page) {
   await page.getByRole("button", { name: "← Volver al mapa" }).click(); await enterGuild(page);
 }
 
-for (const viewport of [{ width: 1600, height: 900 }, { width: 1280, height: 720 }]) test(`Colección inicial y controles sin cambios de zoom a ${viewport.width}×${viewport.height}`, async ({ page }, testInfo) => {
+for (const viewport of [{ width: 1600, height: 900 }, { width: 1280, height: 720 }]) test(`Recuerdos recibidos y controles sin cambios de zoom a ${viewport.width}×${viewport.height}`, async ({ page }, testInfo) => {
   await page.setViewportSize(viewport); await open(page);
   await expect(page.locator("[data-room-object]")).toHaveCount(2);
   await expect(page.locator("[data-room-wall]:enabled")).toHaveCount(2);

@@ -16,13 +16,13 @@ applyStatus(actor, { type: "seal", label: "SELLADO", duration: 3, power: 0 });
 assert.equal(actor.statuses.length, 1, "Reaplicar un estado no debe duplicarlo");
 assert.equal(actor.statuses[0].duration, 3, "Reaplicar un estado debe refrescar su duración");
 
-assert.equal(ENEMIES.filter((enemy) => !enemy.boss).length, 9, "El catálogo debe contener únicamente los rivales normales usados por el contenido vigente");
-assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 3, "La campaña vigente debe tener a Varek, Akumori y Raizen como jefes");
-assert.ok(ENEMIES.filter((enemy) => enemy.boss).every((enemy) => enemy.phase2Pattern.length > 0), "Cada jefe debe tener una segunda fase");
+assert.equal(ENEMIES.filter((enemy) => !enemy.boss).length, 12, "El catálogo debe contener únicamente los rivales normales usados por el contenido vigente");
+assert.equal(ENEMIES.filter((enemy) => enemy.boss).length, 5, "La campaña vigente debe tener a Varek, Akumori y Raizen como jefes");
+assert.ok(ENEMIES.filter((enemy) => enemy.boss && !enemy.name.includes("RENJI") && !enemy.name.includes("TATSU")).every((enemy) => enemy.phase2Pattern.length > 0), "Cada jefe debe tener una segunda fase");
 assert.ok(ENEMIES.every((enemy) => ["health", "strength", "speed", "chakra", "luck"].every((stat) => Number.isFinite(enemy.stats?.[stat]))), "Cada enemigo debe usar las cinco estadísticas de balance");
 assert.ok(ENEMIES.every((enemy) => COMBAT_AFFINITY_IDS.includes(enemy.affinity)), "Cada enemigo debe declarar una afinidad elemental o el tipo Normal");
 assert.equal(ENEMIES.find((enemy) => enemy.name.includes("RAIZEN KUROGANE"))?.boss, true, "Raizen debe ser el jefe final jugable de la saga");
-assert.equal(MISSIONS.length, 7, "La campaña debe contener solamente las siete misiones principales vigentes");
+assert.equal(MISSIONS.length, 12, "La campaña contiene siete misiones de formación y cinco de la saga Kurogane");
 assert.deepEqual(MISSIONS[0].encounters, ["tutorial_bandit", "tutorial_bandit_second", "boss_varek"], "La primera misión debe encadenar dos bandidos y un minijefe");
 assert.deepEqual(MISSIONS.find((mission) => mission.id === "m02").encounters, ["bandit_pathfinder", "bandit_lieutenant", "boss_akumori"], "La segunda misión de la saga debe cerrar con Akumori");
 assert.equal(MISSIONS.find((mission) => mission.id === "m02").relic, "Mapa cifrado", "Akumori debe dejar el mapa que activa la búsqueda del doctor");

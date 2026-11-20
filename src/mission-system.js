@@ -12,7 +12,7 @@ const campaignOf = (save) => save?.campaign || {};
 const completedMain = (save) => new Set(campaignOf(save).completedMissions || []);
 const completedSecondary = (save) => new Set(campaignOf(save).completedSecondaryMissions || []);
 
-const combatIds = MISSIONS.filter((mission) => !mission.type).map((mission) => mission.id);
+const combatIds = MISSIONS.filter((mission) => !mission.type && !mission.groupCombat).map((mission) => mission.id);
 const fieldIdsByType = Object.fromEntries([...MISSIONS, ...SECONDARY_MISSIONS].map((mission) => [mission.type, mission.id]));
 const DERIVED_CAMPAIGN_VALUES = Object.freeze({
   secondAffinityChosen: (save) => (save?.character?.affinities?.length || 0) >= 2,

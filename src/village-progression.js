@@ -1,4 +1,4 @@
-import { STORY_SAGAS } from "./content/sagas/futuro-prometedor/saga.js";
+import { STORY_SAGAS } from "./content/index.js";
 import { VILLAGE_UNLOCKS } from "./content/village-progression.js";
 import { playerRank } from "./player-rank.js";
 

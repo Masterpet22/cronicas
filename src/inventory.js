@@ -69,16 +69,19 @@ export function equipItem(save, slot, id) {
 export function saleBlockReason(save, id) {
   const item = Object.hasOwn(ITEMS, id) ? ITEMS[id] : null;
   if (!save?.character || !item || !countItem(save, id) || !sellPrice(item)) return "Este objeto no se puede vender.";
+  if (giftReserved(save, item) && countItem(save, id) <= 1) return "Conserva este regalo para preparar tu habitación con Yuna.";
   if (item.kind === "decoration" && !sellableItemCount(save, id)) return item.guildSurface === "decor" ? "Retíralo de Mi espacio antes de venderlo." : "Cambia este acabado en el Gremio antes de venderlo.";
   if (Object.values(save.equipment || {}).includes(id) || item.kind === "cosmetic" && save.character[item.cosmeticSlot] === item.value) return "Desequípalo en el Dojo antes de venderlo.";
   if (item.kind === "contract" && save.campaign.missionProgress[item.missionId]?.status === "in-progress") return "Termina o abandona la misión antes de vender su contrato.";
   return "";
 }
+const giftReserved = (save, item) => item?.guildSurface === "decor" && ["plant", "novice"].includes(item.value)
+  && save.campaign?.kuroganeGiftsGranted && !save.campaign.kuroganePrologueCompleted;
 
 export function sellableItemCount(save, id) {
   const item = ITEMS[id], count = countItem(save, id);
   if (item?.kind !== "decoration") return count;
-  if (item.guildSurface === "decor") return Math.max(0, count - placedDecorationCount(save, item.value));
+  if (item.guildSurface === "decor") return Math.max(0, count - Math.max(placedDecorationCount(save, item.value), giftReserved(save, item) ? 1 : 0));
   return save?.guild?.room?.[item.guildSurface] === item.value ? 0 : count;
 }
 

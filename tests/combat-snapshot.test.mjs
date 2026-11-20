@@ -28,7 +28,7 @@ function snapshotCase(mission, campaign, playerAffinity) {
 }
 
 const cases = {};
-for (const mission of MISSIONS.filter((mission) => mission.encounters)) {
+for (const mission of MISSIONS.filter((mission) => mission.encounters && !mission.groupCombat)) {
   for (const banditPrisonerChoice of ["interrogate", "eliminate"]) {
     for (const hideoutEntryChoice of ["secret", "main"]) {
       for (const hideoutSupplies of [0, 1, 2]) {

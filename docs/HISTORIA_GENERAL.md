@@ -1,12 +1,12 @@
 # Historia general — Crónicas del Sello
 
-Este documento describe únicamente la historia implementada. La campaña crecerá con nuevas sagas cuando el contenido actual esté estabilizado; todavía no hay una cronología posterior comprometida.
+Este documento describe únicamente la historia implementada. La campaña crecerá con nuevas sagas cuando el contenido actual esté estabilizado; la segunda saga continúa la formación inicial y la tercera todavía no tiene misiones.
 
 ## Premisa
 
 En la Aldea del Horizonte, los combatientes transforman chakra mediante doce sellos manuales. El jugador comienza como un novicio bajo la tutela de **Mei Hayate** o **Daichi Kazan**, aprende a preparar técnicas en el Dojo y acepta encargos desde el Cuartel.
 
-La primera saga, **Futuro prometedor**, sigue su paso desde una misión rutinaria hasta el enfrentamiento con la organización que amenaza las rutas cercanas. Los combates son duelos uno contra uno; maestros y aliados orientan la investigación, pero no entran al campo de batalla.
+La primera saga, **Futuro prometedor**, sigue su paso desde una misión rutinaria hasta el enfrentamiento con la organización que amenaza las rutas cercanas. En esa primera saga los combates son duelos uno contra uno; maestros y aliados orientan la investigación, pero no entran al campo de batalla.
 
 ## Saga 1 — Futuro prometedor
 
@@ -38,6 +38,14 @@ En las galerías, el protagonista administra los suministros reunidos y decide s
 
 La saga concluye con un duelo contra **Raizen Kurogane, Señor de los Cuervos**. Al derrotarlo, el protagonista completa su primera gran crónica y obtiene la libertad de elegir maestro.
 
+## Saga 2 — Los hermanos Kurogane
+
+Tras Raizen, el maestro invita al protagonista al Gremio y le regala un bonsái y una insignia para su habitación. Ren reúne a Haruto Kazehara y Akari Mizunose; uno de ellos será su compañero durante cinco misiones contra grupos de bandidos.
+
+El camino comercial conduce a un campamento y luego a un cargamento robado, donde el equipo protege documentos de transporte y confirma la relación de los hermanos Renji y Tatsu con Cuervo Negro. Tras derrotar a Tatsu y sus secuaces, Renji lo rescata. La persecución termina en un santuario: el equipo supera a sus guardianes y captura a ambos hermanos con vida.
+
+Renji desconoce quién dirige Cuervo Negro, pero confirma una operación regional. Un símbolo parcialmente borrado provoca una reacción inquietante del maestro. El rango del protagonista se conserva; desde entonces puede cambiar de compañero en el Dojo. El pasado y las motivaciones de los antagonistas quedan para futuras secundarias.
+
 ## Estado del relato
 
-La historia disponible termina con la derrota de Raizen. Las siguientes sagas, personajes y conflictos se definirán cuando exista una nueva expansión aprobada; hasta entonces, la lista de misiones de [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md) es el alcance narrativo completo.
+La campaña jugable termina con la captura de los hermanos y el hallazgo del símbolo. La saga 3 todavía no contiene misiones. Véanse [`saga-2-kurogane.md`](saga-2-kurogane.md) y [`ESTADO_ACTUAL.md`](ESTADO_ACTUAL.md).

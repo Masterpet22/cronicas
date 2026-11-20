@@ -42,11 +42,13 @@ export function mountTrainingTargets(scene) {
   observer.observe(root); observer.observe(scene.game.canvas);
   scene.game.scale.on("resize", layout);
   layout(); refresh();
-  scene.events.once("shutdown", () => {
+  const destroy = () => {
+    scene.events.off("shutdown", destroy);
     observer.disconnect(); scene.game.scale.off("resize", layout);
     controls.forEach(button => button.remove());
-  });
-  return { refresh };
+  };
+  scene.events.once("shutdown", destroy);
+  return { refresh, destroy };
 }
 
 export function mountGroupTimeline(scene) {

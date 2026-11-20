@@ -1,4 +1,5 @@
 import { TrainingBattleScene } from "./training-battle-scene.js?v=0.153.0";
+import { applyBattleConsumable } from "../battle-inventory.js?v=0.151.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.153.0";
 import { createEnemyState } from "../enemy-state.js?v=1.5.0";
 import { trainingOpponentProfile } from "../../training.js?v=0.143.0";
@@ -13,8 +14,8 @@ import { teleportSmoke } from "../teleport-transition.js?v=1.2.0";
 import { physicalActionAvailable, actionHealthCost } from "../skill-tables.js?v=0.143.0";
 import { mountTrainingTargets, mountGroupTimeline, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.148.0";
 
-// A Dojo-only experiment. The campaign and passive practice keep their existing
-// execution paths; shared damage, costs, guard and enemy AI are reused unchanged.
+// Shared group scheduler for active Dojo opponents and campaign teams.
+// Passive practice and saga-1 duels keep their existing execution paths.
 export class GroupTrainingBattleScene extends TrainingBattleScene {
   create() {
     this.trainingTargets = null;
@@ -25,7 +26,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     this.groupEpoch = Symbol("group-training");
     this.groupMarkers = null;
     super.create();
-    if (!this.mission.groupTraining) return;
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return;
     this.game.canvas.parentElement.classList.add("group-training-mode");
     this.targetControls = mountTrainingTargets(this);
     this.timelineLayer.setVisible(true);
@@ -36,21 +37,27 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     });
   }
 
+  applyGroupConsumable(itemId) { return applyBattleConsumable(this, itemId); }
+
+  groupOpponentProfile(profile, index) {
+    return this.mission.groupCombat ? profile : trainingOpponentProfile(profile, this.saveData, index);
+  }
+
   createEnemyState(profile) {
-    if (!this.mission.groupTraining) return super.createEnemyState(profile);
-    const opponent = trainingOpponentProfile(profile, this.saveData, this.enemyIndex);
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.createEnemyState(profile);
+    const opponent = this.groupOpponentProfile(profile, this.enemyIndex);
     this.encounters[this.enemyIndex] = opponent;
     return createEnemyState(opponent, this.mission);
   }
 
   createFighters() {
-    if (!this.mission.groupTraining) return super.createFighters();
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.createFighters();
     const positions = enemyFormation(this.encounters.length);
     super.createFighters(positions[0]);
     const firstProfile = this.encounters[0], firstState = this.enemy;
     this.trainingTargets = positions.map((position, index) => {
       this.enemyIndex = index;
-      const profile = index === 0 ? firstProfile : trainingOpponentProfile(this.encounters[index], this.saveData, index);
+      const profile = index === 0 ? firstProfile : this.groupOpponentProfile(this.encounters[index], index);
       this.encounters[index] = profile;
       const state = index === 0 ? firstState : createEnemyState(profile, this.mission);
       const fighter = index === 0 ? this.foe : this.createEnemyFighterAt(position);
@@ -96,7 +103,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
 
   combatantEvasion(combatant) {
     // Active opponents use the campaign's evasion rules, unlike the passive dummy.
-    return this.mission.groupTraining ? combatantEvasion(combatant)
+    return (this.mission.groupTraining || this.mission.groupCombat) ? combatantEvasion(combatant)
       : super.combatantEvasion(combatant);
   }
 
@@ -130,7 +137,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   startTurnCharge() {
-    if (!this.mission.groupTraining) return super.startTurnCharge();
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.startTurnCharge();
     if (this.finished) return;
     this.busy = false; this.turnReady = false; this.timelinePaused = false;
     this.setButtonsEnabled(false);
@@ -138,7 +145,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   runTurnTimeline() {
-    if (!this.mission.groupTraining) return super.runTurnTimeline();
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.runTurnTimeline();
     if (this.finished || this.timelinePaused || this.busy || this.timelineTween) return;
     const step = nextGroupTimelineStep(this.participants());
     if (!step) return;
@@ -160,6 +167,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
           const id = `enemy-${index}`;
           if (id in step.progress) target.progress = from[id] + (step.progress[id] - from[id]) * clock.value;
         });
+        this.advanceAdditionalGroupProgress?.(from, step.progress, clock.value);
         this.updateTimelineMarkers();
       }, onComplete: arrive });
   }
@@ -189,8 +197,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   async useJutsu(action) {
-    if (!this.mission.groupTraining) return super.useJutsu(action);
-    const move = this.trainingMoves.find(candidate => candidate.id === action?.id);
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.useJutsu(action);
+    const move = this.mission.groupCombat ? action : this.trainingMoves.find(candidate => candidate.id === action?.id);
     if (!physicalActionAvailable(this, move)) return;
     this.setGroupContext(this.selectedTargetIndex);
     this.groupReservation = { target: this.selectedTargetIndex, cost: this.actionCost(move),
@@ -199,7 +207,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   async executeTimelineAction(actor, action) {
-    if (!this.mission.groupTraining) return super.executeTimelineAction(actor, action);
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.executeTimelineAction(actor, action);
     return this.executeGroupAction(actor, action, this.groupReservation?.target ?? this.selectedTargetIndex);
   }
 
@@ -254,7 +262,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
         }
         const casting = action.seals?.length ? await this.playSeals(action) : { mistakes: 0, multiplier: 1 };
         if (!current()) return;
-        if (action.type === "guard") await this.playerGuard(); else await this.playerAttack(action, casting);
+        if (action.type === "item") await this.applyGroupConsumable(action.itemId);
+        else if (action.type === "guard") await this.playerGuard(); else await this.playerAttack(action, casting);
         if (!current()) return;
         closeActionState(this, "player", action); this.groupReservation = null;
         await this.retireGroupTargets();
@@ -288,7 +297,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   }
 
   async finishBattle(won) {
-    if (!this.mission.groupTraining) return super.finishBattle(won);
+    if (!(this.mission.groupTraining || this.mission.groupCombat)) return super.finishBattle(won);
     if (this.finished) return;
     this.finished = true; this.busy = true; this.turnReady = false; this.timelinePaused = true;
     this.stopTurnTimeline(); this.clearPreparationFeedback("player");

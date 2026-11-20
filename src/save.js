@@ -1,3 +1,4 @@
+import { KUROGANE_PREREQUISITE } from "./content/sagas/hermanos-kurogane/saga.js";
 import { normalizeBirthday } from "./birthday.js?v=0.127.0";
 import { normalizeSagaTutorial, recordRouteLesson, recordTutorialLesson } from "./tutorial-system.js";
 import { PLAYER_RANK_LABELS, playerRank } from "./player-rank.js";
@@ -65,6 +66,7 @@ export function createDefaultSave() {
       rank: "Novicio",
       elementRank: 1,
       tutorialSeen: false,
+      kuroganeGiftsGranted: false, kuroganePrologueCompleted: false, kuroganeCompanion: null, kuroganeRoomLessons: [],
       sagaTutorial: normalizeSagaTutorial(null),
       npcIntroductions: [],
       sayoEncounterSeen: false,
@@ -230,6 +232,10 @@ export function normalizeSave(candidate) {
       rank: PLAYER_RANK_LABELS[elementRank],
       elementRank,
       tutorialSeen: Boolean(candidate.campaign?.tutorialSeen),
+      kuroganeGiftsGranted: completedMissions.includes(KUROGANE_PREREQUISITE) && Boolean(candidate.campaign?.kuroganeGiftsGranted),
+      kuroganePrologueCompleted: completedMissions.includes(KUROGANE_PREREQUISITE) && Boolean(candidate.campaign?.kuroganePrologueCompleted),
+      kuroganeRoomLessons: [...new Set(Array.isArray(candidate.campaign?.kuroganeRoomLessons) ? candidate.campaign.kuroganeRoomLessons : [])].filter(type => ["plant", "novice"].includes(type)),
+      kuroganeCompanion: completedMissions.includes(KUROGANE_PREREQUISITE) && ["haruto", "akari"].includes(candidate.campaign?.kuroganeCompanion) ? candidate.campaign.kuroganeCompanion : null,
       sagaTutorial: normalizeSagaTutorial(candidate.campaign?.sagaTutorial, { completedMissions }),
       npcIntroductions: normalizeIntroductions(candidate.campaign?.npcIntroductions),
       sayoEncounterSeen: Boolean(candidate.campaign?.sayoEncounterSeen),

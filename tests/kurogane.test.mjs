@@ -1,0 +1,87 @@
+import assert from "node:assert/strict";
+import { MISSIONS, STORY_SAGAS, ALL_MISSIONS } from "../src/content/index.js";
+import { createCharacter, createDefaultSave, normalizeSave, completeMission } from "../src/save.js";
+import { chooseCompanion, companionDecision, grantKuroganeGifts, receiveGuildGifts, finishKuroganePrologue, recordKuroganeDecoration, firstSagaConclusion, FIRST_SAGA_CONCLUSION_NOTICE } from "../src/kurogane.js";
+import { createVillageView } from "../src/ui/meta/views/village.js";
+import { missionState, validateMissionCatalog } from "../src/mission-system.js";
+import { reachedSaga, locationAccess } from "../src/village-progression.js";
+import { updateGuildRoom } from "../src/guild.js";
+import { sellItem } from "../src/inventory.js";
+
+const saga = STORY_SAGAS[1], first = MISSIONS.find(m => m.id === saga.missionIds[0]);
+assert.equal(saga.missionIds.length, 5);
+assert.deepEqual(validateMissionCatalog(ALL_MISSIONS, STORY_SAGAS), []);
+let save = createCharacter(createDefaultSave(), { name: "Equipo", affinity: "agua" });
+assert.equal(save.inventory.items.guild_decor_plant || 0, 0);
+assert.equal(save.inventory.items.guild_decor_novice || 0, 0);
+assert.deepEqual(save.guild.room.decorations, []);
+assert.equal(grantKuroganeGifts(save), save);
+assert.equal(chooseCompanion(save, "haruto"), save);
+save.campaign.completedMissions = [...STORY_SAGAS[0].missionIds];
+assert.equal(reachedSaga(save), 2);
+assert.equal(missionState(first, save).unlocked, false);
+for (const master of [{ id: "mei", name: "Mei Hayate" }, { id: "daichi", name: "Daichi Kazan" }]) {
+  const lines = firstSagaConclusion(save, master);
+  assert.equal(lines[0][0], master.name);
+  assert.match(lines.map(line => line[1]).join(" "), /Gremio ya está abierto.*segunda saga/s);
+}
+const village = createVillageView({ escapeHtml: String, secondaryMissions: [], nextAvailableMission: () => null });
+const prologueMap = village.render({ save, view: "plaza" });
+assert.match(prologueMap, /story-mission-current[^>]*data-view="inn"/);
+assert.match(prologueMap, /IR A: Gremio/);
+save.campaign.seenMissionNotices.push(FIRST_SAGA_CONCLUSION_NOTICE);
+assert.deepEqual(firstSagaConclusion(normalizeSave(save), { id: "mei", name: "Mei Hayate" }), []);
+assert.match(village.render({ save, view: "plaza" }), /IR A: Gremio/, "El objetivo persiste después de leer el cierre");
+save.guild.room.decorations = [];
+save = receiveGuildGifts(save);
+assert.equal(save.inventory.items.guild_decor_plant, 1);
+assert.equal(save.inventory.items.guild_decor_novice, 1);
+assert.equal(sellItem(save, "guild_decor_plant").ok, false, "No se puede vender el último regalo y bloquear el prólogo");
+assert.deepEqual(save.guild.room.decorations, [], "Recibir no coloca los objetos automáticamente");
+assert.equal(receiveGuildGifts(save), save, "Leer de nuevo no duplica los regalos");
+assert.equal(grantKuroganeGifts(save), save, "Los regalos solo se conceden una vez");
+assert.equal(finishKuroganePrologue(save), save, "Leer la escena no sustituye la decoración");
+for (const item of ["plant", "novice"]) {
+  const action = { type: "add", item };
+  save = recordKuroganeDecoration(updateGuildRoom(save, action).save, action);
+}
+save = normalizeSave(finishKuroganePrologue(save));
+const legacy = structuredClone(save);
+legacy.campaign.kuroganePrologueCompleted = false;
+legacy.campaign.kuroganeRoomLessons = [];
+legacy.campaign.seenMissionNotices = [FIRST_SAGA_CONCLUSION_NOTICE];
+const receivedLegacy = receiveGuildGifts(legacy);
+assert.deepEqual(receivedLegacy.inventory, legacy.inventory, "La entrega reconoce los regalos anteriores");
+assert.equal(finishKuroganePrologue(receivedLegacy).campaign.kuroganePrologueCompleted, true, "Los objetos ya colocados no obligan a repetir prácticas");
+const missingLegacy = structuredClone(legacy);
+missingLegacy.guild.room.decorations = [];
+delete missingLegacy.inventory.items.guild_decor_plant;
+delete missingLegacy.inventory.items.guild_decor_novice;
+const recoveredGifts = receiveGuildGifts(missingLegacy);
+assert.equal(recoveredGifts.inventory.items.guild_decor_plant, 1, "La entrega corrige partidas anteriores que perdieron los regalos obligatorios");
+assert.equal(recoveredGifts.inventory.items.guild_decor_novice, 1);
+assert.equal(receiveGuildGifts(recoveredGifts), recoveredGifts);
+assert.equal(missionState(first, save).unlocked, true);
+save = normalizeSave(chooseCompanion(save, "akari"));
+assert.equal(save.campaign.kuroganeCompanion, "akari");
+assert.equal(chooseCompanion(save, "haruto"), save, "El compañero permanece fijo durante la saga");
+for (const id of saga.missionIds) {
+  assert.equal(missionState(MISSIONS.find(m => m.id === id), save).unlocked, true);
+  const reward = completeMission(save, id);
+  assert.equal(reward.firstClear, true);
+  assert.equal(completeMission(reward.save, id).xp, 0);
+  save = normalizeSave(reward.save);
+}
+assert.equal(reachedSaga(save), 3);
+assert.equal(save.campaign.elementRank, 1, "Completar la saga no asciende el rango");
+save = chooseCompanion(save, "haruto");
+assert.equal(normalizeSave(save).campaign.kuroganeCompanion, "haruto");
+save.progression.level = 16;
+assert.equal(locationAccess("arena", save).unlocked, true);
+const targets = [{ state: { hp: 60 } }, { state: { hp: 0 } }, { state: { hp: 20 } }];
+const ally = { hp: 50, chakra: 60 }, player = { hp: 20, maxHp: 100 };
+assert.equal(companionDecision("haruto", ally, player, targets).target, 2);
+assert.equal(companionDecision("akari", ally, player, targets).type, "barrier");
+assert.equal(companionDecision("akari", { ...ally, chakra: 0 }, player, targets).type, "strike");
+assert.equal(companionDecision("haruto", { ...ally, hp: 0 }, player, targets), null);
+console.log("Saga Kurogane: requisitos, regalos, decoración, elección fija, guardado, CPU, cinco misiones y desbloqueos verificados.");

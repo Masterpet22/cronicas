@@ -9,7 +9,7 @@ export function createOverlayView(deps) {
     return () => { controller.abort(); controllers.delete(controller); };
   };
 
-  const mountOverlay = (overlay, { cancellable = false, onCancel } = {}, cleanup = () => {}) => {
+  const mountOverlay = (overlay, { cancellable = false, modal = false, label = "Preparación de misión", onCancel } = {}, cleanup = () => {}) => {
     const previousFocus = document.activeElement;
     const mounted = deps.viewRuntime.mountOverlay(overlay);
     const subscriptions = [];
@@ -25,13 +25,13 @@ export function createOverlayView(deps) {
       }
       return true;
     };
-    if (cancellable) {
+    if (cancellable || modal) {
       overlay.setAttribute("role", "dialog");
       overlay.setAttribute("aria-modal", "true");
-      overlay.setAttribute("aria-label", "Preparación de misión");
+      overlay.setAttribute("aria-label", label);
       on(overlay, "keydown", (event) => {
         if (!mounted.isCurrent()) return;
-        if (event.key === "Escape") {
+        if (event.key === "Escape" && cancellable) {
           event.preventDefault();
           event.stopPropagation();
           close(true);
@@ -87,7 +87,7 @@ export function createOverlayView(deps) {
       }
       mounted.bindCancel();
       const next = overlay.querySelector(".primary-button");
-      if (options.cancellable) next.focus();
+      if (options.cancellable || options.modal) next.focus();
       mounted.listen(next, "click", () => {
         if (!mounted.isCurrent()) return;
         if (!last) { index += 1; draw(); return; }
@@ -101,7 +101,7 @@ export function createOverlayView(deps) {
     const overlay = document.createElement("div");
     overlay.className = "mission-decision-overlay";
     const mounted = mountOverlay(overlay, controls);
-    overlay.innerHTML = `<section class="mission-decision-panel"><p class="eyebrow">${deps.escapeHtml(eyebrow)}</p><h2>${deps.escapeHtml(title)}</h2><p>${deps.escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${deps.escapeHtml(option.label)}</strong><small>${deps.escapeHtml(option.description)}</small></button>`).join("")}</div>${mounted.cancelButton}</section>`;
+    overlay.innerHTML = `<section class="mission-decision-panel">${eyebrow ? `<p class="eyebrow">${deps.escapeHtml(eyebrow)}</p>` : ""}<h2>${deps.escapeHtml(title)}</h2><p>${deps.escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${deps.escapeHtml(option.label)}</strong><small>${deps.escapeHtml(option.description)}</small></button>`).join("")}</div>${mounted.cancelButton}</section>`;
     mounted.bindCancel();
     if (controls.cancellable) overlay.querySelector("[data-decision]")?.focus();
     overlay.querySelectorAll("[data-decision]").forEach((button) => mounted.listen(button, "click", () => {

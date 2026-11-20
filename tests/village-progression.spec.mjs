@@ -6,9 +6,11 @@ async function seed(page, { saga = false, library = false, pending = false, rank
   await page.evaluate(async options => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js");
     const { STORY_SAGAS } = await import("/src/content/index.js");
+    const { FIRST_SAGA_CONCLUSION_NOTICE } = await import("/src/kurogane.js");
     localStorage.clear(); sessionStorage.clear();
     const save = createCharacter(createDefaultSave(), { name: "Cronista", affinity: "agua" });
     save.campaign.tutorialSeen = true;
+    save.campaign.seenMissionNotices.push(FIRST_SAGA_CONCLUSION_NOTICE);
     save.progression.level = options.level;
     save.campaign.archiveUnlocked = options.library;
     save.campaign.doctorBookDeliveryPending = options.pending;

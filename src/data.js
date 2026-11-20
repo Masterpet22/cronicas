@@ -184,6 +184,11 @@ export const ENEMY_ACTIONS = Object.freeze({ ...ABILITY_CATALOG,
 const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ health, strength, speed, chakra, luck });
 
 export const ENEMY_ROSTER = {
+  kurogane_scout: { name: "EXPLORADOR KUROGANE", level: 6, affinity: "viento", stats: enemyStats(85, 3, 12, 42, 3), accuracy: 88, pattern: ["strike", "wind_palm", "strike"], colors: { cloth: 0x56684b, accent: 0x202b20 } },
+  kurogane_raider: { name: "ASALTANTE KUROGANE", level: 7, affinity: "fuego", stats: enemyStats(100, 4, 10, 48, 3), accuracy: 90, pattern: ["strike", "fire_embers", "physical_1"], colors: { cloth: 0x85544d, accent: 0x342020 } },
+  kurogane_sentry: { name: "VIGÍA KUROGANE", level: 7, affinity: "tierra", stats: enemyStats(120, 4, 9, 48, 2), accuracy: 90, pattern: ["guard", "earth_fist", "strike"], colors: { cloth: 0x81725c, accent: 0x30251e } },
+  kurogane_renji: { bondRole: "protector", name: "RENJI KUROGANE", boss: true, level: 10, affinity: "tierra", stats: enemyStats(210, 6, 11, 90, 5), accuracy: 93, pattern: ["guard", "earth_wall", "earth_fist", "strike"], colors: { cloth: 0x675343, accent: 0x272320 } },
+  kurogane_tatsu: { bondRole: "avenger", name: "TATSU KUROGANE", boss: true, level: 9, affinity: "fuego", stats: enemyStats(185, 6, 13, 85, 4), accuracy: 93, pattern: ["fire_embers", "physical_1", "fire_breath"], colors: { cloth: 0x874546, accent: 0x301c25 } },
   tutorial_bandit: {
     name: "BANDIDO", level: 1, affinity: "normal", stats: enemyStats(54, 0, 9, 24, 1), accuracy: 84,
     pattern: ["strike", "strike", "physical_1"],

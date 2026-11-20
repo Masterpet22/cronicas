@@ -6,6 +6,7 @@ import { createArenaView } from "./arena.js?v=0.140.0";
 import { createEventsView } from "./events.js?v=0.131.0";
 import { locationAccess } from "../../../village-progression.js";
 import { GAME_TERMS } from "../../../content/game-dictionary.js";
+import { firstSagaConclusion, FIRST_SAGA_CONCLUSION_NOTICE, kuroganeProloguePending } from "../../../kurogane.js";
 
 export const VILLAGE_LOCATIONS = [
   { id: "headquarters", name: "Cuartel General", description: "Historia principal, rango y mando de la aldea", labelX: 840, labelY: 390, path: "M826 25 Q833 21 838 27 L840 48 L915 61 L915 117 C941 129 974 146 995 163 L974 157 L985 170 L966 163 L987 195 L960 179 L944 163 L941 169 Q937 183 913 190 L904 193 L904 208 Q941 230 968 219 Q965 234 941 243 L935 246 L935 261 Q976 288 995 271 Q996 283 977 290 L971 294 L971 315 Q1027 339 1047 323 Q1048 334 1026 344 L1026 404 L1048 404 L1052 439 L968 439 L960 430 L737 430 L730 440 L665 440 L668 409 L654 409 L654 344 Q636 340 630 327 Q644 338 661 335 L662 316 L674 316 L674 299 Q654 290 673 275 Q682 288 704 285 L732 278 L731 263 L733 257 Q713 249 709 237 Q700 234 700 222 Q710 234 729 231 L759 220 L759 206 L766 203 L766 190 Q739 184 733 179 Q725 173 725 165 Q737 179 758 173 L797 154 L802 145 L802 125 Q801 116 807 110 Q815 103 819 113 L821 120 L823 72 L816 71 L816 65 L823 65 L822 48 L815 47 L815 40 L824 40 Z" },
@@ -31,7 +32,9 @@ function activeMissionObjectives(save) {
     objectives.push({ id: "story:book-delivery", type: "ENTREGA OBLIGATORIA", title: "El libro de Haru", detail: "Entrega el libro a Sayo para preparar la siguiente misión.", destination: "Biblioteca", view: "archive" });
   }
   const storyMission = deps.nextAvailableMission(deps.mainMissions, "main", save);
-  if (storyMission) {
+  if (kuroganeProloguePending(save)) {
+    objectives.push({ id: "story:kurogane-prologue", type: "PRÓLOGO DE SAGA 2", title: "Un lugar al que pertenecer", detail: "Saga 1 completada. Comienza la saga 2: visita el Gremio y prepara tu habitación con tu maestro.", destination: "Gremio", view: "inn" });
+  } else if (storyMission) {
     objectives.push({ id: `story:${storyMission.id}`, type: "MISIÓN PRINCIPAL", title: storyMission.title, detail: `${storyMission.location} · ${storyMission.duration}`, destination: "Cuartel General", view: "headquarters" });
   }
   for (const mission of locationAccess("missions", save).unlocked ? deps.secondaryMissions : []) {
@@ -93,7 +96,7 @@ export function createVillageView(deps) {
       return `<span class="map-label${nextLabel}" data-map-label="${location.id}" aria-hidden="true" style="--label-x:${(location.labelX / 1678 * 100).toFixed(3)}%;--label-y:${(location.labelY / 937 * 100).toFixed(3)}%"><span class="map-label-box"><strong>${deps.escapeHtml(location.name)}</strong>${location.unlocked ? "" : `<small>Bloqueado · ${deps.escapeHtml(location.reason)}</small>`}</span></span>`;
     }).join("");
     currentState = { ...currentState, secondaryObjectives, unseenSecondaryObjectives };
-    return `<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div><p>Pasa el cursor o usa <kbd>Tab</kbd> para descubrir cada edificio.</p></div><figure class="village-map"><img src="${mapImage}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}<div class="village-entry-shade" aria-hidden="true"></div></figure>${missionDock}</section>`;
+    return `<section class="village-map-card"><div class="map-heading"><div><p class="eyebrow">ALDEA DEL HORIZONTE</p><h2>Elige un destino</h2></div></div><figure class="village-map"><img src="${mapImage}" alt="Vista nocturna de la Aldea del Horizonte con sus nueve destinos" width="1678" height="937" decoding="async" fetchpriority="high" draggable="false"><svg class="village-hotspots" viewBox="0 0 1678 937" preserveAspectRatio="none" aria-label="Destinos de la aldea">${hotspots}</svg>${labels}<div class="village-entry-shade" aria-hidden="true"></div></figure>${missionDock}</section>`;
   }
 
   function renderService(serviceId) {
@@ -139,7 +142,13 @@ export function createVillageView(deps) {
           trigger.focus();
         });
       }
-      if (!save.campaign.tutorialSeen) deps.showDialogue(welcomeDialogue(save.character), deps.onTutorialComplete, "IR AL CUARTEL", "story");
+      const conclusion = firstSagaConclusion(save, deps.masterForCharacter(save.character));
+      if (conclusion.length) {
+        deps.showDialogue(conclusion, () => {
+          deps.onMissionNoticesSeen([FIRST_SAGA_CONCLUSION_NOTICE]);
+          deps.onNavigate("inn");
+        }, "IR AL GREMIO", "story", { modal: true, label: "Saga 1 completada · Comienza la saga 2" });
+      } else if (!save.campaign.tutorialSeen) deps.showDialogue(welcomeDialogue(save.character), deps.onTutorialComplete, "IR AL CUARTEL", "story");
     },
     dispose() { currentState = null; shopView.dispose(); guildView.dispose(); arenaView.dispose(); eventsView.dispose(); towerView.dispose(); }
   };

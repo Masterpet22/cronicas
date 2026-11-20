@@ -15,7 +15,7 @@ for (const jutsu of JUTSU_LIBRARY) {
   assert.ok(jutsu.seals.every((id) => SEALS[id] && affinities.includes(SEALS[id].element)), `${jutsu.id} solo debe usar constelaciones de sus afinidades básicas`);
 }
 
-assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05"], "Las misiones principales deben seguir el orden narrativo conservando sus IDs");
+assert.deepEqual(MISSIONS.map((mission) => mission.id), ["m01", "s01", "m02", "s02", "m03", "m04", "m05", "k01", "k02", "k03", "k04", "k05"], "Las misiones principales deben seguir el orden narrativo conservando sus IDs");
 assert.ok(MISSIONS.every((mission) => mission.category === "main" && mission.board === "headquarters"), "Las principales deben pertenecer exclusivamente al Cuartel");
 assert.ok(SECONDARY_MISSIONS.every((mission) => mission.category === "secondary" && mission.board === "missions"), "Las secundarias deben pertenecer exclusivamente al Tablón");
 assert.deepEqual(validateMissionCatalog(ALL_MISSIONS, STORY_SAGAS), [], "El catálogo no debe tener IDs, requisitos o mecánicas inválidas");
@@ -47,7 +47,7 @@ assert.equal(missionState(MISSIONS[1], afterFirst).unlocked, true, "La principal
 const afterInvestigation = { progression: { level: 1 }, campaign: { ...afterFirst.campaign, completedMissions: ["m01", "s01"], banditBossMissionUnlocked: true } };
 assert.equal(missionState(MISSIONS[2], afterInvestigation).unlocked, true, "La secundaria completada debe desbloquear la siguiente principal");
 const flagRequirements = ALL_MISSIONS.flatMap((mission) => (mission.requirements || []).filter((requirement) => requirement.type === "flag"));
-assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["archiveUnlocked", "secondAffinityChosen"], "La entrega del libro debe preceder a la entrada en la guarida");
+assert.deepEqual(flagRequirements.map((requirement) => requirement.id), ["archiveUnlocked", "kuroganePrologueCompleted", "secondAffinityChosen"], "La entrega del libro debe preceder a la entrada en la guarida");
 assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "interrogate" } }), true, "Los modificadores deben poder comparar valores de campaña sin convertirlos a booleanos");
 assert.equal(requirementMet({ type: "flag", id: "decision", equals: "interrogate" }, { campaign: { decision: "eliminate" } }), false, "Una comparación declarativa debe rechazar otro valor de campaña");
 const invalidModifierCatalog = structuredClone(MISSIONS);

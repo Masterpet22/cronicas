@@ -7,11 +7,11 @@ import { createArchiveView } from "../src/ui/meta/views/archive.js";
 
 assert.equal(SECONDARY_MISSIONS.length, 4);
 assert.ok(SECONDARY_MISSIONS.every(mission => mission.contractItem || mission.affinitySlot));
-assert.deepEqual(MISSIONS.map(({ number }) => number), [1, 2, 3, 4, 5, 6, 7]);
+assert.deepEqual(MISSIONS.map(({ number }) => number), Array.from({ length: 12 }, (_, i) => i + 1));
 assert.ok(MISSIONS.every(({ category, board }) => category === "main" && board === "headquarters"));
 let save = createCharacter(createDefaultSave(), { name: "Historia", affinity: "fuego" });
 const boards = createMissionBoardsView({ mainMissions: MISSIONS, sagas: STORY_SAGAS, missionState, escapeHtml: String });
-for (let index = 0; index < MISSIONS.length; index++) {
+for (let index = 0; index < STORY_SAGAS[0].missionIds.length; index++) {
   const html = boards.render({ view: "headquarters", save, selectedSagaId: "saga-1" });
   const discovered = [...html.matchAll(/data-mission="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(discovered, MISSIONS.slice(0, index + 1).map(({ id }) => id));

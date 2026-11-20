@@ -7,10 +7,15 @@ export function createLocationStage(deps) {
     speak(locationId, text, npcId, options) {
       if (activeSpeech?.locationId === locationId) activeSpeech.showTip(text, npcId, options);
     },
+    setGuidance(locationId, provider) {
+      if (activeSpeech?.locationId !== locationId) return;
+      activeSpeech.guidance = provider;
+      activeSpeech.showGuidance();
+    },
     react(locationId, before, after) {
       if (activeSpeech?.locationId !== locationId) return;
       const text = locationChangeComment(locationId, before, after, activeSpeech.npcId, deps.items);
-      if (text) queueMicrotask(() => { if (activeSpeech?.locationId === locationId) activeSpeech.showTip(text); });
+      if (text) queueMicrotask(() => { if (activeSpeech?.locationId === locationId && !activeSpeech.showGuidance()) activeSpeech.showTip(text); });
     },
     render(locationId, content, options = {}) {
       const cast = options.cast || deps.locationCast[locationId] || [];
@@ -87,14 +92,19 @@ export function createLocationStage(deps) {
           leaveTimer = window.setTimeout(() => { if (ambient.isConnected) ambient.hidden = true; }, 180);
         }, 5200);
       };
-      const speechContext = { locationId, npcId: cast[0], showTip };
+      const speechContext = { locationId, npcId: cast[0], showTip, guidance: null, showGuidance() {
+        const guide = this.guidance?.();
+        if (!guide || options.hidden) return false;
+        showTip(guide.text, guide.npcId || cast[0], guide);
+        return true;
+      } };
       activeSpeech = speechContext;
       const activity = () => { lastActivity = performance.now(); nextIdleAt = lastActivity + 20000; };
       for (const type of ["pointerdown", "pointermove", "keydown", "input", "change", "focusin"]) scope.listen(stage, type, activity);
       scope.listen(stage, "click", event => {
         if (options.hidden || event.target.closest("[data-stage-npc], [data-stage-action]")) return;
         const text = locationSelectionComment(event.target, cast[0]);
-        if (text) queueMicrotask(() => { if (activeSpeech?.locationId === locationId) activeSpeech.showTip(text); });
+        if (text) queueMicrotask(() => { if (activeSpeech?.locationId === locationId && !activeSpeech.showGuidance()) activeSpeech.showTip(text); });
       });
       const idleTimer = window.setInterval(() => {
         if (options.hidden || !speech.hidden || document.hidden || pinned || ambient?.classList.contains("has-tutorial-dialogue") || !stage.isConnected || document.querySelector('[role="dialog"]:not([hidden]), dialog[open], .dialogue-overlay, .mission-decision-overlay, .game-settings[open]')) return;
@@ -123,6 +133,7 @@ export function createLocationStage(deps) {
           commentHoverReadyAt = performance.now() + 650;
           nextIdleAt = performance.now() + 1200;
           requestAnimationFrame(() => options.classList.add("ready"));
+          speechContext.showGuidance();
           if (locationId === "kagemori") stage.querySelector(".stage-characters")?.remove();
         }, 180);
       };
@@ -148,6 +159,7 @@ export function createLocationStage(deps) {
       }
       stage.querySelectorAll("[data-stage-npc]").forEach((button) => scope.listen(button, "click", () => {
         if (!options.hidden) {
+          if (speechContext.showGuidance()) return;
           const character = deps.npcs[button.dataset.stageNpc];
           const guide = deps.locationDialogue(locationId, "guide").filter(([speaker]) => speaker === character?.name).map(([, text]) => text);
           if (guide.length) showTip(guide[Math.floor(Math.random() * guide.length)], button.dataset.stageNpc);

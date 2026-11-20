@@ -125,8 +125,8 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     mainMissions: MISSIONS, secondaryMissions: SECONDARY_MISSIONS,
     missionState, nextAvailableMission, secondaryMissionByType, masterForCharacter, escapeHtml,
     assetVersion: ASSET_VERSION, onPersist: persist,
-    npcs: NPCS, locationCast: LOCATION_CAST, warmImage, warmLocationAssets, onStartMission: startLocationMission, onNavigate(next) { view = next; render(); }, elementIcon,
-    showDialogue: (...args) => showDialogue(...args), onCalendarComment(text, actions) { stageView.speak("event", text, "nao", { persistent: true, actions }); },
+    npcs: NPCS, locationCast: LOCATION_CAST, warmImage, warmLocationAssets, onStartMission: startLocationMission, onNavigate(next, { sagaId } = {}) { if (sagaId) selectedSagaId = sagaId; view = next; render(); }, elementIcon,
+    showDialogue: (...args) => showDialogue(...args), onGuildGuide(provider) { stageView.setGuidance("inn", provider); }, onCalendarComment(text, actions) { stageView.speak("event", text, "nao", { persistent: true, actions }); },
     onMissionNoticesSeen(ids) { save = writeSave({ ...save, campaign: { ...save.campaign, seenMissionNotices: [...new Set([...save.campaign.seenMissionNotices, ...ids])] } }); return save; },
     onTutorialComplete() { persist(rememberIntroduction({ ...save, campaign: { ...save.campaign, tutorialSeen: true } }, "headquarters", ["ren"])); view = "headquarters"; introducedViews.add("headquarters"); render(); }
   });
@@ -195,7 +195,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     onTabSelected(tabId) { activeDojoTab = tabId; },
     onRerender: () => renderDojo()
   });
-  const missionBoardsView = createMissionBoardsView({
+  const missionBoardsView = createMissionBoardsView({ onPersist: persist, onNavigate(next) { view = next; render(); },
     mainMissions: MISSIONS, fieldMissions: ALL_MISSIONS, secondaryMissions: SECONDARY_MISSIONS, sagas: STORY_SAGAS,
     enemyActions: ENEMY_ACTIONS, enemyRoster: ENEMY_ROSTER,
     doctorRouteDefinitions: DOCTOR_ROUTE_DEFINITIONS, riverPassages: RIVER_PASSAGES,

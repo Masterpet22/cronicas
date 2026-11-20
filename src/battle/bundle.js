@@ -1,4 +1,4 @@
-import { GroupTrainingBattleScene as BattleScene } from "./scenes/group-training-battle-scene.js?v=0.153.0";
+import { KuroganeBattleScene as BattleScene } from "./scenes/kurogane-battle-scene.js";
 import { MissionTravelScene } from "./scenes/mission-travel-scene.js?v=0.153.0";
 import { MissionEpilogueScene } from "./scenes/mission-epilogue-scene.js?v=0.150.0";
 import { LevelUpScene } from "./scenes/level-up-scene.js?v=0.153.0";

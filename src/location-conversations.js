@@ -79,13 +79,14 @@ export function locationSelectionComment(target, npcId) {
   if (data.arenaDifficulty) return `Dificultad ${control.textContent.trim()}. ¡Quiero verte darlo todo!`;
   if (data.arenaTab === "online") return "¡También tengo ganas de esos duelos! El multijugador llegará cuando conectemos la arena al servidor.";
   if (data.guildTab === "clans") return "Podemos preparar tu nombre y tu emblema desde ahora. Reunir al clan vendrá con la conexión online.";
+  if (data.placeDecor) return "Pulsa Colocar o toca un lugar de la sala. Las insignias y cuadros van en la pared; los muebles y plantas, en el suelo. Después puedes arrastrarlos o moverlos con las flechas.";
   if (data.shopMode === "sell") return "Veamos qué quieres vender. Te pagaré la mitad de su precio; lo que tienes en uso debe quedar libre primero.";
   if (data.shopMode === "buy") return "Aquí tienes el catálogo. Revisa el precio y las unidades antes de decidir.";
   if (data.shopCategory) return `Veamos ${control.textContent.trim().toLowerCase()}. Los precios están a la vista, como debe ser.`;
   if (data.saga) return "Has elegido una saga. Revisa sus encargos y prepara cada paso antes de partir.";
   if (control.hasAttribute("data-back-sagas")) return "Aquí tienes las sagas de nuevo. Cada una reúne un camino de nuestra historia.";
   if (data.dojoTab) {
-    const topics = { equipment: "Tu arma, sello, accesorio y compañero forman tu equipo.", techniques: "Estas son las técnicas que llevas y las que puedes aprender.", statistics: "Aquí puedes revisar tus atributos y distribuir los puntos disponibles.", appearance: "Aquí eliges cómo quieres presentarte al mundo." };
+    const topics = { equipment: "Tu arma, sello, accesorio y compañero forman tu equipo.", techniques: "Elige un hexágono para consultar sus efectos y requisitos. Puedes arrastrar el panal. Ganas 2 PR por nivel; después de aprender una técnica, pulsa Equipar para llevarla al combate.", statistics: "Aquí puedes revisar tus atributos y distribuir los puntos disponibles.", appearance: "Aquí eliges cómo quieres presentarte al mundo." };
     return `${npcId === "daichi" ? "Con atención. " : "Vamos a ello. "}${topics[data.dojoTab] || "Revisa tu configuración."}`;
   }
   return null;

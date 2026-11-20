@@ -422,7 +422,7 @@ assert.match(metaUi, /data-debug-view="kagemori"/, "El depurador debe saltar dir
 assert.match(metaUi, /data-debug-choice="interrogate"[\s\S]*data-debug-choice="eliminate"/, "El depurador debe controlar las dos consecuencias del teniente");
 assert.match(metaUi, /debugSnapshot = JSON\.stringify\(save\)/, "El depurador debe conservar una copia temporal de la partida antes de modificarla");
 assert.match(styles, /\.debug-screen \{/, "La pantalla de pruebas debe tener una presentación propia");
-assert.match(readme, /primera saga de siete misiones principales/, "El README debe describir solamente la campaña vigente");
+assert.match(readme, /dos sagas con doce misiones principales/, "El README debe describir las dos sagas vigentes");
 assert.doesNotMatch(readme, /diez misiones|65 a 85|pantalla t[aá]ctil|\boffline\b/i, "El README no debe conservar promesas antiguas de contenido o uso sin conexión");
 assert.match(readme, /navegadores en tablets y ordenadores/, "El alcance incluye tablets y ordenadores");
 assert.match(readme, /no se desarrollan adaptaciones para teléfonos móviles/, "El README debe excluir el desarrollo para teléfonos");
@@ -431,7 +431,7 @@ assert.match(roadmap, /Primera saga con siete misiones principales[^\n]+m01[^\n]
 assert.match(roadmap, /Eliminar el botón \*\*PRUEBAS\*\*/, "El roadmap debe bloquear la 1.0 hasta retirar las herramientas internas");
 assert.match(currentStatus, /m01[\s\S]*m02[\s\S]*m03[\s\S]*m04[\s\S]*m05/, "El estado actual debe enumerar las cinco misiones principales conectadas");
 assert.match(currentStatus, /s01[\s\S]*s02/, "El estado actual debe enumerar las dos misiones secundarias");
-assert.match(currentStatus, /catálogo[^\n]*contiene exclusivamente estas siete misiones/i, "El estado actual debe declarar una única campaña principal");
+assert.match(currentStatus, /catálogo[^\n]*incluye estas siete misiones y las cinco/i, "El estado actual debe declarar ambas sagas principales");
 assert.doesNotMatch(currentStatus, /\bm(?:11|12|13|14)\b|\bheredad\b/i, "El estado actual no debe conservar la numeración discontinua");
 assert.match(storyDocument, /Futuro prometedor[\s\S]*Raizen Kurogane/i, "La historia general debe describir solamente la saga vigente");
 assert.doesNotMatch(storyDocument, /Eclipse|Riven|Nerezza|Mika|Maestra Aya/i, "La historia general no debe conservar tramas de misiones retiradas");

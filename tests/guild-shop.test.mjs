@@ -14,7 +14,13 @@ assert.equal(guildOwnedCount(save, "wall", "jade"), 1);
 assert.equal(guildOwnedCount(save, "wall", "sand"), 1);
 assert.equal(guildOwnedCount(save, "floor", "cedar"), 1);
 assert.equal(guildOwnedCount(save, "wall", "plum"), 0);
-assert.deepEqual(save.guild.room.decorations.map(entry => entry.type).sort(), ["novice", "plant"]);
+assert.deepEqual(save.guild.room.decorations, []);
+assert.equal(countItem(save, "guild_decor_plant"), 0, "Los regalos no son equipo inicial");
+assert.equal(countItem(save, "guild_decor_novice"), 0);
+// La tienda se prueba a partir de dos unidades compradas y colocadas.
+save.inventory.items.guild_decor_plant = 1;
+save.inventory.items.guild_decor_novice = 1;
+for (const item of ["plant", "novice"]) save = updateGuildRoom(save, { type: "add", item }).save;
 for (const item of GUILD_ITEMS) {
   assert.deepEqual(ITEMS[item.id], item);
   assert.ok(SHOP_ITEMS.some(entry => entry.id === item.id), `${item.id} aparece en la Tienda`);

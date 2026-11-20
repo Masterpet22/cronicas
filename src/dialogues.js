@@ -9,6 +9,7 @@ const es = {
     { speaker: "ren", text: "El Cuartel registra tu rango, tus victorias y las amenazas que todavía permanecen abiertas." }
   ],
   "npc.ren.guide": [
+    { speaker: "ren", text: "Cada saga agrupa sus misiones. Selecciona una para ver los encargos descubiertos; completa la formación para que tu maestro te acompañe al Gremio." },
     { speaker: "ren", text: "Tu nivel aumenta con PX. Tu rango determina cuántas afinidades tienes disponibles: Novicio comienza con una; las pruebas de nivel 15 y 30 permiten ascender a Experto, con dos, y Veterano, con tres." },
     { speaker: "ren", text: "Las siete misiones principales se desbloquean en orden a medida que investigas a los Bandidos del Cuervo." },
     { speaker: "ren", text: "Antes de partir, revisa el Dojo y prepara las técnicas que permita tu nivel." }
@@ -18,6 +19,7 @@ const es = {
     { speaker: "kureha", text: "Los días 5, 12, 19 y 26 te esperan minijefes de agua, tierra, fuego y viento. Consulta el calendario para preparar tu visita." }
   ],
   "npc.kureha.guide": [
+    { speaker: "kureha", text: "Los custodios de Agua, Tierra, Fuego y Viento aparecen los días 5, 12, 19 y 26. La victoria se guarda por edición; estos desafíos no entregan PX, monedas ni objetos ni gastan recursos de misión." },
     { speaker: "kureha", text: "Con rango Experto o Veterano puedes entrar en la Torre. Los desafíos elementales se abren únicamente en su fecha. Tu victoria queda registrada al volver a la Torre." },
     { speaker: "kureha", text: "Cada custodio tiene su propia afinidad. Prepara tu equipo y tus técnicas en el Dojo antes del combate." },
     { speaker: "kureha", text: "Puedes repetir un desafío durante su día. Por ahora no entrega PX, monedas ni objetos y no consume tus recursos de misión." }
@@ -27,6 +29,7 @@ const es = {
     { speaker: "sayo", text: "Aquí conservamos el diccionario del juego y puedes repetir el tutorial de combate. El bestiario se abrirá cuando me entregues el libro de Haru." }
   ],
   "npc.sayo.guide": [
+    { speaker: "sayo", text: "Cada encuentro añade información al bestiario. Algunos jefes necesitan varios duelos o documentos. En Tutorial puedes repasar la formación guiada; el repaso no modifica tu partida y puedes salir cuando quieras." },
     { speaker: "sayo", text: "Los registros marcados con una señal verde ya fueron completados y puedes consultarlos en el Cuartel General." },
     { speaker: "sayo", text: "La primera crónica reúne siete misiones principales conectadas en el Cuartel General." },
     { speaker: "sayo", text: "Cuando derrotes a Raizen, el desenlace de Futuro prometedor quedará inscrito aquí." }
@@ -36,6 +39,8 @@ const es = {
     { speaker: "daichi", text: "Vida y Chakra aumentan tus reservas. Fuerza eleva el daño, Velocidad acelera tu turno y Suerte mejora la evasión y los golpes críticos." }
   ],
   "npc.daichi.guide": [
+    { speaker: "daichi", text: "En Técnicas, selecciona un hexágono para ver sus requisitos. Ganas 2 puntos de Resonancia por nivel, aparte de los atributos. Los PX de afinidad habilitan el aprendizaje; los PR desbloquean la habilidad. Aprender y equipar son pasos distintos." },
+    { speaker: "daichi", text: "Tu rango abre una, dos o tres afinidades. Supera las pruebas del Tablón en los niveles 15 y 30. Configura equipo y técnicas aquí antes de partir; mi ventaja pasiva acompaña tu estilo." },
     { speaker: "daichi", text: "Tu Velocidad y la velocidad de cada acción deciden juntos el orden del turno." },
     { speaker: "daichi", text: "Guardia reduce el siguiente impacto a la mitad y recupera chakra." },
     { speaker: "daichi", text: "Una técnica poderosa que nunca acierta vale menos que un ataque preparado." }
@@ -45,6 +50,8 @@ const es = {
     { speaker: "mei", text: "Comienzas con dos ranuras de jutsu. Los niveles 5 y 8 abrirán una ranura adicional." }
   ],
   "npc.mei.guide": [
+    { speaker: "mei", text: "En Técnicas, selecciona un hexágono para ver sus requisitos. Ganas 2 puntos de Resonancia por nivel, aparte de los atributos. Los PX de afinidad habilitan el aprendizaje; los PR desbloquean la habilidad. Aprender y equipar son pasos distintos." },
+    { speaker: "mei", text: "Tu rango abre una, dos o tres afinidades. Las pruebas del Tablón exigen niveles 15 y 30. En Equipo puedes consultar sus pesos: principal 100 %, secundaria 50 % y tercera 25 %." },
     { speaker: "mei", text: "Durante un jutsu manual, completa la secuencia con QWER, ASDF y ZXCV, o pulsa los sellos en pantalla." },
     { speaker: "mei", text: "Una secuencia perfecta mejora el daño; los errores lo reducen. Puedes desactivar los sellos manuales arriba del juego." },
     { speaker: "mei", text: "Fuego quema, Viento abre heridas y Relámpago puede aturdir." }
@@ -54,6 +61,7 @@ const es = {
     { speaker: "goro", text: "Desde la saga 3 y con nivel 16 o más, elige un rival y una dificultad para una exhibición contra la IA. PvP y combates clasificatorios llegarán con el modo online." }
   ],
   "npc.goro.guide": [
+    { speaker: "goro", text: "Las exhibiciones son gratuitas y empiezan con vida y chakra completos. No gastas consumibles ni pergaminos y no ganas PX, monedas, bestiario ni progreso de misión. El rival se adapta a tu equipo y puedes pedir revancha." },
     { speaker: "goro", text: "Compara la afinidad principal de ambos combatientes antes de gastar chakra." },
     { speaker: "goro", text: "Los enfriamientos impiden repetir la misma técnica continuamente: prepara una segunda opción." },
     { speaker: "goro", text: "En exhibición empiezas con vida y chakra completos. No se gastan consumibles ni se entregan PX, monedas o puntos de clasificación." }
@@ -63,6 +71,7 @@ const es = {
     { speaker: "hana", text: "Puedes comprar y vender equipo, objetos, apariencia y decoraciones usando las monedas de tus misiones." }
   ],
   "npc.hana.guide": [
+    { speaker: "hana", text: "Prepara el equipo y la apariencia en el Dojo. Los contratos se juegan en el Tablón; las decoraciones se colocan en el Gremio. Compro a mitad del precio indicado, redondeando hacia abajo." },
     { speaker: "hana", text: "Las monedas se obtienen al vencer enemigos y al completar una misión por primera vez." },
     { speaker: "hana", text: "Armas, sellos, accesorios y compañeros se equipan en el Dojo; compara su efecto antes del precio." },
     { speaker: "hana", text: "Compro a mitad de precio. Las decoraciones se colocan en el Gremio y los contratos se juegan en el tablón." }
@@ -72,6 +81,8 @@ const es = {
     { speaker: "yuna", text: "Te he reservado Mi espacio. Puedes decorar sus paredes y suelos y exhibir los recuerdos de tus misiones. También puedes preparar el emblema de tu futuro clan." }
   ],
   "npc.yuna.guide": [
+    { speaker: "yuna", text: "Aquí puedes guardar el nombre, la sigla y el emblema de tu futuro clan. El borrador es personal; los miembros, las invitaciones y las clasificaciones estarán disponibles cuando conectemos los clanes online." },
+    { speaker: "yuna", text: "Elige una decoración y pulsa Colocar, o toca un lugar de la sala. Los cuadros e insignias van en las paredes; los muebles, en el suelo. Arrastra o usa las flechas para moverlos; Suprimir los retira sin perderlos." },
     { speaker: "yuna", text: "Tu progreso se guarda automáticamente en este navegador." },
     { speaker: "yuna", text: "Regresar a la aldea después de un combate permite cambiar equipo y técnicas sin perder avances." },
     { speaker: "yuna", text: "Compra colores, suelos y decoraciones en la Tienda y colócalos aquí. Cada mueble ocupa una unidad; al retirarlo queda disponible para volver a usarlo. Todo queda guardado en tu partida." }
@@ -81,6 +92,7 @@ const es = {
     { speaker: "riku", text: "Cada ficha indica encuentros, duración estimada, experiencia y monedas." }
   ],
   "npc.riku.guide": [
+    { speaker: "riku", text: "Compra un contrato en la Tienda para conseguir objetos especiales e invocaciones. Las recompensas se entregan una sola vez. Las pruebas de afinidad de niveles 15 y 30 también se aceptan aquí." },
     { speaker: "riku", text: "Las misiones se abren según requisitos explícitos; el Cuartel contiene la historia y este Tablón contiene encargos." },
     { speaker: "riku", text: "REPETIR permite volver a una misión superada, pero la recompensa principal solo se entrega una vez." },
     { speaker: "riku", text: "El Dojo te permite ajustar técnicas y equipo antes de partir." }

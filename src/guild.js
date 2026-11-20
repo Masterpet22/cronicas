@@ -32,10 +32,7 @@ export function fitRoomDecoration(entry) {
     y: Math.round(Math.max(top, Math.min(bottom, number(entry.y, (top + bottom) / 2)))) };
 }
 export function defaultGuildState() {
-  return { room: { wall: "jade", floor: "cedar", nextId: 3, decorations: [
-    { id: "decor-1", type: "novice", x: 220, y: 190, scale: 1 },
-    { id: "decor-2", type: "plant", x: 520, y: 510, scale: 1 }
-  ] }, clanDraft: { name: "", tag: "", motto: "", emblem: "sun", color: "wine" } };
+  return { room: { wall: "jade", floor: "cedar", nextId: 1, decorations: [] }, clanDraft: { name: "", tag: "", motto: "", emblem: "sun", color: "wine" } };
 }
 export function normalizeGuildState(candidate, save) {
   const defaults = defaultGuildState(), room = candidate?.room || {}, draft = candidate?.clanDraft || {};

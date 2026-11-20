@@ -31,7 +31,7 @@ export const ROOM_DECOR = Object.freeze([
 export const MAX_ROOM_DECOR = 24;
 export const GUILD_INVENTORY_VERSION = 24;
 export const guildItemId = (surface, value) => `guild_${surface}_${value}`;
-export const GUILD_STARTER_ITEMS = Object.freeze(["guild_wall_jade", "guild_wall_sand", "guild_floor_cedar", "guild_decor_novice", "guild_decor_plant"]);
+export const GUILD_STARTER_ITEMS = Object.freeze(["guild_wall_jade", "guild_wall_sand", "guild_floor_cedar"]);
 const decorPrices = { landscape: 85, scroll: 65, lantern: 55, plant: 80, table: 120, cushion: 40, novice: 50, medal: 95, trophy: 150, guardian: 200 };
 export const GUILD_ITEMS = Object.freeze([
   ...ROOM_WALLS.map((wall, index) => ({ id: guildItemId("wall", wall.id), name: `Pared de ladrillo · ${wall.name}`, price: [0, 0, 80, 90, 100][index], guildSurface: "wall", value: wall.id, description: `Acabado ${wall.name.toLowerCase()} para las dos paredes de Mi espacio. Se compra una sola vez.`, stackLimit: 1 })),

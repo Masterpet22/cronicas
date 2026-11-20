@@ -33,7 +33,7 @@ for (const affinity of AFFINITY_IDS) {
   assert.ok(report.stats.find((stat) => stat.id === report.focus.stat).gain > 0, "El atributo especializado debe crecer de verdad");
   assert.equal(levelUpReport(2, leveled), null, "Un nivel sin cambios no debe abrir una ventana");
   let previousHp = derivedStats(save).maxHp;
-  for (const [index, mission] of MISSIONS.filter((mission) => mission.encounters).entries()) {
+  for (const [index, mission] of MISSIONS.filter((mission) => mission.encounters && !mission.groupCombat).entries()) {
     if (checkpoints[index]) save = applyDebugCheckpoint(save, checkpoints[index]);
     const statsBefore = derivedStats(save);
     const starterTechnique = JUTSU_LIBRARY.filter((jutsu) => jutsu.element === affinity && jutsu.unlockLevel === 1 && jutsu.damage > 0)
@@ -110,7 +110,7 @@ assert.deepEqual(levelStatBonus(100, "agua"), levelStatBonus(60, "agua"));
 let highSave = normalizeSave({ ...starter, progression: { ...starter.progression, level: 100, xp: 2000 } });
 assert.equal(highSave.progression.level, 60);
 assert.equal(highSave.progression.xp, 0);
-assert.equal(awardEncounter(highSave, "boss_raizen", { mission:MISSIONS.at(-1) }).xp, 0);
+assert.equal(awardEncounter(highSave, "boss_raizen", { mission:MISSIONS.find(m => m.id === "m05") }).xp, 0);
 const capMission = completeMission(highSave, MISSIONS[0].id);
 assert.equal(capMission.xp, 0);
 assert.equal(capMission.save.progression.level, 60);

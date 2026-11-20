@@ -19,17 +19,19 @@ const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, red
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+const groupMode = process.argv.includes('--group');
 await page.goto('http://127.0.0.1:4173');
-await page.evaluate(async () => {
+await page.evaluate(async groupMode => {
   const { createDefaultSave, createCharacter, writeSave, selectSaveSlot } = await import('/src/save.js?v=0.66.0');
   const save = createCharacter(createDefaultSave(), { name: 'Akio', affinity: 'agua', hair: 1, bodyType: 'male' });
   save.campaign.completedMissions = ['m01'];
   save.campaign.tutorialSeen = true;
+  if (groupMode) { save.progression.level = 6; save.campaign.kuroganeCompanion = 'haruto'; }
   selectSaveSlot(1);
   writeSave(save);
   localStorage.setItem('music-enabled', 'off');
   localStorage.setItem('seal-input-mode', 'automatic');
-});
+}, groupMode);
 await page.reload();
 await page.locator('[data-select-slot="1"]').click();
 await page.evaluate(async () => {
@@ -40,11 +42,74 @@ await page.evaluate(async () => {
   BattleScene.prototype.create = function (...args) { window.__hudScene = this; return create.apply(this, args); };
 });
 await page.locator('.debug-tools-trigger').click();
-await page.locator('[data-debug-mission="m01"]').click();
+await page.locator(groupMode ? '[data-debug-mission="k03"]' : '[data-debug-mission="m01"]').click();
 await page.waitForFunction(() => window.__hudScene?.turnReady, null, { timeout: 30000 });
 await page.mouse.move(950, 720);
 await mkdir('artifacts/combat-hud', { recursive: true });
 await page.screenshot({ path: 'artifacts/combat-hud/combat-1600x900.png' });
+if (groupMode) {
+  const cards = page.locator('.combat-roster-enemies .combat-roster-card');
+  assert.equal(await cards.count(), 2);
+  assert.equal(await page.locator('.combat-roster-allies .combat-roster-card').count(), 1);
+  assert.match(await page.locator('.combat-mission-objective').innerText(), /documentos de transporte/);
+  const selected = await page.evaluate(() => window.__hudScene.selectedTargetIndex);
+  await cards.first().click();
+  assert.notEqual(await page.evaluate(() => window.__hudScene.selectedTargetIndex), selected);
+  await page.evaluate(() => {
+    const s = window.__hudScene;
+    s.companion.state.hp -= 17; s.companion.state.chakra -= 9;
+    s.trainingTargets[0].state.hp = 43;
+    s.objective.hp = 64; s.refreshHud();
+  });
+  assert.match(await page.locator('.combat-roster-allies').innerText(), /51\/60/);
+  assert.match(await page.locator('.combat-mission-objective').innerText(), /64\/100/);
+  assert.ok(await cards.locator('progress').evaluateAll(meters => meters.every(meter => getComputedStyle(meter).direction === 'rtl')),
+    'Las barras secundarias enemigas deben vaciarse desde el mismo extremo que el panel principal');
+  assert.ok(await page.evaluate(() => {
+    const s = window.__hudScene;
+    s.combatIndicators.refresh();
+    return s.combatIndicators.active.visible && s.combatIndicators.selection.visible && s.combatIndicators.ground.visible;
+  }), 'Turno activo, selección dorada y aro aliado visibles');
+  for (const [width, height] of [[1600,900], [1366,768], [1024,768], [960,720], [768,1024]]) {
+    await page.setViewportSize({width, height});
+    await page.waitForTimeout(250);
+    for (const control of await page.locator('.combat-access-actions button, .combat-access-utilities button').all()) {
+      const box = await control.boundingBox();
+      assert.ok(box && box.width >= 43 && box.height >= 43, `Control táctil ${width}: ${JSON.stringify(box)}`);
+    }
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    assert.ok(await page.locator('.combat-roster-card:visible').evaluateAll(cards => cards.every(card => {
+      const box = card.getBoundingClientRect();
+      return [...card.querySelectorAll('.combat-roster-title, label')].every(row => {
+        const rect = row.getBoundingClientRect();
+        return rect.top >= box.top + 1 && rect.bottom <= box.bottom - 1;
+      });
+    })), `Nombre y ambas barras deben quedar dentro de las tarjetas a ${width}px`);
+    assert.equal(await cards.filter({visible: true}).count(), 2, `Ambos rivales secundarios visibles a ${width}px`);
+    assert.ok(await page.evaluate(() => {
+      const s = window.__hudScene, canvas = s.game.canvas.getBoundingClientRect();
+      const panels = [...document.querySelectorAll('.combat-roster-enemies .combat-roster-card')]
+        .filter(el => el.getClientRects().length).map(el => el.getBoundingClientRect());
+      return s.trainingTargets.every(({fighter}) => {
+        const b = fighter.head.getBounds();
+        const head = {left: canvas.left + b.left * canvas.width / 960, right: canvas.left + b.right * canvas.width / 960,
+          top: canvas.top + b.top * canvas.height / 540, bottom: canvas.top + b.bottom * canvas.height / 540};
+        return panels.every(panel => panel.right <= head.left || panel.left >= head.right || panel.bottom + 6 <= head.top || panel.top >= head.bottom);
+      });
+    }), `Ninguna tarjeta debe tapar el rostro de los tres rivales a ${width}px`);
+    await page.screenshot({path: `artifacts/combat-hud/reference-group-${width}x${height}.png`, fullPage: true});
+  }
+  await page.setViewportSize({width:1600,height:900});
+  await page.locator('.combat-access-pause').click();
+  assert.equal(await page.evaluate(() => window.__hudScene.combatIndicators.active.visible), false);
+  await page.getByRole('button', {name:'REANUDAR',exact:true}).click();
+  await page.waitForFunction(() => window.__hudScene.scene.isActive());
+  assert.deepEqual(errors, []);
+  await writeFile('artifacts/combat-hud/reference-verification.json', JSON.stringify({roster:true, targetSelection:true, liveResources:true, objective:true, tabletTouchTargets:true, errors}, null, 2));
+  await browser.close();
+  console.log('HUD de grupo: tarjetas, selección, recursos, objetivo, pausa y cinco tamaños verificados; sin errores.');
+  process.exit(0);
+}
 const checks = [];
 const record = message => { checks.push(message); console.log(message); };
 const state = await page.evaluate(() => {

@@ -53,7 +53,6 @@
 .guild-move-controls { display:flex; gap:3px; }
 .guild-move-controls button { padding:3px 8px; }
 .guild-hall [data-room-remove] { color:#e5a997; }
-.guild-room-help { color:#9ab0b2; font-size:12px; line-height:1.35; }
 .guild-catalog { display:flex; flex-direction:column; min-height:0; gap:10px; padding:14px; border:1px solid #74603d88; border-radius:8px; background:#101c27; }
 .guild-catalog>header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .guild-catalog .guild-room-count { flex-shrink:0; font-size:15px; }

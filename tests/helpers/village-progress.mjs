@@ -1,4 +1,5 @@
 import { STORY_SAGAS } from "../../src/content/sagas/futuro-prometedor/saga.js";
+import { receiveGuildGifts, FIRST_SAGA_CONCLUSION_NOTICE } from "../../src/kurogane.js";
 
 // Las pruebas de servicios preparan el progreso requerido; las pruebas de
 // desbloqueos comprueban los límites con partidas nuevas por separado.
@@ -6,9 +7,11 @@ export function unlockVillageForTest(save, { arena = false, rank = 1 } = {}) {
   const tutorial = STORY_SAGAS.find(saga => saga.number === 1);
   save.campaign.completedMissions = [...tutorial.missionIds];
   save.campaign.archiveUnlocked = true;
+  save.campaign.seenMissionNotices = [...new Set([...(save.campaign.seenMissionNotices || []), FIRST_SAGA_CONCLUSION_NOTICE])];
   save.progression.level = Math.max(save.progression.level, arena ? 16 : 1, rank === 2 ? 15 : rank === 3 ? 30 : 1);
   if (rank >= 2 && !save.campaign.completedSecondaryMissions.includes("affinity_trial_2")) save.campaign.completedSecondaryMissions.push("affinity_trial_2");
   if (rank >= 3 && !save.campaign.completedSecondaryMissions.includes("affinity_trial_3")) save.campaign.completedSecondaryMissions.push("affinity_trial_3");
+  Object.assign(save, receiveGuildGifts(save));
   return save;
 }
 

@@ -1,0 +1,8 @@
+{
+  "roster": true,
+  "targetSelection": true,
+  "liveResources": true,
+  "objective": true,
+  "tabletTouchTargets": true,
+  "errors": []
+}

@@ -1,3 +1,5 @@
+import { kuroganeAvailable, guildGiftDeliveryPending, receiveGuildGifts, finishKuroganePrologue, recordKuroganeDecoration } from "../../../kurogane.js";
+import { KUROGANE_SAGA, GUILD_GIFT_DIALOGUE } from "../../../content/sagas/hermanos-kurogane/saga.js";
 import { ROOM_WALLS, ROOM_FLOORS, ROOM_DECOR, CLAN_EMBLEMS, CLAN_COLORS, MAX_ROOM_DECOR, roomDecor, guildOwnedCount, availableRoomDecoration, normalizeGuildState, updateGuildRoom, saveClanDraft } from "../../../guild.js?v=0.126.0";
 import { projectRoomDecoration, roomDecorationStyle, roomPointToPlacement, moveRoomDecoration } from "../../../guild-room.js?v=0.126.0";
 import { guildDecorArt, clanEmblemArt, guildRoomBackdrop } from "../guild-art.js?v=0.126.0";
@@ -9,6 +11,19 @@ export function createGuildView(deps) {
   const state = () => normalizeGuildState(save.guild, save);
   const selectedEntry = () => state().room.decorations.find(entry => entry.id === selected);
   const canvasPoint = (event, bounds) => ({ x: (event.clientX - bounds.left) / bounds.width * 1000, y: (event.clientY - bounds.top) / bounds.height * 700 });
+  const finishPrologue = () => {
+    save = deps.onPersist(finishKuroganePrologue(save));
+    if (save.campaign.kuroganePrologueCompleted) deps.onNavigate("headquarters", { sagaId: KUROGANE_SAGA.id });
+  };
+  const guide = () => {
+    if (!host || !kuroganeAvailable(save) || save.campaign.kuroganePrologueCompleted || guildGiftDeliveryPending(save)) return null;
+    const placed = ["plant", "novice"].filter(type => state().room.decorations.some(entry => entry.type === type));
+    if (placed.length === 2) return { text: "Los dos recuerdos ya tienen su sitio. ¡Tu habitación está preparada! Ren te convoca al Cuartel para conocer a tus compañeros.", persistent: true, actions: [{ label: "Ir al Cuartel", onSelect: finishPrologue }] };
+    const text = tab !== "room" ? "Vuelve a Mi espacio para preparar tu habitación con los regalos de tu maestro."
+      : placing ? `Has elegido ${roomDecor(placing).name}. Toca ${roomDecor(placing).category === "wall" ? "una pared" : "el suelo"} de la sala o pulsa Colocar. Después puedes mover el objeto con las flechas o arrastrarlo.`
+      : `Tu maestro te dejó un bonsái y una insignia de novicio. ${placed.length ? `Falta colocar o mover ${placed.includes("plant") ? "la insignia" : "el bonsái"}.` : "Elige Bonsái o Insignia de novicio en el catálogo y pulsa Colocar."} También puedes mover los que ya tienes en la habitación. Llevas ${placed.length}/2. Si necesitas ayuda, vuelve a hablar conmigo.`;
+    return { text, persistent: false };
+  };
   function decoration(entry, index) {
     const item = roomDecor(entry.type), surface = projectRoomDecoration(entry).surface;
     const art = surface === "floor" ? guildDecorArt(entry.type) : guildDecorArt(entry.type).replace("<svg ", '<svg preserveAspectRatio="none" ');
@@ -23,7 +38,7 @@ export function createGuildView(deps) {
     const wall = ROOM_WALLS.find(entry => entry.id === room.wall), floor = ROOM_FLOORS.find(entry => entry.id === room.floor);
     return `<div class="guild-room-layout"><div class="guild-room-main">
       <div class="guild-room-surround"><div class="guild-room-canvas ${chosen ? "is-placing" : ""}" ${chosen ? `data-placing-surface="${chosen.category}"` : ""} role="group" aria-label="Mi espacio: sala isométrica con dos paredes y suelo" tabindex="0">${guildRoomBackdrop(wall.color, floor.color, floor.id)}<span class="guild-room-sign">${escape(save.character.name)} · MI ESPACIO</span>${room.decorations.map(decoration).join("")}</div></div>
-      ${inspector(current)}<small class="guild-room-help">Arrastra para mover · Flechas: mover · Suprimir: retirar. Los cuadros e insignias van en las paredes; los muebles, en el suelo.</small></div>
+      ${inspector(current)}</div>
       <aside class="guild-catalog"><header><div><p class="eyebrow">DALE TU ESTILO</p><h3>Decoraciones</h3></div><span class="guild-room-count" aria-label="${room.decorations.length} de ${MAX_ROOM_DECOR} decoraciones">${room.decorations.length}/${MAX_ROOM_DECOR}</span></header><div class="guild-finishes"><fieldset><legend>Pared de ladrillo · Color</legend><div>${ROOM_WALLS.map(entry => `<button type="button" class="guild-swatch" data-room-wall="${entry.id}" style="--swatch:${entry.color}" ${guildOwnedCount(save, "wall", entry.id) ? "" : 'disabled title="Compra este color en la Tienda"'} aria-label="Pared ${entry.name}" aria-pressed="${room.wall === entry.id}"><span aria-hidden="true">${room.wall === entry.id ? "✓" : ""}</span></button>`).join("")}</div></fieldset><label>Piso<select data-room-floor>${ROOM_FLOORS.map(entry => `<option value="${entry.id}" ${room.floor === entry.id ? "selected" : ""} ${guildOwnedCount(save, "floor", entry.id) ? "" : "disabled"}>${entry.name}${guildOwnedCount(save, "floor", entry.id) ? "" : " · Tienda"}</option>`).join("")}</select></label></div><div class="guild-filters" role="group" aria-label="Categorías de decoración">${[["all", "Todas"], ["wall", "Pared"], ["floor", "Suelo"], ["badges", "Insignias"]].map(([id, label]) => `<button type="button" data-decor-filter="${id}" aria-pressed="${filter === id}">${label}</button>`).join("")}</div><div class="guild-decor-catalog">${ROOM_DECOR.filter(item => filter === "all" || (filter === "badges" ? ["novice", "medal", "trophy", "guardian"].includes(item.id) : item.category === filter)).map(item => {
         const owned = guildOwnedCount(save, "decor", item.id), available = availableRoomDecoration(save, item.id, room);
         return `<button type="button" class="guild-catalog-item" data-place-decor="${item.id}" aria-pressed="${placing === item.id}" ${available ? "" : "disabled"}><span class="guild-decor-art">${guildDecorArt(item.id)}</span><strong>${escape(item.name)}</strong><small>${owned ? `${available} disponibles · ${owned - available} colocados` : "Comprar en Tienda"}</small></button>`;
@@ -34,7 +49,7 @@ export function createGuildView(deps) {
     return `<div class="guild-clan-emblem" style="--clan-color:${CLAN_COLORS.find(entry => entry.id === clean.color).color}">${clanEmblemArt(clean.emblem)}</div><small>${clean.tag ? `[${escape(clean.tag)}]` : "TU FUTURO CLAN"}</small><h3>${escape(clean.name || "Nombre del clan")}</h3><p>${escape(clean.motto || "Un mismo camino. Un mismo emblema.")}</p>`;
   }
   function clanContents() {
-    return `<div class="guild-clan-layout"><section class="guild-clan-designer"><div class="guild-clan-preview" data-clan-preview>${emblemPreview()}</div><form data-clan-form><p class="eyebrow">DISEÑA TU IDENTIDAD</p><h3>Borrador de clan</h3><p>Guarda el nombre y el emblema en esta partida para cuando lleguen los clanes online.</p><div class="guild-clan-names"><label>Nombre<input name="name" maxlength="24" value="${escape(draft.name)}" placeholder="Nombre del clan"></label><label>Sigla<input name="tag" maxlength="4" value="${escape(draft.tag)}" placeholder="SOL" pattern="[A-Za-z0-9]{0,4}" title="Hasta cuatro letras o números"></label></div><label>Lema<input name="motto" maxlength="90" value="${escape(draft.motto)}" placeholder="El lema de tu clan"></label><fieldset><legend>Emblema</legend><div class="guild-emblem-options" role="group" aria-label="Emblema del clan">${CLAN_EMBLEMS.map(entry => `<button type="button" data-clan-emblem="${entry.id}" aria-label="${entry.name}" aria-pressed="${draft.emblem === entry.id}">${clanEmblemArt(entry.id)}<span>${entry.name}</span></button>`).join("")}</div></fieldset><label>Color del emblema<select name="color">${CLAN_COLORS.map(entry => `<option value="${entry.id}" ${draft.color === entry.id ? "selected" : ""}>${entry.name}</option>`).join("")}</select></label><button type="submit" data-clan-save>Guardar borrador</button></form></section><details class="guild-online-panel"><summary>Clanes online · Próximamente</summary><span class="guild-coming-soon">ONLINE · PRÓXIMAMENTE</span><h3>Espacio del clan</h3><p>Los clanes compartidos, sus miembros y las puntuaciones estarán disponibles al conectar el juego a un servidor.</p><div class="guild-online-actions"><button type="button" disabled>Crear clan online</button><button type="button" disabled>Buscar y unirse a un clan</button></div><h4>Clasificación de jugadores</h4><table><thead><tr><th>Puesto</th><th>Jugador</th><th>Puntos</th></tr></thead><tbody><tr><td colspan="3">La clasificación estará disponible online.</td></tr></tbody></table><h4>Clasificación de clanes</h4><table><thead><tr><th>Puesto</th><th>Clan</th><th>Puntos</th></tr></thead><tbody><tr><td colspan="3">La clasificación estará disponible online.</td></tr></tbody></table><p class="guild-local-note">El borrador es personal. La creación del clan y las invitaciones se habilitarán junto con el modo online.</p></details></div>`;
+    return `<div class="guild-clan-layout"><section class="guild-clan-designer"><div class="guild-clan-preview" data-clan-preview>${emblemPreview()}</div><form data-clan-form><p class="eyebrow">DISEÑA TU IDENTIDAD</p><h3>Borrador de clan</h3><div class="guild-clan-names"><label>Nombre<input name="name" maxlength="24" value="${escape(draft.name)}" placeholder="Nombre del clan"></label><label>Sigla<input name="tag" maxlength="4" value="${escape(draft.tag)}" placeholder="SOL" pattern="[A-Za-z0-9]{0,4}" title="Hasta cuatro letras o números"></label></div><label>Lema<input name="motto" maxlength="90" value="${escape(draft.motto)}" placeholder="El lema de tu clan"></label><fieldset><legend>Emblema</legend><div class="guild-emblem-options" role="group" aria-label="Emblema del clan">${CLAN_EMBLEMS.map(entry => `<button type="button" data-clan-emblem="${entry.id}" aria-label="${entry.name}" aria-pressed="${draft.emblem === entry.id}">${clanEmblemArt(entry.id)}<span>${entry.name}</span></button>`).join("")}</div></fieldset><label>Color del emblema<select name="color">${CLAN_COLORS.map(entry => `<option value="${entry.id}" ${draft.color === entry.id ? "selected" : ""}>${entry.name}</option>`).join("")}</select></label><button type="submit" data-clan-save>Guardar borrador</button></form></section><details class="guild-online-panel"><summary>Clanes online · Próximamente</summary><span class="guild-coming-soon">ONLINE · PRÓXIMAMENTE</span><h3>Espacio del clan</h3><p>Los clanes compartidos, sus miembros y las puntuaciones estarán disponibles al conectar el juego a un servidor.</p><div class="guild-online-actions"><button type="button" disabled>Crear clan online</button><button type="button" disabled>Buscar y unirse a un clan</button></div><h4>Clasificación de jugadores</h4><table><thead><tr><th>Puesto</th><th>Jugador</th><th>Puntos</th></tr></thead><tbody><tr><td colspan="3">La clasificación estará disponible online.</td></tr></tbody></table><h4>Clasificación de clanes</h4><table><thead><tr><th>Puesto</th><th>Clan</th><th>Puntos</th></tr></thead><tbody><tr><td colspan="3">La clasificación estará disponible online.</td></tr></tbody></table></details></div>`;
   }
   const paint = (focus = null) => {
     if (!host) return;
@@ -46,11 +61,12 @@ export function createGuildView(deps) {
     panel.setAttribute("aria-labelledby", `guild-tab-${tab}`);
     panel.innerHTML = tab === "room" ? roomContents() : clanContents();
     host.querySelector(".guild-message").textContent = message;
+    deps.onGuildGuide?.(guide);
     if (focus) host.querySelector(focus)?.focus({ preventScroll: true });
   };
   function commit(action, focus = null) {
     const result = updateGuildRoom(save, action);
-    if (result.ok) { save = deps.onPersist(result.save); if (action.type === "add") placing = null; }
+    if (result.ok) { save = deps.onPersist(recordKuroganeDecoration(result.save, action)); if (action.type === "add") placing = null; }
     selected = result.selected || (action.type === "remove" ? null : selected);
     message = result.message;
     paint(focus);
@@ -67,13 +83,26 @@ export function createGuildView(deps) {
   return {
     id: "guild",
     render(state) {
-      save = state.save; draft = { ...normalizeGuildState(save.guild, save).clanDraft };
+      save = state.save;
+      draft = { ...normalizeGuildState(save.guild, save).clanDraft };
       tab = "room"; selected = null; placing = null; filter = "all";
       message = "Tu espacio se guarda automáticamente. Compra más colores, suelos y decoraciones en la Tienda.";
       return `<section class="guild-hall" aria-label="Gremio" style="--guild-background:url('assets/locations/inn.webp?v=${deps.assetVersion}')"><header class="guild-heading"><div><h2>Un lugar al que volver</h2></div><span class="guild-personal-tag">ESPACIO DE ${escape(save.character.name.toUpperCase())}</span></header><nav class="guild-tabs" role="tablist" aria-label="Áreas del gremio"><button type="button" id="guild-tab-room" data-guild-tab="room" role="tab" aria-selected="true" aria-controls="guild-panel">Mi espacio</button><button type="button" id="guild-tab-clans" data-guild-tab="clans" role="tab" aria-selected="false" aria-controls="guild-panel" tabindex="-1">Clanes <small>Online próximamente</small></button></nav><p class="guild-message" role="status">${escape(message)}</p><div id="guild-panel" class="guild-body" role="tabpanel" aria-labelledby="guild-tab-room">${roomContents()}</div></section>`;
     },
     mount(root, scope) {
       host = root.querySelector(".guild-hall");
+      deps.onGuildGuide?.(guide);
+      if (guildGiftDeliveryPending(save)) {
+        const master = deps.masterForCharacter(save.character);
+        const alreadyOwned = ["plant", "novice"].every(type => guildOwnedCount(save, "decor", type) > 0);
+        const lines = GUILD_GIFT_DIALOGUE.map((text, index) => [master.name, index === 0 && alreadyOwned ? "Ese bonsái y esa insignia son los recuerdos que preparé para ti. Son el regalo de tu formación; conservarás los que ya tienes, sin recibir copias adicionales." : text]);
+        deps.showDialogue(lines, () => {
+          if (!host || !scope.isCurrent()) return;
+          save = deps.onPersist(receiveGuildGifts(save));
+          message = "Recibidos: bonsái del aprendiz e insignia de novicio.";
+          paint();
+        }, "RECIBIR LOS RECUERDOS", "story", { modal: true, label: "Los regalos de tu maestro" });
+      }
       scope.onCleanup(() => { drag = null; host = null; });
       scope.listen(host, "click", event => {
         const button = event.target.closest("button");
@@ -83,7 +112,7 @@ export function createGuildView(deps) {
         else if (data.guildTab) { tab = data.guildTab; placing = null; message = tab === "room" ? "Tu espacio se guarda automáticamente." : "Diseña y guarda tu identidad de clan. Las funciones online llegarán más adelante."; paint(`[data-guild-tab="${tab}"]`); }
         else if (data.roomWall) commit({ type: "finish", surface: "wall", value: data.roomWall }, `[data-room-wall="${data.roomWall}"]`);
         else if (data.decorFilter) { filter = data.decorFilter; paint(`[data-decor-filter="${filter}"]`); }
-        else if (data.placeDecor) { placing = data.placeDecor; selected = null; message = "Haz clic en la sala o usa Colocar para añadir una unidad de la decoración."; paint("[data-room-place]"); }
+        else if (data.placeDecor) { placing = data.placeDecor; selected = null; message = `${roomDecor(placing).name} seleccionado.`; paint("[data-room-place]"); }
         else if (button?.hasAttribute("data-room-place")) { commit({ type: "add", item: placing }); }
         else if (button?.hasAttribute("data-room-cancel")) { placing = null; paint(); }
         else if (data.roomObject) { selected = data.roomObject; placing = null; paint(`[data-room-object="${selected}"]`); }

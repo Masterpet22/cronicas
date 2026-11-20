@@ -10,8 +10,10 @@ async function seedDojo(page, bodyType, unlocked = false) {
   await page.evaluate(async ({ bodyType, unlocked }) => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.119.0");
     const { MISSIONS } = await import("/src/content/index.js");
+    const { FIRST_SAGA_CONCLUSION_NOTICE } = await import("/src/kurogane.js");
     const save = createCharacter(createDefaultSave(), { name: "Akio", affinity: "fuego", bodyType });
     save.campaign.tutorialSeen = true;
+    save.campaign.seenMissionNotices.push(FIRST_SAGA_CONCLUSION_NOTICE);
     if (unlocked) save.campaign.completedMissions = MISSIONS.map(mission => mission.id);
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
