@@ -164,7 +164,13 @@ for (const id of ["k01", "k02", "k03", "k04", "k05"]) test(`combate ${id}: compa
   });
   expect(state.companion).toBe("akari"); expect(state.enemies).toBe(id === "k01" ? 2 : 3);
   expect(state.units).toBe(state.enemies + 2);
-  if (id === "k03") expect(state.cargo).toBe(100);
+  if (id === "k03") {
+    expect(state.cargo).toBe(100);
+    expect(await page.evaluate(() => {
+      const s = window.__kuroganeGame.scene.getScene("battle");
+      return { texture: s.objective.fighter.body.texture.key, bar: s.objectiveHealthFill.displayWidth, value: s.objectiveLabel.text };
+    })).toEqual({ texture: "document-crate", bar: 66, value: "100/100" });
+  }
   await page.screenshot({ path: info.outputPath(`${id}-battle.png`) });
   // Exercise real shared attacks, CPU resource use, and the cargo targeting branch.
   const action = await page.evaluate(async () => {
@@ -196,7 +202,15 @@ for (const id of ["k01", "k02", "k03", "k04", "k05"]) test(`combate ${id}: compa
     return { allyDamage, enemyDamage, cargo: s.objective?.hp };
   });
   expect(combat.allyDamage).toBeGreaterThan(0); expect(combat.enemyDamage).toBeGreaterThan(0);
-  if (id === "k03") expect(combat.cargo).toBe(94);
+  if (id === "k03") {
+    expect(combat.cargo).toBe(94);
+    const bar = await page.evaluate(() => {
+      const s = window.__kuroganeGame.scene.getScene("battle");
+      return { width: s.objectiveHealthFill.displayWidth, value: s.objectiveLabel.text };
+    });
+    expect(bar.width).toBeCloseTo(66 * .94, 3); expect(bar.value).toBe("94/100");
+    await page.screenshot({ path: info.outputPath("caja-dañada.png") });
+  }
   const outcome = await page.evaluate(async () => {
     const s = window.__kuroganeGame.scene.getScene("battle");
     s.playBattleChoice = async () => "continue";

@@ -46,16 +46,17 @@ function armPose(rig, side, handCenter, palmAngle) {
 export function preparationClipForRig(clip, rig) {
   const torso = rig.byId.torso;
   const centerX = (rig.joints.shoulderLeft.x + rig.joints.shoulderRight.x) / 2;
-  const centerY = torso.y - torso.height * .16;
-  // Las manos de reposo ya tienen los dedos dibujados. Deja visibles ambas
-  // siluetas y acerca los dedos con una inclinación leve de cada muñeca.
-  const hand = rig.byId.mano_izquierda;
-  const halfGap = hand.width * (hand.scaleX ?? 1) * .42;
-  const pose = closing => ({
-    ...armPose(rig, "Left", { x: centerX + halfGap - 4 * closing, y: centerY - 12 - 5 * closing }, 168 - 5 * closing),
-    ...armPose(rig, "Right", { x: centerX - halfGap + 4 * closing, y: centerY + 6 - 10 * closing }, 192 + 5 * closing)
-  });
-  const from = pose(0), to = pose(1);
+  const wristY = torso.y - torso.height * .1;
+  const halfGap = torso.width * .105;
+  // Un sello dibujado para este gesto une las dos muñecas. Las manos se
+  // sostienen estables, sin abrir/cerrar los dedos de reposo durante la espera.
+  const pose = side => {
+    const hand = rig.byId[side === "Left" ? "mano_izquierda" : "mano_derecha"];
+    const wrist = rig.joints[`wrist${side}`];
+    return armPose(rig, side, { x: centerX + (side === "Left" ? halfGap : -halfGap) + hand.x - wrist.x,
+      y: wristY - hand.y + wrist.y }, 180);
+  };
+  const from = { ...pose("Left"), ...pose("Right") }, to = from;
   const tracks = clip.tracks.map(track => {
     const first = from[track.target], last = to[track.target];
     if (!first) return track;

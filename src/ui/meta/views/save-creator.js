@@ -1,7 +1,7 @@
 import { AFFINITY_CONFIG } from "../../../affinity-system.js?v=0.114.0";
 import { skinToneControlMarkup, syncSkinToneControl } from "../../skin-tone-control.js?v=0.135.0";
 import { normalizeSkinTone } from "../../../skin-tones.js?v=0.135.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.140.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.157.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([

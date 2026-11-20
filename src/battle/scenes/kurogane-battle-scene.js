@@ -1,7 +1,7 @@
-import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.156.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.156.0";
+import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.157.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.157.0";
 import { battleRuntime } from "../runtime.js?v=0.91.0";
-import { createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.156.0";
+import { createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.157.0";
 import { COMBAT_SLOTS, enemyFormation } from "../combat-positions.js?v=0.153.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { COMPANIONS, companionDecision } from "../../kurogane.js";
@@ -12,7 +12,7 @@ import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { showRetryDialog, consumeRetry } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.140.0";
 import { consumeBattleItem } from "../battle-inventory.js?v=0.155.0";
-import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.156.0";
+import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.157.0";
 import { timelineMarkerPosition } from "../timeline.js?v=0.69.0";
 import { ENEMY_ACTIONS } from "../../data.js?v=1.5.0";
 import { HUD_ART } from "../hud-art.js?v=0.155.0";
@@ -25,7 +25,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     super.preload();
     if (this.mission.groupCombat) {
       queuePlayerFighterTextures(this, appearance(this.saveData.campaign.kuroganeCompanion));
-      if (this.mission.protectObjective && !this.textures.exists("kurogane-documents")) this.load.svg("kurogane-documents", "assets/icons/lucide/scroll-text.svg", { width: 128, height: 128 });
+      if (this.mission.protectObjective && !this.textures.exists("document-crate")) this.load.image("document-crate", "assets/battle/document-crate.png?v=1.0.0");
     }
   }
   create() {
@@ -66,9 +66,12 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     if (this.mission.protectObjective) {
       const slot = COMBAT_SLOTS.protect, hp = this.mission.protectObjective.health;
       this.objective = { hp, maxHp: hp };
-      const body = this.add.image(slot.x, slot.y - 25, "kurogane-documents").setTint(0xffe1a4).setDisplaySize(44, 44).setDepth(7);
+      this.add.ellipse(slot.x, slot.y + 10, 64, 10, 0x000000, .3).setDepth(4);
+      const body = this.add.image(slot.x, slot.y + 12, "document-crate").setOrigin(.5, 1).setDisplaySize(76, 63).setDepth(7).setName("protected-cargo");
       this.objective.fighter = { body, targets: [body] };
-      this.objectiveLabel = this.add.text(slot.x, slot.y + 25, "", this.textStyle(11, "#ffe1a4", "800")).setOrigin(.5).setDepth(15);
+      this.add.rectangle(slot.x, slot.y + 24, 68, 10, 0x151a1d).setStrokeStyle(1, 0x5e574a).setDepth(15);
+      this.objectiveHealthFill = this.add.rectangle(slot.x - 33, slot.y + 24, 66, 8, 0x48a65a).setOrigin(0, .5).setDepth(15).setName("cargo-health-fill");
+      this.objectiveLabel = this.add.text(slot.x, slot.y + 24, "", this.textStyle(8, "#ffffff", "700")).setOrigin(.5).setDepth(16).setName("cargo-health-value");
     }
   }
   participants() {
@@ -122,7 +125,11 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
       this.companionHealthValue.setText(`${Math.max(0, state.hp)}/${state.maxHp} PV`);
       this.companionLabel.setText(state.hp <= 0 ? "Fuera de combate" : `${state.chakra}/${state.maxChakra} CH`);
     }
-    if (this.objectiveLabel) this.objectiveLabel.setText(`Documentos · ${this.objective.hp}/${this.objective.maxHp}`);
+    if (this.objectiveLabel) {
+      const hp = Math.max(0, this.objective.hp), ratio = Phaser.Math.Clamp(hp / this.objective.maxHp, 0, 1);
+      this.objectiveLabel.setText(`${hp}/${this.objective.maxHp}`);
+      this.objectiveHealthFill.setDisplaySize(66 * ratio, 8).setFillStyle(ratio > .3 ? 0x48a65a : 0xc45148);
+    }
   }
   async handleGroupArrival(arrival) {
     if (arrival.id !== "companion") return super.handleGroupArrival(arrival);

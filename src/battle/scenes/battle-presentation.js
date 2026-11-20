@@ -2,7 +2,7 @@ import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail,
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.155.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.156.0";
+import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.157.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";

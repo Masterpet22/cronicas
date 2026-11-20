@@ -1,6 +1,6 @@
 import { isBaseOutfitPart, baseOutfitAsset } from "../../base-outfit.js?v=0.140.0";
 import { ensureSkinToneFilters, normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.149.0";
+import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.157.0";
 
 export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null } = {}) {
   ensureSkinToneFilters();

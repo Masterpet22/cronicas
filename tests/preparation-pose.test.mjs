@@ -19,7 +19,8 @@ function posedHand(rig, pose, side) {
   const lower = rotate({ x: wrist.x - elbow.x, y: wrist.y - elbow.y }, lowerAngle);
   const palm = rotate({ x: wrist.x - hand.x, y: hand.y - wrist.y }, handAngle);
   const offset = pose[`shoulder${side}`];
-  return { x: shoulder.x + offset.x + upper.x + lower.x + palm.x, y: shoulder.y + offset.y + upper.y + lower.y + palm.y, angle: handAngle };
+  return { x: shoulder.x + offset.x + upper.x + lower.x + palm.x, y: shoulder.y + offset.y + upper.y + lower.y + palm.y, angle: handAngle,
+    wristX: shoulder.x + offset.x + upper.x + lower.x, wristY: shoulder.y + offset.y + upper.y + lower.y };
 }
 
 const base = PUPPET_ANIMATION_CLIPS["prepare-technique"], original = structuredClone(base);
@@ -32,8 +33,9 @@ for (const [bodyType, rig] of Object.entries(CHARACTER_RIGS)) {
     const left = posedHand(rig, pose, "Left"), right = posedHand(rig, pose, "Right");
     assert.ok(pose.shoulderLeft.x < 0 && pose.shoulderRight.x > 0, `${bodyType}: ambos hombros se acercan al torso`);
     assert.ok(left.x > right.x, `${bodyType}: las manos no deben cruzarse hacia los lados opuestos`);
-    assert.ok(left.x - right.x > rig.byId.torso.width * .22 && left.x - right.x < rig.byId.torso.width * .35,
-      `${bodyType}: las dos manos deben verse juntas y sin ocultarse`);
+    assert.ok(Math.abs(left.wristX - right.wristX - rig.byId.torso.width * .21) < .001,
+      `${bodyType}: las muñecas coinciden con los dos extremos del sello dibujado`);
+    assert.ok(Math.abs(left.wristY - right.wristY) < .001, "El sello permanece vertical y estable");
     for (const hand of [left, right]) {
       assert.ok(Math.abs(hand.x - centerX) < rig.byId.torso.width * .18, `${bodyType}: gesto centrado`);
       assert.ok(hand.y < rig.byId.torso.y && hand.y > rig.joints.neck.y, `${bodyType}: gesto a la altura del pecho`);

@@ -1,13 +1,14 @@
 import { runCycleForRig } from "./animations/locomotion-pose.js?v=0.156.0";
+import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands } from "./animations/preparation-hands.js?v=0.157.0";
 import { isBaseOutfitPart } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
 import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.156.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.156.0";
-import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.156.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.157.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.157.0";
+import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.157.0";
 import {
   CHARACTER_FACES,
   CHARACTER_HAIR,
@@ -17,7 +18,7 @@ import {
   WOMAN_SPRITE_JOINTS as UPDATED_WOMAN_SPRITE_JOINTS,
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
   characterHairConfig
-} from "./character-rigs.js?v=0.149.0";
+} from "./character-rigs.js?v=0.157.0";
 
 const FIGHTER_GROUND_OFFSET = 60;
 export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;
@@ -119,6 +120,7 @@ export function fighterCombatPortraitLayout(appearance, flipped = false, radius 
 }
 
 export function preparePlayerFighterTextures(scene, appearance) {
+  prepareHandsTexture(scene, appearance);
   const variant = puppetVariant(appearance);
   const skinParts = variant.layers.map(({ id }) => id).filter(id => !isBaseOutfitPart(id));
   const skinKey = `${sourceAtlasKey(variant)}-${normalizeSkinTone(appearance?.skinTone)}`;
@@ -127,6 +129,7 @@ export function preparePlayerFighterTextures(scene, appearance) {
 }
 
 export function queuePlayerFighterTextures(scene, appearance) {
+  queuePreparationHands(scene);
   queueUniformTextures(scene, appearance);
   const variant = puppetVariant(appearance);
   const key = sourceAtlasKey(variant);
@@ -184,8 +187,11 @@ function bringPreparationForearmForward(scene, fighter) {
     // mano cruzan por delante mediante un pivote con la misma transformación.
     const pivot = scene.add.container();
     rig.addAt(pivot, rig.getIndex(torso) + 1);
-    const sync = () => pivot.setPosition(shoulderLeft.x, shoulderLeft.y)
-      .setRotation(shoulderLeft.rotation).setScale(shoulderLeft.scaleX, shoulderLeft.scaleY);
+    const sync = () => {
+      pivot.setPosition(shoulderLeft.x, shoulderLeft.y)
+        .setRotation(shoulderLeft.rotation).setScale(shoulderLeft.scaleX, shoulderLeft.scaleY);
+      syncPreparationHands(fighter);
+    };
     const detach = () => scene.events.off("postupdate", sync);
     pivot.once("destroy", detach);
     fighter.preparationForearm = { pivot, sync, detach };
@@ -202,13 +208,14 @@ function setPreparationHands(fighter, reflected) {
   if (reflected) {
     if (fighter.preparationHands) return;
     fighter.preparationHands = fighter.layers.filter(layer => ["mano_izquierda", "mano_derecha"].includes(layer.name))
-      .map(hand => ({ hand, x: hand.x, flipX: hand.flipX }));
+      .map(hand => ({ hand, x: hand.x, flipX: hand.flipX, visible: hand.visible }));
     fighter.preparationHands.forEach(({ hand, x, flipX }) => {
       hand.flipX = !flipX;
       hand.x = -x;
     });
   } else {
-    fighter.preparationHands?.forEach(({ hand, x, flipX }) => { hand.x = x; hand.flipX = flipX; });
+    fighter.preparationSeal?.setVisible(false);
+    fighter.preparationHands?.forEach(({ hand, x, flipX, visible }) => { hand.x = x; hand.flipX = flipX; hand.visible = visible; });
     fighter.preparationHands = null;
   }
 }
@@ -436,6 +443,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
     "run-cycle": runCycleForRig(variant),
     "prepare-technique": preparationClipForRig(PUPPET_ANIMATION_CLIPS["prepare-technique"], variant) };
   const fighter = { shadow, body, head, face, hair, tail, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
+  createPreparationHands(scene, fighter, appearance, variant);
   fighter.animations = createPuppetAnimationController(scene, fighter);
   startPlayerBreathing(scene, fighter);
   return fighter;

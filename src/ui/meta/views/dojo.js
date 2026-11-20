@@ -1,5 +1,5 @@
 import { COMPANIONS, chooseCompanion, kuroganeCompleted } from "../../../kurogane.js";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.140.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.157.0";
 import { createDojoTechniques } from "../dojo-techniques.js?v=0.140.0";
 import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.140.0";
 import { countItem, equipItem } from "../../../inventory.js?v=0.140.0";

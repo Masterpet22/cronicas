@@ -58,7 +58,9 @@ for (const renderer of ["Canvas", "WebGL"]) {
       const palmsReflected = fighter.layers.filter(layer => layer.name.startsWith("mano_")).every(hand => hand.flipX);
       const forearmPivot = elbowLeft.parentContainer;
       const torsoIndex = fighter.rig.getIndex(fighter.sprite);
-      return palmsReflected && distance > width * .22 && distance < width * .35 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
+      return palmsReflected && fighter.preparationSeal.visible
+        && fighter.layers.filter(layer => layer.name.startsWith("mano_")).every(hand => !hand.visible)
+        && distance > width * .14 && distance < width * .25 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
         && Math.abs(ankle.x - feet.x) < .01 && Math.abs(ankle.y - feet.y) < .01
         && bootSoles.every(y => Math.abs(y - fighter.shadow.y) < 1)
         && fighter.rig.getIndex(shoulderLeft) < torsoIndex && fighter.rig.getIndex(forearmPivot) > torsoIndex
@@ -80,6 +82,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
     await page.evaluate(async () => {
       const { scene, fighters, api } = window.__preparationTest;
       const reactions = fighters.map(({ fighter }) => api.playFighterDamageReaction(scene, fighter, { heavy: true }));
+      if (fighters.some(({ fighter }) => fighter.preparationSeal.visible)) throw new Error("El sello debe ocultarse durante el daño");
       if (fighters.some(({ fighter }) => fighter.layers.some(hand => hand.name.startsWith("mano_") && hand.flipX))) throw new Error("El daño debe restaurar las manos antes de reaccionar");
       await Promise.all(reactions);
     });
@@ -100,6 +103,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
       return fighters.map(({ fighter, neutral, armDepth }) => {
         api.stopPlayerBreathing(fighter);
         return fighter.rig.getIndex(fighter.joints.shoulderLeft) === armDepth
+          && !fighter.preparationSeal.visible
           && fighter.layers.filter(hand => hand.name.startsWith("mano_")).every(hand => !hand.flipX)
           && fighter.joints.elbowLeft.parentContainer === fighter.joints.shoulderLeft
           && Object.entries(neutral).every(([key, base]) => ["x", "y", "angle"].every(property => Math.abs(fighter.joints[key][property] - base[property]) < .001));
