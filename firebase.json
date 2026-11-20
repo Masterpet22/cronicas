@@ -4,5 +4,10 @@
     "location": "southamerica-west1",
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions",
+    "codebase": "arena",
+    "runtime": "nodejs22"
   }
 }

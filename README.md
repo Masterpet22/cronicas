@@ -47,7 +47,11 @@ La base de datos reserva `cronicasRankings/{boardId}/rankedEntries/{publicId}` p
 
 El navegador podrá consultar hasta 50 entradas por página, ordenadas por `score` descendente y `achievedAt` ascendente. El identificador del documento desempata puntuaciones y fechas idénticas. Usa un cursor de documento para paginar. El orden está preparado en [firestore.indexes.json](firestore.indexes.json).
 
-Un servicio autorizado por IAM deberá validar los resultados y publicar las puntuaciones cuando se implemente el modo clasificatorio. Las reglas permiten las consultas públicas de la tabla y bloquean las escrituras desde el navegador. El progreso guardado y los resultados de las exhibiciones locales proceden del equipo del jugador y quedan fuera de la clasificación competitiva.
+La Arena y el selector de partidas consultan el tablero `arena` al abrir la clasificación y muestran 20 posiciones por página. Un servicio de combates autorizado por IAM deberá verificar el duelo y calcular la puntuación según las reglas competitivas antes de crear `cronicasRankedMatches/{matchId}`. El documento es privado e inmutable por contrato. Contiene `mode: "arena-ranked"`, `status: "validated"`, `winnerUid` (o `null` para un empate) y dos `players` distintos. Cada jugador lleva `kind: "player"`, `uid`, `sequence` creciente por cuenta, `score` acumulado, `achievedAt` como marca de tiempo de Firestore, `alias` autorizado (o `null` para ocultar la entrada) y, si corresponde, `tier`.
+
+`publishArenaRankedMatch` procesa ese documento en Cloud Functions. En una transacción proyecta únicamente los campos públicos bajo un identificador aleatorio y registra la secuencia procesada para ignorar reintentos y eventos antiguos. El navegador tiene acceso de lectura paginada a la tabla. Tanto los resultados validados como el estado del publicador quedan reservados a servicios con permisos IAM. Las exhibiciones locales quedan fuera del circuito competitivo.
+
+Para probar el publicador, instala las dependencias con `npm ci --prefix functions` y ejecuta `firebase emulators:exec --project demo-cronicas --only firestore,functions "npm --prefix functions test"`. La función se puede desplegar con `firebase deploy --project cronicas-f112f --only functions:arena` cuando el proyecto tenga el plan Blaze. El servicio que valida y puntúa combates deberá usar una identidad de servicio autorizada.
 
 ## Controles
 

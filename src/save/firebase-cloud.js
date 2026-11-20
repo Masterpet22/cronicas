@@ -1,16 +1,9 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-auth.js";
 import { doc, getDoc, getFirestore, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore-lite.js";
+import { firebaseApp } from "../firebase-app.js?v=1.0.0";
 
-// Configuración pública de la aplicación web de Firebase.
-const app = initializeApp({
-  apiKey: "AIzaSyBcfzt3BP3iT80WhFjBR0n35-xIfw01vOs",
-  authDomain: "cronicas-f112f.firebaseapp.com",
-  projectId: "cronicas-f112f",
-  appId: "1:17644932355:web:529738bf95039595e46d36"
-});
-const auth = getAuth(app);
-const db = getFirestore(app);
+const auth = getAuth(firebaseApp);
+const db = getFirestore(firebaseApp);
 const saveRef = (uid, slot) => doc(db, "cronicasPlayers", uid, "saves", String(slot));
 
 export const ready = () => auth.authStateReady();

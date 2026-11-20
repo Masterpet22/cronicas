@@ -5,6 +5,7 @@ import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.159.0"
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
 import { createCloudSavePanel } from "../cloud-saves.js?v=2.0.0";
 import { cloudSession } from "../../../save/cloud-session.js?v=1.0.0";
+import { arenaRankingsMarkup, mountArenaRankings } from "../arena-rankings.js?v=1.0.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([
   { id: 0, label: "Sin cabello" }, { id: 1, label: "Corto" }, { id: 4, label: "Coleta" }
@@ -61,7 +62,7 @@ export function createSaveCreatorView(deps) {
   }
 
   function renderSaveSlots() {
-    return `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p>${cloudSaves.markup()}<div class="save-slot-grid">${renderSaveCards()}</div></section>`;
+    return `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p>${cloudSaves.markup()}${arenaRankingsMarkup}<div class="save-slot-grid">${renderSaveCards()}</div></section>`;
   }
 
   function renderCreator() {
@@ -106,6 +107,7 @@ export function createSaveCreatorView(deps) {
     mount(root, scope) {
       if (currentState?.mode === "slots") {
         cloudSaves.mount(root, scope);
+        mountArenaRankings(root, scope, deps.escapeHtml);
         const grid = root.querySelector(".save-slot-grid");
         let markup = renderSaveCards();
         scope.onCleanup(cloudSession.subscribe(() => {

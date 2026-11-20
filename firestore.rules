@@ -24,5 +24,13 @@ service cloud.firestore {
       allow list: if request.query.limit > 0 && request.query.limit <= 50
         && request.query.get('offset', 0) == 0;
     }
+
+    match /cronicasRankedMatches/{matchId} {
+      allow read, write: if false;
+    }
+
+    match /cronicasRankingState/{document=**} {
+      allow read, write: if false;
+    }
   }
 }

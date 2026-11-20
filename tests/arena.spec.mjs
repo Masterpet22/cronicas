@@ -56,7 +56,8 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1280, height: 720
   await page.getByRole("tab", { name: /Multijugador/ }).click();
   await expect(page.getByRole("button", { name: "Buscar duelo amistoso" })).toBeDisabled();
   await expect(page.getByRole("button", { name: "Buscar combate clasificatorio" })).toBeDisabled();
-  await expect(page.locator(".arena-rankings")).toContainText("Disponible con el modo online");
+  await expect(page.locator(".arena-rankings > summary")).toHaveText("Clasificación de Arena");
+  await expect(page.locator(".arena-rankings table")).toBeHidden();
   await page.screenshot({ path: testInfo.outputPath("arena-online-pendiente.png") });
   expect(await stored(page)).toBe(baseline);
 });
