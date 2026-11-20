@@ -53,8 +53,8 @@ export function mountAccessibleBattleHud(scene) {
   pause.addEventListener('click', () => scene.openBattlePause());
   const utilities = document.createElement('div');
   utilities.className = 'combat-access-utilities';
-  utilities.append(pause);
   const inventory = mountBattleInventory(scene, utilities);
+  utilities.append(pause);
   phase.append(phaseText, utilities);
   summary.append(phase);
   const spacer = document.createElement('div');
@@ -194,7 +194,7 @@ export function mountAccessibleBattleHud(scene) {
   message.className = 'combat-access-message';
   message.setAttribute('role', 'status');
   root.append(summary, spacer, actions, progress, message);
-  const roster = mountHudRoster(scene, root);
+  const roster = mountHudRoster(scene, root, utilities);
   scene.game.canvas.parentElement.append(root);
   scene.combatIndicators = mountFighterIndicators(scene, root);
   let visibilityLocks = 0;

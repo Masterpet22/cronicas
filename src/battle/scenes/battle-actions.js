@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
+import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -24,17 +24,22 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
 export class BattleActionMethods {
-  async playSeals(jutsu, { actor = "player" } = {}) {
+  async playSeals(jutsu, { actor = "player", fighter } = {}) {
     const playerCasting = actor === "player";
-    startPlayerPreparing(this, playerCasting ? this.hero : this.foe);
+    const companionCasting = actor === "companion";
+    const castingFighter = fighter || (playerCasting ? this.hero : this.foe);
+    startPlayerPreparing(this, castingFighter);
     const manualCasting = playerCasting && this.manualSeals;
     const speedFactor = playerCasting && this.seenJutsus.has(jutsu.id) ? 0.55 : 1;
-    this.sealPrompt = this.add.text(0, jutsu.cinematic ? 195 : 66, "", this.textStyle(12, "#eaf7ff", "800"))
+    // Leave the three utility buttons above the seal cards, with the prompt
+    // at its original world height so it does not descend onto the fighters.
+    this.sealLayer.setY(jutsu.cinematic ? 120 : 132);
+    this.sealPrompt = this.add.text(0, jutsu.cinematic ? 195 : 54, "", this.textStyle(12, "#eaf7ff", "800"))
       .setOrigin(0.5)
       .setPadding(14, 7)
       .setBackgroundColor("rgba(2, 8, 18, 0.9)");
     this.sealLayer.add(this.sealPrompt);
-    if (!playerCasting) this.setSealPrompt(`SELLOS DEL RIVAL · ${jutsu.name.toUpperCase()}`);
+    if (!playerCasting) this.setSealPrompt(`${companionCasting ? `SELLOS DE ${this.companion.definition.name.split(" ")[0].toUpperCase()}` : "SELLOS DEL RIVAL"} · ${jutsu.name.toUpperCase()}`);
     let overlay;
     if (jutsu.cinematic) {
       overlay = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020307, 0.92).setOrigin(0).setDepth(20).setAlpha(0);
@@ -44,7 +49,7 @@ export class BattleActionMethods {
     }
 
     const spacing = jutsu.cinematic ? 122 : 96;
-    const size = jutsu.cinematic ? 104 : 80;
+    const size = jutsu.cinematic ? 104 : 72;
     const shuffledSealIds = [...jutsu.seals];
     for (let i = shuffledSealIds.length - 1; i > 0; i -= 1) {
       const swapIndex = Phaser.Math.Between(0, i);
@@ -84,7 +89,7 @@ export class BattleActionMethods {
         mistakes += result.mistakes;
         current.plate.setStrokeStyle(3, result.timedOut ? 0xff665f : result.mistakes === 0 ? 0x66efad : 0xffc46b, 1);
       } else {
-        this.setSealPrompt(`${playerCasting ? "EJECUTANDO" : "SELLOS DEL RIVAL ·"} ${current.seal.label.toUpperCase()}  (${i + 1}/${cards.length})`);
+        this.setSealPrompt(`${playerCasting ? "EJECUTANDO" : companionCasting ? "SELLOS DEL COMPAÑERO ·" : "SELLOS DEL RIVAL ·"} ${current.seal.label.toUpperCase()}  (${i + 1}/${cards.length})`);
         await this.delay((jutsu.cinematic ? 230 : 175) * speedFactor);
         current.plate.setStrokeStyle(3, 0x68a8ff, 1);
       }
@@ -96,7 +101,7 @@ export class BattleActionMethods {
 
     const multiplier = manualCasting ? (mistakes === 0 ? 1.1 : mistakes <= 2 ? 1 : 0.85) : 1;
     const quality = !manualCasting
-      ? playerCasting ? "Secuencia automática completada." : "El rival ha completado sus sellos."
+      ? playerCasting ? "Secuencia automática completada." : `${companionCasting ? "Tu compañero" : "El rival"} ha completado sus sellos.`
       : mistakes === 0
         ? "Secuencia perfecta: +10 % de daño."
         : mistakes <= 2
@@ -104,7 +109,8 @@ export class BattleActionMethods {
           : "Secuencia inestable: daño reducido.";
     const qualityColor = !manualCasting || mistakes <= 2 ? (manualCasting && mistakes === 0 ? "#79e8b5" : "#f7d6a5") : "#ff9d8d";
     this.setSealPrompt(quality, qualityColor);
-    this.clearPreparationFeedback(actor);
+    if (companionCasting) stopPlayerPreparing(this, castingFighter);
+    else this.clearPreparationFeedback(actor);
     await this.delay(320);
     this.tone(580, 0.11);
     this.tweens.add({ targets: this.sealLayer, scale: 1.08, duration: 90, yoyo: true });
@@ -112,6 +118,7 @@ export class BattleActionMethods {
     this.sealLayer.removeAll(true);
     this.sealPrompt = null;
     this.sealLayer.setScale(1);
+    this.sealLayer.setY(120);
     if (overlay) {
       this.tweens.add({ targets: overlay, alpha: 0, duration: 140, onComplete: () => overlay.destroy() });
       await this.delay(120);

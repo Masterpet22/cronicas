@@ -89,7 +89,7 @@ export class BattleScene extends Phaser.Scene {
       .map(id => resolveEnemyProfileForBattle(ENEMY_ROSTER[id], battleRuntime.activeMission, playerAffinity))
       .flatMap(profile => [...(profile.pattern || []), ...(profile.phase2Pattern || [])]);
     const enemyNeedsSeals = enemyAbilities.some(id => ENEMY_ACTIONS[id]?.seals?.length);
-    const needsSealSheet = enemyNeedsSeals || this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
+    const needsSealSheet = Boolean(battleRuntime.activeMission.groupCombat) || enemyNeedsSeals || this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet && !this.textures.exists("sealSheet")) this.load.image("sealSheet", "assets/sellos-constelaciones.png?v=1.0.1");
     this.battleVisualAbilities = [...new Set([...this.battleLoadout, ...enemyAbilities])];
     Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {

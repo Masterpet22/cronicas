@@ -15,7 +15,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const heading = document.createElement("span"); heading.className = "combat-table-heading"; heading.setAttribute("aria-hidden", "true");
   const button = document.createElement("button"); button.type = "button"; button.className = "combat-table-switch";
   button.dataset.skillTableSwitch = ""; button.setAttribute("aria-controls", "combat-action-list");
-  button.setAttribute("aria-keyshortcuts", "0");
+  button.setAttribute("aria-keyshortcuts", "Tab");
   button.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 7h15m-4-4 4 4-4 4M20 17H5m4 4-4-4 4-4"/></svg><span class="combat-table-switch-label"></span>';
   const live = document.createElement("span"); live.className = "combat-table-announcement"; live.setAttribute("role", "status");
   tools.append(heading, button, live); root.insertBefore(tools, actions); actions.id = "combat-action-list";
@@ -45,13 +45,13 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
     const disabled = Boolean(switching || blocked());
     if (root.dataset.skillTable !== table) {
       root.dataset.skillTable = table;
-      (training ? caption : heading).textContent = training ? table === "elemental" ? "ELEMENTALES" : "FÍSICAS" : "TÉCNICAS";
-      button.setAttribute("aria-label", `Cambiar a habilidades ${target} (0)`);
+      (training ? caption : heading).textContent = table === "elemental" ? "ELEMENTO" : "FÍSICA";
+      button.setAttribute("aria-label", `Cambiar a habilidades ${target} (Tab)`);
       button.setAttribute("aria-pressed", String(table === "physical"));
-      button.querySelector("span").textContent = table === "elemental" ? "Físicas · 0" : "Elementales · 0";
+      button.querySelector("span").textContent = table === "elemental" ? "Física · Tab" : "Elemento · Tab";
     }
     if (button.disabled !== disabled) button.disabled = disabled;
-    setHudAttribute(button, "title", scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange ? "La guía indicará cuándo cambiar de tabla con 0." : `Cambiar a habilidades ${target} · Tecla 0`);
+    setHudAttribute(button, "title", scene.combatTutorial?.active && !scene.combatTutorial.allowTableChange ? "La guía indicará cuándo cambiar de tabla con Tab." : `Cambiar a habilidades ${target} · Tab`);
     if (training) {
       const count = Math.max(1, Math.ceil(moves[table].length / 4));
       const hidden = count === 1;

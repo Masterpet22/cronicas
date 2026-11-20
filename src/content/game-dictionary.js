@@ -30,7 +30,7 @@ export const GAME_DICTIONARY = Object.freeze([
   entry("cooldown", "Enfriamiento", "Combate", "Espera necesaria antes de volver a utilizar una técnica."),
   entry("status", "Estado alterado", "Combate", "Efecto temporal como quemadura, sangrado o aturdimiento."),
   entry("duel", "Duelo", "Combate", "Enfrentamiento uno contra uno. Una misión puede tener varios duelos consecutivos."),
-  entry("skill-tables", "Tablas de habilidades", "Combate", "La tabla elemental contiene tus técnicas preparadas; la física contiene arma, shuriken y taijutsu. La tecla 0 cambia entre ambas sin consumir una acción. Golpe veloz y Guardia permanecen en 1 y 6.", ["ventana de habilidades", "tabla física", "tabla elemental"]),
+  entry("skill-tables", "Tablas de habilidades", "Combate", "La tabla elemental contiene tus técnicas preparadas; la física contiene arma, shuriken y taijutsu. La tecla Tab cambia entre ambas sin consumir una acción. Golpe veloz y Guardia permanecen en 1 y 6.", ["ventana de habilidades", "tabla física", "tabla elemental"]),
   entry("mission-phase", "Fase de misión", "Misiones", "Tramo de una misión. En una cadena de combates, cada fase presenta un rival distinto en un duelo uno contra uno. Es diferente de una fase de jefe."),
   entry("boss-phase", "Fase de jefe", "Combate", "Cambio de patrón y atributos del mismo jefe durante un duelo, como la fase II al llegar a la mitad de vida. No inicia otro encuentro ni reinicia tu vida o tus enfriamientos.", ["fase de enemigo", "fase II"]),
   entry("headquarters", "Cuartel General", "Lugares", "Centro de la historia principal y las sagas. Ren abre su acceso en el prólogo.", ["cuartel"]),

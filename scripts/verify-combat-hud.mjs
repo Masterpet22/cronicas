@@ -51,7 +51,7 @@ if (groupMode) {
   const cards = page.locator('.combat-roster-enemies .combat-roster-card');
   assert.equal(await cards.count(), 2);
   assert.equal(await page.locator('.combat-roster-allies .combat-roster-card').count(), 1);
-  assert.match(await page.locator('.combat-mission-objective').innerText(), /documentos de transporte/);
+  assert.equal(await page.locator('.combat-mission-objective').count(), 0);
   const selected = await page.evaluate(() => window.__hudScene.selectedTargetIndex);
   await cards.first().click();
   assert.notEqual(await page.evaluate(() => window.__hudScene.selectedTargetIndex), selected);
@@ -62,7 +62,11 @@ if (groupMode) {
     s.objective.hp = 64; s.refreshHud();
   });
   assert.match(await page.locator('.combat-roster-allies').innerText(), /51\/60/);
+  await page.locator('.combat-access-objectives').click();
+  assert.match(await page.locator('.combat-mission-objective').innerText(), /documentos de transporte/);
   assert.match(await page.locator('.combat-mission-objective').innerText(), /64\/100/);
+  await page.locator('[data-objectives-close]').click();
+  await page.waitForFunction(() => window.__hudScene.scene.isActive());
   assert.ok(await cards.locator('progress').evaluateAll(meters => meters.every(meter => getComputedStyle(meter).direction === 'rtl')),
     'Las barras secundarias enemigas deben vaciarse desde el mismo extremo que el panel principal');
   assert.ok(await page.evaluate(() => {

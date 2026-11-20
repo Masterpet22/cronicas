@@ -165,12 +165,12 @@ for (const width of [1280, 1600]) test(`la descripción del shuriken cabe en la 
   await card.screenshot({ path: info.outputPath(`shuriken-${width}.png`) });
 });
 
-test("0 y Numpad0 cambian la tabla una vez sin gastar turno ni recursos", async ({ page }) => {
+test("Tab cambia la tabla una vez sin gastar turno ni recursos", async ({ page }) => {
   await bootPerformanceReference(page);
   await page.evaluate(() => { const s = window.__performanceReference.scene; s.busy = false; s.turnReady = true; s.refreshHud(); });
   const before = await page.evaluate(() => { const s = window.__performanceReference.scene; return [s.round, s.player.hp, s.player.chakra]; });
-  await page.keyboard.press("0"); await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", "physical");
-  await page.keyboard.press("Numpad0"); await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", "elemental");
+  await page.keyboard.press("Tab"); await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", "physical");
+  await page.keyboard.press("Tab"); await expect(page.locator(".combat-access")).toHaveAttribute("data-skill-table", "elemental");
   expect(await page.evaluate(() => { const s = window.__performanceReference.scene; return [s.round, s.player.hp, s.player.chakra]; })).toEqual(before);
   await page.evaluate(() => { const field = document.createElement("input"); field.id = "shortcut-input"; document.body.append(field); field.focus(); });
   await page.keyboard.press("0"); await expect(page.locator("#shortcut-input")).toHaveValue("0");

@@ -863,9 +863,12 @@ export class BattlePresentationMethods {
     // A physical key press must only activate its action once.
     const handledShortcutEvents = new WeakSet();
     this.onActionShortcut = (event) => {
-      if (event.key === "0" || event.code === "Numpad0") {
-        if (event.repeat || event.defaultPrevented || handledShortcutEvents.has(event) || event.target?.closest?.("input, textarea, select, [contenteditable=true]")) return;
-        handledShortcutEvents.add(event); event.preventDefault(); this.accessibleHud?.toggleSkillTable?.(); return;
+      if (event.key === "Tab") {
+        if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.repeat || event.defaultPrevented || handledShortcutEvents.has(event)
+          || event.target?.closest?.("dialog, input, textarea, select, [contenteditable=true], .combat-access-utilities, .training-target-hit, .combat-roster-card")) return;
+        handledShortcutEvents.add(event);
+        if (this.accessibleHud?.toggleSkillTable?.()) event.preventDefault();
+        return;
       }
       const index = Number(event.key) - 1;
       if (!Number.isInteger(index) || index < 0 || index >= this.actions.length || handledShortcutEvents.has(event)) return;
@@ -876,7 +879,15 @@ export class BattlePresentationMethods {
       if (jutsu) this.useJutsu(jutsu);
     };
     this.input.keyboard.on("keydown", this.onActionShortcut);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.input.keyboard.off("keydown", this.onActionShortcut));
+    // Tab must be consumed before the browser moves focus, rather than next frame.
+    const onTableShortcut = event => {
+      if (event.key === "Tab" && isSceneActive(this.scene)) this.onActionShortcut(event);
+    };
+    document.addEventListener("keydown", onTableShortcut);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.input.keyboard.off("keydown", this.onActionShortcut);
+      document.removeEventListener("keydown", onTableShortcut);
+    });
     this.applyBattleInterfaceTheme(this.hudTheme);
   }
 

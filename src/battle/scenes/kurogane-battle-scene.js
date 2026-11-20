@@ -36,7 +36,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     super.create();
     if (!this.mission.groupCombat) return;
     this.refreshHud();
-    this.setMessage("Elige un rival con toque o Tab y Enter. Tu compañero tiene su propio turno. Guardia protege también los documentos cuando hay carga.");
+    this.setMessage("Elige un rival con toque o los controles de objetivo. Tu compañero tiene su propio turno. Guardia protege también los documentos cuando hay carga.");
   }
   createFighters() {
     if (!this.mission.groupCombat) return super.createFighters();
@@ -132,7 +132,8 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     if (!ally.pending) {
       const decision = companionDecision(ally.id, ally.state, this.player, this.trainingTargets, this.objective);
       if (!decision) return;
-      ally.pending = { ...decision, seals: decision.type === "strike" ? [] : ["cpu"] };
+      const ability = ENEMY_ACTIONS[decision.type === "barrier" ? "water_wall" : ally.id === "haruto" ? "wind_palm" : "water_bullet"];
+      ally.pending = { ...decision, seals: decision.type === "strike" ? [] : [...ability.seals] };
       if (decision.type !== "strike") { startPlayerPreparing(this, ally.fighter); this.setMessage(`${ally.definition.name} prepara ${decision.type === "barrier" ? "Barrera de Agua" : ally.definition.technique}.`); return this.runTurnTimeline(); }
     }
     const action = ally.pending;
@@ -146,6 +147,12 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
         ally.state.statuses = ally.state.statuses.filter(status => status !== stun);
         this.setMessage(`${ally.definition.name} está aturdido y pierde su acción.`);
         await this.delay(420); return;
+      }
+      if (action.type !== "strike") {
+        const ability = ENEMY_ACTIONS[action.type === "barrier" ? "water_wall" : ally.id === "haruto" ? "wind_palm" : "water_bullet"];
+        await this.playSeals({ ...ability, seals: [...ability.seals],
+          name: action.type === "barrier" ? "Barrera de Agua" : ally.definition.technique }, { actor: "companion", fighter: ally.fighter });
+        if (!current()) return;
       }
       ally.state.chakra -= action.cost;
       if (action.type === "barrier") {

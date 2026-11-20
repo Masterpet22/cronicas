@@ -2,9 +2,10 @@ import { fighterAtlasKey, fighterFaceTextureKey, fighterCombatPortraitLayout, us
 import { enemyFighterAppearance } from '../character.js?v=0.119.0';
 import { setHudText, setHudProgress, setHudAttribute } from './hud-dom.js?v=1.0.0';
 import { hudPanelOrnaments } from './hud-chrome.js?v=0.140.0';
+import { mountBattleObjectives } from './battle-objectives.js?v=1.0.0';
 
 // The reference's smaller team plates reflect live participants, never a mock roster.
-export function mountHudRoster(scene, root) {
+export function mountHudRoster(scene, root, utilities) {
   const objective = document.createElement('aside');
   objective.className = 'combat-mission-objective';
   objective.innerHTML = hudPanelOrnaments();
@@ -16,7 +17,8 @@ export function mountHudRoster(scene, root) {
   allies.className = 'combat-roster combat-roster-allies';
   const enemies = document.createElement('div');
   enemies.className = 'combat-roster combat-roster-enemies';
-  root.append(objective, allies, enemies);
+  root.append(allies, enemies);
+  const objectives = mountBattleObjectives(scene, utilities, objective);
 
   function portrait(canvas, appearance, flipped) {
     const ctx = canvas.getContext('2d');
@@ -84,6 +86,7 @@ export function mountHudRoster(scene, root) {
   let allyCard;
   const enemyCards = [];
   return { refresh() {
+    objectives.refresh();
     const ally = scene.companion;
     allies.hidden = !ally;
     if (ally) {

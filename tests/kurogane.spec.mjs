@@ -93,6 +93,64 @@ test("prólogo obligatorio y habitación conservada en tablet", async ({ page },
   await page.screenshot({ path: info.outputPath("haruto-combate-tablet.png") });
 });
 
+for (const companion of ['haruto', 'akari']) test(`sellos automáticos visibles de ${companion}, sin cubrirlos con objetivos`, async ({ page }, info) => {
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await prepare(page, { mission: 'k03', companion });
+  await launch(page, 'k03');
+  await expect(page.locator('.combat-access')).toBeVisible({ timeout: 45000 });
+  await page.waitForFunction(() => window.__kuroganeGame.scene.getScene('battle').turnReady);
+  const before = await page.evaluate(async () => {
+    const s = window.__kuroganeGame.scene.getScene('battle');
+    s.stopTurnTimeline(); s.runTurnTimeline = () => {}; s.startTurnCharge = () => {};
+    s.timelinePaused = false; s.busy = false; s.manualSeals = true;
+    s.companion.pending = null;
+    if (s.companion.id === 'akari') s.player.hp = Math.floor(s.player.maxHp / 2);
+    await s.handleGroupArrival({ id: 'companion' });
+    const before = { chakra: s.companion.state.chakra, seals: s.companion.pending.seals, type: s.companion.pending.type };
+    window.__sealCaptureReady = false;
+    const holdSeals = () => {
+      const cards = s.sealLayer.list.filter(child => child.list?.some(part => part.texture?.key === 'sealSheet'));
+      if (cards.length !== 2 || !cards.every(card => card.alpha > .95)) return;
+      // Hold in the renderer, so a slow browser connection cannot miss the cards.
+      s.time.timeScale = 0; s.tweens.timeScale = 0; window.__sealCaptureReady = true;
+      s.events.off('postupdate', holdSeals);
+    };
+    s.events.on('postupdate', holdSeals);
+    window.__companionCast = s.handleGroupArrival({ id: 'companion' });
+    return before;
+  });
+  expect(before.seals).toEqual(companion === 'haruto' ? ['cygnus', 'pegasus'] : ['cetus', 'delphinus']);
+  await page.waitForFunction(() => window.__sealCaptureReady);
+  const casting = await page.evaluate(() => {
+    const s = window.__kuroganeGame.scene.getScene('battle');
+    s.time.timeScale = 0; s.tweens.timeScale = 0;
+    return { preparing: s.companion.fighter.preparing, prompt: s.sealPrompt.text };
+  });
+  expect(casting.preparing).toBe(true);
+  expect(casting.prompt).toMatch(/SELLOS/);
+  expect(await page.evaluate(() => {
+    const s = window.__kuroganeGame.scene.getScene('battle'), canvas = s.game.canvas.getBoundingClientRect();
+    const controls = [...document.querySelectorAll('.combat-access-utilities button')].map(el => el.getBoundingClientRect());
+    return s.sealLayer.list.filter(child => child.list?.some(part => part.texture?.key === 'sealSheet')).every(card => {
+      const bounds = card.getBounds();
+      const top = canvas.top + bounds.top * canvas.height / 540;
+      return controls.every(button => button.bottom < top);
+    });
+  })).toBe(true);
+  await expect(page.locator('.combat-mission-objective')).toHaveCount(0);
+  await page.screenshot({ path: info.outputPath(`sellos-${companion}.png`) });
+  await page.evaluate(async () => {
+    const s = window.__kuroganeGame.scene.getScene('battle');
+    s.time.timeScale = 1; s.tweens.timeScale = 1;
+    await window.__companionCast;
+  });
+  expect(await page.evaluate(() => {
+    const s = window.__kuroganeGame.scene.getScene('battle');
+    return { chakra: s.companion.state.chakra, pending: s.companion.pending, seals: s.sealLayer.list.length };
+  })).toEqual({ chakra: before.chakra - (companion === 'akari' ? 16 : 14) + 5, pending: null, seals: 0 });
+  expect(errors).toEqual([]);
+});
+
 for (const id of ["k01", "k02", "k03", "k04", "k05"]) test(`combate ${id}: compañero, objetivos y desenlace`, async ({ page }, info) => {
   test.setTimeout(120000);
   const errors = []; page.on("pageerror", e => errors.push(e.message));

@@ -32,7 +32,7 @@ test("los taijutsus equipados ocupan 4 y 5 de la tabla física y se pagan con vi
     s.executeTimelineAction = async (actor,action) => window.__taijutsuUsed.push(action.id);
     s.refreshHud();
   });
-  await page.getByRole("button",{ name:"Cambiar a habilidades físicas (0)",exact:true }).click();
+  await page.getByRole("button",{ name:"Cambiar a habilidades físicas (Tab)",exact:true }).click();
   await expect(button(page,4)).toContainText("Puño de hierro");
   await expect(button(page,4)).toContainText("8 PV");
   await expect(button(page,5)).toContainText("Paso fugaz");
@@ -63,7 +63,7 @@ for (const width of [1280, 1600]) test(`las dos tablas conservan 1 y 6 y el equi
   for (const index of [4, 5]) { await expect(button(page, index)).toContainText("Sin taijutsu"); await expect(button(page, index)).not.toContainText("NV"); }
   expect(await page.evaluate(() => window.__fixedSkills.every((node, index) => node === document.querySelector(`[data-combat-action="${index ? 6 : 1}"]`)))).toBe(true);
   expect(await page.evaluate(() => { const s = window.__performanceReference.scene; return { hp: s.player.hp, ch: s.player.chakra, round: s.round, loadout: s.saveData.loadout, pending: s.pendingActions.player, timeline: s.timelineProgress }; })).toEqual(initial);
-  const fits = await page.locator(".combat-table-switch").evaluate(element => { const b = element.getBoundingClientRect(), p = document.querySelector(".combat-access-actions").getBoundingClientRect(); return b.top > p.top && b.bottom < p.bottom && Math.abs(b.y + b.height / 2 - (p.y + p.height / 2)) < 4 && b.right < innerWidth; });
+  const fits = await page.locator(".combat-table-switch").evaluate(element => { const b = element.getBoundingClientRect(), p = document.querySelector(".combat-access-actions").getBoundingClientRect(); return b.bottom <= p.top + 12 && b.left >= p.left && b.right <= p.right && b.right < innerWidth; });
   expect(fits).toBe(true);
   await page.mouse.move(width - 5, 400);
   await page.screenshot({ path: testInfo.outputPath("tabla-fisica.png") });
@@ -146,7 +146,7 @@ test("el golpe equipado llega al combate sin gastar PV ni CH", async ({ page }) 
 
 test("las tablas también se pueden cambiar en la distribución compacta", async ({ page }, testInfo) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
-  await page.setViewportSize({ width: 960, height: 740 }); await boot(page);
+  await page.setViewportSize({ width: 768, height: 1024 }); await boot(page);
   await expect(page.locator(".combat-access")).toHaveClass(/compact/);
   await page.locator("[data-skill-table-switch]").click();
   await expect(button(page, 2)).toContainText("Golpe de arma");
@@ -157,4 +157,60 @@ test("las tablas también se pueden cambiar en la distribución compacta", async
   await page.locator("[data-skill-table-switch]").click();
   await expect(button(page, 2)).toContainText("Ascuas veloces");
   expect(errors).toEqual([]);
+});
+
+test("Tab alterna Física y Elemento una sola vez, sin consumir recursos ni interceptar los controles auxiliares", async ({ page }) => {
+  await boot(page);
+  const heading = page.locator('.combat-table-heading');
+  await expect(heading).toHaveText('ELEMENTO');
+  const initial = await page.evaluate(() => {
+    const s = window.__performanceReference.scene;
+    document.activeElement?.blur();
+    return { hp: s.player.hp, chakra: s.player.chakra, round: s.round };
+  });
+  await page.keyboard.press('Tab');
+  await expect(heading).toHaveText('FÍSICA');
+  await page.keyboard.press('0');
+  await expect(heading).toHaveText('FÍSICA');
+  await page.keyboard.press('Tab');
+  await expect(heading).toHaveText('ELEMENTO');
+  expect(await page.evaluate(() => {
+    const s = window.__performanceReference.scene;
+    return { hp: s.player.hp, chakra: s.player.chakra, round: s.round };
+  })).toEqual(initial);
+  await page.locator('.combat-access-pause').focus();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('.combat-access-objectives')).toBeFocused();
+  await expect(heading).toHaveText('ELEMENTO');
+});
+
+test("objetos, pausa y bandera: objetivos a petición, con pausa, foco y Escape", async ({ page }, info) => {
+  await boot(page);
+  expect(await page.locator('.combat-access-utilities > button').evaluateAll(buttons => buttons.map(b => b.className)))
+    .toEqual(['combat-access-inventory', 'combat-access-pause', 'combat-access-objectives']);
+  await expect(page.locator('.combat-mission-objective')).toHaveCount(0);
+  await page.locator('.combat-access-objectives').click();
+  const dialog = page.getByRole('dialog', { name: 'Objetivos de la misión' });
+  await expect(dialog).toBeVisible();
+  await expect(dialog).toContainText('Derrota a los enemigos');
+  await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isPaused())).toBe(true);
+  await page.keyboard.press('Tab');
+  await expect(page.locator('[data-objectives-close]')).toBeFocused();
+  await page.screenshot({ path: info.outputPath('objetivos-bandera.png') });
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isActive())).toBe(true);
+  await expect(page.locator('.combat-access-objectives')).toBeFocused();
+  await page.locator('.combat-access-objectives').click();
+  await page.locator('[data-objectives-close]').click();
+  await expect(dialog).toHaveCount(0);
+  await page.setViewportSize({ width: 768, height: 1024 });
+  await page.locator('.combat-access-objectives').click();
+  await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate(el => {
+    const box = el.getBoundingClientRect();
+    return box.left >= 0 && box.right <= innerWidth && box.top >= 0 && box.bottom <= innerHeight;
+  })).toBe(true);
+  await page.screenshot({ path: info.outputPath('objetivos-tablet.png') });
+  await page.locator('[data-objectives-close]').click();
 });

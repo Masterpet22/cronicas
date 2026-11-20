@@ -150,7 +150,7 @@ Enfrentamiento uno contra uno. Una misión puede tener varios duelos consecutivo
 
 ### Tablas de habilidades
 
-La tabla elemental contiene tus técnicas preparadas; la física contiene arma, shuriken y taijutsu. La tecla 0 cambia entre ambas sin consumir una acción. Golpe veloz y Guardia permanecen en 1 y 6.
+La tabla elemental contiene tus técnicas preparadas; la física contiene arma, shuriken y taijutsu. La tecla Tab cambia entre ambas sin consumir una acción. Golpe veloz y Guardia permanecen en 1 y 6.
 
 Variantes de consulta: ventana de habilidades, tabla física, tabla elemental.
 

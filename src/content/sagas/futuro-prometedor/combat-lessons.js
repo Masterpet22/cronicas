@@ -7,7 +7,7 @@ export const COMBAT_LESSONS = {
     actions: [
       { id: "strike", kind: "strike", title: "Ejecuta Golpe veloz", copy: "Empieza con Golpe veloz, en el 1. No gastarás vida ni chakra. Mira cuánto baja la vida del rival después de golpear.", lesson: "strike" },
       { id: "guard", kind: "guard", title: "Prepara Guardia", copy: "Ahora protégete con Guardia, en el 6. Reducirás a la mitad el próximo impacto y recuperarás chakra. El escudo seguirá contigo hasta que te alcancen.", lesson: "guard" },
-      { id: "physical-table", kind: "table", table: "physical", title: "Abre la tabla física", copy: "Pulsa 0 o el control señalado para cambiar de tabla. El cambio no gasta tu acción. Golpe veloz y Guardia se mantienen en 1 y 6; las cuatro casillas centrales cambian." },
+      { id: "physical-table", kind: "table", table: "physical", title: "Abre la tabla física", copy: "Pulsa Tab o el control señalado para cambiar de tabla. El cambio no gasta tu acción. Golpe veloz y Guardia se mantienen en 1 y 6; las cuatro casillas centrales cambian." },
       { id: "weapon", kind: "weapon", title: "Ataca con tu kunai", copy: "Ejecuta Golpe de arma desde la tabla física. Solo está disponible si posees y llevas equipada un arma; su coste es 0 PV y 0 CH.", lesson: "weapon" },
       { id: "throwable", kind: "throwable", title: "Lanza el shuriken", copy: "Usa el shuriken de la tabla física. Es reutilizable: lanzarlo no gasta el objeto ni consume PV o CH. Sigue su estela hasta el blanco Normal.", lesson: "throwable" },
       { id: "elemental-table", kind: "table", table: "elemental", title: "Vuelve a las técnicas elementales", copy: "Pulsa 0 otra vez para recuperar tus técnicas equipadas. Tener una técnica aprendida y llevarla equipada son cosas distintas." },
