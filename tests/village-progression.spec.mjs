@@ -44,6 +44,39 @@ test("el mapa explica los bloqueos y conserva el prólogo accesible", async ({ p
   expect(errors).toEqual([]);
 });
 
+test("Dev permite probar los nueve edificios sin desbloquearlos en la partida", async ({ page }) => {
+  test.setTimeout(90_000);
+  await seed(page);
+  const progression = () => page.evaluate(async () => {
+    const { loadSave } = await import("/src/save.js");
+    const { progression, campaign } = loadSave();
+    return { progression, completedMissions: campaign.completedMissions, archiveUnlocked: campaign.archiveUnlocked };
+  });
+  const original = await progression();
+  const places = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event"];
+  const dev = page.locator(".debug-tools-trigger");
+  const override = page.locator("[data-debug-location-override]");
+  await dev.click();
+  await expect(override).toBeChecked();
+  for (const id of places) {
+    await page.locator(`[data-debug-view="${id}"]`).click();
+    await expect(page.locator(`[data-location-stage="${id}"]`)).toBeVisible();
+    await dev.click();
+  }
+  await page.locator('[data-debug-view="plaza"]').click();
+  await expect(page.locator(".village-hotspot.is-locked")).toHaveCount(0);
+  await page.locator('[data-go="event"]').click();
+  const day = await page.locator('[data-event-day]').evaluateAll(buttons => buttons.find(button => button.dataset.eventDay.endsWith("-05")).dataset.eventDay);
+  await page.locator(`[data-event-day="${day}"]`).click();
+  await page.locator("[data-stage-action]").filter({ hasText: /Torre/ }).click();
+  await expect(page.locator('[data-location-stage="tower"]')).toBeVisible();
+  expect(await progression()).toEqual(original);
+  await dev.click();
+  await override.uncheck();
+  await page.locator('[data-debug-view="plaza"]').click();
+  await expect(page.locator(".village-hotspot.is-locked")).toHaveCount(7);
+});
+
 test("la Biblioteca permite buscar el diccionario antes de activar el bestiario", async ({ page }, testInfo) => {
   const errors = []; page.on("pageerror", error => errors.push(error.message));
   await seed(page, { pending: true });

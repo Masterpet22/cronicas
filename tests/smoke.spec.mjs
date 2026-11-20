@@ -175,8 +175,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await page.locator('[data-debug-checkpoint="library-ready"]').click();
   await visitFromDebug("plaza", ".village-map");
   await visitFromDebug("headquarters", ".saga-selector");
-  await visitFromDebug("missions", ".stage-panel");
-  await expect(page.locator(".stage-panel")).toContainText("ACCESO BLOQUEADO");
+  await visitFromDebug("missions", ".location-missions .mission-board");
   await visitFromDebug("kagemori", ".kagemori-investigation, .kagemori-complete");
   await visitFromDebug("dojo", ".dojo-layout");
   await expect(page.locator("[data-dojo-tab='techniques']")).toHaveAttribute("aria-selected", "true");
@@ -204,7 +203,7 @@ test("recorrer todas las vistas meta no deja errores de navegador", async ({ pag
   await expect(page.locator('[data-cosmetic-value="hair"]')).toHaveText("Peinado corto");
   await expect(page.locator('[data-cosmetic-control="outfit"] [data-cosmetic-step]').first()).toBeDisabled();
   await expect(page.locator('[data-cosmetic-control="outfit"] .cosmetic-label')).toHaveText("Traje completo");
-  await expect(page.locator('[data-cosmetic-control="outfit"]')).toContainText("Atuendo de entrenamiento");
+  await expect(page.locator('[data-cosmetic-control="outfit"]')).toContainText("Sin traje completo");
   await expect(page.locator("#dojo-panel-appearance .puppet-preview-hair")).toHaveAttribute("src", /hair_corto\.png/);
   await expect(page.locator("#dojo-panel-appearance .raster-character-floor")).toHaveCount(0);
   expect((await page.locator(".dojo-main-panel").boundingBox())?.height).toBe(equipmentPanelHeight);

@@ -52,6 +52,11 @@ test("los ocho lugares dan su ayuda mediante el encargado y no mediante bloques 
     if (removed) await expect(page.locator(removed)).toHaveCount(0);
     if (place === "event") await expect(page.locator(".events-calendar")).toBeVisible();
     await actor.locator("img").evaluate(image => image.decode());
+    await expect.poll(() => actor.evaluate(element => {
+      const image = element.querySelector("img").getBoundingClientRect();
+      const label = element.querySelector("span").getBoundingClientRect();
+      return label.top >= image.bottom;
+    })).toBe(true);
     await page.screenshot({ path: info.outputPath(`${place}-encargado.png`), animations: "disabled" });
     await page.locator('[data-view="plaza"]').click();
   }
@@ -87,6 +92,25 @@ test("las primeras visitas presentan a los encargados con maniquí y diálogo de
     while ((await next.textContent()) !== "VER OPCIONES") await next.click();
     await next.click();
     await expect(stage.locator("[data-stage-options]")).toBeVisible();
+    if (npc === "hana") {
+      await expect.poll(() => stage.evaluate(element => {
+        const image = element.querySelector(".stage-character img");
+        const { naturalWidth, naturalHeight } = image;
+        const canvas = Object.assign(document.createElement("canvas"), { width: naturalWidth, height: naturalHeight });
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0);
+        const sole = context.getImageData(0, Math.floor(naturalHeight * .87), naturalWidth, Math.ceil(naturalHeight * .13)).data;
+        let farthestPixel = 0;
+        for (let pixel = 0; pixel < sole.length / 4; pixel++) {
+          if (sole[pixel * 4 + 3] > 128) farthestPixel = Math.max(farthestPixel, pixel % naturalWidth);
+        }
+        const box = image.getBoundingClientRect();
+        const scale = Math.min(box.width / naturalWidth, box.height / naturalHeight);
+        const shoeEdge = box.left + (box.width - naturalWidth * scale) / 2 + farthestPixel * scale;
+        return shoeEdge < element.querySelector("[data-stage-options]").getBoundingClientRect().left;
+      })).toBe(true);
+      await stage.screenshot({ path: info.outputPath("hana-calzado-visible.png") });
+    }
     await page.locator('[data-view="plaza"]').click();
   }
   await page.reload();

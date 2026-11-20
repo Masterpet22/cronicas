@@ -1551,6 +1551,13 @@
     letter-spacing: .08em;
   }
 
+  body:has(#meta:not([hidden])) .village-shell:has(.location-stage) > .debug-tools-trigger {
+    top: 66px;
+    right: 20px;
+    bottom: auto;
+    left: auto;
+  }
+
   body:has(#meta:not([hidden])) .village-shell > .debug-tools-trigger:hover,
   body:has(#meta:not([hidden])) .village-shell > .debug-tools-trigger:focus-visible {
     border-color: rgba(221, 160, 82, .78);

@@ -1,16 +1,33 @@
 import { performanceTools } from "../../../dev/performance-tools.js?v=1.3.0";
 import { abilityCatalogMarkup, mountAbilityCatalog } from "../ability-catalog.js?v=1.5.0";
+import { locationAccess } from "../../../village-progression.js?v=0.155.0";
 
 export function createDebugToolsView(deps) {
   let currentState = null;
+  let debugSnapshot = null;
+  let debugLocationOverride = false;
+  const reset = () => {
+    debugSnapshot = null;
+    debugLocationOverride = false;
+  };
 
   return {
     id: "debug",
+    begin(save) {
+      if (debugSnapshot) return;
+      debugSnapshot = JSON.stringify(save);
+      debugLocationOverride = true;
+    },
+    reset,
+    accessLocation(id, save) {
+      return debugLocationOverride ? { unlocked: true, reason: "" } : locationAccess(id, save);
+    },
 
     render(state) {
       currentState = state;
-      const { save, debugSnapshot } = state;
+      const { save } = state;
       const campaign = save.campaign;
+      const locationButtons = deps.locations.map(({ id, name }) => `<button type="button" data-debug-view="${id}">${deps.escapeHtml(name)}</button>`).join("");
       const checkpointCards = deps.checkpoints.map((checkpoint) => `<button class="debug-checkpoint" type="button" data-debug-checkpoint="${checkpoint.id}"><strong>${deps.escapeHtml(checkpoint.label)}</strong><small>${deps.escapeHtml(checkpoint.description)}</small></button>`).join("");
       const missionCards = deps.missions.map((mission) => {
         const completed = campaign.completedMissions.includes(mission.id);
@@ -31,7 +48,7 @@ export function createDebugToolsView(deps) {
         ${abilityCatalogMarkup(deps.escapeHtml)}
         <div class="debug-status">${debugFlags}<span class="debug-choice">Teniente: ${deps.escapeHtml(campaign.banditPrisonerChoice || "sin decisión")}</span></div>
         <section class="debug-section"><div><p class="eyebrow">PROGRESO RÁPIDO</p><h3>Aplicar punto de control</h3></div><p>Prepara un estado coherente de la saga sin reproducir escenas ni entregar recompensas.</p><div class="debug-checkpoints">${checkpointCards}</div></section>
-        <section class="debug-section"><div><p class="eyebrow">ACCESO DIRECTO</p><h3>Saltar a una ubicación</h3></div><div class="debug-location-grid"><button type="button" data-debug-view="plaza">ALDEA</button><button type="button" data-debug-view="headquarters">CUARTEL</button><button type="button" data-debug-view="missions">TABLÓN</button><button type="button" data-debug-view="kagemori">KAGEMORI</button><button type="button" data-debug-view="dojo">DOJO</button><button type="button" data-debug-view="archive">BIBLIOTECA</button></div></section>
+        <section class="debug-section"><div><p class="eyebrow">ACCESO DIRECTO</p><h3>Saltar a una ubicación</h3></div><div class="debug-performance-controls"><label><input type="checkbox" data-debug-location-override ${debugLocationOverride ? "checked" : ""}> Abrir todos los edificios en modo Dev</label></div><div class="debug-location-grid"><button type="button" data-debug-view="plaza">MAPA</button>${locationButtons}<button type="button" data-debug-view="kagemori">KAGEMORI</button></div></section>
         <section class="debug-section"><div><p class="eyebrow">DECISIÓN PERSISTENTE</p><h3>Destino del teniente</h3></div><div class="debug-decision-grid"><button type="button" data-debug-choice="interrogate">INTERROGADO Y PERDONADO</button><button type="button" data-debug-choice="eliminate">ELIMINADO</button><button type="button" data-debug-choice="clear">SIN DECISIÓN</button></div></section>
         <section class="debug-section debug-missions-section"><div><p class="eyebrow">SIN BRIEFING</p><h3>Iniciar una misión directamente</h3></div><p>Ignora requisitos y diálogos del Cuartel, pero conserva las fases internas de la misión.</p><div class="debug-mission-list">${missionCards}</div></section>
       </section>`;
@@ -42,11 +59,17 @@ export function createDebugToolsView(deps) {
       mountAbilityCatalog(root, scope);
       scope.listen(root.querySelector("[data-perf-enabled]"), "change", (event) => performanceTools.setEnabled(event.target.checked));
       scope.listen(root.querySelector("[data-perf-export]"), "click", () => performanceTools.exportReport());
+      scope.listen(root.querySelector("[data-debug-location-override]"), "change", event => { debugLocationOverride = event.target.checked; });
       root.querySelectorAll("[data-debug-checkpoint]").forEach((button) => scope.listen(button, "click", () => deps.onCheckpoint(button.dataset.debugCheckpoint)));
       root.querySelectorAll("[data-debug-view]").forEach((button) => scope.listen(button, "click", () => deps.onNavigate(button.dataset.debugView)));
       root.querySelectorAll("[data-debug-choice]").forEach((button) => scope.listen(button, "click", () => deps.onChoice(button.dataset.debugChoice)));
       root.querySelectorAll("[data-debug-mission]").forEach((button) => scope.listen(button, "click", () => deps.onMission(button.dataset.debugMission)));
-      scope.listen(root.querySelector("[data-debug-restore]"), "click", () => deps.onRestore());
+      scope.listen(root.querySelector("[data-debug-restore]"), "click", () => {
+        if (!debugSnapshot) return;
+        const snapshot = JSON.parse(debugSnapshot);
+        reset();
+        deps.onRestore(snapshot);
+      });
     },
 
     dispose() { currentState = null; }

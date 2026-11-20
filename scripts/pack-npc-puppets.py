@@ -7,7 +7,7 @@ from io import BytesIO
 
 import cv2
 import numpy as np
-from PIL import Image, ImageFilter, ImageOps
+from PIL import Image, ImageColor, ImageFilter, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,27 +30,44 @@ WAISTS = {
     "iori": ((.55, .64), (.59, .68)), "nami": ((.46, .59), (.55, .67))
 }
 SLEEVE_COLORS = {"yuna": ("#26362e", "#92986e"), "kureha": ("#221d29", "#665366")}
+BOOTS = {
+    "ren": "traveler", "daichi": "shadow", "mei": "channeler", "sayo": "channeler",
+    "hana": "traveler", "yuna": "traveler", "kureha": "shadow", "goro": "shadow",
+    "riku": "traveler", "nao": "channeler", "iori": "traveler", "nami": "traveler"
+}
+BOOT_HIGHLIGHTS = {"mei": "#658b83", "sayo": "#7b6a95", "nao": "#925d5d"}
+
+# Hairline depth at the temple, part, and far side of the native skull.
+# The shallow right side protects the brow and keeps the face in three quarters.
+HAIRLINES = {
+    "ren": (.43, .30, .28, "#3c291f"), "daichi": (.43, .28, .25, "#675348"),
+    "mei": (.43, .31, .25, "#233e48"), "sayo": (.42, .30, .26, "#362744"),
+    "hana": (.41, .30, .25, "#572b22"), "yuna": (.43, .29, .26, "#463023"),
+    "kureha": (.43, .31, .27, "#482333"), "goro": (.46, .245, .24, "#4a3526"),
+    "riku": (.43, .31, .27, "#665034"), "nao": (.42, .29, .25, "#422a2a"),
+    "iori": (.43, .275, .25, "#63584e"), "nami": (.43, .32, .27, "#533427")
+}
 
 # Hair boxes are relative to the top-left of the head in the corresponding rig.
 # They allow tied strands to extend down the back without shrinking the crown.
 CAST = {
     "cuartel-dojo-biblioteca": [
-        ("ren", "male", "claro", "poker", "#252c3e", "#2c3447", (-12, -23, 198, 127), True),
-        ("daichi", "male", "dorado", "angry", "#322724", "#511e1d", (-15, -24, 199, 131), False),
-        ("mei", "female", "claro", "poker", "#202c39", "#224443", (-36, -22, 232, 170), True),
-        ("sayo", "female", "muy-claro", "poker", "#312841", "#332a49", (-66, -35, 260, 224), False)
+        ("ren", "male", "claro", "poker", "#252c3e", "#2c3447", (-7, -25, 187, 123), True),
+        ("daichi", "male", "dorado", "angry", "#322724", "#511e1d", (-12, -18, 194, 133), False),
+        ("mei", "female", "claro", "poker", "#202c39", "#224443", (-29, -25, 225, 150), True),
+        ("sayo", "female", "muy-claro", "poker", "#312841", "#332a49", (-65, -48, 265, 212), False)
     ],
     "tienda-gremio-torre-arena": [
-        ("hana", "female", "claro", "happy", "#45322b", "#513027", (-14, -18, 212, 165), True),
-        ("yuna", "female", "claro", "happy", "#374230", "#493a23", (-59, -16, 253, 237), False),
-        ("kureha", "female", "muy-claro", "angry", "#302430", "#492b42", (-77, -39, 275, 228), False),
-        ("goro", "male", "dorado", "angry", "#302621", "#592a22", (-4, -14, 179, 111), True)
+        ("hana", "female", "claro", "happy", "#45322b", "#513027", (-11, -26, 207, 153), True),
+        ("yuna", "female", "claro", "happy", "#374230", "#493a23", (-54, -21, 252, 231), False),
+        ("kureha", "female", "muy-claro", "angry", "#302430", "#492b42", (-71, -44, 265, 216), False),
+        ("goro", "male", "dorado", "angry", "#302621", "#592a22", (-3, -11, 179, 118), True)
     ],
     "tablon-plaza-kagemori": [
-        ("riku", "male", "claro", "poker", "#353c2c", "#384530", (-13, -21, 197, 134), False),
-        ("nao", "female", "claro", "happy", "#34232d", "#6b262d", (-77, -36, 275, 215), False),
-        ("iori", "male", "dorado", "poker", "#303140", "#514439", (-48, -14, 224, 178), False),
-        ("nami", "female", "dorado", "poker", "#39352e", "#60422d", (-9, -21, 204, 135), False)
+        ("riku", "male", "claro", "poker", "#353c2c", "#384530", (-13, -24, 195, 133), False),
+        ("nao", "female", "claro", "happy", "#34232d", "#6b262d", (-75, -40, 270, 204), False),
+        ("iori", "male", "dorado", "poker", "#303140", "#514439", (-47, -18, 224, 175), False),
+        ("nami", "female", "dorado", "poker", "#39352e", "#60422d", (-9, -25, 205, 132), False)
     ]
 }
 
@@ -170,6 +187,48 @@ def draw(image, piece, center, size):
     ))
 
 
+def registered_hair(donor, head, hair_box):
+    x, y, width, height = hair_box
+    art = donor.resize((width, height), Image.Resampling.LANCZOS)
+    columns = (np.arange(width)[None, :] + x) / head["width"]
+    rows = (np.arange(height)[:, None] + y) / head["height"]
+    # Long strands toward the back pass behind the ear, head and shoulder.
+    back_mix = np.clip((.27 - columns) * 18, 0, 1) * np.clip((rows - .37) * 16, 0, 1)
+    alpha = np.asarray(art.getchannel("A"), dtype=np.float32) / 255
+    front_alpha = alpha * (1 - back_mix)
+    # Split a single alpha layer without darkening semi-transparent edges.
+    back_alpha = (alpha - front_alpha) / np.maximum(1 / 255, 1 - front_alpha)
+    back, front = art.copy(), art
+    back.putalpha(Image.fromarray(np.rint(back_alpha * 255).astype(np.uint8)))
+    front.putalpha(Image.fromarray(np.rint(front_alpha * 255).astype(np.uint8)))
+    return back, front
+
+
+def fitted_scalp(head_art, id):
+    temple, part, far_side, color = HAIRLINES[id]
+    width, height = head_art.size
+    x = np.linspace(0, 1, width)
+    profile = np.interp(x, [0, .14, .21, .34, .55, .76, .93, 1],
+                        [temple - .035, temple, temple, part + .04, part, far_side - .02, far_side, far_side + .05])
+    edge = smooth_profile(profile, 8) * height
+    y = np.arange(height)[:, None]
+    feather = 16 if id == "goro" else 7
+    coverage = np.clip((edge - y) / feather, 0, 1)
+    alpha = np.asarray(head_art.getchannel("A")) * coverage
+    gray = ImageOps.grayscale(head_art)
+    channels = [gray.point(lambda light: round(value * (.62 + light / 510))) for value in ImageColor.getrgb(color)]
+    return Image.merge("RGBA", (*channels, Image.fromarray(np.rint(alpha).astype(np.uint8))))
+
+
+def boot_position(art, size, joint, offset):
+    # Fit to the centre of the cuff, which is not the centre of either shoe.
+    left, right = row_edges(art.getchannel("A"))
+    cuff = round(art.height * .13)
+    cuff_x = (left[cuff] + right[cuff] + 1) / (2 * art.width)
+    return (offset[0] + joint["x"] + (.5 - cuff_x) * size[0],
+            offset[1] + joint["y"] + (.5 - cuff / art.height) * size[1])
+
+
 def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     id, body, tone, expression, pants, shoes, hair_box, bare = profile
     rig = rigs[body]
@@ -179,6 +238,14 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     outfit = {part.stem for part in outfit_path.glob("*.png")}
     image = Image.new("RGBA", (1000, 1475))
     offset_x, offset_y = 500, 490
+    head = rig["byId"]["cabeza"]
+    head_center = (head["x"] + offset_x, head["y"] + offset_y)
+    head_size = (head["width"], head["height"])
+    top = (head_center[0] - head["width"] / 2, head_center[1] - head["height"] / 2)
+    x, y, w, h = hair_box
+    hair_at = (round(top[0] + x), round(top[1] + y))
+    back_hair, front_hair = registered_hair(extract(sheet, 5, row, id), head, hair_box)
+    image.alpha_composite(back_hair, hair_at)
     for part in rig["layers"]:
         name = part["id"]
         size = (part["width"] * part.get("scaleX", 1), part["height"] * part.get("scaleY", 1))
@@ -200,25 +267,29 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
                 art = fitted_material(donor, native)
                 if name.startswith("antebrazo") and id in ("hana", "yuna", "kureha", "goro"):
                     art = native_cuff(art, base, donor, native, id)
+        elif name.startswith("pie_"):
+            foot_path = MODULAR / "outfits" / BOOTS[id] / body / f"{name}.png"
+            upper = BOOT_HIGHLIGHTS.get(id, "#c4b6a0")
+            art = clothing_tone(Image.open(foot_path).convert("RGBA"), shoes, upper)
+            ankle = rig["joints"]["ankleRight" if name == "pie_derecho" else "ankleLeft"]
+            center = boot_position(art, size, ankle, (offset_x, offset_y))
         elif name in outfit:
-            art = clothing_tone(Image.open(outfit_path / f"{name}.png").convert("RGBA"), shoes if name.startswith(("pie_", "pierna_")) else pants)
+            art = clothing_tone(Image.open(outfit_path / f"{name}.png").convert("RGBA"), shoes if name.startswith("pierna_") else pants)
         else:
             art = skin(native, palette)
         draw(image, art, center, size)
 
-    head = rig["byId"]["cabeza"]
-    center = (head["x"] + offset_x, head["y"] + offset_y)
-    top = (center[0] - head["width"] / 2, center[1] - head["height"] / 2)
+    head_art = Image.open(body_path / "cabeza.png").convert("RGBA")
+    draw(image, fitted_scalp(head_art, id), head_center, head_size)
     face = Image.open(MODULAR / "faces" / f"male_{expression}_{tone}.png").convert("RGBA")
-    draw(image, face, center, (head["width"], head["height"]))
+    draw(image, face, head_center, head_size)
     if id in BEARDS:
         column, x, y, w, h = BEARDS[id]
         half = beards.width // 2
         art = beards.crop((column * half, 0, (column + 1) * half, beards.height))
         art = art.crop(art.getchannel("A").point(lambda value: 255 if value > 24 else 0).getbbox())
         draw(image, art, (top[0] + x + w / 2, top[1] + y + h / 2), (w, h))
-    x, y, w, h = hair_box
-    draw(image, extract(sheet, 5, row, id), (top[0] + x + w / 2, top[1] + y + h / 2), (w, h))
+    image.alpha_composite(front_hair, hair_at)
 
     # Use one scale and a fixed footprint per rig. Hair cannot resize or
     # recenter a body, even for a high bun or a long side braid.

@@ -1,7 +1,7 @@
 import { getDialogue } from "./dialogues.js?v=0.155.0";
 
 const npc = (id, name, title, reference) => Object.freeze({
-  id, name, title, reference, image: `assets/modular/representatives/${id}.webp?v=1.1.0`,
+  id, name, title, reference, image: `assets/modular/representatives/${id}.webp?v=1.2.0`,
   dialogue: Object.freeze({ intro: `npc.${id}.intro`, guide: `npc.${id}.guide` })
 });
 

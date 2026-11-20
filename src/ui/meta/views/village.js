@@ -3,7 +3,7 @@ import { createTowerView } from "./tower.js?v=0.171.0";
 import { createShopView } from "./shop.js?v=0.171.0";
 import { createGuildView } from "./guild.js?v=0.140.0";
 import { createArenaView } from "./arena.js?v=0.171.0";
-import { createEventsView } from "./events.js?v=0.173.0";
+import { createEventsView } from "./events.js?v=0.175.0";
 import { locationAccess } from "../../../village-progression.js?v=0.155.0";
 import { GAME_TERMS } from "../../../content/game-dictionary.js?v=0.155.0";
 import { firstSagaConclusion, FIRST_SAGA_CONCLUSION_NOTICE, kuroganeProloguePending } from "../../../kurogane.js";
@@ -45,6 +45,7 @@ function activeMissionObjectives(save) {
 }
 
 export function createVillageView(deps) {
+  const accessLocation = deps.locationAccess || locationAccess;
   const shopView = createShopView(deps);
   const guildView = createGuildView(deps);
   const arenaView = createArenaView(deps);
@@ -89,7 +90,7 @@ export function createVillageView(deps) {
     </section>`;
     const mapImage = `assets/village/aldea.webp?v=${deps.assetVersion}`;
     const missionTargetIds = [...new Set(missionObjectives.map((objective) => objective.view))];
-    const locations = VILLAGE_LOCATIONS.map(location => ({ ...location, name: GAME_TERMS[location.id], ...locationAccess(location.id, save) }));
+    const locations = VILLAGE_LOCATIONS.map(location => ({ ...location, name: GAME_TERMS[location.id], ...accessLocation(location.id, save) }));
     const hotspots = villageMapHotspots(locations, mapImage, deps.escapeHtml, missionTargetIds);
     const labels = locations.map((location) => {
       const nextLabel = location.id === storyObjective?.view ? " is-next-objective" : "";
