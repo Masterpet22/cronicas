@@ -1081,6 +1081,13 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
 .mission-number { color: #56647a; font-size: 1.5rem; font-weight: 850; }.mission-card.completed .mission-number { color: #67e8c3; }
 .mission-card h3 { display: block; margin: 1px 0 5px; color: #f4f7fb; font-size: 1rem; letter-spacing: 0; text-transform: none; }.mission-card p { margin: 0; color: #909daf; font-size: 0.74rem; }
 .mission-card button { border: 1px solid #f5a357; border-radius: 7px; padding: 9px 11px; background: transparent; color: #f5a357; font-size: 0.72rem; font-weight: 800; cursor: pointer; }.mission-card button:disabled { border-color: #647086; color: #647086; cursor: not-allowed; }
+.mission-card-action { display: flex; align-items: center; justify-content: flex-end; gap: 12px; }
+.mission-grade { display: grid; justify-items: center; gap: 2px; color: #bac8d5; white-space: nowrap; font-size: .75rem; line-height: 1.1; }
+.mission-grade strong { color: #e1c2a7; font-size: 1.125rem; font-weight: 850; }
+.mission-grade[data-mission-grade="S"] strong { color: #ffd697; }
+.mission-grade[data-mission-grade="A"] strong { color: #8ce5b6; }
+.mission-grade[data-mission-grade="B"] strong { color: #92d4ff; }
+.mission-grade[data-mission-grade="C"] strong { color: #ffc08e; }
 .archive-card ol { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; padding: 0; list-style: none; }
 .archive-card li { display: flex; gap: 10px; padding: 11px; border: 1px solid #303d50; border-radius: 8px; color: #758197; }.archive-card li.done { color: #67e8c3; }.archive-card li div { display: grid; }.archive-card li strong { color: #d9dee7; font-size: 0.82rem; }.archive-card li small { color: inherit; }
 .ending-card { margin-top: 18px; padding: 20px; border: 1px solid #f5a357; border-radius: 10px; background: rgba(245,163,87,0.08); }
@@ -1141,7 +1148,7 @@ kbd { border: 1px solid #4e5b70; border-bottom-width: 2px; border-radius: 4px; p
   .skill-branch > header { align-content: center; display: grid; justify-items: center; text-align: center; }
   .skill-branch > header img { width: 30px; height: 30px; }
   .dialogue-box.with-portrait { grid-template-columns: 125px 1fr; min-height: 230px; padding-right: 14px; }.dialogue-portrait { min-height: 230px; }.dialogue-copy { padding-top: 18px; }.dialogue-copy > p:not(.eyebrow) { font-size: .92rem; }
-  .mission-card { grid-template-columns: 42px 1fr; }.mission-card button { grid-column: 1 / -1; }
+  .mission-card { grid-template-columns: 42px 1fr; }.mission-card-action { grid-column: 1 / -1; }.mission-card-action button { flex: 1; }
   .archive-card ol { grid-template-columns: 1fr; }.dialogue-overlay { padding: 12px; }
 }
 

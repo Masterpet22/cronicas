@@ -2,6 +2,7 @@ import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.
 import { playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { masterIdForCharacter } from "../../save.js?v=0.161.0";
 import { missionGrade } from "../rewards.js?v=0.114.0";
+import { stageMissionGrade } from "../victory-transaction.js?v=0.163.0";
 import { returnToVillage } from "../return-to-village.js?v=0.96.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
@@ -63,6 +64,7 @@ export class ResultsScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(5);
 
     const grade = missionGrade(outcome, data.playerHp, data.maxHp);
+    if (completed) stageMissionGrade(battleRuntime, data.missionId, grade);
     const gradeColor = GRADE_COLORS[grade];
     const gradeMark = this.add.text(205, 176, grade, {
       fontFamily: '"Segoe Print", "Bradley Hand", "Brush Script MT", cursive',

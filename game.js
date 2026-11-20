@@ -1,4 +1,4 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.162.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.163.0";
 import { mountSaveRecovery } from "./src/ui/save-recovery.js?v=0.161.0";
 import { startCloudSaveSession } from "./src/save/cloud-session.js?v=1.0.0";
 import { mountCloudSaveStatus } from "./src/ui/meta/cloud-saves.js?v=2.0.0";
@@ -23,7 +23,7 @@ let gameLaunchRevision = 0;
 
 function loadBattleBundle() {
   if (!battleBundlePromise) battleBundlePromise = loadPhaser()
-    .then(() => import("./src/battle/bundle.js?v=0.161.0"))
+    .then(() => import("./src/battle/bundle.js?v=0.163.0"))
     .catch((error) => { battleBundlePromise = null; throw error; });
   return battleBundlePromise;
 }

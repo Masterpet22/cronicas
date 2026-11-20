@@ -5,6 +5,7 @@ import { campaignFlag } from "../../../mission-system.js?v=0.155.0";
 import { lessonCompleted } from "../../../tutorial-system.js?v=0.155.0";
 import { renderDoctorRouteMap } from "../doctor-route-map.js";
 import { mountDoctorCipher, renderDoctorCipher } from "../doctor-cipher.js?v=0.114.0";
+import { bestMissionGrade } from "../../../mission-grades.js?v=1.0.0";
 
 export function createMissionBoardsView(deps) {
   let currentState = null;
@@ -14,6 +15,10 @@ export function createMissionBoardsView(deps) {
   const missionById = (id) => deps.mainMissions.find((mission) => mission.id === id);
   const visibleSagaMissions = (saga) => saga.missionIds.map(missionById).filter((mission) => mission && deps.missionState(mission, currentState.save).unlocked);
   const secondaryByType = (type) => deps.secondaryMissionByType(type, deps.fieldMissions || deps.secondaryMissions);
+  const missionAction = (save, mission, button) => {
+    const grade = bestMissionGrade(save, mission.id);
+    return `<div class="mission-card-action">${grade ? `<span class="mission-grade" data-mission-grade="${grade}"><span>Mejor nota</span><strong>${grade}</strong></span>` : ""}${button}</div>`;
+  };
 
   function briefingForMission(mission, save) {
     const master = deps.masterForCharacter(save.character);
@@ -73,7 +78,8 @@ export function createMissionBoardsView(deps) {
       const label = mission.comingSoon && unlocked ? "PRÓXIMAMENTE" : done ? mission.type ? "COMPLETADA" : "REPETIR" : progressStatus === "failed" ? "REINTENTAR" : inProgress ? "CONTINUAR" : unlocked ? "INICIAR HISTORIA" : "BLOQUEADA";
       const activityLabels = [...new Set(mission.flow.filter((step) => step.type !== "dialogue").map((step) => mechanics[step.type] || step.type))].join(" + ");
       const details = mission.comingSoon ? "Objetivo localizado · Contenido en desarrollo" : `${activityLabels} · ${mission.duration} · ${mission.reward.totalXp} PX totales · ${mission.reward.coins} monedas`;
-      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div><button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button></article>`;
+      const action = missionAction(save, mission, `<button data-mission="${mission.id}" ${unlocked && !mission.comingSoon && !(done && mission.type) ? "" : "disabled"}>${label}</button>`);
+      return `<article class="mission-card ${done ? "completed" : ""} ${unlocked ? "" : "locked"} ${mission.comingSoon ? "coming-soon" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">MISIÓN CLASE ${mission.rank || "D"} · ${mission.location}</p><h3>${mission.title}</h3><p>${details}</p></div>${action}</article>`;
     }).join("");
     const completedInSaga = missions.filter((mission) => completed.has(mission.id)).length;
     return `<section class="stage-panel mission-board" data-comment="Estas son las misiones que forman la saga seleccionada."><div class="saga-header"><button class="secondary-button saga-back" type="button" data-back-sagas>← SAGAS</button><div><p class="eyebrow">SAGA ${String(activeSaga.number).padStart(2, "0")}</p><h2>${deps.escapeHtml(activeSaga.title)}</h2><p>${deps.escapeHtml(activeSaga.subtitle)}</p></div><strong>${completedInSaga}/${missions.length}</strong></div>${prologue}<div class="mission-list">${cards}</div></section>`;
@@ -88,7 +94,10 @@ export function createMissionBoardsView(deps) {
       ? `<div class="notice-card ally"><strong>Información con un coste</strong><span>Entrada secreta y monedas ×2; Akumori recibió refuerzos.</span></div>`
       : save.campaign.banditPrisonerChoice === "eliminate" ? `<div class="notice-card"><strong>Ventaja táctica</strong><span>Akumori no recibió refuerzos; se perdieron la entrada secreta y el aliado futuro.</span></div>` : "";
     const availableCount = cardModels.filter(({ state: missionStatus }) => missionStatus.unlocked && !missionStatus.completed).length;
-    const cards = cardModels.map(({ mission, state: missionStatus, disabled, detail, actionLabel }) => `<article class="mission-card ${missionStatus.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.affinitySlot ? "PRUEBA DE AFINIDAD" : "ENCARGO DE SAYO"} · CLASE ${mission.rank}</p><h3>${deps.escapeHtml(mission.title)}</h3><p>${deps.escapeHtml(detail)}</p></div><button type="button" data-secondary-mission="${deps.escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button></article>`).join("");
+    const cards = cardModels.map(({ mission, state: missionStatus, disabled, detail, actionLabel }) => {
+      const action = missionAction(save, mission, `<button type="button" data-secondary-mission="${deps.escapeHtml(mission.id)}" ${disabled ? "disabled" : ""}>${actionLabel}</button>`);
+      return `<article class="mission-card ${missionStatus.completed ? "completed" : ""}"><div class="mission-number">${String(mission.number).padStart(2, "0")}</div><div><p class="eyebrow">${mission.affinitySlot ? "PRUEBA DE AFINIDAD" : "ENCARGO DE SAYO"} · CLASE ${mission.rank}</p><h3>${deps.escapeHtml(mission.title)}</h3><p>${deps.escapeHtml(detail)}</p></div>${action}</article>`;
+    }).join("");
     return `<section class="stage-panel mission-board" data-comment="Sayo publica aquí investigaciones y búsquedas que abren nuevas rutas de la historia."><div class="section-heading"><div><p class="eyebrow">TABLÓN DE ENCARGOS</p><h2>Misiones secundarias</h2></div><strong>${availableCount} disponible${availableCount === 1 ? "" : "s"}</strong></div>${choiceBonus}<div class="mission-list">${cards}</div></section>`;
   }
 
