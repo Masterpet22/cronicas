@@ -2,7 +2,7 @@ import { clothingAsset, selectedClothing } from "../../base-outfit.js?v=0.166.0"
 import { ensureSkinToneFilters, normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
 import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.166.0";
 
-export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null } = {}) {
+export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null, label = "Combatiente con la ropa equipada" } = {}) {
   ensureSkinToneFilters();
   const selectedTone = normalizeSkinTone(save.character.skinTone);
   const clothing = selectedClothing(save.character);
@@ -41,6 +41,6 @@ export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = nu
   const faceWidth = head.width * (head.scaleX || 1) * display.scale;
   const faceHeight = head.height * (head.scaleY || head.scaleX || 1) * display.scale;
   const faceLayer = `<img class="puppet-preview-layer puppet-preview-face" src="assets/modular/faces/male_${face.id}_${selectedTone}.png?v=${assetVersion}" alt="" width="${faceWidth}" height="${faceHeight}" draggable="false" style="--puppet-x:${((550 + faceX) / 11).toFixed(3)}%;--puppet-y:${((800 + faceY) / 16).toFixed(3)}%;--puppet-w:${(faceWidth / 11).toFixed(3)}%;--puppet-h:${(faceHeight / 16).toFixed(3)}%;--puppet-z:${puppetLayers.length};--puppet-rotation:${head.restRotation || 0}deg">`;
-  return `<div class="raster-character-stage" data-skin-tone="${selectedTone}" style="--skin-tone-filter:url('#skin-tone-${selectedTone}')" role="img" aria-label="Combatiente con la ropa equipada">${backdrop ?? '<div class="raster-character-aura" aria-hidden="true"></div>'}<div class="puppet-preview-rig">${tailLayer}${puppetLayers.map(layer).join("")}${faceLayer}${hairLayer}</div></div>`;
+  return `<div class="raster-character-stage" data-skin-tone="${selectedTone}" style="--skin-tone-filter:url('#skin-tone-${selectedTone}')" role="img" aria-label="${label}">${backdrop ?? '<div class="raster-character-aura" aria-hidden="true"></div>'}<div class="puppet-preview-rig">${tailLayer}${puppetLayers.map(layer).join("")}${faceLayer}${hairLayer}</div></div>`;
 }
 

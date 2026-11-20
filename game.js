@@ -1,4 +1,4 @@
-import { mountMetaUI } from "./src/meta-ui.js?v=0.166.0";
+import { mountMetaUI } from "./src/meta-ui.js?v=0.167.0";
 import { mountSaveRecovery } from "./src/ui/save-recovery.js?v=0.166.0";
 import { startCloudSaveSession } from "./src/save/cloud-session.js?v=0.166.0";
 import { mountCloudSaveStatus } from "./src/ui/meta/cloud-saves.js?v=0.166.0";

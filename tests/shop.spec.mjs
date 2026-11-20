@@ -35,6 +35,52 @@ async function seedShop(page, bodyType = "male") {
 }
 
 for (const bodyType of ["male", "female"]) {
+  test(`el probador mezcla prendas sin equiparlas en ${bodyType}`, async ({ page }) => {
+    await page.setViewportSize(bodyType === "male" ? { width: 1280, height: 720 } : { width: 1024, height: 768 });
+    await seedShop(page, bodyType);
+    const save = await stored(page);
+    await page.getByRole("button", { name: "Probador", exact: true }).click();
+    const preview = page.locator("[data-fitting-preview]");
+    const sources = () => preview.locator(".puppet-preview-cloth").evaluateAll(images =>
+      Promise.all(images.map(async image => { await image.decode(); return image.getAttribute("src"); }))
+    );
+    const equipped = await sources();
+    expect(equipped).toHaveLength(7);
+    let before = equipped;
+    for (const [label, id, style, partCount] of [
+      ["Torso", "top_traveler", "traveler", 1],
+      ["Pantalón completo", "bottom_shadow", "shadow", 4],
+      ["Calzado", "shoes_sandals", "sandals", 2]
+    ]) {
+      const select = page.getByLabel(label, { exact: true });
+      await select.focus();
+      await select.selectOption(id);
+      await expect(select).toBeFocused();
+      const after = await sources();
+      const changed = after.filter((src, index) => src !== before[index]);
+      expect(changed).toHaveLength(partCount);
+      expect(changed.every(src => src.includes(`/${style}/${bodyType}/`))).toBe(true);
+      before = after;
+    }
+    expect(await stored(page)).toEqual(save);
+    await expect(preview).toBeInViewport({ ratio: 0.95 });
+    const reset = page.getByRole("button", { name: "Restaurar mi ropa" });
+    await expect(reset).toBeInViewport({ ratio: 0.95 });
+    await page.screenshot({ path: `test-results/shop/probador-${bodyType}.png` });
+    const top = page.locator('[data-fitting-slot="top"]');
+    await expect(top).toContainText("60 monedas");
+    await top.getByRole("button", { name: "Comprar", exact: true }).click();
+    const bought = await stored(page);
+    expect(bought.progression.coins).toBe(save.progression.coins - 60);
+    expect(bought.inventory.items.top_traveler).toBe(1);
+    expect(bought.character).toEqual(save.character);
+    expect(await sources()).toEqual(before);
+    await expect(top.getByRole("button", { name: "Ya lo tienes" })).toBeDisabled();
+    await reset.click();
+    expect(await sources()).toEqual(equipped);
+    await expect(reset).toBeDisabled();
+  });
+
   test(`viste por separado torso, pantalón completo y calzado en ${bodyType}`, async ({ page }) => {
     await seedShop(page, bodyType);
     const garments = [

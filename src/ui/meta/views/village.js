@@ -1,6 +1,6 @@
 import { villageMapHotspots, mountVillageMap } from "../village-map.js?v=0.134.0";
 import { createTowerView } from "./tower.js?v=0.166.0";
-import { createShopView } from "./shop.js?v=0.166.0";
+import { createShopView } from "./shop.js?v=0.167.0";
 import { createGuildView } from "./guild.js?v=0.140.0";
 import { createArenaView } from "./arena.js?v=0.166.0";
 import { createEventsView } from "./events.js?v=0.155.0";
