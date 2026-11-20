@@ -1,7 +1,7 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.171.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
-import { NPCS } from "../../npcs.js?v=0.175.0";
+import { NPCS } from "../../npcs.js?v=0.176.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.2.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";

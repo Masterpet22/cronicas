@@ -36,6 +36,17 @@ BOOTS = {
     "riku": "traveler", "nao": "channeler", "iori": "traveler", "nami": "traveler"
 }
 BOOT_HIGHLIGHTS = {"mei": "#658b83", "sayo": "#7b6a95", "nao": "#925d5d"}
+# Inner opening of each boot: horizontal center, center height, and radii
+# in source pixels. Each pair lists pie_derecho followed by pie_izquierdo.
+BOOT_OPENINGS = {
+    ("traveler", "male"): ((90, 14, 31, 8), (50, 14, 32, 8)),
+    ("traveler", "female"): ((88, 14, 30, 8), (47, 14, 31, 8)),
+    ("shadow", "male"): ((88, 16, 28, 9), (51, 16, 29, 10)),
+    ("shadow", "female"): ((84, 16, 27, 9), (49, 16, 29, 9)),
+    ("channeler", "male"): ((85, 14, 29, 7), (55, 13, 35, 7)),
+    ("channeler", "female"): ((83, 13, 28, 7), (53, 13, 33, 7))
+}
+SHOE_LEGS = {"pie_derecho": "pierna_derecha", "pie_izquierdo": "pierna_izquierda"}
 
 # Hairline depth at the temple, part, and far side of the native skull.
 # The shallow right side protects the brow and keeps the face in three quarters.
@@ -220,13 +231,36 @@ def fitted_scalp(head_art, id):
     return Image.merge("RGBA", (*channels, Image.fromarray(np.rint(alpha).astype(np.uint8))))
 
 
-def boot_position(art, size, joint, offset):
-    # Fit to the centre of the cuff, which is not the centre of either shoe.
-    left, right = row_edges(art.getchannel("A"))
-    cuff = round(art.height * .13)
-    cuff_x = (left[cuff] + right[cuff] + 1) / (2 * art.width)
-    return (offset[0] + joint["x"] + (.5 - cuff_x) * size[0],
-            offset[1] + joint["y"] + (.5 - cuff / art.height) * size[1])
+def dress_ankle(leg, leg_part, boot, foot_part, opening, offset):
+    """Register the boot on the visible shin and tuck the shin inside its rim."""
+    cuff_x, cuff_y, radius_x, radius_y = opening
+    leg_x = round(offset[0] + leg_part["x"] - leg.width / 2)
+    leg_y = round(offset[1] + leg_part["y"] - leg.height / 2)
+    # Sample the straight ankle above its rounded lower edge.
+    ankle = leg.height - 20
+    left, right = row_edges(leg.getchannel("A"))
+    boot_x = round(leg_x + (left[ankle] + right[ankle]) / 2 - cuff_x)
+    boot_y = round(offset[1] + foot_part["y"] - boot.height / 2)
+
+    # Extend only the end of the shin if it narrows before reaching the rim.
+    lower = ankle - 28
+    extension = max(0, boot_y + cuff_y + radius_y + 2 - (leg_y + ankle))
+    if extension:
+        art = Image.new("RGBA", (leg.width, leg.height + extension))
+        art.paste(leg.crop((0, 0, leg.width, lower)))
+        end = leg.crop((0, lower, leg.width, leg.height))
+        art.paste(end.resize((leg.width, end.height + extension), Image.Resampling.LANCZOS), (0, lower))
+        leg = art
+
+    # The back of the opening stays behind the shin. Its curved front edge
+    # covers the shin, including the sides where it meets the collar.
+    columns = leg_x + np.arange(leg.width) - boot_x - cuff_x
+    rim = boot_y + cuff_y + radius_y * np.sqrt(np.clip(1 - (columns / radius_x) ** 2, 0, 1))
+    rows = leg_y + np.arange(leg.height)[:, None]
+    coverage = np.clip(rim - rows + .5, 0, 1)
+    alpha = np.asarray(leg.getchannel("A"))
+    leg.putalpha(Image.fromarray(np.rint(alpha * coverage).astype(np.uint8)))
+    return (boot_x, boot_y), (leg, (leg_x, leg_y))
 
 
 def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
@@ -246,6 +280,7 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     hair_at = (round(top[0] + x), round(top[1] + y))
     back_hair, front_hair = registered_hair(extract(sheet, 5, row, id), head, hair_box)
     image.alpha_composite(back_hair, hair_at)
+    dressed_legs = {}
     for part in rig["layers"]:
         name = part["id"]
         size = (part["width"] * part.get("scaleX", 1), part["height"] * part.get("scaleY", 1))
@@ -267,14 +302,25 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
                 art = fitted_material(donor, native)
                 if name.startswith("antebrazo") and id in ("hana", "yuna", "kureha", "goro"):
                     art = native_cuff(art, base, donor, native, id)
-        elif name.startswith("pie_"):
-            foot_path = MODULAR / "outfits" / BOOTS[id] / body / f"{name}.png"
+        elif name in SHOE_LEGS:
+            style = BOOTS[id]
+            foot_path = MODULAR / "outfits" / style / body / f"{name}.png"
             upper = BOOT_HIGHLIGHTS.get(id, "#c4b6a0")
-            art = clothing_tone(Image.open(foot_path).convert("RGBA"), shoes, upper)
-            ankle = rig["joints"]["ankleRight" if name == "pie_derecho" else "ankleLeft"]
-            center = boot_position(art, size, ankle, (offset_x, offset_y))
+            boot = clothing_tone(Image.open(foot_path).convert("RGBA"), shoes, upper)
+            leg_name = SHOE_LEGS[name]
+            leg = clothing_tone(Image.open(outfit_path / f"{leg_name}.png").convert("RGBA"), shoes)
+            opening = BOOT_OPENINGS[style, body][name == "pie_izquierdo"]
+            position, dressed_legs[leg_name] = dress_ankle(
+                leg, rig["byId"][leg_name], boot, part, opening, (offset_x, offset_y)
+            )
+            image.alpha_composite(boot, position)
+            continue
+        elif name in dressed_legs:
+            art, position = dressed_legs[name]
+            image.alpha_composite(art, position)
+            continue
         elif name in outfit:
-            art = clothing_tone(Image.open(outfit_path / f"{name}.png").convert("RGBA"), shoes if name.startswith("pierna_") else pants)
+            art = clothing_tone(Image.open(outfit_path / f"{name}.png").convert("RGBA"), pants)
         else:
             art = skin(native, palette)
         draw(image, art, center, size)

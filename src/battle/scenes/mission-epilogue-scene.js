@@ -2,7 +2,7 @@ import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.173.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
-import { NPCS } from "../../npcs.js?v=0.175.0";
+import { NPCS } from "../../npcs.js?v=0.176.0";
 
 export class MissionEpilogueScene extends Phaser.Scene {
   constructor() { super("epilogue"); }

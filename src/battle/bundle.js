@@ -1,6 +1,6 @@
-import { KuroganeBattleScene as BattleScene } from "./scenes/kurogane-battle-scene.js?v=0.175.0";
+import { KuroganeBattleScene as BattleScene } from "./scenes/kurogane-battle-scene.js?v=0.176.0";
 import { MissionTravelScene } from "./scenes/mission-travel-scene.js?v=0.173.0";
-import { MissionEpilogueScene } from "./scenes/mission-epilogue-scene.js?v=0.175.0";
+import { MissionEpilogueScene } from "./scenes/mission-epilogue-scene.js?v=0.176.0";
 import { LevelUpScene } from "./scenes/level-up-scene.js?v=0.173.0";
 import { SecondaryResultsScene } from "./scenes/secondary-results-scene.js?v=0.171.0";
 import { ResultsScene } from "./scenes/results-scene.js?v=0.171.0";

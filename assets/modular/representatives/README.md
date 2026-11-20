@@ -6,7 +6,7 @@ Las escenas usan exportaciones WebP RGBA de 480 × 800. Se regeneran con `python
 
 Los torsos y brazos conservan el canal alfa de sus piezas de juego. Las hojas aportan el color, la tela y los accesorios interiores. La posición del cuello sale del maniquí y cada faja se alinea a la altura correspondiente entre el pecho y la cadera. Los puños y las manos comparten el pivote de la muñeca original. Las dos piernas se dibujan antes del torso. La escala y la línea del suelo son fijas y no dependen de la altura del pelo.
 
-Cada corte se ajusta a la frente y a la sien de su cráneo. Los mechones posteriores se dibujan detrás de la oreja y el hombro. El calzado usa pares del guardarropa del juego, con el centro de cada caña alineado a su tobillo.
+Cada corte se ajusta a la frente y a la sien de su cráneo. Los mechones posteriores se dibujan detrás de la oreja y el hombro. El calzado usa pares del guardarropa del juego. La abertura de cada bota se centra en la silueta de la pierna y su borde delantero cubre el extremo del pantalón.
 
 ## Instrucciones de arte utilizadas
 
