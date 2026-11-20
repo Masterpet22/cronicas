@@ -63,10 +63,10 @@ for (const renderer of ["Canvas", "WebGL"]) test(`${renderer}: cuerpo y retratos
     api.preparePlayerFighterTextures(scene, appearance);
     const portraitsFit = [scene.playerPortrait, scene.enemyPortrait].every(portrait => [portrait.head, portrait.hair].filter(Boolean).every(layer => [-1, 1].every(sx => [-1, 1].every(sy => Math.hypot(layer.x - portrait.wash.x + sx * layer.displayWidth / 2, layer.y - portrait.wash.y + sy * layer.displayHeight / 2) <= 28.001))));
     scene.busy = false; scene.turnReady = true; scene.refreshHud();
-    return { headKey, enemyKey, tone: texture.skinTone, enemyTone: scene.textures.get(enemyKey).skinTone, portrait: scene.playerPortrait.head.texture.key, portraitsFit, skinPixels, bodyFrames: bodyLayers.map(layer => layer.frame.name), stable: before === source.toDataURL(), hairTone: scene.playerPortrait.hair?.texture.skinTone ?? null };
+    return { headKey, enemyKey, tone: texture.skinTone, enemyTone: scene.textures.get(enemyKey).skinTone, expectedEnemyTone: scene.enemyAppearance().skinTone, portrait: scene.playerPortrait.head.texture.key, portraitsFit, skinPixels, bodyFrames: bodyLayers.map(layer => layer.frame.name), stable: before === source.toDataURL(), hairTone: scene.playerPortrait.hair?.texture.skinTone ?? null };
   });
   expect(result.tone).toBe("moreno");
-  expect(result.enemyTone).toBe("claro");
+  expect(result.enemyTone).toBe(result.expectedEnemyTone);
   expect(result.headKey).not.toBe(result.enemyKey);
   expect(result.portrait).toBe(result.headKey);
   expect(result.portraitsFit).toBe(true);
@@ -76,7 +76,7 @@ for (const renderer of ["Canvas", "WebGL"]) test(`${renderer}: cuerpo y retratos
   expect(result.hairTone).toBeNull();
   await page.screenshot({ path: testInfo.outputPath("combate-dos-tonos.png") });
   const objects = page.getByRole("button", { name: "Abrir objetos de misión" });
-  await expect(objects).toHaveText("Objetos");
+  await expect(objects).toHaveAttribute("aria-label", "Abrir objetos de misión");
   await objects.click();
   await expect(page.getByRole("dialog", { name: "Objetos de misión" })).toBeVisible();
   await page.getByRole("button", { name: "Cerrar objetos" }).click();

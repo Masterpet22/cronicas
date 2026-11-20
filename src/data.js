@@ -2,6 +2,7 @@ import { WEAPON_ASSETS } from "./weapon-assets.js?v=1.0.0";
 import { TECHNIQUE_UNLOCK_LEVELS } from "./skills/unlock-levels.js?v=1.0.0";
 import { balanceTechniqueChakra, CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
 import { TAIJUTSU_ACTIONS } from "./skills/physical-actions.js?v=1.0.0";
+import { ENEMY_APPEARANCES } from './enemy-appearance.js?v=1.0.0';
 export { TAIJUTSU_ACTIONS };
 export const SEALS = {
   ara:       { frame: 0, label: "ARA", key: "Q", element: "fuego" },
@@ -184,7 +185,7 @@ export const ENEMY_ACTIONS = Object.freeze({ ...ABILITY_CATALOG,
 const enemyStats = (health, strength, speed, chakra, luck) => Object.freeze({ health, strength, speed, chakra, luck });
 
 export const ENEMY_ROSTER = {
-  kurogane_scout: { name: "EXPLORADOR KUROGANE", level: 6, affinity: "viento", stats: enemyStats(85, 3, 12, 42, 3), accuracy: 88, pattern: ["strike", "wind_palm", "strike"], colors: { cloth: 0x56684b, accent: 0x202b20 } },
+  kurogane_scout: { name: "EXPLORADORA KUROGANE", level: 6, affinity: "viento", stats: enemyStats(85, 3, 12, 42, 3), accuracy: 88, pattern: ["strike", "wind_palm", "strike"], colors: { cloth: 0x56684b, accent: 0x202b20 } },
   kurogane_raider: { name: "ASALTANTE KUROGANE", level: 7, affinity: "fuego", stats: enemyStats(100, 4, 10, 48, 3), accuracy: 90, pattern: ["strike", "fire_embers", "physical_1"], colors: { cloth: 0x85544d, accent: 0x342020 } },
   kurogane_sentry: { name: "VIGÍA KUROGANE", level: 7, affinity: "tierra", stats: enemyStats(120, 4, 9, 48, 2), accuracy: 90, pattern: ["guard", "earth_fist", "strike"], colors: { cloth: 0x81725c, accent: 0x30251e } },
   kurogane_renji: { bondRole: "protector", name: "RENJI KUROGANE", boss: true, level: 10, affinity: "tierra", stats: enemyStats(210, 6, 11, 90, 5), accuracy: 93, pattern: ["guard", "earth_wall", "earth_fist", "strike"], colors: { cloth: 0x675343, accent: 0x272320 } },
@@ -195,7 +196,7 @@ export const ENEMY_ROSTER = {
     colors: { cloth: 0x7b6a50, accent: 0x2c241d }
   },
   tutorial_bandit_second: {
-    name: "BANDIDO", level: 1, affinity: "normal", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
+    name: "BANDIDA", level: 1, affinity: "normal", stats: enemyStats(62, 1, 10, 28, 2), accuracy: 87,
     pattern: ["strike", "physical_1", "strike"],
     colors: { cloth: 0x596b4d, accent: 0x20291d }
   },
@@ -206,7 +207,7 @@ export const ENEMY_ROSTER = {
     colors: { cloth: 0x8f5747, accent: 0x321b19 }
   },
   bandit_pathfinder: {
-    name: "RASTREADOR BANDIDO", level: 2, affinity: "viento", stats: enemyStats(72, 1, 12, 34, 4), accuracy: 89,
+    name: "RASTREADORA BANDIDA", level: 2, affinity: "viento", stats: enemyStats(72, 1, 12, 34, 4), accuracy: 89,
     pattern: ["strike", "wind_palm", "physical_1"],
     colors: { cloth: 0x53684b, accent: 0x1d2b20 }
   },
@@ -228,7 +229,7 @@ export const ENEMY_ROSTER = {
     colors: { cloth: 0x4b3341, accent: 0x170d15 }
   },
   gate_guard: {
-    name: "GUARDIÁN DEL PASO", level: 3, affinity: "tierra", stats: enemyStats(68, 1, 10, 32, 2), accuracy: 90,
+    name: "GUARDIANA DEL PASO", level: 3, affinity: "tierra", stats: enemyStats(68, 1, 10, 32, 2), accuracy: 90,
     pattern: ["strike", "physical_1", "strike"],
     colors: { cloth: 0xe0a45a, accent: 0x3d2021 }
   },
@@ -254,5 +255,6 @@ export const ENEMY_ROSTER = {
   }
 };
 
+for (const [id, profile] of Object.entries(ENEMY_ROSTER)) profile.appearance = ENEMY_APPEARANCES[id];
 export const ENEMIES = Object.values(ENEMY_ROSTER);
 

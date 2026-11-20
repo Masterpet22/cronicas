@@ -2,7 +2,7 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
+import { fighterAtlasKey, fighterFaceTextureKey, fighterHairPortraitLayout, createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.153.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.151.0";
 import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.140.0";
@@ -258,6 +258,17 @@ export class BattleFeedbackMethods {
   }
 
   refreshHud() {
+    const enemyLook = this.enemyAppearance();
+    this.playerPortrait?.setAppearance?.(this.playerAppearance());
+    this.enemyPortrait?.setAppearance?.(enemyLook);
+    if (this.enemyTurnMarker && !this.groupMarkers) {
+      this.enemyTurnMarker.setTexture(fighterAtlasKey(enemyLook), 'cabeza');
+      this.enemyMarkerFace?.setTexture(fighterFaceTextureKey(enemyLook));
+      const key = ({ 1: 'player-hair-corto', 4: 'player-hair-coleta' })[enemyLook.hair];
+      this.enemyMarkerHairLayout = fighterHairPortraitLayout(enemyLook.hair, 21, 32, false, enemyLook.bodyType);
+      this.enemyMarkerHair?.setVisible(Boolean(key));
+      if (key && this.enemyMarkerHairLayout) this.enemyMarkerHair.setTexture(key).setDisplaySize(this.enemyMarkerHairLayout.width, this.enemyMarkerHairLayout.height);
+    }
     this.playerPortrait?.setAffinity?.(this.player.primaryAffinity);
     this.enemyPortrait?.setAffinity?.(this.enemy.primaryAffinity);
     this.updateHealthBar(this.playerHpBar, this.player);

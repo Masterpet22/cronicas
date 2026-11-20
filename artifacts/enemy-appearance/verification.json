@@ -1,0 +1,396 @@
+{
+  "roster": [
+    {
+      "id": "kurogane_scout",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "oliva",
+        "hair": 4,
+        "face": 2,
+        "uniform": {
+          "id": "kurogane",
+          "style": "troop",
+          "cloth": "#71343c",
+          "trim": "#b6a188"
+        },
+        "weapon": "kunai",
+        "clothColor": "#71343c",
+        "accentColor": "#b6a188",
+        "enemyId": "kurogane_scout"
+      },
+      "atlas": "fighter-atlas-female-oliva-troop-kurogane-71343c-b6a188",
+      "face": "player-face-oliva-angry",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    },
+    {
+      "id": "kurogane_raider",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "moreno",
+        "hair": 1,
+        "face": 2,
+        "uniform": {
+          "id": "kurogane",
+          "style": "troop",
+          "cloth": "#71343c",
+          "trim": "#b6a188"
+        },
+        "weapon": "kunai",
+        "clothColor": "#71343c",
+        "accentColor": "#b6a188",
+        "enemyId": "kurogane_raider"
+      },
+      "atlas": "fighter-atlas-male-moreno-troop-kurogane-71343c-b6a188",
+      "face": "player-face-moreno-angry",
+      "hair": "player-hair-corto",
+      "tail": null
+    },
+    {
+      "id": "kurogane_sentry",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "claro",
+        "hair": 0,
+        "face": 1,
+        "uniform": {
+          "id": "kurogane",
+          "style": "troop",
+          "cloth": "#71343c",
+          "trim": "#b6a188"
+        },
+        "weapon": "kunai",
+        "clothColor": "#71343c",
+        "accentColor": "#b6a188",
+        "enemyId": "kurogane_sentry"
+      },
+      "atlas": "fighter-atlas-female-claro-troop-kurogane-71343c-b6a188",
+      "face": "player-face-claro-poker",
+      "hair": null,
+      "tail": null
+    },
+    {
+      "id": "kurogane_renji",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "medio",
+        "hair": 4,
+        "face": 1,
+        "uniform": {
+          "id": "kurogane",
+          "style": "commander",
+          "cloth": "#2c445c",
+          "trim": "#b9c8cb"
+        },
+        "weapon": "sword",
+        "clothColor": "#2c445c",
+        "accentColor": "#b9c8cb",
+        "enemyId": "kurogane_renji"
+      },
+      "atlas": "fighter-atlas-male-medio-commander-kurogane-2c445c-b9c8cb",
+      "face": "player-face-medio-poker",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    },
+    {
+      "id": "kurogane_tatsu",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "claro",
+        "hair": 1,
+        "face": 2,
+        "uniform": {
+          "id": "kurogane",
+          "style": "commander",
+          "cloth": "#842f34",
+          "trim": "#d1a26a"
+        },
+        "weapon": "sword",
+        "clothColor": "#842f34",
+        "accentColor": "#d1a26a",
+        "enemyId": "kurogane_tatsu"
+      },
+      "atlas": "fighter-atlas-male-claro-commander-kurogane-842f34-d1a26a",
+      "face": "player-face-claro-angry",
+      "hair": "player-hair-corto",
+      "tail": null
+    },
+    {
+      "id": "tutorial_bandit",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "canela",
+        "hair": 1,
+        "face": 2,
+        "uniform": {
+          "id": "bandits",
+          "style": "troop",
+          "cloth": "#626445",
+          "trim": "#af8154"
+        },
+        "weapon": "kunai",
+        "clothColor": "#626445",
+        "accentColor": "#af8154",
+        "enemyId": "tutorial_bandit"
+      },
+      "atlas": "fighter-atlas-male-canela-troop-bandits-626445-af8154",
+      "face": "player-face-canela-angry",
+      "hair": "player-hair-corto",
+      "tail": null
+    },
+    {
+      "id": "tutorial_bandit_second",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "claro",
+        "hair": 4,
+        "face": 1,
+        "uniform": {
+          "id": "bandits",
+          "style": "troop",
+          "cloth": "#626445",
+          "trim": "#af8154"
+        },
+        "weapon": "kunai",
+        "clothColor": "#626445",
+        "accentColor": "#af8154",
+        "enemyId": "tutorial_bandit_second"
+      },
+      "atlas": "fighter-atlas-female-claro-troop-bandits-626445-af8154",
+      "face": "player-face-claro-poker",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    },
+    {
+      "id": "boss_varek",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "claro",
+        "hair": 0,
+        "face": 2,
+        "uniform": {
+          "id": "bandits",
+          "style": "commander",
+          "cloth": "#803f30",
+          "trim": "#c8a26a"
+        },
+        "weapon": "sword",
+        "clothColor": "#803f30",
+        "accentColor": "#c8a26a",
+        "enemyId": "boss_varek"
+      },
+      "atlas": "fighter-atlas-male-claro-commander-bandits-803f30-c8a26a",
+      "face": "player-face-claro-angry",
+      "hair": null,
+      "tail": null
+    },
+    {
+      "id": "bandit_pathfinder",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "oscuro",
+        "hair": 1,
+        "face": 1,
+        "uniform": {
+          "id": "bandits",
+          "style": "troop",
+          "cloth": "#626445",
+          "trim": "#af8154"
+        },
+        "weapon": "kunai",
+        "clothColor": "#626445",
+        "accentColor": "#af8154",
+        "enemyId": "bandit_pathfinder"
+      },
+      "atlas": "fighter-atlas-female-oscuro-troop-bandits-626445-af8154",
+      "face": "player-face-oscuro-poker",
+      "hair": "player-hair-corto",
+      "tail": null
+    },
+    {
+      "id": "bandit_lieutenant",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "oliva",
+        "hair": 0,
+        "face": 2,
+        "uniform": {
+          "id": "crow",
+          "style": "troop",
+          "cloth": "#554359",
+          "trim": "#a78c70"
+        },
+        "weapon": "kunai",
+        "clothColor": "#554359",
+        "accentColor": "#a78c70",
+        "enemyId": "bandit_lieutenant"
+      },
+      "atlas": "fighter-atlas-male-oliva-troop-crow-554359-a78c70",
+      "face": "player-face-oliva-angry",
+      "hair": null,
+      "tail": null
+    },
+    {
+      "id": "boss_akumori",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "moreno",
+        "hair": 4,
+        "face": 2,
+        "uniform": {
+          "id": "crow",
+          "style": "commander",
+          "cloth": "#49405e",
+          "trim": "#b99b78"
+        },
+        "weapon": "sword",
+        "clothColor": "#49405e",
+        "accentColor": "#b99b78",
+        "enemyId": "boss_akumori"
+      },
+      "atlas": "fighter-atlas-male-moreno-commander-crow-49405e-b99b78",
+      "face": "player-face-moreno-angry",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    },
+    {
+      "id": "boss_raizen",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "oliva",
+        "hair": 1,
+        "face": 2,
+        "uniform": {
+          "id": "crow",
+          "style": "commander",
+          "cloth": "#3d243e",
+          "trim": "#dcc58b"
+        },
+        "weapon": "sword",
+        "clothColor": "#3d243e",
+        "accentColor": "#dcc58b",
+        "enemyId": "boss_raizen"
+      },
+      "atlas": "fighter-atlas-male-oliva-commander-crow-3d243e-dcc58b",
+      "face": "player-face-oliva-angry",
+      "hair": "player-hair-corto",
+      "tail": null
+    },
+    {
+      "id": "gate_guard",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "canela",
+        "hair": 4,
+        "face": 1,
+        "uniform": {
+          "id": "crow",
+          "style": "troop",
+          "cloth": "#554359",
+          "trim": "#a78c70"
+        },
+        "weapon": "kunai",
+        "clothColor": "#554359",
+        "accentColor": "#a78c70",
+        "enemyId": "gate_guard"
+      },
+      "atlas": "fighter-atlas-female-canela-troop-crow-554359-a78c70",
+      "face": "player-face-canela-poker",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    },
+    {
+      "id": "ash_adept",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "medio",
+        "hair": 1,
+        "face": 2,
+        "uniform": {
+          "id": "ash",
+          "style": "troop",
+          "cloth": "#884936",
+          "trim": "#d3a36d"
+        },
+        "weapon": "kunai",
+        "clothColor": "#884936",
+        "accentColor": "#d3a36d",
+        "enemyId": "ash_adept"
+      },
+      "atlas": "fighter-atlas-female-medio-troop-ash-884936-d3a36d",
+      "face": "player-face-medio-angry",
+      "hair": "player-hair-corto",
+      "tail": null
+    },
+    {
+      "id": "reed_bandit",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "ebano",
+        "hair": 4,
+        "face": 1,
+        "uniform": {
+          "id": "reeds",
+          "style": "troop",
+          "cloth": "#426e55",
+          "trim": "#b6a36f"
+        },
+        "weapon": "kunai",
+        "clothColor": "#426e55",
+        "accentColor": "#b6a36f",
+        "enemyId": "reed_bandit"
+      },
+      "atlas": "fighter-atlas-male-ebano-troop-reeds-426e55-b6a36f",
+      "face": "player-face-ebano-poker",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    },
+    {
+      "id": "stone_hunter",
+      "look": {
+        "bodyType": "male",
+        "skinTone": "claro",
+        "hair": 0,
+        "face": 2,
+        "uniform": {
+          "id": "stone",
+          "style": "troop",
+          "cloth": "#6c695b",
+          "trim": "#aea393"
+        },
+        "weapon": "kunai",
+        "clothColor": "#6c695b",
+        "accentColor": "#aea393",
+        "enemyId": "stone_hunter"
+      },
+      "atlas": "fighter-atlas-male-claro-troop-stone-6c695b-aea393",
+      "face": "player-face-claro-angry",
+      "hair": null,
+      "tail": null
+    },
+    {
+      "id": "venom_medic",
+      "look": {
+        "bodyType": "female",
+        "skinTone": "muy-claro",
+        "hair": 4,
+        "face": 1,
+        "uniform": {
+          "id": "venom",
+          "style": "troop",
+          "cloth": "#666286",
+          "trim": "#c4b8d4"
+        },
+        "weapon": "kunai",
+        "clothColor": "#666286",
+        "accentColor": "#c4b8d4",
+        "enemyId": "venom_medic"
+      },
+      "atlas": "fighter-atlas-female-muy-claro-troop-venom-666286-c4b8d4",
+      "face": "player-face-muy-claro-poker",
+      "hair": "player-hair-coleta",
+      "tail": "player-tail-coleta"
+    }
+  ],
+  "errors": []
+}

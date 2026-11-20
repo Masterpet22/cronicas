@@ -26,15 +26,18 @@ export function playerFighterAppearance(save) {
   };
 }
 
-// Apariencia temporal: hasta que cada rival tenga sus piezas definitivas,
-// todos usan el mismo cuerpo modular articulado del protagonista.
+// Every roster profile carries a stable identity, preserved by battle/Dojo copies.
 export function enemyFighterAppearance(profile, enemyId = "enemy") {
+  const appearance = profile?.appearance || {};
   return {
-    bodyType: "male",
-    skinTone: normalizeSkinTone(profile?.skinTone),
+    ...appearance,
+    bodyType: appearance.bodyType === 'female' ? 'female' : 'male',
+    skinTone: normalizeSkinTone(profile?.skinTone ?? appearance.skinTone),
+    hair: appearance.hair ?? 1,
+    face: appearance.face ?? 1,
     weapon: profile?.boss ? "sword" : "kunai",
-    clothColor: profile?.colors?.cloth ?? 0x53684b,
-    accentColor: profile?.colors?.accent ?? 0x1d2b20,
+    clothColor: appearance.uniform?.cloth ?? profile?.colors?.cloth ?? 0x53684b,
+    accentColor: appearance.uniform?.trim ?? profile?.colors?.accent ?? 0x1d2b20,
     enemyId
   };
 }

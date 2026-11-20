@@ -189,9 +189,8 @@ export class BattlePresentationMethods {
     useFighterTextureRendering(face);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[appearance?.hair];
     const hairLayout = layout.hair;
-    const hair = hairKey && this.textures.exists(hairKey)
-      ? this.add.image(x + hairLayout.x, y + hairLayout.y, hairKey).setDisplaySize(hairLayout.width, hairLayout.height).setFlipX(flipped).setDepth(26)
-      : null;
+    const hair = this.add.image(x + (hairLayout?.x || 0), y + (hairLayout?.y || 0), hairKey || fighterFaceTextureKey(appearance))
+      .setDisplaySize(hairLayout?.width || 1, hairLayout?.height || 1).setFlipX(flipped).setDepth(26).setVisible(Boolean(hairKey));
     if (hair) useFighterTextureRendering(hair);
     const frame = this.add.graphics().setDepth(27);
     const side = flipped ? 1 : -1;
@@ -209,7 +208,23 @@ export class BattlePresentationMethods {
       frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
     };
     setAffinity(flipped ? this.enemy.primaryAffinity : this.player.primaryAffinity);
-    return { shadow, wash, head, face, hair, frame, setAffinity, get affinity() { return affinity; } };
+    let lookKey = '';
+    const setAppearance = next => {
+      const nextKey = JSON.stringify(next);
+      const nextHairKey = ({ 1: 'player-hair-corto', 4: 'player-hair-coleta' })[next.hair];
+      hair.setVisible(Boolean(nextHairKey) && head.visible);
+      if (nextKey === lookKey) return;
+      lookKey = nextKey;
+      preparePlayerFighterTextures(this, next);
+      const nextLayout = fighterCombatPortraitLayout(next, flipped);
+      head.setTexture(fighterAtlasKey(next), 'cabeza').setPosition(x + nextLayout.head.x, y + nextLayout.head.y)
+        .setDisplaySize(nextLayout.head.width, nextLayout.head.height);
+      face.setTexture(fighterFaceTextureKey(next)).setPosition(head.x, head.y).setDisplaySize(head.displayWidth, head.displayHeight);
+      if (nextHairKey && nextLayout.hair) hair.setTexture(nextHairKey)
+        .setPosition(x + nextLayout.hair.x, y + nextLayout.hair.y).setDisplaySize(nextLayout.hair.width, nextLayout.hair.height);
+    };
+    setAppearance(appearance);
+    return { shadow, wash, head, face, hair, frame, setAffinity, setAppearance, get affinity() { return affinity; } };
   }
 
   createOfudaSeal(x, y) {
@@ -335,6 +350,11 @@ export class BattlePresentationMethods {
     this.enemyTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.enemyAppearance()), "cabeza").setDisplaySize(21, 32).setFlipX(false);
     this.playerMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.playerAppearance())).setDisplaySize(22, 34));
     this.enemyMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setDisplaySize(21, 32));
+    this.enemyMarkerHair = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setVisible(false));
+    const enemyHairKey = ({ 1: 'player-hair-corto', 4: 'player-hair-coleta' })[this.enemyAppearance().hair];
+    this.enemyMarkerHairLayout = fighterHairPortraitLayout(this.enemyAppearance().hair, 21, 32, false, this.enemyAppearance().bodyType);
+    if (enemyHairKey && this.enemyMarkerHairLayout) this.enemyMarkerHair.setTexture(enemyHairKey)
+      .setDisplaySize(this.enemyMarkerHairLayout.width, this.enemyMarkerHairLayout.height).setVisible(true);
     const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[markerHairStyle];
     this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34, false, this.playerAppearance()?.bodyType);
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
@@ -354,7 +374,7 @@ export class BattlePresentationMethods {
     this.timelineLayer.add([chrome, progressGlow, ticks, preparationLabel, title,
       this.playerMarkerHalo, this.enemyMarkerHalo, this.playerTurnMarker, this.enemyTurnMarker,
       this.playerMarkerFace, this.enemyMarkerFace,
-      ...[this.playerMarkerHair].filter(Boolean),
+      ...[this.playerMarkerHair, this.enemyMarkerHair].filter(Boolean),
       this.playerTimelineTag.bg, this.playerTimelineTag.text, this.enemyTimelineTag.bg, this.enemyTimelineTag.text]);
     this.timelineThemeParts = { chrome, ticks, progressGlow, title, preparationLabel, preparationStart, trackY };
     this.timelineProgress ||= { player: 0, enemy: 0 };
@@ -463,6 +483,7 @@ export class BattlePresentationMethods {
     this.enemyTurnMarker.setPosition(enemyX, enemyY);
     this.playerMarkerFace?.setPosition(playerX, playerY);
     this.enemyMarkerFace?.setPosition(enemyX, enemyY);
+    if (this.enemyMarkerHairLayout) this.enemyMarkerHair?.setPosition(enemyX + this.enemyMarkerHairLayout.x, enemyY + this.enemyMarkerHairLayout.y);
     this.playerMarkerHalo?.setPosition(playerX, playerY);
     this.enemyMarkerHalo?.setPosition(enemyX, enemyY);
     this.playerMarkerHair?.setPosition(playerX + this.playerMarkerHairLayout.x, playerY + this.playerMarkerHairLayout.y);

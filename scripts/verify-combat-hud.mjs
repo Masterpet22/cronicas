@@ -55,6 +55,29 @@ if (groupMode) {
   const selected = await page.evaluate(() => window.__hudScene.selectedTargetIndex);
   await cards.first().click();
   assert.notEqual(await page.evaluate(() => window.__hudScene.selectedTargetIndex), selected);
+  assert.ok(await page.evaluate(async () => {
+    const s = window.__hudScene;
+    const { fighterAtlasKey, fighterFaceTextureKey } = await import('/src/fighters.js?v=0.153.0');
+    const { enemyFighterAppearance } = await import('/src/character.js?v=0.119.0');
+    const selected = s.selectedTargetIndex;
+    const resources = s.trainingTargets.map(target => [target.state.hp, target.state.chakra]);
+    let matches = true;
+    for (let i=0; i<s.trainingTargets.length; i++) {
+      s.selectTrainingTarget(i);
+      const target=s.trainingTargets[i], look=enemyFighterAppearance(target.profile);
+      const marker=s.groupMarkers[i];
+      const hair=look.hair===4?'player-hair-coleta':look.hair===1?'player-hair-corto':null;
+      matches &&= s.enemyPortrait.head.texture.key===fighterAtlasKey(look)
+        && s.enemyPortrait.face.texture.key===fighterFaceTextureKey(look)
+        && s.enemyPortrait.hair.visible===Boolean(hair)
+        && (!hair || s.enemyPortrait.hair.texture.key===hair)
+        && marker.marker.texture.key===target.fighter.head.texture.key
+        && marker.face.texture.key===fighterFaceTextureKey(look)
+        && (marker.hair?.texture.key||null)===hair;
+    }
+    s.selectTrainingTarget(selected);
+    return matches && JSON.stringify(resources)===JSON.stringify(s.trainingTargets.map(target=>[target.state.hp,target.state.chakra]));
+  }), 'Cuerpo, retrato principal y marcador individual deben conservar la misma identidad al cambiar de objetivo');
   await page.evaluate(() => {
     const s = window.__hudScene;
     s.companion.state.hp -= 17; s.companion.state.chakra -= 9;
@@ -104,6 +127,19 @@ if (groupMode) {
     await page.screenshot({path: `artifacts/combat-hud/reference-group-${width}x${height}.png`, fullPage: true});
   }
   await page.setViewportSize({width:1600,height:900});
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(() => window.__hudScene.enemyPortrait.hair.visible), false,
+    'Volver de tablet vertical no debe devolver el cabello del rival anterior a la vigía sin pelo');
+  assert.ok(await page.evaluate(async () => {
+    const s=window.__hudScene, target=s.trainingTargets[1], origin=[target.fighter.body.x,target.fighter.body.y];
+    const {ENEMY_ACTIONS}=await import('/src/data.js?v=1.5.0');
+    const start=s.startTurnCharge, roll=s.rollHit;
+    s.stopTurnTimeline(); s.startTurnCharge=()=>{}; s.rollHit=()=>true;
+    s.timelinePaused=false; s.busy=false;
+    try { await s.executeGroupAction('enemy',ENEMY_ACTIONS.strike,1); }
+    finally { s.startTurnCharge=start; s.rollHit=roll; s.busy=false; s.turnReady=true; s.refreshHud(); }
+    return target.profile.appearance.bodyType==='female' && target.fighter.body.x===origin[0] && target.fighter.body.y===origin[1];
+  }), 'La rival femenina debe atacar con el rig real y volver a su posición sin perder el uniforme');
   await page.locator('.combat-access-pause').click();
   assert.equal(await page.evaluate(() => window.__hudScene.combatIndicators.active.visible), false);
   await page.getByRole('button', {name:'REANUDAR',exact:true}).click();

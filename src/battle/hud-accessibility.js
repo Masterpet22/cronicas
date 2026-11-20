@@ -287,6 +287,9 @@ export function mountAccessibleBattleHud(scene) {
     root.classList.toggle('compact', query.matches);
     syncCanvasBounds();
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
+    // A selected rival may have a different hairstyle from the initial portrait.
+    // Reapply its current visibility after restoring the desktop canvas HUD.
+    scene.refreshHud();
     scene.timelineLayer.setVisible(scene.mission.groupTraining || scene.mission.groupCombat || !query.matches && !scene.mission.training);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
     if (query.matches) scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));

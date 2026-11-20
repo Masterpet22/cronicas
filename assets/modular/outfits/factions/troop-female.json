@@ -1,0 +1,151 @@
+{
+  "frames": {
+    "torso": {
+      "frame": {
+        "x": 2,
+        "y": 2,
+        "w": 255,
+        "h": 477
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 255,
+        "h": 477
+      },
+      "sourceSize": {
+        "w": 255,
+        "h": 477
+      }
+    },
+    "muslo_derecho": {
+      "frame": {
+        "x": 261,
+        "y": 2,
+        "w": 161,
+        "h": 293
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 161,
+        "h": 293
+      },
+      "sourceSize": {
+        "w": 161,
+        "h": 293
+      }
+    },
+    "muslo_izquierdo": {
+      "frame": {
+        "x": 426,
+        "y": 2,
+        "w": 163,
+        "h": 290
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 163,
+        "h": 290
+      },
+      "sourceSize": {
+        "w": 163,
+        "h": 290
+      }
+    },
+    "pierna_derecha": {
+      "frame": {
+        "x": 593,
+        "y": 2,
+        "w": 115,
+        "h": 251
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 115,
+        "h": 251
+      },
+      "sourceSize": {
+        "w": 115,
+        "h": 251
+      }
+    },
+    "pierna_izquierda": {
+      "frame": {
+        "x": 712,
+        "y": 2,
+        "w": 111,
+        "h": 244
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 111,
+        "h": 244
+      },
+      "sourceSize": {
+        "w": 111,
+        "h": 244
+      }
+    },
+    "pie_derecho": {
+      "frame": {
+        "x": 827,
+        "y": 2,
+        "w": 131,
+        "h": 147
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 131,
+        "h": 147
+      },
+      "sourceSize": {
+        "w": 131,
+        "h": 147
+      }
+    },
+    "pie_izquierdo": {
+      "frame": {
+        "x": 2,
+        "y": 483,
+        "w": 168,
+        "h": 144
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 168,
+        "h": 144
+      },
+      "sourceSize": {
+        "w": 168,
+        "h": 144
+      }
+    }
+  },
+  "meta": {
+    "size": {
+      "w": 1024,
+      "h": 1024
+    },
+    "scale": "1"
+  }
+}

@@ -25,13 +25,15 @@ export function mountHudRoster(scene, root, utilities) {
     ctx.clearRect(0, 0, 144, 144);
     const layout = fighterCombatPortraitLayout(appearance, flipped);
     ctx.save();
-    ctx.translate(72, 72); ctx.scale(flipped ? -2 : 2, 2);
+    ctx.translate(72, 72); ctx.scale(2, 2);
     const paint = (key, frameName, box) => {
       if (!box || !scene.textures.exists(key)) return;
       const frame = scene.textures.getFrame(key, frameName);
       if (!frame) return;
+      ctx.save(); ctx.translate(box.x, box.y); ctx.scale(flipped ? -1 : 1, 1);
       ctx.drawImage(frame.source.image, frame.cutX, frame.cutY, frame.cutWidth, frame.cutHeight,
-        box.x - box.width / 2, box.y - box.height / 2, box.width, box.height);
+        -box.width / 2, -box.height / 2, box.width, box.height);
+      ctx.restore();
     };
     paint(fighterAtlasKey(appearance), 'cabeza', layout.head);
     paint(fighterFaceTextureKey(appearance), undefined, layout.head);
