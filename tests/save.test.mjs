@@ -37,6 +37,14 @@ selectSaveSlot(2, slotStorage);
 const secondCharacter = createCharacter(createDefaultSave(), { name: "Renji", affinity: "fuego", bodyType: "male", hair: 2 });
 assert.equal(secondCharacter.character.hair, 1, "Un peinado no compatible debe migrar a Corto al crear la partida");
 const baldCharacter = createCharacter(createDefaultSave(), { name: "Sora", affinity: "agua", bodyType: "male", hair: 0 });
+for (const [hair, itemId] of [[6, "hair_side_swept"], [7, "hair_curly"], [8, "hair_high_bun"]]) {
+  for (const bodyType of ["male", "female"]) {
+    const created = createCharacter(createDefaultSave(), { name: "Sora", affinity: "agua", bodyType, hair });
+    const restored = normalizeSave(JSON.parse(JSON.stringify(created)));
+    assert.equal(restored.character.hair, hair);
+    assert.equal(restored.inventory.items[itemId], 1);
+  }
+}
 const happyCharacter = createCharacter(createDefaultSave(), { name: "Haru", affinity: "tierra", bodyType: "male", face: 3, hair: 1 });
 assert.equal(happyCharacter.character.face, 3, "El rostro elegido al crear el personaje debe guardarse");
 assert.ok(happyCharacter.inventory.items.face_mask, "El rostro elegido debe quedar disponible en el inventario inicial");

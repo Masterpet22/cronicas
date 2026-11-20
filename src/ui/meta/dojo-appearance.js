@@ -1,8 +1,8 @@
 import { skinToneControlMarkup, syncSkinToneControl } from "../skin-tone-control.js?v=0.135.0";
 import { normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { ITEMS } from "../../items.js?v=0.140.0";
-import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.140.0";
-import { countItem, equipCosmetic } from "../../inventory.js?v=0.140.0";
+import { ITEMS } from "../../items.js?v=0.165.0";
+import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.165.0";
+import { countItem, equipCosmetic } from "../../inventory.js?v=0.165.0";
 
 const choices = (save, slot) => Object.values(ITEMS).filter(item => item.kind === "cosmetic" && item.cosmeticSlot === slot && countItem(save, item.id));
 export function appearanceControlsMarkup(save) {

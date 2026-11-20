@@ -1,15 +1,13 @@
 import { AFFINITY_CONFIG } from "../../../affinity-system.js?v=0.114.0";
 import { skinToneControlMarkup, syncSkinToneControl } from "../../skin-tone-control.js?v=0.135.0";
 import { normalizeSkinTone } from "../../../skin-tones.js?v=0.135.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.159.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.165.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
-import { createCloudSavePanel } from "../cloud-saves.js?v=2.0.0";
-import { cloudSession } from "../../../save/cloud-session.js?v=1.0.0";
+import { createCloudSavePanel } from "../cloud-saves.js?v=0.165.0";
+import { cloudSession } from "../../../save/cloud-session.js?v=0.165.0";
 import { arenaRankingsMarkup, mountArenaRankings } from "../arena-rankings.js?v=1.0.0";
 
-const CREATOR_HAIR_STYLES = Object.freeze([
-  { id: 0, label: "Sin cabello" }, { id: 1, label: "Corto" }, { id: 4, label: "Coleta" }
-]);
+import { CHARACTER_HAIR_STYLES } from "../../../character-rigs.js?v=0.165.0";
 const CREATOR_FACES = Object.freeze([
   { id: 1, label: "Neutral" }, { id: 2, label: "Enojado" }, { id: 3, label: "Feliz" }
 ]);
@@ -70,7 +68,7 @@ export function createSaveCreatorView(deps) {
     const affinity = deps.basicElementIds[0];
     const color = `#${deps.elements[affinity].color.toString(16).padStart(6, "0")}`;
     const preview = rasterCharacterPreviewMarkup({ character: { bodyType: "male", face: 1, hair: 1 } }, deps.assetVersion, { backdrop: elementParticlesMarkup(affinity) });
-    const hairChoices = CREATOR_HAIR_STYLES.map(({ id, label }) => `<option value="${id}" ${id === 1 ? "selected" : ""}>${label}</option>`).join("");
+    const hairChoices = CHARACTER_HAIR_STYLES.map(({ id, label }) => `<option value="${id}" ${id === 1 ? "selected" : ""}>${label}</option>`).join("");
     const faceChoices = CREATOR_FACES.map(({ id, label }) => `<option value="${id}" ${id === 1 ? "selected" : ""}>${label}</option>`).join("");
     return `
       <section class="dojo-card creator-card creator-customizer" style="--creator-affinity:${color}">

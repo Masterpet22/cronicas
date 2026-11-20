@@ -34,6 +34,13 @@ for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748
     await expect(page.locator('select[name="hair"]')).toHaveValue("4");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveAttribute("src", /hair_coleta/);
     await expect(page.locator('.creator-preview .puppet-preview-tail')).toHaveAttribute("src", /tail_coleta/);
+    for (const [value, asset] of [["6", "lateral"], ["7", "rizado"], ["8", "mono"]]) {
+      await page.locator('[data-creator-hair-step="1"]').click();
+      await expect(page.locator('select[name="hair"]')).toHaveValue(value);
+      await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveAttribute("src", new RegExp(`hair_${asset}`));
+      await expect(page.locator('.creator-preview .puppet-preview-tail')).toHaveCount(0);
+      await waitForPreview(page);
+    }
     await page.locator('[data-creator-hair-step="1"]').click();
     await expect(page.locator('select[name="hair"]')).toHaveValue("0");
     await expect(page.locator('.creator-preview .puppet-preview-hair')).toHaveCount(0);

@@ -1,9 +1,9 @@
-import { HUD_ART } from "./hud-art.js?v=0.161.0";
+import { HUD_ART } from "./hud-art.js?v=0.165.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { timelineMarkerPosition } from "./timeline.js?v=0.69.0";
 import { setHudAttribute } from "./hud-dom.js?v=1.0.0";
-import { fighterAtlasKey, fighterCombatPortraitLayout, fighterFaceTextureKey, useFighterTextureRendering } from '../fighters.js?v=0.159.0';
-import { enemyFighterAppearance } from '../character.js?v=0.119.0';
+import { hairTextureKey, fighterAtlasKey, fighterCombatPortraitLayout, fighterFaceTextureKey, useFighterTextureRendering } from '../fighters.js?v=0.165.0';
+import { enemyFighterAppearance } from '../character.js?v=0.165.0';
 
 // Hit areas sit on the actual fighters. The existing portrait shows selection.
 export function mountTrainingTargets(scene) {
@@ -67,7 +67,7 @@ export function mountGroupTimeline(scene) {
       fighterFaceTextureKey(enemyFighterAppearance(target.profile))));
     if (index === 0) scene.enemyMarkerFace = face;
     face.setTexture(fighterFaceTextureKey(look)).setDisplaySize(layout.head.width, layout.head.height);
-    const hairKey = ({ 1: 'player-hair-corto', 4: 'player-hair-coleta' })[look.hair];
+    const hairKey = hairTextureKey(look.hair);
     const hair = hairKey && layout.hair ? useFighterTextureRendering(scene.add.image(start, trackY, hairKey)
       .setDisplaySize(layout.hair.width, layout.hair.height)) : null;
     const label = scene.add.text(start, trackY + 21, String(index + 1), scene.textStyle(10, "#ffe1a4", "800")).setOrigin(.5);

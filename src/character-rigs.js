@@ -52,17 +52,37 @@ export const WOMAN_SPRITE_JOINTS = Object.freeze({
 });
 
 export const CHARACTER_HAIR = Object.freeze({
-  1: { id: "corto", width: 283, height: 238, x: -4, y: -281 },
+  1: { id: "corto", label: "Corto", version: "0.137.0", width: 283, height: 238, x: -4, y: -281 },
   4: {
     id: "coleta",
+    label: "Coleta",
+    version: "0.141.0",
     anchorToHead: true,
     x: 3.9,
     y: -105.6,
     width: 179.55,
     height: 158.175,
     tail: { x: -71.5, y: -52, width: 63.27, height: 267.615 }
-  }
+  },
+  6: { id: "lateral", label: "Flequillo lateral", version: "1.0.0", headOverlay: true },
+  7: { id: "rizado", label: "Rizado", version: "1.0.0", headOverlay: true },
+  8: { id: "mono", label: "Moño alto", version: "1.0.0", headOverlay: true }
 });
+
+export const CHARACTER_HAIR_STYLES = Object.freeze([
+  { id: 0, label: "Sin cabello" },
+  ...Object.entries(CHARACTER_HAIR).map(([id, { label }]) => ({ id: Number(id), label }))
+]);
+
+export function normalizeHairStyle(value) {
+  const style = Number(value);
+  return style === 0 || Object.hasOwn(CHARACTER_HAIR, style) ? style : 1;
+}
+
+export function hairAsset(style, layer = "hair") {
+  const hair = CHARACTER_HAIR[style];
+  return hair ? `assets/modular/hair/${layer}_${hair.id}.png?v=${hair.version}` : null;
+}
 
 export const CHARACTER_FACES = Object.freeze({
   1: { id: "poker", label: "Neutral" },
@@ -105,6 +125,18 @@ export function characterHairConfig(bodyType, style) {
   if (!hair) return null;
   const rig = CHARACTER_RIGS[bodyType === "female" ? "female" : "male"];
   const head = rig.byId.cabeza;
+  if (hair.headOverlay) {
+    // Las tres capas nuevas se dibujaron sobre la cabeza masculina de 174 × 229.
+    const scaleX = head.width * (head.scaleX || 1) / HEAD_ANCHORED_HAIR_REFERENCE.width;
+    const scaleY = head.height * (head.scaleY || head.scaleX || 1) / HEAD_ANCHORED_HAIR_REFERENCE.height;
+    return {
+      ...hair,
+      x: head.x - rig.joints.neck.x,
+      y: head.y - rig.joints.neck.y - 80.5 * scaleY,
+      width: 198 * scaleX,
+      height: 176 * scaleY
+    };
+  }
   if (hair.anchorToHead) {
     const headCenterX = head.x - rig.joints.neck.x;
     const headCenterY = head.y - rig.joints.neck.y;

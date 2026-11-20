@@ -1,8 +1,13 @@
 // Los valores se comparten con el personaje y con sus capas de apariencia.
+import { hairAsset } from "./character-rigs.js?v=0.165.0";
+
 export const COSMETICS = Object.freeze([
   { id: "hair_none", name: "Sin cabello", cosmeticSlot: "hair", value: 0, price: 0 },
   { id: "hair_short", name: "Peinado corto", cosmeticSlot: "hair", value: 1, price: 40, image: "assets/modular/hair/hair_corto.png?v=0.137.0" },
   { id: "hair_ponytail", name: "Peinado con coleta", cosmeticSlot: "hair", value: 4, price: 70, image: "assets/modular/hair/hair_coleta.png?v=0.141.0" },
+  { id: "hair_side_swept", name: "Flequillo lateral", cosmeticSlot: "hair", value: 6, price: 50, image: hairAsset(6) },
+  { id: "hair_curly", name: "Peinado rizado", cosmeticSlot: "hair", value: 7, price: 60, image: hairAsset(7) },
+  { id: "hair_high_bun", name: "Moño alto", cosmeticSlot: "hair", value: 8, price: 70, image: hairAsset(8) },
   { id: "face_plain", name: "Rostro neutral", cosmeticSlot: "face", value: 1, price: 0, image: "assets/modular/faces/male_poker.png?v=0.135.0" },
   { id: "face_scar", name: "Rostro enojado", cosmeticSlot: "face", value: 2, price: 50, image: "assets/modular/faces/male_angry.png?v=0.135.0" },
   { id: "face_mask", name: "Rostro feliz", cosmeticSlot: "face", value: 3, price: 75, image: "assets/modular/faces/male_happy.png?v=0.135.0" },

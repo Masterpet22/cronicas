@@ -1,4 +1,4 @@
-import { MAN_SPRITE_JOINTS } from "../character-rigs.js?v=0.159.0";
+import { MAN_SPRITE_JOINTS } from "../character-rigs.js?v=0.165.0";
 
 export const PUPPET_JOINTS = MAN_SPRITE_JOINTS;
 

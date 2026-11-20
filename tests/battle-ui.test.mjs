@@ -68,7 +68,7 @@ assert.match(fighters, /fighterHairPortraitLayout\(style, width, height, flipped
 assert.doesNotMatch(fighters, /player-head-corto/, "Los retratos no deben sustituir la cabeza y el peinado por una composición distinta");
 assert.match(battle, /fighterCombatPortraitLayout\(appearance, flipped\)[\s\S]*fighterAtlasKey\(appearance\), "cabeza"[\s\S]*const hairLayout = layout\.hair/, "El retrato principal debe encuadrar juntos cabeza y peinado sin deformarlos");
 assert.match(battle, /fighterHairPortraitLayout\(markerHairStyle, 22, 34, false, this\.playerAppearance\(\)\?\.bodyType\)/, "El icono de orden de turno debe escalar la misma composición del personaje");
-assert.match(characterRigs, /1: \{ id: "corto", width: 283, height: 238, x: -4, y: -281 \}/, "El cabello corto debe coincidir con la posición del Dojo en el cuerpo de combate");
+assert.match(characterRigs, /1: \{ id: "corto", [^}]*width: 283, height: 238, x: -4, y: -281 \}/, "El cabello corto debe coincidir con la posición del Dojo en el cuerpo de combate");
 assert.match(characterRigs, /id: "coleta",[\s\S]*anchorToHead: true,[\s\S]*x: 3\.9,[\s\S]*y: -105\.6,[\s\S]*width: 179\.55,[\s\S]*height: 158\.175,[\s\S]*tail: \{ x: -71\.5, y: -52, width: 63\.27, height: 267\.615 \}/, "La coleta completa debe conservar la proporción, el desplazamiento y la escala solicitados");
 assert.doesNotMatch(battle, /playerX \+ 32, 57, "VIDA"/, "El HUD no debe mostrar la etiqueta VIDA");
 assert.doesNotMatch(battle, /playerX \+ 32, 80, "CHAKRA"/, "El HUD no debe mostrar la etiqueta CHAKRA");
@@ -327,7 +327,7 @@ assert.match(metaUi, /characterHairConfig/, "Apariencia debe compartir el catalo
 assert.match(metaUi, /CHARACTER_RIGS/, "El Dojo debe usar el mismo rig normalizado que combate");
 assert.match(metaUi, /source\.x \+ rig\.joints\.neck\.x/, "El Dojo debe alinear cabello y cola desde el cuello de cada rig");
 assert.match(metaUi, /scaleX = 1, scaleY = scaleX/, "La vista debe aplicar las escalas exportadas por Kinetra");
-assert.match(metaUi, /hairBase\.id === "corto" \? "0\.137\.0" : "0\.141\.0"/, "El Dojo debe usar las versiones aprobadas de ambos peinados");
+assert.match(metaUi, /version: hairBase\.version/, "El Dojo debe usar la versión de cada peinado declarada en el rig");
 assert.match(metaUi, /assets\/modular\/hair\/\$\{hair\.asset\}\.png\?v=\$\{hair\.version\}/, "El Dojo debe invalidar la caché con la versión propia de cada peinado");
 assert.doesNotMatch(metaUi, /hair_0[1-5]_(?:front|rear)/, "Apariencia no debe cargar los peinados experimentales incompatibles");
 assert.doesNotMatch(metaUi, /raster-character-floor/, "La vista de la marioneta no debe conservar la sombra elíptica del suelo");

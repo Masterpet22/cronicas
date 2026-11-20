@@ -1,6 +1,6 @@
 import { isBaseOutfitPart, baseOutfitAsset } from "../../base-outfit.js?v=0.140.0";
 import { ensureSkinToneFilters, normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.159.0";
+import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.165.0";
 
 export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null } = {}) {
   ensureSkinToneFilters();
@@ -19,7 +19,7 @@ export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = nu
     width: source.width * display.scale,
     height: source.height * display.scale,
     asset,
-    version: hairBase.id === "corto" ? "0.137.0" : "0.141.0"
+    version: hairBase.version
   } : null;
   const hair = hairBase ? projectHairLayer(hairBase, `hair_${hairBase.id}`) : null;
   const tail = hairBase?.tail ? projectHairLayer(hairBase.tail, `tail_${hairBase.id}`) : null;

@@ -1,11 +1,11 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.164.0";
-import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.161.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.165.0";
+import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.165.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.159.0";
-import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.161.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.161.0";
+import { hairTextureKey, createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.165.0";
+import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.165.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.165.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.165.0";
 import { ELEMENTS, elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.155.0";
@@ -187,7 +187,7 @@ export class BattlePresentationMethods {
     const head = this.add.image(x + layout.head.x, y + layout.head.y, fighterAtlasKey(appearance), "cabeza").setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25);
     const face = this.add.image(x + layout.head.x, y + layout.head.y, fighterFaceTextureKey(appearance)).setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25.5);
     useFighterTextureRendering(face);
-    const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[appearance?.hair];
+    const hairKey = hairTextureKey(appearance?.hair);
     const hairLayout = layout.hair;
     const hair = this.add.image(x + (hairLayout?.x || 0), y + (hairLayout?.y || 0), hairKey || fighterFaceTextureKey(appearance))
       .setDisplaySize(hairLayout?.width || 1, hairLayout?.height || 1).setFlipX(flipped).setDepth(26).setVisible(Boolean(hairKey));
@@ -211,7 +211,7 @@ export class BattlePresentationMethods {
     let lookKey = '';
     const setAppearance = next => {
       const nextKey = JSON.stringify(next);
-      const nextHairKey = ({ 1: 'player-hair-corto', 4: 'player-hair-coleta' })[next.hair];
+      const nextHairKey = hairTextureKey(next.hair);
       hair.setVisible(Boolean(nextHairKey) && head.visible);
       if (nextKey === lookKey) return;
       lookKey = nextKey;
@@ -351,11 +351,11 @@ export class BattlePresentationMethods {
     this.playerMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.playerAppearance())).setDisplaySize(22, 34));
     this.enemyMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setDisplaySize(21, 32));
     this.enemyMarkerHair = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setVisible(false));
-    const enemyHairKey = ({ 1: 'player-hair-corto', 4: 'player-hair-coleta' })[this.enemyAppearance().hair];
+    const enemyHairKey = hairTextureKey(this.enemyAppearance().hair);
     this.enemyMarkerHairLayout = fighterHairPortraitLayout(this.enemyAppearance().hair, 21, 32, false, this.enemyAppearance().bodyType);
     if (enemyHairKey && this.enemyMarkerHairLayout) this.enemyMarkerHair.setTexture(enemyHairKey)
       .setDisplaySize(this.enemyMarkerHairLayout.width, this.enemyMarkerHairLayout.height).setVisible(true);
-    const hairKey = ({ 1: "player-hair-corto", 4: "player-hair-coleta" })[markerHairStyle];
+    const hairKey = hairTextureKey(markerHairStyle);
     this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34, false, this.playerAppearance()?.bodyType);
     this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
       ? this.add.image(start + this.playerMarkerHairLayout.x, trackY + this.playerMarkerHairLayout.y, hairKey).setDisplaySize(this.playerMarkerHairLayout.width, this.playerMarkerHairLayout.height)

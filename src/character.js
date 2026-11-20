@@ -1,13 +1,17 @@
 import { normalizeSkinTone, skinTone } from "./skin-tones.js?v=0.135.0";
+import { CHARACTER_HAIR_STYLES, hairAsset, normalizeHairStyle } from "./character-rigs.js?v=0.165.0";
 const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
-export const HAIR_STYLE_LABELS = Object.freeze(["Sin cabello", "Corto", "Coleta"]);
+export const HAIR_STYLE_LABELS = Object.freeze(CHARACTER_HAIR_STYLES.map(({ label }) => label));
 const RASTER_HAIR = Object.freeze({
   1: { asset: "assets/modular/hair/hair_corto.png?v=0.137.0", x: -44, y: -140, width: 94, height: 79 },
   4: {
     asset: "assets/modular/hair/hair_coleta.png?v=0.141.0",
     x: -38.0745, y: -111.729, width: 88.749, height: 68.058,
     tail: { asset: "assets/modular/hair/tail_coleta.png?v=0.141.0", x: -46.65375, y: -111.156, width: 31.2075, height: 114.912 }
-  }
+  },
+  ...Object.fromEntries([6, 7, 8].map(style => [style, {
+    asset: hairAsset(style), x: -54, y: -154, width: 108, height: 96
+  }]))
 });
 const WEAPON_MAP = { kunai: "kunai", tanto: "sword", staff: "staff" };
 
@@ -52,8 +56,7 @@ function colorHex(value, fallback) {
 }
 
 export function resolveFighterAppearance(appearance = {}) {
-  const requestedHair = Number(appearance.hair);
-  const hair = requestedHair === 0 || requestedHair === 1 || requestedHair === 4 ? requestedHair : 1;
+  const hair = normalizeHairStyle(appearance.hair);
   return {
     bodyType: appearance.bodyType === "female" ? "female" : "male",
     skinTone: normalizeSkinTone(appearance.skinTone),
@@ -65,7 +68,7 @@ export function resolveFighterAppearance(appearance = {}) {
     weapon: ["kunai", "sword", "staff", "dagger", "none"].includes(appearance.weapon) ? appearance.weapon : "kunai",
     cloth: colorHex(appearance.clothColor ?? appearance.cloth, "#3f6ea8"),
     accent: colorHex(appearance.accentColor ?? appearance.accent, "#25344d"),
-    hairColor: HAIR_COLORS[Math.max(0, hair - 1)],
+    hairColor: HAIR_COLORS[Math.max(0, hair - 1)] || HAIR_COLORS[0],
     skin: skinTone(appearance.skinTone).color,
     ink: "#111722"
   };

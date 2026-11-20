@@ -6,8 +6,8 @@ import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
 import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.159.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.159.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.165.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.165.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.159.0";
 import {
   CHARACTER_FACES,
@@ -17,8 +17,9 @@ import {
   MAN_SPRITE_LAYERS as UPDATED_MAN_SPRITE_LAYERS,
   WOMAN_SPRITE_JOINTS as UPDATED_WOMAN_SPRITE_JOINTS,
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
-  characterHairConfig
-} from "./character-rigs.js?v=0.159.0";
+  characterHairConfig,
+  hairAsset
+} from "./character-rigs.js?v=0.165.0";
 
 const FIGHTER_GROUND_OFFSET = 60;
 export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;
@@ -67,7 +68,7 @@ export function useFighterTextureRendering(image) {
   return image;
 }
 
-function hairTextureKey(style) {
+export function hairTextureKey(style) {
   return CHARACTER_HAIR[style] ? `player-hair-${CHARACTER_HAIR[style].id}` : null;
 }
 
@@ -139,10 +140,10 @@ export function queuePlayerFighterTextures(scene, appearance) {
   }
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
-    scene.load.image(hairTextureKey(appearance.hair), `assets/modular/hair/hair_${hair.id}.png?v=${appearance?.hair === 1 ? "0.137.0" : "0.141.0"}`);
+    scene.load.image(hairTextureKey(appearance.hair), hairAsset(appearance.hair));
   }
   if (hair?.tail && !scene.textures.exists(tailTextureKey(appearance.hair))) {
-    scene.load.image(tailTextureKey(appearance.hair), `assets/modular/hair/tail_${hair.id}.png?v=0.141.0`);
+    scene.load.image(tailTextureKey(appearance.hair), hairAsset(appearance.hair, "tail"));
   }
   const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
   const faceKey = fighterFaceTextureKey(appearance);

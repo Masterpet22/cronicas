@@ -1,5 +1,6 @@
-import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.140.0";
-import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.140.0";
+import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.165.0";
+import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.165.0";
+import { CHARACTER_HAIR } from "./character-rigs.js?v=0.165.0";
 import { GUILD_STARTER_ITEMS, GUILD_INVENTORY_VERSION, guildInventoryGrants } from "./guild-catalog.js?v=0.126.0";
 import { placedDecorationCount } from "./guild.js?v=0.126.0";
 
@@ -101,7 +102,7 @@ export function normalizeAppearance(character, inventory) {
   return Object.fromEntries(Object.entries(BASE_COSMETICS).map(([slot, base]) => {
     let value = slot === "teleportObject" && character?.[slot] === "chair" ? "puppet" : character?.[slot] ?? base;
     if (["hair", "face", "top", "bottom", "shoes"].includes(slot)) value = Number(value);
-    if (slot === "hair" && ![0, 1, 4].includes(value)) value = inventory.items.hair_short ? 1 : 0;
+    if (slot === "hair" && value !== 0 && !Object.hasOwn(CHARACTER_HAIR, value)) value = inventory.items.hair_short ? 1 : 0;
     const owned = Object.values(ITEMS).some(item => item.kind === "cosmetic" && item.cosmeticSlot === slot && item.value === value && inventory.items[item.id] > 0);
     return [slot, owned ? value : base];
   }));
