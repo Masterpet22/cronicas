@@ -1,4 +1,4 @@
-import { HUD_ART } from "./hud-art.js?v=0.155.0";
+import { HUD_ART } from "./hud-art.js?v=0.161.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { timelineMarkerPosition } from "./timeline.js?v=0.69.0";
 import { setHudAttribute } from "./hud-dom.js?v=1.0.0";

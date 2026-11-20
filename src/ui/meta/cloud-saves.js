@@ -1,202 +1,136 @@
-import { listSaveSlots, normalizeSave, SAVE_VERSION, saveStatus, writeSaveToSlot } from "../../save.js?v=0.160.0";
+import { cloudSession } from "../../save/cloud-session.js?v=1.0.0";
 
-const formatDate = new Intl.DateTimeFormat("es", { dateStyle: "medium", timeStyle: "short" });
-const errors = {
-  "auth/popup-blocked": "Permite las ventanas emergentes para iniciar sesión con Google.",
+const authErrors = {
+  "auth/popup-blocked": "Permite las ventanas emergentes para entrar con Google.",
   "auth/popup-closed-by-user": "Se cerró la ventana de Google. Puedes volver a intentarlo.",
-  "auth/unauthorized-domain": "Este dominio aún no está autorizado para iniciar sesión en Firebase.",
-  "auth/configuration-not-found": "Firebase Authentication aún no está configurado para el juego.",
-  "auth/operation-not-allowed": "El inicio de sesión con Google aún no está habilitado en Firebase.",
-  "permission-denied": "Firebase denegó el acceso a las copias de esta cuenta.",
-  "save/conflict": "La copia cambió en otro dispositivo. Actualiza la lista antes de volver a intentarlo.",
-  "save/too-large": "La partida supera el tamaño admitido para una copia en la nube."
+  "auth/unauthorized-domain": "Este dominio aún no está autorizado para entrar con Google."
 };
 
-function decodeCopy(copy) {
-  try {
-    const data = JSON.parse(copy.payload);
-    if (!Number.isInteger(data?.version) || data.version < 1 || data.version > SAVE_VERSION || !data.character) return null;
-    return normalizeSave(data);
-  } catch (_) {
-    return null;
-  }
+export function cloudStatusText() {
+  if (cloudSession.blocked) return "Abre las partidas de esta cuenta en una sola pestaña.";
+  if (cloudSession.loading) return "Cargando partidas de la cuenta…";
+  if (cloudSession.conflicts.length) return "Hay partidas con cambios en dos dispositivos.";
+  if (cloudSession.unavailable) return cloudSession.pending
+    ? "Sin sincronizar. El progreso está guardado en este navegador."
+    : "Sin conexión con Firebase. Puedes continuar las partidas disponibles en este navegador.";
+  if (cloudSession.syncing || cloudSession.pending) return "Guardando en la nube…";
+  return "Guardado automático en la nube.";
 }
 
-export function createCloudSavePanel({ escapeHtml, onRestored }) {
-  let open = false;
-  let client;
-  let restoredMessage = "";
+export function mountCloudSaveStatus() {
+  const indicator = document.querySelector("[data-game-cloud-status]");
+  const update = () => {
+    indicator.hidden = !cloudSession.account;
+    const message = cloudSession.account ? cloudStatusText() : "";
+    if (indicator.textContent !== message) indicator.textContent = message;
+  };
+  cloudSession.subscribe(update);
+  update();
+}
 
-  async function connect() {
-    if (!client) {
-      client = import("../../save/firebase-cloud.js?v=1.0.0").catch(error => {
-        client = null;
-        throw error;
-      });
-    }
-    const api = await client;
-    await api.ready();
-    return api;
-  }
-
+export function createCloudSavePanel({ escapeHtml }) {
+  let guestOpen = false;
   return {
-    markup: () => `<details class="cloud-saves" ${open ? "open" : ""}>
-      <summary>Guardado en la nube</summary>
-      <div class="cloud-saves-body">
-        <div data-cloud-controls></div>
-        <p data-cloud-status role="status"></p>
-      </div>
-    </details>`,
+    markup: () => cloudSession.account
+      ? `<section class="cloud-saves cloud-saves-signed" aria-label="Guardado en la nube"><div data-cloud-controls></div></section>`
+      : `<details class="cloud-saves" ${guestOpen ? "open" : ""}><summary>Jugar con una cuenta de Google</summary><div class="cloud-saves-body" data-cloud-controls></div></details>`,
     mount(root, scope) {
       const panel = root.querySelector(".cloud-saves");
       const controls = panel.querySelector("[data-cloud-controls]");
-      const status = panel.querySelector("[data-cloud-status]");
-      let api;
-      let account;
-      let copies;
+      let preparing = false;
+      let prepared = false;
       let busy = false;
-      let disconnect;
+      let error = "";
+      const button = (action, label, attributes = "") => `<button class="secondary-button" type="button" data-cloud-action="${action}" ${attributes} ${busy ? "disabled" : ""}>${label}</button>`;
 
-      const render = () => {
-        const disabled = busy ? "disabled" : "";
-        const localSlots = listSaveSlots();
-        const rows = copies?.map((copy, index) => {
-          const { slot, save } = localSlots[index];
-          const remote = copy && decodeCopy(copy);
-          const date = copy?.updatedAt?.toDate?.();
-          const identical = remote && JSON.stringify(remote) === JSON.stringify(save);
-          const description = remote
-            ? `${escapeHtml(remote.character.name)} · Nivel ${remote.progression.level}${date ? ` · ${escapeHtml(formatDate.format(date))}` : ""}`
-            : copy ? "Copia incompatible con esta versión" : "Sin copia en la nube";
-          return `<li><div><strong>Partida ${slot}</strong><span>${description}</span></div>
-            <div class="cloud-saves-actions">
-              <button class="secondary-button" type="button" data-cloud-action="upload" data-slot="${slot}" aria-label="Subir copia de la partida ${slot}" ${busy || !save?.character || identical || (copy && !remote) ? "disabled" : ""}>Subir copia</button>
-              <button class="secondary-button" type="button" data-cloud-action="restore" data-slot="${slot}" aria-label="Restaurar partida ${slot}" ${busy || !remote || identical ? "disabled" : ""}>Restaurar</button>
-            </div></li>`;
-        }).join("");
-        controls.innerHTML = account ? `
-          <div class="cloud-saves-account"><span>${escapeHtml(account.email || account.displayName || "Sesión iniciada")}</span>
-            <div class="cloud-saves-actions"><button class="secondary-button" type="button" data-cloud-action="refresh" ${disabled}>Actualizar copias</button>
-            <button class="secondary-button" type="button" data-cloud-action="logout" ${disabled}>Cerrar sesión</button></div></div>
-          ${rows ? `<ul aria-label="Copias en la nube">${rows}</ul>` : ""}` : `
-          <div class="cloud-saves-account"><span>Sube tus partidas y restáuralas en otro navegador con la misma cuenta.</span>
-            <button class="secondary-button" type="button" data-cloud-action="login" ${disabled}>Iniciar sesión con Google</button></div>`;
-      };
-
-      const refresh = async () => {
-        const user = account;
-        copies = undefined;
-        if (!user) return;
-        const result = await Promise.all(listSaveSlots().map(({ slot }) => api.readCopy(user.uid, slot)));
-        if (scope.isCurrent() && api.currentUser()?.uid === user.uid && account?.uid === user.uid) copies = result;
-      };
-
-      const run = async (work, loading, button) => {
-        if (busy) return;
-        busy = true;
-        status.textContent = loading;
-        render();
-        if (button) panel.querySelector("summary").focus({ preventScroll: true });
+      function describe(payload) {
         try {
-          status.textContent = (await work()) || "";
-        } catch (error) {
-          if (error?.code === "save/conflict") copies = undefined;
-          status.textContent = errors[error?.code] || "No se pudo conectar con la nube. Comprueba tu conexión y vuelve a intentarlo.";
+          const save = JSON.parse(payload);
+          return save ? `${escapeHtml(save.character.name)} · Nivel ${Number(save.progression.level) || 1}` : "Ranura vacía";
+        } catch (_) { return "Partida incompatible"; }
+      }
+
+      function render() {
+        const account = cloudSession.account;
+        const importOpen = controls.querySelector(".cloud-import")?.open;
+        const targets = new Map([...controls.querySelectorAll("[data-import-slot]")].map(select => [select.dataset.importSlot, select.value]));
+        const focused = controls.contains(document.activeElement) ? document.activeElement : null;
+        const selector = focused?.dataset.cloudAction
+          ? `[data-cloud-action="${focused.dataset.cloudAction}"]${focused.dataset.slot ? `[data-slot="${focused.dataset.slot}"]` : ""}` : "";
+        if (!account) {
+          controls.innerHTML = `<div class="cloud-saves-account"><span>Guarda automáticamente y continúa en otro equipo con la misma cuenta.</span>
+            ${button("login", "Iniciar sesión con Google", preparing ? "disabled" : "")}</div>
+            <p role="status">${escapeHtml(error || (preparing ? "Conectando con Google…" : ""))}</p>`;
+        } else {
+          const conflicts = cloudSession.conflicts.map(({ slot, local, payload }) => `<li><div><strong>Partida ${slot}</strong><span>En este equipo · ${describe(local)}</span><span>En la nube · ${describe(payload)}</span></div>
+            <div class="cloud-saves-actions">
+              ${button("keep", "Conservar la de este equipo", `data-slot="${slot}"`)}
+              ${button("use-cloud", "Usar la de la nube", `data-slot="${slot}"`)}
+            </div></li>`).join("");
+          const imports = cloudSession.imports().map(({ slot, save, targets: available }) => `<li>
+            <div><strong>${escapeHtml(save.character.name)}</strong><span>Partida local ${slot} · Nivel ${save.progression.level}</span></div>
+            <div class="cloud-saves-actions"><select data-import-slot="${slot}" aria-label="Ranura para ${escapeHtml(save.character.name)}">
+              ${available.map(target => `<option value="${target}" ${String(target) === (targets.get(String(slot)) ?? String(slot)) ? "selected" : ""}>Partida ${target}</option>`).join("")}
+            </select>${button("import", "Vincular partida", `data-slot="${slot}"`)}</div>
+          </li>`).join("");
+          const retry = (cloudSession.unavailable || cloudSession.blocked) && !cloudSession.loading
+            ? button("retry", "Reintentar conexión") : "";
+          controls.innerHTML = `<div class="cloud-saves-account">
+            <div><strong>${escapeHtml(account.label || "Cuenta de Google")}</strong><p role="status">${escapeHtml(error || cloudStatusText())}</p></div>
+            <div class="cloud-saves-actions">${retry}${button("logout", "Cerrar sesión")}</div>
+          </div>
+          ${conflicts ? `<ul aria-label="Partidas con cambios simultáneos">${conflicts}</ul>` : ""}
+          ${imports ? `<details class="cloud-import"><summary>Vincular partidas de este navegador</summary><ul>${imports}</ul></details>` : ""}`;
+        }
+        if (importOpen && controls.querySelector(".cloud-import")) controls.querySelector(".cloud-import").open = true;
+        if (selector) controls.querySelector(selector)?.focus({ preventScroll: true });
+      }
+
+      async function prepare() {
+        if (preparing || prepared) return;
+        preparing = true;
+        error = "";
+        render();
+        try { await cloudSession.prepareLogin(); prepared = true; }
+        catch (_) { error = "No se pudo conectar con Google. Vuelve a intentarlo."; }
+        finally { preparing = false; if (scope.isCurrent()) render(); }
+      }
+
+      scope.onCleanup(cloudSession.subscribe(render));
+      if (cloudSession.account) scope.listen(window, "online", () => { void cloudSession.refresh(); });
+      scope.listen(panel, "toggle", event => {
+        if (event.target !== panel || cloudSession.account) return;
+        guestOpen = panel.open;
+        if (guestOpen) void prepare();
+      });
+      scope.listen(controls, "click", async event => {
+        const control = event.target.closest("[data-cloud-action]");
+        if (!control || busy) return;
+        const action = control.dataset.cloudAction;
+        const slot = Number(control.dataset.slot);
+        if (action === "logout" && cloudSession.pending &&
+          !window.confirm("Hay cambios pendientes de sincronizar. Se conservarán en este navegador hasta que vuelvas a entrar. ¿Cerrar sesión?")) return;
+        if ((action === "keep" || action === "use-cloud") && !window.confirm(action === "keep"
+          ? "¿Reemplazar la partida de la nube por la de este equipo?"
+          : "¿Descartar los cambios de este equipo y continuar con la partida de la nube?")) return;
+        error = "";
+        busy = true;
+        if (action === "login" || action === "logout") render();
+        try {
+          if (action === "login") await cloudSession.signIn();
+          if (action === "logout") await cloudSession.signOut();
+          if (action === "retry") await cloudSession.retry();
+          if (action === "import") cloudSession.importSave(slot, Number(controls.querySelector(`[data-import-slot="${slot}"]`)?.value));
+          if (action === "keep" || action === "use-cloud") cloudSession.resolve(slot, action === "keep");
+        } catch (failure) {
+          error = authErrors[failure.code] || "No se pudo completar esta acción. Reintenta el guardado o la conexión.";
         } finally {
           busy = false;
-          if (scope.isCurrent()) {
-            render();
-            if (button && document.activeElement === panel.querySelector("summary")) {
-              const slotSelector = button.dataset.slot ? `[data-slot="${button.dataset.slot}"]` : "";
-              const next = controls.querySelector(`[data-cloud-action="${button.dataset.cloudAction}"]${slotSelector}:enabled`)
-                || controls.querySelector('[data-cloud-action="refresh"]:enabled');
-              next?.focus({ preventScroll: true });
-            }
-          }
-        }
-      };
-
-      const init = async () => {
-        if (api || busy) return;
-        await run(async () => {
-          api = await connect();
-          if (!scope.isCurrent()) return;
-          account = api.currentUser();
-          disconnect = api.watchAccount(user => {
-            if (account?.uid === user?.uid) return;
-            account = user;
-            copies = undefined;
-            if (!busy) void run(refresh, "Consultando las copias…");
-          });
-          await refresh();
-          const message = restoredMessage;
-          restoredMessage = "";
-          return message;
-        }, "Conectando con Firebase…");
-      };
-
-      scope.onCleanup(() => disconnect?.());
-      scope.listen(panel, "toggle", () => {
-        open = panel.open;
-        if (open) void init();
-      });
-
-      scope.listen(controls, "click", event => {
-        const button = event.target.closest("[data-cloud-action]");
-        if (!button || busy) return;
-        const action = button.dataset.cloudAction;
-        const slot = Number(button.dataset.slot);
-        const local = listSaveSlots().find(entry => entry.slot === slot)?.save;
-        const copy = copies?.[slot - 1];
-        const uid = account?.uid;
-
-        if (action === "login") {
-          if (!api) { void init(); return; }
-          void run(async () => {
-            await api.logIn();
-            account = api.currentUser();
-            await refresh();
-          }, "Abriendo el inicio de sesión…", button);
-        } else if (action === "logout") {
-          void run(async () => {
-            await api.logOut();
-            account = api.currentUser();
-            copies = undefined;
-          }, "Cerrando sesión…", button);
-        } else if (action === "refresh") {
-          void run(refresh, "Consultando las copias…", button);
-        } else if (action === "upload" && uid && local?.character) {
-          if (copy && !window.confirm(`¿Reemplazar la copia de la partida ${slot} en la nube por la de ${local.character.name}?`)) return;
-          void run(async () => {
-            await api.uploadCopy(uid, slot, JSON.stringify(local), copy?.revision ?? null);
-            if (account?.uid === uid && api.currentUser()?.uid === uid) {
-              try { await refresh(); }
-              catch (_) { return `Copia de la partida ${slot} guardada. Actualiza la lista para verla.`; }
-            }
-            return `Copia de la partida ${slot} guardada en la nube.`;
-          }, "Subiendo copia…", button);
-        } else if (action === "restore" && uid && copy) {
-          if (local?.character && !window.confirm(`¿Reemplazar la partida ${slot} de ${local.character.name} en este navegador por la copia de la nube?`)) return;
-          void run(async () => {
-            const current = await api.readCopy(uid, slot);
-            if (!scope.isCurrent() || api.currentUser()?.uid !== uid) return;
-            if (current?.revision !== copy.revision) throw Object.assign(new Error(), { code: "save/conflict" });
-            const latestLocal = listSaveSlots().find(entry => entry.slot === slot)?.save;
-            if (JSON.stringify(latestLocal) !== JSON.stringify(local)) return "La partida local cambió. Revisa la ranura antes de volver a intentarlo.";
-            const save = decodeCopy(current);
-            if (!save) return "La copia requiere una versión compatible del juego.";
-            writeSaveToSlot(slot, save);
-            restoredMessage = saveStatus().pendingSlots.includes(slot)
-              ? "La copia está en memoria. Reintenta el guardado local antes de cerrar el juego."
-              : `Partida ${slot} restaurada en este navegador.`;
-            onRestored();
-            root.querySelector(`[data-select-slot="${slot}"]`)?.focus();
-          }, "Restaurando partida…", button);
+          if (scope.isCurrent()) render();
         }
       });
-
       render();
-      if (panel.open) void init();
+      if (panel.open) void prepare();
     }
   };
 }

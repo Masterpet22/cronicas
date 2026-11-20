@@ -1,8 +1,8 @@
-export function createSlotRepository({ saveKey, activeSlotKey, maxSlots, normalize, createDefault }) {
+export function createSlotRepository({ saveKey, activeSlotKey, maxSlots, normalize, createDefault, getStorage = () => globalThis.localStorage }) {
   const states = new WeakMap();
   const unavailable = {};
   const listeners = new Set();
-  const defaultStorage = () => { try { return globalThis.localStorage || unavailable; } catch (_) { return unavailable; } };
+  const defaultStorage = () => { try { return getStorage() || unavailable; } catch (_) { return unavailable; } };
   const stateFor = storage => {
     const key = storage && typeof storage === "object" ? storage : unavailable;
     if (!states.has(key)) states.set(key, { pending: new Map(), selected: null });

@@ -3,7 +3,8 @@ import { skinToneControlMarkup, syncSkinToneControl } from "../../skin-tone-cont
 import { normalizeSkinTone } from "../../../skin-tones.js?v=0.135.0";
 import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.159.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
-import { createCloudSavePanel } from "../cloud-saves.js?v=1.0.0";
+import { createCloudSavePanel } from "../cloud-saves.js?v=2.0.0";
+import { cloudSession } from "../../../save/cloud-session.js?v=1.0.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([
   { id: 0, label: "Sin cabello" }, { id: 1, label: "Corto" }, { id: 4, label: "Coleta" }
@@ -13,7 +14,7 @@ const CREATOR_FACES = Object.freeze([
 ]);
 
 export function createSaveCreatorView(deps) {
-  const cloudSaves = createCloudSavePanel({ escapeHtml: deps.escapeHtml, onRestored: deps.onCloudRestored });
+  const cloudSaves = createCloudSavePanel({ escapeHtml: deps.escapeHtml });
   let currentState = null;
   let currentId = "save-slots";
 
@@ -28,9 +29,17 @@ export function createSaveCreatorView(deps) {
     ];
   };
 
-  function renderSaveSlots() {
+  function renderSaveCards() {
     const selectedSlot = deps.activeSaveSlot();
-    const cards = deps.listSaveSlots().map(({ slot, save }) => {
+    return deps.listSaveSlots().map(({ slot, save }) => {
+      const status = cloudSession.slotStatus(slot);
+      if (cloudSession.loading || ["unknown", "incompatible", "conflict"].includes(status)) {
+        const message = cloudSession.loading ? "Cargando partida…" : ({
+          unknown: "Partida no disponible", incompatible: "Hace falta una versión compatible del juego",
+          conflict: "Elige qué progreso conservar"
+        })[status];
+        return `<article class="save-slot empty"><span class="save-slot-number">PARTIDA ${slot}</span><h3>${message}</h3></article>`;
+      }
       if (!save?.character) return `
         <article class="save-slot empty">
           <span class="save-slot-number">PARTIDA ${slot}</span>
@@ -49,7 +58,10 @@ export function createSaveCreatorView(deps) {
           <div class="save-slot-actions"><button class="primary-button" type="button" data-select-slot="${slot}">CONTINUAR</button><button class="save-slot-delete" type="button" data-delete-slot="${slot}" aria-label="Borrar partida ${slot}">BORRAR</button></div>
         </article>`;
     }).join("");
-    return `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p>${cloudSaves.markup()}<div class="save-slot-grid">${cards}</div></section>`;
+  }
+
+  function renderSaveSlots() {
+    return `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p>${cloudSaves.markup()}<div class="save-slot-grid">${renderSaveCards()}</div></section>`;
   }
 
   function renderCreator() {
@@ -94,13 +106,21 @@ export function createSaveCreatorView(deps) {
     mount(root, scope) {
       if (currentState?.mode === "slots") {
         cloudSaves.mount(root, scope);
-        root.querySelectorAll("[data-select-slot]").forEach((button) => scope.listen(button, "click", () => deps.onSelectSlot(button.dataset.selectSlot)));
-        root.querySelectorAll("[data-delete-slot]").forEach((button) => scope.listen(button, "click", () => {
+        const grid = root.querySelector(".save-slot-grid");
+        let markup = renderSaveCards();
+        scope.onCleanup(cloudSession.subscribe(() => {
+          const next = renderSaveCards();
+          if (next !== markup) { grid.innerHTML = next; markup = next; }
+        }));
+        scope.listen(grid, "click", event => {
+          const button = event.target.closest("[data-select-slot], [data-delete-slot]");
+          if (!button) return;
+          if (button.dataset.selectSlot) { deps.onSelectSlot(button.dataset.selectSlot); return; }
           const slot = Number(button.dataset.deleteSlot);
           const slotState = deps.listSaveSlots().find((entry) => entry.slot === slot)?.save;
           if (!slotState?.character || !deps.confirmDelete(slotState.character.name)) return;
           deps.onDeleteSlot(slot);
-        }));
+        });
         return;
       }
       const form = root.querySelector("#character-form");

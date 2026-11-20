@@ -1,7 +1,7 @@
 import { fighterAtlasKey, fighterFaceTextureKey, fighterCombatPortraitLayout, useFighterTextureRendering } from '../fighters.js?v=0.159.0';
 import { enemyFighterAppearance } from '../character.js?v=0.119.0';
 import { setHudText, setHudProgress, setHudAttribute } from './hud-dom.js?v=1.0.0';
-import { hudPanelOrnaments } from './hud-chrome.js?v=0.155.0';
+import { hudPanelOrnaments } from './hud-chrome.js?v=0.161.0';
 import { mountBattleObjectives } from './battle-objectives.js?v=1.0.0';
 
 // The reference's smaller team plates reflect live participants, never a mock roster.

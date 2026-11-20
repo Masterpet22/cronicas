@@ -20,7 +20,8 @@ import { AFFINITY_CONFIG, applyAffinityStatModifiers, availableAffinitySlots, no
 import { chooseDoctorRoute as chooseRoute, createDoctorRouteState, normalizeDoctorRouteState, resolveDoctorRouteCombat as resolveRouteCombat, resolveRiverPassage } from "./doctor-mission.js?v=0.100.0";
 import { completeInvestigationMission, completeSecondaryByType, emptySecondaryCompletion, secondaryMissionByType } from "./secondary-missions.js?v=0.155.0";
 import { createCompletedMissionProgress, migrateSaveToV18 } from "./save/save-migrations.js";
-import { createSlotRepository } from "./save/slot-repository.js?v=0.160.0";
+import { createSlotRepository } from "./save/slot-repository.js?v=0.161.0";
+import { currentSaveStorage } from "./save/save-storage.js?v=1.0.0";
 import { teleportObject } from "./teleport-objects.js";
 import { ITEMS } from "./items.js?v=0.140.0";
 import { LEGACY_SEALS } from "./cosmetics.js?v=0.140.0";
@@ -271,7 +272,7 @@ export function normalizeSave(candidate) {
 
 const slotRepository = createSlotRepository({
   saveKey: SAVE_KEY, activeSlotKey: ACTIVE_SAVE_SLOT_KEY, maxSlots: MAX_SAVE_SLOTS,
-  normalize: normalizeSave, createDefault: createDefaultSave
+  normalize: normalizeSave, createDefault: createDefaultSave, getStorage: currentSaveStorage
 });
 export const { saveSlotKey, activeSaveSlot, listSaveSlots, selectSaveSlot, deleteSaveSlot, loadSave, writeSave, writeSaveToSlot,
   saveStatus, subscribeSaveStatus, retryPendingSaves, pendingSaveCopies } = slotRepository;

@@ -113,10 +113,14 @@
 .cloud-saves summary:hover { color: #ffd697; }
 .cloud-saves :focus-visible { outline: 2px solid #91d3f3; outline-offset: 2px; }
 .cloud-saves-body { padding: 2px 4px 12px; }
+.cloud-saves-signed { padding: 12px 4px; }
+.cloud-saves-signed .cloud-import { margin-top: 4px; }
+.cloud-saves-signed .cloud-import ul { margin-top: 0; }
 .cloud-saves-account, .cloud-saves li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
 .cloud-saves-account > span { overflow-wrap: anywhere; }
 .cloud-saves-actions { display: flex; flex-wrap: wrap; gap: 8px; }
 .cloud-saves button { min-height: 44px; padding: 8px 12px; }
+.cloud-saves select { min-height: 44px; padding: 8px 12px; border: 1px solid #4a6c87; border-radius: 6px; background: #0c2234; color: #e5eaf2; }
 .cloud-saves button:disabled { opacity: .55; cursor: default; }
 .cloud-saves button:disabled:hover { color: #e5eaf2; filter: none; }
 .cloud-saves ul { margin: 12px 0 0; padding: 0; list-style: none; }
@@ -125,3 +129,5 @@
 .cloud-saves li strong { color: #f4f0e8; }
 .cloud-saves [role="status"] { margin: 8px 0 0; color: #ffd697; }
 .cloud-saves [role="status"]:empty { margin: 0; }
+.game-cloud-status { position: absolute; inset-block-start: 50%; inset-inline-end: calc(100% + 8px); transform: translateY(-50%); width: max-content; max-width: 15rem; margin: 0; padding: 4px 9px; border-radius: 5px; background: #061522; color: #e5eaf2; font-size: .875rem; line-height: 1.2; }
+main:has(#meta[data-active-view="save-slots"]:not([hidden])) .game-cloud-status { display: none; }

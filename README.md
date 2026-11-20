@@ -35,7 +35,9 @@ Si Python no está disponible, cualquier servidor HTTP local puede servir la car
 
 ## Guardado en la nube
 
-En el selector de partidas, abre **Guardado en la nube**, inicia sesión con Google y elige **Subir copia** por cada partida que quieras respaldar. En otro navegador, accede con la misma cuenta y elige **Restaurar**. El progreso del juego sigue guardándose en el navegador entre respaldos. Reemplazar una copia existente requiere confirmación.
+En el selector de partidas, entra con Google para cargar las tres ranuras de tu cuenta. El juego sincroniza automáticamente el progreso y el borrado de partidas. Para llevar una partida local anterior a tu cuenta, usa **Vincular partidas de este navegador** y elige una ranura libre. Como invitado puedes seguir usando tus partidas locales.
+
+Si pierdes la conexión durante una sesión, este navegador conserva los cambios pendientes y los envía cuando puede volver a conectarse. Espera a que termine el guardado antes de cambiar de equipo para continuar con el último avance. Si hay avances distintos en dos equipos, el selector te pide elegir cuál conservar.
 
 GitHub Pages sirve el juego y el proyecto `cronicas-f112f` aloja las copias en Cloud Firestore. Para activar el servicio, habilita Google en Firebase Authentication, añade `masterpet22.github.io` a **Dominios autorizados** y publica las reglas de [firestore.rules](firestore.rules) en la base de datos predeterminada de Cloud Firestore. Si el proyecto ya tiene otras reglas, incorpora el bloque de Crónicas y conserva las reglas que utilicen sus otras aplicaciones. Al cambiar de hosting, autoriza el dominio nuevo en Firebase Authentication.
 

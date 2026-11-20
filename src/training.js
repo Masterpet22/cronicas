@@ -1,5 +1,5 @@
 import { BASE_ACTIONS, JUTSU_LIBRARY } from "./data.js?v=1.5.0";
-import { derivedStats, isTechniqueLearned } from "./save.js?v=0.160.0";
+import { derivedStats, isTechniqueLearned } from "./save.js?v=0.161.0";
 import { canAccessElement } from "./elements.js?v=0.20.0";
 import { TAIJUTSU_ACTIONS } from "./skills/definitions.js?v=1.4.0";
 import { taijutsuAction } from "./skills/taijutsu.js?v=1.0.0";
