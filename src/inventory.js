@@ -1,6 +1,6 @@
-import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.168.0";
-import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.168.0";
-import { CHARACTER_HAIR } from "./character-rigs.js?v=0.168.0";
+import { ITEMS, STARTER_EQUIPMENT, sellPrice } from "./items.js?v=0.169.0";
+import { BASE_COSMETICS, LEGACY_SEALS } from "./cosmetics.js?v=0.169.0";
+import { CHARACTER_HAIR } from "./character-rigs.js?v=0.169.0";
 import { GUILD_STARTER_ITEMS, GUILD_INVENTORY_VERSION, guildInventoryGrants } from "./guild-catalog.js?v=0.126.0";
 import { placedDecorationCount } from "./guild.js?v=0.126.0";
 

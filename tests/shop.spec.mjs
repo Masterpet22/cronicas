@@ -35,6 +35,38 @@ async function seedShop(page, bodyType = "male") {
 }
 
 for (const bodyType of ["male", "female"]) {
+  test(`prueba y equipa máscaras y armadura completa en ${bodyType}`, async ({ page }) => {
+    await seedShop(page, bodyType);
+    const original = await stored(page);
+    await page.getByRole("button", { name: "Probador", exact: true }).click();
+    await page.getByRole("button", { name: "Máscaras y trajes", exact: true }).click();
+    const preview = page.locator("[data-fitting-preview]");
+    const mask = preview.locator(".puppet-preview-mask");
+    for (const style of ["cloth", "metal"]) {
+      await page.getByRole("button", { name: "Máscara siguiente", exact: true }).click();
+      await expect(mask).toHaveAttribute("src", new RegExp(`/masks/${style}-${bodyType}\\.png`));
+      await mask.evaluate(image => image.decode());
+    }
+    for (const style of ["steel", "lamellar"]) {
+      await page.getByRole("button", { name: "Traje completo anterior", exact: true }).click();
+      const parts = preview.locator(`.puppet-preview-cloth[src*="/${style}/${bodyType}/"]`);
+      await expect(parts).toHaveCount(11);
+      await parts.evaluateAll(images => Promise.all(images.map(image => image.decode())));
+    }
+    expect(await stored(page)).toEqual(original);
+    await page.screenshot({ path: `test-results/shop/armadura-y-mascara-${bodyType}.png` });
+    await page.locator('[data-fitting-slot="mask"]').getByRole("button", { name: "Comprar" }).click();
+    await page.locator('[data-fitting-slot="outfit"]').getByRole("button", { name: "Comprar" }).click();
+    await page.getByRole("button", { name: "← Volver al mapa" }).click();
+    await page.locator('[data-go="dojo"]').click();
+    await page.locator('[data-dojo-tab="appearance"]').click();
+    for (const slot of ["mask", "outfit"]) {
+      await page.locator(`[data-cosmetic-step="${slot}"][data-direction="1"]`).click();
+    }
+    expect((await stored(page)).character).toMatchObject({ mask: "metal", outfit: "lamellar_armor" });
+    await expect(page.locator('[data-cosmetic-value="top"]')).toHaveText("Cubierto por la armadura");
+  });
+
   test(`el probador mezcla prendas sin equiparlas en ${bodyType}`, async ({ page }) => {
     await page.setViewportSize(bodyType === "male" ? { width: 1280, height: 720 } : { width: 1024, height: 768 });
     await seedShop(page, bodyType);
@@ -207,7 +239,8 @@ test("vende a mitad de precio y selecciona solo apariencia y sustitución compra
   await page.locator('[data-shop-mode="buy"]').click();
   const cosmeticFilters = [
     ["substitution", ["substitution_dog", "substitution_puppet"]],
-    ["appearance", ["hair_ponytail", "face_mask", "shadow_outfit"]],
+    ["appearance", ["hair_ponytail", "face_mask"]],
+    ["outfit", ["shadow_outfit"]],
     ["top", ["top_traveler"]],
     ["bottom", ["bottom_traveler"]],
     ["shoes", ["shoes_sandals"]]

@@ -1,18 +1,21 @@
-import { CLOTHING_PARTS, clothingThumbnail } from "../../base-outfit.js?v=0.168.0";
+import { CLOTHING_PARTS, clothingThumbnail, isFullArmor } from "../../base-outfit.js?v=0.169.0";
+import { maskAsset } from "../../character-masks.js?v=0.169.0";
 import { skinToneControlMarkup, syncSkinToneControl } from "../skin-tone-control.js?v=0.135.0";
 import { normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { ITEMS } from "../../items.js?v=0.168.0";
-import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.168.0";
-import { countItem, equipCosmetic } from "../../inventory.js?v=0.168.0";
+import { ITEMS } from "../../items.js?v=0.169.0";
+import { COSMETIC_SLOTS } from "../../cosmetics.js?v=0.169.0";
+import { countItem, equipCosmetic } from "../../inventory.js?v=0.169.0";
 
 const choices = (save, slot) => Object.values(ITEMS).filter(item => item.kind === "cosmetic" && item.cosmeticSlot === slot && countItem(save, item.id));
 export function appearanceControlsMarkup(save) {
   return skinToneControlMarkup(save.character.skinTone) + Object.entries(COSMETIC_SLOTS).map(([slot, label]) => {
     const owned = choices(save, slot), current = owned.find(item => item.value === save.character[slot]) || owned[0];
-    const disabled = owned.length < 2 ? "disabled" : "";
+    const covered = isFullArmor(save.character.outfit) && Object.hasOwn(CLOTHING_PARTS, slot);
+    const disabled = owned.length < 2 || covered ? "disabled" : "";
     const fromOutfit = save.character.outfit && Object.hasOwn(CLOTHING_PARTS, slot) && current?.value === 1;
-    const name = fromOutfit ? "Del traje completo" : current?.name || "Sin seleccionar";
-    const image = current?.image || clothingThumbnail(current, save.character.bodyType);
+    const name = covered ? "Cubierto por la armadura" : fromOutfit ? "Del traje completo" : current?.name || "Sin seleccionar";
+    const image = covered ? null : current?.image || clothingThumbnail(current, save.character.bodyType)
+      || (slot === "mask" && maskAsset(current?.value, save.character.bodyType, "webp"));
     return `<div class="cosmetic-control" data-cosmetic-control="${slot}"><span class="cosmetic-label">${label}</span><div class="cosmetic-stepper"><button type="button" data-cosmetic-step="${slot}" data-direction="-1" aria-label="${label} anterior" ${disabled}>‹</button><output data-cosmetic-value="${slot}">${image ? `<img class="teleport-object-preview" src="${image}" alt="" width="30" height="30">` : ""}${name}</output><button type="button" data-cosmetic-step="${slot}" data-direction="1" aria-label="${label} siguiente" ${disabled}>›</button></div><small>${current?.description || ""} ${owned.length < 2 ? "Consigue otras opciones en la tienda." : ""}</small></div>`;
   }).join("");
 }

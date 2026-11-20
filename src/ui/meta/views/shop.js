@@ -1,24 +1,26 @@
-import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.168.0";
-import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.168.0";
-import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.168.0";
-import { itemIcon } from "../../item-icons.js?v=0.168.0";
-import { CLOTHING_PARTS } from "../../../base-outfit.js?v=0.168.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.168.0";
+import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.169.0";
+import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.169.0";
+import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.169.0";
+import { itemIcon } from "../../item-icons.js?v=0.169.0";
+import { CLOTHING_PARTS, isFullArmor } from "../../../base-outfit.js?v=0.169.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.169.0";
 
 const clothingSlots = Object.keys(CLOTHING_PARTS);
-const fittingItems = Object.fromEntries(clothingSlots.map(slot => [
+const fittingGroups = { clothing: clothingSlots, armor: ["mask", "outfit"] };
+const fittingItems = Object.fromEntries(Object.values(fittingGroups).flat().map(slot => [
   slot, Object.values(ITEMS).filter(item => item.cosmeticSlot === slot)
 ]));
 const shopFilters = [
   ["Equipo", ["weapons", "throwables", "seals", "accessories"]],
   ["Suministros y misiones", ["consumables", "scrolls", "contracts"]],
   ["Ropa", clothingSlots],
-  ["Apariencia y hogar", ["appearance", "substitution", "decorations"]]
+  ["Apariencia y hogar", ["appearance", "mask", "outfit", "substitution", "decorations"]]
 ];
-const shopCategory = item => clothingSlots.includes(item.cosmeticSlot) ? item.cosmeticSlot : item.category;
+const shopCategory = item => Object.hasOwn(fittingItems, item.cosmeticSlot) ? item.cosmeticSlot : item.category;
 
 export function createShopView(deps) {
   let save, mode = "buy", category = "all", message = "", host;
+  let fittingGroup = "clothing";
   const tryOn = new Map();
   const escape = deps.escapeHtml;
 
@@ -29,10 +31,14 @@ export function createShopView(deps) {
     return save.progression.coins < item.price ? "Sin monedas" : "";
   }
 
-  function fittingPreview() {
+  function fittingCharacter() {
     const character = { ...save.character };
     for (const [slot, item] of tryOn) character[slot] = item.value;
-    return rasterCharacterPreviewMarkup({ character }, deps.assetVersion, {
+    return character;
+  }
+
+  function fittingPreview() {
+    return rasterCharacterPreviewMarkup({ character: fittingCharacter() }, deps.assetVersion, {
       backdrop: "",
       label: "Vista previa de tu personaje con las prendas del probador"
     });
@@ -46,19 +52,22 @@ export function createShopView(deps) {
 
   function equippedFittingItem(slot) {
     const items = fittingItems[slot];
-    return items.find(item => item.value === save.character[slot]) ?? items[0];
+    return items.find(item => item.value === (save.character[slot] ?? null)) ?? items[0];
   }
 
   function fittingName(item, isEquipped) {
-    const name = item.value === 1 && save.character.outfit ? "Del traje completo" : item.name;
+    const name = item.value === 1 && fittingCharacter().outfit ? "Del traje completo" : item.name;
     return isEquipped ? `Puesto · ${name}` : name;
   }
 
   function fittingContents() {
-    const rows = clothingSlots.map(slot => {
+    const armorCoversClothes = fittingGroup === "clothing" && isFullArmor(fittingCharacter().outfit);
+    const disabled = armorCoversClothes ? "disabled" : "";
+    const rows = fittingGroups[fittingGroup].map(slot => {
       const trial = tryOn.get(slot);
       const label = COSMETIC_SLOTS[slot];
-      return `<form class="shop-fitting-row" data-fitting-slot="${slot}" aria-labelledby="shop-fitting-${slot}"><span class="shop-fitting-label" id="shop-fitting-${slot}">${label}</span><div class="cosmetic-stepper shop-fitting-stepper"><button type="button" data-fitting-step="-1" aria-label="${label} anterior">‹</button><output data-fitting-name>${escape(fittingName(trial ?? equippedFittingItem(slot), !trial))}</output><button type="button" data-fitting-step="1" aria-label="${label} siguiente">›</button></div><div class="shop-fitting-action" data-fitting-action aria-live="polite">${fittingAction(trial)}</div></form>`;
+      const name = armorCoversClothes ? "Cubierto por la armadura" : fittingName(trial ?? equippedFittingItem(slot), !trial);
+      return `<form class="shop-fitting-row" data-fitting-slot="${slot}" aria-labelledby="shop-fitting-${slot}"><span class="shop-fitting-label" id="shop-fitting-${slot}">${label}</span><div class="cosmetic-stepper shop-fitting-stepper"><button type="button" data-fitting-step="-1" aria-label="${label} anterior" ${disabled}>‹</button><output data-fitting-name>${escape(name)}</output><button type="button" data-fitting-step="1" aria-label="${label} siguiente" ${disabled}>›</button></div><div class="shop-fitting-action" data-fitting-action aria-live="polite">${armorCoversClothes ? "" : fittingAction(trial)}</div></form>`;
     }).join("");
     return `<div class="shop-fitting"><div class="shop-fitting-preview" data-fitting-preview>${fittingPreview()}</div><div class="shop-fitting-controls">${rows}<button class="shop-fitting-reset" type="button" data-fitting-reset ${tryOn.size ? "" : "disabled"}>Restaurar mi ropa</button></div></div>`;
   }
@@ -83,7 +92,10 @@ export function createShopView(deps) {
       ).join("");
       return `<label class="shop-category-filter">Tipo de objeto<select data-shop-category-select><option value="all" ${category === "all" ? "selected" : ""}>Todos los objetos</option>${filters}</select></label><div class="shop-items">${catalog()}</div>`;
     };
-    return `<header class="shop-heading"><div><h2>Prepara tu próximo viaje</h2></div><strong class="shop-wallet">${save.progression.coins}<small>MONEDAS</small></strong></header><nav class="shop-tabs" aria-label="Operación de la tienda">${tabs}</nav><p class="shop-feedback" role="status">${escape(message)}</p>${mode === "fitting" ? fittingContents() : catalogMarkup()}`;
+    const groups = mode === "fitting" ? `<div class="shop-fitting-groups" role="group" aria-label="Prendas del probador">${[["clothing", "Ropa"], ["armor", "Máscaras y trajes"]].map(([id, label]) =>
+      `<button type="button" data-fitting-group="${id}" aria-pressed="${fittingGroup === id}">${label}</button>`
+    ).join("")}</div>` : "";
+    return `<header class="shop-heading"><div><h2>Prepara tu próximo viaje</h2></div><strong class="shop-wallet">${save.progression.coins}<small>MONEDAS</small></strong></header><nav class="shop-tabs" aria-label="Operación de la tienda">${tabs}${groups}</nav><p class="shop-feedback" role="status">${escape(message)}</p>${mode === "fitting" ? fittingContents() : catalogMarkup()}`;
   }
   const refresh = selector => { host.innerHTML = contents(); if (selector) host.querySelector(selector)?.focus({ preventScroll:true }); };
   return {
@@ -91,6 +103,7 @@ export function createShopView(deps) {
     render(state) {
       if (!host?.isConnected) {
         tryOn.clear();
+        fittingGroup = "clothing";
         if (mode === "fitting") mode = "buy";
       }
       save = state.save;
@@ -101,6 +114,8 @@ export function createShopView(deps) {
       scope.listen(host, "click", event => {
         const tab = event.target.closest("[data-shop-mode]");
         if (tab) { mode = tab.dataset.shopMode; category = "all"; message = ""; refresh(`[data-shop-mode="${mode}"]`); }
+        const group = event.target.closest("[data-fitting-group]");
+        if (group) { fittingGroup = group.dataset.fittingGroup; refresh(`[data-fitting-group="${fittingGroup}"]`); }
         const arrow = event.target.closest("[data-fitting-step]");
         if (arrow) {
           const row = arrow.closest("[data-fitting-slot]");

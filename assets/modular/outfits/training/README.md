@@ -14,6 +14,8 @@ Prompt de producción:
 
 La exportación recorta cada celda, ajusta el rectángulo alfa, normaliza las dimensiones del segmento y convierte la ropa a escala de grises. Los muslos y las perneras forman una sola prenda.
 
+Los dos torsos se actualizaron para dibujarse delante de ambas piernas. Sus celdas del atlas de origen ya incorporan el bajo de tela continuo.
+
 Para regenerar las exportaciones desde el atlas:
 
 ```powershell

@@ -1,6 +1,7 @@
-import { clothingAsset, selectedClothing } from "../../base-outfit.js?v=0.168.0";
+import { maskAsset } from "../../character-masks.js?v=0.169.0";
+import { clothingAsset, selectedClothing } from "../../base-outfit.js?v=0.169.0";
 import { ensureSkinToneFilters, normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.168.0";
+import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.169.0";
 
 export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null, label = "Combatiente con la ropa equipada" } = {}) {
   ensureSkinToneFilters();
@@ -33,14 +34,17 @@ export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = nu
     const url = style ? clothingAsset(save.character.bodyType, id, style) : `assets/modular/${puppetRoot}/runtime/${asset}.png?v=${assetVersion}`;
     return `<img class="puppet-preview-layer ${style ? "puppet-preview-cloth" : "puppet-preview-skin"}" src="${url}" alt="" width="${displayWidth}" height="${displayHeight}" draggable="false" style="--puppet-x:${((550 + displayX) / 11).toFixed(3)}%;--puppet-y:${((800 + displayY) / 16).toFixed(3)}%;--puppet-w:${(displayWidth / 11).toFixed(3)}%;--puppet-h:${(displayHeight / 16).toFixed(3)}%;--puppet-z:${index};--puppet-rotation:${restRotation}deg">`;
   };
-  const hairLayer = hair ? `<img class="puppet-preview-layer puppet-preview-hair" src="assets/modular/hair/${hair.asset}.png?v=${hair.version}" alt="" width="${hair.width}" height="${hair.height}" draggable="false" style="--puppet-x:${((550 + hair.x) / 11).toFixed(3)}%;--puppet-y:${((800 + hair.y) / 16).toFixed(3)}%;--puppet-w:${(hair.width / 11).toFixed(3)}%;--puppet-h:${(hair.height / 16).toFixed(3)}%;--puppet-z:${puppetLayers.length + 1}">` : "";
+  const hairLayer = hair ? `<img class="puppet-preview-layer puppet-preview-hair" src="assets/modular/hair/${hair.asset}.png?v=${hair.version}" alt="" width="${hair.width}" height="${hair.height}" draggable="false" style="--puppet-x:${((550 + hair.x) / 11).toFixed(3)}%;--puppet-y:${((800 + hair.y) / 16).toFixed(3)}%;--puppet-w:${(hair.width / 11).toFixed(3)}%;--puppet-h:${(hair.height / 16).toFixed(3)}%;--puppet-z:${puppetLayers.length + 2}">` : "";
   const tailLayer = tail ? `<img class="puppet-preview-layer puppet-preview-tail" src="assets/modular/hair/${tail.asset}.png?v=${tail.version}" alt="" width="${tail.width}" height="${tail.height}" draggable="false" style="--puppet-x:${((550 + tail.x) / 11).toFixed(3)}%;--puppet-y:${((800 + tail.y) / 16).toFixed(3)}%;--puppet-w:${(tail.width / 11).toFixed(3)}%;--puppet-h:${(tail.height / 16).toFixed(3)}%;--puppet-z:-1">` : "";
   const head = rig.byId.cabeza;
   const faceX = display.x + head.x * display.scale;
   const faceY = display.y + head.y * display.scale;
   const faceWidth = head.width * (head.scaleX || 1) * display.scale;
   const faceHeight = head.height * (head.scaleY || head.scaleX || 1) * display.scale;
-  const faceLayer = `<img class="puppet-preview-layer puppet-preview-face" src="assets/modular/faces/male_${face.id}_${selectedTone}.png?v=${assetVersion}" alt="" width="${faceWidth}" height="${faceHeight}" draggable="false" style="--puppet-x:${((550 + faceX) / 11).toFixed(3)}%;--puppet-y:${((800 + faceY) / 16).toFixed(3)}%;--puppet-w:${(faceWidth / 11).toFixed(3)}%;--puppet-h:${(faceHeight / 16).toFixed(3)}%;--puppet-z:${puppetLayers.length};--puppet-rotation:${head.restRotation || 0}deg">`;
-  return `<div class="raster-character-stage" data-skin-tone="${selectedTone}" style="--skin-tone-filter:url('#skin-tone-${selectedTone}')" role="img" aria-label="${label}">${backdrop ?? '<div class="raster-character-aura" aria-hidden="true"></div>'}<div class="puppet-preview-rig">${tailLayer}${puppetLayers.map(layer).join("")}${faceLayer}${hairLayer}</div></div>`;
+  const headLayer = (url, type, depth) => `<img class="puppet-preview-layer puppet-preview-${type}" src="${url}" alt="" width="${faceWidth}" height="${faceHeight}" draggable="false" style="--puppet-x:${((550 + faceX) / 11).toFixed(3)}%;--puppet-y:${((800 + faceY) / 16).toFixed(3)}%;--puppet-w:${(faceWidth / 11).toFixed(3)}%;--puppet-h:${(faceHeight / 16).toFixed(3)}%;--puppet-z:${depth};--puppet-rotation:${head.restRotation || 0}deg">`;
+  const faceLayer = headLayer(`assets/modular/faces/male_${face.id}_${selectedTone}.png?v=${assetVersion}`, "face", puppetLayers.length);
+  const mask = maskAsset(save.character.mask, save.character.bodyType);
+  const maskLayer = mask ? headLayer(mask, "mask", puppetLayers.length + 1) : "";
+  return `<div class="raster-character-stage" data-skin-tone="${selectedTone}" style="--skin-tone-filter:url('#skin-tone-${selectedTone}')" role="img" aria-label="${label}">${backdrop ?? '<div class="raster-character-aura" aria-hidden="true"></div>'}<div class="puppet-preview-rig">${tailLayer}${puppetLayers.map(layer).join("")}${faceLayer}${maskLayer}${hairLayer}</div></div>`;
 }
 

@@ -39,7 +39,12 @@ export function createPreparationHands(scene, fighter, appearance, rig) {
     const arm = fighter.layers.find(part => part.name === name), frame = arm.frame;
     const source = arm.texture.getSourceImage();
     const row = Math.floor(frame.cutHeight * .9);
-    const pixels = source.getContext("2d").getImageData(frame.cutX, frame.cutY + row, frame.cutWidth, 1).data;
+    const sample = document.createElement("canvas");
+    sample.width = frame.cutWidth;
+    sample.height = 1;
+    const context = sample.getContext("2d");
+    context.drawImage(source, frame.cutX, frame.cutY + row, frame.cutWidth, 1, 0, 0, frame.cutWidth, 1);
+    const pixels = context.getImageData(0, 0, frame.cutWidth, 1).data;
     let first = 0, last = frame.cutWidth - 1;
     while (first < last && pixels[first * 4 + 3] < 64) first++;
     while (last > first && pixels[last * 4 + 3] < 64) last--;

@@ -15,13 +15,25 @@ for (const renderer of ["Canvas", "WebGL"]) {
       host.style.cssText = "position:fixed;inset:0;display:grid;place-items:center;background:#18293b";
       document.body.append(host);
       class PoseScene extends Phaser.Scene {
-        preload() { for (const bodyType of ["male", "female"]) api.queuePlayerFighterTextures(this, { bodyType, hair: 0 }); }
+        look(bodyType, armored) {
+          return { bodyType, hair: 0, ...(armored && (bodyType === "male"
+            ? { mask: "cloth", outfit: "lamellar_armor" } : { mask: "metal", outfit: "steel_armor" })) };
+        }
+        preload() {
+          for (const bodyType of ["male", "female"]) for (const armored of [false, true]) {
+            api.queuePlayerFighterTextures(this, this.look(bodyType, armored));
+          }
+        }
         create() {
           const fighters = [];
           const idleListeners = this.events.listenerCount("postupdate");
           for (const [index, bodyType] of ["male", "male", "female", "female"].entries()) {
             const flipped = index % 2 === 1;
-            const fighter = api.createPlayerFighter(this, 180 + index * 360, 490, { bodyType, hair: 0 }, flipped);
+            const fighter = api.createPlayerFighter(this, 180 + index * 360, 490, this.look(bodyType, flipped), flipped);
+            if (flipped && (!fighter.face.texture.key.includes("player-mask")
+                || fighter.layers.filter(layer => layer.texture.key.startsWith("fighter-cloth")).length !== 11)) {
+              throw new Error("La armadura y la máscara deben verse en el combatiente");
+            }
             fighter.body.setScale(flipped ? -1.5 : 1.5, 1.5);
             fighter.shadow.setY(fighter.body.y + api.MAN_SPRITE_SHADOW_OFFSET * 1.5).setScale(1.5);
             api.stopPlayerBreathing(fighter);

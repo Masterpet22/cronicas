@@ -56,6 +56,7 @@
 .shop-panel:has(.shop-fitting) .shop-heading { margin-bottom: 8px; }
 .shop-panel:has(.shop-fitting) .shop-wallet { padding: 6px 10px; font-size: 22px; }
 .shop-panel:has(.shop-fitting) .shop-tabs { padding-block: 6px; }
+.shop-fitting-groups { display: flex; flex-wrap: wrap; gap: 8px; margin-inline-start: auto; }
 .shop-panel:has(.shop-fitting) .shop-feedback { margin-block: 4px; }
 .shop-panel:has(.shop-fitting) .shop-feedback:empty { min-height: 0; margin: 0; }
 .shop-fitting { display: grid; grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr); gap: clamp(12px, 2vw, 28px); margin-top: 10px; }

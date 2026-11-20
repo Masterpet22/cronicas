@@ -1,13 +1,14 @@
 import { runCycleForRig } from "./animations/locomotion-pose.js?v=0.156.0";
-import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands, restorePreparationForearms } from "./animations/preparation-hands.js?v=0.159.0";
-import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.168.0";
+import { maskAsset, maskTextureKey } from "./character-masks.js?v=0.169.0";
+import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands, restorePreparationForearms } from "./animations/preparation-hands.js?v=0.169.0";
+import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.169.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
 import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.168.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.168.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.169.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.169.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.159.0";
 import {
   CHARACTER_FACES,
@@ -19,7 +20,7 @@ import {
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
   characterHairConfig,
   hairAsset
-} from "./character-rigs.js?v=0.168.0";
+} from "./character-rigs.js?v=0.169.0";
 
 const FIGHTER_GROUND_OFFSET = 60;
 export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;
@@ -76,9 +77,35 @@ function tailTextureKey(style) {
   return CHARACTER_HAIR[style]?.tail ? `player-tail-${CHARACTER_HAIR[style].id}` : null;
 }
 
-export function fighterFaceTextureKey(appearance) {
+function baseFaceTextureKey(appearance) {
   const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
   return `player-face-${normalizeSkinTone(appearance?.skinTone)}-${face.id}`;
+}
+
+export function fighterFaceTextureKey(appearance) {
+  const faceKey = baseFaceTextureKey(appearance);
+  const maskKey = maskTextureKey(appearance?.mask, appearance?.bodyType);
+  return maskKey ? `${faceKey}-${maskKey}` : faceKey;
+}
+
+function prepareMaskedFace(scene, appearance) {
+  const maskKey = maskTextureKey(appearance?.mask, appearance?.bodyType);
+  if (!maskKey || typeof document === "undefined") return;
+  const faceKey = baseFaceTextureKey(appearance);
+  const combinedKey = fighterFaceTextureKey(appearance);
+  const textures = scene.textures;
+  rememberCombatTexture(scene, combinedKey);
+  if (textures.exists(combinedKey) || !textures.exists(faceKey)) return;
+  const face = textures.get(faceKey).getSourceImage();
+  const canvas = document.createElement("canvas");
+  canvas.width = face.width;
+  canvas.height = face.height;
+  const context = canvas.getContext("2d");
+  context.drawImage(face, 0, 0);
+  if (textures.exists(maskKey)) {
+    context.drawImage(textures.get(maskKey).getSourceImage(), 0, 0, canvas.width, canvas.height);
+  }
+  textures.addCanvas(combinedKey, canvas);
 }
 
 function fighterHairConfig(appearance) {
@@ -121,6 +148,7 @@ export function fighterCombatPortraitLayout(appearance, flipped = false, radius 
 }
 
 export function preparePlayerFighterTextures(scene, appearance) {
+  prepareMaskedFace(scene, appearance);
   prepareHandsTexture(scene, appearance);
   const variant = puppetVariant(appearance);
   const skinParts = variant.layers.map(({ id }) => id).filter(id => !isBaseOutfitPart(id));
@@ -136,7 +164,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   const key = sourceAtlasKey(variant);
   if (!scene.textures.exists(key)) {
     const url = `assets/modular/atlases/${variant.bodyType}`;
-    scene.load.atlas(key, `${url}.png?v=1.1.0`, `${url}.json?v=1.1.0`);
+    scene.load.atlas(key, `${url}.png?v=1.2.0`, `${url}.json?v=1.2.0`);
   }
   if (!appearance?.uniform) {
     for (const [id, style] of Object.entries(selectedClothing(appearance))) {
@@ -154,9 +182,14 @@ export function queuePlayerFighterTextures(scene, appearance) {
     scene.load.image(tailTextureKey(appearance.hair), hairAsset(appearance.hair, "tail"));
   }
   const face = CHARACTER_FACES[Number(appearance?.face) || 1] || CHARACTER_FACES[1];
-  const faceKey = fighterFaceTextureKey(appearance);
+  const faceKey = baseFaceTextureKey(appearance);
   rememberCombatTexture(scene, faceKey);
   if (!scene.textures.exists(faceKey)) scene.load.image(faceKey, `assets/modular/faces/male_${face.id}_${normalizeSkinTone(appearance?.skinTone)}.png?v=0.135.0`);
+  const maskKey = maskTextureKey(appearance?.mask, variant.bodyType);
+  if (maskKey) {
+    rememberCombatTexture(scene, maskKey);
+    if (!scene.textures.exists(maskKey)) scene.load.image(maskKey, maskAsset(appearance.mask, variant.bodyType));
+  }
   return "modular";
 }
 

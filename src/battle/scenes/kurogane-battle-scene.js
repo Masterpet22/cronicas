@@ -1,21 +1,21 @@
-import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.168.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.168.0";
+import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.169.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.169.0";
 import { battleRuntime } from "../runtime.js?v=0.91.0";
-import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.168.0";
+import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.169.0";
 import { COMBAT_SLOTS, enemyFormation } from "../combat-positions.js?v=0.153.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { COMPANIONS, companionDecision } from "../../kurogane.js";
 import { KUROGANE_OUTCOMES, COMPANION_REACTIONS } from "../../content/sagas/hermanos-kurogane/saga.js";
-import { awardEncounter, completeMission, recordBestiaryObservation, writeSave } from "../../save.js?v=0.168.0";
+import { awardEncounter, completeMission, recordBestiaryObservation, writeSave } from "../../save.js?v=0.169.0";
 import { addBattleReward } from "../rewards.js?v=0.114.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { showRetryDialog, consumeRetry } from "../mission-retries.js?v=0.114.0";
-import { countItem } from "../../inventory.js?v=0.168.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.168.0";
-import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.168.0";
+import { countItem } from "../../inventory.js?v=0.169.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.169.0";
+import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.169.0";
 import { timelineMarkerPosition } from "../timeline.js?v=0.69.0";
 import { ENEMY_ACTIONS } from "../../data.js?v=1.5.0";
-import { HUD_ART } from "../hud-art.js?v=0.168.0";
+import { HUD_ART } from "../hud-art.js?v=0.169.0";
 
 const appearance = id => ({ bodyType: id === "akari" ? "female" : "male", hair: id === "akari" ? 4 : 1,
   skinTone: "medium", weapon: "kunai", clothColor: id === "akari" ? "#426c8c" : "#627847", accentColor: "#25344d" });
@@ -223,7 +223,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     this.enemyActionsTaken++;
     if (this.objective && this.enemyActionsTaken % 3 === 0 && action.type !== "guard") {
       // Pay and close a real enemy action even when it targets the cargo.
-      const { reserveEnemyAbility } = await import("../enemy-abilities.js?v=0.168.0");
+      const { reserveEnemyAbility } = await import("../enemy-abilities.js?v=0.169.0");
       if (!reserveEnemyAbility(this.enemy, action)) return { skipped: true };
       const damage = this.objectiveGuard ? 6 : 12;
       this.objectiveGuard = false; this.loseHealth(this.objective, this.objective.fighter, damage, { react: false, yOffset: -50 });
