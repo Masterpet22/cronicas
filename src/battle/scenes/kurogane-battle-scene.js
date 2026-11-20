@@ -1,21 +1,21 @@
-import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.170.0";
-import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.170.0";
+import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.171.0";
+import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.171.0";
 import { battleRuntime } from "../runtime.js?v=0.91.0";
-import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.170.0";
+import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.171.0";
 import { COMBAT_SLOTS, enemyFormation } from "../combat-positions.js?v=0.153.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { COMPANIONS, companionDecision } from "../../kurogane.js";
 import { KUROGANE_OUTCOMES, COMPANION_REACTIONS } from "../../content/sagas/hermanos-kurogane/saga.js";
-import { awardEncounter, completeMission, recordBestiaryObservation, writeSave } from "../../save.js?v=0.170.0";
+import { awardEncounter, completeMission, recordBestiaryObservation, writeSave } from "../../save.js?v=0.171.0";
 import { addBattleReward } from "../rewards.js?v=0.114.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { showRetryDialog, consumeRetry } from "../mission-retries.js?v=0.114.0";
-import { countItem } from "../../inventory.js?v=0.170.0";
-import { consumeBattleItem } from "../battle-inventory.js?v=0.170.0";
-import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.170.0";
+import { countItem } from "../../inventory.js?v=0.171.0";
+import { consumeBattleItem } from "../battle-inventory.js?v=0.171.0";
+import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.171.0";
 import { timelineMarkerPosition } from "../timeline.js?v=0.69.0";
 import { ENEMY_ACTIONS } from "../../data.js?v=1.5.0";
-import { HUD_ART } from "../hud-art.js?v=0.170.0";
+import { HUD_ART } from "../hud-art.js?v=0.171.0";
 
 const appearance = id => ({ bodyType: id === "akari" ? "female" : "male", hair: id === "akari" ? 4 : 1,
   skinTone: "medium", weapon: "kunai", clothColor: id === "akari" ? "#426c8c" : "#627847", accentColor: "#25344d" });
@@ -223,7 +223,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     this.enemyActionsTaken++;
     if (this.objective && this.enemyActionsTaken % 3 === 0 && action.type !== "guard") {
       // Pay and close a real enemy action even when it targets the cargo.
-      const { reserveEnemyAbility } = await import("../enemy-abilities.js?v=0.170.0");
+      const { reserveEnemyAbility } = await import("../enemy-abilities.js?v=0.171.0");
       if (!reserveEnemyAbility(this.enemy, action)) return { skipped: true };
       const damage = this.objectiveGuard ? 6 : 12;
       this.objectiveGuard = false; this.loseHealth(this.objective, this.objective.fighter, damage, { react: false, yOffset: -50 });
@@ -307,7 +307,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
         return;
       }
       const reaction = COMPANION_REACTIONS[this.companion.id][this.mission.sagaMissionNumber - 1];
-      await this.playBattleChoice(this.mission.title, `${KUROGANE_OUTCOMES[this.mission.id]}\n\n${this.companion.definition.name}: «${reaction}»`, [{ value: "continue", label: "REGISTRAR INFORME", detail: "Regresar a la aldea y confirmar los resultados.", primary: true }]);
+      await this.playBattleChoice(this.mission.title, KUROGANE_OUTCOMES[this.mission.id], [{ value: "continue", label: "Registrar informe", detail: "Regresar a la aldea y confirmar los resultados.", primary: true }], { quote: { speaker: this.companion.definition.name, text: reaction } });
       if (!this.scene.isActive()) return;
       if (this.mission.sagaFinal) await this.playBattleChoice("UN SÍMBOLO DESCONOCIDO", "Entre los documentos aparece un símbolo parcialmente borrado.\n\n—¿Maestro, conoce este símbolo?\n—¿Dónde lo encontraste?\n—En el cargamento de los Kurogane.\n—Entonces las cosas son más graves de lo que pensaba. Todavía no estás preparado para esa respuesta.\n\nHaruto y Akari vuelven al Dojo: desde ahora puedes cambiar de compañero. Tu rango se conserva. La Arena de Combate acepta equipos desde el nivel 16; el siguiente arco abordará el ascenso.", [{ value: "continue", label: "VOLVER A LA ALDEA", detail: "Los hermanos permanecen bajo custodia.", primary: true }]);
       if (!this.scene.isActive()) return;

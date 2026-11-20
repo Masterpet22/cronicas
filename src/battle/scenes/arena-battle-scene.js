@@ -1,8 +1,8 @@
-import { BattleScene } from "./battle-scene.js?v=0.170.0";
-import { arenaRivalProfile, ARENA_BACKGROUND } from "../../arena.js?v=0.170.0";
-import { showExhibitionResult } from "../exhibition-results.js?v=0.170.0";
+import { BattleScene } from "./battle-scene.js?v=0.171.0";
+import { arenaRivalProfile, ARENA_BACKGROUND } from "../../arena.js?v=0.171.0";
+import { showExhibitionResult } from "../exhibition-results.js?v=0.171.0";
 import { WIDTH, HEIGHT, battleRuntime } from "../runtime.js?v=0.91.0";
-import { TOWER_BACKGROUND, towerRivalProfile } from "../../tower.js?v=0.170.0";
+import { TOWER_BACKGROUND, towerRivalProfile } from "../../tower.js?v=0.171.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
 // Comparte el combate y la clave de escena. Las misiones conservan sus reglas;

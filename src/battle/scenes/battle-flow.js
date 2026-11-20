@@ -1,13 +1,13 @@
-import { actionHealthCost } from "../skill-tables.js?v=0.170.0";
+import { actionHealthCost } from "../skill-tables.js?v=0.171.0";
 import { closeActionState, isFinalOpponent } from "../action-resolution.js?v=0.155.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
-import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.170.0";
+import { applyBattleConsumable, itemUseReason } from "../battle-inventory.js?v=0.171.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.170.0";
-import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.170.0";
-import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.170.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.170.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
+import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.171.0";
+import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.171.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.171.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.155.0";
@@ -32,7 +32,7 @@ import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../tel
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
-import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
+import { presentBattleNotice } from "../scene-notices.js?v=0.171.0";
 import { elementName } from "../../elements.js?v=0.20.0";
 
 export class BattleFlowMethods {
@@ -376,38 +376,8 @@ export class BattleFlowMethods {
     }
   }
 
-  async playBattleChoice(title, description, choices) {
-    const restoreHud = this.accessibleHud?.suspend?.();
-    let frozen;
-    try {
-      const layer = [];
-      const add = (item) => { layer.push(item); return item; };
-      add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.9).setOrigin(0).setDepth(80));
-      add(this.add.rectangle(WIDTH / 2, HEIGHT / 2, 690, 330, 0x031220, 0.98).setStrokeStyle(1.5, 0x55c9ff, 0.85).setDepth(81));
-      add(this.add.rectangle(135, 105, 5, 330, 0x3fcaff, 1).setOrigin(0, 0).setDepth(82));
-      add(this.add.text(WIDTH / 2, 135, title, this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(83));
-      add(this.add.text(WIDTH / 2, 185, description, { ...this.textStyle(14, "#e9f1f6", "700"), align: "center", wordWrap: { width: 570 }, lineSpacing: 5 }).setOrigin(0.5).setDepth(83));
-      const spacing = 250;
-      const startX = WIDTH / 2 - ((choices.length - 1) * spacing) / 2;
-      const value = await new Promise((resolve) => choices.forEach((choice, index) => {
-        const x = startX + index * spacing;
-        const button = add(this.add.rectangle(x, 340, 220, 92, choice.primary ? 0x174d65 : 0x0b2638, choice.disabled ? .35 : 1).setStrokeStyle(1.5, choice.primary ? 0xf0b85c : 0x55c9ff, 0.9).setDepth(83));
-        if (!choice.disabled) button.setInteractive({ useHandCursor: true });
-        add(this.add.text(x, 325, choice.label, this.textStyle(12, "#f4f0e8", "800", true)).setOrigin(0.5).setDepth(84));
-        add(this.add.text(x, 354, choice.detail, { ...this.textStyle(10, "#adc0cc", "700"), align: "center", wordWrap: { width: 185 } }).setOrigin(0.5).setDepth(84));
-        button.on("pointerover", () => { button.setFillStyle(0x17638d, 1); frozen?.invalidate(); });
-        button.on("pointerout", () => { button.setFillStyle(choice.primary ? 0x174d65 : 0x0b2638, 1); frozen?.invalidate(); });
-        button.once("pointerup", () => resolve(choice.value));
-        frozen ||= suspendPauseRendering(this);
-      }));
-      frozen?.dispose();
-      await this.tween({ targets: layer, alpha: 0, duration: 180 });
-      layer.forEach((item) => item.destroy());
-      return value;
-    } finally {
-      frozen?.dispose();
-      restoreHud?.();
-    }
+  playBattleChoice(title, description, choices, options) {
+    return presentBattleNotice(this, title, description, choices, options);
   }
 
   missionSceneText(sceneId, variables = {}) {
@@ -460,42 +430,14 @@ export class BattleFlowMethods {
     ]);
   }
 
-  async playPrisonerChoice() {
-    const restoreHud = this.accessibleHud?.suspend?.();
-    let frozen;
-    try {
-      const layer = [];
-      const add = (item) => { layer.push(item); return item; };
-      add(this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.88).setOrigin(0).setDepth(70));
-      add(this.add.rectangle(WIDTH / 2, HEIGHT / 2, 620, 330, 0x031220, 0.98).setStrokeStyle(1.5, 0x55c9ff, 0.85).setDepth(71));
-      add(this.add.rectangle(168, 105, 4, 330, 0x3fcaff, 1).setOrigin(0, 0).setDepth(72));
-      add(this.add.text(WIDTH / 2, 132, "DECISIÓN DE MISIÓN", this.textStyle(18, "#83d8ff", "800", true)).setOrigin(0.5).setDepth(73));
-      add(this.add.text(WIDTH / 2, 180, this.missionSceneText("prisoner-choice"), { ...this.textStyle(16, "#f4f0e8", "700"), align: "center", lineSpacing: 8 }).setOrigin(0.5).setDepth(73));
-      add(this.add.text(330, 250, "INTERROGAR Y PERDONAR\n+ Entrada secreta y monedas ×2\n− Escapa y refuerza a Akumori", { ...this.textStyle(12, "#caffea", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
-      add(this.add.text(630, 250, "ELIMINAR\n+ Akumori no recibe refuerzos\n− Sin entrada secreta ni aliado futuro", { ...this.textStyle(12, "#ffd0c8", "700"), align: "center", lineSpacing: 4 }).setOrigin(0.5).setDepth(73));
-      const makeChoice = (x, label, color, value) => {
-        const bg = add(this.add.rectangle(x, 350, 220, 44, 0x0d2638, 1).setStrokeStyle(1.5, color, 1).setInteractive({ useHandCursor: true }).setDepth(73));
-        add(this.add.text(x, 350, label, this.textStyle(12, "#f4f8fb", "800", true)).setOrigin(0.5).setDepth(74));
-        return { bg, value };
-      };
-      const choices = [makeChoice(330, "INTERROGAR", 0x79e8b5, "interrogate"), makeChoice(630, "ELIMINAR", 0xef6b72, "eliminate")];
-      frozen = suspendPauseRendering(this);
-      const choice = await new Promise((resolve) => choices.forEach(({ bg, value }) => {
-        bg.on("pointerover", () => frozen.invalidate()); bg.on("pointerout", () => frozen.invalidate());
-        bg.once("pointerup", () => resolve(value));
-      }));
-      frozen.dispose();
+  playPrisonerChoice() {
+    return this.playBattleChoice("Decisión de misión", this.missionSceneText("prisoner-choice"), [
+      { value: "interrogate", label: "Interrogar y perdonar", detail: "+ Entrada secreta y monedas ×2\n− Escapa y refuerza a Akumori" },
+      { value: "eliminate", label: "Eliminar", detail: "+ Akumori no recibe refuerzos\n− Sin entrada secreta ni aliado futuro" }
+    ], { afterChoice: choice => {
       this.saveData.campaign.banditPrisonerChoice = choice;
-      choices.forEach(({ bg }) => bg.disableInteractive());
-      const response = add(this.add.text(WIDTH / 2, 414, this.missionSceneText(choice === "interrogate" ? "prisoner-interrogate" : "prisoner-eliminate"), this.textStyle(12, choice === "interrogate" ? "#f0ca80" : "#d9e6ef", "800")).setOrigin(0.5).setDepth(74));
-      await this.delay(1100);
-      await this.tween({ targets: layer, alpha: 0, duration: 260, ease: "Sine.in" });
-      layer.forEach((item) => item.destroy());
-      return response;
-    } finally {
-      frozen?.dispose();
-      restoreHud?.();
-    }
+      return this.missionSceneText(choice === "interrogate" ? "prisoner-interrogate" : "prisoner-eliminate");
+    } });
   }
 
   async playRelicDrop() {

@@ -26,11 +26,8 @@ test("rendimiento: la subida de nivel deja de dibujar escenas mientras espera", 
     preview.progression.level++; preview.progression.attributePoints += 2;
     window.__levelPreview = state.scene.showPendingLevelUp(preview);
   });
-  await expect(page.locator(".level-up-accessible")).toBeAttached({ timeout: 20000 });
-  await expect.poll(() => page.evaluate(() => {
-    const scene = window.__performanceReference.game.scene.getScene("level-up");
-    return scene.children.getByName("level-up-panel")?.list.some(item => item.name === "level-up-continue" && item.input?.enabled);
-  })).toBe(true);
+  await expect(page.locator(".level-up-notice")).toBeAttached({ timeout: 20000 });
+  await expect(page.locator(".level-up-notice").getByRole("button", { name: "Volver al combate" })).toBeFocused();
   if (!process.env.TUTORIAL_BASELINE) await expect.poll(() => page.evaluate(() => window.__performanceReference.game.scene.getScene("level-up").staticConfirmation)).toBe(true);
   else await page.waitForTimeout(2200);
   await page.waitForTimeout(150);
@@ -56,9 +53,9 @@ test("las subidas siguientes no repiten la explicación de atributos y PR", asyn
     preview.progression.level++; preview.progression.attributePoints += 2;
     window.__levelPreview = state.scene.showPendingLevelUp(preview);
   });
-  await expect(page.locator('.level-up-accessible')).toBeAttached({ timeout: 20000 });
+  await expect(page.locator('.level-up-notice')).toBeAttached({ timeout: 20000 });
   await expect(page.locator('.level-up-explanation')).toHaveCount(0);
-  await expect.poll(() => page.evaluate(() => window.__performanceReference.game.scene.getScene("level-up").children.getByName("level-up-panel")?.list.some(item => item.name === "level-up-continue" && item.input?.enabled))).toBe(true);
+  await expect(page.locator(".level-up-notice").getByRole("button", { name: "Volver al combate" })).toBeFocused();
   await page.keyboard.press("Enter");
   await expect.poll(() => page.evaluate(() => window.__performanceReference.scene.scene.isActive())).toBe(true);
   await page.evaluate(async () => { await window.__levelPreview; window.__performanceReference.game.destroy(true); });
@@ -72,10 +69,33 @@ test("rendimiento: la decisión del teniente conserva un fondo estático e inter
   await info.attach("renderizado-decision", { body: JSON.stringify({ renders, milliseconds: 950 }), contentType: "application/json" });
   console.log(`Decisión del teniente: ${renders} renders / 950 ms`);
   if (!process.env.TUTORIAL_BASELINE) expect(renders).toBeLessThanOrEqual(2);
-  const box = await page.locator("#game > canvas").boundingBox();
-  await page.mouse.click(box.x + 330 / 960 * box.width, box.y + 350 / 540 * box.height);
+  const dialog = page.getByRole("dialog", { name: "Decisión de misión" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole("button", { name: /Interrogar y perdonar/ }).click();
   await page.evaluate(async () => { await window.__choice; });
   expect(await page.evaluate(() => window.__performanceReference.scene.saveData.campaign.banditPrisonerChoice)).toBe("interrogate");
+  await page.evaluate(() => window.__performanceReference.game.destroy(true));
+});
+
+test("el informe separa el relato de la intervención del compañero", async ({ page }, info) => {
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await bootPerformanceReference(page);
+  await page.evaluate(() => {
+    const { scene } = window.__performanceReference;
+    window.__report = scene.playBattleChoice("Huellas en el camino",
+      "Entre los suministros aparece una nota: el siguiente traslado saldrá de un campamento oculto. El equipo informa a Ren antes de continuar.",
+      [{ value: "continue", label: "Registrar informe", detail: "Regresar a la aldea y confirmar los resultados.", primary: true }],
+      { quote: { speaker: "Haruto Kazehara", text: "¡Intentad seguirnos el ritmo! Algún día dirigiré esta aldea." } });
+  });
+  const dialog = page.getByRole("dialog", { name: "Huellas en el camino" });
+  await expect(dialog.locator("blockquote")).toContainText("Haruto Kazehara");
+  const confirm = dialog.getByRole("button", { name: /Registrar informe/ });
+  await expect(confirm).toBeFocused();
+  await expect(confirm).toBeInViewport();
+  await page.screenshot({ path: info.outputPath("informe-de-mision.png") });
+  await page.keyboard.press("Enter");
+  expect(await page.evaluate(() => window.__report)).toBe("continue");
+  await expect(dialog).toHaveCount(0);
   await page.evaluate(() => window.__performanceReference.game.destroy(true));
 });
 

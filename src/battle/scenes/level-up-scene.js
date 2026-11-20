@@ -1,5 +1,6 @@
-import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.170.0";
-import { playerFighterAppearance } from "../../character.js?v=0.170.0";
+import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.171.0";
+import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.171.0";
+import { playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.93.0";
 import { teleportArrival, teleportVanish, teleportFadeOut } from "../teleport-transition.js?v=1.2.0";
 import { HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
@@ -41,19 +42,16 @@ export class LevelUpScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor(0x07111c);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x07111c).setOrigin(0).setDepth(0);
-    this.add.circle(218, 302, 226, theme.color, 0.055).setDepth(1);
-    this.add.circle(218, 302, 166, theme.color, 0.065).setDepth(1);
-    this.add.text(58, 42, "CRÓNICAS DEL SELLO  /  PROGRESIÓN", {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "13px", color: "#9daebd", fontStyle: "bold", letterSpacing: 2
-    }).setDepth(4);
-
-    const outerAura = this.add.circle(220, 326, 130, theme.color, 0.12).setStrokeStyle(3, theme.color, 0.72).setDepth(3).setName("level-up-aura");
-    const innerAura = this.add.circle(220, 326, 99, theme.color, 0.11).setStrokeStyle(1.5, 0xffffff, 0.5).setDepth(3);
-    const fighter = createPlayerFighter(this, 220, 390, playerFighterAppearance(battleRuntime.activeSave));
+    this.add.circle(220, 288, 206, theme.color, 0.035).setDepth(1);
+    this.add.circle(220, 288, 173, theme.color, 0.045).setDepth(1);
+    const outerAura = this.add.circle(220, 288, 144, theme.color, 0.08).setStrokeStyle(2, theme.color, 0.63).setDepth(3).setName("level-up-aura");
+    const innerAura = this.add.circle(220, 288, 113, theme.color, 0.075).setStrokeStyle(1, theme.color, 0.35).setDepth(3);
+    this.add.ellipse(220, 458, 183, 37, theme.color, 0.07).setStrokeStyle(1, theme.color, 0.38).setDepth(3);
+    const fighter = createPlayerFighter(this, 220, 376, playerFighterAppearance(battleRuntime.activeSave));
     fighter.body.setName("level-up-fighter");
-    fighter.body.setAlpha(0);
-    fighter.shadow.setAlpha(0);
-    const name = this.add.text(220, 471, battleRuntime.activeSave.character.name.toUpperCase(), {
+    fighter.body.setScale(1.38).setAlpha(0);
+    fighter.shadow.setY(459).setScale(1.25).setAlpha(0);
+    this.add.text(220, 491, battleRuntime.activeSave.character.name.toUpperCase(), {
       fontFamily: '"Cinzel", Georgia, serif', fontSize: "16px", color: "#f5e6c5", fontStyle: "bold"
     }).setOrigin(0.5).setDepth(8);
     const arrival = new Promise(resolve => this.time.delayedCall(90, () => { resolve(teleportArrival(this, fighter, { pace: "substitution" })); }));
@@ -61,7 +59,7 @@ export class LevelUpScene extends Phaser.Scene {
     if (!reducedMotion && !lightMode) {
       this.tweens.add({ targets: outerAura, scale: 1.18, alpha: 0.3, duration: 900, ease: "Sine.inOut", yoyo: true });
       this.tweens.add({ targets: innerAura, scale: 1.12, alpha: 0.28, duration: 740, ease: "Sine.inOut", yoyo: true });
-      this.tweens.add({ targets: [fighter.body, name], y: "-=7", duration: 800, ease: "Sine.inOut", yoyo: true });
+      this.tweens.add({ targets: fighter.body, y: "-=5", duration: 800, ease: "Sine.inOut", yoyo: true });
     }
     if (flashesEnabled) {
       const flash = this.add.rectangle(0, 0, WIDTH, HEIGHT, 0xffffff, 0).setOrigin(0).setDepth(30).setName("level-up-flash");
@@ -73,50 +71,44 @@ export class LevelUpScene extends Phaser.Scene {
       });
     }
 
-    const panel = this.add.container(636, 270).setName("level-up-panel").setDepth(12).setAlpha(0).setScale(reducedMotion ? 1 : 0.94);
-    const add = (item) => { panel.add(item); return item; };
-    add(this.add.rectangle(0, 0, 610, 448, 0x102033, 0.97).setStrokeStyle(2, theme.color, 0.95));
-    add(this.add.rectangle(-291, 0, 5, 418, theme.color, 0.92));
-    add(this.add.text(0, -193, "¡NUEVO NIVEL!", {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "27px", color: "#fff0ce", fontStyle: "bold"
-    }).setOrigin(0.5));
-    add(this.add.text(0, -153, `NIVEL ${report.beforeLevel}  →  ${report.afterLevel}`, {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "19px", color: theme.ink, fontStyle: "bold"
-    }).setOrigin(0.5));
-    add(this.add.text(0, -117, `AFINIDAD ${theme.title}  ·  ESPECIALIDAD: ${report.focus?.label || "PROGRESO"}`, {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "15px", color: "#f2ead9", fontStyle: "bold"
-    }).setOrigin(0.5));
-    add(this.add.text(0, -92, report.focus?.description || "Tus atributos han crecido.", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "15px", color: "#aebdcc"
-    }).setOrigin(0.5));
-    add(this.add.rectangle(0, -69, 527, 1, theme.color, 0.45));
-
-    report.stats.forEach((stat, index) => {
-      const y = -43 + index * 35;
-      const focused = stat.id === report.focus?.stat;
-      add(this.add.text(-249, y, stat.label, {
-        fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "16px", color: focused ? theme.ink : "#d8e2e9", fontStyle: focused ? "bold" : "normal"
-      }).setOrigin(0, 0.5));
-      add(this.add.text(86, y, `${stat.before}  →  ${stat.after}`, {
-        fontFamily: '"Cinzel", Georgia, serif', fontSize: "15px", color: "#f3eee2", fontStyle: "bold"
-      }).setOrigin(1, 0.5));
-      add(this.add.text(248, y, `+${stat.gain}`, {
-        fontFamily: '"Cinzel", Georgia, serif', fontSize: "16px", color: stat.gain > 0 ? theme.ink : "#8799a8", fontStyle: "bold"
-      }).setOrigin(1, 0.5));
-    });
-    add(this.add.rectangle(0, 128, 527, 1, theme.color, 0.45));
-    add(this.add.text(0, 150, `+${report.pointsGained} PUNTOS DE ATRIBUTO PARA EL DOJO`, {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "15px", color: "#fff0ce", fontStyle: "bold"
-    }).setOrigin(0.5));
-    add(this.add.text(0, 174, "SE CONFIRMA AL REGRESAR A LA ALDEA", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#b9c9d4", fontStyle: "bold"
-    }).setOrigin(0.5));
-    const button = add(this.add.rectangle(0, 199, 263, 39, theme.color, 0.92)
-      .setName("level-up-continue").setStrokeStyle(1.5, 0xffffff, 0.7).setInteractive({ useHandCursor: true }));
-    button.disableInteractive().setAlpha(.55);
-    add(this.add.text(0, 199, "ACEPTAR", {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "14px", color: "#122032", fontStyle: "bold"
-    }).setOrigin(0.5));
+    const { overlay, panel } = mountSceneNotice(this, "level-up-notice", `Nuevo nivel ${report.afterLevel}`);
+    overlay.style.setProperty("--notice-accent", theme.ink);
+    panel.focus({ preventScroll: true });
+    const heading = document.createElement("header");
+    heading.className = "level-notice-heading";
+    panel.append(heading);
+    const headline = document.createElement("div");
+    heading.append(headline);
+    addNoticeText(headline, "h2", "Subida de nivel", "scene-title");
+    addNoticeText(headline, "p", `De nivel ${report.beforeLevel} a nivel ${report.afterLevel}`, "level-notice-transition");
+    addNoticeText(heading, "span", report.afterLevel, "level-notice-number").setAttribute("aria-hidden", "true");
+    const focus = document.createElement("div");
+    focus.className = "level-notice-focus";
+    panel.append(focus);
+    addNoticeText(focus, "strong", `Afinidad ${theme.title.toLowerCase()} · ${report.focus?.label || "Progreso"}`);
+    addNoticeText(focus, "p", report.focus?.description || "Tus atributos han crecido.");
+    const stats = document.createElement("dl");
+    stats.className = "level-notice-stats";
+    panel.append(stats);
+    for (const stat of report.stats) {
+      const row = document.createElement("div");
+      row.classList.toggle("level-stat-focused", stat.id === report.focus?.stat);
+      addNoticeText(row, "dt", stat.label);
+      addNoticeText(row, "dd", `${stat.before} → ${stat.after}`);
+      addNoticeText(row, "dd", `+${stat.gain}`).classList.toggle("level-stat-gain", stat.gain > 0);
+      stats.append(row);
+    }
+    const footer = document.createElement("footer");
+    footer.className = "level-notice-footer";
+    panel.append(footer);
+    const rewards = document.createElement("div");
+    footer.append(rewards);
+    const resonance = 2 * (report.afterLevel - report.beforeLevel);
+    addNoticeText(rewards, "strong", `+${report.pointsGained} puntos de atributo · +${resonance} PR`);
+    addNoticeText(rewards, "small", "Se confirma al regresar a la aldea.");
+    const button = addNoticeText(footer, "button", returnToBattle ? "Volver al combate" : "Continuar al informe", "scene-button");
+    button.type = "button";
+    button.disabled = true;
 
     let ready = false;
     let continuing = false;
@@ -125,43 +117,31 @@ export class LevelUpScene extends Phaser.Scene {
     const continueToResults = async () => {
       if (!ready || continuing) return;
       continuing = true;
+      button.disabled = true;
       this.staticConfirmation = false;
       frozen?.dispose();
       if (returnToBattle) {
+        overlay.hidden = true;
         if (!await teleportVanish(this, fighter)) return;
         if (!await teleportFadeOut(this, { pace: "substitution" })) return;
         this.scene.resume("battle");
         this.scene.stop();
       } else this.scene.start(nextScene, result);
     };
-    button.on("pointerup", continueToResults);
-    const onKeydown = (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        continueToResults();
-      }
-    };
-    document.addEventListener("keydown", onKeydown);
-    const resonance = 2 * (report.afterLevel - report.beforeLevel);
-    const accessibleDialog = document.createElement("div");
-    accessibleDialog.className = "level-up-accessible";
-    accessibleDialog.setAttribute("role", "dialog");
-    accessibleDialog.setAttribute("aria-modal", "true");
-    accessibleDialog.setAttribute("aria-label", `Nuevo nivel ${report.afterLevel}`);
-    accessibleDialog.tabIndex = -1;
-    accessibleDialog.textContent = `Subiste del nivel ${report.beforeLevel} al ${report.afterLevel}. Afinidad ${theme.title}. ${report.stats.map((stat) => `${stat.label}: ${stat.before} a ${stat.after}, más ${stat.gain}`).join(". ")}. Ganaste ${report.pointsGained} puntos de atributo y ${resonance} PR para el Dojo. Se confirmará al regresar a la aldea. Pulsa Intro para aceptar y ${returnToBattle ? "volver al combate" : "continuar al informe"}.`;
-    accessibleDialog.style.cssText = "position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
-    this.game.canvas.parentElement?.append(accessibleDialog);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      document.removeEventListener("keydown", onKeydown);
-      accessibleDialog.remove();
-      frozen?.dispose();
+    button.addEventListener("click", continueToResults);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => frozen?.dispose());
+    void arrival.then(() => {
+      if (!overlay.isConnected) return;
+      ready = true;
+      button.disabled = false;
+      button.focus({ preventScroll: true });
+      this.time.delayedCall(reducedMotion || lightMode ? 120 : 1700, () => {
+        if (!continuing) {
+          frozen = suspendPauseRendering(this, { htmlOnly: true });
+          this.staticConfirmation = true;
+        }
+      });
     });
-    this.tweens.add({ targets: panel, alpha: 1, scale: 1, delay: reducedMotion ? 0 : 90, duration: reducedMotion ? 100 : 180, ease: "Back.out",
-      onComplete: async () => {
-        await arrival; ready = true; button.setAlpha(1).setInteractive({ useHandCursor: true }); accessibleDialog.focus();
-        this.time.delayedCall(reducedMotion || lightMode ? 120 : 1700, () => { if (!continuing) { frozen = suspendPauseRendering(this); this.staticConfirmation = true; } });
-      } });
     this.cameras.main.fadeIn(90, 6, 15, 27);
     sharpenTextTree(this.children.list);
   }

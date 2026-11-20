@@ -1,6 +1,6 @@
 import { ABILITY_CATALOG, canonicalAbilityId } from "../data.js?v=1.5.0";
 import { actionChakraCost } from "../chakra-balance.js?v=1.0.0";
-import { actionHealthCost } from "./skill-tables.js?v=0.170.0";
+import { actionHealthCost } from "./skill-tables.js?v=0.171.0";
 import { nextEnemyAction } from "./turn.js?v=1.4.0";
 import { enemyCanUseElement } from "./enemy-affinities.js?v=1.0.0";
 

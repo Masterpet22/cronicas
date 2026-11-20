@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 
-test("la subida animada aparece antes del informe y detalla el crecimiento", async ({ page }) => {
+test("la subida animada aparece antes del informe y detalla el crecimiento", async ({ page }, info) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const browserErrors = [];
   page.on("pageerror", (error) => browserErrors.push(error.message));
@@ -49,15 +49,17 @@ test("la subida animada aparece antes del informe y detalla el crecimiento", asy
   });
   expect(checks).toMatchObject({ completed: true, unchanged: false, failed: false, focus: "FUERZA" });
   expect(checks.strengthGain).toBeGreaterThan(0);
-  await expect(page.locator("#level-up-test-stage [role='dialog']")).toContainText("Subiste del nivel 1 al 2");
+  const dialog = page.locator("#level-up-test-stage [role='dialog']");
+  const continueButton = dialog.getByRole("button", { name: "Continuar al informe" });
+  await expect(dialog).toContainText("De nivel 1 a nivel 2");
+  await expect(dialog).toContainText("+2 puntos de atributo · +2 PR");
   await expect.poll(() => page.evaluate(() => {
     const scene = window.__levelUpTest.game.scene.getScene("level-up");
-    const panel = scene.children.getByName("level-up-panel");
-    return panel?.alpha === 1 && Boolean(scene.children.getByName("level-up-fighter"))
-      && Boolean(scene.children.getByName("level-up-aura"))
-      && panel.list.some((child) => child.name === "level-up-continue" && child.input?.enabled);
+    return Boolean(scene.children.getByName("level-up-fighter") && scene.children.getByName("level-up-aura"));
   })).toBe(true);
-  await page.locator("#level-up-test-stage canvas").click({ position: { x: 636, y: 469 } });
+  await expect(continueButton).toBeFocused();
+  await page.locator("#level-up-test-stage").screenshot({ path: info.outputPath("subida-de-nivel.png") });
+  await continueButton.click();
   await expect.poll(() => page.evaluate(() => window.__levelUpTest.arrived)).toBe(true);
   const passed = await page.evaluate(() => {
     const state = window.__levelUpTest;
@@ -124,12 +126,9 @@ test("el nivel ganado tras un rival vuelve al mismo combate sin guardarse", asyn
     state.game = new window.Phaser.Game({ type: window.Phaser.CANVAS, parent: stage, width: 960, height: 540,
       scene: [FakeBattleScene, LevelUpScene] });
   });
-  await expect(page.locator("#level-up-battle-stage [role='dialog']")).toContainText("volver al combate");
-  await expect.poll(() => page.evaluate(() => {
-    const panel = window.__levelUpBattleTest.game.scene.getScene("level-up").children.getByName("level-up-panel");
-    return panel?.alpha === 1 && panel.list.some(child => child.name === "level-up-continue" && child.input?.enabled);
-  })).toBe(true);
-  await page.locator("#level-up-battle-stage canvas").click({ position: { x: 636, y: 469 } });
+  const returnButton = page.locator("#level-up-battle-stage").getByRole("button", { name: "Volver al combate" });
+  await expect(returnButton).toBeFocused();
+  await page.keyboard.press("Enter");
   await expect.poll(() => page.evaluate(() => window.__levelUpBattleTest.resumed)).toBe(true);
   const result = await page.evaluate(async () => {
     const { loadSave } = await import("/src/save.js?v=0.94.0");

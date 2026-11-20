@@ -1,4 +1,5 @@
-import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
+import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.171.0";
+import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
@@ -27,43 +28,31 @@ export class MissionEpilogueScene extends Phaser.Scene {
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.16).setOrigin(0);
     const sayo = this.add.image(-120, 548, "sayo-kisaragi").setOrigin(0.5, 1).setDisplaySize(420, 505).setDepth(3);
     this.tweens.add({ targets: sayo, x: 214, duration: 720, ease: "Cubic.out" });
-    this.add.text(214, 510, "Sayo Kisaragi", {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#eaf7ff", fontStyle: "bold"
-    }).setOrigin(0.5).setPadding(14, 5).setBackgroundColor("#031220").setStroke("#5ecfff", 1).setDepth(6);
-
-    this.add.rectangle(690, 161, 500, 214, 0x031220, 0.95).setStrokeStyle(1.5, 0x55c9ff, 0.8).setDepth(4);
-    this.add.rectangle(438, 54, 4, 214, 0x3fcaff, 1).setOrigin(0, 0).setDepth(5);
-    this.add.text(462, 76, "SAYO KISARAGI · ARCHIVERA MAYOR", {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "11px", color: "#83d8ff", fontStyle: "bold", letterSpacing: 1
-    }).setDepth(6);
-    this.add.rectangle(462, 101, 455, 1, 0x84c4e0, 0.3).setOrigin(0, 0).setDepth(6);
-    const dialogue = this.add.text(462, 120, lines[0], {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "16px", color: "#f4f0e8", fontStyle: "bold", wordWrap: { width: 430 }, lineSpacing: 6
-    }).setDepth(6);
-    const counter = this.add.text(462, 240, `1/${lines.length}`, {
-      fontFamily: '"Alegreya Sans", "Segoe UI", sans-serif', fontSize: "12px", color: "#aac1d2", fontStyle: "bold"
-    }).setDepth(6);
-    const button = this.add.rectangle(846, 238, 122, 38, 0x0d4668, 1).setStrokeStyle(1, 0x55c9ff, 1).setInteractive({ useHandCursor: true }).setDepth(6);
-    const buttonLabel = this.add.text(846, 238, "SIGUIENTE", {
-      fontFamily: '"Cinzel", Georgia, serif', fontSize: "11px", color: "#f4f8fb", fontStyle: "bold"
-    }).setOrigin(0.5).setDepth(7);
-    button.on("pointerover", () => button.setFillStyle(0x17638d, 1));
-    button.on("pointerout", () => button.setFillStyle(0x0d4668, 1));
-    button.on("pointerup", () => {
+    const { panel } = mountSceneNotice(this, "epilogue-notice", "Sayo Kisaragi");
+    const speaker = addNoticeText(panel, "header", "", "scene-speaker");
+    addNoticeText(speaker, "strong", "Sayo Kisaragi");
+    addNoticeText(speaker, "span", "Archivera mayor");
+    const dialogue = addNoticeText(panel, "p", lines[0], "scene-copy");
+    dialogue.setAttribute("aria-live", "polite");
+    const footer = addNoticeText(panel, "footer", "", "scene-footer");
+    const counter = addNoticeText(footer, "small", `1 / ${lines.length}`, "scene-step");
+    const button = addNoticeText(footer, "button", "Siguiente", "scene-button");
+    button.type = "button";
+    button.focus({ preventScroll: true });
+    button.addEventListener("click", () => {
       if (lineIndex < lines.length - 1) {
         lineIndex += 1;
-        dialogue.setText(lines[lineIndex]);
-        counter.setText(`${lineIndex + 1}/${lines.length}`);
-        buttonLabel.setText(lineIndex === lines.length - 1 ? "REGRESAR" : "SIGUIENTE");
+        dialogue.textContent = lines[lineIndex];
+        counter.textContent = `${lineIndex + 1} / ${lines.length}`;
+        button.textContent = lineIndex === lines.length - 1 ? "Regresar" : "Siguiente";
         return;
       }
-      button.disableInteractive();
+      button.disabled = true;
       battleRuntime.activeSave.campaign.sayoEncounterSeen = true;
       stageVictory(battleRuntime, battleRuntime.activeSave);
       this.scene.start("travel", { direction: "toVillage", result: data.result || {} });
     });
     this.cameras.main.fadeIn(300, 3, 9, 18);
-    sharpenTextTree(this.children.list);
   }
 }
 

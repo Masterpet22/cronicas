@@ -1,9 +1,9 @@
-import { HUD_ART } from "./hud-art.js?v=0.170.0";
+import { HUD_ART } from "./hud-art.js?v=0.171.0";
 import { ELEMENTS } from "../elements.js?v=0.20.0";
 import { timelineMarkerPosition } from "./timeline.js?v=0.69.0";
 import { setHudAttribute } from "./hud-dom.js?v=1.0.0";
-import { hairTextureKey, fighterAtlasKey, fighterCombatPortraitLayout, fighterFaceTextureKey, useFighterTextureRendering } from '../fighters.js?v=0.170.0';
-import { enemyFighterAppearance } from '../character.js?v=0.170.0';
+import { hairTextureKey, fighterAtlasKey, fighterCombatPortraitLayout, fighterFaceTextureKey, useFighterTextureRendering } from '../fighters.js?v=0.171.0';
+import { enemyFighterAppearance } from '../character.js?v=0.171.0';
 
 // Hit areas sit on the actual fighters. The existing portrait shows selection.
 export function mountTrainingTargets(scene) {

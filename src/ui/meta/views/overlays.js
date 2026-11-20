@@ -47,7 +47,7 @@ export function createOverlayView(deps) {
       });
     }
     return { ...mounted, close, listen: on,
-      cancelButton: cancellable ? '<button type="button" class="secondary-button mission-cancel" data-cancel-mission>CANCELAR MISIÓN</button>' : "",
+      cancelButton: cancellable ? '<button type="button" class="secondary-button mission-cancel scene-button scene-button-quiet" data-cancel-mission>CANCELAR MISIÓN</button>' : "",
       bindCancel() { on(overlay.querySelector("[data-cancel-mission]"), "click", () => close(true)); }
     };
   };
@@ -78,12 +78,12 @@ export function createOverlayView(deps) {
         const mirrorClass = side === "right" ? "story-character-mirrored" : "";
         overlay.classList.toggle("story-speaker-left", side === "left");
         overlay.classList.toggle("story-speaker-right", side === "right");
-        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${deps.escapeHtml(npc.name)}</span></div>` : "";
-        overlay.innerHTML = `${character}<section class="story-dialogue-panel"><header>${deps.escapeHtml(speaker)} · ${deps.escapeHtml(role)}</header><p>${deps.escapeHtml(dialogue)}</p><footer><small>${index + 1}/${lines.length}</small><div class="dialogue-actions">${mounted.cancelButton}<button type="button" class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button></div></footer></section>`;
+        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"></div>` : "";
+        overlay.innerHTML = `${character}<section class="story-dialogue-panel scene-panel"><header class="scene-speaker"><strong>${deps.escapeHtml(speaker)}</strong><span>${deps.escapeHtml(role)}</span></header><p aria-live="polite">${deps.escapeHtml(dialogue)}</p><footer><small class="scene-step" aria-label="Parlamento ${index + 1} de ${lines.length}">${index + 1}/${lines.length}</small><div class="dialogue-actions">${mounted.cancelButton}<button type="button" class="primary-button scene-button">${last ? finalLabel : "SIGUIENTE"}</button></div></footer></section>`;
         previousSpeaker = speaker;
       } else {
         const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${deps.escapeHtml(npc.title)}</span></div>` : "";
-        overlay.innerHTML = `<section class="dialogue-box ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><p class="eyebrow">${deps.escapeHtml(speaker)}</p><p>${deps.escapeHtml(dialogue)}</p>${mounted.cancelButton}<button class="primary-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
+        overlay.innerHTML = `<section class="dialogue-box scene-panel ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><header class="scene-speaker"><strong>${deps.escapeHtml(speaker)}</strong></header><p>${deps.escapeHtml(dialogue)}</p>${mounted.cancelButton}<button class="primary-button scene-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       }
       mounted.bindCancel();
       const next = overlay.querySelector(".primary-button");
@@ -101,7 +101,7 @@ export function createOverlayView(deps) {
     const overlay = document.createElement("div");
     overlay.className = "mission-decision-overlay";
     const mounted = mountOverlay(overlay, controls);
-    overlay.innerHTML = `<section class="mission-decision-panel">${eyebrow ? `<p class="eyebrow">${deps.escapeHtml(eyebrow)}</p>` : ""}<h2>${deps.escapeHtml(title)}</h2><p>${deps.escapeHtml(text)}</p><div>${options.map((option) => `<button type="button" data-decision="${option.id}" class="${option.primary ? "primary" : ""}"><strong>${deps.escapeHtml(option.label)}</strong><small>${deps.escapeHtml(option.description)}</small></button>`).join("")}</div>${mounted.cancelButton}</section>`;
+    overlay.innerHTML = `<section class="mission-decision-panel scene-panel">${eyebrow ? `<p class="eyebrow">${deps.escapeHtml(eyebrow)}</p>` : ""}<h2 class="scene-title">${deps.escapeHtml(title)}</h2><p class="scene-copy">${deps.escapeHtml(text)}</p><div class="scene-choices">${options.map((option) => `<button type="button" data-decision="${option.id}" class="scene-choice ${option.primary ? "is-primary" : ""}"><strong>${deps.escapeHtml(option.label)}</strong><small>${deps.escapeHtml(option.description)}</small></button>`).join("")}</div>${mounted.cancelButton}</section>`;
     mounted.bindCancel();
     if (controls.cancellable) overlay.querySelector("[data-decision]")?.focus();
     overlay.querySelectorAll("[data-decision]").forEach((button) => mounted.listen(button, "click", () => {
