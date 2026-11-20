@@ -10,6 +10,11 @@ for (const variant of report.variants) {
   assert.ok(variant.maxTransformError <= contract.tolerances.dojoTransformPx);
   assert.ok(variant.supportedClips.includes("prepare-technique"));
   assert.ok(variant.supportedClips.includes("punch-release"));
+  for (const order of [variant.runtimeOrder, variant.dojoOrder]) {
+    for (const side of ["izquierdo", "derecho"]) {
+      assert.ok(order.indexOf(`muslo_${side}`) < order.indexOf("torso"), "El torso debe dibujarse delante de ambos muslos");
+    }
+  }
 }
 const calibratedPlacement = {
   male: { top: -694.684, bottom: 800.316, centerX: 17.142 },

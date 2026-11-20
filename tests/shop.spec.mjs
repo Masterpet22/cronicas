@@ -46,22 +46,27 @@ for (const bodyType of ["male", "female"]) {
     );
     const equipped = await sources();
     expect(equipped).toHaveLength(7);
+    await expect(page.locator(".shop-fitting select")).toHaveCount(0);
     let before = equipped;
-    for (const [label, id, style, partCount] of [
-      ["Torso", "top_traveler", "traveler", 1],
-      ["Pantalón completo", "bottom_shadow", "shadow", 4],
-      ["Calzado", "shoes_sandals", "sandals", 2]
+    for (const [name, style, partCount] of [
+      ["Torso siguiente", "traveler", 1],
+      ["Pantalón completo anterior", "shadow", 4],
+      ["Calzado siguiente", "sandals", 2]
     ]) {
-      const select = page.getByLabel(label, { exact: true });
-      await select.focus();
-      await select.selectOption(id);
-      await expect(select).toBeFocused();
+      const arrow = page.getByRole("button", { name, exact: true });
+      await arrow.focus();
+      await arrow.press("Enter");
+      await expect(arrow).toBeFocused();
       const after = await sources();
       const changed = after.filter((src, index) => src !== before[index]);
       expect(changed).toHaveLength(partCount);
       expect(changed.every(src => src.includes(`/${style}/${bodyType}/`))).toBe(true);
       before = after;
     }
+    await page.getByRole("button", { name: "Torso anterior", exact: true }).click();
+    expect((await sources()).filter((src, index) => src !== before[index])).toHaveLength(1);
+    await page.getByRole("button", { name: "Torso siguiente", exact: true }).click();
+    expect(await sources()).toEqual(before);
     expect(await stored(page)).toEqual(save);
     await expect(preview).toBeInViewport({ ratio: 0.95 });
     const reset = page.getByRole("button", { name: "Restaurar mi ropa" });

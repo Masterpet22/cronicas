@@ -1,4 +1,4 @@
-import { saveStatus, subscribeSaveStatus, retryPendingSaves, pendingSaveCopies } from "../save.js?v=0.166.0";
+import { saveStatus, subscribeSaveStatus, retryPendingSaves, pendingSaveCopies } from "../save.js?v=0.168.0";
 
 export function mountSaveRecovery() {
   const banner = document.createElement("aside");

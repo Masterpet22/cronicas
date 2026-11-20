@@ -78,8 +78,8 @@
   padding: 0 0 8px;
   border-bottom: 1px solid #8b704655;
 }
-.shop-fitting-row label { grid-column: 1 / -1; color: #eee4ce; font-weight: 700; }
-.shop-fitting-row select, .shop-fitting button {
+.shop-fitting-label { grid-column: 1 / -1; color: #eee4ce; font-weight: 700; }
+.shop-fitting button {
   min-width: 0;
   min-height: 44px;
   padding: 6px 9px;
@@ -88,6 +88,28 @@
   background: #0b1422;
   color: #f3e0b7;
   font: 700 15px "Alegreya Sans", sans-serif;
+}
+.shop-fitting .shop-fitting-stepper {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  gap: 4px;
+  border-radius: 5px;
+  background: #0b1422;
+}
+.shop-fitting .shop-fitting-stepper button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  font-size: 1.35rem;
+}
+.shop-fitting .shop-fitting-stepper button:hover, .shop-fitting .shop-fitting-stepper button:focus-visible {
+  border-color: #f3d08b;
+  background: #442630;
+}
+.shop-fitting .shop-fitting-stepper output {
+  color: #f3e0b7;
+  font: 700 15px/1.12 "Alegreya Sans", sans-serif;
+  letter-spacing: 0;
+  white-space: normal;
 }
 .shop-fitting-action { display: grid; grid-auto-flow: column; align-items: center; justify-content: end; gap: 8px; }
 .shop-fitting-price { color: #eed095; line-height: 1.1; font-size: 13px; font-variant-numeric: tabular-nums; }

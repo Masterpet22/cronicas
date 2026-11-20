@@ -1,13 +1,13 @@
 import { runCycleForRig } from "./animations/locomotion-pose.js?v=0.156.0";
 import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands, restorePreparationForearms } from "./animations/preparation-hands.js?v=0.159.0";
-import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.166.0";
+import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.168.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
 import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.166.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.166.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.168.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.168.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.159.0";
 import {
   CHARACTER_FACES,
@@ -19,7 +19,7 @@ import {
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
   characterHairConfig,
   hairAsset
-} from "./character-rigs.js?v=0.166.0";
+} from "./character-rigs.js?v=0.168.0";
 
 const FIGHTER_GROUND_OFFSET = 60;
 export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;
@@ -420,10 +420,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   joints.kneeLeft.sendToBack(joints.ankleLeft);
   layers.push(addPart(scene, joints.ankleLeft, variant, "pie_izquierdo", spriteJoints.ankleLeft));
 
-  const torso = addPart(scene, rig, variant, "torso");
-  layers.push(torso);
-
-  // Lado derecho anatómico: se ve a la izquierda y queda delante del torso.
+  // La pierna derecha también queda detrás del bajo de la ropa del torso.
   joints.hipRight = createJoint(scene, rig, "hipRight", spriteJoints.hipRight);
   layers.push(addPart(scene, joints.hipRight, variant, "muslo_derecho", spriteJoints.hipRight));
   joints.kneeRight = createJoint(scene, joints.hipRight, "kneeRight", spriteJoints.kneeRight, spriteJoints.hipRight);
@@ -431,6 +428,9 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   joints.ankleRight = createJoint(scene, joints.kneeRight, "ankleRight", spriteJoints.ankleRight, spriteJoints.kneeRight);
   joints.kneeRight.sendToBack(joints.ankleRight);
   layers.push(addPart(scene, joints.ankleRight, variant, "pie_derecho", spriteJoints.ankleRight));
+
+  const torso = addPart(scene, rig, variant, "torso");
+  layers.push(torso);
 
   joints.shoulderRight = createJoint(scene, rig, "shoulderRight", spriteJoints.shoulderRight);
   layers.push(addPart(scene, joints.shoulderRight, variant, "brazo_derecho", spriteJoints.shoulderRight));

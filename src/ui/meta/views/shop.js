@@ -1,9 +1,9 @@
-import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.166.0";
-import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.166.0";
-import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.166.0";
-import { itemIcon } from "../../item-icons.js?v=0.166.0";
-import { CLOTHING_PARTS } from "../../../base-outfit.js?v=0.166.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.167.0";
+import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.168.0";
+import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.168.0";
+import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.168.0";
+import { itemIcon } from "../../item-icons.js?v=0.168.0";
+import { CLOTHING_PARTS } from "../../../base-outfit.js?v=0.168.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.168.0";
 
 const clothingSlots = Object.keys(CLOTHING_PARTS);
 const fittingItems = Object.fromEntries(clothingSlots.map(slot => [
@@ -44,16 +44,21 @@ export function createShopView(deps) {
     return `<span class="shop-fitting-price">${item.price} monedas</span><button type="submit" ${reason ? "disabled" : ""}>${reason || "Comprar"}</button>`;
   }
 
+  function equippedFittingItem(slot) {
+    const items = fittingItems[slot];
+    return items.find(item => item.value === save.character[slot]) ?? items[0];
+  }
+
+  function fittingName(item, isEquipped) {
+    const name = item.value === 1 && save.character.outfit ? "Del traje completo" : item.name;
+    return isEquipped ? `Puesto · ${name}` : name;
+  }
+
   function fittingContents() {
-    const name = item => item.value === 1 && save.character.outfit ? "Del traje completo" : item.name;
     const rows = clothingSlots.map(slot => {
-      const items = fittingItems[slot];
-      const equipped = items.find(item => item.value === save.character[slot]) ?? items[0];
       const trial = tryOn.get(slot);
-      const options = items.filter(item => item !== equipped).map(item =>
-        `<option value="${item.id}" ${item === trial ? "selected" : ""}>${escape(name(item))}</option>`
-      ).join("");
-      return `<form class="shop-fitting-row" data-fitting-slot="${slot}"><label for="shop-fitting-${slot}">${COSMETIC_SLOTS[slot]}</label><select id="shop-fitting-${slot}" data-fitting-select><option value="">Puesto · ${escape(name(equipped))}</option>${options}</select><div class="shop-fitting-action" data-fitting-action aria-live="polite">${fittingAction(trial)}</div></form>`;
+      const label = COSMETIC_SLOTS[slot];
+      return `<form class="shop-fitting-row" data-fitting-slot="${slot}" aria-labelledby="shop-fitting-${slot}"><span class="shop-fitting-label" id="shop-fitting-${slot}">${label}</span><div class="cosmetic-stepper shop-fitting-stepper"><button type="button" data-fitting-step="-1" aria-label="${label} anterior">‹</button><output data-fitting-name>${escape(fittingName(trial ?? equippedFittingItem(slot), !trial))}</output><button type="button" data-fitting-step="1" aria-label="${label} siguiente">›</button></div><div class="shop-fitting-action" data-fitting-action aria-live="polite">${fittingAction(trial)}</div></form>`;
     }).join("");
     return `<div class="shop-fitting"><div class="shop-fitting-preview" data-fitting-preview>${fittingPreview()}</div><div class="shop-fitting-controls">${rows}<button class="shop-fitting-reset" type="button" data-fitting-reset ${tryOn.size ? "" : "disabled"}>Restaurar mi ropa</button></div></div>`;
   }
@@ -96,10 +101,25 @@ export function createShopView(deps) {
       scope.listen(host, "click", event => {
         const tab = event.target.closest("[data-shop-mode]");
         if (tab) { mode = tab.dataset.shopMode; category = "all"; message = ""; refresh(`[data-shop-mode="${mode}"]`); }
+        const arrow = event.target.closest("[data-fitting-step]");
+        if (arrow) {
+          const row = arrow.closest("[data-fitting-slot]");
+          const slot = row.dataset.fittingSlot;
+          const items = fittingItems[slot];
+          const equipped = equippedFittingItem(slot);
+          const selected = items.indexOf(tryOn.get(slot) ?? equipped);
+          const next = items[(selected + Number(arrow.dataset.fittingStep) + items.length) % items.length];
+          if (next === equipped) tryOn.delete(slot);
+          else tryOn.set(slot, next);
+          row.querySelector("[data-fitting-name]").textContent = fittingName(next, next === equipped);
+          row.querySelector("[data-fitting-action]").innerHTML = fittingAction(tryOn.get(slot));
+          host.querySelector("[data-fitting-preview]").innerHTML = fittingPreview();
+          host.querySelector("[data-fitting-reset]").disabled = !tryOn.size;
+        }
         if (event.target.closest("[data-fitting-reset]") && tryOn.size) {
           tryOn.clear();
           message = "";
-          refresh("[data-fitting-select]");
+          refresh('[data-fitting-step="1"]');
         }
       });
       scope.listen(host, "change", event => {
@@ -107,16 +127,6 @@ export function createShopView(deps) {
         if (select.matches("[data-shop-category-select]")) {
           category = select.value;
           refresh("[data-shop-category-select]");
-        }
-        if (select.matches("[data-fitting-select]")) {
-          const row = select.closest("[data-fitting-slot]");
-          const slot = row.dataset.fittingSlot;
-          const item = fittingItems[slot].find(option => option.id === select.value);
-          if (item) tryOn.set(slot, item);
-          else tryOn.delete(slot);
-          row.querySelector("[data-fitting-action]").innerHTML = fittingAction(item);
-          host.querySelector("[data-fitting-preview]").innerHTML = fittingPreview();
-          host.querySelector("[data-fitting-reset]").disabled = !tryOn.size;
         }
       });
       scope.listen(host, "submit", event => {
@@ -130,7 +140,7 @@ export function createShopView(deps) {
         message = result.message;
         refresh();
         const nextAction = slot
-          ? host.querySelector(`[data-fitting-slot="${slot}"] select`)
+          ? host.querySelector(`[data-fitting-slot="${slot}"] [data-fitting-step="1"]`)
           : host.querySelector(`[data-shop-item="${id}"] button:not([disabled])`) || host.querySelector("[data-shop-category-select]");
         nextAction?.focus({ preventScroll:true });
         const coins = root.querySelector(".summary-item:last-child strong");

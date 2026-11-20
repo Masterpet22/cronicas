@@ -1,5 +1,5 @@
 // Los valores se comparten con el personaje y con sus capas de apariencia.
-import { hairAsset } from "./character-rigs.js?v=0.166.0";
+import { hairAsset } from "./character-rigs.js?v=0.168.0";
 
 export const COSMETICS = Object.freeze([
   { id: "hair_none", name: "Sin cabello", cosmeticSlot: "hair", value: 0, price: 0 },

@@ -1,4 +1,4 @@
-import { cloudSession } from "../../save/cloud-session.js?v=0.166.0";
+import { cloudSession } from "../../save/cloud-session.js?v=0.168.0";
 
 const authErrors = {
   "auth/popup-blocked": "Permite las ventanas emergentes para entrar con Google.",

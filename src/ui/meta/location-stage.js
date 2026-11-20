@@ -1,4 +1,4 @@
-import { hasIntroduction, locationChangeComment, locationSelectionComment, NPC_IDLE_LINES } from "../../location-conversations.js?v=0.167.0";
+import { hasIntroduction, locationChangeComment, locationSelectionComment, NPC_IDLE_LINES } from "../../location-conversations.js?v=0.168.0";
 
 export function createLocationStage(deps) {
   let activeSpeech = null;
