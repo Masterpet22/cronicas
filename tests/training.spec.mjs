@@ -28,7 +28,12 @@ async function prepare(page, origin) {
   await ensurePhaser(page);
   await page.evaluate(() => {
     const Original = Phaser.Game;
-    Phaser.Game = class extends Original { constructor(config) { super(config); window.__trainingGame = this; } };
+    Phaser.Game = class extends Original {
+      constructor(config) {
+        super({ ...config, type: Phaser.CANVAS });
+        window.__trainingGame = this;
+      }
+    };
   });
 }
 
@@ -225,9 +230,17 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
     expect((await targets()).turns.every(turn => turn > 0)).toBe(true);
     expect((await targets()).playerHp).toBeLessThan(1000);
     // Pause while clocks are actually advancing, rather than at a decision.
+    await page.evaluate(() => {
+      const scene = window.__trainingGame.scene.getScene("battle");
+      const update = scene.updateTimelineMarkers;
+      scene.updateTimelineMarkers = function (...args) {
+        update.apply(this, args);
+        if (!this.timelineTween || this.busy || this.timelinePaused) return;
+        this.updateTimelineMarkers = update;
+        document.querySelector(".combat-access-pause").click();
+      };
+    });
     await (await trainingAction(page, "strike")).click();
-    await expect.poll(() => page.evaluate(() => !window.__trainingGame.scene.getScene("battle").busy)).toBe(true);
-    await page.getByRole("button", { name: "Pausar combate (Escape)" }).click();
     await expect(page.getByRole("heading", { name: "ENTRENAMIENTO EN PAUSA" })).toBeVisible();
     const paused = await targets();
     await page.waitForTimeout(250);
@@ -247,10 +260,10 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
         expect((await targets()).finished).toBe(false);
         await expect(page.locator(`[data-training-target="${index}"]`)).toBeDisabled();
         await expect(page.locator(`[data-training-target="${index}"]`)).toBeHidden();
-        expect(await page.evaluate(i => {
+        await expect.poll(() => page.evaluate(i => {
           const s = window.__trainingGame.scene.getScene("battle"), t = s.trainingTargets[i], m = s.groupMarkers[i];
-          return [t.fighter.body, t.fighter.shadow, t.ring, m.marker, m.face, m.hair, m.halo, m.label].filter(Boolean).every(part => !part.visible);
-        }, index)).toBe(true);
+          return [t.fighter.body, t.fighter.shadow, t.ring, ...m.parts].filter(part => part.visible).map(part => part.type);
+        }, index)).toEqual([]);
         if (index === 0) await page.screenshot({ path: testInfo.outputPath("dojo-group-after-knockout.png"), fullPage: true });
       }
     }
@@ -287,7 +300,8 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
 
 test("el HUD de tablet conserva ocultas las barras del canvas al seleccionar y redimensionar", async ({ page }, testInfo) => {
   test.setTimeout(120000);
-  await page.setViewportSize({ width: 960, height: 720 });
+  const compactViewport = { width: 880, height: 720 };
+  await page.setViewportSize(compactViewport);
   await prepare(page, "dojo");
   await page.locator("[data-training-count]").selectOption("3");
   await page.locator("[data-start-training]").click();
@@ -308,7 +322,7 @@ test("el HUD de tablet conserva ocultas las barras del canvas al seleccionar y r
   await page.setViewportSize({ width: 1440, height: 900 });
   await expect.poll(layers).toEqual([true, true, true, true]);
   await page.screenshot({ path: testInfo.outputPath("dojo-group-desktop-clean.png"), fullPage: true });
-  await page.setViewportSize({ width: 960, height: 720 });
+  await page.setViewportSize(compactViewport);
   await expect.poll(layers).toEqual([false, false, false, false]);
 });
 
@@ -325,7 +339,6 @@ test("el rival derrotado desaparece dentro de una nube de humo sin dejar objetos
   await page.evaluate(() => {
     const s = window.__trainingGame.scene.getScene("battle");
     s.stopTurnTimeline(); s.busy = true; s.timelinePaused = true;
-    s.tweens.timeScale = .05;
     s.trainingTargets[0].state.hp = 0;
     const body = s.trainingTargets[0].fighter.body, setVisible = body.setVisible.bind(body);
     body.setVisible = value => {
@@ -351,18 +364,15 @@ test("el rival derrotado desaparece dentro de una nube de humo sin dejar objetos
       shadow: t.fighter.shadow.visible, nextTarget: s.selectedTargetIndex,
       markersMatchLivingOpponents: s.groupMarkers.every(({ parts }, index) => parts.every(part => part.visible === (index !== 0))) };
   })).toEqual({ smoke: false, prop: false, body: false, shadow: false, nextTarget: 1, markersMatchLivingOpponents: true });
-  await page.evaluate(() => {
+  const finalSmoke = await page.evaluate(() => {
     const s = window.__trainingGame.scene.getScene("battle");
     s.trainingTargets[1].state.hp = 0; s.trainingTargets[2].state.hp = 0;
-    s.tweens.timeScale = .1;
+    s.tweens.timeScale = 0;
     window.__finalSmoke = s.finishBattle(true);
-  });
-  await expect.poll(() => page.evaluate(() => Boolean(window.__trainingGame.scene.getScene("battle").children.getByName("teleport-smoke")))).toBe(true);
-  expect(await page.evaluate(() => {
-    const s = window.__trainingGame.scene.getScene("battle");
     const clouds = s.children.list.filter(child => child.name === "teleport-smoke");
     return { simultaneous: clouds.length, reused: clouds.includes(window.__firstSmoke) };
-  })).toEqual({ simultaneous: 2, reused: true });
+  });
+  expect(finalSmoke).toEqual({ simultaneous: 2, reused: true });
   await expect(page.getByRole("heading", { name: "Victoria", exact: true })).toHaveCount(0);
   await page.evaluate(async () => {
     window.__trainingGame.scene.getScene("battle").tweens.timeScale = 1;

@@ -1,13 +1,13 @@
 import { normalizeSkinTone, skinTone } from "./skin-tones.js?v=0.135.0";
 import { CHARACTER_HAIR_STYLES, hairAsset, normalizeHairStyle } from "./character-rigs.js?v=0.165.0";
-const HAIR_COLORS = ["#302a35", "#4a2f3c", "#183d49", "#5b382c", "#202735"];
+const HAIR_COLORS = ["#2d2d2d", "#383838", "#363636", "#3d3d3d", "#272727"];
 export const HAIR_STYLE_LABELS = Object.freeze(CHARACTER_HAIR_STYLES.map(({ label }) => label));
 const RASTER_HAIR = Object.freeze({
-  1: { asset: "assets/modular/hair/hair_corto.png?v=0.137.0", x: -44, y: -140, width: 94, height: 79 },
+  1: { asset: hairAsset(1), x: -44, y: -140, width: 94, height: 79 },
   4: {
-    asset: "assets/modular/hair/hair_coleta.png?v=0.141.0",
+    asset: hairAsset(4),
     x: -38.0745, y: -111.729, width: 88.749, height: 68.058,
-    tail: { asset: "assets/modular/hair/tail_coleta.png?v=0.141.0", x: -46.65375, y: -111.156, width: 31.2075, height: 114.912 }
+    tail: { asset: hairAsset(4, "tail"), x: -46.65375, y: -111.156, width: 31.2075, height: 114.912 }
   },
   ...Object.fromEntries([6, 7, 8].map(style => [style, {
     asset: hairAsset(style), x: -54, y: -154, width: 108, height: 96

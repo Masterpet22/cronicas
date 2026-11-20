@@ -136,7 +136,7 @@ export function queuePlayerFighterTextures(scene, appearance) {
   const key = sourceAtlasKey(variant);
   if (!scene.textures.exists(key)) {
     const url = `assets/modular/atlases/${variant.bodyType}`;
-    scene.load.atlas(key, `${url}.png?v=1.0.1`, `${url}.json?v=1.0.1`);
+    scene.load.atlas(key, `${url}.png?v=1.1.0`, `${url}.json?v=1.1.0`);
   }
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {

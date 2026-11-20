@@ -21,7 +21,9 @@ try {
       }
       if (right < left) throw new Error(`Celda vacía: ${entry.body}/${entry.id}`);
       const out = document.createElement('canvas'); out.width = entry.naturalWidth; out.height = entry.naturalHeight;
-      out.getContext('2d').drawImage(canvas, left, top, right-left+1, bottom-top+1, 0, 0, out.width, out.height);
+      const output = out.getContext('2d');
+      output.filter = 'grayscale(1)';
+      output.drawImage(canvas, left, top, right-left+1, bottom-top+1, 0, 0, out.width, out.height);
       return { ...entry, png:out.toDataURL('image/png').split(',')[1] };
     });
   }, { entries, source });

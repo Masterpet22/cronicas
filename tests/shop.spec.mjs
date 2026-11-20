@@ -113,10 +113,24 @@ test("vende a mitad de precio y selecciona solo apariencia y sustitución compra
   expect((await stored(page)).inventory.items.health_potion).toBe(1);
   await page.screenshot({ path: "test-results/shop/venta.png" });
   await page.locator('[data-shop-mode="buy"]').click();
-  for (const [category, ids] of [["substitution", ["substitution_dog", "substitution_puppet"]], ["appearance", ["hair_ponytail", "face_mask", "top_traveler", "bottom_traveler", "shoes_sandals", "shadow_outfit"]]]) {
+  const cosmeticFilters = [
+    ["substitution", ["substitution_dog", "substitution_puppet"]],
+    ["appearance", ["hair_ponytail", "face_mask", "shadow_outfit"]],
+    ["top", ["top_traveler"]],
+    ["bottom", ["bottom_traveler"]],
+    ["shoes", ["shoes_sandals"]]
+  ];
+  for (const [category, ids] of cosmeticFilters) {
     await page.locator("[data-shop-category-select]").selectOption(category);
+    if (["top", "bottom", "shoes"].includes(category)) {
+      await expect(page.locator(`[data-shop-item]:not([data-shop-item^="${category}_"])`)).toHaveCount(0);
+    }
     for (const id of ids) await page.locator(`[data-shop-item="${id}"] button`).click();
   }
+  await page.locator('[data-shop-mode="sell"]').click();
+  await page.locator("[data-shop-category-select]").selectOption("bottom");
+  await expect(page.locator("[data-shop-item]")).toHaveCount(1);
+  await expect(page.locator('[data-shop-item="bottom_traveler"]')).toBeVisible();
   await page.getByRole("button", { name: "← Volver al mapa" }).click();
   await page.locator('[data-go="dojo"]').click();
   await page.locator('[data-dojo-tab="appearance"]').click();

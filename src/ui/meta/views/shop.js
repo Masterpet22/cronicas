@@ -1,13 +1,23 @@
+import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.165.0";
 import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.165.0";
 import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.165.0";
 import { itemIcon } from "../../item-icons.js?v=0.126.0";
+
+const clothingSlots = ["top", "bottom", "shoes"];
+const shopFilters = [
+  ["Equipo", ["weapons", "throwables", "seals", "accessories"]],
+  ["Suministros y misiones", ["consumables", "scrolls", "contracts"]],
+  ["Ropa", clothingSlots],
+  ["Apariencia y hogar", ["appearance", "substitution", "decorations"]]
+];
+const shopCategory = item => clothingSlots.includes(item.cosmeticSlot) ? item.cosmeticSlot : item.category;
 
 export function createShopView(deps) {
   let save, mode = "buy", category = "all", message = "", host;
   const escape = deps.escapeHtml;
   function catalog() {
     const items = mode === "buy" ? SHOP_ITEMS : Object.values(ITEMS).filter(item => countItem(save, item.id) && sellPrice(item));
-    return items.filter(item => category === "all" || item.category === category).map(item => {
+    return items.filter(item => category === "all" || shopCategory(item) === category).map(item => {
       const count = countItem(save, item.id), selling = mode === "sell";
       const completed = item.kind === "contract" && save.campaign.completedSecondaryMissions.includes(item.missionId);
       const owned = item.stackLimit === 1 && (count > 0 || item.kind === "affinity" && save.inventory.extraAffinityUnlocked);
@@ -15,10 +25,10 @@ export function createShopView(deps) {
       const maximum = selling ? sellableItemCount(save, item.id) : item.stackLimit - count;
       const placed = item.kind === "decoration" ? count - sellableItemCount(save, item.id) : 0;
       return `<form class="item-card shop-item" data-shop-item="${item.id}"><div class="item-card-top"><span class="item-art">${itemIcon(item)}</span><span class="item-price">${item.price === 0 ? "Inicial" : `${selling ? sellPrice(item) : item.price} <small>monedas / unidad</small>`}</span></div><h3>${escape(item.name)}</h3>${item.pendingArt ? '<strong class="shop-art-pending">Gráfico pendiente · Se mantiene el atuendo de entrenamiento</strong>' : ""}<p>${escape(item.description)}</p><small class="shop-stock">En inventario: ${count}${placed ? ` · En Mi espacio: ${placed}` : ""}${reason && selling ? `<br>${escape(reason)}` : ""}</small><div class="shop-purchase">${item.stackLimit > 1 ? `<label>Cantidad<input type="number" min="1" max="${Math.max(1, maximum)}" value="1" aria-label="Cantidad de ${escape(item.name)}" ${maximum < 1 ? "disabled" : ""}></label>` : ""}<button type="submit" ${reason ? "disabled" : ""}>${selling ? "Vender" : reason || "Comprar"}</button></div></form>`;
-    }).join("") || '<p class="inventory-empty">No tienes objetos para vender en esta categoría.</p>';
+    }).join("") || `<p class="inventory-empty">${mode === "sell" ? "No tienes objetos para vender en esta categoría." : "No hay objetos a la venta en esta categoría."}</p>`;
   }
   function contents() {
-    return `<header class="shop-heading"><div><h2>Prepara tu próximo viaje</h2></div><strong class="shop-wallet">${save.progression.coins}<small>MONEDAS</small></strong></header><nav class="shop-tabs" aria-label="Operación de la tienda"><button type="button" data-shop-mode="buy" aria-pressed="${mode === "buy"}">Comprar</button><button type="button" data-shop-mode="sell" aria-pressed="${mode === "sell"}">Vender</button></nav><p class="shop-feedback" role="status">${escape(message)}</p><label class="shop-category-filter">Tipo de objeto<select data-shop-category-select><option value="all" ${category === "all" ? "selected" : ""}>Todos los objetos</option>${[["Equipo",["weapons","throwables","seals","accessories"]],["Suministros y misiones",["consumables","scrolls","contracts"]],["Apariencia y hogar",["appearance","substitution","decorations"]]].map(([label,ids]) => `<optgroup label="${label}">${ids.map(id => `<option value="${id}" ${category === id ? "selected" : ""}>${ITEM_CATEGORIES[id]}</option>`).join("")}</optgroup>`).join("")}</select></label><div class="shop-items">${catalog()}</div>`;
+    return `<header class="shop-heading"><div><h2>Prepara tu próximo viaje</h2></div><strong class="shop-wallet">${save.progression.coins}<small>MONEDAS</small></strong></header><nav class="shop-tabs" aria-label="Operación de la tienda"><button type="button" data-shop-mode="buy" aria-pressed="${mode === "buy"}">Comprar</button><button type="button" data-shop-mode="sell" aria-pressed="${mode === "sell"}">Vender</button></nav><p class="shop-feedback" role="status">${escape(message)}</p><label class="shop-category-filter">Tipo de objeto<select data-shop-category-select><option value="all" ${category === "all" ? "selected" : ""}>Todos los objetos</option>${shopFilters.map(([label,ids]) => `<optgroup label="${label}">${ids.map(id => `<option value="${id}" ${category === id ? "selected" : ""}>${ITEM_CATEGORIES[id] ?? COSMETIC_SLOTS[id]}</option>`).join("")}</optgroup>`).join("")}</select></label><div class="shop-items">${catalog()}</div>`;
   }
   const refresh = selector => { host.innerHTML = contents(); if (selector) host.querySelector(selector)?.focus({ preventScroll:true }); };
   return {

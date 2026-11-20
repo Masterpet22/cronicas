@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { createPlayerFighter, queuePlayerFighterTextures, MAN_SPRITE_JOINTS, WOMAN_SPRITE_JOINTS } from "../src/fighters.js";
 import { PUPPET_ANIMATION_CLIPS } from "../src/animations/clips.js";
-import { CHARACTER_RIGS } from "../src/character-rigs.js";
+import { CHARACTER_HAIR, CHARACTER_HAIR_STYLES, CHARACTER_RIGS } from "../src/character-rigs.js";
 import { rasterCharacterPreviewMarkup } from "../src/ui/meta/character-preview.js";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -53,7 +53,7 @@ function dojoLayers(character) {
     const src = tag.match(/src="([^"]+)"/)[1].split("?")[0];
     const value = (name) => Number(tag.match(new RegExp(`--puppet-${name}:([-\\d.]+)`))?.[1] || 0);
     const id = tag.includes("puppet-preview-tail") ? "tail-coleta"
-      : tag.includes("puppet-preview-hair") ? `hair-${character.hair === 1 ? "corto" : "coleta"}`
+      : tag.includes("puppet-preview-hair") ? `hair-${CHARACTER_HAIR[character.hair].id}`
       : tag.includes("puppet-preview-face") ? "rostro"
       : rigLayers[value("z")].id;
     return { id, asset: src, width: value("w")*11, height: value("h")*16,
@@ -118,7 +118,7 @@ export async function analyzeCharacterTemplate() {
   const contract = JSON.parse(await readFile(resolve(root,"assets/reference/character-template-v1.json"),"utf8"));
   const manifest = JSON.parse((await readFile(resolve(root,"assets/modular/manifest.json"),"utf8")).replace(/^\uFEFF/,""));
   const images=new Map(), variants=[];
-  for (const bodyType of ["male","female"]) for (const hair of [0,1,4]) {
+  for (const bodyType of ["male","female"]) for (const { id: hair } of CHARACTER_HAIR_STYLES) {
     const runtime=await assemble({bodyType,hair},images), dojo=dojoLayers({bodyType,hair});
     const differences=compareLayerGeometry(runtime.layers,dojo,contract.tolerances.dojoTransformPx);
     const bodyBounds=bounds(runtime.layers.filter(({id})=>!id.startsWith("hair-")));

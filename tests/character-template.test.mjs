@@ -4,7 +4,7 @@ import { analyzeCharacterTemplate, compareLayerGeometry, validateTemplateContrac
 const { report, contract } = await analyzeCharacterTemplate();
 assert.deepEqual(validateTemplateContract(contract), []);
 assert.equal(report.technicalIntegrity.passed, true, JSON.stringify(report.technicalIntegrity.errors));
-assert.equal(report.variants.length, 6, "La auditoría debe cubrir ambos cuerpos y los tres peinados activos");
+assert.equal(report.variants.length, 12, "La auditoría debe cubrir los seis estilos en ambos cuerpos");
 for (const variant of report.variants) {
   assert.deepEqual(variant.geometryDifferences, [], `${variant.bodyType}/${variant.hair}: el Dojo debe conservar el registro de combate`);
   assert.ok(variant.maxTransformError <= contract.tolerances.dojoTransformPx);
@@ -40,4 +40,4 @@ for (const field of ["headHeight", "bodyHeadRatio"]) {
 }
 assert.ok(validateTemplateContract({...contract,anchors:{...contract.anchors,HEAD:[NaN,30]}}).length);
 assert.ok(validateTemplateContract({...contract,exportRules:{...contract.exportRules,artReviewRequired:false}}).length);
-console.log("Plantilla común: contrato, 6 registros Dojo/combate y bloqueo de aprobación artística verificados.");
+console.log("Plantilla común: contrato y 12 registros Dojo/combate verificados.");

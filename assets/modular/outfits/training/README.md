@@ -12,10 +12,11 @@ Prompt de producción:
 
 > Edit the exact technical 4×4 sprite atlas into a neutral starter training outfit for a hand-painted 2D ninja RPG. Preserve canvas, cell positions, centers, scale, orientation, silhouette boundaries and attachment cuts. Top two rows: male torso, left thigh, left shin, left foot, right thigh, right shin, right foot, empty. Bottom two rows: corresponding female pieces and an empty cell. Dress both torsos in a modest sleeveless ink navy cloth tunic covering chest and pelvis, subtle fabric folds, muted brown belt, stitching and small V collar. Matching navy trousers, pale linen shin wraps and closed dark brown training shoes. Preserve joint ends and original outlines. No anatomical muscles painted on cloth, no heads, arms, hands, symbols, text, frames or outside shadows. Transparent background.
 
-Las únicas operaciones posteriores son recorte por celda, ajuste del rectángulo alfa y normalización a las dimensiones del segmento. No se redibujaron las piezas por código.
+La exportación recorta cada celda, ajusta el rectángulo alfa, normaliza las dimensiones del segmento y convierte la ropa a escala de grises. Los muslos y las perneras forman una sola prenda.
 
 Para regenerar las exportaciones desde el atlas:
 
 ```powershell
 node scripts/import-training-outfit.mjs
+python scripts/pack-fighter-atlases.py
 ```

@@ -3,8 +3,8 @@ import { hairAsset } from "./character-rigs.js?v=0.165.0";
 
 export const COSMETICS = Object.freeze([
   { id: "hair_none", name: "Sin cabello", cosmeticSlot: "hair", value: 0, price: 0 },
-  { id: "hair_short", name: "Peinado corto", cosmeticSlot: "hair", value: 1, price: 40, image: "assets/modular/hair/hair_corto.png?v=0.137.0" },
-  { id: "hair_ponytail", name: "Peinado con coleta", cosmeticSlot: "hair", value: 4, price: 70, image: "assets/modular/hair/hair_coleta.png?v=0.141.0" },
+  { id: "hair_short", name: "Peinado corto", cosmeticSlot: "hair", value: 1, price: 40, image: hairAsset(1) },
+  { id: "hair_ponytail", name: "Peinado con coleta", cosmeticSlot: "hair", value: 4, price: 70, image: hairAsset(4) },
   { id: "hair_side_swept", name: "Flequillo lateral", cosmeticSlot: "hair", value: 6, price: 50, image: hairAsset(6) },
   { id: "hair_curly", name: "Peinado rizado", cosmeticSlot: "hair", value: 7, price: 60, image: hairAsset(7) },
   { id: "hair_high_bun", name: "Moño alto", cosmeticSlot: "hair", value: 8, price: 70, image: hairAsset(8) },
@@ -25,6 +25,6 @@ export const COSMETICS = Object.freeze([
   { id: "channeler_outfit", name: "Traje ceremonial del canalizador", cosmeticSlot: "outfit", value: "channeler_outfit", price: 145, pendingArt: true, bonuses: { maxChakra: 15 } }
 ].map(item => Object.freeze({ ...item, category: "appearance", kind: "cosmetic", stackLimit: 1,
   description: `${item.bonuses ? "Traje especial: +15 chakra." : "Solo apariencia; sin bonificaciones de combate."}${item.pendingArt ? " Gráfico del personaje pendiente." : ""}` })));
-export const COSMETIC_SLOTS = Object.freeze({ face: "Rostro", hair: "Peinado", teleportObject: "Sustitución", top: "Parte superior", bottom: "Parte inferior", shoes: "Calzado", outfit: "Traje completo" });
+export const COSMETIC_SLOTS = Object.freeze({ face: "Rostro", hair: "Peinado", teleportObject: "Sustitución", top: "Torso", bottom: "Pantalón completo", shoes: "Calzado", outfit: "Traje completo" });
 export const BASE_COSMETICS = Object.freeze({ face: 1, hair: 0, teleportObject: "log", top: 1, bottom: 1, shoes: 1, outfit: null });
 export const LEGACY_SEALS = Object.freeze({ light_vest: "seal_wind", iron_vest: "seal_vitality", focus_wrap: "seal_precision", traveler_outfit: "seal_traveler", shadow_outfit: "seal_shadow", channeler_outfit: "seal_channeler" });

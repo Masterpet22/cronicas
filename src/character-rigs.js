@@ -52,11 +52,11 @@ export const WOMAN_SPRITE_JOINTS = Object.freeze({
 });
 
 export const CHARACTER_HAIR = Object.freeze({
-  1: { id: "corto", label: "Corto", version: "0.137.0", width: 283, height: 238, x: -4, y: -281 },
+  1: { id: "corto", label: "Corto", version: "1.1.0", width: 283, height: 238, x: -4, y: -281 },
   4: {
     id: "coleta",
     label: "Coleta",
-    version: "0.141.0",
+    version: "1.1.0",
     anchorToHead: true,
     x: 3.9,
     y: -105.6,
@@ -64,9 +64,9 @@ export const CHARACTER_HAIR = Object.freeze({
     height: 158.175,
     tail: { x: -71.5, y: -52, width: 63.27, height: 267.615 }
   },
-  6: { id: "lateral", label: "Flequillo lateral", version: "1.0.0", headOverlay: true },
-  7: { id: "rizado", label: "Rizado", version: "1.0.0", headOverlay: true },
-  8: { id: "mono", label: "Moño alto", version: "1.0.0", headOverlay: true }
+  6: { id: "lateral", label: "Flequillo lateral", version: "1.1.0", headOverlay: true },
+  7: { id: "rizado", label: "Rizado", version: "1.1.0", headOverlay: true },
+  8: { id: "mono", label: "Moño alto", version: "1.1.0", headOverlay: true }
 });
 
 export const CHARACTER_HAIR_STYLES = Object.freeze([
@@ -120,21 +120,26 @@ const HEAD_ANCHORED_HAIR_REFERENCE = Object.freeze({
   centerX: MAN_SPRITE_LAYERS.find(({ id }) => id === "cabeza").x - MAN_SPRITE_JOINTS.neck.x,
   centerY: MAN_SPRITE_LAYERS.find(({ id }) => id === "cabeza").y - MAN_SPRITE_JOINTS.neck.y
 });
+
+// Registro del lienzo de los tres cortes sobre cada cráneo en tres cuartos.
+// Las coordenadas se miden desde el centro de la cabeza.
+const HEAD_OVERLAY_FIT = Object.freeze({
+  male: { x: 0, y: -80.5, width: 198, height: 176 },
+  female: { x: 1, y: -80.5, width: 218, height: 180 }
+});
+
 export function characterHairConfig(bodyType, style) {
   const hair = CHARACTER_HAIR[style];
   if (!hair) return null;
   const rig = CHARACTER_RIGS[bodyType === "female" ? "female" : "male"];
   const head = rig.byId.cabeza;
   if (hair.headOverlay) {
-    // Las tres capas nuevas se dibujaron sobre la cabeza masculina de 174 × 229.
-    const scaleX = head.width * (head.scaleX || 1) / HEAD_ANCHORED_HAIR_REFERENCE.width;
-    const scaleY = head.height * (head.scaleY || head.scaleX || 1) / HEAD_ANCHORED_HAIR_REFERENCE.height;
+    const fit = HEAD_OVERLAY_FIT[rig.bodyType];
     return {
       ...hair,
-      x: head.x - rig.joints.neck.x,
-      y: head.y - rig.joints.neck.y - 80.5 * scaleY,
-      width: 198 * scaleX,
-      height: 176 * scaleY
+      ...fit,
+      x: head.x - rig.joints.neck.x + fit.x,
+      y: head.y - rig.joints.neck.y + fit.y
     };
   }
   if (hair.anchorToHead) {
