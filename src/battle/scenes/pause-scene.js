@@ -1,5 +1,5 @@
 import { HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
-import { mountAccessiblePause } from "../hud-accessibility.js?v=0.159.0";
+import { mountAccessiblePause } from "../hud-accessibility.js?v=0.159.2";
 import { resumeSceneIfPaused, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
 import { suspendPauseRendering } from "../pause-rendering.js?v=1.1.0";
 

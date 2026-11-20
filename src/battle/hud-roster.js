@@ -90,7 +90,8 @@ export function mountHudRoster(scene, root, utilities) {
   return { refresh() {
     objectives.refresh();
     const ally = scene.companion;
-    allies.hidden = !ally;
+    const hideAllies = !ally;
+    if (allies.hidden !== hideAllies) allies.hidden = hideAllies;
     if (ally) {
       allyCard ||= card(allies, false);
       const look = { bodyType: ally.id === 'akari' ? 'female' : 'male', hair: ally.id === 'akari' ? 4 : 1, skinTone: 'medium' };

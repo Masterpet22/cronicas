@@ -19,7 +19,7 @@ let gameLaunchRevision = 0;
 
 function loadBattleBundle() {
   if (!battleBundlePromise) battleBundlePromise = loadPhaser()
-    .then(() => import("./src/battle/bundle.js?v=0.159.0"))
+    .then(() => import("./src/battle/bundle.js?v=0.159.2"))
     .catch((error) => { battleBundlePromise = null; throw error; });
   return battleBundlePromise;
 }

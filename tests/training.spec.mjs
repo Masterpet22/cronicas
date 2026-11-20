@@ -93,6 +93,37 @@ for (const { origin, viewport } of [
 
 for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? "tablet táctil" : "ordenador"}`, () => {
   test.use({ viewport: tablet ? { width: 960, height: 720 } : { width: 1440, height: 900 }, hasTouch: tablet });
+  test("Revancha vuelve a mostrar a los luchadores y sus marcadores", async ({ page }) => {
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await prepare(page, "dojo");
+    await page.locator("[data-training-count]").selectOption("3");
+    await page.locator("[data-start-training]").click();
+    const objectives = page.locator("[data-training-target]");
+    await expect(objectives).toHaveCount(3, { timeout: 45000 });
+
+    await page.evaluate(async () => {
+      const battle = window.__trainingGame.scene.getScene("battle");
+      battle.stopTurnTimeline();
+      battle.trainingTargets.forEach(({ state }) => { state.hp = 0; });
+      await battle.finishBattle(true);
+    });
+    const rematch = page.locator("[data-group-rematch]");
+    if (tablet) await rematch.tap(); else await rematch.click();
+    await expect(objectives).toHaveCount(3, { timeout: 45000 });
+    await expect(page.locator("#game > canvas")).toBeVisible();
+    expect(await page.evaluate(() => {
+      const battle = window.__trainingGame.scene.getScene("battle");
+      return battle.scene.isActive() && !battle.finished && battle.hero.body.scene === battle
+        && battle.hero.body.visible && battle.trainingTargets.every(({ fighter, state }) =>
+          state.hp > 0 && fighter.body.scene === battle && fighter.body.visible)
+        && battle.groupMarkers.length === 3 && battle.groupMarkers.every(({ marker }) =>
+          marker.scene === battle && marker.visible) && battle.timelineLayer.visible;
+    })).toBe(true);
+    await trainingReady(page);
+    expect(errors).toEqual([]);
+  });
+
   test("turnos propios, objetivo fijo, costes, pausa, victoria, derrota y revancha", async ({ page }, testInfo) => {
     test.setTimeout(300000);
     const errors = []; page.on("pageerror", error => errors.push(error.message));
@@ -136,10 +167,12 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
       const observer = new MutationObserver(() => {});
       observer.observe(document.querySelector(".combat-access"), { subtree: true, attributes: true, childList: true, characterData: true });
       for (let i = 0; i < 3; i++) scene.refreshHud();
-      const writes = observer.takeRecords().length;
+      const writes = observer.takeRecords().map(({ target, type, attributeName }) => ({
+        element: target.nodeName, className: target.getAttribute?.('class'), type, attributeName
+      }));
       observer.disconnect();
       return writes;
-    })).toBe(0);
+    })).toEqual([]);
     await page.screenshot({ path: testInfo.outputPath("dojo-group-combat.png"), fullPage: true });
     const healthTrail = await page.evaluate(() => {
       const s = window.__trainingGame.scene.getScene("battle"), bar = s.enemyHpBar;

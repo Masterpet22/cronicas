@@ -108,9 +108,16 @@ test("una exhibición permite victoria, revancha y derrota sin tocar el guardado
   await expect(page.locator(".arena-panel")).toBeVisible(); expect(await stored(page)).toBe(baseline);
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-mission="m02"]').click();
-  await page.waitForFunction(() => window.__arenaGame.scene.isActive("battle") && window.__arenaGame.scene.getScene("battle").mission?.id === "m02", null, { timeout: 40000 });
+  await page.waitForFunction(() => {
+    const battle = window.__arenaGame.scene.getScene("battle");
+    return battle.scene.isActive() && battle.mission?.id === "m02" && battle.accessibleHud;
+  }, null, { timeout: 40000 });
   expect(await page.evaluate(() => window.__arenaGame.scene.getScene("battle").mission.exhibition)).toBeUndefined();
   expect(await page.evaluate(() => window.__arenaGame.scene.getScene("battle").encounters[0].name)).toBe("RASTREADORA BANDIDA");
+  expect(await page.evaluate(() => {
+    const battle = window.__arenaGame.scene.getScene("battle");
+    return battle.foe.body.scene === battle && battle.enemyTurnMarker.scene === battle;
+  })).toBe(true);
   expect(await page.evaluate(() => window.__arenaCanvas === document.querySelector("#game > canvas"))).toBe(true);
   expect(errors).toEqual([]);
 });

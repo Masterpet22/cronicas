@@ -1,4 +1,4 @@
-import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.159.0";
+import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.159.2";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.2.0";
@@ -146,6 +146,9 @@ export class BattleScene extends Phaser.Scene {
     this.timelineThemeParts = null;
     this.playerTimelineTag = null;
     this.enemyTimelineTag = null;
+    this.enemyTurnMarker = null;
+    this.enemyMarkerFace = null;
+    this.enemyMarkerHair = null;
     this.accessibleHud = null;
     // La resolución lógica se escala explícitamente para conservar un HUD nítido.
     // Renderizamos una superficie física acorde al escenario y la cámara conserva el lienzo
