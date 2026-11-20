@@ -1,5 +1,5 @@
 import { plazaSchedule, worldDate } from "../../../plaza-events.js?v=0.130.0";
-import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.169.0";
+import { ARENA_RIVALS, ARENA_DIFFICULTIES, normalizeArenaSettings, createExhibition, arenaPreview } from "../../../arena.js?v=0.170.0";
 import { JUTSU_LIBRARY } from "../../../data.js?v=1.5.0";
 import { arenaRankingsMarkup, mountArenaRankings } from "../arena-rankings.js?v=1.0.0";
 

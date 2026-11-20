@@ -1,12 +1,18 @@
 # Uniformes enemigos
 
-Dos hojas creadas con la herramienta integrada ImageGen el 20 de noviembre de 2026, editando `../training/source/atlas.png` como referencia técnica. Se conservan las fuentes originales y los prompts completos. El atuendo de entrenamiento del jugador no se sustituye.
+Dos hojas creadas con la herramienta integrada ImageGen el 20 de noviembre de 2026, editando `../training/source/atlas.png` como referencia técnica. Las hojas de origen recopiladas aquí incluyen la corrección posterior de los bajos.
 
 - `source/troop.png`: chaleco acolchado, correaje y protecciones de tropa.
 - `source/commander.png`: armadura laminada, cuello y protecciones de mando.
 - `troop-male.png/json`, `troop-female.png/json`, `commander-male.png/json`, `commander-female.png/json`: atlas de siete piezas con las dimensiones originales del rig.
 
 Regeneración: `node scripts/import-enemy-outfits.mjs`. La importación recorta las celdas y normaliza cada segmento a sus dimensiones existentes; no cambia pivotes ni animaciones. La tela azul gris y el cuero cálido son canales de paleta para los uniformes por facción; el contorno y el metal neutro se conservan. Las identidades y paletas viven en `src/enemy-appearance.js`.
+
+Los cuatro torsos tienen un bajo continuo para cubrir el arranque de ambos muslos. Las celdas de las hojas de origen ya incorporan la corrección. La tropa continúa el tejido acolchado y el mando cierra el hueco con tela y placas. Se conservaron los canales azul gris de tela y cálido de cuero para aplicar las paletas de facción.
+
+## Prompt de corrección de los bajos
+
+> Technical game-sprite edit of the exact reference four torso cutouts. For ALL FOUR cutouts, edit ONLY the LOWER HEM BELOW THE BELT. Replace the unnatural dark oval leg socket on lower left of the reference torso with a continuous OPAQUE skirt hem. Keep original torso silhouette, four sprite positions, perspective, sizes, neck and arm openings, leather utility belt and individual pouch details, material, palette, all stitching above the belt. Left column both rows: continue quilted desaturated clearly BLUE-GREY textile onto the former oval area, extending the two existing flak jacket panels into a natural stitched hem over both thighs. Right column both rows: extend that same armor's overlapping neutral graphite armored hip plates, bronze edging and desaturated blue-grey cloth to close the oval, keeping the cloth panel and waistband. Both legs will render behind these sprites. Preserve the bronze warm trim and the blue-greater-than-red fabric for palette swapping. Upper row male, lower row female. Output an exact 2-by-2 contact sheet. Genuine transparent background, no new objects, no shadows outside the pieces, no text.
 
 ## Prompt troop
 

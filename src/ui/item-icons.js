@@ -1,6 +1,6 @@
 import { guildDecorArt, guildFinishArt } from "./meta/guild-art.js?v=0.126.0";
-import { clothingThumbnail } from "../base-outfit.js?v=0.169.0";
-import { maskAsset } from "../character-masks.js?v=0.169.0";
+import { clothingThumbnail } from "../base-outfit.js?v=0.170.0";
+import { maskAsset } from "../character-masks.js?v=0.170.0";
 
 export function itemIcon(item, bodyType) {
   if (item.kind === "decoration") return item.guildSurface === "decor" ? guildDecorArt(item.value) : guildFinishArt(item.guildSurface, item.value);

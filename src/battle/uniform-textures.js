@@ -8,7 +8,7 @@ export function queueUniformTextures(scene, appearance) {
   const key = uniformAtlasKey(appearance);
   if (scene.textures.exists(key)) return;
   const path = `assets/modular/outfits/factions/${appearance.uniform.style}-${appearance.bodyType === 'female' ? 'female' : 'male'}`;
-  scene.load.atlas(key, `${path}.png?v=1.0.0`, `${path}.json?v=1.0.0`);
+  scene.load.atlas(key, `${path}.png?v=1.1.0`, `${path}.json?v=1.1.0`);
 }
 
 export function composeUniformAtlas(scene, sourceKey, key, appearance) {

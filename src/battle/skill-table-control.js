@@ -1,4 +1,4 @@
-import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.169.0";
+import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.170.0";
 import { setHudAttribute, setHudText } from "./hud-dom.js?v=1.0.0";
 
 export function mountSkillTableControl(scene, { root, actions, restorePerspective, refresh }) {

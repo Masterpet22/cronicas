@@ -1,9 +1,9 @@
-import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.169.0";
-import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.169.0";
-import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.169.0";
-import { itemIcon } from "../../item-icons.js?v=0.169.0";
-import { CLOTHING_PARTS, isFullArmor } from "../../../base-outfit.js?v=0.169.0";
-import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.169.0";
+import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.170.0";
+import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.170.0";
+import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.170.0";
+import { itemIcon } from "../../item-icons.js?v=0.170.0";
+import { CLOTHING_PARTS, isFullArmor } from "../../../base-outfit.js?v=0.170.0";
+import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.170.0";
 
 const clothingSlots = Object.keys(CLOTHING_PARTS);
 const fittingGroups = { clothing: clothingSlots, armor: ["mask", "outfit"] };

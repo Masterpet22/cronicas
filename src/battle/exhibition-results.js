@@ -1,4 +1,4 @@
-import { ARENA_DIFFICULTIES } from "../arena.js?v=0.169.0";
+import { ARENA_DIFFICULTIES } from "../arena.js?v=0.170.0";
 
 export function showExhibitionResult(scene, won) {
   const host = scene.game.canvas.parentElement, hud = host.querySelector(".combat-access");

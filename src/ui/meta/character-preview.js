@@ -1,7 +1,7 @@
-import { maskAsset } from "../../character-masks.js?v=0.169.0";
-import { clothingAsset, selectedClothing } from "../../base-outfit.js?v=0.169.0";
+import { maskAsset } from "../../character-masks.js?v=0.170.0";
+import { clothingAsset, selectedClothing } from "../../base-outfit.js?v=0.170.0";
 import { ensureSkinToneFilters, normalizeSkinTone } from "../../skin-tones.js?v=0.135.0";
-import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.169.0";
+import { CHARACTER_FACES, CHARACTER_RIGS, characterHairConfig } from "../../character-rigs.js?v=0.170.0";
 
 export function rasterCharacterPreviewMarkup(save, assetVersion, { backdrop = null, label = "Combatiente con la ropa equipada" } = {}) {
   ensureSkinToneFilters();

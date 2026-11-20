@@ -1,4 +1,4 @@
-import { listSaveSlots, SAVE_VERSION, saveSlotKey, saveStatus } from "../save.js?v=0.169.0";
+import { listSaveSlots, SAVE_VERSION, saveSlotKey, saveStatus } from "../save.js?v=0.170.0";
 import { cloudSaveSlots, createCloudSlotStorage } from "./cloud-slot-storage.js?v=1.0.0";
 import { browserSaveStorage, useAccountSaveStorage } from "./save-storage.js?v=1.0.0";
 

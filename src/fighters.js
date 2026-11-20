@@ -1,14 +1,14 @@
 import { runCycleForRig } from "./animations/locomotion-pose.js?v=0.156.0";
-import { maskAsset, maskTextureKey } from "./character-masks.js?v=0.169.0";
-import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands, restorePreparationForearms } from "./animations/preparation-hands.js?v=0.169.0";
-import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.169.0";
+import { maskAsset, maskTextureKey } from "./character-masks.js?v=0.170.0";
+import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands, restorePreparationForearms } from "./animations/preparation-hands.js?v=0.170.0";
+import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.170.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
-import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.169.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.169.0";
+import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.1.0';
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.170.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.170.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.159.0";
 import {
   CHARACTER_FACES,
@@ -20,7 +20,7 @@ import {
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
   characterHairConfig,
   hairAsset
-} from "./character-rigs.js?v=0.169.0";
+} from "./character-rigs.js?v=0.170.0";
 
 const FIGHTER_GROUND_OFFSET = 60;
 export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;

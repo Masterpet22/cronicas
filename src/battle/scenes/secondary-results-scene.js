@@ -1,5 +1,5 @@
-import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.169.0";
-import { playerFighterAppearance } from "../../character.js?v=0.169.0";
+import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.170.0";
+import { playerFighterAppearance } from "../../character.js?v=0.170.0";
 import { secondaryMissionGrade } from "../rewards.js?v=0.114.0";
 import { stageMissionGrade } from "../victory-transaction.js?v=0.163.0";
 import { returnToVillage } from "../return-to-village.js?v=0.96.0";

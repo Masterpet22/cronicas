@@ -1,4 +1,4 @@
-import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.169.0";
+import { HUD_ART, emptySkillInfo } from "./battle/hud-art.js?v=0.170.0";
 import { CHAKRA_BALANCE } from "./chakra-balance.js?v=1.0.0";
 import { initiativeLabel } from "./battle/initiative.js?v=1.0.0";
 import { createUiIcon } from "./icons.js?v=0.43.0";

@@ -1,6 +1,6 @@
-import { CHARACTER_RIGS } from "../character-rigs.js?v=0.169.0";
+import { CHARACTER_RIGS } from "../character-rigs.js?v=0.170.0";
 import { runCycleForRig } from "./locomotion-pose.js?v=0.156.0";
-import { assertValidAnimationCatalog } from "./schema.js?v=0.169.0";
+import { assertValidAnimationCatalog } from "./schema.js?v=0.170.0";
 
 export const ANIMATION_STATES = Object.freeze({
   IDLE: "idle",
