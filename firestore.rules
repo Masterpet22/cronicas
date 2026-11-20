@@ -1,0 +1,23 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cronicasPlayers/{uid}/saves/{slot} {
+      function ownsSlot() {
+        return request.auth != null && request.auth.uid == uid && slot in ['1', '2', '3'];
+      }
+
+      function validCopy() {
+        let data = request.resource.data;
+        return data.keys().hasAll(['payload', 'revision', 'updatedAt'])
+          && data.keys().hasOnly(['payload', 'revision', 'updatedAt'])
+          && data.payload is string && data.payload.size() > 0 && data.payload.size() <= 200000
+          && data.revision is int && data.updatedAt == request.time;
+      }
+
+      allow get: if ownsSlot();
+      allow create: if ownsSlot() && validCopy() && request.resource.data.revision == 1;
+      allow update: if ownsSlot() && validCopy() && request.resource.data.revision == resource.data.revision + 1;
+    }
+  }
+}

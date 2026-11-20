@@ -3,6 +3,7 @@ import { skinToneControlMarkup, syncSkinToneControl } from "../../skin-tone-cont
 import { normalizeSkinTone } from "../../../skin-tones.js?v=0.135.0";
 import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.159.0";
 import { elementParticlesMarkup } from "../element-particles.js?v=0.105.0";
+import { createCloudSavePanel } from "../cloud-saves.js?v=1.0.0";
 
 const CREATOR_HAIR_STYLES = Object.freeze([
   { id: 0, label: "Sin cabello" }, { id: 1, label: "Corto" }, { id: 4, label: "Coleta" }
@@ -12,6 +13,7 @@ const CREATOR_FACES = Object.freeze([
 ]);
 
 export function createSaveCreatorView(deps) {
+  const cloudSaves = createCloudSavePanel({ escapeHtml: deps.escapeHtml, onRestored: deps.onCloudRestored });
   let currentState = null;
   let currentId = "save-slots";
 
@@ -47,7 +49,7 @@ export function createSaveCreatorView(deps) {
           <div class="save-slot-actions"><button class="primary-button" type="button" data-select-slot="${slot}">CONTINUAR</button><button class="save-slot-delete" type="button" data-delete-slot="${slot}" aria-label="Borrar partida ${slot}">BORRAR</button></div>
         </article>`;
     }).join("");
-    return `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p><div class="save-slot-grid">${cards}</div></section>`;
+    return `<section class="save-selector"><p class="eyebrow">CRÓNICAS DEL SELLO</p><h2>Elige una partida</h2><p class="lead">Puedes mantener hasta tres historias independientes. El cuerpo y el maestro se fijan al crear cada combatiente.</p>${cloudSaves.markup()}<div class="save-slot-grid">${cards}</div></section>`;
   }
 
   function renderCreator() {
@@ -91,6 +93,7 @@ export function createSaveCreatorView(deps) {
     getId() { return currentId; },
     mount(root, scope) {
       if (currentState?.mode === "slots") {
+        cloudSaves.mount(root, scope);
         root.querySelectorAll("[data-select-slot]").forEach((button) => scope.listen(button, "click", () => deps.onSelectSlot(button.dataset.selectSlot)));
         root.querySelectorAll("[data-delete-slot]").forEach((button) => scope.listen(button, "click", () => {
           const slot = Number(button.dataset.deleteSlot);

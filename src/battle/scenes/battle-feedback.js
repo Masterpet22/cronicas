@@ -5,7 +5,7 @@ import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance
 import { fighterAtlasKey, fighterFaceTextureKey, fighterHairPortraitLayout, createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.159.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
-import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";
+import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.160.0";
 import { elementIcon } from "../../elements.js?v=0.20.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.155.0";

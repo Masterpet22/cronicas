@@ -9,7 +9,7 @@ import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance
 import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.159.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.119.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.155.0";
-import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.155.0";
+import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.160.0";
 import { queueElementIcons, composeElementIcons } from "../element-icons.js?v=1.0.0";
 import { createUiIcon, loadUiIcons } from "../../icons.js?v=0.44.0";
 import { missionStep } from "../../mission-system.js?v=0.155.0";

@@ -106,3 +106,22 @@
   .creator-form.creator-layout { grid-template-columns: minmax(240px, .8fr) minmax(320px, 1.2fr); gap: 20px; }
   .creator-heading p:not(.eyebrow) { font-size: 14px; }
 }
+.cloud-saves { margin-top: 16px; border-block: 1px solid #345064; color: #c2d1dc; }
+.cloud-saves + .save-slot-grid { margin-top: 18px; }
+.save-slot-actions { flex-wrap: wrap; }
+.cloud-saves summary { width: fit-content; min-height: 44px; padding: 12px 4px; color: #e5eaf2; font-weight: 750; cursor: pointer; }
+.cloud-saves summary:hover { color: #ffd697; }
+.cloud-saves :focus-visible { outline: 2px solid #91d3f3; outline-offset: 2px; }
+.cloud-saves-body { padding: 2px 4px 12px; }
+.cloud-saves-account, .cloud-saves li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; }
+.cloud-saves-account > span { overflow-wrap: anywhere; }
+.cloud-saves-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.cloud-saves button { min-height: 44px; padding: 8px 12px; }
+.cloud-saves button:disabled { opacity: .55; cursor: default; }
+.cloud-saves button:disabled:hover { color: #e5eaf2; filter: none; }
+.cloud-saves ul { margin: 12px 0 0; padding: 0; list-style: none; }
+.cloud-saves li { padding: 8px 0; border-top: 1px solid #345064; }
+.cloud-saves li strong, .cloud-saves li span { display: block; }
+.cloud-saves li strong { color: #f4f0e8; }
+.cloud-saves [role="status"] { margin: 8px 0 0; color: #ffd697; }
+.cloud-saves [role="status"]:empty { margin: 0; }

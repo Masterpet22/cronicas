@@ -53,14 +53,15 @@ export function createSlotRepository({ saveKey, activeSlotKey, maxSlots, normali
       return normalize(raw ? JSON.parse(raw) : null);
     } catch (_) { return createDefault(); }
   };
-  const writeSave = (save, storage = defaultStorage()) => {
+  const writeSaveToSlot = (slot, save, storage = defaultStorage()) => {
     const normalized = normalize(save);
-    const slot = activeSaveSlot(storage);
-    try { storage.setItem(keyForSlot(slot), JSON.stringify(normalized)); stateFor(storage).pending.delete(slot); }
-    catch (_) { stateFor(storage).pending.set(slot, normalized); }
+    const selected = validSlot(slot);
+    try { storage.setItem(keyForSlot(selected), JSON.stringify(normalized)); stateFor(storage).pending.delete(selected); }
+    catch (_) { stateFor(storage).pending.set(selected, normalized); }
     notify(storage);
     return normalized;
   };
+  const writeSave = (save, storage = defaultStorage()) => writeSaveToSlot(activeSaveSlot(storage), save, storage);
   const retryPendingSaves = (storage = defaultStorage()) => {
     const state = stateFor(storage);
     for (const [slot, save] of [...state.pending]) {
@@ -78,6 +79,6 @@ export function createSlotRepository({ saveKey, activeSlotKey, maxSlots, normali
   };
   const pendingSaveCopies = (storage = defaultStorage()) => [...stateFor(storage).pending]
     .filter(([, save]) => save !== null).map(([slot, save]) => ({ slot, save }));
-  return { saveSlotKey: keyForSlot, activeSaveSlot, listSaveSlots, selectSaveSlot, deleteSaveSlot, loadSave, writeSave,
+  return { saveSlotKey: keyForSlot, activeSaveSlot, listSaveSlots, selectSaveSlot, deleteSaveSlot, loadSave, writeSave, writeSaveToSlot,
     saveStatus, subscribeSaveStatus, retryPendingSaves, pendingSaveCopies };
 }

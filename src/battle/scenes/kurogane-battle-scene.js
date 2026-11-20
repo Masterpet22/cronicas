@@ -6,7 +6,7 @@ import { COMBAT_SLOTS, enemyFormation } from "../combat-positions.js?v=0.153.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { COMPANIONS, companionDecision } from "../../kurogane.js";
 import { KUROGANE_OUTCOMES, COMPANION_REACTIONS } from "../../content/sagas/hermanos-kurogane/saga.js";
-import { awardEncounter, completeMission, recordBestiaryObservation, writeSave } from "../../save.js?v=0.155.0";
+import { awardEncounter, completeMission, recordBestiaryObservation, writeSave } from "../../save.js?v=0.160.0";
 import { addBattleReward } from "../rewards.js?v=0.114.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { showRetryDialog, consumeRetry } from "../mission-retries.js?v=0.114.0";

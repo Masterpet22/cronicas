@@ -1,4 +1,4 @@
-import { derivedStats } from "../save.js?v=0.155.0";
+import { derivedStats } from "../save.js?v=0.160.0";
 
 export function affinityTrialProfile(profile, mission, save) {
   if (!mission.affinitySlot) return profile;

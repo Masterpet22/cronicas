@@ -2,7 +2,7 @@ import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js
 import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.155.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.155.0";
 import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.155.0";
-import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.155.0";
+import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.160.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementIconParts, elementName } from "./elements.js?v=0.20.0";
 import { AFFINITY_CONFIG, availableAffinitySlots } from "./affinity-system.js?v=0.114.0";
@@ -13,7 +13,7 @@ import { createArchiveView } from "./ui/meta/views/archive.js?v=0.155.0";
 import { createDojoView } from "./ui/meta/views/dojo.js?v=0.159.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.155.0";
 import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.155.0";
-import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.159.0";
+import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.160.0";
 import { createOverlayView } from "./ui/meta/views/overlays.js?v=1.1.0";
 import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.140.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
@@ -95,7 +95,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
   const saveCreatorView = createSaveCreatorView({
     basicElementIds: BASIC_ELEMENT_IDS, elements: ELEMENTS,
     activeSaveSlot, listSaveSlots, elementIcon, elementName, escapeHtml, masterForCharacter, assetVersion: ASSET_VERSION,
-    confirmDelete: (name) => window.confirm(`¿Borrar definitivamente la partida de ${name}?`),
+    confirmDelete: (name) => window.confirm(`¿Borrar definitivamente la partida de ${name}?`), onCloudRestored: () => renderSaveSlots(),
     onSelectSlot(slot) {
       save = selectSaveSlot(slot);
       introducedViews.clear(); investigatedClues.clear();

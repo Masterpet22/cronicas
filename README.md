@@ -33,6 +33,12 @@ Después abre `http://localhost:8080` en el navegador.
 
 Si Python no está disponible, cualquier servidor HTTP local puede servir la carpeta. No abras `index.html` mediante `file://`, porque algunos navegadores bloquean la carga de recursos locales.
 
+## Guardado en la nube
+
+En el selector de partidas, abre **Guardado en la nube**, inicia sesión con Google y elige **Subir copia** por cada partida que quieras respaldar. En otro navegador, accede con la misma cuenta y elige **Restaurar**. El progreso del juego sigue guardándose en el navegador entre respaldos. Reemplazar una copia existente requiere confirmación.
+
+GitHub Pages sirve el juego y el proyecto `cronicas-f112f` aloja las copias en Cloud Firestore. Para activar el servicio, habilita Google en Firebase Authentication, añade `masterpet22.github.io` a **Dominios autorizados** y publica las reglas de [firestore.rules](firestore.rules) en la base de datos predeterminada de Cloud Firestore. Si el proyecto ya tiene otras reglas, incorpora el bloque de Crónicas y conserva las reglas que utilicen sus otras aplicaciones. Al cambiar de hosting, autoriza el dominio nuevo en Firebase Authentication.
+
 ## Controles
 
 - **Dojo → Entrenamiento:** una marioneta conserva la práctica libre con recursos restaurados. Dos o tres rivales abren un combate real de grupo, adaptado al personaje: cada enemigo tiene su propia iniciativa, preparación, chakra, recargas y estados. Elige objetivo tocando el cuerpo o con Tab y Enter; el recuadro superior muestra sus datos, sin panel adicional. Elegir no consume ni reinicia turnos, y el objetivo queda fijado durante la preparación y el ataque. Se aplican los costes reales y solo hay victoria al derrotar a todo el grupo. Puedes perder, pedir revancha o volver al Dojo; ninguna variante modifica campaña, inventario, bestiario ni recompensas.
