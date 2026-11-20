@@ -6,7 +6,7 @@ import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
 import { mountSkillTableControl } from './skill-table-control.js?v=0.155.0';
 import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.155.0';
 import { setHudAttribute, setHudProgress, setHudText } from './hud-dom.js?v=1.0.0';
-import { mountHudRoster } from './hud-roster.js?v=0.157.0';
+import { mountHudRoster } from './hud-roster.js?v=0.158.0';
 import { mountFighterIndicators } from './fighter-indicators.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens

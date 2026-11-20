@@ -34,7 +34,7 @@ export function createPreparationHands(scene, fighter, appearance, rig) {
   image.setRenderNodeRole?.("BatchHandler", "BatchHandlerQuadSingle");
   fighter.rig.add(image);
   fighter.preparationSeal = image;
-  fighter.preparationWristSpan = rig.byId.torso.width * .21;
+  fighter.preparationWristSpan = rig.byId.torso.width * .28;
 }
 
 export function syncPreparationHands(fighter) {

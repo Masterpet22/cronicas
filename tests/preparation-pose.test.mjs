@@ -33,7 +33,7 @@ for (const [bodyType, rig] of Object.entries(CHARACTER_RIGS)) {
     const left = posedHand(rig, pose, "Left"), right = posedHand(rig, pose, "Right");
     assert.ok(pose.shoulderLeft.x < 0 && pose.shoulderRight.x > 0, `${bodyType}: ambos hombros se acercan al torso`);
     assert.ok(left.x > right.x, `${bodyType}: las manos no deben cruzarse hacia los lados opuestos`);
-    assert.ok(Math.abs(left.wristX - right.wristX - rig.byId.torso.width * .21) < .001,
+    assert.ok(Math.abs(left.wristX - right.wristX - rig.byId.torso.width * .28) < .001,
       `${bodyType}: las muñecas coinciden con los dos extremos del sello dibujado`);
     assert.ok(Math.abs(left.wristY - right.wristY) < .001, "El sello permanece vertical y estable");
     for (const hand of [left, right]) {

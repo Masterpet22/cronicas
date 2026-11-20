@@ -46,8 +46,8 @@ function armPose(rig, side, handCenter, palmAngle) {
 export function preparationClipForRig(clip, rig) {
   const torso = rig.byId.torso;
   const centerX = (rig.joints.shoulderLeft.x + rig.joints.shoulderRight.x) / 2;
-  const wristY = torso.y - torso.height * .1;
-  const halfGap = torso.width * .105;
+  const wristY = torso.y - torso.height * .06;
+  const halfGap = torso.width * .14;
   // Un sello dibujado para este gesto une las dos muñecas. Las manos se
   // sostienen estables, sin abrir/cerrar los dedos de reposo durante la espera.
   const pose = side => {
