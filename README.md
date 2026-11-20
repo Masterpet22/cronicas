@@ -41,6 +41,14 @@ Si pierdes la conexión durante una sesión, este navegador conserva los cambios
 
 GitHub Pages sirve el juego y el proyecto `cronicas-f112f` aloja las copias en Cloud Firestore. Para activar el servicio, habilita Google en Firebase Authentication, añade `masterpet22.github.io` a **Dominios autorizados** y publica las reglas de [firestore.rules](firestore.rules) en la base de datos predeterminada de Cloud Firestore. Si el proyecto ya tiene otras reglas, incorpora el bloque de Crónicas y conserva las reglas que utilicen sus otras aplicaciones. Al cambiar de hosting, autoriza el dominio nuevo en Firebase Authentication.
 
+## Clasificaciones públicas
+
+La base de datos reserva `cronicasRankings/{boardId}/rankedEntries/{publicId}` para clasificaciones por modalidad o temporada. Cada entrada publicará un alias autorizado por el jugador (`alias`), una puntuación entera (`score`), el rango cuando corresponda (`tier`) y la fecha del servidor en que alcanzó esa puntuación (`achievedAt`). El identificador público debe ser opaco. Los documentos de clasificación deben contener solo información destinada a mostrarse públicamente.
+
+El navegador podrá consultar hasta 50 entradas por página, ordenadas por `score` descendente y `achievedAt` ascendente. El identificador del documento desempata puntuaciones y fechas idénticas. Usa un cursor de documento para paginar. El orden está preparado en [firestore.indexes.json](firestore.indexes.json).
+
+Un servicio autorizado por IAM deberá validar los resultados y publicar las puntuaciones cuando se implemente el modo clasificatorio. Las reglas permiten las consultas públicas de la tabla y bloquean las escrituras desde el navegador. El progreso guardado y los resultados de las exhibiciones locales proceden del equipo del jugador y quedan fuera de la clasificación competitiva.
+
 ## Controles
 
 - **Dojo → Entrenamiento:** una marioneta conserva la práctica libre con recursos restaurados. Dos o tres rivales abren un combate real de grupo, adaptado al personaje: cada enemigo tiene su propia iniciativa, preparación, chakra, recargas y estados. Elige objetivo tocando el cuerpo o con Tab y Enter; el recuadro superior muestra sus datos, sin panel adicional. Elegir no consume ni reinicia turnos, y el objetivo queda fijado durante la preparación y el ataque. Se aplican los costes reales y solo hay victoria al derrotar a todo el grupo. Puedes perder, pedir revancha o volver al Dojo; ninguna variante modifica campaña, inventario, bestiario ni recompensas.

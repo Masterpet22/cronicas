@@ -19,5 +19,10 @@ service cloud.firestore {
       allow create: if ownsSlot() && validCopy() && request.resource.data.revision == 1;
       allow update: if ownsSlot() && validCopy() && request.resource.data.revision == resource.data.revision + 1;
     }
+
+    match /cronicasRankings/{boardId}/rankedEntries/{publicId} {
+      allow list: if request.query.limit > 0 && request.query.limit <= 50
+        && request.query.get('offset', 0) == 0;
+    }
   }
 }
