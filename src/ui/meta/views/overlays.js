@@ -78,11 +78,11 @@ export function createOverlayView(deps) {
         const mirrorClass = side === "right" ? "story-character-mirrored" : "";
         overlay.classList.toggle("story-speaker-left", side === "left");
         overlay.classList.toggle("story-speaker-right", side === "right");
-        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"></div>` : "";
+        const character = npc ? `<div class="story-character story-character-${side} ${entering ? "story-entering" : "story-speaking"}"><img class="${mirrorClass}" src="${npc.image}" alt="${deps.escapeHtml(npc.name)}" width="480" height="800" decoding="async"></div>` : "";
         overlay.innerHTML = `${character}<section class="story-dialogue-panel scene-panel"><header class="scene-speaker"><strong>${deps.escapeHtml(speaker)}</strong><span>${deps.escapeHtml(role)}</span></header><p aria-live="polite">${deps.escapeHtml(dialogue)}</p><footer><small class="scene-step" aria-label="Parlamento ${index + 1} de ${lines.length}">${index + 1}/${lines.length}</small><div class="dialogue-actions">${mounted.cancelButton}<button type="button" class="primary-button scene-button">${last ? finalLabel : "SIGUIENTE"}</button></div></footer></section>`;
         previousSpeaker = speaker;
       } else {
-        const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="1145" height="1374" decoding="async"><span>${deps.escapeHtml(npc.title)}</span></div>` : "";
+        const portrait = npc ? `<div class="dialogue-portrait"><img src="${npc.image}" alt="${deps.escapeHtml(npc.name)}" width="480" height="800" decoding="async"><span>${deps.escapeHtml(npc.title)}</span></div>` : "";
         overlay.innerHTML = `<section class="dialogue-box scene-panel ${npc ? "with-portrait" : ""}">${portrait}<div class="dialogue-copy"><header class="scene-speaker"><strong>${deps.escapeHtml(speaker)}</strong></header><p>${deps.escapeHtml(dialogue)}</p>${mounted.cancelButton}<button class="primary-button scene-button">${last ? finalLabel : "SIGUIENTE"}</button><small>${index + 1}/${lines.length}</small></div></section>`;
       }
       mounted.bindCancel();

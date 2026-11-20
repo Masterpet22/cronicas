@@ -3,7 +3,7 @@ import { createTowerView } from "./tower.js?v=0.171.0";
 import { createShopView } from "./shop.js?v=0.171.0";
 import { createGuildView } from "./guild.js?v=0.140.0";
 import { createArenaView } from "./arena.js?v=0.171.0";
-import { createEventsView } from "./events.js?v=0.155.0";
+import { createEventsView } from "./events.js?v=0.173.0";
 import { locationAccess } from "../../../village-progression.js?v=0.155.0";
 import { GAME_TERMS } from "../../../content/game-dictionary.js?v=0.155.0";
 import { firstSagaConclusion, FIRST_SAGA_CONCLUSION_NOTICE, kuroganeProloguePending } from "../../../kurogane.js";

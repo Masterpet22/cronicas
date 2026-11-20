@@ -1,6 +1,6 @@
 import { createPlayerFighter, queuePlayerFighterTextures, startPlayerRunning, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
 import { playerFighterAppearance } from "../../character.js?v=0.171.0";
-import { shouldShowLevelUp } from "./level-up-scene.js?v=0.172.0";
+import { shouldShowLevelUp } from "./level-up-scene.js?v=0.173.0";
 import { missionTravelPresentation } from "../mission-travel-presentation.js?v=0.96.0";
 import { createTravelProgress } from "../travel-progress.js?v=1.0.0";
 import { missionTransitionMode } from "../../mission-transitions.js";

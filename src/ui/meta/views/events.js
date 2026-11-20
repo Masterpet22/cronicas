@@ -54,7 +54,7 @@ export function createEventsView(deps) {
     if (event.activity !== "conversation") return `<div class="event-announcement"><span aria-hidden="true">${EVENT_TYPES[event.type].symbol}</span><h4>${event.pending === "server" ? "Visita pendiente de servidor" : event.pending === "details" ? "Combates especiales por definir" : event.activity === "tower" ? "Desafío en la Torre" : "Celebración de la aldea"}</h4>${event.destination ? `<button type="button" data-event-destination="${event.destination}" ${locationAccess(event.destination, save).unlocked ? "" : `disabled title="${escape(locationAccess(event.destination, save).reason)}"`}>${event.destination === "tower" ? "Ir a la Torre de Desafíos" : "Ver Arena de Combate"}</button>` : ""}${event.destination && !locationAccess(event.destination, save).unlocked ? `<p>${escape(locationAccess(event.destination, save).reason)}</p>` : ""}${event.pending === "server" ? '<button type="button" disabled>Requiere conexión al servidor</button>' : ""}</div>`;
     if (event.activity === "conversation") {
       const guest = deps.npcs[event.guest];
-      return `<div class="event-guest"><img src="${guest.image}?v=${deps.assetVersion}" width="1145" height="1374" alt="${escape(guest.name)}"><div><p class="eyebrow">VISITA DE LA ALDEA</p><h3>${escape(guest.name)}</h3><p>${escape(guest.title)}</p><button type="button" data-event-talk>Conversar con ${escape(guest.name)}</button></div></div>`;
+      return `<div class="event-guest"><img src="${guest.image}" width="480" height="800" alt="${escape(guest.name)}"><div><p class="eyebrow">VISITA DE LA ALDEA</p><h3>${escape(guest.name)}</h3><p>${escape(guest.title)}</p><button type="button" data-event-talk>Conversar con ${escape(guest.name)}</button></div></div>`;
     }
 
   }

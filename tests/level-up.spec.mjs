@@ -55,7 +55,7 @@ test("la subida animada aparece antes del informe y detalla el crecimiento", asy
   await expect(dialog).toContainText("+2 puntos de atributo · +2 PR");
   await expect.poll(() => page.evaluate(() => {
     const scene = window.__levelUpTest.game.scene.getScene("level-up");
-    return Boolean(scene.children.getByName("level-up-fighter") && scene.children.getByName("level-up-aura"));
+    return Boolean(scene.children.getByName("level-up-fighter") && scene.children.getByName("level-up-light"));
   })).toBe(true);
   await expect(continueButton).toBeFocused();
   await page.locator("#level-up-test-stage").screenshot({ path: info.outputPath("subida-de-nivel.png") });

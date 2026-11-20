@@ -115,8 +115,8 @@ export class BattleScene extends Phaser.Scene {
     loadUiIcons(this);
     if (missionStep(battleRuntime.activeMission, "choice")?.relicDecision) {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", SHARED_BATTLE_ASSETS.kagemori);
-      const master = masterIdForCharacter(battleRuntime.activeSave.character) === "mei" ? "mei-hayate" : "daichi-kazan";
-      if (!this.textures.exists(master)) this.load.image(master, `assets/npcs/${master}.webp?v=0.62.0`);
+      const master = masterIdForCharacter(battleRuntime.activeSave.character);
+      if (!this.textures.exists(master)) this.load.image(master, `assets/modular/representatives/${master}.webp?v=1.0.0`);
     }
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = battleRuntime.activeSave;

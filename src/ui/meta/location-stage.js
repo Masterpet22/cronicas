@@ -24,13 +24,12 @@ export function createLocationStage(deps) {
       const background = deps.locationBackgrounds[locationId] || `assets/locations/${locationId}.webp`;
       const portraits = (locationId === "kagemori" && introduced ? [] : cast).map((id) => {
         const npc = deps.npcs[id];
-        const kagemoriPortrait = locationId === "kagemori";
-        return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${deps.escapeHtml(npc.name)}"><img src="${npc.image}?v=${deps.assetVersion}" alt="${deps.escapeHtml(npc.name)}" width="${kagemoriPortrait ? 768 : 1145}" height="${kagemoriPortrait ? 1152 : 1374}" loading="eager" fetchpriority="high" decoding="async"><span>${deps.escapeHtml(npc.name)}</span></button>`;
+        return `<button class="stage-character" type="button" data-stage-npc="${id}" aria-label="Hablar con ${deps.escapeHtml(npc.name)}"><img src="${npc.image}" alt="" width="480" height="800" loading="eager" fetchpriority="high" decoding="async"><span>${deps.escapeHtml(npc.name)}</span></button>`;
       }).join("");
       const investigationReady = locationId === "kagemori" && introduced ? "investigation-ready" : "";
       return `<section class="location-stage location-${locationId} ${cast.length > 1 ? "has-cast" : ""} ${investigationReady}" data-location-stage="${locationId}" style="--location-bg:url('${background}?v=${deps.assetVersion}')" aria-label="${deps.escapeHtml(locationName)}">
         <div class="stage-characters">${portraits}</div>
-        <div class="stage-speech" data-stage-speech aria-live="polite" ${introduced ? "hidden" : ""}><p class="stage-speaker" data-stage-speaker></p><p data-stage-text></p><div><small data-stage-count></small><button class="primary-button" type="button" data-stage-next>SIGUIENTE</button></div></div>
+        <section class="stage-speech scene-panel stage-intro" data-stage-speech aria-labelledby="stage-intro-speaker" ${introduced ? "hidden" : ""}><header class="scene-speaker" id="stage-intro-speaker"><strong data-stage-speaker></strong><span data-stage-role></span></header><p class="scene-copy" data-stage-text aria-live="polite"></p><footer class="scene-footer"><small class="scene-step" data-stage-count></small><button class="primary-button scene-button" type="button" data-stage-next>SIGUIENTE</button></footer></section>
         <div class="stage-ambient" data-stage-ambient role="status" aria-live="polite" hidden><strong data-ambient-speaker></strong><span data-ambient-text></span><div class="stage-ambient-actions" data-ambient-actions role="group" aria-label="Accesos a las actividades" hidden></div></div>
         <div class="stage-options ${introduced ? "ready" : ""}" data-stage-options ${introduced ? "" : "hidden"}>${content}</div>
       </section>`;
@@ -139,7 +138,8 @@ export function createLocationStage(deps) {
       const drawLine = () => {
         const [speaker, text] = lines[lineIndex];
         const npc = deps.npcByName(speaker);
-        speech.querySelector("[data-stage-speaker]").textContent = npc ? `${npc.name} · ${npc.title}` : speaker;
+        speech.querySelector("[data-stage-speaker]").textContent = npc?.name || speaker;
+        speech.querySelector("[data-stage-role]").textContent = npc?.title || "";
         speech.querySelector("[data-stage-text]").textContent = text;
         speech.querySelector("[data-stage-count]").textContent = `${lineIndex + 1}/${lines.length}`;
         speech.querySelector("[data-stage-next]").textContent = lineIndex === lines.length - 1 ? "VER OPCIONES" : "SIGUIENTE";

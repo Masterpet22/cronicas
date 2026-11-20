@@ -1,7 +1,7 @@
 import { ENEMY_ACTIONS, ENEMY_ROSTER, EQUIPMENT, JUTSU_LIBRARY } from "./data.js?v=1.5.0"; import { ALL_MISSIONS, MISSIONS, SECONDARY_MISSIONS, STORY_SAGAS } from "./content/index.js?v=0.155.0";
 import { getDialogue, getMissionSceneDialogue } from "./dialogues.js?v=0.155.0";
 import { missionHasStep, missionState, missionStep, missionsForBoard, nextAvailableMission } from "./mission-system.js?v=0.155.0";
-import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.155.0";
+import { LOCATION_CAST, NPCS, locationDialogue, npcByName, npcName } from "./npcs.js?v=0.173.0";
 import { DEBUG_CHECKPOINTS, abandonMissionProgress, actOnDoctorCipher, activeSaveSlot, affinityXpForElement, applyDebugCheckpoint, attributeTrainingLimit, cancelDoctorMission, chooseDoctorMissionRoute, chooseHideoutEntrance, completeDoctorMission, createCharacter, deleteSaveSlot, deliverBestiaryBook, derivedStats, isTechniqueLearned, levelUpReport, listSaveSlots, loadoutSlotsForLevel, markSecondaryMissionCompleted, masterIdForCharacter, normalizeSave, resetAttributes, resolveDoctorRiverPassage, selectMaster, selectNextAffinity, selectSaveSlot, spendAttribute, startDoctorMission, writeSave, xpForNextLevel } from "./save.js?v=0.171.0";
 import { createViewRuntime } from "./view-runtime.js?v=0.66.0";
 import { BASIC_ELEMENT_IDS, ELEMENTS, ELEMENT_RANK_LABELS, basicRequirements, canAccessElement, elementIcon, elementIconParts, elementName } from "./elements.js?v=0.20.0";
@@ -10,14 +10,14 @@ import { DOCTOR_ROUTE_DEFINITIONS, RIVER_PASSAGES } from "./content/sagas/futuro
 import { secondaryMissionByType, secondaryMissionCardModel } from "./secondary-missions.js?v=0.155.0";
 import { createDebugToolsView } from "./ui/meta/views/debug-tools.js?v=0.155.0";
 import { createArchiveView } from "./ui/meta/views/archive.js?v=0.155.0";
-import { createDojoView } from "./ui/meta/views/dojo.js?v=0.171.0";
+import { createDojoView } from "./ui/meta/views/dojo.js?v=0.173.0";
 import { createMissionBoardsView } from "./ui/meta/views/mission-boards.js?v=0.163.0";
-import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.171.0";
+import { createVillageView, VILLAGE_LOCATIONS } from "./ui/meta/views/village.js?v=0.173.0";
 import { createSaveCreatorView } from "./ui/meta/views/save-creator.js?v=0.171.0"; import { cloudSession } from "./save/cloud-session.js?v=0.171.0";
-import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.171.0";
+import { createOverlayView } from "./ui/meta/views/overlays.js?v=0.173.0";
 import { createMetaShell } from "./ui/meta/meta-shell.js?v=0.140.0";
 import { confirmSecondaryAbandon } from "./ui/meta/abandon-secondary.js?v=0.95.0";
-import { createLocationStage } from "./ui/meta/location-stage.js?v=0.171.0";
+import { createLocationStage } from "./ui/meta/location-stage.js?v=0.173.0";
 import { META_ASSET_VERSION } from "./asset-urls.js?v=0.115.0";
 import { rememberIntroduction, retainIntroductions } from "./location-conversations.js?v=0.171.0"; import { ITEMS } from "./items.js?v=0.171.0";
 import { locationAccess } from "./village-progression.js?v=0.155.0"; export { VILLAGE_LOCATIONS };
@@ -44,7 +44,7 @@ function warmLocationAssets(locationId) {
   const background = LOCATION_BACKGROUNDS[locationId] || `assets/locations/${locationId}.webp`;
   return Promise.all([
     warmImage(`${background}?v=${ASSET_VERSION}`),
-    ...(LOCATION_CAST[locationId] || []).map((id) => warmImage(`${NPCS[id].image}?v=${ASSET_VERSION}`))
+    ...(LOCATION_CAST[locationId] || []).map((id) => warmImage(NPCS[id].image))
   ]);
 }
 function escapeHtml(value) {

@@ -1,4 +1,4 @@
-import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.172.0";
+import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.173.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
@@ -12,7 +12,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
     this.epilogueBackground = arena.texture;
     rememberCombatTexture(this, arena.texture);
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
-    if (!this.textures.exists("sayo-kisaragi")) this.load.image("sayo-kisaragi", "assets/npcs/sayo-kisaragi.webp?v=0.21.0");
+    if (!this.textures.exists("sayo-kisaragi")) this.load.image("sayo-kisaragi", "assets/modular/representatives/sayo.webp?v=1.0.0");
   }
 
   create(data = {}) {
@@ -26,7 +26,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
 
     this.add.image(WIDTH / 2, HEIGHT / 2, this.epilogueBackground).setDisplaySize(WIDTH, HEIGHT);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x020914, 0.16).setOrigin(0);
-    const sayo = this.add.image(-120, 548, "sayo-kisaragi").setOrigin(0.5, 1).setDisplaySize(420, 505).setDepth(3);
+    const sayo = this.add.image(-120, 520, "sayo-kisaragi").setOrigin(0.5, 1).setDisplaySize(261, 435).setDepth(3);
     this.tweens.add({ targets: sayo, x: 214, duration: 720, ease: "Cubic.out" });
     const { panel } = mountSceneNotice(this, "epilogue-notice", "Sayo Kisaragi");
     const speaker = addNoticeText(panel, "header", "", "scene-speaker");

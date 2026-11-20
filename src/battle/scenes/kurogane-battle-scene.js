@@ -1,4 +1,4 @@
-import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.172.0";
+import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.173.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.171.0";
 import { battleRuntime } from "../runtime.js?v=0.91.0";
 import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.171.0";

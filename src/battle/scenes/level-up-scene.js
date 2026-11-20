@@ -1,4 +1,4 @@
-import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.172.0";
+import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.173.0";
 import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.171.0";
 import { playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.93.0";
@@ -18,6 +18,34 @@ const THEMES = Object.freeze({
 export function shouldShowLevelUp(result) {
   return result?.outcome === "completed"
     && Number(result.levelUp?.afterLevel) > Number(result.levelUp?.beforeLevel);
+}
+
+function addLevelLight(scene, tint) {
+  const key = "level-up-soft-light";
+  if (!scene.textures.exists(key)) {
+    const canvas = document.createElement("canvas");
+    canvas.width = 320;
+    canvas.height = 440;
+    const context = canvas.getContext("2d");
+    context.save();
+    context.translate(160, 228);
+    context.scale(1, 1.9);
+    const beam = context.createRadialGradient(0, 0, 12, 0, 0, 125);
+    beam.addColorStop(0, "#ffffff38");
+    beam.addColorStop(.55, "#ffffff18");
+    beam.addColorStop(1, "#ffffff00");
+    context.fillStyle = beam;
+    context.fillRect(-160, -125, 320, 250);
+    context.restore();
+    const floor = context.createLinearGradient(40, 0, 280, 0);
+    floor.addColorStop(0, "#ffffff00");
+    floor.addColorStop(.5, "#ffffff94");
+    floor.addColorStop(1, "#ffffff00");
+    context.fillStyle = floor;
+    context.fillRect(40, 420, 240, 1);
+    scene.textures.addCanvas(key, canvas);
+  }
+  return scene.add.image(220, 258, key).setTint(tint).setDepth(1).setName("level-up-light");
 }
 
 export class LevelUpScene extends Phaser.Scene {
@@ -42,11 +70,7 @@ export class LevelUpScene extends Phaser.Scene {
 
     this.cameras.main.setBackgroundColor(0x07111c);
     this.add.rectangle(0, 0, WIDTH, HEIGHT, 0x07111c).setOrigin(0).setDepth(0);
-    this.add.circle(220, 288, 206, theme.color, 0.035).setDepth(1);
-    this.add.circle(220, 288, 173, theme.color, 0.045).setDepth(1);
-    const outerAura = this.add.circle(220, 288, 144, theme.color, 0.08).setStrokeStyle(2, theme.color, 0.63).setDepth(3).setName("level-up-aura");
-    const innerAura = this.add.circle(220, 288, 113, theme.color, 0.075).setStrokeStyle(1, theme.color, 0.35).setDepth(3);
-    this.add.ellipse(220, 458, 183, 37, theme.color, 0.07).setStrokeStyle(1, theme.color, 0.38).setDepth(3);
+    const light = addLevelLight(this, theme.color);
     const fighter = createPlayerFighter(this, 220, 376, playerFighterAppearance(battleRuntime.activeSave));
     fighter.body.setName("level-up-fighter");
     fighter.body.setScale(1.38).setAlpha(0);
@@ -57,8 +81,8 @@ export class LevelUpScene extends Phaser.Scene {
     const arrival = new Promise(resolve => this.time.delayedCall(90, () => { resolve(teleportArrival(this, fighter, { pace: "substitution" })); }));
 
     if (!reducedMotion && !lightMode) {
-      this.tweens.add({ targets: outerAura, scale: 1.18, alpha: 0.3, duration: 900, ease: "Sine.inOut", yoyo: true });
-      this.tweens.add({ targets: innerAura, scale: 1.12, alpha: 0.28, duration: 740, ease: "Sine.inOut", yoyo: true });
+      light.setAlpha(.3);
+      this.tweens.add({ targets: light, alpha: 1, duration: 620, ease: "Sine.out" });
       this.tweens.add({ targets: fighter.body, y: "-=5", duration: 800, ease: "Sine.inOut", yoyo: true });
     }
     if (flashesEnabled) {

@@ -58,6 +58,42 @@ test("los ocho lugares dan su ayuda mediante el encargado y no mediante bloques 
   expect(errors).toEqual([]);
 });
 
+test("las primeras visitas presentan a los encargados con maniquí y diálogo de escena", async ({ page }, info) => {
+  test.setTimeout(150000);
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await seed(page);
+  await page.evaluate(async () => {
+    const { loadSave, writeSave } = await import("/src/save.js");
+    const save = loadSave();
+    save.campaign.npcIntroductions = [];
+    writeSave(save);
+  });
+  await page.reload();
+  for (const [place, npc] of [
+    ["headquarters", "ren"], ["dojo", "mei"], ["archive", "sayo"], ["shop", "hana"],
+    ["tower", "kureha"], ["arena", "goro"], ["inn", "yuna"], ["missions", "riku"], ["event", "nao"]
+  ]) {
+    await page.locator(`[data-go="${place}"]`).click();
+    const stage = page.locator(`[data-location-stage="${place}"]`);
+    const portrait = stage.locator(`[data-stage-npc="${npc}"] img`);
+    await expect(portrait).toHaveAttribute("src", new RegExp(`representatives/${npc}\\.webp`));
+    await portrait.evaluate(image => image.decode());
+    const intro = stage.locator("[data-stage-speech]");
+    await expect(intro).toBeVisible();
+    await expect(intro.locator(".scene-speaker strong")).not.toBeEmpty();
+    const next = intro.locator("[data-stage-next]");
+    await expect(next).toBeInViewport();
+    if (npc === "ren" || npc === "hana") await stage.screenshot({ path: info.outputPath(`${npc}-primera-visita.png`) });
+    while ((await next.textContent()) !== "VER OPCIONES") await next.click();
+    await next.click();
+    await expect(stage.locator("[data-stage-options]")).toBeVisible();
+    await page.locator('[data-view="plaza"]').click();
+  }
+  await page.reload();
+  await page.locator('[data-go="headquarters"]').click();
+  await expect(page.locator("[data-stage-speech]")).toBeHidden();
+});
+
 test("una habitación anterior con progreso 1/2 reconoce los regalos y permite seguir sin duplicarlos", async ({ page }, info) => {
   await seed(page, true);
   await page.locator('[data-go="inn"]').click();

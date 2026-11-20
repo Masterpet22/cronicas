@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { LOCATION_CAST, NPCS, locationDialogue } from "../src/npcs.js";
-import { extname } from "node:path";
 import { webpDimensions } from "./webp.mjs";
 
 const locations = ["headquarters", "dojo", "archive", "shop", "tower", "arena", "inn", "missions", "event", "kagemori"];
@@ -18,19 +17,10 @@ for (const location of locations) {
 
 await Promise.all(Object.entries(NPCS).map(async ([id, npc]) => {
   assert.ok(npc.name && npc.title, `${id} necesita identidad y función`);
+  assert.match(npc.image, new RegExp(`^assets/modular/representatives/${id}\\.webp\\?v=`));
   const file = await readFile(new URL(`../${npc.image}`, import.meta.url));
-  if (extname(npc.image) === ".png") {
-    assert.equal(file.subarray(1, 4).toString("ascii"), "PNG", `${id} debe ser un PNG válido`);
-    assert.ok(file.readUInt32BE(16) >= 1000, `${id} necesita ancho de retrato suficiente`);
-    assert.ok(file.readUInt32BE(20) >= 1300, `${id} necesita altura de retrato suficiente`);
-    assert.equal(file[25], 6, `${id} debe conservar transparencia alfa`);
-  } else {
-    const image = webpDimensions(file, npc.image);
-    const optimizedKagemoriPortrait = id === "iori" || id === "nami";
-    assert.equal(image.width, optimizedKagemoriPortrait ? 768 : 1145, `${id} debe conservar el ancho previsto`);
-    assert.ok(optimizedKagemoriPortrait ? image.height === 1152 : [1373, 1374].includes(image.height), `${id} debe conservar la altura prevista`);
-    assert.equal(image.alpha, true, `${id} debe conservar transparencia alfa`);
-  }
+  assert.deepEqual(webpDimensions(file, npc.image), { width: 480, height: 800, alpha: true });
+  await readFile(new URL(`../${npc.reference}`, import.meta.url));
 }));
 
 console.log("Pruebas del reparto y sus guías superadas.");

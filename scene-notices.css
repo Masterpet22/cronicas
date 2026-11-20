@@ -157,11 +157,51 @@
 .epilogue-notice .scene-panel { width: min(63%, 670px); }
 .scene-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: .8rem; }
 .epilogue-notice .scene-copy { margin-top: .65rem; }
+
+.location-stage .stage-intro {
+  top: auto;
+  right: 5%;
+  bottom: 9%;
+  left: auto;
+  width: min(63%, 690px);
+  max-height: 70%;
+  overflow-y: auto;
+  padding: clamp(14px, 2.1vw, 26px);
+}
+.location-stage .stage-intro .scene-speaker {
+  padding-bottom: .65rem;
+  border-bottom: 1px solid var(--notice-line);
+}
+.location-stage .stage-intro > .scene-copy {
+  min-height: 0;
+  margin: .8rem 0;
+  color: #f0e8df;
+  font: 500 clamp(1rem, 1.55vw, 1.24rem)/1.48 "Alegreya Sans", sans-serif;
+}
+.location-stage .stage-intro .scene-button { min-width: 124px; }
+.location-stage .stage-intro .scene-step { color: #c8b59e; }
+.location-stage.has-cast .stage-intro {
+  right: auto;
+  left: 24%;
+  width: min(52%, 690px);
+}
+.location-stage:has(.stage-intro:not([hidden])) .stage-character {
+  bottom: 2%;
+  height: 72%;
+}
+.location-stage:has(.stage-intro:not([hidden])) .stage-character:not(.active) { opacity: .42; }
+.location-stage:has(.stage-intro:not([hidden])) .stage-character span { opacity: 0; }
+.location-stage .stage-character img { object-position: center bottom; }
+.location-dojo .stage-character:first-child img,
+.location-kagemori.has-cast .stage-character:nth-child(2) img { transform: scaleX(-1); }
+.dialogue-story .story-character { bottom: 1%; height: 78%; }
 @media (max-width: 1050px), (max-height: 650px) {
   .dialogue-story .story-dialogue-panel { width: min(70%, 740px); bottom: 5%; }
+  .location-stage .stage-intro { right: 4%; bottom: 7%; width: 64%; }
+  .location-stage.has-cast .stage-intro { right: auto; left: 23%; width: 54%; }
   .level-up-notice .scene-panel { width: 62%; padding-block: 12px; }
   .level-notice-stats > div { padding-block: .13rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .combat-scene-notice .scene-panel, .dialogue-story .story-dialogue-panel, .dialogue-story .story-character { animation: none; }
+  .combat-scene-notice .scene-panel, .dialogue-story .story-dialogue-panel, .dialogue-story .story-character, .location-stage .stage-intro { animation: none; }
 }
