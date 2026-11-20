@@ -1,3 +1,5 @@
+import { preparationHandLayout } from "./preparation-layout.js?v=0.159.0";
+
 const degrees = radians => radians * 180 / Math.PI;
 const radians = angle => angle * Math.PI / 180;
 const wrap = angle => ((angle + 180) % 360 + 360) % 360 - 180;
@@ -46,8 +48,8 @@ function armPose(rig, side, handCenter, palmAngle) {
 export function preparationClipForRig(clip, rig) {
   const torso = rig.byId.torso;
   const centerX = (rig.joints.shoulderLeft.x + rig.joints.shoulderRight.x) / 2;
-  const wristY = torso.y - torso.height * .06;
-  const halfGap = torso.width * .14;
+  const { wristY, span } = preparationHandLayout(rig);
+  const halfGap = span / 2;
   // Un sello dibujado para este gesto une las dos muñecas. Las manos se
   // sostienen estables, sin abrir/cerrar los dedos de reposo durante la espera.
   const pose = side => {

@@ -4,7 +4,10 @@ Generado con la herramienta integrada ImageGen. Los PNG originales conservan
 su transparencia; las manos se recolorean al tono de piel de cada personaje.
 
 - Caja: `assets/battle/document-crate.png` (1374 × 1145).
-- Manos: `assets/modular/gestures/preparation-hands.png` (1266 × 1242).
+- Manos actuales: `assets/modular/gestures/preparation-hands-v2.png` (1536 × 1024).
+  Puños más anchos y palmas compactas; muñecas en (380, 910) y (1150, 910).
+  El remate del antebrazo se solapa por delante para evitar un doble contorno.
+- Referencia anterior: `assets/modular/gestures/preparation-hands.png` (1266 × 1242).
   Se cargan a 256 px en la textura recoloreada. Los centros de las muñecas del
   original están en (320, 1150) y (940, 1150).
 
@@ -15,3 +18,10 @@ Create ONE production game sprite asset, isolated on a genuinely transparent alp
 ## Prompt de las manos
 
 ONE isolated 2D sprite: a matched pair of human hands pressed palm to palm in a natural prayer / martial arts preparation seal, all fingers straight pointing vertically up and gently touching, the thumbs relaxed against the near side. View from front at a slight three-quarter angle like an anime RPG character facing slightly right. Show ONLY the joined hands and short wrist ends; wrists diverge diagonally downward to the left and right, ready to attach to two bent forearms. Anatomically credible, no clawed fingers, no overlapping doubled fingers, no jewelry, no sleeves, no arms, no torso, no face, no symbols. Crisp dark ink outline and simple cel-shaded grayscale rendering matching modular hand sprites in a hand drawn 2D martial arts RPG. IMPORTANT all skin MUST be neutral gray (midtone around #aaaaaa, shadow around #666666, highlights #cccccc), black ink outlines; NO colored skin or color accents, because game recolors grayscale skin at runtime. Genuinely transparent alpha background. Entire pair centered, compact symmetric silhouette with five fingers per hand, finger tips together at the top, two clear wrist attachment ends below. Hands should fill most of the image with small transparent margin. No ground shadow, no text, no UI.
+
+## Corrección de muñecas, versión 2
+
+Herramienta integrada ImageGen, edición de la primera versión con el antebrazo
+original y la captura en combate como referencias de estilo y encaje.
+
+Edit target: the FIRST image, the isolated paired prayer hands sprite. The second image is ONLY a reference for the thick muscular wrist, black outline weight, simple gray cel shading of the existing game forearm. The third image is ONLY context showing the current FAILED attachment: hands too thin and skinny at wrists, like pasted-on unrelated hands. Create a REPLACEMENT compact broad pair of hands matching that muscular game character. Preserve neutral grayscale, genuine transparent alpha background and two palms pressed together with fingertips up. Make the hands much SHORTER and BROADER than the first image: short compact fingers and broad palms, very thick wrists. REMOVE the long diagonal forearm tails entirely. Each wrist attachment should be a broad short flat cut pointing down-outward about 25 degrees below horizontal, designed to blend into an existing bent forearm. Target proportions: each wrist cut is about 1/2.2 of the total fingertip-to-wrist HEIGHT; distance between the two wrist-cut center points about 1.5 times the width of ONE wrist cut. Thick wrists must flow directly into broad palm heels without any pinched neck or abrupt step. Natural five fingers on each hand, hands are pressed together in a preparation seal. Simplify lines and shading to the second reference: dark organic ink outlines, two or three flat gray tones, one broad highlight; no photoreal texture, no intricate nail detailing. No sleeves, no jewelry, no text, no torso, no extra arms, no shadows outside the asset. Entire sprite centered, isolated and fully inside image. The output is ONLY the redesigned pair of hands, not a screenshot or collage.

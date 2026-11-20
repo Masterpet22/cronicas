@@ -73,6 +73,7 @@ export const CHARACTER_FACES = Object.freeze({
 const layersById = (layers) => Object.fromEntries(layers.map((part) => [part.id, part]));
 export const CHARACTER_RIGS = Object.freeze({
   male: {
+    bodyType: "male",
     layers: MAN_SPRITE_LAYERS,
     byId: layersById(MAN_SPRITE_LAYERS),
     joints: MAN_SPRITE_JOINTS,
@@ -80,6 +81,7 @@ export const CHARACTER_RIGS = Object.freeze({
     preview: { scale: 1.268874615, x: 44.442285, y: -173.559354 }
   },
   female: {
+    bodyType: "female",
     layers: WOMAN_SPRITE_LAYERS,
     byId: layersById(WOMAN_SPRITE_LAYERS),
     joints: WOMAN_SPRITE_JOINTS,

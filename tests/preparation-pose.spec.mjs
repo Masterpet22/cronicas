@@ -58,15 +58,22 @@ for (const renderer of ["Canvas", "WebGL"]) {
       const palmsReflected = fighter.layers.filter(layer => layer.name.startsWith("mano_")).every(hand => hand.flipX);
       const forearmPivot = elbowLeft.parentContainer;
       const torsoIndex = fighter.rig.getIndex(fighter.sprite);
+      const seam = fighter.preparationSeamWidths;
       return palmsReflected && fighter.preparationSeal.visible
         && fighter.layers.filter(layer => layer.name.startsWith("mano_")).every(hand => !hand.visible)
-        && distance > width * .14 && distance < width * .25 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
+        && seam.forearms.every(w => Math.abs(seam.hand - w) < w * .1)
+        && distance > width * .25 && distance < width * .5 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
         && Math.abs(ankle.x - feet.x) < .01 && Math.abs(ankle.y - feet.y) < .01
         && bootSoles.every(y => Math.abs(y - fighter.shadow.y) < 1)
         && fighter.rig.getIndex(shoulderLeft) < torsoIndex && fighter.rig.getIndex(forearmPivot) > torsoIndex
         && fighter.layers.find(layer => layer.name === "brazo_izquierdo").parentContainer === shoulderLeft
         && Math.abs(forearmPivot.rotation - shoulderLeft.rotation) < .001;
     }));
+    await testInfo.attach("union-munecas", { contentType: "application/json", body: JSON.stringify(await page.evaluate(() =>
+      window.__preparationTest.fighters.map(({ fighter }) => ({ seam: fighter.preparationSeamWidths,
+        visible: fighter.preparationSeal.visible,
+        gap: Math.abs(fighter.joints.wristLeft.getWorldTransformMatrix().tx - fighter.joints.wristRight.getWorldTransformMatrix().tx),
+        width: fighter.sprite.displayWidth * Math.abs(fighter.rig.scaleX * fighter.body.scaleX) })))) });
     await expect.poll(centered).toEqual([true, true, true, true]);
     expect(await bootsBehindWraps()).toBe(true);
     const continues = await page.evaluate(() => {
@@ -104,6 +111,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
         api.stopPlayerBreathing(fighter);
         return fighter.rig.getIndex(fighter.joints.shoulderLeft) === armDepth
           && !fighter.preparationSeal.visible
+          && fighter.preparationArmSections.every(({ arm }) => !arm.isCropped)
           && fighter.layers.filter(hand => hand.name.startsWith("mano_")).every(hand => !hand.flipX)
           && fighter.joints.elbowLeft.parentContainer === fighter.joints.shoulderLeft
           && Object.entries(neutral).every(([key, base]) => ["x", "y", "angle"].every(property => Math.abs(fighter.joints[key][property] - base[property]) < .001));

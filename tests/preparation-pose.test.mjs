@@ -3,6 +3,7 @@ import { CHARACTER_RIGS } from "../src/character-rigs.js";
 import { PUPPET_ANIMATION_CLIPS, ANIMATION_PRIORITIES } from "../src/animations/clips.js";
 import { sampleAnimationPose } from "../src/animations/runtime.js";
 import { preparationClipForRig } from "../src/animations/preparation-pose.js";
+import { preparationHandLayout } from "../src/animations/preparation-layout.js";
 import { validateAnimationCatalog } from "../src/animations/schema.js";
 
 const rotate = (point, angle) => {
@@ -33,11 +34,11 @@ for (const [bodyType, rig] of Object.entries(CHARACTER_RIGS)) {
     const left = posedHand(rig, pose, "Left"), right = posedHand(rig, pose, "Right");
     assert.ok(pose.shoulderLeft.x < 0 && pose.shoulderRight.x > 0, `${bodyType}: ambos hombros se acercan al torso`);
     assert.ok(left.x > right.x, `${bodyType}: las manos no deben cruzarse hacia los lados opuestos`);
-    assert.ok(Math.abs(left.wristX - right.wristX - rig.byId.torso.width * .28) < .001,
+    assert.ok(Math.abs(left.wristX - right.wristX - preparationHandLayout(rig).span) < .001,
       `${bodyType}: las muñecas coinciden con los dos extremos del sello dibujado`);
     assert.ok(Math.abs(left.wristY - right.wristY) < .001, "El sello permanece vertical y estable");
     for (const hand of [left, right]) {
-      assert.ok(Math.abs(hand.x - centerX) < rig.byId.torso.width * .18, `${bodyType}: gesto centrado`);
+      assert.ok(Math.abs(hand.x - centerX) < rig.byId.torso.width * .3, `${bodyType}: gesto centrado`);
       assert.ok(hand.y < rig.byId.torso.y && hand.y > rig.joints.neck.y, `${bodyType}: gesto a la altura del pecho`);
       assert.ok(Math.abs(Math.abs(hand.angle) - 180) < 18, `${bodyType}: los dedos deben apuntar hacia arriba`);
     }
