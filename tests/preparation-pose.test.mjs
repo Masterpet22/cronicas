@@ -17,7 +17,7 @@ function posedHand(rig, pose, side) {
   const handAngle = lowerAngle + pose[`wrist${side}`].angle;
   const upper = rotate({ x: elbow.x - shoulder.x, y: elbow.y - shoulder.y }, upperAngle);
   const lower = rotate({ x: wrist.x - elbow.x, y: wrist.y - elbow.y }, lowerAngle);
-  const palm = rotate({ x: hand.x - wrist.x, y: hand.y - wrist.y }, handAngle);
+  const palm = rotate({ x: wrist.x - hand.x, y: hand.y - wrist.y }, handAngle);
   const offset = pose[`shoulder${side}`];
   return { x: shoulder.x + offset.x + upper.x + lower.x + palm.x, y: shoulder.y + offset.y + upper.y + lower.y + palm.y, angle: handAngle };
 }

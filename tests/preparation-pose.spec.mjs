@@ -55,9 +55,10 @@ for (const renderer of ["Canvas", "WebGL"]) {
       const bootSoles = fighter.layers.filter(layer => layer.name.startsWith("pie_")).map(boot =>
         boot.getWorldTransformMatrix().transformPoint(0, boot.height / 2, {}).y);
       const { shoulderLeft, elbowLeft } = fighter.joints;
+      const palmsReflected = fighter.layers.filter(layer => layer.name.startsWith("mano_")).every(hand => hand.flipX);
       const forearmPivot = elbowLeft.parentContainer;
       const torsoIndex = fighter.rig.getIndex(fighter.sprite);
-      return distance > width * .22 && distance < width * .35 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
+      return palmsReflected && distance > width * .22 && distance < width * .35 && palms.every(palm => Math.abs(palm.x - center.x) < width * .32 && palm.y < center.y)
         && Math.abs(ankle.x - feet.x) < .01 && Math.abs(ankle.y - feet.y) < .01
         && bootSoles.every(y => Math.abs(y - fighter.shadow.y) < 1)
         && fighter.rig.getIndex(shoulderLeft) < torsoIndex && fighter.rig.getIndex(forearmPivot) > torsoIndex
@@ -78,7 +79,9 @@ for (const renderer of ["Canvas", "WebGL"]) {
     await page.screenshot({ path: testInfo.outputPath("preparacion-corregida.png") });
     await page.evaluate(async () => {
       const { scene, fighters, api } = window.__preparationTest;
-      await Promise.all(fighters.map(({ fighter }) => api.playFighterDamageReaction(scene, fighter, { heavy: true })));
+      const reactions = fighters.map(({ fighter }) => api.playFighterDamageReaction(scene, fighter, { heavy: true }));
+      if (fighters.some(({ fighter }) => fighter.layers.some(hand => hand.name.startsWith("mano_") && hand.flipX))) throw new Error("El daño debe restaurar las manos antes de reaccionar");
+      await Promise.all(reactions);
     });
     await expect.poll(centered).toEqual([true, true, true, true]);
     const beginsExitFromPose = await page.evaluate(() => {
@@ -86,7 +89,8 @@ for (const renderer of ["Canvas", "WebGL"]) {
       return fighters.every(({ fighter }) => {
         const angle = fighter.joints.elbowRight.angle;
         api.stopPlayerPreparing(scene, fighter);
-        return Math.abs(angle) > 1 && fighter.joints.elbowRight.angle === angle;
+        return Math.abs(angle) > 1 && fighter.joints.elbowRight.angle === angle
+          && fighter.layers.filter(hand => hand.name.startsWith("mano_")).every(hand => !hand.flipX);
       });
     });
     expect(beginsExitFromPose).toBe(true);
@@ -96,6 +100,7 @@ for (const renderer of ["Canvas", "WebGL"]) {
       return fighters.map(({ fighter, neutral, armDepth }) => {
         api.stopPlayerBreathing(fighter);
         return fighter.rig.getIndex(fighter.joints.shoulderLeft) === armDepth
+          && fighter.layers.filter(hand => hand.name.startsWith("mano_")).every(hand => !hand.flipX)
           && fighter.joints.elbowLeft.parentContainer === fighter.joints.shoulderLeft
           && Object.entries(neutral).every(([key, base]) => ["x", "y", "angle"].every(property => Math.abs(fighter.joints[key][property] - base[property]) < .001));
       });

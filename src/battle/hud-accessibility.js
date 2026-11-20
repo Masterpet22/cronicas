@@ -6,7 +6,7 @@ import { paintBattleSkillArt } from './skill-icons.js?v=0.135.0';
 import { mountSkillTableControl } from './skill-table-control.js?v=0.155.0';
 import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.155.0';
 import { setHudAttribute, setHudProgress, setHudText } from './hud-dom.js?v=1.0.0';
-import { mountHudRoster } from './hud-roster.js?v=0.155.0';
+import { mountHudRoster } from './hud-roster.js?v=0.156.0';
 import { mountFighterIndicators } from './fighter-indicators.js?v=1.0.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
@@ -270,6 +270,7 @@ export function mountAccessibleBattleHud(scene) {
   scene.actionCanvasLayer = scene.add.container(0, 0, scene.actionCanvasParts).setDepth(30).setVisible(false);
   const originals = new Map([...scene.hudCanvasParts, ...scene.actionCanvasParts].map(part => [part, part.visible]));
   const syncCanvasBounds = () => {
+    if (!root.isConnected || !scene.game?.canvas?.parentElement) return;
     if (root.classList.contains('compact')) {
       for (const key of ['width', 'height', 'left', 'top']) root.style.removeProperty(key);
       scene.game.canvas.parentElement.style.setProperty('--combat-scene-top', `${root.offsetTop + spacer.offsetTop}px`);
@@ -283,6 +284,7 @@ export function mountAccessibleBattleHud(scene) {
       left: `${canvas.left - bounds.left - host.clientLeft}px`, top: `${canvas.top - bounds.top - host.clientTop}px` });
   };
   const layout = () => {
+    if (!root.isConnected || !scene.game?.canvas?.parentElement) return;
     restorePerspective();
     root.classList.toggle('compact', query.matches);
     syncCanvasBounds();
@@ -299,6 +301,7 @@ export function mountAccessibleBattleHud(scene) {
   };
   query.addEventListener('change', layout);
   const resizeObserver = new ResizeObserver(() => {
+    if (!root.isConnected || !scene.game?.canvas?.parentElement) return;
     syncCanvasBounds();
     tables.layout();
     if (frontSkill) faceSkill(frontSkill.row, frontSkill.button, frontSkill.slot);
@@ -322,8 +325,8 @@ export function mountAccessibleBattleHud(scene) {
     scene.events.off('sleep', onSleep);
     scene.events.off('wake', onWake);
     root.remove();
-    scene.game.canvas.parentElement?.classList.remove('compact-combat');
-    scene.game.canvas.parentElement?.style.removeProperty('--combat-scene-top');
+    scene.game.canvas?.parentElement?.classList.remove('compact-combat');
+    scene.game.canvas?.parentElement?.style.removeProperty('--combat-scene-top');
   };
   scene.events.once('shutdown', remove);
   layout();

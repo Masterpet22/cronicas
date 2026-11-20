@@ -204,8 +204,7 @@ export function mountMetaUI(root, initialSave, onStartMission, onFinishSecondary
     showDialogue: (...args) => showDialogue(...args),
     showMissionDecision: (...args) => showMissionDecision(...args),
     getSave: () => save,
-    // Las pistas son progreso de la misión, aunque las partidas antiguas las
-    // guardan en el mismo historial que utilizaba el tutorial retirado.
+    // Las pistas conservan el historial de partidas anteriores al tutorial retirado.
     onInvestigationClue(id) { return persist(recordTutorialLesson(save, `clue-${id}`)); },
     onSagaSelected(sagaId) { selectedSagaId = sagaId; renderStoryMissions(); },
     onStartMission: startLocationMission,

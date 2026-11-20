@@ -1,12 +1,13 @@
+import { runCycleForRig } from "./animations/locomotion-pose.js?v=0.156.0";
 import { isBaseOutfitPart } from "./base-outfit.js?v=0.140.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
 import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.151.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.151.0";
-import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.152.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.156.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.156.0";
+import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.156.0";
 import {
   CHARACTER_FACES,
   CHARACTER_HAIR,
@@ -197,7 +198,23 @@ function bringPreparationForearmForward(scene, fighter) {
   scene.events.on("postupdate", sync);
 }
 
+function setPreparationHands(fighter, reflected) {
+  if (reflected) {
+    if (fighter.preparationHands) return;
+    fighter.preparationHands = fighter.layers.filter(layer => ["mano_izquierda", "mano_derecha"].includes(layer.name))
+      .map(hand => ({ hand, x: hand.x, flipX: hand.flipX }));
+    fighter.preparationHands.forEach(({ hand, x, flipX }) => {
+      hand.flipX = !flipX;
+      hand.x = -x;
+    });
+  } else {
+    fighter.preparationHands?.forEach(({ hand, x, flipX }) => { hand.x = x; hand.flipX = flipX; });
+    fighter.preparationHands = null;
+  }
+}
+
 function restorePreparationArmDepth(fighter) {
+  setPreparationHands(fighter, false);
   const forearm = fighter.preparationForearm;
   if (!forearm) return;
   const { shoulderLeft, elbowLeft } = fighter.joints;
@@ -220,7 +237,10 @@ export function startPlayerPreparing(scene, fighter) {
   if (fighter.preparing && (animations.clipId === clipId || animations.state === "hit")) return true;
   fighter.preparing = true;
   fighter.breathingTweens = [];
-  if (clipId === "prepare-technique") bringPreparationForearmForward(scene, fighter);
+  if (clipId === "prepare-technique") {
+    setPreparationHands(fighter, true);
+    bringPreparationForearmForward(scene, fighter);
+  }
   const blendFromCurrent = clipId === "prepare-technique" && (!animations.state || animations.state === "idle");
   return animations.loop(clipId, { force: true, blendFromCurrent });
 }
@@ -229,6 +249,9 @@ export function stopPlayerPreparing(scene, fighter, { immediate = false } = {}) 
   if (!fighter?.animations) return;
   if (!fighter.preparing && !immediate) return;
   fighter.preparing = false;
+  // La vuelta de brazos puede interpolarse, pero el reflejo pertenece solo
+  // a la preparación. No debe quedar activo si otro clip interrumpe la salida.
+  setPreparationHands(fighter, false);
   const { animations } = fighter;
   if (immediate) {
     animations.stop({ reset: true });
@@ -249,6 +272,8 @@ export function stopPlayerPreparing(scene, fighter, { immediate = false } = {}) 
 
 export function startPlayerGuard(scene, fighter) {
   if (!fighter?.animations) return false;
+  fighter.preparing = false;
+  restorePreparationArmDepth(fighter);
   stopPlayerBreathing(fighter);
   const clipId = fighter.animations.supports("guard-hold") ? "guard-hold" : "guard-hold-simple";
   return fighter.animations.loop(clipId, { force: true });
@@ -281,6 +306,8 @@ export const playPlayerDamageReaction = playFighterDamageReaction;
 
 export function startPlayerRunning(scene, fighter) {
   if (!fighter?.animations || fighter.animations.state === "locomotion") return;
+  fighter.preparing = false;
+  restorePreparationArmDepth(fighter);
   stopPlayerBreathing(fighter);
   const clipId = fighter.animations.supports("run-cycle") ? "run-cycle" : "run-simple";
   fighter.animations.loop(clipId, { force: true });
@@ -295,6 +322,8 @@ export function stopPlayerRunning(fighter) {
 
 export async function preparePlayerPunch(scene, fighter) {
   if (!fighter?.animations?.supports("punch-prepare")) return false;
+  fighter.preparing = false;
+  restorePreparationArmDepth(fighter);
   stopPlayerBreathing(fighter);
   return fighter.animations.playOnce("punch-prepare", { force: true });
 }
@@ -313,6 +342,8 @@ export async function recoverPlayerPunch(scene, fighter) {
 
 export async function playEarthWallCast(scene, fighter) {
   if (!fighter?.animations?.supports("earth-wall-cast")) return false;
+  fighter.preparing = false;
+  restorePreparationArmDepth(fighter);
   stopPlayerBreathing(fighter);
   const completed = await fighter.animations.playOnce("earth-wall-cast", { force: true });
   startPlayerBreathing(scene, fighter);
@@ -402,6 +433,7 @@ export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   }
 
   const animationClips = { ...PUPPET_ANIMATION_CLIPS,
+    "run-cycle": runCycleForRig(variant),
     "prepare-technique": preparationClipForRig(PUPPET_ANIMATION_CLIPS["prepare-technique"], variant) };
   const fighter = { shadow, body, head, face, hair, tail, rig, joints, animationClips, targets: [body], layers, sprite: torso, breathingTweens: [], runningTweens: [] };
   fighter.animations = createPuppetAnimationController(scene, fighter);

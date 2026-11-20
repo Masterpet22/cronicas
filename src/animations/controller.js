@@ -1,4 +1,4 @@
-import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.151.0";
+import { ANIMATION_PRIORITIES, PUPPET_ANIMATION_CLIPS } from "./clips.js?v=0.156.0";
 import { addAnimationOffsets, createKeyframeSampler, isKeyframeAnimationClip, TRANSFORM_PROPERTIES } from "./runtime.js?v=0.147.0";
 
 const catalogSamplers = new WeakMap();

@@ -1,3 +1,5 @@
+import { CHARACTER_RIGS } from "../character-rigs.js?v=0.149.0";
+import { runCycleForRig } from "./locomotion-pose.js?v=0.156.0";
 import { assertValidAnimationCatalog } from "./schema.js?v=0.115.0";
 
 export const ANIMATION_STATES = Object.freeze({
@@ -236,30 +238,7 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
       { target: "torso", duration: 165, yoyo: true, ease: "Cubic.out", to: { x: -27, y: 7, angle: -7 } }
     ])
   }),
-  "run-cycle": Object.freeze({
-    id: "run-cycle",
-    label: "Carrera de combate",
-    description: "Zancada articulada con balanceo opuesto de brazos y sombra comprimida.",
-    category: "locomoción",
-    state: ANIMATION_STATES.LOCOMOTION,
-    status: "integrated",
-    loop: true,
-    requires: Object.freeze(["rig", "shadow", "hipLeft", "hipRight", "kneeLeft", "kneeRight", "ankleLeft", "ankleRight", "shoulderLeft", "shoulderRight", "elbowLeft", "elbowRight"]),
-    tracks: Object.freeze([
-      { target: "hipLeft", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: -24 }, to: { angle: 24 } },
-      { target: "hipRight", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: 24 }, to: { angle: -24 } },
-      { target: "kneeLeft", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: 7 }, to: { angle: 30 } },
-      { target: "kneeRight", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: 30 }, to: { angle: 7 } },
-      { target: "ankleLeft", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: -7 }, to: { angle: 8 } },
-      { target: "ankleRight", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: 8 }, to: { angle: -7 } },
-      { target: "shoulderLeft", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: 21 }, to: { angle: -21 } },
-      { target: "shoulderRight", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: -21 }, to: { angle: 21 } },
-      { target: "elbowLeft", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: -12 }, to: { angle: 12 } },
-      { target: "elbowRight", duration: 180, yoyo: true, ease: "Sine.inOut", from: { angle: 12 }, to: { angle: -12 } },
-      { target: "rig", duration: 90, yoyo: true, ease: "Sine.inOut", to: { y: -5 } },
-      { target: "shadow", duration: 90, yoyo: true, ease: "Sine.inOut", to: { scaleX: 0.08, scaleY: -0.16 } }
-    ])
-  }),
+  "run-cycle": runCycleForRig(CHARACTER_RIGS.male),
   "run-simple": Object.freeze({
     id: "run-simple",
     label: "Carrera simplificada",

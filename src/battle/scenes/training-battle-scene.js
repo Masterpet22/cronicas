@@ -1,11 +1,11 @@
-import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.155.0";
+import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.156.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
 import { trainingActions, trainingDummyProfile } from "../../training.js?v=0.155.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";
 import { closeActionState } from "../action-resolution.js?v=0.155.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { META_ASSET_VERSION } from "../../asset-urls.js?v=0.115.0";
-import { stopPlayerBreathing } from "../../fighters.js?v=0.155.0";
+import { stopPlayerBreathing } from "../../fighters.js?v=0.156.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 
 export class TrainingBattleScene extends ArenaBattleScene {

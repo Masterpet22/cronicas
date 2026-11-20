@@ -18,7 +18,8 @@ function armPose(rig, side, handCenter, palmAngle) {
   const shoulder = { x: restShoulder.x + shoulderOffsetX, y: restShoulder.y + shoulderOffsetY };
   const handAngle = palmAngle - (hand.restRotation || 0);
   const rotation = radians(handAngle);
-  const handOffset = { x: hand.x - wrist.x, y: hand.y - wrist.y };
+  // La mano se refleja alrededor de la muñeca solo durante este gesto.
+  const handOffset = { x: wrist.x - hand.x, y: hand.y - wrist.y };
   const target = {
     x: handCenter.x - (handOffset.x * Math.cos(rotation) - handOffset.y * Math.sin(rotation)),
     y: handCenter.y - (handOffset.x * Math.sin(rotation) + handOffset.y * Math.cos(rotation))

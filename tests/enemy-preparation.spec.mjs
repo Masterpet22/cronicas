@@ -171,7 +171,8 @@ test("las técnicas compartidas conservan daño y animaciones al lanzarse desde 
       const action = ABILITY_CATALOG[id];
       scene.enemy.primaryAffinity = action.element;
       scene.enemy.affinities = [action.element];
-      const before = { hp: scene.player.hp, chakra: scene.enemy.chakra, damage: action.damage, cost: action.cost };
+      const before = { hp: scene.player.hp, chakra: scene.enemy.chakra, damage: action.damage, cost: action.cost,
+        enemyX: scene.foe.body.x, playerX: scene.hero.body.x };
       state.activeAttack = scene.executeTimelineAction("enemy", action);
       return before;
     }, id);
@@ -182,7 +183,7 @@ test("las técnicas compartidas conservan daño y animaciones al lanzarse desde 
     expect(await page.evaluate(() => {
       const scene = window.__performanceReference.scene;
       return { hp: scene.player.hp, chakra: scene.enemy.chakra, enemyX: scene.foe.body.x, playerX: scene.hero.body.x };
-    })).toEqual({ hp: before.hp - before.damage, chakra: before.chakra - before.cost + 5, enemyX: 740, playerX: 220 });
+    })).toEqual({ hp: before.hp - before.damage, chakra: before.chakra - before.cost + 5, enemyX: before.enemyX, playerX: before.playerX });
   }
   await disposePerformanceReference(page);
   expect(errors).toEqual([]);
