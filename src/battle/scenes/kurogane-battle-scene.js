@@ -1,4 +1,4 @@
-import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.161.0";
+import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.164.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.161.0";
 import { battleRuntime } from "../runtime.js?v=0.91.0";
 import { createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.159.0";
@@ -12,7 +12,7 @@ import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { showRetryDialog, consumeRetry } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.140.0";
 import { consumeBattleItem } from "../battle-inventory.js?v=0.161.0";
-import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.161.0";
+import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.164.0";
 import { timelineMarkerPosition } from "../timeline.js?v=0.69.0";
 import { ENEMY_ACTIONS } from "../../data.js?v=1.5.0";
 import { HUD_ART } from "../hud-art.js?v=0.161.0";

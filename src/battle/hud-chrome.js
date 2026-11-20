@@ -51,10 +51,9 @@ export function hudPanelOrnaments() {
 
 export function skillFrameSvg() {
   const scroll = SCROLLS.map(commands => `<path d="${commands.map(c => c.join(' ')).join(' ')}"/>`).join('');
-  const corners = [[2, 2, .7, .7], [178, 2, -.7, .7], [2, 406, .7, -.7], [178, 406, -.7, -.7]]
+  const corners = [[178, 2, -.7, .7], [2, 406, .7, -.7], [178, 406, -.7, -.7]]
     .map(([x, y, sx, sy]) => `<g transform="translate(${x} ${y}) scale(${sx} ${sy})">${scroll}</g>`).join('');
-  const joints = [68, 136, 204, 272, 340].map(y => `<path d="M173 ${y - 5}q-5 0-5 5h8m-3 5q-5 0-5-5"/>`).join('');
-  return `<svg class="combat-skill-ornaments" viewBox="0 0 180 408" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path opacity=".65" d="M5 20V12Q5 5 14 5H166Q175 5 175 14V394Q175 403 166 403H14Q5 403 5 394V20"/>${corners}${joints}</g></svg>`;
+  return `<svg class="combat-skill-ornaments" viewBox="0 0 180 408" preserveAspectRatio="none" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"><path opacity=".65" d="M5 20V12Q5 5 14 5H166Q175 5 175 14V394Q175 403 166 403H14Q5 403 5 394V20"/>${corners}</g></svg>`;
 }
 
 export function drawStatusPanel(g, x, y, w, h, mirrored = false) {

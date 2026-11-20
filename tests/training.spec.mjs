@@ -249,7 +249,7 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
         await expect(page.locator(`[data-training-target="${index}"]`)).toBeHidden();
         expect(await page.evaluate(i => {
           const s = window.__trainingGame.scene.getScene("battle"), t = s.trainingTargets[i], m = s.groupMarkers[i];
-          return [t.fighter.body, t.fighter.shadow, t.ring, m.marker, m.halo, m.label].every(part => !part.visible);
+          return [t.fighter.body, t.fighter.shadow, t.ring, m.marker, m.face, m.hair, m.halo, m.label].filter(Boolean).every(part => !part.visible);
         }, index)).toBe(true);
         if (index === 0) await page.screenshot({ path: testInfo.outputPath("dojo-group-after-knockout.png"), fullPage: true });
       }
@@ -348,8 +348,9 @@ test("el rival derrotado desaparece dentro de una nube de humo sin dejar objetos
     const s = window.__trainingGame.scene.getScene("battle"), t = s.trainingTargets[0];
     return { smoke: Boolean(s.children.getByName("teleport-smoke")),
       prop: Boolean(s.children.getByName("teleport-object")), body: t.fighter.body.visible,
-      shadow: t.fighter.shadow.visible, nextTarget: s.selectedTargetIndex };
-  })).toEqual({ smoke: false, prop: false, body: false, shadow: false, nextTarget: 1 });
+      shadow: t.fighter.shadow.visible, nextTarget: s.selectedTargetIndex,
+      markersMatchLivingOpponents: s.groupMarkers.every(({ parts }, index) => parts.every(part => part.visible === (index !== 0))) };
+  })).toEqual({ smoke: false, prop: false, body: false, shadow: false, nextTarget: 1, markersMatchLivingOpponents: true });
   await page.evaluate(() => {
     const s = window.__trainingGame.scene.getScene("battle");
     s.trainingTargets[1].state.hp = 0; s.trainingTargets[2].state.hp = 0;

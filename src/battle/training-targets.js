@@ -71,14 +71,21 @@ export function mountGroupTimeline(scene) {
     const hair = hairKey && layout.hair ? useFighterTextureRendering(scene.add.image(start, trackY, hairKey)
       .setDisplaySize(layout.hair.width, layout.hair.height)) : null;
     const label = scene.add.text(start, trackY + 21, String(index + 1), scene.textStyle(10, "#ffe1a4", "800")).setOrigin(.5);
-    scene.timelineLayer.add([halo, marker, face, ...[hair].filter(Boolean), label]);
-    return { marker, face, hair, layout, halo, label };
+    const parts = [halo, marker, face, ...(hair ? [hair] : []), label];
+    scene.timelineLayer.add(parts);
+    return { marker, face, hair, layout, halo, label, parts };
   });
   updateGroupTimeline(scene);
 }
 
 function positionMarker(marker, x, y) {
   if (marker.x !== x || marker.y !== y) marker.setPosition(x, y);
+}
+
+export function setGroupMarkerVisible({ parts }, visible) {
+  for (const part of parts) {
+    if (part.visible !== visible) part.setVisible(visible);
+  }
 }
 
 export function updateGroupTimeline(scene) {
@@ -92,15 +99,10 @@ export function updateGroupTimeline(scene) {
   const { bg, text } = scene.playerTimelineTag;
   if (bg.x !== x) bg.setX(x);
   if (text.x !== x) text.setX(x);
-  scene.groupMarkers.forEach(({ marker, face, hair, layout, halo, label }, index) => {
-    const target = scene.trainingTargets[index], alive = target.state.hp > 0;
-    if (marker.visible !== alive) {
-      marker.setVisible(alive);
-      face.setVisible(alive);
-      hair?.setVisible(alive);
-      halo.setVisible(alive);
-      label.setVisible(alive);
-    }
+  scene.groupMarkers.forEach((parts, index) => {
+    const { marker, face, hair, layout, halo, label } = parts;
+    const target = scene.trainingTargets[index], alive = target.state.hp > 0 && !target.retired;
+    setGroupMarkerVisible(parts, alive);
     if (!alive) return;
     const markerX = timelineMarkerPosition(target.progress, start, end);
     const markerY = trackY + (index - 1) * 12;

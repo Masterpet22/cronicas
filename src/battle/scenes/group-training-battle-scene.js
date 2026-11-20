@@ -1,4 +1,4 @@
-import { TrainingBattleScene } from "./training-battle-scene.js?v=0.161.0";
+import { TrainingBattleScene } from "./training-battle-scene.js?v=0.164.0";
 import { applyBattleConsumable } from "../battle-inventory.js?v=0.161.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.161.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
@@ -12,7 +12,7 @@ import { actionNeedsPreparation } from "../timeline.js?v=0.69.0";
 import { nextGroupTimelineStep } from "../group-timeline.js?v=0.143.0";
 import { teleportSmoke } from "../teleport-transition.js?v=1.2.0";
 import { physicalActionAvailable, actionHealthCost } from "../skill-tables.js?v=0.155.0";
-import { mountTrainingTargets, mountGroupTimeline, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.161.0";
+import { mountTrainingTargets, mountGroupTimeline, setGroupMarkerVisible, updateGroupTimeline, showGroupTrainingResult } from "../training-targets.js?v=0.164.0";
 
 // Shared group scheduler for active Dojo opponents and campaign teams.
 // Passive practice and saga-1 duels keep their existing execution paths.
@@ -225,7 +225,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
       }, { pace: "substitution" }));
       target.ring.setVisible(false);
       const marker = this.groupMarkers?.[index];
-      if (marker) [marker.marker, marker.halo, marker.label].forEach(part => part.setVisible(false));
+      if (marker) setGroupMarkerVisible(marker, false);
     });
     if (this.trainingTargets[this.selectedTargetIndex].state.hp <= 0) {
       const next = this.trainingTargets.findIndex(target => target.state.hp > 0);

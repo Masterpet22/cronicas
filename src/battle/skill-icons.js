@@ -23,7 +23,7 @@ export function paintBattleSkillArt(scene, art, action, { physical = false, inde
   const tint = action?.id === "strike" ? [0xd1, 0xa2, 0x5b] : action?.type === "guard" ? [0xa6, 0x41, 0x2d] : null;
   const icon = source && createCachedIconCanvas(scene.game, source, { textureKey: action.iconTexture, tint });
   if (icon) art.append(icon);
-  else {
+  else if (!action) {
     const seal = document.createElement("span"); seal.className = "combat-skill-seal"; seal.textContent = "封"; art.append(seal);
   }
   const mark = ({ fire_embers: "火", fire_breath: "炎", fire_ring: "輪", fire_phoenix: "鳳" })[action?.id];
