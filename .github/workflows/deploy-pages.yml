@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -28,9 +29,23 @@ jobs:
       - name: Preparar sitio estático
         run: node scripts/stage-pages.mjs "$RUNNER_TEMP/cronicas-pages"
       - name: Empaquetar sitio estático
+        id: pages_artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ${{ runner.temp }}/cronicas-pages
+      - name: Esperar el paquete en GitHub Pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ARTIFACT_ID: ${{ steps.pages_artifact.outputs.artifact_id }}
+        run: |
+          for attempt in {1..12}; do
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=github-pages" --jq '.artifacts[] | select(.expired == false) | .id' | grep -Fxq "$ARTIFACT_ID"; then
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "::error::GitHub todavía no ha registrado el paquete de Pages."
+          exit 1
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
