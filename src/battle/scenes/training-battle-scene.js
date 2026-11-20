@@ -1,4 +1,4 @@
-import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.171.0";
+import { ArenaBattleScene } from "./arena-battle-scene.js?v=0.172.0";
 import { battleRuntime, WIDTH, HEIGHT } from "../runtime.js?v=0.91.0";
 import { trainingActions, trainingDummyProfile } from "../../training.js?v=0.171.0";
 import { CHAKRA_BALANCE } from "../../chakra-balance.js?v=1.0.0";

@@ -32,7 +32,7 @@ import { playTeleportTransition, teleportArrival, teleportFadeOut } from "../tel
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
 import { isSceneActive, pauseSceneIfActive, stopSceneIfRunning } from "../scene-lifecycle.js?v=1.0.0";
-import { presentBattleNotice } from "../scene-notices.js?v=0.171.0";
+import { presentBattleNotice } from "../scene-notices.js?v=0.172.0";
 import { elementName } from "../../elements.js?v=0.20.0";
 
 export class BattleFlowMethods {
@@ -174,6 +174,7 @@ export class BattleFlowMethods {
       if (this.enemyIndex === this.encounters.length - 1) {
         if (this.combatFeatures.relicDecision) await this.playRelicDrop();
         if (this.combatFeatures.postCombatChoice) await this.playHideoutDiscoveryChoice();
+        if (!isSceneActive(this.scene)) return true;
         this.pendingEncounterRewards.forEach((encounterIndex) => {
           this.saveData = awardEncounter(this.saveData, this.encounterIds[encounterIndex], { firstClear,mission:this.mission,encounterIndex,encounterIds:this.encounterIds }).save;
         });
@@ -391,6 +392,7 @@ export class BattleFlowMethods {
     const choices = [{ value: "conserve", label: "CONSERVAR", detail: "Recuperación menor; guardas los suministros." }];
     if (this.fieldSupplies > 0) choices.unshift({ value: "rest", label: "DESCANSAR", detail: `Recuperación amplia; consume 1 de ${this.fieldSupplies}.`, primary: true });
     const choice = await this.playBattleChoice("ADMINISTRACIÓN ENTRE DUELOS", this.missionSceneText("resource-choice", { master: masterName }), choices);
+    if (choice === undefined) return;
     if (choice === "rest") {
       this.fieldSupplies -= 1;
       this.nextRecovery = { hp: 70, chakra: 55, clearStatuses: true };
@@ -406,6 +408,7 @@ export class BattleFlowMethods {
       { value: "prisoners", label: "LIBERAR PRISIONEROS", detail: "Rescatas a los cautivos y obtienes sus testimonios.", primary: true },
       { value: "documents", label: "RECUPERAR DOCUMENTOS", detail: "La Biblioteca obtiene datos parciales sobre Raizen." }
     ]);
+    if (choice === undefined) return;
     this.saveData.campaign.hideoutDiscoveryChoice = choice;
     this.saveData = recordBestiaryObservation(this.saveData, "boss_raizen", { document: choice === "documents", vulnerability: "agua" });
     this.saveData = writeSave(this.saveData);
@@ -417,9 +420,10 @@ export class BattleFlowMethods {
   }
 
   async playLieutenantIntervention() {
-    await this.playBattleChoice("UNA DEUDA PENDIENTE", this.missionSceneText("lieutenant-intervention"), [
+    const choice = await this.playBattleChoice("UNA DEUDA PENDIENTE", this.missionSceneText("lieutenant-intervention"), [
       { value: "continue", label: "ENFRENTAR A RAIZEN", detail: "La decisión tomada en la cantera altera el combate final.", primary: true }
     ]);
+    if (choice === undefined) return;
     this.floatLabel(this.foe.body.x, this.foe.body.y - 150, "−15 % VIDA", 0xf0b85c);
     this.refreshHud();
   }

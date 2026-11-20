@@ -1,4 +1,4 @@
-import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.171.0";
+import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.172.0";
 import { createPlayerFighter, queuePlayerFighterTextures } from "../../fighters.js?v=0.171.0";
 import { playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.93.0";
@@ -137,7 +137,7 @@ export class LevelUpScene extends Phaser.Scene {
       button.focus({ preventScroll: true });
       this.time.delayedCall(reducedMotion || lightMode ? 120 : 1700, () => {
         if (!continuing) {
-          frozen = suspendPauseRendering(this, { htmlOnly: true });
+          frozen = suspendPauseRendering(this);
           this.staticConfirmation = true;
         }
       });

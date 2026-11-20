@@ -1,6 +1,6 @@
-import { TrainingBattleScene } from "./training-battle-scene.js?v=0.171.0";
+import { TrainingBattleScene } from "./training-battle-scene.js?v=0.172.0";
 import { applyBattleConsumable } from "../battle-inventory.js?v=0.171.0";
-import { BattleFlowMethods } from "./battle-flow.js?v=0.171.0";
+import { BattleFlowMethods } from "./battle-flow.js?v=0.172.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { trainingOpponentProfile } from "../../training.js?v=0.171.0";
 import { startPlayerBreathing, startPlayerPreparing, stopPlayerBreathing, stopPlayerPreparing } from "../../fighters.js?v=0.171.0";

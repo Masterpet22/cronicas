@@ -95,7 +95,7 @@ export function presentBattleNotice(scene, title, description, choices, { quote,
         close();
       });
     }
-    frozen = suspendPauseRendering(scene, { htmlOnly: true });
+    frozen = suspendPauseRendering(scene);
     (actions.querySelector("button.is-primary:not(:disabled)") ?? actions.querySelector("button:not(:disabled)") ?? panel)
       .focus({ preventScroll: true });
   });

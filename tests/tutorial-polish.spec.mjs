@@ -99,6 +99,27 @@ test("el informe separa el relato de la intervención del compañero", async ({ 
   await page.evaluate(() => window.__performanceReference.game.destroy(true));
 });
 
+test("cerrar una escena con una decisión abierta no cambia la partida", async ({ page }) => {
+  await bootPerformanceReference(page);
+  await page.evaluate(() => {
+    const { scene } = window.__performanceReference;
+    scene.fieldSupplies = 2;
+    window.__pendingNotice = scene.playResourceChoice();
+  });
+  const dialog = page.getByRole("dialog", { name: "ADMINISTRACIÓN ENTRE DUELOS" });
+  await expect(dialog).toBeVisible();
+  const result = await page.evaluate(async () => {
+    const { scene } = window.__performanceReference;
+    const save = JSON.stringify(scene.saveData);
+    scene.scene.stop();
+    await window.__pendingNotice;
+    return { saveMatches: JSON.stringify(scene.saveData) === save, supplies: scene.fieldSupplies, recovery: scene.nextRecovery };
+  });
+  expect(result).toMatchObject({ saveMatches: true, supplies: 2 });
+  expect(result.recovery).toBeFalsy();
+  await expect(dialog).toHaveCount(0);
+});
+
 async function seedVillage(page, { trained = false, bodyType = "male" } = {}) {
   await page.goto("/");
   await page.evaluate(async ({ trained, bodyType }) => {

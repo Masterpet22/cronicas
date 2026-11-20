@@ -1,4 +1,4 @@
-import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.171.0";
+import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.172.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
