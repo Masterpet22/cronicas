@@ -2,6 +2,7 @@ import { addNoticeText, mountSceneNotice } from "../scene-notices.js?v=0.173.0";
 import { BATTLE_ARENAS, HEIGHT, Phaser, WIDTH, battleRuntime } from "../runtime.js?v=0.91.0";
 import { stageVictory } from "../victory-transaction.js?v=0.95.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
+import { NPCS } from "../../npcs.js?v=0.174.0";
 
 export class MissionEpilogueScene extends Phaser.Scene {
   constructor() { super("epilogue"); }
@@ -12,7 +13,7 @@ export class MissionEpilogueScene extends Phaser.Scene {
     this.epilogueBackground = arena.texture;
     rememberCombatTexture(this, arena.texture);
     if (!this.textures.exists(arena.texture)) this.load.image(arena.texture, arena.file);
-    if (!this.textures.exists("sayo-kisaragi")) this.load.image("sayo-kisaragi", "assets/modular/representatives/sayo.webp?v=1.0.0");
+    if (!this.textures.exists("sayo-kisaragi")) this.load.image("sayo-kisaragi", NPCS.sayo.image);
   }
 
   create(data = {}) {

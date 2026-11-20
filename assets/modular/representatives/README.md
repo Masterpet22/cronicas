@@ -2,7 +2,9 @@
 
 Las doce figuras de escena se ensamblan con los maniquíes masculino y femenino del jugador. Se reutilizan sus pivotes, rostros, tonos de piel, manos, pantalones y botas. Los torsos, el vestuario de los brazos, los peinados y las barbas se adaptaron de las ilustraciones originales de `assets/npcs` con la herramienta integrada ImageGen. Los torsos cubren el arranque de ambos muslos.
 
-Las escenas usan exportaciones WebP RGBA de 480 × 800. Se regeneran con `python scripts/pack-npc-puppets.py` desde las hojas de origen y las piezas del maniquí.
+Las escenas usan exportaciones WebP RGBA de 480 × 800. Se regeneran con `python scripts/pack-npc-puppets.py` desde las hojas de origen y las piezas del maniquí. El script usa Node.js y los paquetes de Python Pillow, NumPy y OpenCV.
+
+Los torsos y brazos conservan el canal alfa de sus piezas de juego. Las hojas aportan el color, la tela y los accesorios interiores. La posición del cuello sale del maniquí y cada faja se alinea a la altura correspondiente entre el pecho y la cadera. Los puños y las manos comparten el pivote de la muñeca original. Las dos piernas se dibujan antes del torso. La escala y la línea del suelo son fijas y no dependen de la altura del pelo.
 
 ## Instrucciones de arte utilizadas
 

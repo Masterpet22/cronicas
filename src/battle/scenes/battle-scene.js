@@ -1,6 +1,7 @@
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.171.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
+import { NPCS } from "../../npcs.js?v=0.174.0";
 import { queueTeleportObjects } from "../teleport-transition.js?v=1.2.0";
 import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v=0.99.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
@@ -116,7 +117,7 @@ export class BattleScene extends Phaser.Scene {
     if (missionStep(battleRuntime.activeMission, "choice")?.relicDecision) {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", SHARED_BATTLE_ASSETS.kagemori);
       const master = masterIdForCharacter(battleRuntime.activeSave.character);
-      if (!this.textures.exists(master)) this.load.image(master, `assets/modular/representatives/${master}.webp?v=1.0.0`);
+      if (!this.textures.exists(master)) this.load.image(master, NPCS[master].image);
     }
     // Texturas de combatientes generadas con el mismo SVG del Dojo.
     this.saveData = battleRuntime.activeSave;

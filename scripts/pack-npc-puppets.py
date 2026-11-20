@@ -5,7 +5,9 @@ import subprocess
 from pathlib import Path
 from io import BytesIO
 
-from PIL import Image, ImageOps
+import cv2
+import numpy as np
+from PIL import Image, ImageFilter, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +18,18 @@ ARM_COLUMNS = {
     "antebrazo_izquierdo": 3, "antebrazo_derecho": 4
 }
 BEARDS = {"daichi": (0, 94, 151, 75, 68), "iori": (1, 57, 136, 112, 96)}
+PORTRAIT_SCALE = .61
+# Source and destination rows of each sash in its individual costume.
+# The higher obi and the narrower belts fit between chest and hips differently.
+WAISTS = {
+    "ren": ((.51, .63), (.57, .68)), "daichi": ((.43, .57), (.55, .67)),
+    "mei": ((.47, .62), (.56, .69)), "sayo": ((.42, .57), (.53, .66)),
+    "hana": ((.38, .52), (.51, .63)), "yuna": ((.31, .45), (.48, .61)),
+    "kureha": ((.39, .55), (.51, .64)), "goro": ((.51, .67), (.57, .70)),
+    "riku": ((.46, .57), (.55, .66)), "nao": ((.48, .64), (.55, .69)),
+    "iori": ((.55, .64), (.59, .68)), "nami": ((.46, .59), (.55, .67))
+}
+SLEEVE_COLORS = {"yuna": ("#26362e", "#92986e"), "kureha": ("#221d29", "#665366")}
 
 # Hair boxes are relative to the top-left of the head in the corresponding rig.
 # They allow tied strands to extend down the back without shrinking the crown.
@@ -59,6 +73,14 @@ def extract(sheet, column, row, id):
     end = (row + 1) * y + (19 if id == "yuna" and column == 5 else 0)
     cell = sheet.crop((left, top, (column + 1) * x, min(end, sheet.height)))
     alpha = cell.getchannel("A").point(lambda value: max(0, min(255, round((value - 32) * 255 / 208))))
+    if column != 5:
+        # Adjacent ribbons and braids may reach into an arm cell. Only the
+        # connected garment is registered to the player's limb.
+        pixels = np.asarray(alpha)
+        _, labels, stats, _ = cv2.connectedComponentsWithStats((pixels > 32).astype(np.uint8))
+        component = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+        region = Image.fromarray((labels == component).astype(np.uint8) * 255)
+        alpha = Image.fromarray(np.where(np.asarray(region.filter(ImageFilter.MaxFilter(3))), pixels, 0))
     box = alpha.getbbox()
     if box is None:
         raise ValueError(f"Empty sprite cell {column}, {row}")
@@ -78,19 +100,67 @@ def clothing_tone(image, middle, highlight="#d4c8ae"):
     return colored
 
 
-def mix_forearm_skin(image, palette, id):
-    pixels = image.load()
-    for y in range(round(image.height * .58)):
-        for x in range(image.width):
-            r, g, b, a = pixels[x, y]
-            if a and max(r, g, b) - min(r, g, b) < 22 and min(r, g, b) > 72:
-                tint = palette[round(r * .2126 + g * .7152 + b * .0722)]
-                if id == "kureha":
-                    tint = tuple(round(value * .23) for value in tint)
-                elif id == "yuna":
-                    tint = tuple(round(value * weight) for value, weight in zip(tint, (.4, .59, .44)))
-                pixels[x, y] = (*tint, a)
-    return image
+def row_edges(alpha):
+    visible = np.asarray(alpha) > 32
+    rows = np.flatnonzero(visible.any(axis=1))
+    left = np.argmax(visible, axis=1)
+    right = visible.shape[1] - 1 - np.argmax(visible[:, ::-1], axis=1)
+    positions = np.arange(visible.shape[0])
+    return np.interp(positions, rows, left[rows]), np.interp(positions, rows, right[rows])
+
+
+def smooth_profile(edge, radius):
+    samples = np.pad(edge, radius, mode="edge")
+    return np.convolve(samples, np.hanning(2 * radius + 1) / radius, mode="valid")
+
+
+def fitted_material(donor, mannequin, target_rows=(0, 1), source_rows=(0, 1)):
+    """Project the cloth between landmarks, keeping the exact mannequin alpha."""
+    width, height = mannequin.size
+    template_alpha = mannequin.getchannel("A")
+    source_alpha = donor.getchannel("A")
+    left, right = row_edges(template_alpha)
+    source_left, source_right = row_edges(source_alpha)
+    rows = np.interp(np.linspace(0, 1, height), target_rows, source_rows) * (donor.height - 1)
+    if len(target_rows) > 2:
+        # Do not drag lapels or belts sideways with each individual tassel.
+        rows = smooth_profile(rows, round(height * .035))
+        left, right = (smooth_profile(edge, round(height * .075)) for edge in (left, right))
+        source_left, source_right = (
+            smooth_profile(edge, round(donor.height * .09)) for edge in (source_left, source_right)
+        )
+    starts = np.interp(rows, np.arange(donor.height), source_left)
+    ends = np.interp(rows, np.arange(donor.height), source_right)
+    fraction = np.clip((np.arange(width) - left[:, None]) / np.maximum(1, right - left)[:, None], 0, 1)
+    cols = starts[:, None] + fraction * (ends - starts)[:, None]
+    material = Image.fromarray(cv2.remap(
+        np.asarray(donor.convert("RGBa")), cols.astype(np.float32),
+        np.repeat(rows[:, None], width, axis=1).astype(np.float32),
+        cv2.INTER_LINEAR, borderMode=cv2.BORDER_REPLICATE
+    ), mode="RGBa").convert("RGBA")
+    # Keep the reference linework at the outside of each joint and garment.
+    interior = template_alpha.filter(ImageFilter.MinFilter(5))
+    interior = Image.fromarray(np.minimum(np.asarray(interior), np.asarray(material.getchannel("A"))))
+    art = Image.composite(material, mannequin, interior)
+    art.putalpha(template_alpha)
+    return art
+
+
+def native_cuff(art, base, donor, template, id):
+    """Use the stock anatomy wherever the illustrated arm has a gray guide."""
+    if id in SLEEVE_COLORS:
+        base = clothing_tone(template, *SLEEVE_COLORS[id])
+    donor_rgb = np.asarray(donor.convert("RGB"), dtype=np.int16)
+    guide = (np.ptp(donor_rgb, axis=2) < 24) & (donor_rgb.min(axis=2) > 76)
+    guide[round(donor.height * .56):] = False
+    mask = Image.fromarray((guide * 255).astype(np.uint8)).convert("RGBA")
+    mask.putalpha(donor.getchannel("A"))
+    gray = Image.new("RGBA", base.size, "black")
+    gray.putalpha(base.getchannel("A"))
+    mask = fitted_material(mask, gray).convert("L").filter(ImageFilter.MaxFilter(5))
+    result = Image.composite(base, art, mask)
+    result.putalpha(base.getchannel("A"))
+    return result
 
 
 def draw(image, piece, center, size):
@@ -100,7 +170,7 @@ def draw(image, piece, center, size):
     ))
 
 
-def assemble(sheet, row, profile, rigs, palettes, beards):
+def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     id, body, tone, expression, pants, shoes, hair_box, bare = profile
     rig = rigs[body]
     palette = palettes[tone]
@@ -113,19 +183,27 @@ def assemble(sheet, row, profile, rigs, palettes, beards):
         name = part["id"]
         size = (part["width"] * part.get("scaleX", 1), part["height"] * part.get("scaleY", 1))
         center = (part["x"] + offset_x, part["y"] + offset_y)
+        native = Image.open(body_path / f"{name}.png").convert("RGBA")
         if name == "torso":
-            art = extract(sheet, 0, row, id)
+            template = Image.open(outfit_path / "torso.png").convert("RGBA")
+            source_waist, target_waist = WAISTS[id]
+            underlay = clothing_tone(template, pants, "#8d8279")
+            art = fitted_material(extract(sheet, 0, row, id), underlay,
+                                  (0, .10, .23, *target_waist, 1), (0, .10, .23, *source_waist, 1))
         elif name in ARM_COLUMNS and not (bare and name.startswith("brazo")):
-            art = extract(sheet, ARM_COLUMNS[name], row, id)
-            if id in ("hana", "yuna", "kureha", "goro") and name.startswith("antebrazo"):
-                art = mix_forearm_skin(art, palette, id)
-            if id in ("yuna", "kureha") and name.startswith("brazo"):
-                colors = ("#253629", "#707750") if id == "yuna" else ("#241c2d", "#59475d")
-                art = clothing_tone(art, *colors)
+            base = skin(native, palette)
+            donor = extract(sheet, ARM_COLUMNS[name], row, id)
+            if id in sleeve_fabric and name.startswith("brazo"):
+                fabric = clothing_tone(sleeve_fabric[id][name], *SLEEVE_COLORS[id])
+                art = fitted_material(fabric, clothing_tone(native, *SLEEVE_COLORS[id]))
+            else:
+                art = fitted_material(donor, native)
+                if name.startswith("antebrazo") and id in ("hana", "yuna", "kureha", "goro"):
+                    art = native_cuff(art, base, donor, native, id)
         elif name in outfit:
             art = clothing_tone(Image.open(outfit_path / f"{name}.png").convert("RGBA"), shoes if name.startswith(("pie_", "pierna_")) else pants)
         else:
-            art = skin(Image.open(body_path / f"{name}.png").convert("RGBA"), palette)
+            art = skin(native, palette)
         draw(image, art, center, size)
 
     head = rig["byId"]["cabeza"]
@@ -142,12 +220,16 @@ def assemble(sheet, row, profile, rigs, palettes, beards):
     x, y, w, h = hair_box
     draw(image, extract(sheet, 5, row, id), (top[0] + x + w / 2, top[1] + y + h / 2), (w, h))
 
-    # Keep the same head-to-ground proportions. Leave safe transparent margins.
-    bounds = image.getbbox()
-    figure = image.crop(bounds)
-    figure.thumbnail((444, 765), Image.Resampling.LANCZOS)
+    # Use one scale and a fixed footprint per rig. Hair cannot resize or
+    # recenter a body, even for a high bun or a long side braid.
+    ground = max(part["y"] + part["height"] / 2 for part in rig["layers"] if part["id"].startswith("pie_"))
+    crop_width = round(480 / PORTRAIT_SCALE)
+    crop_height = round(800 / PORTRAIT_SCALE)
+    left = offset_x - crop_width // 2 - 23
+    bottom = round(offset_y + ground + 17 / PORTRAIT_SCALE)
+    figure = image.crop((left, bottom - crop_height, left + crop_width, bottom))
     canvas = Image.new("RGBA", (480, 800))
-    canvas.alpha_composite(figure, ((480 - figure.width) // 2, 783 - figure.height))
+    canvas.alpha_composite(figure.resize(canvas.size, Image.Resampling.LANCZOS))
     encoded = BytesIO()
     canvas.save(encoded, format="WEBP", quality=91, method=6)
     temporary = OUTPUT / f"{id}.webp.tmp"
@@ -157,13 +239,21 @@ def assemble(sheet, row, profile, rigs, palettes, beards):
 
 def main():
     data = rig_data()
-    with Image.open(OUTPUT / "source" / "barbas.png") as source:
-        beards = source.convert("RGBA")
-    for name, profiles in CAST.items():
+    def load_sheet(name):
         with Image.open(OUTPUT / "source" / f"{name}.png") as source:
-            sheet = source.convert("RGBA")
+            return source.convert("RGBA")
+
+    beards = load_sheet("barbas")
+    sheets = {name: load_sheet(name) for name in CAST}
+    sleeves = {
+        "yuna": {name: extract(sheets["cuartel-dojo-biblioteca"], column, 3, "sayo")
+                 for name, column in ARM_COLUMNS.items() if name.startswith("brazo")},
+        "kureha": {name: extract(sheets["cuartel-dojo-biblioteca"], column, 1, "daichi")
+                   for name, column in ARM_COLUMNS.items() if name.startswith("brazo")}
+    }
+    for name, profiles in CAST.items():
         for row, profile in enumerate(profiles):
-            assemble(sheet, row, profile, data["rigs"], data["palettes"], beards)
+            assemble(sheets[name], row, profile, data["rigs"], data["palettes"], beards, sleeves)
 
 
 if __name__ == "__main__":
