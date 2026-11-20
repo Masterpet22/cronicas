@@ -71,7 +71,11 @@ const mockScene = {
   load: { image: k => loaded.push(k), atlas: k => loaded.push(k) }
 };
 assert.equal(queuePlayerFighterTextures(mockScene, playerApp), "modular", "El cuerpo masculino debe usar los sprites modulares");
-assert.equal(loaded.length, 4, "Cargar el atlas, el rostro, el peinado y el sello de manos");
+assert.equal(loaded.length, 8, "Cargar el atlas, el rostro, el peinado, el sello de manos y el pantalón completo");
+assert.deepEqual(loaded.filter(key => key.startsWith("fighter-cloth-")).sort(), [
+  "fighter-cloth-male-traveler-muslo_derecho", "fighter-cloth-male-traveler-muslo_izquierdo",
+  "fighter-cloth-male-traveler-pierna_derecha", "fighter-cloth-male-traveler-pierna_izquierda"
+]);
 assert.ok(loaded.includes("player-face-claro-angry"), "El rostro elegido debe cargarse como una capa independiente por tono");
 assert.equal(fighterFaceTextureKey({ face: 3, skinTone: "moreno" }), "player-face-moreno-happy", "Cada selección debe resolver su propia textura de rostro y tono");
 assert.ok(!loaded.includes("player-head-corto"), "El retrato debe dibujar el cabello con la misma capa que el combatiente");
@@ -102,7 +106,7 @@ queuePlayerFighterTextures({ textures: { exists: (key) => ponytailLoaded.include
 assert.ok(ponytailLoaded.includes("player-hair-coleta"), "Coleta debe cargarse también para el cuerpo masculino");
 assert.ok(ponytailLoaded.includes("player-tail-coleta"), "La cola trasera debe cargarse como una textura independiente");
 const baldLoaded = [];
-queuePlayerFighterTextures({ textures: { exists: (key) => baldLoaded.includes(key) }, load: { image: key => baldLoaded.push(key), atlas: key => baldLoaded.push(key) } }, { ...playerApp, hair: 0 });
+queuePlayerFighterTextures({ textures: { exists: (key) => baldLoaded.includes(key) }, load: { image: key => baldLoaded.push(key), atlas: key => baldLoaded.push(key) } }, { ...playerApp, hair: 0, bottom: 1 });
 assert.equal(baldLoaded.length, 3, "La variante sin cabello carga atlas, rostro y sello de manos");
 assert.ok(!baldLoaded.some((key) => key.startsWith("player-hair-")), "La variante sin cabello no debe encolar una textura de peinado");
 assert.deepEqual(MAN_SPRITE_LAYERS.map(({ id }) => id).sort(), [

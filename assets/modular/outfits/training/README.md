@@ -1,6 +1,6 @@
 # Atuendo de entrenamiento
 
-Atuendo inicial compartido entre el creador, Apariencia del Dojo y las marionetas de combate de ambos cuerpos. No modifica estadísticas ni las elecciones guardadas. Las prendas cuyo arte sigue pendiente conservan esta representación y lo indican en la interfaz.
+Atuendo inicial compartido entre el creador, Apariencia del Dojo y las marionetas de combate de ambos cuerpos. Sus piezas sirven de base cuando no se ha equipado una prenda de la tienda o un traje completo.
 
 Las catorce piezas mantienen las dimensiones de los sprites originales y usan los mismos anclajes de `src/character-rigs.js`. La piel, el rostro y el cabello conservan sus texturas y filtros independientes. La ropa no se vuelve a teñir al cambiar el tono de piel.
 

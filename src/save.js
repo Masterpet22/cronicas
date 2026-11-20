@@ -23,10 +23,10 @@ import { createCompletedMissionProgress, migrateSaveToV18 } from "./save/save-mi
 import { createSlotRepository } from "./save/slot-repository.js?v=0.161.0";
 import { currentSaveStorage } from "./save/save-storage.js?v=1.0.0";
 import { teleportObject } from "./teleport-objects.js";
-import { ITEMS } from "./items.js?v=0.165.0";
-import { LEGACY_SEALS } from "./cosmetics.js?v=0.165.0";
-import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.165.0";
-import { normalizeHairStyle } from "./character-rigs.js?v=0.165.0";
+import { ITEMS } from "./items.js?v=0.166.0";
+import { LEGACY_SEALS } from "./cosmetics.js?v=0.166.0";
+import { normalizeAppearance, normalizeInventory, starterInventory } from "./inventory.js?v=0.166.0";
+import { normalizeHairStyle } from "./character-rigs.js?v=0.166.0";
 import { applyCipherAction, cipherComplete } from "./puzzles/seal-cipher.js";
 import { advanceMissionProgress as advanceCampaignMission, failMissionProgress as markMissionFailed, normalizeMissionProgress, startMissionProgress as markMissionStarted } from "./save/campaign-state.js?v=0.155.0";
 import { AFFINITY_LEVEL_FOCUS, ENCOUNTER_REWARDS, MAX_CHARACTER_LEVEL, addExperience, characterLevel, attributeTrainingLimit, experienceForNextLevel, levelStatBonus } from "./progression-balance.js?v=0.94.0";

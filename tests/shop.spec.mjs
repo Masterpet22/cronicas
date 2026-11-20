@@ -3,11 +3,11 @@ import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 import { bootPerformanceReference } from "./helpers/performance-harness.mjs";
 
 const stored = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")));
-async function seedShop(page) {
+async function seedShop(page, bodyType = "male") {
   await page.goto("/");
-  await page.evaluate(async () => {
+  await page.evaluate(async bodyType => {
     const { createCharacter, createDefaultSave, writeSave } = await import("/src/save.js?v=0.111.0");
-    const save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "fuego", bodyType: "male" });
+    const save = createCharacter(createDefaultSave(), { name: "Comprador", affinity: "fuego", bodyType });
     save.equipment.weapon = "kunai"; save.equipment.throwable = "shuriken";
     const { unlockVillageForTest } = await import("/tests/helpers/village-progress.mjs");
     unlockVillageForTest(save, {});
@@ -16,12 +16,12 @@ async function seedShop(page) {
     save.campaign.elementRank = 2;
     save.campaign.completedSecondaryMissions = ["affinity_trial_2"];
     save.campaign.rank = "Guardián";
-    save.campaign.tutorialSeen = true; save.campaign.npcIntroductions = ["dojo:mei"];
+    save.campaign.tutorialSeen = true; save.campaign.npcIntroductions = [`dojo:${save.character.masterId}`];
     save.character.affinities = ["fuego", "viento"];
     save.character.knownAffinities = ["fuego", "viento"];
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
-  });
+  }, bodyType);
   await page.reload();
   await page.locator('[data-go="shop"]').click();
   const speech = page.locator("[data-stage-speech]");
@@ -32,6 +32,47 @@ async function seedShop(page) {
     if (last) break;
   }
   await expect(page.locator(".shop-panel")).toBeVisible();
+}
+
+for (const bodyType of ["male", "female"]) {
+  test(`viste por separado torso, pantalón completo y calzado en ${bodyType}`, async ({ page }) => {
+    await seedShop(page, bodyType);
+    const garments = [
+      { slot: "top", id: "top_traveler", style: "traveler", partCount: 1 },
+      { slot: "bottom", id: "bottom_shadow", style: "shadow", partCount: 4 },
+      { slot: "shoes", id: "shoes_sandals", style: "sandals", partCount: 2 }
+    ];
+    for (const { slot, id, style } of garments) {
+      await page.locator("[data-shop-category-select]").selectOption(slot);
+      const card = page.locator(`[data-shop-item="${id}"]`);
+      const image = card.locator(".item-art img");
+      await expect(image).toHaveAttribute("src", new RegExp(`/${style}/${bodyType}/${slot}\\.webp`));
+      await image.evaluate(img => img.decode());
+      await card.getByRole("button", { name: "Comprar" }).click();
+    }
+    await page.getByRole("button", { name: "← Volver al mapa" }).click();
+    await page.locator('[data-go="dojo"]').click();
+    await page.locator('[data-dojo-tab="appearance"]').click();
+    const preview = page.locator("[data-dojo-panel='appearance'] [data-raster-character-preview]");
+    const clothingSources = () => preview.locator(".puppet-preview-cloth").evaluateAll(
+      images => Promise.all(images.map(async img => { await img.decode(); return img.getAttribute("src"); }))
+    );
+    let before = await clothingSources();
+    expect(before).toHaveLength(7);
+    for (const { slot, style, partCount } of garments) {
+      await page.locator(`[data-cosmetic-step="${slot}"][data-direction="1"]`).click();
+      const after = await clothingSources();
+      const changed = after.filter((src, index) => src !== before[index]);
+      expect(changed).toHaveLength(partCount);
+      expect(changed.every(src => src.includes(`/${style}/${bodyType}/`))).toBe(true);
+      before = after;
+    }
+    expect((await stored(page)).character).toMatchObject({ top: 2, bottom: 3, shoes: 2 });
+    await page.reload();
+    await page.locator('[data-go="dojo"]').click();
+    await page.locator('[data-dojo-tab="appearance"]').click();
+    expect(await clothingSources()).toEqual(before);
+  });
 }
 
 test("compra, apila, equipa y conserva el equipo al recargar", async ({ page }) => {

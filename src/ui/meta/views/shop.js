@@ -1,7 +1,7 @@
-import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.165.0";
-import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.165.0";
-import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.165.0";
-import { itemIcon } from "../../item-icons.js?v=0.126.0";
+import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.166.0";
+import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.166.0";
+import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.166.0";
+import { itemIcon } from "../../item-icons.js?v=0.166.0";
 
 const clothingSlots = ["top", "bottom", "shoes"];
 const shopFilters = [
@@ -24,7 +24,7 @@ export function createShopView(deps) {
       const reason = selling ? saleBlockReason(save, item.id) : completed ? "Contrato completado" : owned ? "Ya lo tienes" : count >= item.stackLimit ? "Capacidad máxima" : save.progression.coins < item.price ? "Sin monedas" : "";
       const maximum = selling ? sellableItemCount(save, item.id) : item.stackLimit - count;
       const placed = item.kind === "decoration" ? count - sellableItemCount(save, item.id) : 0;
-      return `<form class="item-card shop-item" data-shop-item="${item.id}"><div class="item-card-top"><span class="item-art">${itemIcon(item)}</span><span class="item-price">${item.price === 0 ? "Inicial" : `${selling ? sellPrice(item) : item.price} <small>monedas / unidad</small>`}</span></div><h3>${escape(item.name)}</h3>${item.pendingArt ? '<strong class="shop-art-pending">Gráfico pendiente · Se mantiene el atuendo de entrenamiento</strong>' : ""}<p>${escape(item.description)}</p><small class="shop-stock">En inventario: ${count}${placed ? ` · En Mi espacio: ${placed}` : ""}${reason && selling ? `<br>${escape(reason)}` : ""}</small><div class="shop-purchase">${item.stackLimit > 1 ? `<label>Cantidad<input type="number" min="1" max="${Math.max(1, maximum)}" value="1" aria-label="Cantidad de ${escape(item.name)}" ${maximum < 1 ? "disabled" : ""}></label>` : ""}<button type="submit" ${reason ? "disabled" : ""}>${selling ? "Vender" : reason || "Comprar"}</button></div></form>`;
+      return `<form class="item-card shop-item" data-shop-item="${item.id}"><div class="item-card-top"><span class="item-art">${itemIcon(item, save.character.bodyType)}</span><span class="item-price">${item.price === 0 ? "Inicial" : `${selling ? sellPrice(item) : item.price} <small>monedas / unidad</small>`}</span></div><h3>${escape(item.name)}</h3><p>${escape(item.description)}</p><small class="shop-stock">En inventario: ${count}${placed ? ` · En Mi espacio: ${placed}` : ""}${reason && selling ? `<br>${escape(reason)}` : ""}</small><div class="shop-purchase">${item.stackLimit > 1 ? `<label>Cantidad<input type="number" min="1" max="${Math.max(1, maximum)}" value="1" aria-label="Cantidad de ${escape(item.name)}" ${maximum < 1 ? "disabled" : ""}></label>` : ""}<button type="submit" ${reason ? "disabled" : ""}>${selling ? "Vender" : reason || "Comprar"}</button></div></form>`;
     }).join("") || `<p class="inventory-empty">${mode === "sell" ? "No tienes objetos para vender en esta categoría." : "No hay objetos a la venta en esta categoría."}</p>`;
   }
   function contents() {

@@ -1,7 +1,10 @@
 import { guildDecorArt, guildFinishArt } from "./meta/guild-art.js?v=0.126.0";
-export function itemIcon(item) {
+import { clothingThumbnail } from "../base-outfit.js?v=0.166.0";
+
+export function itemIcon(item, bodyType) {
   if (item.kind === "decoration") return item.guildSurface === "decor" ? guildDecorArt(item.value) : guildFinishArt(item.guildSurface, item.value);
-  if (item.image) return `<img src="${item.image}" alt="" decoding="async">`;
+  const image = item.image || clothingThumbnail(item, bodyType);
+  if (image) return `<img src="${image}" alt="" decoding="async">`;
   const path = item.category === "appearance" ? 'M8 3 3 6 1 11l4 2 2-4v12h10V9l2 4 4-2-2-5-5-3-4 3Z'
     : item.id === "axe" ? 'm8 22 8-19m-5 4c-4-3-7-1-8 3 4 3 7 3 10 1m2-5c4 1 6 3 6 7-4 1-7 0-9-2'
       : item.category === "weapons" ? 'm5 19 9-9m-5 8-3-3m6-3 2-8 6-2-2 6-6 4M3 21l3-3'

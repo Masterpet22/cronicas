@@ -1,13 +1,13 @@
 import { runCycleForRig } from "./animations/locomotion-pose.js?v=0.156.0";
 import { queuePreparationHands, prepareHandsTexture, createPreparationHands, syncPreparationHands, restorePreparationForearms } from "./animations/preparation-hands.js?v=0.159.0";
-import { isBaseOutfitPart } from "./base-outfit.js?v=0.140.0";
+import { clothingAsset, clothingTextureKey, isBaseOutfitPart, selectedClothing } from "./base-outfit.js?v=0.166.0";
 import { normalizeSkinTone } from "./skin-tones.js?v=0.135.0";
 import { colorizeFighterAtlas } from "./battle/skin-textures.js?v=0.150.0";
 import { rememberCombatTexture } from "./battle/combat-textures.js?v=1.0.0";
 import { uniformTextureSuffix } from './enemy-appearance.js?v=1.0.0';
 import { composeUniformAtlas, queueUniformTextures } from './battle/uniform-textures.js?v=1.0.0';
-import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.165.0";
-import { createPuppetAnimationController } from "./animations/controller.js?v=0.165.0";
+import { DEFAULT_IDLE_CLIP, PUPPET_ANIMATION_CLIPS } from "./animations/clips.js?v=0.166.0";
+import { createPuppetAnimationController } from "./animations/controller.js?v=0.166.0";
 import { preparationClipForRig } from "./animations/preparation-pose.js?v=0.159.0";
 import {
   CHARACTER_FACES,
@@ -19,7 +19,7 @@ import {
   WOMAN_SPRITE_LAYERS as UPDATED_WOMAN_SPRITE_LAYERS,
   characterHairConfig,
   hairAsset
-} from "./character-rigs.js?v=0.165.0";
+} from "./character-rigs.js?v=0.166.0";
 
 const FIGHTER_GROUND_OFFSET = 60;
 export const MAN_SPRITE_SHADOW_OFFSET = FIGHTER_GROUND_OFFSET;
@@ -138,6 +138,14 @@ export function queuePlayerFighterTextures(scene, appearance) {
     const url = `assets/modular/atlases/${variant.bodyType}`;
     scene.load.atlas(key, `${url}.png?v=1.1.0`, `${url}.json?v=1.1.0`);
   }
+  if (!appearance?.uniform) {
+    for (const [id, style] of Object.entries(selectedClothing(appearance))) {
+      if (style === "training") continue;
+      const partKey = clothingTextureKey(variant.bodyType, id, style);
+      rememberCombatTexture(scene, partKey);
+      if (!scene.textures.exists(partKey)) scene.load.image(partKey, clothingAsset(variant.bodyType, id, style));
+    }
+  }
   const hair = CHARACTER_HAIR[appearance?.hair];
   if (hair && !scene.textures.exists(hairTextureKey(appearance.hair))) {
     scene.load.image(hairTextureKey(appearance.hair), hairAsset(appearance.hair));
@@ -161,7 +169,13 @@ function createJoint(scene, parent, name, point, parentPoint = { x: 0, y: 0 }) {
 
 function addPart(scene, parent, variant, id, parentPoint = { x: 0, y: 0 }) {
   const part = variant.byId[id];
-  const image = scene.add.image(part.x - parentPoint.x, part.y - parentPoint.y, variant.atlasKey, id);
+  const style = variant.clothing?.[id];
+  const key = style && style !== "training" ? clothingTextureKey(variant.bodyType, id, style) : null;
+  const hasClothing = key && scene.textures.exists?.(key);
+  const x = part.x - parentPoint.x, y = part.y - parentPoint.y;
+  const image = hasClothing
+    ? useFighterTextureRendering(scene.add.image(x, y, key))
+    : scene.add.image(x, y, variant.atlasKey, id);
   if (part.scaleX || part.scaleY) image.setScale(part.scaleX || 1, part.scaleY || part.scaleX || 1);
   if (part.restRotation) image.setAngle(part.restRotation);
   image.name = id;
@@ -361,7 +375,11 @@ export async function playEarthWallCast(scene, fighter) {
 
 export function createPlayerFighter(scene, x, y, appearance, flipped = false) {
   preparePlayerFighterTextures(scene, appearance);
-  const variant = { ...puppetVariant(appearance), atlasKey: fighterAtlasKey(appearance) };
+  const variant = {
+    ...puppetVariant(appearance),
+    atlasKey: fighterAtlasKey(appearance),
+    clothing: appearance?.uniform ? null : selectedClothing(appearance)
+  };
   const spriteJoints = variant.joints;
   const shadow = scene.add.ellipse(x, y + FIGHTER_GROUND_OFFSET, variant.ground.shadowWidth, 14, 0x000000, 0.4).setDepth(4);
   const body = scene.add.container(x, y).setDepth(6);

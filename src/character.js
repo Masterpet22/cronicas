@@ -1,5 +1,5 @@
 import { normalizeSkinTone, skinTone } from "./skin-tones.js?v=0.135.0";
-import { CHARACTER_HAIR_STYLES, hairAsset, normalizeHairStyle } from "./character-rigs.js?v=0.165.0";
+import { CHARACTER_HAIR_STYLES, hairAsset, normalizeHairStyle } from "./character-rigs.js?v=0.166.0";
 const HAIR_COLORS = ["#2d2d2d", "#383838", "#363636", "#3d3d3d", "#272727"];
 export const HAIR_STYLE_LABELS = Object.freeze(CHARACTER_HAIR_STYLES.map(({ label }) => label));
 const RASTER_HAIR = Object.freeze({
