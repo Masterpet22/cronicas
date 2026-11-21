@@ -82,7 +82,7 @@ export function locationSelectionComment(target, npcId) {
   if (data.placeDecor) return "Pulsa Colocar o toca un lugar de la sala. Las insignias y cuadros van en la pared; los muebles y plantas, en el suelo. Después puedes arrastrarlos o moverlos con las flechas.";
   if (data.shopMode === "sell") return "Veamos qué quieres vender. Te pagaré la mitad de su precio; lo que tienes en uso debe quedar libre primero.";
   if (data.shopMode === "buy") return "Aquí tienes el catálogo. Revisa el precio y las unidades antes de decidir.";
-  if (data.shopMode === "fitting") return "Prueba y combina las prendas. Puedes equipar tus compras en el Dojo.";
+  if (data.shopMode === "fitting") return "Prueba las prendas y equipa aquí las que ya tengas.";
   if (data.shopCategory) return `Veamos ${control.textContent.trim().toLowerCase()}. Los precios están a la vista, como debe ser.`;
   if (data.saga) return "Has elegido una saga. Revisa sus encargos y prepara cada paso antes de partir.";
   if (control.hasAttribute("data-back-sagas")) return "Aquí tienes las sagas de nuevo. Cada una reúne un camino de nuestra historia.";

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { MASK_COSMETICS } from "../src/character-masks.js";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 import { bootPerformanceReference } from "./helpers/performance-harness.mjs";
 
@@ -38,11 +39,15 @@ for (const bodyType of ["male", "female"]) {
   test(`prueba y equipa máscaras y armadura completa en ${bodyType}`, async ({ page }) => {
     await seedShop(page, bodyType);
     const original = await stored(page);
+    await page.locator("[data-shop-category-select]").selectOption("mask");
+    const maskCard = page.locator('[data-shop-item="mask_oni_violet"] .item-art img');
+    await expect(maskCard).toHaveAttribute("src", new RegExp(`/masks/oni_violet-${bodyType}\\.webp`));
+    await maskCard.evaluate(image => image.decode());
     await page.getByRole("button", { name: "Probador", exact: true }).click();
     await page.getByRole("button", { name: "Máscaras y trajes", exact: true }).click();
     const preview = page.locator("[data-fitting-preview]");
     const mask = preview.locator(".puppet-preview-mask");
-    for (const style of ["cloth", "metal"]) {
+    for (const { value: style } of MASK_COSMETICS) {
       await page.getByRole("button", { name: "Máscara siguiente", exact: true }).click();
       await expect(mask).toHaveAttribute("src", new RegExp(`/masks/${style}-${bodyType}\\.png`));
       await mask.evaluate(image => image.decode());
@@ -55,15 +60,30 @@ for (const bodyType of ["male", "female"]) {
     }
     expect(await stored(page)).toEqual(original);
     await page.screenshot({ path: `test-results/shop/armadura-y-mascara-${bodyType}.png` });
-    await page.locator('[data-fitting-slot="mask"]').getByRole("button", { name: "Comprar" }).click();
-    await page.locator('[data-fitting-slot="outfit"]').getByRole("button", { name: "Comprar" }).click();
+    for (const slot of ["mask", "outfit"]) {
+      const row = page.locator(`[data-fitting-slot="${slot}"]`);
+      await row.getByRole("button", { name: "Comprar" }).click();
+      await row.getByRole("button", { name: "Equipar" }).press("Enter");
+      await expect(row.locator("[data-fitting-name]")).toContainText("Puesto");
+    }
+    const violet = await stored(page);
+    expect(violet.character).toMatchObject({ mask: "oni_violet", outfit: "lamellar_armor" });
+    expect(violet.inventory.items).toMatchObject({ mask_oni_violet: 1 });
+    expect(violet.inventory.items.mask_oni_vermilion).toBeUndefined();
+    expect(violet.inventory.items.mask_oni).toBeUndefined();
+    await page.getByRole("button", { name: "Máscara anterior", exact: true }).click();
+    const maskRow = page.locator('[data-fitting-slot="mask"]');
+    await expect(maskRow.locator("[data-fitting-name]")).toHaveText("Máscara de oni · Bermellón");
+    await maskRow.getByRole("button", { name: "Comprar" }).click();
+    await maskRow.getByRole("button", { name: "Equipar" }).click();
+    const vermilion = await stored(page);
+    expect(vermilion.progression.coins).toBe(violet.progression.coins - 120);
+    expect(vermilion.inventory.items).toMatchObject({ mask_oni_violet: 1, mask_oni_vermilion: 1 });
+    expect(vermilion.character.mask).toBe("oni_vermilion");
     await page.getByRole("button", { name: "← Volver al mapa" }).click();
     await page.locator('[data-go="dojo"]').click();
     await page.locator('[data-dojo-tab="appearance"]').click();
-    for (const slot of ["mask", "outfit"]) {
-      await page.locator(`[data-cosmetic-step="${slot}"][data-direction="1"]`).click();
-    }
-    expect((await stored(page)).character).toMatchObject({ mask: "metal", outfit: "lamellar_armor" });
+    await expect(page.locator('[data-cosmetic-value="mask"]')).toContainText("Máscara de oni · Bermellón");
     await expect(page.locator('[data-cosmetic-value="top"]')).toHaveText("Cubierto por la armadura");
   });
 
@@ -71,14 +91,25 @@ for (const bodyType of ["male", "female"]) {
     await page.setViewportSize(bodyType === "male" ? { width: 1280, height: 720 } : { width: 1024, height: 768 });
     await seedShop(page, bodyType);
     const save = await stored(page);
+    const panel = page.locator(".location-shop .stage-options");
+    const shopWidth = (await panel.boundingBox()).width;
     await page.getByRole("button", { name: "Probador", exact: true }).click();
     const preview = page.locator("[data-fitting-preview]");
+    expect((await panel.boundingBox()).width).toBeCloseTo(shopWidth, 0);
+    const previewBox = await preview.boundingBox();
+    expect(previewBox.width).toBeLessThan((await page.locator(".shop-fitting-controls").boundingBox()).width);
+    expect(previewBox.height).toBeGreaterThan(262);
     const sources = () => preview.locator(".puppet-preview-cloth").evaluateAll(images =>
       Promise.all(images.map(async image => { await image.decode(); return image.getAttribute("src"); }))
     );
     const equipped = await sources();
     expect(equipped).toHaveLength(7);
     await expect(page.locator(".shop-fitting select")).toHaveCount(0);
+    const arrowPositions = () => page.locator("[data-fitting-step]").evaluateAll(arrows => arrows.map(arrow => {
+      const { x, y } = arrow.getBoundingClientRect();
+      return [x, y];
+    }));
+    const positions = await arrowPositions();
     let before = equipped;
     for (const [name, style, partCount] of [
       ["Torso siguiente", "traveler", 1],
@@ -89,6 +120,7 @@ for (const bodyType of ["male", "female"]) {
       await arrow.focus();
       await arrow.press("Enter");
       await expect(arrow).toBeFocused();
+      expect(await arrowPositions()).toEqual(positions);
       const after = await sources();
       const changed = after.filter((src, index) => src !== before[index]);
       expect(changed).toHaveLength(partCount);
@@ -112,9 +144,17 @@ for (const bodyType of ["male", "female"]) {
     expect(bought.inventory.items.top_traveler).toBe(1);
     expect(bought.character).toEqual(save.character);
     expect(await sources()).toEqual(before);
-    await expect(top.getByRole("button", { name: "Ya lo tienes" })).toBeDisabled();
+    const equip = top.getByRole("button", { name: "Equipar" });
+    await expect(equip).toBeFocused();
+    expect(await arrowPositions()).toEqual(positions);
+    await equip.press("Enter");
+    expect((await stored(page)).character.top).toBe(2);
+    expect((await stored(page)).progression.coins).toBe(bought.progression.coins);
     await reset.click();
-    expect(await sources()).toEqual(equipped);
+    const restored = await sources();
+    expect(restored.filter((src, index) => src !== equipped[index])).toEqual([
+      expect.stringContaining(`/traveler/${bodyType}/torso.png`)
+    ]);
     await expect(reset).toBeDisabled();
   });
 

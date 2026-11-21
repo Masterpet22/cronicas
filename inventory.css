@@ -53,28 +53,29 @@
 .shop-tabs button { min-height: 38px; padding: 7px 18px; border: 1px solid #927445; border-radius: 5px; background: #0b1422; color: #dfc696; cursor: pointer; font: 700 15px "Alegreya Sans", sans-serif; }
 .shop-tabs button[aria-pressed=true] { background: #571f2a; border-color: #d9af65; }
 .shop-tabs span { flex: 1; min-width: 180px; color: #aeb9c2; font-size: 13px; }
+.location-shop .stage-options:has(.shop-fitting) { max-height: calc(100% - 110px); }
 .shop-panel:has(.shop-fitting) { padding: clamp(12px, 1.6vw, 22px); }
 .shop-panel:has(.shop-fitting) .shop-heading { margin-bottom: 8px; }
-.shop-panel:has(.shop-fitting) .shop-wallet { padding: 6px 10px; font-size: 22px; }
+.shop-panel:has(.shop-fitting) .shop-wallet { gap: 1px; padding: 4px 10px; font-size: 20px; line-height: 1.15; }
 .shop-panel:has(.shop-fitting) .shop-tabs { padding-block: 6px; }
 .shop-fitting-groups { display: flex; flex-wrap: wrap; gap: 8px; margin-inline-start: auto; }
-.shop-panel:has(.shop-fitting) .shop-feedback { margin-block: 4px; }
-.shop-panel:has(.shop-fitting) .shop-feedback:empty { min-height: 0; margin: 0; }
-.shop-fitting { display: grid; grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr); gap: clamp(12px, 2vw, 28px); margin-top: 10px; }
+.shop-panel:has(.shop-fitting) .shop-feedback { margin-block: 2px; }
+.shop-fitting { display: grid; grid-template-columns: 34% minmax(0, 1fr); gap: clamp(16px, 2vw, 32px); margin-top: 8px; }
 .shop-fitting-preview {
   position: relative;
   isolation: isolate;
-  min-height: 262px;
+  min-height: clamp(286px, calc(min(100dvh, 56.25vw) - 320px), 550px);
   border: 1px solid #8b7046;
   border-radius: 8px;
   background: radial-gradient(ellipse at 50% 38%, #524139, #171821 78%);
 }
 .shop-fitting-preview .raster-character-stage::before { content: none; }
-.shop-fitting-preview .puppet-preview-rig { height: min(calc(100% - 12px), 330px); }
+.shop-fitting-preview .puppet-preview-rig { height: calc(100% - 16px); }
 .shop-fitting-controls { display: grid; align-content: center; gap: 9px; min-width: 0; }
 .shop-fitting-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(90px, auto);
+  grid-template-columns: minmax(0, 1fr) 104px;
+  grid-template-rows: auto 48px;
   gap: 4px 10px;
   align-items: center;
   padding: 0 0 8px;
@@ -99,7 +100,7 @@
 }
 .shop-fitting .shop-fitting-stepper button {
   width: 44px;
-  height: 44px;
+  height: 48px;
   padding: 0;
   font-size: 1.35rem;
 }
@@ -113,19 +114,18 @@
   letter-spacing: 0;
   white-space: normal;
 }
-.shop-fitting-action { display: grid; grid-auto-flow: column; align-items: center; justify-content: end; gap: 8px; }
-.shop-fitting-price { color: #eed095; line-height: 1.1; font-size: 13px; font-variant-numeric: tabular-nums; }
+.shop-fitting-action > button { width: 100%; height: 48px; line-height: 1.1; }
+.shop-fitting-price { display: block; margin-top: 2px; color: #eed095; font-size: 13px; font-variant-numeric: tabular-nums; }
+.shop-fitting-action > button:disabled .shop-fitting-price { color: inherit; }
 .shop-fitting button { cursor: pointer; }
 .shop-fitting button[type="submit"] { background: #571f2a; }
 .shop-fitting .shop-fitting-reset { justify-self: start; }
 .shop-fitting button:disabled { background: #101827; border-color: #54545a; color: #a5acb2; cursor: default; }
+.location-shop:has(.shop-fitting) .stage-ambient { width: min(21vw, 280px); }
 @media (max-width: 1150px) {
-  .location-shop:has(.shop-fitting) .stage-ambient { top: 99px; bottom: auto; width: min(52%, 460px); }
-  .location-shop:has(.shop-fitting) .stage-ambient::before { top: auto; bottom: -20px; left: 16%; transform: rotate(-90deg); }
-}
-@media (max-width: 1000px) {
-  .shop-fitting-action { grid-auto-flow: row; gap: 1px; min-height: 44px; }
-  .shop-fitting-action button { min-height: 40px; }
+  .shop-panel:has(.shop-fitting) { padding: 12px; }
+  .shop-fitting-controls { gap: 6px; }
+  .shop-fitting-row { padding-bottom: 4px; }
 }
 .item-art img { width: 38px; height: 38px; object-fit: contain; }
 .cosmetic-stepper output { min-width: 0; overflow-wrap: anywhere; }

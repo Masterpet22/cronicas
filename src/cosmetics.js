@@ -1,5 +1,6 @@
 // Los valores se comparten con el personaje y con sus capas de apariencia.
 import { hairAsset } from "./character-rigs.js?v=0.171.0";
+import { MASK_COSMETICS } from "./character-masks.js?v=0.171.0";
 
 export const COSMETICS = Object.freeze([
   { id: "hair_none", name: "Sin cabello", cosmeticSlot: "hair", value: 0, price: 0 },
@@ -12,8 +13,7 @@ export const COSMETICS = Object.freeze([
   { id: "face_scar", name: "Rostro enojado", cosmeticSlot: "face", value: 2, price: 50, image: "assets/modular/faces/male_angry.png?v=0.135.0" },
   { id: "face_mask", name: "Rostro feliz", cosmeticSlot: "face", value: 3, price: 75, image: "assets/modular/faces/male_happy.png?v=0.135.0" },
   { id: "mask_none", name: "Sin máscara", cosmeticSlot: "mask", value: null, price: 0 },
-  { id: "mask_cloth", name: "Máscara de tela", cosmeticSlot: "mask", value: "cloth", price: 45 },
-  { id: "mask_metal", name: "Máscara de acero", cosmeticSlot: "mask", value: "metal", price: 80 },
+  ...MASK_COSMETICS,
   { id: "top_none", name: "Túnica de entrenamiento", cosmeticSlot: "top", value: 1, price: 0 },
   { id: "top_traveler", name: "Chaqueta de viajero", cosmeticSlot: "top", value: 2, price: 60 },
   { id: "top_shadow", name: "Túnica de la sombra", cosmeticSlot: "top", value: 3, price: 90 },

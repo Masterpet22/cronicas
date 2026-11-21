@@ -16,8 +16,11 @@ for (const renderer of ["Canvas", "WebGL"]) {
       document.body.append(host);
       class PoseScene extends Phaser.Scene {
         look(bodyType, armored) {
-          return { bodyType, hair: 0, ...(armored && (bodyType === "male"
-            ? { mask: "cloth", outfit: "lamellar_armor" } : { mask: "metal", outfit: "steel_armor" })) };
+          const mask = renderer === "Canvas"
+            ? (bodyType === "male" ? "cat_crimson" : "owl_jade")
+            : (bodyType === "male" ? "hare_sky" : "oni_violet");
+          const outfit = bodyType === "male" ? "lamellar_armor" : "steel_armor";
+          return { bodyType, hair: 0, ...(armored && { mask, outfit }) };
         }
         preload() {
           for (const bodyType of ["male", "female"]) for (const armored of [false, true]) {
@@ -30,7 +33,8 @@ for (const renderer of ["Canvas", "WebGL"]) {
           for (const [index, bodyType] of ["male", "male", "female", "female"].entries()) {
             const flipped = index % 2 === 1;
             const fighter = api.createPlayerFighter(this, 180 + index * 360, 490, this.look(bodyType, flipped), flipped);
-            if (flipped && (!fighter.face.texture.key.includes("player-mask")
+            const maskKey = `player-mask-${this.look(bodyType, flipped).mask}-${bodyType}`;
+            if (flipped && (!this.textures.exists(maskKey) || !fighter.face.texture.key.endsWith(maskKey)
                 || fighter.layers.filter(layer => layer.texture.key.startsWith("fighter-cloth")).length !== 11)) {
               throw new Error("La armadura y la máscara deben verse en el combatiente");
             }

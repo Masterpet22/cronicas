@@ -1,6 +1,6 @@
 import { COSMETIC_SLOTS } from "../../../cosmetics.js?v=0.171.0";
 import { ITEM_CATEGORIES, ITEMS, SHOP_ITEMS, sellPrice } from "../../../items.js?v=0.171.0";
-import { countItem, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.171.0";
+import { countItem, equipCosmetic, purchaseItem, sellItem, saleBlockReason, sellableItemCount } from "../../../inventory.js?v=0.171.0";
 import { itemIcon } from "../../item-icons.js?v=0.171.0";
 import { CLOTHING_PARTS, isFullArmor } from "../../../base-outfit.js?v=0.171.0";
 import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.171.0";
@@ -45,9 +45,13 @@ export function createShopView(deps) {
   }
 
   function fittingAction(item) {
-    if (!item?.price) return "";
-    const reason = buyBlockReason(item, countItem(save, item.id));
-    return `<span class="shop-fitting-price">${item.price} monedas</span><button type="submit" ${reason ? "disabled" : ""}>${reason || "Comprar"}</button>`;
+    if (!item) return "";
+    const count = countItem(save, item.id);
+    if (count) return '<button type="submit" value="equip">Equipar</button>';
+    const reason = buyBlockReason(item, count);
+    const label = reason || "Comprar";
+    const priceId = `shop-fitting-price-${item.cosmeticSlot}`;
+    return `<button type="submit" value="buy" aria-label="${label}" aria-describedby="${priceId}" ${reason ? "disabled" : ""}>${label}<span class="shop-fitting-price" id="${priceId}">${item.price} monedas</span></button>`;
   }
 
   function equippedFittingItem(slot) {
@@ -150,12 +154,19 @@ export function createShopView(deps) {
         const slot = form?.dataset.fittingSlot;
         const id = slot ? tryOn.get(slot)?.id : form?.dataset.shopItem;
         if (!id) return;
-        const result = (mode === "sell" ? sellItem : purchaseItem)(save, id, Number(form.querySelector("input")?.value || 1));
-        if (result.ok) save = deps.onPersist(result.save);
+        const equipping = slot && event.submitter?.value === "equip";
+        const result = equipping
+          ? equipCosmetic(save, id)
+          : (mode === "sell" ? sellItem : purchaseItem)(save, id, Number(form.querySelector("input")?.value || 1));
+        if (result.ok) {
+          save = deps.onPersist(result.save);
+          if (equipping) tryOn.delete(slot);
+        }
         message = result.message;
         refresh();
         const nextAction = slot
-          ? host.querySelector(`[data-fitting-slot="${slot}"] [data-fitting-step="1"]`)
+          ? host.querySelector(`[data-fitting-slot="${slot}"] button[type="submit"]:not([disabled])`) ||
+            host.querySelector(`[data-fitting-slot="${slot}"] [data-fitting-step="1"]`)
           : host.querySelector(`[data-shop-item="${id}"] button:not([disabled])`) || host.querySelector("[data-shop-category-select]");
         nextAction?.focus({ preventScroll:true });
         const coins = root.querySelector(".summary-item:last-child strong");
