@@ -2,6 +2,9 @@ import { chromium } from '@playwright/test';
 import { mkdir, writeFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import { join } from 'node:path';
+
+const output = process.env.COMBAT_HUD_OUTPUT || 'artifacts/combat-hud';
 
 // Keep verification self-contained, including after an interrupted terminal.
 let localServer;
@@ -15,7 +18,7 @@ try { await fetch('http://127.0.0.1:4173'); } catch {
 }
 
 const browser = await chromium.launch({ headless: true });
-const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, reducedMotion: 'reduce' });
+const page = await browser.newPage({ viewport: { width: 1600, height: 900 }, reducedMotion: 'reduce', hasTouch: true });
 const errors = [];
 page.on('pageerror', error => errors.push(error.message));
 page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
@@ -37,16 +40,25 @@ await page.locator('[data-select-slot="1"]').click();
 await page.evaluate(async () => {
   const { loadPhaser } = await import('/src/battle/load-phaser.js?v=1.0.0');
   await loadPhaser();
-  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.153.0');
+  const { BattleScene } = await import('/src/battle/scenes/battle-scene.js?v=0.176.0');
   const create = BattleScene.prototype.create;
   BattleScene.prototype.create = function (...args) { window.__hudScene = this; return create.apply(this, args); };
 });
 await page.locator('.debug-tools-trigger').click();
 await page.locator(groupMode ? '[data-debug-mission="k03"]' : '[data-debug-mission="m01"]').click();
-await page.waitForFunction(() => window.__hudScene?.turnReady, null, { timeout: 30000 });
+await page.waitForFunction(() => window.__hudScene?.turnReady, null, { polling: 150, timeout: 60000 }).catch(async error => {
+  const state = await page.evaluate(() => ({
+    scene: window.__hudScene?.scene.key,
+    turnReady: window.__hudScene?.turnReady,
+    phase: window.__hudScene?.phaseLabel?.text,
+    dialog: document.querySelector('dialog[open]')?.textContent
+  }));
+  await browser.close();
+  throw new Error(`El combate no llegó al turno del jugador: ${JSON.stringify({ state, errors })}`, { cause: error });
+});
 await page.mouse.move(950, 720);
-await mkdir('artifacts/combat-hud', { recursive: true });
-await page.screenshot({ path: 'artifacts/combat-hud/combat-1600x900.png' });
+await mkdir(output, { recursive: true });
+await page.screenshot({ path: join(output, 'combat-1600x900.png') });
 if (groupMode) {
   const cards = page.locator('.combat-roster-enemies .combat-roster-card');
   assert.equal(await cards.count(), 2);
@@ -124,8 +136,39 @@ if (groupMode) {
         return panels.every(panel => panel.right <= head.left || panel.left >= head.right || panel.bottom + 6 <= head.top || panel.top >= head.bottom);
       });
     }), `Ninguna tarjeta debe tapar el rostro de los tres rivales a ${width}px`);
-    await page.screenshot({path: `artifacts/combat-hud/reference-group-${width}x${height}.png`, fullPage: true});
+    await page.screenshot({path: join(output, `reference-group-${width}x${height}.png`), fullPage: true});
   }
+  await page.locator('[data-combat-action="6"]').tap();
+  const detail = page.locator('.combat-skill-detail');
+  assert.ok(await detail.isVisible());
+  assert.match(await detail.innerText(), /Reduce un 50 %/);
+  assert.equal(await page.evaluate(() => window.__hudScene.turnReady), true, 'El toque permite consultar antes de ejecutar');
+  await detail.screenshot({path: join(output, 'reference-group-tablet-detail.png')});
+  const previousTarget = await page.evaluate(() => window.__hudScene.selectedTargetIndex);
+  await cards.first().tap();
+  assert.equal(await page.locator('.combat-skill-detail').isVisible(), false);
+  assert.notEqual(await page.evaluate(() => window.__hudScene.selectedTargetIndex), previousTarget);
+  await page.locator(`[data-training-target="${previousTarget}"]`).tap();
+  assert.ok(await page.evaluate(() => {
+    const s = window.__hudScene;
+    const before = [s.timelineProgress.player, s.companion.progress, ...s.trainingTargets.map(target => target.progress)];
+    const setProgress = ([player, companion, ...targets]) => {
+      s.timelineProgress.player = player;
+      s.companion.progress = companion;
+      s.trainingTargets.forEach((target, index) => { target.progress = targets[index]; });
+      s.updateTimelineMarkers();
+    };
+    try {
+      return [0, .9, 1].every(value => {
+        setProgress(before.map(() => value));
+        const halos = [s.playerMarkerHalo, s.companionMarker, ...s.groupMarkers.map(entry => entry.halo)];
+        return new Set(halos.map(marker => marker.y)).size === 2 &&
+          halos.every((a, i) => halos.slice(i + 1).every(b => Math.hypot(a.x - b.x, a.y - b.y) >= 28));
+      });
+    } finally {
+      setProgress(before);
+    }
+  }), 'Los cinco retratos se separan aunque coincidan sus progresos, incluso en los extremos');
   await page.setViewportSize({width:1600,height:900});
   await page.waitForTimeout(100);
   assert.equal(await page.evaluate(() => window.__hudScene.enemyPortrait.hair.visible), false,
@@ -145,7 +188,7 @@ if (groupMode) {
   await page.getByRole('button', {name:'REANUDAR',exact:true}).click();
   await page.waitForFunction(() => window.__hudScene.scene.isActive());
   assert.deepEqual(errors, []);
-  await writeFile('artifacts/combat-hud/reference-verification.json', JSON.stringify({roster:true, targetSelection:true, liveResources:true, objective:true, tabletTouchTargets:true, errors}, null, 2));
+  await writeFile(join(output, 'reference-verification.json'), JSON.stringify({roster:true, targetSelection:true, liveResources:true, objective:true, tabletTouchTargets:true, errors}, null, 2));
   await browser.close();
   console.log('HUD de grupo: tarjetas, selección, recursos, objetivo, pausa y cinco tamaños verificados; sin errores.');
   process.exit(0);
@@ -185,18 +228,18 @@ if (process.argv.includes('--pause-only') || process.argv.includes('--transition
   await page.keyboard.press('Tab');
   assert.match(await page.evaluate(() => document.activeElement.textContent), /Sellos manuales/);
   assert.doesNotMatch(await page.locator('.combat-pause-access').innerText(), /MARCO|LUNAR|PERGAMINO/i);
-  await page.screenshot({ path: 'artifacts/combat-hud/pause-without-theme-1600x900.png' });
+  await page.screenshot({ path: join(output, 'pause-without-theme-1600x900.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.locator('#hud-theme').count(), 0);
   assert.doesNotMatch(await page.locator('.combat-pause-access').innerText(), /MARCO|LUNAR|PERGAMINO/i);
   await page.getByRole('button', { name: 'Subir volumen', exact: true }).click();
   assert.match(await page.locator('.combat-pause-preferences').innerText(), /Volumen 80%/);
-  await page.screenshot({ path: 'artifacts/combat-hud/pause-390x844.png', fullPage: true });
+  await page.screenshot({ path: join(output, 'pause-390x844.png'), fullPage: true });
   await page.getByRole('button', { name: 'REANUDAR', exact: true }).click();
   await page.waitForFunction(() => window.__hudScene.scene.isActive());
   assert.equal(await page.locator('.combat-access').evaluate(el => el.inert), false);
   assert.deepEqual(errors, []);
-  await writeFile('artifacts/combat-hud/pause-accessibility.json', JSON.stringify({ focusLoop: true, backgroundInert: true, volume: true, themeSelectorRemoved: true, resume: true, errors }));
+  await writeFile(join(output, 'pause-accessibility.json'), JSON.stringify({ focusLoop: true, backgroundInert: true, volume: true, themeSelectorRemoved: true, resume: true, errors }));
   if (process.argv.includes('--pause-only')) {
     await browser.close();
     console.log('Pausa: selector retirado, volumen y reanudación correctos, sin errores');
@@ -219,7 +262,7 @@ if (process.argv.includes('--transitions-only')) {
   await page.evaluate(() => { window.__hudScene.tweens.timeScale = 0; window.__hudScene.refreshHud(); });
   assert.equal(await page.locator('.combat-access-actions').isVisible(), false);
   assert.equal(await page.locator('.combat-access').evaluate(el => el.inert), true);
-  await page.screenshot({ path: 'artifacts/combat-hud/encounter-transition-no-skills-1600x900.png' });
+  await page.screenshot({ path: join(output, 'encounter-transition-no-skills-1600x900.png') });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.waitForTimeout(150);
   assert.equal(await page.locator('.combat-access-actions').isVisible(), false);
@@ -244,9 +287,9 @@ if (process.argv.includes('--transitions-only')) {
   await page.evaluate(() => { window.__hudScene.finishBattle(false); });
   await page.waitForFunction(() => !window.__hudScene.scene.isActive());
   assert.equal(await page.locator('.combat-access').count(), 0);
-  await page.screenshot({ path: 'artifacts/combat-hud/mission-exit-no-skills-1600x900.png' });
+  await page.screenshot({ path: join(output, 'mission-exit-no-skills-1600x900.png') });
   assert.deepEqual(errors, []);
-  await writeFile('artifacts/combat-hud/transition-regression.json', JSON.stringify({ themeOptionRemoved: true, volumeAndResume: true, encounterTransition: true, resizeDuringTransition: true, combatRestored: true, investigation: true, missionExit: true, errors }, null, 2));
+  await writeFile(join(output, 'transition-regression.json'), JSON.stringify({ themeOptionRemoved: true, volumeAndResume: true, encounterTransition: true, resizeDuringTransition: true, combatRestored: true, investigation: true, missionExit: true, errors }, null, 2));
   await browser.close();
   console.log('Pausa sin selector; habilidades ocultas en transición, investigación y salida; restauración y resize correctos; sin errores');
   process.exit(0);
@@ -255,23 +298,25 @@ for (const [width, height] of [[1920, 1080], [1366, 768], [1024, 768], [960, 720
   await page.setViewportSize({ width, height });
   await page.waitForTimeout(400);
   assert.equal(await page.locator('.combat-access').count(), 1);
-  for (const button of await page.locator('.combat-access button').all()) {
+  for (const button of await page.locator('.combat-access button:visible').all()) {
     const box = await button.boundingBox();
     assert.ok(box && box.width >= 43 && box.height >= 43, `Objetivo táctil ${width}: ${JSON.stringify(box)}`);
   }
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), `Overflow ${width}`);
-  await page.screenshot({ path: `artifacts/combat-hud/combat-${width}x${height}.png`, fullPage: width <= 980 });
+  await page.screenshot({ path: join(output, `combat-${width}x${height}.png`), fullPage: width <= 980 });
 }
 record('Ordenadores y tablets: seis controles accesibles, sin overflow');
 await page.setViewportSize({ width: 1600, height: 900 });
 await page.waitForTimeout(400);
-await page.locator('[data-combat-action="2"]').focus();
-assert.equal(await page.evaluate(() => window.__hudScene.buttons[1].tooltip.layer.visible), true);
+await page.locator('[data-combat-action="1"]').focus();
+await page.keyboard.press('Tab');
+assert.equal(await page.locator('[data-combat-action="2"]').evaluate(button => document.activeElement === button), true);
+assert.match(await page.locator('.combat-skill-detail').innerText(), /de daño/);
 await page.locator('[data-combat-action="4"]').click({ force: true });
 await page.keyboard.press('4');
 assert.equal(await page.evaluate(() => window.__hudScene.player.chakra), state.chakra);
 assert.equal(await page.evaluate(() => window.__hudScene.turnReady), true);
-record('Foco, tooltip y ranura bloqueada con ratón y atajo');
+record('Detalle con foco de teclado y ranura bloqueada con ratón y atajo');
 
 // Controlled UI fixtures exercise max/partial/zero/recovery without rewriting
 // the engine or persisting these fixture values to the user save.
@@ -300,6 +345,7 @@ assert.equal(await page.locator('[data-combat-action="2"]').getAttribute('aria-d
 await page.locator('[data-combat-action="2"]').click({ force: true });
 await page.keyboard.press('2');
 assert.equal(await page.locator('[data-combat-action="2"]').getAttribute('data-resource-state'), 'insufficient');
+assert.match(await page.locator('[data-combat-action="2"] .combat-skill-cost').innerText(), new RegExp(`Faltan ${state.cost} CH`));
 assert.equal(await page.evaluate(() => window.__hudScene.player.chakra), 0);
 await page.evaluate(() => { const s = window.__hudScene; s.player.chakra = s.player.maxChakra; s.refreshHud(); });
 record('Chakra insuficiente: ni clic ni atajo ejecutan la técnica');
@@ -340,9 +386,13 @@ await page.evaluate(() => {
 const receivedDamage = await page.evaluate(() => window.__hudScene.player.hp < window.__hudScene.player.maxHp);
 assert.ok(receivedDamage);
 record('Daño a través de loseHealth actualiza vida, número e indicador del protagonista');
-await page.locator('[data-combat-action="6"]').click();
+await page.setViewportSize({ width: 768, height: 1024 });
+await page.locator('[data-combat-action="6"]').tap();
+assert.equal(await page.evaluate(() => window.__hudScene.turnReady), true);
+await page.getByRole('button', { name: 'Usar técnica', exact: true }).tap();
 await page.waitForFunction(() => window.__hudScene.player.guarding || window.__hudScene.turnReady, null, { timeout: 20000 });
-record('Guardia conserva la sexta posición y responde al ratón');
+record('Guardia conserva la sexta posición y se puede consultar y confirmar por toque en tablet');
+await page.setViewportSize({ width: 1600, height: 900 });
 await page.waitForFunction(() => window.__hudScene.turnReady, null, { timeout: 30000 });
 await page.evaluate(() => {
   const s = window.__hudScene;
@@ -353,19 +403,19 @@ await page.evaluate(() => window.__hudScene.updateTimelineMarkers());
 record('Marcadores con nombres y separación cuando coinciden');
 await page.mouse.move(950, 720);
 await page.locator('[data-combat-action="6"]').blur();
-await page.screenshot({ path: 'artifacts/combat-hud/combat-functional.png' });
-await page.setViewportSize({ width: 390, height: 844 });
+await page.screenshot({ path: join(output, 'combat-functional.png') });
+await page.setViewportSize({ width: 768, height: 1024 });
 await page.locator('.combat-access-pause').click();
 await page.waitForSelector('.combat-pause-access');
-await page.screenshot({ path: 'artifacts/combat-hud/pause-390x844.png', fullPage: true });
+await page.screenshot({ path: join(output, 'pause-768x1024.png'), fullPage: true });
 await page.getByRole('button', { name: 'REANUDAR', exact: true }).click();
 await page.waitForFunction(() => window.__hudScene.scene.isActive());
 record('Menú de pausa compacto con ajustes existentes y reanudación táctil');
 await page.evaluate(async () => {
   const s = window.__hudScene;
   await s.resetTurnTimeline();
-  const expectedHairX = s.playerTurnMarker.x + (s.playerMarkerHairLayout?.x ?? 0);
-  if (s.playerTurnMarker.x !== s.enemyTurnMarker.x || s.playerMarkerHair && Math.abs(s.playerMarkerHair.x - expectedHairX) > 0.01) {
+  const expectedHairX = s.playerMarkerHalo.x + (s.playerTimelinePortraitLayout.hair?.x ?? 0);
+  if (s.playerMarkerHalo.x !== s.enemyMarkerHalo.x || s.playerMarkerHair.visible && Math.abs(s.playerMarkerHair.x - expectedHairX) > 0.01) {
     throw new Error('El retrato y sus accesorios se separaron al reiniciar');
   }
   if (s.timelinePortraitMasks?.some((mask, index) => Math.abs(mask.x - [s.playerTurnMarker, s.enemyTurnMarker][index].x) > .01)) {
@@ -374,13 +424,13 @@ await page.evaluate(async () => {
   s.startTurnCharge();
 });
 record('Reinicio de iniciativa mantiene retratos, pelo y etiquetas sincronizados');
-await writeFile('artifacts/combat-hud/verification.json', JSON.stringify({ checks, receivedDamage, errors }, null, 2));
+await writeFile(join(output, 'verification.json'), JSON.stringify({ checks, receivedDamage, errors }, null, 2));
 
 console.log(JSON.stringify({ errors, state: await page.evaluate(() => {
   const s = window.__hudScene;
   return { active: s.scene.isActive(), hp: s.playerHpBar.valueText.text, enemyChakra: s.enemyChakraBar.valueText.text, actions: s.actions.map(a => a?.name), phase: s.phaseLabel.text };
 }) }));
-await writeFile('artifacts/combat-hud/browser-errors.json', JSON.stringify(errors, null, 2));
+await writeFile(join(output, 'browser-errors.json'), JSON.stringify(errors, null, 2));
 await browser.close();
 if (errors.length) process.exitCode = 1;
 

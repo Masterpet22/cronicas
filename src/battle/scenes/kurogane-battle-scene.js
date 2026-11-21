@@ -13,7 +13,6 @@ import { showRetryDialog, consumeRetry } from "../mission-retries.js?v=0.114.0";
 import { countItem } from "../../inventory.js?v=0.171.0";
 import { consumeBattleItem } from "../battle-inventory.js?v=0.171.0";
 import { mountTrainingTargets, mountGroupTimeline } from "../training-targets.js?v=0.171.0";
-import { timelineMarkerPosition } from "../timeline.js?v=0.69.0";
 import { ENEMY_ACTIONS } from "../../data.js?v=1.5.0";
 import { HUD_ART } from "../hud-art.js?v=0.171.0";
 
@@ -88,8 +87,8 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     if (!this.mission.groupCombat) return;
     this.companionMarker = this.add.container(HUD_ART.timeline.start, HUD_ART.timeline.trackY + 12);
     const look = appearance(this.companion.id);
-    const layout = fighterCombatPortraitLayout(look, false, 13);
-    const halo = this.add.circle(0, 0, 15, HUD_ART.inkDeep).setStrokeStyle(2, 0x91b879);
+    const layout = fighterCombatPortraitLayout(look, false, 11);
+    const halo = this.add.circle(0, 0, 12, HUD_ART.inkDeep).setStrokeStyle(1.2, 0x91b879);
     const head = this.add.image(layout.head.x, layout.head.y, fighterAtlasKey(look), "cabeza")
       .setDisplaySize(layout.head.width, layout.head.height);
     this.companionMarker.add([halo, head]);
@@ -99,12 +98,6 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
       this.companionMarker.add(useFighterTextureRendering(hair));
     }
     this.timelineLayer.add(this.companionMarker);
-  }
-  updateTimelineMarkers(progress) {
-    super.updateTimelineMarkers(progress);
-    if (this.companionMarker && this.companion) this.companionMarker
-      .setX(timelineMarkerPosition(this.companion.progress, HUD_ART.timeline.start, HUD_ART.timeline.end))
-      .setVisible(this.companion.state.hp > 0);
   }
   refreshHud() {
     // An enemy may be attacking the companion using the shared attack pipeline.
@@ -330,7 +323,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
   replaceGroupWave() {
     this.targetControls?.destroy?.();
     this.trainingTargets.forEach(target => { stopPlayerPreparing(this, target.fighter, { immediate: true }); destroyFighter(target.fighter); target.ring.destroy(); });
-    this.groupMarkers?.forEach(({ marker, halo, label }) => { marker.destroy(); halo.destroy(); label.destroy(); });
+    this.groupMarkers?.forEach(({ parts }) => parts.forEach(part => part.destroy()));
     const positions = enemyFormation(this.encounters.length);
     this.trainingTargets = positions.map((position, index) => {
       this.enemyIndex = index;
@@ -342,7 +335,7 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
     this.enemyRankNumber.setText(`NV ${this.encounters[0].level}`);
     // Timeline source parts are new because the previous group's markers were destroyed.
     this.enemyTurnMarker = this.add.image(HUD_ART.timeline.start, HUD_ART.timeline.trackY, this.playerTurnMarker.texture.key).setDisplaySize(18, 28);
-    this.enemyMarkerHalo = this.add.circle(HUD_ART.timeline.start, HUD_ART.timeline.trackY, 15, 0x07101d, 1);
+    this.enemyMarkerHalo = this.add.circle(HUD_ART.timeline.start, HUD_ART.timeline.trackY, 12, 0x07101d, 1);
     this.timelineLayer.add([this.enemyTurnMarker, this.enemyMarkerHalo]);
     mountGroupTimeline(this); this.targetControls = mountTrainingTargets(this);
     this.refreshHud();

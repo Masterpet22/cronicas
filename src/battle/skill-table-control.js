@@ -1,7 +1,7 @@
 import { physicalActionAvailable, physicalEmptySkill, physicalSkillActions } from "./skill-tables.js?v=0.171.0";
 import { setHudAttribute, setHudText } from "./hud-dom.js?v=1.0.0";
 
-export function mountSkillTableControl(scene, { root, actions, restorePerspective, refresh }) {
+export function mountSkillTableControl(scene, { root, actions, hideDetails, refresh }) {
   let table = "elemental", switching = false, timer = null, removed = false, returnFocus = false;
   const physical = physicalSkillActions(scene.saveData, scene.actions);
   const training = Boolean(scene.mission.training);
@@ -30,7 +30,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
     pagination.append(previous, pageLabel, next); heading.append(caption); tools.append(pagination);
     const changePage = direction => {
       if (blocked() || switching || scene.busy) return;
-      restorePerspective();
+      hideDetails();
       pages[table] = Math.max(0, Math.min(Math.ceil(moves[table].length / 4) - 1, pages[table] + direction));
       refresh();
     };
@@ -97,7 +97,7 @@ export function mountSkillTableControl(scene, { root, actions, restorePerspectiv
   const toggle = () => {
     if (switching || blocked()) return false;
     returnFocus = document.activeElement === button;
-    restorePerspective();
+    hideDetails();
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { commit(); layout(); return true; }
     switching = true; scene.skillTableSwitching = true;
     actions.classList.add("is-turning-out"); refresh();

@@ -1,8 +1,8 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, drawBeveledTag, chromePath } from "../hud-chrome.js?v=0.171.0";
+import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, chromePath } from "../hud-chrome.js?v=0.171.0";
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.171.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
-import { hairTextureKey, createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterHairPortraitLayout, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
+import { hairTextureKey, createPlayerFighter, preparePlayerFighterTextures, useFighterTextureRendering, destroyFighter, fighterCombatPortraitLayout, fighterFaceTextureKey, fighterAtlasKey, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.171.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.171.0";
@@ -18,6 +18,8 @@ import { addBattleReward, bestiaryObservation, createBattleResult, emptyBattleRe
 import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0";
 import { actionNeedsPreparation, advanceTimelineProgress, millisecondsToTimelineThreshold, timelineMarkerPosition, timelineMilestones } from "../timeline.js?v=0.69.0";
 import { COMBAT_SLOTS, combatFighterDepth } from "../combat-positions.js?v=0.153.0";
+import { paintTimelinePortraits } from "../timeline-hud.js?v=1.0.0";
+import { drawTargetCorners } from "../fighter-indicators.js?v=1.0.0";
 
 
 import { BATTLE_ARENAS, HEIGHT, HUD_THEMES, Phaser, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, sharpenTextTree } from "../runtime.js?v=0.91.0";
@@ -136,6 +138,10 @@ export class BattlePresentationMethods {
     this.enemyRankNumber = this.enemyRankStar.text;
     this.playerPortrait = this.createCombatPortrait(61, 50, this.playerAppearance(), false);
     this.enemyPortrait = this.createCombatPortrait(900, 50, this.enemyAppearance(), true);
+    this.playerTurnAccent = this.add.graphics().setDepth(27).setAlpha(0);
+    this.playerTurnAccent.lineStyle(2, 0x92dfed, 1).lineBetween(117, 35, 155, 35);
+    this.targetPortraitAccent = this.add.graphics().setDepth(27);
+    drawTargetCorners(this.targetPortraitAccent, 872, 22, 928, 78, 7, 1.5);
     this.playerStatusSlots = this.createStatusRow(168, 86, "ltr");
     this.enemyStatusSlots = this.createStatusRow(WIDTH - 168, 86, "rtl");
     this.hudFrames = { health: [], chakra: [] };
@@ -161,11 +167,13 @@ export class BattlePresentationMethods {
     const g = this.hudLacquerChrome;
     g.clear();
     drawStatusPanel(g, 23, 12, 310, 84);
-    drawStatusPanel(g, 627, 12, 310, 84, true);
+    g.fillStyle(HUD_ART.inkDeep, .96).fillRoundedRect(632, 13, 302, 83, 10);
+    g.lineStyle(1, 0x967044, 1).strokeRoundedRect(632, 13, 302, 83, 10);
     for (const [x, y, width] of [[playerHealthX, healthFrameY, healthBarWidth], [enemyHealthX, healthFrameY, healthBarWidth], [playerChakraX, chakraFrameY, chakraBarWidth], [enemyChakraX, chakraFrameY, chakraBarWidth]]) {
       g.fillStyle(0x02070d, 1).fillRoundedRect(x - 3, y - 10, width + 6, 20, 10);
-      g.lineStyle(1.2, HUD_ART.gold, 1).strokeRoundedRect(x - 2, y - 9, width + 4, 18, 9);
-      g.lineStyle(0.6, HUD_ART.light, 0.5).lineBetween(x + 8, y - 7, x + width - 8, y - 7);
+      const primary = x < WIDTH / 2;
+      g.lineStyle(primary ? 1.2 : .7, HUD_ART.gold, primary ? 1 : .65).strokeRoundedRect(x - 2, y - 9, width + 4, 18, 9);
+      if (primary) g.lineStyle(0.6, HUD_ART.light, 0.5).lineBetween(x + 8, y - 7, x + width - 8, y - 7);
     }
   }
 
@@ -181,9 +189,10 @@ export class BattlePresentationMethods {
   }
 
   createCombatPortrait(x, y, appearance, flipped) {
-    const shadow = this.add.circle(x, y + 2, 34, 0x02050a, 0.9).setDepth(23);
-    const wash = this.add.circle(x, y, 30, 0x182536, 0.96).setDepth(24);
-    const layout = fighterCombatPortraitLayout(appearance, flipped);
+    const radius = flipped ? 25 : 34;
+    const shadow = this.add.circle(x, y + 2, radius, 0x02050a, 0.9).setDepth(23);
+    const wash = this.add.circle(x, y, radius - 4, 0x182536, 0.96).setDepth(24);
+    const layout = fighterCombatPortraitLayout(appearance, flipped, radius - 6);
     const head = this.add.image(x + layout.head.x, y + layout.head.y, fighterAtlasKey(appearance), "cabeza").setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25);
     const face = this.add.image(x + layout.head.x, y + layout.head.y, fighterFaceTextureKey(appearance)).setDisplaySize(layout.head.width, layout.head.height).setFlipX(flipped).setDepth(25.5);
     useFighterTextureRendering(face);
@@ -200,12 +209,14 @@ export class BattlePresentationMethods {
       affinity = id;
       const color = ELEMENTS[id].color;
       frame.clear();
-      chromePath(frame, [['M', 0, 8], ['L', 10, -3], ['L', 7, 7], ['L', 16, 12], ['L', 5, 10], ['Z']], { x: x + side * 31, y: y - 31, sx: side, fill: color, width: .9 });
-      frame.lineStyle(5, color, 1).strokeCircle(x, y, 34);
-      frame.lineStyle(1.5, HUD_ART.gold, 1).strokeCircle(x, y, 36);
-      frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
-      frame.lineStyle(1.5, 0xd0a04f, 0.95).strokeCircle(x, y, 29);
-      frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
+      if (!flipped) chromePath(frame, [['M', 0, 8], ['L', 10, -3], ['L', 7, 7], ['L', 16, 12], ['L', 5, 10], ['Z']], { x: x + side * 31, y: y - 31, sx: side, fill: color, width: .9 });
+      frame.lineStyle(flipped ? 2 : 5, color, 1).strokeCircle(x, y, radius);
+      frame.lineStyle(flipped ? .7 : 1.5, HUD_ART.gold, 1).strokeCircle(x, y, radius + 2);
+      if (!flipped) {
+        frame.lineStyle(1, HUD_ART.light, 0.8).strokeCircle(x, y, 32);
+        frame.lineStyle(1.5, 0xd0a04f, 0.95).strokeCircle(x, y, 29);
+        frame.lineStyle(1, 0xf2d88c, 0.3).strokeCircle(x - 1, y - 1, 26);
+      }
     };
     setAffinity(flipped ? this.enemy.primaryAffinity : this.player.primaryAffinity);
     let lookKey = '';
@@ -216,7 +227,7 @@ export class BattlePresentationMethods {
       if (nextKey === lookKey) return;
       lookKey = nextKey;
       preparePlayerFighterTextures(this, next);
-      const nextLayout = fighterCombatPortraitLayout(next, flipped);
+      const nextLayout = fighterCombatPortraitLayout(next, flipped, radius - 6);
       head.setTexture(fighterAtlasKey(next), 'cabeza').setPosition(x + nextLayout.head.x, y + nextLayout.head.y)
         .setDisplaySize(nextLayout.head.width, nextLayout.head.height);
       face.setTexture(fighterFaceTextureKey(next)).setPosition(head.x, head.y).setDisplaySize(head.displayWidth, head.displayHeight);
@@ -317,7 +328,7 @@ export class BattlePresentationMethods {
       drawTimelineTail(chrome, start - 13, trackY);
       chromePath(chrome, [['M', -16, -11], ['L', 5, 0], ['L', -16, 11], ['L', -12, 0], ['Z']], { x: end, y: trackY, fill: HUD_ART.gold, stroke: 0xf4ce7e, width: .7 });
       chrome.lineStyle(1, HUD_ART.light, 0.8).lineBetween(preparationStart, trackY - 9, preparationStart, trackY + 9);
-      drawCloudPlate(chrome, 381, 456, 210, 22, HUD_ART.inkDeep);
+      drawCloudPlate(chrome, 350, 454, 268, 21, HUD_ART.inkDeep);
       ticks.clear();
       timelineMilestones(start, end).filter((tick) => tick < preparationStart).forEach((tick) => {
         ticks.fillStyle(HUD_ART.gold, 1).fillTriangle(tick, trackY - 9, tick - 2, trackY - 5, tick + 2, trackY - 5);
@@ -340,43 +351,30 @@ export class BattlePresentationMethods {
     const chrome = this.add.graphics();
     const ticks = this.add.graphics();
     const progressGlow = this.add.rectangle(start, trackY, 1, 6, HUD_ART.light, 0.3).setOrigin(0, 0.5);
-    const title = this.add.text(486, 467, "ORDEN DE TURNO", { fontFamily: HUD_ART.font, fontSize: "13px", fontStyle: "bold", color: HUD_ART.text }).setOrigin(0.5);
+    const title = this.add.text(484, 465, "ORDEN DE TURNO", { fontFamily: HUD_ART.font, fontSize: "12px", fontStyle: "bold", color: HUD_ART.text }).setOrigin(0.5);
     // Keep both phases explicit: this is the real 80–100 % preparation zone.
-    const preparationLabel = this.add.text((preparationStart + end) / 2, 490, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "8px", color: "#f5e1af" }).setOrigin(0.5);
-    this.playerMarkerHalo = this.add.circle(start, trackY, 19, 0x07101d, 1).setStrokeStyle(2, HUD_ART.light, 1);
-    this.enemyMarkerHalo = this.add.circle(start, trackY, 17, 0x07101d, 1).setStrokeStyle(1.5, HUD_ART.gold, 1);
-    const markerHairStyle = this.playerAppearance()?.hair;
-    this.playerTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.playerAppearance()), "cabeza").setDisplaySize(22, 34);
-    this.enemyTurnMarker = this.add.image(start, trackY, fighterAtlasKey(this.enemyAppearance()), "cabeza").setDisplaySize(21, 32).setFlipX(false);
-    this.playerMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.playerAppearance())).setDisplaySize(22, 34));
-    this.enemyMarkerFace = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setDisplaySize(21, 32));
-    this.enemyMarkerHair = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(this.enemyAppearance())).setVisible(false));
-    const enemyHairKey = hairTextureKey(this.enemyAppearance().hair);
-    this.enemyMarkerHairLayout = fighterHairPortraitLayout(this.enemyAppearance().hair, 21, 32, false, this.enemyAppearance().bodyType);
-    if (enemyHairKey && this.enemyMarkerHairLayout) this.enemyMarkerHair.setTexture(enemyHairKey)
-      .setDisplaySize(this.enemyMarkerHairLayout.width, this.enemyMarkerHairLayout.height).setVisible(true);
-    const hairKey = hairTextureKey(markerHairStyle);
-    this.playerMarkerHairLayout = fighterHairPortraitLayout(markerHairStyle, 22, 34, false, this.playerAppearance()?.bodyType);
-    this.playerMarkerHair = hairKey && this.textures.exists(hairKey)
-      ? this.add.image(start + this.playerMarkerHairLayout.x, trackY + this.playerMarkerHairLayout.y, hairKey).setDisplaySize(this.playerMarkerHairLayout.width, this.playerMarkerHairLayout.height)
-      : null;
-    if (this.playerMarkerHair) useFighterTextureRendering(this.playerMarkerHair);
-    const tag = (name) => {
-      const bg = this.add.graphics().setPosition(start, 526);
-      const text = this.add.text(start, 526, name.toUpperCase(), { fontFamily: HUD_ART.font, fontSize: "8px", color: HUD_ART.text, fontStyle: "bold" }).setOrigin(0.5);
-      const width = Math.min(166, Math.max(68, text.width + 16));
-      if (text.width > width - 12) text.setScale((width - 12) / text.width);
-      drawBeveledTag(bg, width, 15);
-      return { bg, text, width };
-    };
-    this.playerTimelineTag = tag(this.saveData.character.name);
-    this.enemyTimelineTag = tag(this.encounters[this.enemyIndex].name);
-    this.timelineLayer.add([chrome, progressGlow, ticks, preparationLabel, title,
-      this.playerMarkerHalo, this.enemyMarkerHalo, this.playerTurnMarker, this.enemyTurnMarker,
-      this.playerMarkerFace, this.enemyMarkerFace,
-      ...[this.playerMarkerHair, this.enemyMarkerHair].filter(Boolean),
-      this.playerTimelineTag.bg, this.playerTimelineTag.text, this.enemyTimelineTag.bg, this.enemyTimelineTag.text]);
-    this.timelineThemeParts = { chrome, ticks, progressGlow, title, preparationLabel, preparationStart, trackY };
+    const preparationLabel = this.add.text((preparationStart + end) / 2, 470, "PREPARACIÓN", { fontFamily: '"Alegreya Sans", sans-serif', fontSize: "9px", color: "#f5e1af", backgroundColor: "#07101d", padding: { x: 4, y: 2 } }).setOrigin(0.5);
+    const links = this.add.graphics();
+    const portraits = ["player", "enemy"].map(actor => {
+      const look = actor === "player" ? this.playerAppearance() : this.enemyAppearance();
+      const layout = fighterCombatPortraitLayout(look, false, 11);
+      const halo = this.add.circle(start, trackY, 12, 0x07101d, 1);
+      const marker = this.add.image(start, trackY, fighterAtlasKey(look), "cabeza").setDisplaySize(layout.head.width, layout.head.height);
+      const face = useFighterTextureRendering(this.add.image(start, trackY, fighterFaceTextureKey(look))
+        .setDisplaySize(layout.head.width, layout.head.height));
+      const hairKey = hairTextureKey(look.hair);
+      const hair = useFighterTextureRendering(this.add.image(start, trackY, hairKey || fighterFaceTextureKey(look))
+        .setDisplaySize(layout.hair?.width || 1, layout.hair?.height || 1).setVisible(Boolean(hairKey && layout.hair)));
+      this[`${actor}TurnMarker`] = marker;
+      this[`${actor}MarkerHalo`] = halo;
+      this[`${actor}MarkerFace`] = face;
+      this[`${actor}MarkerHair`] = hair;
+      this[`${actor}TimelinePortraitLayout`] = layout;
+      return [halo, marker, face, hair];
+    });
+    this.timelineLayer.add([chrome, progressGlow, ticks, preparationLabel, title, links, ...portraits.flat()]);
+    this.timelineThemeParts = { chrome, ticks, progressGlow, title, links, preparationStart, trackY };
+    this.timelineNextActor = null;
     this.timelineProgress ||= { player: 0, enemy: 0 };
     this.pendingActions ||= { player: null, enemy: null };
     this.timelineRunToken = 0;
@@ -473,47 +471,35 @@ export class BattlePresentationMethods {
 
   updateTimelineMarkers(progress = this.timelineProgress) {
     if (!progress || !this.playerTurnMarker || !this.enemyTurnMarker) return;
-    const { start, end, trackY } = HUD_ART.timeline;
+    const { start, end } = HUD_ART.timeline;
     const playerX = timelineMarkerPosition(progress.player, start, end);
-    const enemyX = timelineMarkerPosition(progress.enemy, start, end);
-    const overlap = Math.abs(playerX - enemyX) < 42;
-    const playerY = overlap ? trackY - 11 : trackY;
-    const enemyY = overlap ? trackY + 10 : trackY;
-    this.playerTurnMarker.setPosition(playerX, playerY);
-    this.enemyTurnMarker.setPosition(enemyX, enemyY);
-    this.playerMarkerFace?.setPosition(playerX, playerY);
-    this.enemyMarkerFace?.setPosition(enemyX, enemyY);
-    if (this.enemyMarkerHairLayout) this.enemyMarkerHair?.setPosition(enemyX + this.enemyMarkerHairLayout.x, enemyY + this.enemyMarkerHairLayout.y);
-    this.playerMarkerHalo?.setPosition(playerX, playerY);
-    this.enemyMarkerHalo?.setPosition(enemyX, enemyY);
-    this.playerMarkerHair?.setPosition(playerX + this.playerMarkerHairLayout.x, playerY + this.playerMarkerHairLayout.y);
-    this.timelinePortraitMasks?.[0].setPosition(playerX, playerY);
-    this.timelinePortraitMasks?.[1].setPosition(enemyX, enemyY);
-    const playerWidth = this.playerTimelineTag?.width || 68;
-    const enemyWidth = this.enemyTimelineTag?.width || 68;
-    const clampTag = (x, width) => Math.max(start - 22 + width / 2, Math.min(end + 22 - width / 2, x));
-    let playerTagX = clampTag(playerX, playerWidth), enemyTagX = clampTag(enemyX, enemyWidth);
-    const labelOverlap = Math.abs(playerTagX - enemyTagX) < (playerWidth + enemyWidth) / 2 + 8;
-    if (labelOverlap) {
-      const leftEdge = Math.max(start - 22, Math.min(end + 22 - playerWidth - enemyWidth - 8, Math.min(playerX, enemyX) - playerWidth / 2));
-      if (playerX <= enemyX) { playerTagX = leftEdge + playerWidth / 2; enemyTagX = leftEdge + playerWidth + 8 + enemyWidth / 2; }
-      else { enemyTagX = leftEdge + enemyWidth / 2; playerTagX = leftEdge + enemyWidth + 8 + playerWidth / 2; }
-    }
-    for (const [tag, x] of [[this.playerTimelineTag, playerTagX], [this.enemyTimelineTag, enemyTagX]]) {
-      tag?.bg.setX(x); tag?.text.setX(x);
-    }
-    if (this.timelineThemeParts?.progressGlow) {
-      this.timelineThemeParts.progressGlow.width = Math.max(0, playerX - start);
-    }
+    paintTimelinePortraits(this, [
+      { id: "player", lane: 0, progress: progress.player, name: this.saveData.character.name,
+        place: (x, y, highlighted) => this.placeTimelinePortrait("player", x, y, highlighted) },
+      { id: "enemy", lane: 1, progress: progress.enemy, name: this.encounters[this.enemyIndex].name,
+        place: (x, y, highlighted) => this.placeTimelinePortrait("enemy", x, y, highlighted) }
+    ]);
+    this.timelineThemeParts.progressGlow.width = Math.max(0, playerX - start);
     this.accessibleHud?.updateProgress(progress);
+  }
+
+  placeTimelinePortrait(actor, x, y, highlighted) {
+    const halo = this[`${actor}MarkerHalo`];
+    const color = highlighted ? 0xffdf92 : actor === "player" ? 0x83c6d4 : HUD_ART.gold;
+    const width = highlighted ? 2 : 1.2;
+    if (halo.lineWidth !== width || halo.strokeColor !== color) halo.setStrokeStyle(width, color);
+    halo.setPosition(x, y);
+    const { head, hair } = this[`${actor}TimelinePortraitLayout`];
+    this[`${actor}TurnMarker`].setPosition(x + head.x, y + head.y);
+    this[`${actor}MarkerFace`].setPosition(x + head.x, y + head.y);
+    if (hair) this[`${actor}MarkerHair`].setPosition(x + hair.x, y + hair.y);
   }
 
   setTimelineMarkerState(actor, state, action = null) {
     const marker = actor === "player" ? this.playerTurnMarker : this.enemyTurnMarker;
     if (!marker) return;
-    const halo = actor === "player" ? this.playerMarkerHalo : this.enemyMarkerHalo;
     marker.clearTint().setAlpha(state === "charging" ? 0.92 : 1).setAngle(0);
-    halo?.setStrokeStyle(state === "ready" ? 2.5 : 1.4, state === "ready" ? 0xffe6a0 : HUD_ART.gold, 1);
+    this.updateTimelineMarkers();
     this.refreshBattlePhase();
   }
 
@@ -659,7 +645,11 @@ export class BattlePresentationMethods {
       };
     });
     const duration = Math.min(...timings.map((entry) => entry.duration));
-    const arrivals = timings.filter((entry) => Math.abs(entry.duration - duration) < 0.5);
+    const priority = ({ action, actor }) => action ? (actor === "player" ? 0 : 1) : actor === "enemy" ? 2 : 3;
+    const arrivals = timings.filter((entry) => Math.abs(entry.duration - duration) < 0.5)
+      .sort((left, right) => priority(left) - priority(right));
+    this.timelineNextActor = arrivals[0].actor;
+    this.updateTimelineMarkers();
     if (duration <= 0) {
       this.time.delayedCall(0, () => this.handleTimelineArrivals(arrivals));
       return;
@@ -693,13 +683,7 @@ export class BattlePresentationMethods {
 
   async handleTimelineArrivals(arrivals) {
     if (this.finished || this.timelinePaused || this.busy) return;
-    const ordered = [...arrivals].sort((left, right) => {
-      const leftComplete = left.action ? 0 : left.actor === "enemy" ? 1 : 2;
-      const rightComplete = right.action ? 0 : right.actor === "enemy" ? 1 : 2;
-      if (leftComplete !== rightComplete) return leftComplete - rightComplete;
-      return left.actor === "player" ? -1 : 1;
-    });
-    const arrival = ordered[0];
+    const [arrival] = arrivals;
     if (!arrival) return;
 
     if (arrival.action) {
@@ -885,7 +869,7 @@ export class BattlePresentationMethods {
     this.onActionShortcut = (event) => {
       if (event.key === "Tab") {
         if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey || event.repeat || event.defaultPrevented || handledShortcutEvents.has(event)
-          || event.target?.closest?.("dialog, input, textarea, select, [contenteditable=true], .combat-access-utilities, .training-target-hit, .combat-roster-card")) return;
+          || event.target?.closest?.("dialog, input, textarea, select, [contenteditable=true], .combat-access-utilities, .combat-access-actions, .combat-table-switch, .combat-skill-detail, .training-target-hit, .combat-roster-card")) return;
         handledShortcutEvents.add(event);
         if (this.accessibleHud?.toggleSkillTable?.()) event.preventDefault();
         return;

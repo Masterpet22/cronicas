@@ -1,3 +1,10 @@
+export function drawTargetCorners(graphics, left, top, right, bottom, arm, width) {
+  graphics.lineStyle(width, 0xffcb4f, 1);
+  for (const [x, y, dx, dy] of [[left, top, 1, 1], [right, top, -1, 1], [left, bottom, 1, -1], [right, bottom, -1, -1]]) {
+    graphics.beginPath().moveTo(x, y + arm * dy).lineTo(x, y).lineTo(x + arm * dx, y).strokePath();
+  }
+}
+
 // Scene-space markers follow the actual animated fighter, including CPU turns.
 export function mountFighterIndicators(scene, root) {
   const protagonist = scene.hero;
@@ -36,10 +43,7 @@ export function mountFighterIndicators(scene, root) {
       if (key) {
         const left = fighter.body.x - 38, right = fighter.body.x + 38;
         const top = bounds.top - 5, bottom = fighter.shadow.y - 12, arm = 15;
-        selection.lineStyle(3, 0xffcb4f, 1);
-        for (const [x, y, dx, dy] of [[left, top, 1, 1], [right, top, -1, 1], [left, bottom, 1, -1], [right, bottom, -1, -1]]) {
-          selection.beginPath().moveTo(x, y + arm * dy).lineTo(x, y).lineTo(x + arm * dx, y).strokePath();
-        }
+        drawTargetCorners(selection, left, top, right, bottom, arm, 3);
         if (!target) selection.lineStyle(2, 0xffcb4f, 1).strokeEllipse(fighter.shadow.x, fighter.shadow.y, 100, 18);
       }
     }

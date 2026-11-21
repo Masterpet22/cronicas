@@ -145,8 +145,6 @@ export class BattleScene extends Phaser.Scene {
     this.buttons = [];
     this.actionBackdropThemeParts = null;
     this.timelineThemeParts = null;
-    this.playerTimelineTag = null;
-    this.enemyTimelineTag = null;
     this.enemyTurnMarker = null;
     this.enemyMarkerFace = null;
     this.enemyMarkerHair = null;

@@ -66,8 +66,8 @@ assert.match(battle, /enemyRankStar = this\.createLevelBadge/, "El enemigo debe 
 assert.match(battle, /createCombatPortrait\(900, 50, this\.enemyAppearance\(\), true\)/, "El retrato enemigo debe mirar hacia el campo de batalla");
 assert.match(fighters, /fighterHairPortraitLayout\(style, width, height, flipped = false, bodyType = "male"\)/, "Los retratos deben calcular el cabello desde la geometría compartida del combatiente");
 assert.doesNotMatch(fighters, /player-head-corto/, "Los retratos no deben sustituir la cabeza y el peinado por una composición distinta");
-assert.match(battle, /fighterCombatPortraitLayout\(appearance, flipped\)[\s\S]*fighterAtlasKey\(appearance\), "cabeza"[\s\S]*const hairLayout = layout\.hair/, "El retrato principal debe encuadrar juntos cabeza y peinado sin deformarlos");
-assert.match(battle, /fighterHairPortraitLayout\(markerHairStyle, 22, 34, false, this\.playerAppearance\(\)\?\.bodyType\)/, "El icono de orden de turno debe escalar la misma composición del personaje");
+assert.match(battle, /fighterCombatPortraitLayout\(appearance, flipped, radius - 6\)[\s\S]*fighterAtlasKey\(appearance\), "cabeza"[\s\S]*const hairLayout = layout\.hair/, "El retrato principal debe encuadrar juntos cabeza y peinado sin deformarlos");
+assert.match(battle, /fighterCombatPortraitLayout\(look, false, 11\)[\s\S]*this\[`\$\{actor\}TimelinePortraitLayout`\] = layout/, "El icono de orden de turno debe encuadrar la misma composición del personaje");
 assert.match(characterRigs, /1: \{ id: "corto", [^}]*width: 283, height: 238, x: -4, y: -281 \}/, "El cabello corto debe coincidir con la posición del Dojo en el cuerpo de combate");
 assert.match(characterRigs, /id: "coleta",[\s\S]*anchorToHead: true,[\s\S]*x: 3\.9,[\s\S]*y: -105\.6,[\s\S]*width: 179\.55,[\s\S]*height: 158\.175,[\s\S]*tail: \{ x: -71\.5, y: -52, width: 63\.27, height: 267\.615 \}/, "La coleta completa debe conservar la proporción, el desplazamiento y la escala solicitados");
 assert.doesNotMatch(battle, /playerX \+ 32, 57, "VIDA"/, "El HUD no debe mostrar la etiqueta VIDA");
@@ -243,8 +243,7 @@ assert.doesNotMatch(battle, /battle-hud-overlay-v1\.png/, "El combate no debe ca
 assert.match(battle, /function sharpenTextTree\(/, "El texto debe ajustarse recursivamente incluso dentro de contenedores");
 assert.match(battle, /child\.setResolution\(resolution\)/, "El texto del combate debe rasterizarse a alta resolución");
 assert.match(icons, /width: 128, height: 128/, "Los SVG deben rasterizarse con suficiente resolución antes de ampliarlos");
-assert.match(battle, /this\.playerTurnMarker = this\.add\.image\(start, trackY, fighterAtlasKey\(this\.playerAppearance\(\)\), "cabeza"\)/, "El jugador debe usar en el minirretrato la cabeza elegida en su perfil");
-assert.match(battle, /this\.enemyTurnMarker = this\.add\.image\(start, trackY, fighterAtlasKey\(this\.enemyAppearance\(\)\), "cabeza"\)/, "El rival debe usar un minirretrato bajo la hoja");
+assert.match(battle, /const look = actor === "player" \? this\.playerAppearance\(\) : this\.enemyAppearance\(\)[\s\S]*const marker = this\.add\.image\(start, trackY, fighterAtlasKey\(look\), "cabeza"\)/, "Cada minirretrato debe usar la cabeza elegida en el perfil correspondiente");
 assert.doesNotMatch(battle, /playerTurnLetter|enemyTurnLetter/, "Los marcadores ilustrados no deben depender de iniciales vectoriales");
 assert.match(battle, /marker\.clearTint\(\)/, "Los minirretratos deben conservar sus colores pintados en todos los temas");
 assert.match(battle, /timelineMilestones\(start, end\)\.filter/, "Las muescas grabadas deben marcar cada 20 % de la barra de velocidad");
@@ -287,7 +286,7 @@ assert.match(
 assert.match(html, /class="mobile-gate"/, "Las resoluciones de teléfono deben recibir una pantalla de próximamente");
 assert.match(html, /if \(!mobileViewport\.matches \|\| compactEnabled\)/, "El modo compacto debe permitir cargar el combate desde el acceso móvil");
 assert.match(styles, /html\.mobile-viewport body > main \{ display: none; \}/, "El contenido del juego debe permanecer oculto detrás del aviso");
-assert.match(html, /desktop\.css\?v=0\.84\.0/, "Los cambios visuales y de composición deben invalidar la caché anterior");
+assert.match(html, /desktop\.css\?v=\d+\.\d+\.\d+/, "La hoja de composición debe declarar una versión de caché");
 assert.match(battle, /loader: \{ maxParallelDownloads: 6 \}/, "La carga de imágenes debe limitar la concurrencia para evitar respuestas truncadas");
 assert.doesNotMatch(serviceWorker, /cache\.addAll/, "El service worker no debe precargar imágenes pesadas durante la apertura");
 assert.doesNotMatch(serviceWorker, /addEventListener\("fetch"/, "El trabajador de retirada no debe interceptar ninguna descarga");

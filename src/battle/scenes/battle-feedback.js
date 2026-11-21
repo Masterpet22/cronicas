@@ -2,7 +2,7 @@ import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { hairTextureKey, fighterAtlasKey, fighterFaceTextureKey, fighterHairPortraitLayout, createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
+import { hairTextureKey, fighterAtlasKey, fighterFaceTextureKey, fighterCombatPortraitLayout, createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.171.0";
 import { abandonMissionProgress, awardEncounter, cancelDoctorMission, completeMission, derivedStats, levelUpReport, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.171.0";
@@ -29,10 +29,10 @@ const statusGlyphs = { burn: "火", bleed: "血", stun: "雷", soak: "水", guar
 const statusColors = { burn: 0xe57343, bleed: 0xc6534f, stun: 0xe0bd55, soak: 0x59b9d1, guard: 0x8fb39f, poison: 0x9d7ab6, slow: 0x7790a4 };
 const fittedNames = new WeakMap();
 
-function fitHudName(name, text) {
+function fitHudName(name, text, size, width) {
   if (fittedNames.get(name) === text && name.text === text) return;
-  name.setText(text).setFontSize(17);
-  if (name.width > 183) name.setFontSize(Math.max(10, Math.floor(17 * 183 / name.width)));
+  name.setText(text).setFontSize(size);
+  name.setScale(Math.min(1, width / name.width));
   fittedNames.set(name, text);
 }
 
@@ -82,7 +82,7 @@ export class BattleFeedbackMethods {
 
     this.floatHealthLoss(fighter.body.x, fighter.body.y + yOffset, amount);
     this.flashFighter(fighter);
-    this.healthLossPulse(fighter);
+    this.healthLossPulse(fighter, guarded);
     this.refreshHud();
     const reaction = react
       ? playFighterDamageReaction(this, fighter, {
@@ -114,11 +114,13 @@ export class BattleFeedbackMethods {
     });
   }
 
-  healthLossPulse(fighter) {
+  healthLossPulse(fighter, guarded) {
     const { objects: [pulse], release } = acquireEffect(this, "health-loss-pulse", () => [
       this.add.circle(0, 0, 34, 0xff4057, 0.08).setStrokeStyle(4, 0xff4057, 0.72).setDepth(14)
     ]);
-    pulse.setPosition(fighter.body.x, fighter.body.y - 18).setScale(1).setAlpha(1);
+    const color = guarded ? 0xadce9c : 0xff4057;
+    pulse.setPosition(fighter.body.x, fighter.body.y - 18).setScale(1).setAlpha(1)
+      .setFillStyle(color, .08).setStrokeStyle(guarded ? 3 : 4, color, .72);
     this.tweens.add({
       targets: pulse,
       scale: 1.9,
@@ -253,6 +255,7 @@ export class BattleFeedbackMethods {
       button.tooltip.statText.setText(liveStats.join("\n"));
     });
     this.refreshBattlePhase?.();
+    this.playerTurnAccent?.setAlpha(this.turnReady ? 1 : 0);
   }
 
   refreshHud() {
@@ -260,12 +263,17 @@ export class BattleFeedbackMethods {
     this.playerPortrait?.setAppearance?.(this.playerAppearance());
     this.enemyPortrait?.setAppearance?.(enemyLook);
     if (this.enemyTurnMarker && !this.groupMarkers) {
-      this.enemyTurnMarker.setTexture(fighterAtlasKey(enemyLook), 'cabeza');
-      this.enemyMarkerFace?.setTexture(fighterFaceTextureKey(enemyLook));
+      const layout = fighterCombatPortraitLayout(enemyLook, false, 11);
+      this.enemyTimelinePortraitLayout = layout;
+      const x = this.enemyMarkerHalo.x, y = this.enemyMarkerHalo.y;
+      this.enemyTurnMarker.setTexture(fighterAtlasKey(enemyLook), 'cabeza').setDisplaySize(layout.head.width, layout.head.height)
+        .setPosition(x + layout.head.x, y + layout.head.y);
+      this.enemyMarkerFace.setTexture(fighterFaceTextureKey(enemyLook)).setDisplaySize(layout.head.width, layout.head.height)
+        .setPosition(this.enemyTurnMarker.x, this.enemyTurnMarker.y);
       const key = hairTextureKey(enemyLook.hair);
-      this.enemyMarkerHairLayout = fighterHairPortraitLayout(enemyLook.hair, 21, 32, false, enemyLook.bodyType);
-      this.enemyMarkerHair?.setVisible(Boolean(key));
-      if (key && this.enemyMarkerHairLayout) this.enemyMarkerHair.setTexture(key).setDisplaySize(this.enemyMarkerHairLayout.width, this.enemyMarkerHairLayout.height);
+      this.enemyMarkerHair.setVisible(Boolean(key && layout.hair));
+      if (key && layout.hair) this.enemyMarkerHair.setTexture(key).setDisplaySize(layout.hair.width, layout.hair.height)
+        .setPosition(x + layout.hair.x, y + layout.hair.y);
     }
     this.playerPortrait?.setAffinity?.(this.player.primaryAffinity);
     this.enemyPortrait?.setAffinity?.(this.enemy.primaryAffinity);
@@ -279,13 +287,9 @@ export class BattleFeedbackMethods {
     this.setBarRatio(this.enemyChakraBar, this.enemy.maxChakra > 0 ? this.enemy.chakra / this.enemy.maxChakra : 0);
     this.enemyChakraBar.valueText.setText(`${this.enemy.chakra}/${this.enemy.maxChakra}`);
     const enemyName = this.encounters[this.enemyIndex].name.toUpperCase();
-    fitHudName(this.playerName, this.playerName.text);
-    fitHudName(this.enemyName, enemyName);
-    const enemyTag = this.enemyTimelineTag?.text;
-    if (enemyTag) {
-      enemyTag.setText(enemyName);
-      if (enemyTag.width > 62 && enemyTag.style.fontSize !== "7px") enemyTag.setFontSize(7);
-    }
+    fitHudName(this.playerName, this.playerName.text, 17, 151);
+    fitHudName(this.enemyName, enemyName, 14, 176);
+    this.targetPortraitAccent?.setAlpha(this.enemy.hp > 0 ? 1 : 0);
     this.playerRankNumber.setText(`NV ${this.saveData.progression.level}`);
     this.refreshStatusSlots(this.playerStatusSlots, this.player.statuses, this.player.guarding, this.player.soak);
     this.refreshStatusSlots(this.enemyStatusSlots, this.enemy.statuses, this.enemy.guarding, this.enemy.soak);
@@ -334,6 +338,7 @@ export class BattleFeedbackMethods {
       const type = status ? status.type || "" : null;
       if (slot.statusType === type) return;
       slot.statusType = type;
+      slot.bg.setAlpha(status ? 1 : 0);
       const color = statusColors[type] || 0xd1b36d;
       slot.glyph.setText(status ? statusGlyphs[type] || "印" : "");
       slot.glyph.setColor(status ? `#${color.toString(16).padStart(6, "0")}` : "#667176");

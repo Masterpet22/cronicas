@@ -44,7 +44,6 @@ export function mountHudRoster(scene, root, utilities) {
   function card(host, enemy) {
     const el = document.createElement(enemy ? 'button' : 'div');
     el.className = 'combat-roster-card';
-    el.innerHTML = hudPanelOrnaments();
     if (enemy) el.type = 'button';
     const canvas = document.createElement('canvas');
     canvas.width = canvas.height = 144;
@@ -68,7 +67,7 @@ export function mountHudRoster(scene, root, utilities) {
     info.prepend(title); el.append(canvas, info); host.append(el);
     let index = 0, lookKey = '';
     if (enemy) el.addEventListener('click', () => scene.selectTrainingTarget(index));
-    return { el, update(unit, title, appearance, level, targetIndex) {
+    return { el, update(unit, title, appearance, level, targetIndex, active) {
       index = targetIndex;
       setHudText(name, title);
       setHudText(badge, enemy ? `NV ${level}` : `CPU · NV ${level}`);
@@ -79,6 +78,7 @@ export function mountHudRoster(scene, root, utilities) {
         setHudText(meters[i].value, `${Math.max(0, value)}/${max}`);
       });
       el.classList.toggle('is-defeated', unit.hp <= 0);
+      el.classList.toggle('is-active', Boolean(active));
       if (enemy) {
         el.disabled = unit.hp <= 0 || scene.busy || Boolean(scene.pendingActions.player);
         setHudAttribute(el, 'aria-label', `Elegir ${title}, ${unit.hp}/${unit.maxHp} PV, ${unit.chakra}/${unit.maxChakra} CH`);
@@ -95,11 +95,12 @@ export function mountHudRoster(scene, root, utilities) {
     if (ally) {
       allyCard ||= card(allies, false);
       const look = { bodyType: ally.id === 'akari' ? 'female' : 'male', hair: ally.id === 'akari' ? 4 : 1, skinTone: 'medium' };
-      allyCard.update(ally.state, ally.definition.name.split(' ')[0], look, scene.saveData.progression.level);
+      allyCard.update(ally.state, ally.definition.name.split(' ')[0], look, scene.saveData.progression.level,
+        null, scene.hudActiveFighter === ally.fighter);
       // Keep the live team readout beside the other HUD controls at every size.
       scene.companionHud?.setVisible(false);
       if (scene.companionMarker && !scene.companionMarker.getByName('hud-face')) {
-        const layout = fighterCombatPortraitLayout(look, false, 13).head;
+        const layout = fighterCombatPortraitLayout(look, false, 11).head;
         const face = useFighterTextureRendering(scene.add.image(layout.x, layout.y, fighterFaceTextureKey(look))
           .setDisplaySize(layout.width, layout.height).setName('hud-face'));
         scene.companionMarker.addAt(face, 2);

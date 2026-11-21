@@ -8,6 +8,7 @@ import { actionHealthCost, skillResourceLabel } from './skill-tables.js?v=0.171.
 import { setHudAttribute, setHudProgress, setHudText } from './hud-dom.js?v=1.0.0';
 import { mountHudRoster } from './hud-roster.js?v=0.171.0';
 import { mountFighterIndicators } from './fighter-indicators.js?v=1.0.0';
+import { actionDescription, actionLines } from '../ui.js?v=0.171.0';
 
 // Accessible controls operate the existing Phaser buttons. On compact screens
 // this same layer becomes the visible HUD, with CSS-sized 44 px touch targets.
@@ -41,6 +42,12 @@ export function mountAccessibleBattleHud(scene) {
   };
   const player = panel();
   const enemy = panel();
+  player.name.parentElement.classList.add('combat-status-player');
+  enemy.name.parentElement.classList.add('combat-status-target');
+  const targetLabel = document.createElement('span');
+  targetLabel.className = 'combat-target-label';
+  targetLabel.textContent = 'Objetivo';
+  enemy.name.before(targetLabel);
   const phase = document.createElement('div');
   phase.className = 'combat-access-phase';
   phase.setAttribute('role', 'status');
@@ -62,59 +69,56 @@ export function mountAccessibleBattleHud(scene) {
   spacer.setAttribute('aria-hidden', 'true');
   const actions = document.createElement('div');
   actions.className = 'combat-access-actions';
-  // Native CSS perspective transforms artwork, type and hit targets together.
-  // Keep tooltips in the untransformed overlay so their text remains readable.
   actions.innerHTML = skillFrameSvg();
   let tables = null;
-  let frontSkill = null;
-  let activeTooltip = null;
-  let tooltipTimeout = null;
-  const hideTooltip = () => {
-    window.clearTimeout(tooltipTimeout);
-    tooltipTimeout = null;
-    activeTooltip?.tooltip?.layer.setVisible(false);
-    activeTooltip = null;
+  const detail = document.createElement('aside');
+  detail.className = 'combat-skill-detail';
+  detail.hidden = true;
+  const detailTitle = document.createElement('strong');
+  const detailEffect = document.createElement('p');
+  detailEffect.id = 'combat-skill-effect';
+  const detailResource = document.createElement('p');
+  const detailUse = document.createElement('button');
+  detailUse.type = 'button';
+  detailUse.textContent = 'Usar técnica';
+  detail.append(detailTitle, detailEffect, detailResource, detailUse);
+  let inspected = null;
+  let touchInspection = false;
+  const hideDetails = () => {
+    inspected?.button.removeAttribute('aria-describedby');
+    inspected?.button.classList.remove('is-inspected');
+    inspected = null;
+    touchInspection = false;
+    detail.hidden = true;
   };
-  const showTooltip = (slot) => {
-    // Focus after hovering must not extend the same detail's deadline.
-    if (activeTooltip === slot) return;
-    hideTooltip();
-    activeTooltip = slot;
-    slot.tooltip?.layer.setVisible(true);
-    tooltipTimeout = window.setTimeout(() => {
-      slot.tooltip?.layer.setVisible(false);
-      tooltipTimeout = null;
-    }, 3200);
+  const updateDetails = () => {
+    if (!inspected) return;
+    const { button, inspection } = inspected;
+    setHudText(detailTitle, inspection.name);
+    setHudText(detailEffect, inspection.effect);
+    setHudText(detailResource, inspection.requirement);
+    detailUse.hidden = !touchInspection || !inspection.action;
+    detailUse.disabled = button.getAttribute('aria-disabled') === 'true';
+    detail.hidden = false;
   };
-  const restorePerspective = () => {
-    if (!frontSkill) return;
-    const { row, button, slot } = frontSkill;
-    row.classList.remove('is-front');
-    button.style.removeProperty('--skill-front-transform');
-    hideTooltip();
-    slot.tooltip?.layer.setX(0).setVisible(false);
-    frontSkill = null;
+  const inspect = (control, touch = false) => {
+    if (root.hidden || root.inert || scene.skillTableSwitching || touchInspection && !touch) return;
+    if (inspected !== control) hideDetails();
+    inspected = control;
+    touchInspection = touch;
+    control.button.classList.add('is-inspected');
+    control.button.setAttribute('aria-describedby', detailEffect.id);
+    updateDetails();
+    if (touch && root.classList.contains('compact')) detail.scrollIntoView({ block: 'nearest' });
   };
-  const faceSkill = (row, button, slot) => {
-    if (root.classList.contains('compact') || root.hidden || root.inert || scene.skillTableSwitching) return;
-    if (frontSkill?.button !== button) restorePerspective();
-    const style = getComputedStyle(actions);
-    const [originX, originY] = style.transformOrigin.split(' ').map(parseFloat);
-    const panel = new DOMMatrix().translate(originX, originY)
-      .multiply(new DOMMatrix(style.transform)).translate(-originX, -originY);
-    const x = row.offsetLeft + button.offsetLeft;
-    const y = row.offsetTop + button.offsetTop;
-    const center = new DOMPoint(x, y + button.offsetHeight / 2).matrixTransform(panel);
-    const left = center.x / center.w;
-    const top = center.y / center.w - button.offsetHeight / 2;
-    // Cancel the complete ancestor projection, including its perspective and
-    // skew. The row's original hit area remains stable in its wrapper.
-    const correction = new DOMMatrix().translate(-x, -y).multiply(panel.inverse())
-      .translate(left, top);
-    button.style.setProperty('--skill-front-transform', correction.toString());
-    row.classList.add('is-front');
-    frontSkill = { row, button, slot };
-    slot.tooltip?.layer.setX(Math.max(0, (actions.offsetLeft + left + button.offsetWidth + 12) * 960 / root.clientWidth - 169));
+  detailUse.addEventListener('click', () => {
+    if (!inspected || detailUse.disabled) return;
+    const { index } = inspected;
+    hideDetails();
+    tables.activate(index);
+  });
+  const dismissTouchDetails = event => {
+    if (touchInspection && !actions.contains(event.target) && !detail.contains(event.target)) hideDetails();
   };
   const controls = scene.actionSlots.map((slot, index) => {
     const row = document.createElement('div');
@@ -133,12 +137,9 @@ export function mountAccessibleBattleHud(scene) {
     shortcut.textContent = index + 1;
     const art = document.createElement('span');
     art.className = 'combat-skill-art';
-    const availability = document.createElement('span');
-    availability.className = 'combat-skill-availability';
     const action = scene.actions[index];
     paintBattleSkillArt(scene, art, action, { index });
     let artKey = `elemental:${action?.id || "empty"}`;
-    art.append(availability);
     art.setAttribute('aria-hidden', 'true');
     shortcut.setAttribute('aria-hidden', 'true');
     const info = document.createElement('span');
@@ -147,34 +148,32 @@ export function mountAccessibleBattleHud(scene) {
     button.classList.toggle('is-empty', !action);
     if (action) button.dataset.actionId = action.id;
     button.append(shortcut, art, info);
-    const focus = () => {
-      if (root.classList.contains('compact') || scene.skillTableSwitching) return;
-      showTooltip(tables?.slotAt(index) || slot);
-    };
-    const blur = () => {
-      if (activeTooltip === (tables?.slotAt(index) || slot)) hideTooltip();
-    };
-    row.addEventListener('pointerenter', () => { faceSkill(row, button, tables?.slotAt(index) || slot); focus(); });
-    row.addEventListener('pointerleave', () => {
-      if (frontSkill?.button === button) restorePerspective();
-      blur();
-    });
-    button.addEventListener('focus', focus);
-    button.addEventListener('blur', blur);
-    button.addEventListener('click', () => {
-      tables?.activate(index);
-    });
-    row.addEventListener('click', event => { if (event.target === row) button.click(); });
-    row.append(button);
-    actions.append(row);
-    return { button, name, cost, art, availability, index,
+    const control = { button, row, name, cost, index,
       get slot() { return tables?.slotAt(index) || slot; },
       paint(action, physical) {
         const key = `${physical ? "physical" : "elemental"}:${action?.id || "empty"}`;
         if (key === artKey || index === 0 || index === 5) return;
-        artKey = key; paintBattleSkillArt(scene, art, action, { physical, index }); art.append(availability);
+        artKey = key; paintBattleSkillArt(scene, art, action, { physical, index });
       }
     };
+    row.addEventListener('pointerenter', event => { if (event.pointerType === 'mouse') inspect(control); });
+    row.addEventListener('pointerleave', () => {
+      if (!touchInspection && inspected === control && !button.matches(':focus-visible')) hideDetails();
+    });
+    button.addEventListener('focus', () => { if (button.matches(':focus-visible')) inspect(control); });
+    button.addEventListener('blur', () => { if (!touchInspection && inspected === control) hideDetails(); });
+    button.addEventListener('click', event => {
+      if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+        inspect(control, true);
+        return;
+      }
+      if (button.getAttribute('aria-disabled') === 'true') return;
+      hideDetails();
+      tables.activate(index);
+    });
+    row.append(button);
+    actions.append(row);
+    return control;
   });
   const progress = document.createElement('div');
   progress.className = 'combat-access-progress';
@@ -193,7 +192,10 @@ export function mountAccessibleBattleHud(scene) {
   const message = document.createElement('p');
   message.className = 'combat-access-message';
   message.setAttribute('role', 'status');
-  root.append(summary, spacer, actions, progress, message);
+  root.append(summary, spacer, actions, detail, progress, message);
+  // A compact detail can extend the page below the touch target. Close it
+  // after the target's click so the viewport cannot move during the tap.
+  document.addEventListener('click', dismissTouchDetails);
   const roster = mountHudRoster(scene, root, utilities);
   scene.game.canvas.parentElement.append(root);
   scene.combatIndicators = mountFighterIndicators(scene, root);
@@ -201,14 +203,14 @@ export function mountAccessibleBattleHud(scene) {
   let sleeping = false;
   const refreshVisibility = () => {
     const hidden = Boolean(visibilityLocks > 0 || sleeping || scene.scene.isPaused() || scene.finished);
-    if (hidden) restorePerspective();
+    if (hidden) hideDetails();
     if (root.hidden !== hidden) root.hidden = hidden;
     if (root.inert !== hidden) root.inert = hidden;
     scene.combatIndicators.refresh();
     tables?.refresh();
   };
   const suspend = () => {
-    hideTooltip();
+    hideDetails();
     visibilityLocks += 1;
     refreshVisibility();
     scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
@@ -227,7 +229,7 @@ export function mountAccessibleBattleHud(scene) {
     roster.refresh();
     inventory.refresh();
     refreshVisibility();
-    const compact = root.classList.contains('compact');
+    player.name.parentElement.classList.toggle('is-active', scene.turnReady);
     for (const [ui, unit, name] of [[player, scene.player, scene.saveData.character.name], [enemy, scene.enemy, scene.encounters[scene.enemyIndex].name]]) {
       setHudText(ui.name, name.toUpperCase());
       [[unit.hp, unit.maxHp], [unit.chakra, unit.maxChakra]].forEach(([value, max], index) => {
@@ -239,32 +241,44 @@ export function mountAccessibleBattleHud(scene) {
     setHudText(phaseText, scene.phaseLabel.text);
     setHudText(message, scene.lastBattleMessage?.text || '');
     controls.forEach(control => {
-      const { button, name, cost, availability, slot, index } = control;
+      const { button, row, name, cost, slot, index } = control;
       const action = tables ? tables.actionAt(index) : scene.actions[index];
       const physical = Boolean(tables?.physical && index > 0 && index < 5);
       const empty = action ? null : physical || scene.mission.training ? tables.emptyAt(index) : emptySkillInfo(scene, index);
       const cooldown = action ? scene.cooldowns[action.id] || 0 : 0;
       const health = actionHealthCost(action);
-      const affordable = action && (scene.mission.training && !scene.mission.groupTraining || scene.player.hp > health && scene.player.chakra >= scene.actionCost(action));
+      const freePractice = scene.mission.training && !scene.mission.groupTraining;
+      const missingChakra = !action || freePractice ? 0 : Math.max(0, scene.actionCost(action) - scene.player.chakra);
+      const missingHealth = !health || freePractice ? 0 : Math.max(0, health + 1 - scene.player.hp);
+      const shortage = [missingChakra ? `${missingChakra} CH` : '', missingHealth ? `${missingHealth} PV` : ''].filter(Boolean).join(' y ');
+      const unavailable = shortage ? `Falta${missingChakra + missingHealth > 1 ? 'n' : ''} ${shortage}`
+        : cooldown ? `CD ${cooldown}`
+          : action?.type === 'guard' && scene.player.guarding ? 'Guardia activa' : '';
       const resource = action ? skillResourceLabel(scene, action, physical) : empty.requirement;
-      const requirement = action ? `${resource}${cooldown ? ` · CD ${cooldown}` : !affordable ? health ? ' · Sin vida suficiente' : ' · Sin chakra' : ''}` : empty.requirement;
+      const requirement = unavailable ? `${resource} · ${unavailable}` : resource;
       const actionName = action?.name || empty.name;
+      const [, damage, timing] = action ? actionLines(action) : [];
+      const effect = action ? action.type === 'guard' ? actionDescription(action)
+        : [action.description || actionDescription(action), damage, timing].join(' · ')
+        : empty.description || (empty.locked ? `Se abre en ${empty.requirement}` : 'Equipa una técnica en el Dojo.');
+      control.inspection = { action, name: actionName, effect, requirement };
       control.paint(action, physical);
       button.classList.toggle('is-empty', !action);
+      row.classList.toggle('is-empty-row', !action);
       setHudAttribute(button, 'data-action-id', action?.id ?? null);
       setHudText(name, actionName);
-      setHudText(cost, compact ? requirement : resource);
-      setHudText(availability, action ? cooldown ? `CD ${cooldown}` : !affordable ? health ? 'SIN PV' : 'SIN CH' : '' : '');
-      setHudAttribute(button, 'data-resource-state', action && !affordable ? 'insufficient' : cooldown ? 'cooldown' : 'normal');
+      setHudText(cost, requirement);
+      setHudAttribute(button, 'data-resource-state', shortage ? 'insufficient' : cooldown ? 'cooldown' : 'normal');
       setHudAttribute(button, 'aria-label', `${index + 1}. ${actionName}${action?.equipmentName ? `, ${action.equipmentName}` : ''}, ${requirement}`);
       setHudAttribute(button, 'aria-disabled', Boolean(!slot.available || scene.skillTableSwitching && index > 0 && index < 5));
       setHudAttribute(button, 'aria-pressed', Boolean(action && action.id === scene.selectedHudActionId));
-      setHudAttribute(button, 'title', action ? `${action.name}${action.equipmentName ? ` · ${action.equipmentName}` : ''}: ${requirement} · ${initiativeLabel(action)} para la siguiente acción` : physical || scene.mission.training ? empty.description : `${empty.name}. ${empty.locked ? 'Se abre en ' : 'Configurar en el '}${empty.requirement}`);
     });
+    updateDetails();
     markers.forEach(({ name, actor }) => setHudText(name, actor === 'player' ? scene.saveData.character.name : scene.encounters[scene.enemyIndex].name));
   };
-  tables = mountSkillTableControl(scene, { root, actions, restorePerspective, refresh });
+  tables = mountSkillTableControl(scene, { root, actions, hideDetails, refresh });
   const query = window.matchMedia('(max-width: 899px)');
+  const tabletTimeline = window.matchMedia('(min-width: 700px)');
   // The existing Phaser actions remain the execution contract; the native layer
   // supplies the projected presentation and pointer geometry at every size.
   scene.actionCanvasLayer = scene.add.container(0, 0, scene.actionCanvasParts).setDepth(30).setVisible(false);
@@ -285,14 +299,16 @@ export function mountAccessibleBattleHud(scene) {
   };
   const layout = () => {
     if (!root.isConnected || !scene.game?.canvas?.parentElement) return;
-    restorePerspective();
+    hideDetails();
     root.classList.toggle('compact', query.matches);
     syncCanvasBounds();
     scene.hudCanvasParts.forEach(part => part.setVisible(!query.matches && originals.get(part)));
     // A selected rival may have a different hairstyle from the initial portrait.
     // Reapply its current visibility after restoring the desktop canvas HUD.
     scene.refreshHud();
-    scene.timelineLayer.setVisible(scene.mission.groupTraining || scene.mission.groupCombat || !query.matches && !scene.mission.training);
+    const showTimeline = Boolean(scene.mission.groupTraining || scene.mission.groupCombat || tabletTimeline.matches && !scene.mission.training);
+    scene.timelineLayer.setVisible(showTimeline);
+    root.classList.toggle('has-canvas-timeline', showTimeline);
     scene.game.canvas.parentElement.classList.toggle('compact-combat', query.matches);
     if (query.matches) scene.buttons.forEach(button => button.tooltip.layer.setVisible(false));
     if (query.matches) [...scene.playerStatusSlots, ...scene.enemyStatusSlots].forEach(slot => slot.detail.setVisible(false));
@@ -300,11 +316,11 @@ export function mountAccessibleBattleHud(scene) {
     refresh();
   };
   query.addEventListener('change', layout);
+  tabletTimeline.addEventListener('change', layout);
   const resizeObserver = new ResizeObserver(() => {
     if (!root.isConnected || !scene.game?.canvas?.parentElement) return;
     syncCanvasBounds();
     tables.layout();
-    if (frontSkill) faceSkill(frontSkill.row, frontSkill.button, frontSkill.slot);
   });
   resizeObserver.observe(actions);
   resizeObserver.observe(scene.game.canvas);
@@ -317,8 +333,10 @@ export function mountAccessibleBattleHud(scene) {
   scene.events.on('wake', onWake);
   const remove = () => {
     tables.destroy();
-    hideTooltip();
+    hideDetails();
+    document.removeEventListener('click', dismissTouchDetails);
     query.removeEventListener('change', layout);
+    tabletTimeline.removeEventListener('change', layout);
     resizeObserver.disconnect();
     scene.events.off('pause', refreshVisibility);
     scene.events.off('resume', refreshVisibility);

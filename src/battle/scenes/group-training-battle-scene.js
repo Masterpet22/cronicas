@@ -149,6 +149,8 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
     if (this.finished || this.timelinePaused || this.busy || this.timelineTween) return;
     const step = nextGroupTimelineStep(this.participants());
     if (!step) return;
+    this.timelineNextActor = step.arrival.id;
+    this.updateTimelineMarkers();
     const token = ++this.timelineRunToken;
     const epoch = this.groupEpoch;
     const arrive = () => {
@@ -178,6 +180,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
       if (arrival.action) return this.executeTimelineAction("player", arrival.action);
       this.player.recoveryInitiative = 0;
       this.timelinePaused = true; this.turnReady = true;
+      this.updateTimelineMarkers();
       this.setButtonsEnabled(true);
       this.setMessage("Tu turno. Elige un objetivo y una acción; el tiempo espera mientras decides.");
       return;
