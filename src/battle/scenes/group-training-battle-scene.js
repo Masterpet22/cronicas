@@ -62,9 +62,7 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
       const state = index === 0 ? firstState : createEnemyState(profile, this.mission);
       const fighter = index === 0 ? this.foe : this.createEnemyFighterAt(position);
       if (index === 0) { fighter.layers.forEach(layer => layer.clearTint()); startPlayerBreathing(this, fighter); }
-      const ring = this.add.ellipse(position.x, fighter.shadow.y, 100, 18, 0xd7a857, 0)
-        .setStrokeStyle(3, 0xffd784, 1).setDepth(5);
-      return { state, fighter, ring, profile, position, progress: 0, pending: null, turns: 0, retired: false };
+      return { state, fighter, profile, position, progress: 0, pending: null, turns: 0, retired: false };
     });
     this.setGroupContext(0);
   }
@@ -95,10 +93,6 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
   refreshHud() {
     if (!this.trainingTargets) return super.refreshHud();
     this.withSelectedTarget(() => super.refreshHud());
-    this.trainingTargets.forEach(({ state, ring }, index) => {
-      const visible = state.hp > 0 && index === this.selectedTargetIndex;
-      if (ring.visible !== visible) ring.setVisible(visible);
-    });
   }
 
   combatantEvasion(combatant) {
@@ -226,7 +220,6 @@ export class GroupTrainingBattleScene extends TrainingBattleScene {
         target.fighter.body.setVisible(false);
         target.fighter.shadow.setVisible(false);
       }, { pace: "substitution" }));
-      target.ring.setVisible(false);
       const marker = this.groupMarkers?.[index];
       if (marker) setGroupMarkerVisible(marker, false);
     });

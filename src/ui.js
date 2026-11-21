@@ -185,12 +185,6 @@ export function createActionButton(scene, action, index, initialSkin = DEFAULT_I
     : null;
   if (icon && action.id === "strike") icon.setTint(0xd1a25b);
   if (icon && action.type === "guard") icon.setTint(0xa6412d);
-  const techniqueMark = ({
-    fire_embers: "火", fire_breath: "炎", fire_ring: "輪", fire_phoenix: "鳳"
-  })[action.id];
-  const mark = techniqueMark ? scene.add.text(x, y + 1, techniqueMark, {
-    fontFamily: '"Yu Mincho", "MS Mincho", serif', fontSize: ultimate ? "25px" : "21px", color: "#ffe4a0", fontStyle: "bold", stroke: "#4f120c", strokeThickness: 4
-  }).setOrigin(0.5).setDepth(35) : null;
   const glyph = icon ? null : scene.add.text(x, y, action.type === "guard" ? "◇" : "◆", {
     fontFamily: '"Cinzel", Georgia, serif', fontSize: "25px", color: `#${action.color.toString(16).padStart(6, "0")}`, fontStyle: "bold"
   }).setOrigin(0.5).setDepth(34);
@@ -217,7 +211,7 @@ export function createActionButton(scene, action, index, initialSkin = DEFAULT_I
     fontFamily: '"Alegreya Sans", sans-serif', fontSize: "9px", color: "#fff0bc", fontStyle: "bold", stroke: "#02050a", strokeThickness: 3
   }).setOrigin(0.5).setDepth(38);
   const tooltip = createTooltip(scene, action, index, initialSkin);
-  const visualParts = [chrome, shortcutBg, shortcut, icon, mark, glyph, name, costBg, cost, availability].filter(Boolean);
+  const visualParts = [chrome, shortcutBg, shortcut, icon, glyph, name, costBg, cost, availability].filter(Boolean);
   const applyTheme = (skin = DEFAULT_INTERFACE_SKIN) => {
     chrome.applyTheme(skin);
     shortcutBg.setFillStyle(0x4c1714, 1).setStrokeStyle(1.25, 0xc79a4a, 0.95);
@@ -229,7 +223,6 @@ export function createActionButton(scene, action, index, initialSkin = DEFAULT_I
     bg: chrome,
     icon,
     name, cost, availability,
-    mark,
     iconText: glyph,
     shortcutBg,
     shortcut,

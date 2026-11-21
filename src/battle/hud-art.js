@@ -11,7 +11,7 @@ export const HUD_ART = Object.freeze({
   wine: 0x58151d, health: 0x06d45a, chakra: 0x009fe9,
   text: "#f5e1af", muted: "#a59d91", font: '"Cinzel", Georgia, serif',
   skills: Object.freeze({ x: 12, y: 198, width: 184, rowHeight: 46, iconX: 55 }),
-  timeline: Object.freeze({ x: 158, y: 480, width: 650, height: 49, start: 218, end: 790, trackY: 504 })
+  timeline: Object.freeze({ x: 158, y: 480, width: 650, height: 49, start: 218, end: 770, trackY: 504 })
 });
 
 export function drawOrnatePanel(g, x, y, width, height, { fill = HUD_ART.ink, alpha = 0.94, radius = 15 } = {}) {
@@ -20,18 +20,6 @@ export function drawOrnatePanel(g, x, y, width, height, { fill = HUD_ART.ink, al
     .fillRoundedRect(x, y, width, height, radius);
   g.lineStyle(1.2, HUD_ART.gold, 1).strokeRoundedRect(x, y, width, height, radius);
   g.lineStyle(0.6, HUD_ART.gold, 0.45).strokeRoundedRect(x + 3, y + 3, width - 6, height - 6, Math.max(3, radius - 2));
-  // Small inward facing scrolls at each corner, drawn as vectors rather than
-  // stretching the old raster frame or downloading additional ornament images.
-  for (const [cx, cy, sx, sy] of [[x, y, 1, 1], [x + width, y, -1, 1], [x, y + height, 1, -1], [x + width, y + height, -1, -1]]) {
-    g.lineStyle(1.3, HUD_ART.gold, 1).beginPath();
-    g.moveTo(cx + sx * 2, cy + sy * 20);
-    g.lineTo(cx + sx * 5, cy + sy * 8);
-    g.lineTo(cx + sx * 15, cy + sy * 2);
-    g.strokePath();
-    g.strokeCircle(cx + sx * 7, cy + sy * 13, 3);
-    g.strokeCircle(cx + sx * 13, cy + sy * 6, 2.5);
-    g.fillStyle(HUD_ART.light, 1).fillCircle(cx + sx * 5, cy + sy * 5, 1.3);
-  }
   return g;
 }
 

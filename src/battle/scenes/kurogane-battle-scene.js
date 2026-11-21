@@ -322,14 +322,14 @@ export class KuroganeBattleScene extends GroupTrainingBattleScene {
   }
   replaceGroupWave() {
     this.targetControls?.destroy?.();
-    this.trainingTargets.forEach(target => { stopPlayerPreparing(this, target.fighter, { immediate: true }); destroyFighter(target.fighter); target.ring.destroy(); });
+    this.trainingTargets.forEach(target => { stopPlayerPreparing(this, target.fighter, { immediate: true }); destroyFighter(target.fighter); });
     this.groupMarkers?.forEach(({ parts }) => parts.forEach(part => part.destroy()));
     const positions = enemyFormation(this.encounters.length);
     this.trainingTargets = positions.map((position, index) => {
       this.enemyIndex = index;
       const profile = this.encounters[index], state = createEnemyState(profile, this.mission);
       const fighter = this.createEnemyFighterAt(position);
-      return { profile, state, position, fighter, ring: this.add.ellipse(position.x, fighter.shadow.y, 150, 24, 0xd7a857, 0).setStrokeStyle(3, 0xffd784, 1).setDepth(5), progress: 0, pending: null, turns: 0, retired: false };
+      return { profile, state, position, fighter, progress: 0, pending: null, turns: 0, retired: false };
     });
     this.selectedTargetIndex = 0; this.setGroupContext(0);
     this.enemyRankNumber.setText(`NV ${this.encounters[0].level}`);

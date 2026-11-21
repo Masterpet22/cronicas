@@ -1,4 +1,4 @@
-import { drawStatusPanel, drawCloudPlate, drawInitiativeFrame, drawTimelineTail, drawResourceEmblem, chromePath } from "../hud-chrome.js?v=0.171.0";
+import { drawStatusPanel, drawTurnPlaque, drawInitiativeFrame, drawResourceEmblem, chromePath } from "../hud-chrome.js?v=0.171.0";
 import { HUD_ART, drawOrnatePanel } from "../hud-art.js?v=0.171.0";
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
@@ -154,7 +154,7 @@ export class BattlePresentationMethods {
       bar.valueText.setOrigin(mirrored ? 0 : 1, 0.5).setX(mirrored ? bar.x + 8 : bar.x + bar.width - 8).setFontSize(12).setDepth(25);
     });
     const phaseChrome = this.add.graphics().setDepth(24);
-    drawCloudPlate(phaseChrome, 356, 12, 248, 30);
+    drawTurnPlaque(phaseChrome, 356, 12, 248, 30);
     this.phaseLabel = this.add.text(480, 27, "INICIATIVA", {
       fontFamily: HUD_ART.font, fontSize: "14px", fontStyle: "bold", color: HUD_ART.text, stroke: "#170607", strokeThickness: 2
     }).setOrigin(0.5).setDepth(25);
@@ -321,19 +321,16 @@ export class BattlePresentationMethods {
       const { x, y, width, height, start, end } = HUD_ART.timeline;
       chrome.clear();
       drawInitiativeFrame(chrome, x - 8, y, width + 16, height);
-      chrome.fillStyle(HUD_ART.wine, 1).fillRoundedRect(start - 1, trackY - 6, end - start + 2, 12, 6);
-      chrome.fillStyle(0x9b322d, 0.7).fillRoundedRect(preparationStart, trackY - 4, end - preparationStart - 8, 8, 3);
-      chrome.lineStyle(1.8, HUD_ART.gold, 1).strokeRoundedRect(start - 1, trackY - 6, end - start + 2, 12, 6);
-      chrome.lineStyle(0.8, HUD_ART.light, 0.6).lineBetween(start + 5, trackY - 4, end - 5, trackY - 4);
-      drawTimelineTail(chrome, start - 13, trackY);
-      chromePath(chrome, [['M', -16, -11], ['L', 5, 0], ['L', -16, 11], ['L', -12, 0], ['Z']], { x: end, y: trackY, fill: HUD_ART.gold, stroke: 0xf4ce7e, width: .7 });
+      chrome.fillStyle(0x030810, 1).fillRect(start - 3, trackY - 5, end - start + 6, 10);
+      chrome.fillStyle(0x271a24, 1).fillRect(start, trackY - 3, end - start, 6);
+      chrome.fillStyle(0x833b34, 1).fillRect(preparationStart, trackY - 3, end - preparationStart, 6);
+      chrome.lineStyle(1, 0xa47b4d, 1).strokeRect(start - 3, trackY - 5, end - start + 6, 10);
+      chrome.lineStyle(.65, HUD_ART.light, .5).lineBetween(start, trackY - 3, end, trackY - 3);
       chrome.lineStyle(1, HUD_ART.light, 0.8).lineBetween(preparationStart, trackY - 9, preparationStart, trackY + 9);
-      drawCloudPlate(chrome, 350, 454, 268, 21, HUD_ART.inkDeep);
+      drawTurnPlaque(chrome, 350, 454, 268, 21, HUD_ART.inkDeep);
       ticks.clear();
       timelineMilestones(start, end).filter((tick) => tick < preparationStart).forEach((tick) => {
-        ticks.fillStyle(HUD_ART.gold, 1).fillTriangle(tick, trackY - 9, tick - 2, trackY - 5, tick + 2, trackY - 5);
-        ticks.fillStyle(HUD_ART.light, 1).fillCircle(tick, trackY, 4.5);
-        ticks.lineStyle(1.2, 0x35140d, 1).strokeCircle(tick, trackY, 4.5);
+        ticks.lineStyle(1, HUD_ART.light, .8).lineBetween(tick, trackY - 4, tick, trackY + 4);
       });
     }
     paintActionBackdrop(this.actionBackdropThemeParts, skin);

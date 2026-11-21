@@ -105,7 +105,7 @@ assert.match(battle, /const BATTLE_INTERFACE_SKINS = Object\.freeze\([\s\S]*ance
 assert.match(battle, /actionSlotFile: "assets\/ui\/hud-themes\/ancestral-action-slot\.png[\s\S]*speedSwordFile: "assets\/ui\/hud-themes\/ancestral-speed-sword\.png/, "La interfaz ancestral debe usar adornos ilustrados propios");
 assert.match(battle, /actionSlotFile: "assets\/ui\/hud-themes\/lunar-action-slot\.png[\s\S]*speedSwordFile: "assets\/ui\/hud-themes\/lunar-speed-sword\.png/, "La interfaz lunar debe usar adornos ilustrados propios");
 assert.match(battle, /ORDEN DE TURNO/, "La barra inferior debe llevar el título de la referencia");
-assert.match(battle, /fillRoundedRect\(start - 1, trackY - 6, end - start \+ 2, 12, 6\)/, "La iniciativa debe dibujar la pista de progreso real");
+assert.match(battle, /fillRect\(start, trackY - 3, end - start, 6\)/, "La pista de iniciativa debe ocupar el tramo de progreso real");
 assert.match(ui, /chrome\.lineStyle\(4, 0x6e1e18/, "Cada habilidad debe usar un aro fino de laca bermellón");
 assert.match(battle, /actionSlotFile: "assets\/ui\/hud-themes\/ancestral-action-slot\.png[\s\S]*actionSlotFile: "assets\/ui\/hud-themes\/lunar-action-slot\.png/, "Los dos temas deben aportar su propio marco ilustrado de habilidad");
 assert.doesNotMatch(battle, /actionRailFrame|timelineFrame/, "La interfaz no debe deformar los marcos de vida para decorar otros controles");
@@ -248,8 +248,8 @@ assert.doesNotMatch(battle, /playerTurnLetter|enemyTurnLetter/, "Los marcadores 
 assert.match(battle, /marker\.clearTint\(\)/, "Los minirretratos deben conservar sus colores pintados en todos los temas");
 assert.match(battle, /timelineMilestones\(start, end\)\.filter/, "Las muescas grabadas deben marcar cada 20 % de la barra de velocidad");
 assert.match(battle, /const preparationStart = timelineMarkerPosition\(0\.8, start, end\)/, "El tramo final debe comenzar exactamente en el 80 %");
-assert.match(battle, /lineBetween\(preparationStart, trackY - 9, preparationStart, trackY \+ 9\)/, "El último 20 % debe resaltarse sobre la punta de la hoja");
-assert.match(battle, /fontFamily: HUD_ART.font[\s\S]*color: HUD_ART.text/, "Los textos de la espada deben mantener contraste mediante contorno y sombra");
+assert.match(battle, /lineBetween\(preparationStart, trackY - 9, preparationStart, trackY \+ 9\)/, "La marca de preparación debe delimitar el último 20 % de la pista");
+assert.match(battle, /fontFamily: HUD_ART.font[\s\S]*color: HUD_ART.text/, "El letrero de iniciativa debe conservar el color de texto del HUD");
 assert.match(battle, /advanceTimelineProgress\(from\[actor\], speed, duration, action, initiative\)/, "Ambos marcadores deben avanzar con las mismas reglas de velocidad e iniciativa");
 assert.match(battle, /"timeline-ready-brush"/, "La llegada al umbral debe usar un golpe de pincel de una sola ejecución");
 assert.match(battle, /showPreparationFeedback\(actor, action\)/, "La preparación debe tener una respuesta visual propia");

@@ -43,10 +43,10 @@
   display: grid;
   transform: none;
   transform-origin: left center;
-  border: 1.4px solid var(--hud-gold);
-  border-radius: 1.3cqw;
-  background: linear-gradient(105deg, #0e1b30fc, #050e1df7 60%, #091428fa);
-  box-shadow: inset 0 0 0 3px #030914, 2px 3px 6px #0006;
+  border: 1px solid #a88356;
+  border-radius: 7px;
+  background: linear-gradient(110deg, #111b2b, #080e19 75%);
+  box-shadow: inset 0 0 0 3px #080b11, inset 0 0 0 4px #5c452d;
   pointer-events: none;
 }
 .combat-access:not(.compact) .combat-access-actions button {
@@ -56,29 +56,30 @@
   align-items: center;
   min-height: 0;
   min-width: 0;
-  margin: 1px 5px;
+  margin: 1px 6px;
   padding: 0 6px;
-  border: 1px solid #967044;
-  border-radius: 6px;
+  border: 1px solid #574637;
+  border-radius: 4px;
   background: #050e1df2;
   color: var(--hud-text);
   box-shadow: none;
   text-align: left;
-  width: calc(100% - 10px);
+  width: calc(100% - 12px);
   height: calc(100% - 2px);
   transition: box-shadow var(--hud-transition), background-color var(--hud-transition);
 }
 .combat-access:not(.compact) .combat-skill-row { position: relative; min-width: 0; height: max(46px, 4.55cqw); }
-.combat-access:not(.compact) .combat-skill-row.is-empty-row { height: 46px; }
-.combat-skill-ornaments { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 3; color: #e2ba73; pointer-events: none; }
+.combat-panel-corner { position: absolute; z-index: 3; width: clamp(13px, 1.35cqw, 25px); aspect-ratio: 1; pointer-events: none; }
+.combat-panel-corner.nw { top: -1px; left: -1px; }
+.combat-panel-corner.ne { top: -1px; right: -1px; transform: scaleX(-1); }
+.combat-panel-corner.sw { bottom: -1px; left: -1px; transform: scaleY(-1); }
+.combat-panel-corner.se { bottom: -1px; right: -1px; transform: scale(-1); }
 .combat-skill-shortcut { position: absolute; z-index: 2; left: 4%; top: 4%; display: grid; place-items: center; width: 2.3cqw; height: 2.3cqw; border: 1.2px solid #e7bd66; border-radius: 50%; background: linear-gradient(#742b21, #491017); color: #f5e1af; box-shadow: inset 0 0 0 1px #3a1118; font: 700 1.55cqw Georgia, serif; }
-.combat-skill-art { position: relative; display: grid; place-items: center; justify-self: end; height: 90%; aspect-ratio: 1; margin-right: 8px; border: 0.3cqw solid #72291f; border-radius: 50%; background: #030914; box-shadow: 0 0 0 1px #030914, 0 0 0 2px #dfb467, inset 0 0 0 1px #d7a857, inset 0 0 0 5px #050c19, inset 0 0 0 6px #c59a52; }
+.combat-skill-art { position: relative; display: grid; place-items: center; justify-self: end; height: 90%; aspect-ratio: 1; margin-right: 8px; border: 1px solid #967044; border-radius: 50%; background: #030914; }
 #game .combat-skill-art canvas { display: block; position: static !important; width: 100% !important; height: 100% !important; margin: 0 !important; object-fit: contain; clip-path: circle(50%); }
 .combat-skill-info { display: grid; justify-items: start; align-content: center; gap: .55cqw; min-width: 0; }
 .combat-skill-name { max-width: 6.3cqw; color: #f7e3ab; text-shadow: 0 1px 2px #02050a; font: 700 1.3cqw / 1.1 Georgia, 'Yu Mincho', serif; overflow-wrap: normal; }
 .combat-skill-cost { min-width: 5cqw; padding: .2cqw .55cqw; border: 1px solid #d7a857; border-radius: .3cqw; background: #06101d; color: #b2e5ff; box-shadow: inset 0 1px 3px #0008; text-align: center; font: 700 1.05cqw / 1.15 'Alegreya Sans', sans-serif; white-space: nowrap; }
-.combat-skill-seal { display: grid; place-items: center; width: 28%; height: 58%; border: 1px solid #a43d30; background: #e0d0a7; color: #92251d; transform: rotate(-7deg); font: 700 1.7cqw 'Yu Mincho', serif; }
-.combat-skill-mark { position: absolute; color: #ffe4a0; font: 700 2.6cqw 'Yu Mincho', serif; text-shadow: 2px 2px #4f120c, -2px -2px #4f120c; }
 [data-resource-state=insufficient] .combat-skill-cost { color: #ff998d; }
 .combat-access-actions .is-empty .combat-skill-art { display: none; }
 .combat-access-actions .is-empty .combat-skill-name,
@@ -96,6 +97,9 @@
   line-height: 1.3;
 }
 .combat-access:not(.compact) .combat-skill-detail { position: absolute; left: 21.5%; top: 36.7%; width: clamp(200px, 18cqw, 290px); }
+@container (max-width: 959px) {
+  .combat-access:not(.compact) :is(.combat-access-actions, .combat-skill-detail) { top: 34.4%; }
+}
 .combat-skill-detail strong { font-family: Georgia, serif; color: #ffe4a3; }
 .combat-skill-detail p { margin: 5px 0 0; }
 .combat-skill-detail p:last-of-type { color: #d6efff; font-variant-numeric: tabular-nums; }
@@ -163,7 +167,7 @@ html:not(.mobile-viewport) .compact .combat-access-phase { display: flex; justif
 .compact .combat-access-scene { aspect-ratio: 16 / 9; margin-inline: -10px; }
 .compact .combat-access-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .compact .combat-skill-row { display: contents; }
-.compact .combat-skill-ornaments, .compact .combat-skill-art { display: none; }
+.compact .combat-access-actions .combat-panel-corner, .compact .combat-skill-art { display: none; }
 .compact .combat-skill-info { display: grid; gap: 3px; }
 .compact .combat-skill-name { max-width: none; font: inherit; }
 .compact .combat-skill-cost { min-width: 0; padding: 0; border: 0; background: transparent; box-shadow: none; text-align: left; font: 700 13px 'Alegreya Sans', sans-serif; }
@@ -283,8 +287,7 @@ body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; as
 
 /* Combat composition: lacquer plates, a flat six-technique rail and open arena. */
 .combat-access *, .combat-access *::before, .combat-access *::after { box-sizing: border-box; }
-.combat-panel-ornaments { position: absolute; inset: 0; width: 100%; height: 100%; color: #edbd65; pointer-events: none; }
-.combat-access:not(.compact) .combat-skill-art { height: 83%; max-height: 4.15cqw; margin-right: 5px; border-width: .17cqw; }
+.combat-access:not(.compact) .combat-skill-art { height: 83%; max-height: 4.15cqw; margin-right: 5px; }
 .combat-access:not(.compact) .combat-skill-shortcut { left: -.2cqw; top: .2cqw; width: 1.9cqw; height: 1.9cqw; font-size: 1.3cqw; }
 .combat-access:not(.compact) .combat-skill-info { height: 100%; gap: .2cqw; padding: .4cqw 0; }
 .combat-access:not(.compact) .combat-skill-name { max-width: 11.2cqw; font-size: 1.25cqw; line-height: 1.04; }
@@ -304,7 +307,7 @@ body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; as
 .combat-access.compact .combat-access-actions button.is-empty { grid-template-columns: auto minmax(0, 1fr); }
 .combat-access .is-empty .combat-skill-info { display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 0; }
 .combat-access:not(.compact) .is-empty .combat-skill-name { font: 700 clamp(11px, 1cqw, 16px) 'Alegreya Sans', sans-serif; }
-.combat-access:not(.compact) .combat-table-heading { padding: .35cqw 1cqw; border-radius: 12px; background: #58151d; font: 700 1.2cqw Georgia, serif; color: #ffe5a6; }
+.combat-access:not(.compact) .combat-table-heading { padding: .35cqw 1cqw; border-radius: 4px; background: #471921; box-shadow: inset 0 0 0 2px #211520; font: 700 1.2cqw Georgia, serif; color: #ffe5a6; }
 .combat-access:not(.compact) .combat-table-switch { width: max(44px, 2.7cqw); height: max(44px, 2.7cqw); border-radius: 50%; }
 .combat-access:not(.compact) .combat-access-utilities { top: 11.9%; gap: 1.2cqw; }
 .combat-access:not(.compact) .combat-access-utilities > button { background: linear-gradient(#742b32, #41151f); color: #ffe3a2; border-color: #edbf69; }
@@ -363,6 +366,7 @@ body:has(.compact-combat) main { width: 100%; max-height: none; height: auto; as
 @media (min-width: 700px) {
   .compact .combat-access-summary { height: auto; }
   .compact .combat-roster-card { min-height: 62px; padding-block: 5px; }
+  .compact .combat-access-actions { position: relative; grid-auto-rows: 62px; }
   .compact .combat-access-actions button { grid-template-columns: 22px 34px minmax(0, 1fr); align-items: center; gap: 8px; }
   .combat-access.compact .combat-access-actions button.is-empty { grid-template-columns: 22px minmax(0, 1fr); }
   .compact .combat-skill-art { display: grid; width: 32px; height: 32px; margin: 0; }

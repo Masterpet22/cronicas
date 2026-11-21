@@ -26,7 +26,7 @@ const groupMode = process.argv.includes('--group');
 await page.goto('http://127.0.0.1:4173');
 await page.evaluate(async groupMode => {
   const { createDefaultSave, createCharacter, writeSave, selectSaveSlot } = await import('/src/save.js?v=0.66.0');
-  const save = createCharacter(createDefaultSave(), { name: 'Akio', affinity: 'agua', hair: 1, bodyType: 'male' });
+  const save = createCharacter(createDefaultSave(), { name: 'Akio', affinity: groupMode ? 'agua' : 'fuego', hair: 1, bodyType: 'male' });
   save.campaign.completedMissions = ['m01'];
   save.campaign.tutorialSeen = true;
   if (groupMode) { save.progression.level = 6; save.campaign.kuroganeCompanion = 'haruto'; }
@@ -58,6 +58,24 @@ await page.waitForFunction(() => window.__hudScene?.turnReady, null, { polling: 
 });
 await page.mouse.move(950, 720);
 await mkdir(output, { recursive: true });
+const verifyGroundMarker = () => page.evaluate(() => {
+  const s = window.__hudScene;
+  const fighter = s.trainingTargets?.[s.selectedTargetIndex]?.fighter || s.foe;
+  const { targetGround } = s.combatIndicators;
+  return targetGround.visible && targetGround.depth < fighter.body.depth;
+});
+assert.ok(await verifyGroundMarker(), 'El aro amarillo pertenece al suelo y se dibuja detrás de los pies');
+const verifyRailSize = async () => {
+  const rail = page.locator('.combat-access-actions');
+  const toggle = page.locator('.combat-table-switch');
+  const size = () => rail.evaluate(node => [node.offsetWidth, node.offsetHeight, ...Array.from(node.querySelectorAll('button'), button => button.offsetHeight)]);
+  const initial = await size();
+  await toggle.click();
+  assert.deepEqual(await size(), initial, 'Las seis ranuras conservan su tamaño al pasar a la tabla física');
+  await toggle.click();
+  assert.deepEqual(await size(), initial);
+};
+await verifyRailSize();
 await page.screenshot({ path: join(output, 'combat-1600x900.png') });
 if (groupMode) {
   const cards = page.locator('.combat-roster-enemies .combat-roster-card');
@@ -67,6 +85,7 @@ if (groupMode) {
   const selected = await page.evaluate(() => window.__hudScene.selectedTargetIndex);
   await cards.first().click();
   assert.notEqual(await page.evaluate(() => window.__hudScene.selectedTargetIndex), selected);
+  assert.ok(await verifyGroundMarker(), 'El nuevo objetivo también recibe el aro debajo de su cuerpo');
   assert.ok(await page.evaluate(async () => {
     const s = window.__hudScene;
     const { fighterAtlasKey, fighterFaceTextureKey } = await import('/src/fighters.js?v=0.153.0');
@@ -112,6 +131,7 @@ if (groupMode) {
   for (const [width, height] of [[1600,900], [1366,768], [1024,768], [960,720], [768,1024]]) {
     await page.setViewportSize({width, height});
     await page.waitForTimeout(250);
+    if (width === 768) await verifyRailSize();
     for (const control of await page.locator('.combat-access-actions button, .combat-access-utilities button').all()) {
       const box = await control.boundingBox();
       assert.ok(box && box.width >= 43 && box.height >= 43, `Control táctil ${width}: ${JSON.stringify(box)}`);
@@ -195,6 +215,11 @@ if (groupMode) {
 }
 const checks = [];
 const record = message => { checks.push(message); console.log(message); };
+for (const id of ['fire_embers', 'fire_breath']) {
+  const icon = page.locator(`[data-action-id="${id}"] .combat-skill-art`);
+  assert.equal(await icon.locator(':scope > canvas').count(), 1);
+  assert.equal(await icon.locator(':scope > *').count(), 1, 'La técnica usa solo su icono original');
+}
 const state = await page.evaluate(() => {
   const s = window.__hudScene;
   return { chakra: s.player.chakra, cost: s.actionCost(s.actions[1]), hp: s.enemy.hp, hero: [s.hero.body.x, s.hero.body.y], foe: [s.foe.body.x, s.foe.body.y] };
@@ -297,6 +322,7 @@ if (process.argv.includes('--transitions-only')) {
 for (const [width, height] of [[1920, 1080], [1366, 768], [1024, 768], [960, 720], [768, 1024]]) {
   await page.setViewportSize({ width, height });
   await page.waitForTimeout(400);
+  if (width === 768) await verifyRailSize();
   assert.equal(await page.locator('.combat-access').count(), 1);
   for (const button of await page.locator('.combat-access button:visible').all()) {
     const box = await button.boundingBox();

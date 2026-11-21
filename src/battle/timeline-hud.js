@@ -32,7 +32,7 @@ export function paintTimelinePortraits(scene, entries) {
   const caption = next ? `${scene.turnReady ? "ACTÚA" : "SIGUE"} · ${next.name}` : "ORDEN DE TURNO";
   if (title.text !== caption) {
     title.setText(caption);
-    title.setScale(Math.min(1, 244 / title.width));
+    title.setScale(Math.min(1, 213 / title.width));
   }
   links.clear();
   for (const { id, anchor, x, y, place } of layoutTimelinePortraits(entries)) {

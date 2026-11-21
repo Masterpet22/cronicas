@@ -262,7 +262,7 @@ for (const tablet of [false, true]) test.describe(`combate de grupo: ${tablet ? 
         await expect(page.locator(`[data-training-target="${index}"]`)).toBeHidden();
         await expect.poll(() => page.evaluate(i => {
           const s = window.__trainingGame.scene.getScene("battle"), t = s.trainingTargets[i], m = s.groupMarkers[i];
-          return [t.fighter.body, t.fighter.shadow, t.ring, ...m.parts].filter(part => part.visible).map(part => part.type);
+          return [t.fighter.body, t.fighter.shadow, ...m.parts].filter(part => part.visible).map(part => part.type);
         }, index)).toEqual([]);
         if (index === 0) await page.screenshot({ path: testInfo.outputPath("dojo-group-after-knockout.png"), fullPage: true });
       }

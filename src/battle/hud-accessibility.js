@@ -1,4 +1,4 @@
-import { skillFrameSvg } from "./hud-chrome.js?v=0.171.0";
+import { hudPanelOrnaments } from "./hud-chrome.js?v=0.171.0";
 import { initiativeLabel } from "./initiative.js?v=1.0.0";
 import { mountBattleInventory } from "./battle-inventory.js?v=0.171.0";
 import { emptySkillInfo } from './hud-art.js?v=0.171.0';
@@ -69,7 +69,7 @@ export function mountAccessibleBattleHud(scene) {
   spacer.setAttribute('aria-hidden', 'true');
   const actions = document.createElement('div');
   actions.className = 'combat-access-actions';
-  actions.innerHTML = skillFrameSvg();
+  actions.innerHTML = hudPanelOrnaments();
   let tables = null;
   const detail = document.createElement('aside');
   detail.className = 'combat-skill-detail';
@@ -148,7 +148,7 @@ export function mountAccessibleBattleHud(scene) {
     button.classList.toggle('is-empty', !action);
     if (action) button.dataset.actionId = action.id;
     button.append(shortcut, art, info);
-    const control = { button, row, name, cost, index,
+    const control = { button, name, cost, index,
       get slot() { return tables?.slotAt(index) || slot; },
       paint(action, physical) {
         const key = `${physical ? "physical" : "elemental"}:${action?.id || "empty"}`;
@@ -241,7 +241,7 @@ export function mountAccessibleBattleHud(scene) {
     setHudText(phaseText, scene.phaseLabel.text);
     setHudText(message, scene.lastBattleMessage?.text || '');
     controls.forEach(control => {
-      const { button, row, name, cost, slot, index } = control;
+      const { button, name, cost, slot, index } = control;
       const action = tables ? tables.actionAt(index) : scene.actions[index];
       const physical = Boolean(tables?.physical && index > 0 && index < 5);
       const empty = action ? null : physical || scene.mission.training ? tables.emptyAt(index) : emptySkillInfo(scene, index);
@@ -264,7 +264,6 @@ export function mountAccessibleBattleHud(scene) {
       control.inspection = { action, name: actionName, effect, requirement };
       control.paint(action, physical);
       button.classList.toggle('is-empty', !action);
-      row.classList.toggle('is-empty-row', !action);
       setHudAttribute(button, 'data-action-id', action?.id ?? null);
       setHudText(name, actionName);
       setHudText(cost, requirement);
