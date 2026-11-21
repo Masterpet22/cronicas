@@ -3,7 +3,7 @@ import { campaignFlag } from "../../../mission-system.js?v=0.155.0";
 import { dictionaryEntriesMarkup, gameDictionaryMarkup } from "../game-dictionary.js?v=0.155.0";
 import { NORMAL_AFFINITY_ID } from "../../../affinity-system.js?v=0.114.0";
 
-const TABS = [["dictionary", "Diccionario"], ["bestiary", "Bestiario"], ["chronicle", "Crónica"]];
+const TABS = [["dictionary", "Diccionario"], ["bestiary", "Rivales"], ["chronicle", "Crónica"]];
 
 export function createArchiveView(deps) {
   let currentState = null, activeTab = "dictionary", dictionaryQuery = "";
@@ -32,10 +32,10 @@ export function createArchiveView(deps) {
     const decisions = [
       save.campaign.banditPrisonerChoice && (save.campaign.banditPrisonerChoice === "interrogate" ? "Teniente interrogado: reveló la entrada secreta y reforzó a Akumori. Su ayuda debilita a Raizen." : "Teniente eliminado: Akumori no recibió refuerzos; se perdieron el acceso secreto y la ayuda futura."),
       save.campaign.hideoutEntryChoice && `Acceso elegido: ${save.campaign.hideoutEntryChoice === "secret" ? "entrada secreta y almacén" : "entrada principal"}.`,
-      save.campaign.hideoutDiscoveryChoice && (save.campaign.hideoutDiscoveryChoice === "documents" ? "Documentos recuperados: información parcial sobre Raizen registrada en el Bestiario." : "Prisioneros liberados: sus testimonios confirman una organización mayor.")
+      save.campaign.hideoutDiscoveryChoice && (save.campaign.hideoutDiscoveryChoice === "documents" ? "Documentos recuperados: información parcial sobre Raizen registrada en la sección Rivales." : "Prisioneros liberados: sus testimonios confirman una organización mayor.")
     ].filter(Boolean).map(text => `<p>${deps.escapeHtml(text)}</p>`).join("");
     return {
-      bestiary: `<header class="archive-section-heading"><h3>Libro de criaturas y combatientes</h3></header><div class="archive-scroll" tabindex="0" aria-label="Fichas del bestiario"><div class="bestiary-grid">${bestiaryEntries}</div></div>`,
+      bestiary: `<header class="archive-section-heading"><h3>Registro de rivales</h3></header><div class="archive-scroll" tabindex="0" aria-label="Fichas de rivales"><div class="bestiary-grid">${bestiaryEntries}</div></div>`,
       chronicle: `<header class="archive-section-heading"><h3>Crónica de ${deps.escapeHtml(save.character.name)}</h3><p>${completed.size} misiones principales completadas.</p></header><div class="archive-scroll chronicle-details" tabindex="0" aria-label="Historia descubierta">${routeIntel}${decisions}<ol>${records}</ol>${ending}</div>`
     };
   }
@@ -48,7 +48,7 @@ export function createArchiveView(deps) {
       const unlocked = save.campaign.archiveUnlocked;
       const pending = save.campaign.doctorBookDeliveryPending;
       const records = unlocked ? recordsMarkup(save) : null;
-      const lockedBestiary = `<div class="archive-empty"><h3>El bestiario espera su primer registro</h3><p>Entrega a Sayo el libro de Haru para activar las fichas de criaturas y combatientes.</p></div>`;
+      const lockedBestiary = `<div class="archive-empty"><h3>Registro de rivales pendiente</h3><p>Entrega a Sayo el libro de Haru para activar las fichas de criaturas y combatientes.</p></div>`;
       const lockedChronicle = `<div class="archive-empty"><h3>Tu crónica está por abrirse</h3><p>Sayo registrará tu historia al recibir el libro de Haru.</p></div>`;
       const content = { dictionary: gameDictionaryMarkup(deps.escapeHtml, dictionaryQuery), bestiary: records?.bestiary || lockedBestiary, chronicle: records?.chronicle || lockedChronicle };
       return `<section class="stage-panel archive-card archive-workspace" aria-label="Biblioteca"><header class="archive-heading"><div><p class="eyebrow">BIBLIOTECA</p><h2>El conocimiento de la aldea</h2></div><span>Archivo de Sayo</span></header>${pending ? `<aside class="archive-delivery book-delivery" aria-label="Entrega pendiente"><div><strong>El libro de Haru Takamine</strong></div><button class="primary-button" type="button" data-deliver-book>ENTREGAR LIBRO</button></aside>` : ""}<nav class="archive-tabs" role="tablist" aria-label="Secciones de la Biblioteca">${TABS.map(([id, label]) => `<button type="button" id="archive-tab-${id}" data-archive-tab="${id}" role="tab" aria-selected="${activeTab === id}" aria-controls="archive-panel-${id}" tabindex="${activeTab === id ? 0 : -1}">${label}${!unlocked && ["bestiary", "chronicle"].includes(id) ? '<small>Pendiente</small>' : ""}</button>`).join("")}</nav><div class="archive-panels">${TABS.map(([id]) => `<section id="archive-panel-${id}" class="archive-panel" data-archive-panel="${id}" role="tabpanel" aria-labelledby="archive-tab-${id}" ${activeTab === id ? "" : "hidden"}>${content[id]}</section>`).join("")}</div></section>`;

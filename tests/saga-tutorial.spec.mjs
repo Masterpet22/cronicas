@@ -45,7 +45,7 @@ test("Biblioteca conserva consulta e historia sin curso ni repetición del tutor
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-view="archive"]').click();
   await expect(page.getByRole("tab", { name: "Diccionario" })).toBeVisible();
-  await expect(page.getByRole("tab", { name: /Bestiario/ })).toBeVisible();
+  await expect(page.getByRole("tab", { name: /Rivales/ })).toBeVisible();
   await expect(page.getByRole("tab", { name: /Crónica/ })).toBeVisible();
   await expect(page.getByRole("tab", { name: "Tutorial" })).toHaveCount(0);
   await expect(page.locator("[data-replay-tutorial], .saga-tutorial-coach")).toHaveCount(0);

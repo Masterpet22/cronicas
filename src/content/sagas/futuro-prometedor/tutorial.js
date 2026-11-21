@@ -23,7 +23,7 @@ export const SAGA_TUTORIAL = [
   { missionId: "s02", title: "Rutas y descifrado", unlocks: ["archive"], before: [], practices: ["route-1", "route-2", "route-3", "cipher", "book"] },
   { missionId: "m03", title: "Información y táctica", battle: "tactics", before: [
     lesson("dictionary", "Busca en el Diccionario", "Guardo aquí los términos que usamos en la aldea. Busca Novicio, Experto o Veterano en el Diccionario; te ayudarán a distinguir el rango del nivel.", "archive", '[data-dictionary-search]', { type: "dictionary" }),
-    lesson("bestiary", "Consulta las fichas", "Ven, echemos un vistazo al Bestiario. Sus páginas se completan con lo que observas en los duelos; lo que aún no sabes permanece sin revelar.", "archive", '[data-archive-tab="bestiary"]', { type: "bestiary" }),
+    lesson("bestiary", "Consulta las fichas", "Ven, echemos un vistazo a la sección Rivales. Sus páginas se completan con lo que observas en los duelos; lo que aún no sabes permanece sin revelar.", "archive", '[data-archive-tab="bestiary"]', { type: "bestiary" }),
     lesson("affinity-cycle", "Elige una ventaja elemental", "Veamos qué has aprendido: ¿contra qué elemento tiene ventaja el tuyo? Recuerda el ciclo: Fuego, Viento, Tierra, Agua y de nuevo Fuego.", "archive", '[data-archive-tab="bestiary"]', { type: "affinity-answer" }, { quiz: "affinity" }),
     lesson("element-ready", "Prepara una técnica elemental", "Vuelve al Dojo y equipa una técnica aprendida en una ranura elemental. Selecciona su nombre y pulsa Equipar. Si ya llevas una, estás listo.", "dojo", '[data-dojo-tab="techniques"]', null, { state: "elemental", practice: "elemental" })
   ], practices: ["entry-choice", "elemental", "guard-tactics"] },

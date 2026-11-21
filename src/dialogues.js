@@ -26,10 +26,10 @@ const es = {
   ],
   "npc.sayo.intro": [
     { speaker: "sayo", text: "Soy Sayo Kisaragi. Aquí una misión no termina al cobrar la recompensa: se convierte en memoria." },
-    { speaker: "sayo", text: "Aquí conservamos el diccionario del juego y puedes repetir el tutorial de combate. El bestiario se abrirá cuando me entregues el libro de Haru." }
+    { speaker: "sayo", text: "Aquí conservamos el diccionario del juego y puedes repetir el tutorial de combate. La sección Rivales se abrirá cuando me entregues el libro de Haru." }
   ],
   "npc.sayo.guide": [
-    { speaker: "sayo", text: "Cada encuentro añade información al bestiario. Algunos jefes necesitan varios duelos o documentos. En Tutorial puedes repasar la formación guiada; el repaso no modifica tu partida y puedes salir cuando quieras." },
+    { speaker: "sayo", text: "Cada encuentro añade información a las fichas de Rivales. Algunos jefes necesitan varios duelos o documentos. En Tutorial puedes repasar la formación guiada; el repaso no modifica tu partida y puedes salir cuando quieras." },
     { speaker: "sayo", text: "Los registros marcados con una señal verde ya fueron completados y puedes consultarlos en el Cuartel General." },
     { speaker: "sayo", text: "La primera crónica reúne siete misiones principales conectadas en el Cuartel General." },
     { speaker: "sayo", text: "Cuando derrotes a Raizen, el desenlace de Futuro prometedor quedará inscrito aquí." }
@@ -61,7 +61,7 @@ const es = {
     { speaker: "goro", text: "Desde la saga 3 y con nivel 16 o más, elige un rival y una dificultad para una exhibición contra la IA. PvP y combates clasificatorios llegarán con el modo online." }
   ],
   "npc.goro.guide": [
-    { speaker: "goro", text: "Las exhibiciones son gratuitas y empiezan con vida y chakra completos. No gastas consumibles ni pergaminos y no ganas PX, monedas, bestiario ni progreso de misión. El rival se adapta a tu equipo y puedes pedir revancha." },
+    { speaker: "goro", text: "Las exhibiciones son gratuitas y empiezan con vida y chakra completos. No gastas consumibles ni pergaminos. Las exhibiciones no dan PX ni monedas, y tampoco avanzan misiones ni añaden fichas a Rivales. El rival se adapta a tu equipo y puedes pedir revancha." },
     { speaker: "goro", text: "Compara la afinidad principal de ambos combatientes antes de gastar chakra." },
     { speaker: "goro", text: "Los enfriamientos impiden repetir la misma técnica continuamente: prepara una segunda opción." },
     { speaker: "goro", text: "En exhibición empiezas con vida y chakra completos. No se gastan consumibles ni se entregan PX, monedas o puntos de clasificación." }

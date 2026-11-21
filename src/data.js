@@ -178,7 +178,7 @@ export const LEGACY_ENEMY_ABILITY_IDS = Object.freeze({ quick: "strike", heavy: 
 export const canonicalAbilityId = id => Object.hasOwn(LEGACY_ENEMY_ABILITY_IDS, id) ? LEGACY_ENEMY_ABILITY_IDS[id] : id;
 export const abilityAccess = id => !Object.hasOwn(ABILITY_CATALOG, canonicalAbilityId(id)) ? null
   : ENEMY_EXCLUSIVE_ABILITIES.some(action => action.id === canonicalAbilityId(id)) ? "enemy-only" : "shared";
-// Compatibilidad con registros del bestiario guardados antes del catálogo común.
+// Compatibilidad con fichas de Rivales guardados antes del catálogo común.
 export const ENEMY_ACTIONS = Object.freeze({ ...ABILITY_CATALOG,
   ...Object.fromEntries(Object.entries(LEGACY_ENEMY_ABILITY_IDS).map(([old, id]) => [old, ABILITY_CATALOG[id]])) });
 
