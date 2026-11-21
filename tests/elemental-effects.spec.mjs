@@ -2,6 +2,53 @@ import { expect, test } from "@playwright/test";
 import { ensurePhaser } from "./helpers/phaser-loader.mjs";
 import { bootPerformanceReference } from "./helpers/performance-harness.mjs";
 
+test("el combate reproduce las técnicas restantes y admite animaciones por afinidad", async ({ page }) => {
+  await bootPerformanceReference(page);
+  const result = await page.evaluate(async () => {
+    const { JUTSU_LIBRARY, ENEMY_EXCLUSIVE_ABILITIES } = await import("/src/data.js?v=1.5.0");
+    const { SKILLS_BY_ID } = await import("/src/skills/definitions.js?v=1.4.0");
+    const { ELEMENTS } = await import("/src/elements.js?v=0.20.0");
+    const { TECHNIQUE_VFX } = await import("/src/battle/runtime.js?v=0.91.0");
+    const { ELEMENT_SEQUENCE_IDS, hasTechniqueSequence } = await import("/src/battle/technique-sequences.js?v=1.1.0");
+    const actions = [...JUTSU_LIBRARY, ...ENEMY_EXCLUSIVE_ABILITIES];
+    const missingActions = actions.filter(action => !TECHNIQUE_VFX[action.id] && !hasTechniqueSequence(action.id, action.element));
+    const missingElements = Object.keys(ELEMENTS).filter(element => element !== "normal" &&
+      !actions.some(action => action.element === element) && !hasTechniqueSequence("reference", element));
+    const remaining = actions.filter(action => !SKILLS_BY_ID.has(action.id));
+    const samples = ELEMENT_SEQUENCE_IDS.map(element => ({ id: `reference-${element}`, element }));
+    const scene = window.__performanceReference.scene;
+    const created = [];
+    const direction = [];
+    const original = scene.add.graphics.bind(scene.add);
+    scene.add.graphics = (...args) => {
+      const graphic = original(...args);
+      const stroke = graphic.strokePath;
+      const fill = graphic.fillPath;
+      const track = (draw) => function (...path) {
+        if (this.name && !created.includes(this.name)) {
+          created.push(this.name);
+          direction.push(this.scaleX);
+        }
+        return draw.apply(this, path);
+      };
+      graphic.strokePath = track(stroke);
+      graphic.fillPath = track(fill);
+      return graphic;
+    };
+    for (const action of [...remaining, ...samples]) {
+      await scene.playAttackAnimation(action, "enemy", scene.attackVisuals(action, scene.foe));
+    }
+    return {
+      missingActions: missingActions.map(action => action.id), missingElements,
+      ids: [...remaining, ...samples].map(action => action.id), created, direction
+    };
+  });
+  expect(result.missingActions).toEqual([]);
+  expect(result.missingElements).toEqual([]);
+  expect(result.created).toEqual(result.ids);
+  expect(result.direction).toEqual(Array(result.ids.length).fill(-1));
+});
+
 for (const renderer of ["Canvas", "WebGL"]) {
   test(`los iconos compuestos funcionan en combate ${renderer} sin imágenes de tiers superiores`, async ({ page }) => {
     const failures = [], errors = [];

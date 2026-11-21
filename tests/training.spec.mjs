@@ -56,6 +56,17 @@ for (const { origin, viewport } of [
   await page.evaluate(() => {
     const scene = window.__trainingGame.scene.getScene("battle");
     window.__enemyExecutions = 0;
+    window.__trainingAnimations = new Set();
+    const createGraphics = scene.add.graphics.bind(scene.add);
+    scene.add.graphics = (...args) => {
+      const graphic = createGraphics(...args);
+      const setName = graphic.setName.bind(graphic);
+      graphic.setName = name => {
+        window.__trainingAnimations.add(name);
+        return setName(name);
+      };
+      return graphic;
+    };
     scene.executeEnemyAction = async () => { window.__enemyExecutions += 1; };
   });
   expect(await page.evaluate(() => {
@@ -69,6 +80,9 @@ for (const { origin, viewport } of [
     await trainingReady(page);
     await expect(page.locator(".combat-access-message")).toContainText(move === "guard" ? "50 %" : "de daño");
     if (move === "fire_embers") await expect(page.locator(".combat-access-message")).toContainText("QUEMADURA (2 turnos)");
+    if (move === "fire_arc" || move === "physical_1") {
+      expect(await page.evaluate(id => window.__trainingAnimations.has(id), move)).toBe(true);
+    }
     const state = await page.evaluate(() => {
       const scene = window.__trainingGame.scene.getScene("battle");
       return { full: scene.player.hp === scene.player.maxHp && scene.player.chakra === scene.player.maxChakra,

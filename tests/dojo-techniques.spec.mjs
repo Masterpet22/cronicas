@@ -31,6 +31,49 @@ async function enterDojo(page, tree = true) {
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
 
+test("la ficha de Aliento de brasa muestra arriba la reproducción y debajo los tres sellos en orden", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await openDojo(page, { level: 6, tree: false });
+  await page.locator('[data-technique-select="fire_breath"]').click();
+  const detail = page.locator(".technique-detail");
+  const row = detail.getByRole("list", { name: "Secuencia de sellos" });
+  await expect(detail.locator("header [data-play-technique]")).toBeVisible();
+  await expect(row.locator("kbd")).toHaveText(["W", "E", "Q"]);
+  await expect(row.locator(".dojo-technique-seal-label > span")).toHaveText(["FORNEX", "PHOENIX", "ARA"]);
+  expect(await row.evaluate(element => [...element.querySelectorAll("[data-technique-seal]")].map(seal => seal.dataset.techniqueSeal)))
+    .toEqual(["fornex", "phoenix", "ara"]);
+  const layout = await row.evaluate(element => {
+    const cards = element.getBoundingClientRect();
+    const body = element.closest(".technique-detail-body");
+    const stage = body.querySelector("[data-technique-preview-stage]").getBoundingClientRect();
+    return { belowStage: cards.top >= stage.bottom, visible: cards.bottom <= body.getBoundingClientRect().bottom };
+  });
+  await page.screenshot({ path: testInfo.outputPath("aliento-de-brasa.png") });
+  expect(layout).toEqual({ belowStage: true, visible: true });
+});
+
+async function observeTechniqueDraws(page) {
+  await page.evaluate(async () => {
+    const { loadPhaser } = await import("/src/battle/load-phaser.js?v=1.0.0");
+    const Phaser = await loadPhaser();
+    const factory = Phaser.GameObjects.GameObjectFactory.prototype;
+    const createGraphics = factory.graphics;
+    window.drawnTechniques = [];
+    factory.graphics = function (...args) {
+      const graphic = createGraphics.apply(this, args);
+      const fill = graphic.fillPath;
+      const stroke = graphic.strokePath;
+      const record = (method) => function (...pathArgs) {
+        if (this.name && !window.drawnTechniques.includes(this.name)) window.drawnTechniques.push(this.name);
+        return method.apply(this, pathArgs);
+      };
+      graphic.fillPath = record(fill);
+      graphic.strokePath = record(stroke);
+      return graphic;
+    };
+  });
+}
+
 test("Ascuas veloces reproduce su animación sin simular daño ni quemadura", async ({ page }, testInfo) => {
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -41,7 +84,9 @@ test("Ascuas veloces reproduce su animación sin simular daño ni quemadura", as
   const result = page.locator("[data-technique-preview-status]");
   await expect(page.getByRole("button", { name: /Ascuas veloces.*Equipada en ranura 1/ })).toBeVisible();
   await expect(page.locator("[data-start-training]")).toBeHidden();
-  await expect(page.locator(".dojo-technique-effect")).toHaveText("QUEMADURA · 2 PV de daño por turno durante 2 turnos");
+  await expect(page.locator(".technique-metrics strong").first()).toHaveText("14");
+  await expect(page.locator(".technique-metrics")).toContainText("DAÑO BASE");
+  await expect(page.locator("[data-technique-combat-status]")).toHaveText("Quemadura · 2 PV de daño por turno · 2 turnos");
   const fullPreviewIsVisible = await stage.evaluate(el =>
     el.getBoundingClientRect().bottom <= el.closest(".technique-detail-body").getBoundingClientRect().bottom);
   expect(fullPreviewIsVisible).toBe(true);
@@ -67,6 +112,7 @@ test("Ascuas veloces reproduce su animación sin simular daño ni quemadura", as
   await expect.poll(() => page.evaluate(() => new Set(window.previewProjectileFrames).size)).toBeGreaterThan(1);
   await page.screenshot({ path: testInfo.outputPath("ascuas-veloces.png") });
   await expect(result).toBeEmpty();
+  await expect(stage).toHaveText("");
   await expect(page.getByRole("button", { name: "Repetir técnica" })).toBeEnabled();
   await expect(result).toBeEmpty();
   await page.getByRole("button", { name: "Repetir técnica" }).click();
@@ -77,8 +123,8 @@ test("Ascuas veloces reproduce su animación sin simular daño ni quemadura", as
   expect(errors).toEqual([]);
 });
 
-test("todas las técnicas activas del Dojo reproducen su animación", async ({ page }) => {
-  test.setTimeout(180000);
+test("todas las técnicas activas del Dojo reproducen animaciones propias", async ({ page }, testInfo) => {
+  test.setTimeout(210000);
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await openDojo(page, { level: 60, tree: false });
@@ -89,6 +135,7 @@ test("todas las técnicas activas del Dojo reproducen su animación", async ({ p
     }));
   });
   const tested = new Set();
+  const procedural = new Set();
   for (const affinities of [
     ["fuego", "agua", "tierra"],
     ["fuego", "viento", "agua"],
@@ -105,21 +152,65 @@ test("todas las técnicas activas del Dojo reproducen su animación", async ({ p
       writeSave(save);
     }, affinities);
     await enterDojo(page);
+    await observeTechniqueDraws(page);
     const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
     for (const { id, affinities: required } of catalog) {
       if (tested.has(id) || !required.every(affinity => affinities.includes(affinity))) continue;
       await page.locator(`[data-skill-select="${id}"]`).click();
+      await expect(page.locator(".technique-metrics")).toContainText("DAÑO BASE");
       await page.locator(`[data-play-technique="${id}"]`).click();
+      if (id === "fire_phoenix") {
+        await expect.poll(() => page.evaluate(id => window.drawnTechniques.includes(id), id)).toBe(true);
+        await page.screenshot({ path: testInfo.outputPath("fenix-escarlata.png") });
+      }
       await expect(page.getByRole("button", { name: "Repetir técnica" }), id).toBeEnabled();
       await expect(page.locator("[data-technique-preview-stage] canvas")).toHaveCount(1);
       await expect(page.locator("[data-technique-preview-status]")).toBeEmpty();
       tested.add(id);
     }
+    for (const id of await page.evaluate(() => window.drawnTechniques)) procedural.add(id);
     expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
   }
   await page.locator('[data-skill-select="physical_0"]').click();
   await expect(page.locator("[data-play-technique]")).toHaveCount(0);
   expect([...tested].sort()).toEqual(catalog.map(node => node.id).sort());
+  expect([...procedural].filter(id => tested.has(id))).toHaveLength(22);
+  expect(errors).toEqual([]);
+});
+
+test("Más animaciones reproduce las técnicas y combinaciones restantes", async ({ page }, testInfo) => {
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await openDojo(page, { level: 6, tree: false });
+  await observeTechniqueDraws(page);
+  const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
+  await page.getByRole("button", { name: "Más animaciones" }).click();
+  const entries = page.locator("[data-extra-technique]");
+  const ids = await entries.evaluateAll(buttons => buttons.map(button => button.dataset.extraTechnique));
+  expect(ids).toEqual([
+    "lightning_prison", "venom_bloom", "metal_bastion", "frost_crown", "glass_rain", "storm_domain",
+    "crystal_prism", "ash_funeral", "root_colossus", "toxin", "plasma", "obsidiana", "niebla", "espora"
+  ]);
+  await expect(page.locator("[data-technique-combat-status]")).toHaveText("Aturdido · 1 turno");
+  for (const id of ids) {
+    await page.locator(`[data-extra-technique="${id}"]`).click();
+    await page.locator(`[data-play-technique="${id}"]`).click();
+    if (id === "crystal_prism") {
+      await expect.poll(() => page.evaluate(id => window.drawnTechniques.includes(id), id)).toBe(true);
+      await page.screenshot({ path: testInfo.outputPath("prisma-cristalino.png") });
+    }
+    await expect(page.getByRole("button", { name: "Repetir técnica" }), id).toBeEnabled();
+    await expect(page.locator("[data-technique-preview-stage] canvas")).toBeVisible();
+    await expect(page.locator("[data-technique-preview-stage]")).toHaveText("");
+  }
+  expect((await page.evaluate(() => window.drawnTechniques)).filter(id => ids.includes(id))).toEqual(ids);
+  await expect(page.locator(".technique-metrics")).toHaveCount(0);
+  await expect(page.locator("[data-skill-invest], [data-technique-toggle]")).toHaveCount(0);
+  await page.getByRole("button", { name: "Lista de técnicas" }).click();
+  await expect(page.locator("[data-extra-technique]")).toHaveCount(0);
+  await expect(page.locator(".technique-detail h3")).toHaveText("Ascuas veloces");
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
   expect(errors).toEqual([]);
 });
 
@@ -172,18 +263,19 @@ test("maestría tres: comprar mejoras actualiza daño, chakra, sellos y guardado
   await page.locator('[data-skill-select="fire_embers"]').click();
   const detail = page.locator(".technique-detail");
   const metrics = detail.locator(".technique-metrics strong");
-  await expect(detail.locator(".dojo-technique-title > span:last-child")).toHaveText("Nivel 1/3");
+  await expect(detail.locator(".dojo-technique-level")).toHaveText("Nivel 1/3");
   await expect(metrics).toHaveText(["14", "30 CH", "1 turno", "2"]);
   for (const [level, cost, damage, seals] of [[2,29,16,2],[3,27,18,1]]) {
     await page.locator('[data-skill-invest="fire_embers"]').click();
-    await expect(detail.locator(".dojo-technique-title > span:last-child")).toHaveText(`Nivel ${level}/3`);
+    await expect(detail.locator(".dojo-technique-level")).toHaveText(`Nivel ${level}/3`);
     await expect(metrics).toHaveText([String(damage), `${cost} CH`, "1 turno", String(seals)]);
+    await expect(detail.locator(".dojo-technique-seals kbd")).toHaveText(seals === 2 ? ["Q", "W"] : ["Q"]);
   }
   await expect(page.locator('[data-skill-invest="fire_embers"]')).toBeDisabled();
   await expect(detail).toContainText("NIVEL MÁXIMO");
   await enterDojo(page);
   await page.locator('[data-skill-select="fire_embers"]').click();
-  await expect(detail.locator(".dojo-technique-title > span:last-child")).toHaveText("Nivel 3/3");
+  await expect(detail.locator(".dojo-technique-level")).toHaveText("Nivel 3/3");
   await expect(metrics).toHaveText(["18", "27 CH", "1 turno", "1"]);
 });
 
@@ -321,7 +413,7 @@ test("los puntos desbloquean especializaciones físicas, mejoran técnicas y per
   await page.locator('[data-skill-select="fire_embers"]').click();
   await page.locator('[data-skill-invest="fire_embers"]').click();
   await expect(page.locator("[data-resonance-points]")).toHaveText("2");
-  await expect(page.locator(".technique-metrics")).toContainText("16");
+  await expect(page.locator(".technique-metrics")).toContainText("29 CH");
   await expect(page.locator('[data-skill-select="fire_embers"]')).toHaveAttribute("data-state","upgraded");
   await enterDojo(page);
   expect((await stats()).maxHp).toBe(original.maxHp+5);

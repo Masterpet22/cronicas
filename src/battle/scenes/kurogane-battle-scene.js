@@ -1,7 +1,7 @@
-import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.178.0";
+import { GroupTrainingBattleScene } from "./group-training-battle-scene.js?v=0.181.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.171.0";
 import { battleRuntime } from "../runtime.js?v=0.91.0";
-import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.171.0";
+import { hairTextureKey, createPlayerFighter, queuePlayerFighterTextures, destroyFighter, startPlayerBreathing, stopPlayerBreathing, startPlayerPreparing, stopPlayerPreparing, fighterAtlasKey, fighterCombatPortraitLayout, useFighterTextureRendering } from "../../fighters.js?v=0.179.0";
 import { COMBAT_SLOTS, enemyFormation } from "../combat-positions.js?v=0.153.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";
 import { COMPANIONS, companionDecision } from "../../kurogane.js";

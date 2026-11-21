@@ -1,7 +1,7 @@
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
+import { createPlayerFighter, destroyFighter, playEarthWallCast, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerBreathing, stopPlayerBreathing, startPlayerGuard, startPlayerPreparing, startPlayerRunning, stopPlayerGuard, stopPlayerPreparing, stopPlayerRunning } from "../../fighters.js?v=0.179.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.171.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.171.0";
@@ -11,6 +11,7 @@ import { missionStep } from "../../mission-system.js?v=0.155.0";
 import { getMissionSceneDialogue } from "../../dialogues.js?v=0.155.0";
 import { bossPhaseMessage, combatFeatures, fieldSuppliesForBattle, resolveEncounterIds } from "../../combat-modifiers.js?v=0.155.0";
 import { attackBaseDamage, resolveDamage, splitDamageAcrossHits } from "../damage.js?v=0.114.0";
+import { hasTechniqueSequence, playTechniqueSequence } from "../technique-sequences.js?v=1.1.0";
 import { showElementalImpact } from "../elemental-effects.js?v=0.93.0";
 import { holdKunai, throwShuriken } from "../weapon-effects.js?v=1.4.0";
 import { playCombatSubstitution } from "../teleport-transition.js?v=1.2.0";
@@ -50,16 +51,12 @@ export class BattleActionMethods {
 
     const spacing = jutsu.cinematic ? 122 : 96;
     const size = jutsu.cinematic ? 104 : 72;
-    const shuffledSealIds = [...jutsu.seals];
-    for (let i = shuffledSealIds.length - 1; i > 0; i -= 1) {
-      const swapIndex = Phaser.Math.Between(0, i);
-      [shuffledSealIds[i], shuffledSealIds[swapIndex]] = [shuffledSealIds[swapIndex], shuffledSealIds[i]];
-    }
-    const startX = -((shuffledSealIds.length - 1) * spacing) / 2;
+    const sealIds = jutsu.seals;
+    const startX = -((sealIds.length - 1) * spacing) / 2;
     const cards = [];
 
-    for (let i = 0; i < shuffledSealIds.length; i += 1) {
-      const seal = SEALS[shuffledSealIds[i]];
+    for (let i = 0; i < sealIds.length; i += 1) {
+      const seal = SEALS[sealIds[i]];
       const x = startX + i * spacing;
       const card = this.add.container(x, jutsu.cinematic ? 120 : 0).setAlpha(0).setScale(0.45).setSize(size, size);
       const plate = this.add.rectangle(0, 0, size, size, 0x0b0e14, 0.94).setStrokeStyle(2, jutsu.color, 0.9);
@@ -235,18 +232,11 @@ export class BattleActionMethods {
         else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(true, actor);
         else if (usesEarthFistProjectile) await this.playEarthFistProjectile(true, actor);
         else if (usesWindPalmProjectile) await this.playWindPalmProjectile(actor);
+        else if (hasTechniqueSequence(jutsu.id, jutsu.element)) await playTechniqueSequence(this, jutsu, source, target, direction);
         this.tone(205, 0.08);
         this.setMessage(playerAttacking ? `El rival evitó ${jutsu.name} con una Sustitución.` : `Evitaste ${jutsu.name} con una Sustitución.`, "#d7dce5");
         const substitution = this.playSubstitution(target);
-        if (usesPuppetPunch) {
-          await Promise.all([
-            substitution,
-            recoverPlayerPunch(this, source),
-            this.tween({ targets: source.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
-            this.tween({ targets: source.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
-          ]);
-        } else if (usesCastPose) await Promise.all([substitution, recoverPlayerPunch(this, source)]);
-        else await substitution;
+        await this.playAttackRecovery(source, originX, originShadowX, visuals, substitution);
         if (this.finished) return;
         await this.delay(120);
         source.body.x = originX;
@@ -271,7 +261,6 @@ export class BattleActionMethods {
         const reactions = [];
         if (critical) this.floatLabel(target.body.x, target.body.y - 178, "CRÍTICO", 0xf5c96b);
         await this.playWindBladeEffect((hitIndex) => {
-          showElementalImpact(this, jutsu, target.body.x, target.body.y - 26, 0.65);
           this.tone(128, 0.08);
           this.shake(90, 0.004);
           const hit = this.loseHealth(defender, target, defender.guarding ? Math.ceil(hitDamages[hitIndex] / 2) : hitDamages[hitIndex], {
@@ -289,7 +278,9 @@ export class BattleActionMethods {
         if (usesThrowable && this.finished) return;
         this.tone(jutsu.cinematic ? 92 : 128, 0.12);
         this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
-        showElementalImpact(this, jutsu, target.body.x, target.body.y - 26, jutsu.cinematic ? 1.25 : 1);
+        if (!TECHNIQUE_VFX[jutsu.id] && !hasTechniqueSequence(jutsu.id, jutsu.element)) {
+          showElementalImpact(this, jutsu, target.body.x, target.body.y - 26, jutsu.cinematic ? 1.25 : 1);
+        }
         if (critical) this.floatLabel(target.body.x, target.body.y - 156, "CRÍTICO", 0xf5c96b);
         ({ amount, reaction } = this.loseHealth(defender, target, damage, { guarded }));
       }
@@ -327,13 +318,22 @@ export class BattleActionMethods {
     const usesCastPose = usesHandProjectile && source.animations?.supports("punch-release");
     const usesEarthWallCast = jutsu.id === "earth_wall" && source.animations?.supports("earth-wall-cast");
     const usesEarthFistProjectile = jutsu.id === "earth_fist";
-    return { usesWeapon, usesThrowable, usesPuppetPunch, usesFireEmbersProjectile, usesWaterShurikenProjectile,
+    const pose = jutsu.id === "physical_1" ? "iron-fist" : jutsu.id === "physical_2" ? "flash-step" : null;
+    const taijutsuPose = pose && source.animations?.supports(pose) ? pose : null;
+    return { usesWeapon, usesThrowable, usesPuppetPunch, taijutsuPose, usesFireEmbersProjectile, usesWaterShurikenProjectile,
       usesWindPalmProjectile, usesWindBladeMultiHit, usesHandProjectile, usesCastPose, usesEarthWallCast, usesEarthFistProjectile };
   }
 
   async playAttackPreparation(source, target, direction, visuals) {
-    const { usesPuppetPunch, usesHandProjectile, usesCastPose, usesEarthWallCast, usesEarthFistProjectile } = visuals;
-    if (usesPuppetPunch) {
+    const { usesPuppetPunch, usesHandProjectile, usesCastPose, usesEarthWallCast, usesEarthFistProjectile, taijutsuPose } = visuals;
+    if (taijutsuPose) {
+      stopPlayerBreathing(source);
+      const fast = taijutsuPose === "flash-step";
+      const strikeX = target.body.x - (fast ? 93 : 105) * direction;
+      visuals.poseComplete = source.animations.playOnce(taijutsuPose, { force: true });
+      await this.tween({ targets: [source.body, source.shadow], x: strikeX,
+        delay: fast ? 42 : 145, duration: fast ? 144 : 200, ease: fast ? "Expo.out" : "Cubic.in" });
+    } else if (usesPuppetPunch) {
       await preparePlayerPunch(this, source);
       const strikeX = target.body.x - 105 * direction;
       await Promise.all([
@@ -366,17 +366,21 @@ export class BattleActionMethods {
     else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false, actor);
     else if (usesWindPalmProjectile) await this.playWindPalmProjectile(actor);
     else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id, actor);
-    else this.createImpact?.(target.body.x, target.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
+    else if (hasTechniqueSequence(jutsu.id, jutsu.element)) {
+      const source = actor === "player" ? this.hero : this.foe;
+      await playTechniqueSequence(this, jutsu, source, target, actor === "player" ? 1 : -1);
+    } else this.createImpact?.(target.body.x, target.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
   }
 
-  async playAttackRecovery(source, originX, originShadowX, { usesPuppetPunch, usesCastPose }, reaction) {
+  async playAttackRecovery(source, originX, originShadowX, { usesPuppetPunch, usesCastPose, poseComplete }, reaction) {
     if (usesPuppetPunch) {
       await Promise.all([
         reaction,
-        recoverPlayerPunch(this, source),
+        poseComplete || recoverPlayerPunch(this, source),
         this.tween({ targets: source.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
         this.tween({ targets: source.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
       ]);
+      if (poseComplete) startPlayerBreathing(this, source);
     } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, source)]);
     else await reaction;
   }
@@ -572,7 +576,6 @@ export class BattleActionMethods {
       duration: 560,
       ease: "Linear"
     });
-    if (!missed) this.createImpact?.(destination.x, destination.y, 0x55bfff, 0.9);
     projectile.destroy();
   }
 
@@ -595,7 +598,6 @@ export class BattleActionMethods {
       animationDone,
       this.tween({ targets: sprite, x: destination.x, y: destination.y, duration: 560, ease: "Cubic.in" })
     ]);
-    if (!missed) this.createImpact?.(destination.x, destination.y, 0xff8a38, 0.8);
     await this.tween({
       targets: sprite,
       alpha: 0,

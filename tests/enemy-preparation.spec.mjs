@@ -25,7 +25,7 @@ test("PRUEBAS lista el catálogo completo y filtra las exclusivas sin concederla
 });
 
 for (const renderer of ["Canvas", "WebGL"]) for (const ability of [
-  { id: "toxin", seals: ["cetus", "bootes", "ara"], labels: ["ARA", "BOOTES", "CETUS"] },
+  { id: "toxin", seals: ["cetus", "bootes", "ara"], labels: ["CETUS", "BOOTES", "ARA"] },
   { id: "wind_palm", seals: ["cygnus", "pegasus"], labels: ["CYGNUS", "PEGASUS"] }
 ]) {
   test(`${renderer}: ${ability.id} usa su definición común o exclusiva y muestra sellos con equipo vacío`, async ({ page }) => {
@@ -100,7 +100,7 @@ for (const renderer of ["Canvas", "WebGL"]) for (const ability of [
     });
     expect(cards.options).toEqual({ actor: "enemy" });
     expect(cards.prompt).toContain("SELLOS DEL RIVAL");
-    expect(cards.labels.sort()).toEqual(ability.labels);
+    expect(cards.labels).toEqual(ability.labels);
     expect(cards.attacked).toBe(false);
     expect(cards.layeredArm).toBe(true);
     expect(cards.centralSlot).toBe(true);
@@ -118,26 +118,32 @@ for (const renderer of ["Canvas", "WebGL"]) for (const ability of [
   });
 }
 
-test("los sellos del jugador siguen usando entrada manual y guardando las técnicas vistas", async ({ page }) => {
+test("Aliento de brasa pide los mismos sellos en cada lanzamiento manual", async ({ page }) => {
   await bootPerformanceReference(page, { renderer: "Canvas" });
   await page.evaluate(() => {
     const state = window.__performanceReference, scene = state.scene;
     scene.manualSeals = true;
-    state.expectedKeys = [];
+    window.Phaser.Math.Between = () => 0;
     const wait = scene.waitForSealInput;
     scene.waitForSealInput = function (key, ...args) {
       state.expectedKeys.push(key);
       return wait.call(this, key, ...args);
     };
-    void scene.playSeals(state.technique).then(result => { state.casting = result; });
   });
-  const count = await page.evaluate(() => window.__performanceReference.technique.seals.length);
-  for (let index = 0; index < count; index++) {
-    await expect.poll(() => page.evaluate(() => window.__performanceReference.expectedKeys.length)).toBe(index + 1);
-    const key = await page.evaluate(index => window.__performanceReference.expectedKeys[index], index);
-    await page.keyboard.press(key);
+  const keys = ["W", "E", "Q"];
+  for (let cast = 0; cast < 2; cast++) {
+    await page.evaluate(() => {
+      const state = window.__performanceReference;
+      state.expectedKeys = [];
+      state.casting = null;
+      void state.scene.playSeals(state.technique).then(result => { state.casting = result; });
+    });
+    for (const [index, key] of keys.entries()) {
+      await expect.poll(() => page.evaluate(index => window.__performanceReference.expectedKeys[index], index)).toBe(key);
+      await page.keyboard.press(key);
+    }
+    await expect.poll(() => page.evaluate(() => window.__performanceReference.casting)).toEqual({ mistakes: 0, multiplier: 1.1 });
   }
-  await expect.poll(() => page.evaluate(() => window.__performanceReference.casting?.multiplier)).toBe(1.1);
   expect(await page.evaluate(() => {
     const state = window.__performanceReference;
     return state.scene.seenJutsus.has(state.technique.id) && JSON.parse(localStorage.getItem("seen-jutsus")).includes(state.technique.id);

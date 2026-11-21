@@ -253,6 +253,45 @@ export const PUPPET_ANIMATION_CLIPS = Object.freeze({
       { target: "shadow", duration: 170, yoyo: true, ease: "Sine.inOut", to: { scaleX: 0.06, scaleY: -0.1 } }
     ])
   }),
+  "iron-fist": Object.freeze({
+    id: "iron-fist",
+    label: "Puño de hierro",
+    description: "Carga el peso sobre la pierna trasera y extiende el puño con una rotación del torso.",
+    category: "ataque",
+    state: ANIMATION_STATES.ACTION,
+    status: "integrated",
+    loop: false,
+    duration: 460,
+    requires: ["rig", "shoulderRight", "elbowRight", "shoulderLeft", "hipRight", "kneeRight"],
+    keys: {
+      rig: [{ t: 0, angle: 0 }, { t: 148, angle: -10 }, { t: 337, angle: 11 }, { t: 460, angle: 0 }],
+      shoulderRight: [{ t: 0, angle: 0 }, { t: 147, angle: 25 }, { t: 327, angle: -80 }, { t: 460, angle: -10 }],
+      elbowRight: [{ t: 0, angle: 0 }, { t: 150, angle: 34 }, { t: 327, angle: -14 }, { t: 460, angle: 0 }],
+      shoulderLeft: [{ t: 0, angle: 0 }, { t: 148, angle: -22 }, { t: 337, angle: 16 }, { t: 460, angle: 0 }],
+      hipRight: [{ t: 0, angle: 0 }, { t: 154, angle: -13 }, { t: 329, angle: 9 }, { t: 460, angle: 0 }],
+      kneeRight: [{ t: 0, angle: 0 }, { t: 152, angle: 18 }, { t: 337, angle: -9 }, { t: 460, angle: 0 }]
+    }
+  }),
+  "flash-step": Object.freeze({
+    id: "flash-step",
+    label: "Paso fugaz",
+    description: "Cruza la distancia con el cuerpo inclinado y remata con un golpe corto del brazo adelantado.",
+    category: "ataque",
+    state: ANIMATION_STATES.ACTION,
+    status: "integrated",
+    loop: false,
+    duration: 285,
+    requires: ["rig", "shoulderLeft", "elbowLeft", "shoulderRight", "hipLeft", "hipRight", "kneeLeft"],
+    keys: {
+      rig: [{ t: 0, angle: 0 }, { t: 65, angle: 14 }, { t: 192, angle: 18 }, { t: 285, angle: 0 }],
+      shoulderLeft: [{ t: 0, angle: 0 }, { t: 69, angle: 14 }, { t: 180, angle: -58 }, { t: 285, angle: 0 }],
+      elbowLeft: [{ t: 0, angle: 0 }, { t: 68, angle: 29 }, { t: 180, angle: -9 }, { t: 285, angle: 0 }],
+      shoulderRight: [{ t: 0, angle: 0 }, { t: 72, angle: 25 }, { t: 180, angle: 31 }, { t: 285, angle: 0 }],
+      hipLeft: [{ t: 0, angle: 0 }, { t: 75, angle: -21 }, { t: 182, angle: 16 }, { t: 285, angle: 0 }],
+      hipRight: [{ t: 0, angle: 0 }, { t: 75, angle: 25 }, { t: 182, angle: -15 }, { t: 285, angle: 0 }],
+      kneeLeft: [{ t: 0, angle: 0 }, { t: 78, angle: 25 }, { t: 185, angle: -10 }, { t: 285, angle: 0 }]
+    }
+  }),
   "punch-prepare": Object.freeze({
     id: "punch-prepare",
     label: "Puñetazo · preparación",

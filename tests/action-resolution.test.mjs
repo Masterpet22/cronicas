@@ -41,6 +41,7 @@ function battle(count = 1) {
   s.combatantSpeed = u => (u.baseSpeed * (1 + u.speedModifier));
   const graphic = new Proxy({}, { get: () => () => graphic });
   s.add.graphics = () => graphic;
+  s.tween = async () => {};
   for (const name of ["playFireEmbersProjectile", "playWaterShurikenProjectile", "playWindPalmProjectile", "playEarthFistProjectile", "playTechniqueEffect"])
     s[name] = async () => {};
   s.combatantEvasion = () => 0;

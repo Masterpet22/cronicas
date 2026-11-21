@@ -1,10 +1,9 @@
 import { Phaser, TECHNIQUE_VFX } from "../../battle/runtime.js?v=0.91.0";
-import { BattleActionMethods } from "../../battle/scenes/battle-actions.js?v=0.178.0";
+import { BattleActionMethods } from "../../battle/scenes/battle-actions.js?v=0.181.0";
 import { BattleFeedbackMethods } from "../../battle/scenes/battle-feedback.js?v=0.171.0";
 import { queueTechniqueAnimations, registerTechniqueAnimations } from "../../battle/technique-animations.js?v=1.0.0";
-import { showElementalImpact } from "../../battle/elemental-effects.js?v=0.93.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.171.0";
-import { createPlayerFighter, queuePlayerFighterTextures, stopPlayerBreathing } from "../../fighters.js?v=0.171.0";
+import { createPlayerFighter, queuePlayerFighterTextures, stopPlayerBreathing } from "../../fighters.js?v=0.179.0";
 import { ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 
 const WIDTH = 840;
@@ -39,6 +38,9 @@ export function mountTechniquePreview(parent, save, action, { onStart, onError, 
       if (animation?.position === "battlefield") camera.setZoom(.65).centerOn(WIDTH / 2, animation.y);
       else if (action.id === "earth_fist") camera.setZoom(.90).centerOn(WIDTH / 2, 255);
       else if (animation?.height > FLOOR_Y || animation?.width > 300) camera.setZoom(.85).centerOn(WIDTH / 2, 210);
+      else if (["fire_phoenix", "lightning_heaven", "wind_cyclone", "glass_rain", "storm_domain", "ash_funeral"].includes(action.id)) {
+        camera.setZoom(.90).centerOn(WIDTH / 2, 228);
+      }
       else camera.setZoom(1.25).centerOn(WIDTH / 2, 265);
 
       this.hero = createPlayerFighter(this, 220, FLOOR_Y, player);
@@ -55,7 +57,6 @@ export function mountTechniquePreview(parent, save, action, { onStart, onError, 
       if (visuals.usesWindBladeMultiHit) await this.playWindBladeEffect();
       else await attack.playAttackAnimation.call(this, action, "player", visuals);
       if (disposed) return;
-      if (!animation) showElementalImpact(this, action, this.foe.body.x, this.foe.body.y - 26, action.cinematic ? 1.25 : 1);
       await attack.playAttackRecovery.call(this, this.hero, originX, shadowX, visuals);
       if (disposed) return;
       await this.delay(430);

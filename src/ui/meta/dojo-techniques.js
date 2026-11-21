@@ -1,5 +1,8 @@
 import { characterResonanceSymbol } from "../../skills/character-symbol.js?v=1.0.0";
-import { PHYSICAL_COLOR, TAIJUTSU_ACTIONS, TAIJUTSUS_BY_ID, effectText } from "../../skills/definitions.js?v=1.4.0";
+import { PHYSICAL_COLOR, SKILLS_BY_ID, TAIJUTSU_ACTIONS, TAIJUTSUS_BY_ID, effectText } from "../../skills/definitions.js?v=1.4.0";
+import { ENEMY_EXCLUSIVE_ABILITIES, SEALS } from "../../data.js?v=1.5.0";
+import { SEAL_ATLAS } from "../../seal-atlas.js?v=1.0.0";
+import { ELEMENT_SEQUENCE_IDS } from "../../battle/technique-sequences.js?v=1.1.0";
 import { techniqueAtLevel } from "../../skills/technique-mastery.js?v=1.0.0";
 import { loadPhaser } from "../../battle/load-phaser.js?v=1.0.0";
 import { actionChakraCost } from "../../chakra-balance.js?v=1.0.0";
@@ -14,13 +17,19 @@ export function createDojoTechniques(deps) {
   let treeView = null;
   let replacementId = null;
   let feedback = "";
-  let showTree = false;
+  let view = "list";
   let showFuture = false;
   let preview = null;
   let host = null;
   let bindings = null;
   const escape = deps.escapeHtml;
   const technique = id => deps.jutsus.find(entry => entry.id === id);
+  const extraTechniques = [
+    ...deps.jutsus.filter(action => !SKILLS_BY_ID.has(action.id)),
+    ...ENEMY_EXCLUSIVE_ABILITIES
+  ];
+  const elementalPreviews = ELEMENT_SEQUENCE_IDS.map(element => ({ id: element, element, name: deps.elementName(element) }));
+  const extraActions = new Map([...extraTechniques, ...elementalPreviews].map(action => [action.id, action]));
   const elementArt = id => `<span class="element-composition" role="img" aria-label="${escape(deps.elementName(id))}: ${deps.basicRequirements(id).map(deps.elementName).join(" + ")}">${deps.elementIconParts(id).map(part => `<img src="${part.icon}" alt="" width="512" height="512" style="left:${part.x / 5.12}%;top:${part.y / 5.12}%;width:${part.size / 5.12}%;height:${part.size / 5.12}%">`).join("")}</span>`;
   const slotLevels = Array.from({ length: 4 }, (_, index) =>
     Array.from({ length: 100 }, (_, level) => level + 1).find(level => deps.loadoutSlotsForLevel(level) > index));
@@ -74,11 +83,72 @@ export function createDojoTechniques(deps) {
     }).join("")}</div>`;
   }
 
-  function techniquePreviewMarkup(actionId) {
+  function techniquePreviewButton(actionId) {
+    return `<button class="dojo-technique-play" type="button" data-play-technique="${actionId}">Ver técnica</button>`;
+  }
+
+  function techniquePreviewMarkup() {
     return `<figure class="dojo-technique-preview">
-      <figcaption><button type="button" data-play-technique="${actionId}">Ver técnica</button><span role="status" data-technique-preview-status></span></figcaption>
       <div class="dojo-technique-stage" data-technique-preview-stage aria-hidden="true"></div>
+      <figcaption role="status" data-technique-preview-status></figcaption>
     </figure>`;
+  }
+
+  function techniqueSealsMarkup({ seals }) {
+    if (!seals.length) return "";
+    const { url, columns, rows } = SEAL_ATLAS;
+    return `<ol class="dojo-technique-seals" role="list" aria-label="Secuencia de sellos" style="--dojo-seal-atlas:url('${url}');--dojo-seal-size:${columns * 100}% ${rows * 100}%">
+      ${seals.map(id => {
+        const { frame, key, label } = SEALS[id];
+        const x = (frame % columns) * 100 / (columns - 1);
+        const y = Math.floor(frame / columns) * 100 / (rows - 1);
+        return `<li data-technique-seal="${id}">
+          <span class="dojo-technique-seal-glyph" style="background-position:${x}% ${y}%" aria-hidden="true"></span>
+          <span class="dojo-technique-seal-label"><kbd>${key}</kbd><span>${label}</span></span>
+        </li>`;
+      }).join("")}
+    </ol>`;
+  }
+
+  function combatMetricsMarkup(action, costReduction = 0) {
+    const turns = action.cooldown;
+    const cost = action.type === "taijutsu" ? `${action.healthCost} PV` : `${actionChakraCost(action, costReduction)} CH`;
+    return `<div class="technique-metrics"><div><strong>${action.damage}</strong><small>DAÑO BASE</small></div>
+      <div><strong>${cost}</strong><small>COSTE</small></div>
+      <div><strong>${turns ? `${turns} ${turns === 1 ? "turno" : "turnos"}` : "Sin recarga"}</strong><small>RECARGA</small></div>
+      <div><strong>${action.seals.length}</strong><small>SELLOS</small></div></div>`;
+  }
+
+  function combatStatusMarkup({ status }) {
+    if (!status) return "";
+    const duration = `${status.duration} ${status.duration === 1 ? "turno" : "turnos"}`;
+    const label = status.label[0] + status.label.slice(1).toLowerCase();
+    return `<p class="dojo-technique-effect" data-technique-combat-status>${escape(label)} · ${status.power > 0 ? `${status.power} PV de daño por turno · ` : ""}${duration}</p>`;
+  }
+
+  function extraListMarkup() {
+    const groups = [
+      ["Técnicas del catálogo", extraTechniques],
+      ["Combinaciones elementales", elementalPreviews]
+    ];
+    return `<div class="dojo-technique-list">${groups.map(([label, entries]) => `<section><h4>${label}</h4><ul>
+      ${entries.map(action => `<li><button type="button" data-extra-technique="${action.id}" aria-pressed="${action.id === selectedId}"><strong>${escape(action.name)}</strong><small>${escape(ELEMENT_SEQUENCE_IDS.includes(action.id) ? deps.elements[action.element].parents.map(deps.elementName).join(" + ") : deps.elementName(action.element))}</small></button></li>`).join("")}
+    </ul></section>`).join("")}</div>`;
+  }
+
+  function extraDetailMarkup(action) {
+    const isTechnique = !ELEMENT_SEQUENCE_IDS.includes(action.id);
+    const subtitle = isTechnique
+      ? `${deps.elementName(action.element)} · ${ENEMY_EXCLUSIVE_ABILITIES.includes(action) ? "Exclusiva de enemigos" : "Sin ranura de Resonancia"}`
+      : `${deps.elements[action.element].parents.map(deps.elementName).join(" + ")} · Muestra elemental`;
+    return `<aside class="technique-detail"><div class="technique-detail-body">
+      <header class="dojo-technique-title">${elementArt(action.element)}<div><h3>${escape(action.name)}</h3><p>${escape(subtitle)}</p></div>
+        <div class="dojo-technique-title-actions">${techniquePreviewButton(action.id)}</div>
+      </header>
+      ${isTechnique ? combatMetricsMarkup(action) : ""}
+      ${techniquePreviewMarkup()}
+      ${isTechnique ? `${combatStatusMarkup(action)}${techniqueSealsMarkup(action)}` : ""}
+    </div></aside>`;
   }
 
   function stopPreview() {
@@ -93,7 +163,7 @@ export function createDojoTechniques(deps) {
 
   async function playPreview(button, save) {
     const id = button.dataset.playTechnique;
-    const action = technique(id) || TAIJUTSUS_BY_ID.get(id);
+    const action = extraActions.get(id) || technique(id) || TAIJUTSUS_BY_ID.get(id);
     if (!action) return;
     stopPreview();
     const result = host.querySelector("[data-technique-preview-status]");
@@ -109,7 +179,7 @@ export function createDojoTechniques(deps) {
     };
     try {
       await loadPhaser();
-      const { mountTechniquePreview } = await import("./technique-preview.js?v=1.0.0");
+      const { mountTechniquePreview } = await import("./technique-preview.js?v=1.3.0");
       if (preview !== request || !stage.isConnected) return;
       request.dispose = mountTechniquePreview(stage, save, action, {
         onStart: () => { result.textContent = ""; },
@@ -148,10 +218,6 @@ export function createDojoTechniques(deps) {
     const investLabel = level >= node.maxLevel ? "NIVEL MÁXIMO" : `${level ? "MEJORAR" : "DESBLOQUEAR"} · ${node.cost} PR`;
     const costReduction = jutsu ? deps.derivedStats(save).costReduction : 0;
     const chakraCost = jutsu ? actionChakraCost(jutsu, costReduction) : 0;
-    const turns = combatMove?.cooldown;
-    const metrics = combatMove ? `<div class="technique-metrics"><div><strong>${combatMove.damage}</strong><small>DAÑO BASE</small></div><div><strong>${taijutsu ? `${taijutsu.healthCost} PV` : `${chakraCost} CH`}</strong><small>COSTE</small></div><div><strong>${turns ? `${turns} ${turns === 1 ? "turno" : "turnos"}` : "Sin recarga"}</strong><small>RECARGA</small></div><div><strong>${jutsu ? jutsu.seals.length : 0}</strong><small>SELLOS</small></div></div>` : "";
-    const status = jutsu?.status;
-    const effect = status ? `${status.label} · ${status.power > 0 ? `${status.power} PV de daño por turno durante ` : ""}${status.duration} ${status.duration === 1 ? "turno" : "turnos"}` : "";
     let nextLevel = "";
     if (level && level < node.maxLevel) {
       if (jutsu) {
@@ -174,18 +240,22 @@ export function createDojoTechniques(deps) {
       <div class="technique-detail-body">
         <header class="dojo-technique-title">
           ${art}<div><h3>${escape(node.name)}</h3><p>${escape(affinity)} · ${escape(stateLabel(save, node, physicalSlots))}</p></div>
-          ${level ? `<span>Nivel ${level}/${node.maxLevel}</span>` : ""}
+          ${combatMove || level ? `<div class="dojo-technique-title-actions">
+            ${combatMove ? techniquePreviewButton(combatMove.id) : ""}
+            ${level ? `<span class="dojo-technique-level">Nivel ${level}/${node.maxLevel}</span>` : ""}
+          </div>` : ""}
         </header>
-        ${metrics}
-        ${combatMove ? techniquePreviewMarkup(combatMove.id) : ""}
-        ${jutsu?.id === "fire_embers" ? "" : `<p class="technique-description">${escape(taijutsu?.description || node.description)}</p>`}
-        ${effect ? `<p class="dojo-technique-effect">${escape(effect)}</p>` : ""}
+        ${combatMove ? combatMetricsMarkup(combatMove, costReduction) : ""}
+        ${combatMove ? `${techniquePreviewMarkup()}
+          <div class="dojo-technique-combat-notes">${combatStatusMarkup(combatMove)}
+            <p class="technique-accuracy">${escape(initiativeLabel(combatMove))}${jutsu ? ` · ${jutsu.accuracyMod > 0 ? "+" : ""}${jutsu.accuracyMod}% de precisión` : ""}</p>
+          </div>${techniqueSealsMarkup(combatMove)}` : ""}
+        ${combatMove ? "" : `<p class="technique-description">${escape(node.description)}</p>`}
         ${node.effect ? `<p class="dojo-technique-effect">${combatMove ? "Bonificación pasiva" : "Pasiva permanente"} · ${escape(effectText({ ...node.effect, amount: node.effect.amount * Math.max(1, level) }))}</p>` : ""}
         ${requirements.length || prerequisiteNames.length ? `<section class="resonance-requirements"><h4>Requisitos de progresión</h4>
           ${prerequisiteNames.length ? `<p>${escape(prerequisiteNames.join(" + "))}</p>` : ""}
           ${requirements.length ? `<p class="is-missing">${escape(requirements.join(" · "))}</p>` : ""}
         </section>` : ""}
-        ${combatMove ? `<p class="technique-accuracy">${escape(initiativeLabel(combatMove))} para la siguiente acción${jutsu ? ` · ${jutsu.accuracyMod > 0 ? "+" : ""}${jutsu.accuracyMod}% de precisión` : ""}</p>` : ""}
       </div>
       <footer class="technique-detail-actions">
         ${nextLevel ? `<p class="dojo-next-technique-level">Nivel ${level + 1} · ${escape(nextLevel)}</p>` : ""}
@@ -199,19 +269,30 @@ export function createDojoTechniques(deps) {
 
   function render(save) {
     const nodes = nodesFor(save);
+    const showTree = view === "tree";
+    const showExtras = view === "extra";
     const visibleNodes = resonanceVisibleNodes(save, showTree && showFuture);
-    if ((!showTree || selectedId !== "core") && !visibleNodes.some(node => node.id === selectedId)) {
+    if (showExtras) {
+      if (!extraActions.has(selectedId)) selectedId = extraTechniques[0].id;
+    } else if ((!showTree || selectedId !== "core") && !visibleNodes.some(node => node.id === selectedId)) {
       selectedId = save.loadout.find(id => visibleNodes.some(node => node.id === id))
         || visibleNodes.find(node => node.jutsuId && skillLevel(save, node))?.id
         || visibleNodes[0]?.id || "core";
     }
     if (replacementId && (save.loadout.includes(replacementId) || !deps.isTechniqueLearned(save, technique(replacementId)))) replacementId = null;
     return `<div class="dojo-technique-workspace">
-      <div class="technique-learning${showTree ? " is-tree" : ""}"><header class="dojo-technique-navigation"><div><h3>${showTree ? "Progresión" : "Técnicas del Dojo"}</h3><p><b data-resonance-points>${resonancePoints(save)}</b> PR disponibles</p></div><button type="button" data-technique-view>${showTree ? "Lista de técnicas" : "Árbol de Resonancia"}</button></header>
-        ${showTree ? resonanceTreeMarkup(save,deps,selectedId,treeView,showFuture) : listMarkup(save, visibleNodes)}
-        ${loadoutMarkup(save)}
+      <div class="technique-learning${showTree ? " is-tree" : ""}"><header class="dojo-technique-navigation${view === "list" ? " is-list" : ""}">
+        <div><h3>${showExtras ? "Más animaciones" : showTree ? "Progresión" : "Técnicas del Dojo"}</h3>
+        ${showExtras ? "" : `<p><b data-resonance-points>${resonancePoints(save)}</b> PR disponibles</p>`}</div>
+        <div class="dojo-technique-navigation-actions">${view === "list"
+          ? '<button type="button" data-technique-view="tree">Árbol de Resonancia</button><button type="button" data-technique-view="extra">Más animaciones</button>'
+          : '<button type="button" data-technique-view="list">Lista de técnicas</button>'}</div></header>
+        ${showExtras ? extraListMarkup() : showTree ? resonanceTreeMarkup(save,deps,selectedId,treeView,showFuture) : listMarkup(save, visibleNodes)}
+        ${showExtras ? "" : loadoutMarkup(save)}
       </div>
-      <section class="technique-detail-wrap" aria-label="Detalle de habilidad" data-technique-detail data-selected-skill="${selectedId}">${detailMarkup(save,nodes.find(n => n.id === selectedId))}</section>
+      <section class="technique-detail-wrap" aria-label="Detalle de habilidad" data-technique-detail data-selected-skill="${selectedId}">
+        ${showExtras ? extraDetailMarkup(extraActions.get(selectedId)) : detailMarkup(save,nodes.find(n => n.id === selectedId))}
+      </section>
     </div>`;
   }
 
@@ -287,9 +368,14 @@ export function createDojoTechniques(deps) {
         if (button.hasAttribute("data-play-technique")) {
           void playPreview(button, save);
         } else if (button.hasAttribute("data-technique-view")) {
-          showTree = !showTree;
+          const previousView = view;
+          view = button.dataset.techniqueView;
           replacementId = null;
-          refresh(save, "[data-technique-view]", true);
+          refresh(save, `[data-technique-view="${previousView}"]`, true);
+          host.querySelector(".dojo-technique-list")?.scrollTo(0, 0);
+        } else if (button.dataset.extraTechnique) {
+          selectedId = button.dataset.extraTechnique;
+          refresh(save, `[data-extra-technique="${selectedId}"]`, true);
         } else if (button.hasAttribute("data-taijutsu-choose")) {
           const index = Number(button.dataset.taijutsuChoose);
           selectedId = normalizeTaijutsuLoadout(save)[index] || TAIJUTSU_ACTIONS.find(action => learnedTaijutsu(save,action.id) && !normalizeTaijutsuLoadout(save).includes(action.id))?.id || TAIJUTSU_ACTIONS[0].id;

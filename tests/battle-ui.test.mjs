@@ -391,7 +391,7 @@ assert.match(battle, /this\.combatFeatures\.secretEntry[\s\S]*await this\.playSe
 assert.equal((battle.match(/await this\.playSecretWarehouse\(\)/g) || []).length, 1, "El evento del almacén debe programarse una sola vez");
 
 assert.match(battle, /hideOnComplete: !effect\.projectile/, "El proyectil debe conservar su ultimo cuadro hasta alcanzar el objetivo");
-assert.match(battle, /await Promise\.all\([\s\S]*duration: 560[\s\S]*if \(!missed\) this\.createImpact[\s\S]*alpha: 0,[\s\S]*duration: 160[\s\S]*sprite\.destroy\(\)/, "Ascuas veloces debe llegar al objetivo antes de desvanecerse");
+assert.match(battle, /await Promise\.all\([\s\S]*duration: 560[\s\S]*alpha: 0,[\s\S]*duration: 160[\s\S]*sprite\.destroy\(\)/, "Ascuas veloces debe llegar al objetivo antes de desvanecerse");
 assert.match(metaUi, /function activeMissionObjectives\(save\)/, "El HUD debe reunir los objetivos activos en un solo diario");
 assert.match(metaUi, /class="mission-dock"[\s\S]*class="story-mission-current"[\s\S]*storyObjective\?\.title/, "La misión principal actual debe permanecer visible en la barra inferior");
 assert.match(metaUi, /class="story-mission-current"[\s\S]*data-view="\$\{storyObjective\.view\}"[\s\S]*aria-label="Ir a/, "La misión actual debe abrir directamente su edificio objetivo");

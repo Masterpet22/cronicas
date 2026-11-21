@@ -59,6 +59,13 @@ Objetivo: producir una batalla corta cuya estrategia y presentación ya represen
 
 **Criterio de salida cumplido:** el jugador puede crear un personaje, completar combates y tomar decisiones permanentes de progresión.
 
+### Ampliación pendiente de Resonancia
+
+- [ ] Completar las seis familias de nivel 2 con tres técnicas activas por pareja.
+- [ ] Definir las dos técnicas de cada familia de nivel 3 y su misión secundaria de desbloqueo. Cada partida puede obtener una sola técnica de ese nivel, representada por el yin yang central.
+
+Las recetas, los recuentos y las decisiones pendientes están en el [diseño de técnicas y afinidades](docs/ARBOL_RESONANCIA.md#diseño-de-técnicas-elementales).
+
 ## Fase 3 — Demo jugable
 
 - [x] Una aldea ilustrada con nueve edificios interactivos, resaltado por hover y navegación por teclado.

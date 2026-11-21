@@ -1,4 +1,4 @@
-import { TrainingBattleScene } from "./training-battle-scene.js?v=0.178.0";
+import { TrainingBattleScene } from "./training-battle-scene.js?v=0.181.0";
 import { applyBattleConsumable } from "../battle-inventory.js?v=0.171.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.172.0";
 import { createEnemyState } from "../enemy-state.js?v=0.155.0";

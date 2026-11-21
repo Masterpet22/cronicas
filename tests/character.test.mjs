@@ -195,7 +195,7 @@ assert.deepEqual(animationClipList("reposo").map(({ id }) => id), ["idle-natural
 assert.deepEqual(animationClipList("defensa").map(({ id }) => id), ["guard-hold", "guard-impact", "guard-hold-simple", "guard-impact-simple"]);
 assert.deepEqual(animationClipList("reacción").map(({ id }) => id), ["hit-light", "hit-heavy", "hit-light-simple", "hit-heavy-simple"]);
 assert.deepEqual(animationClipList("locomoción").map(({ id }) => id), ["run-cycle", "run-simple"]);
-assert.deepEqual(animationClipList("ataque").map(({ id }) => id), ["punch-prepare", "punch-release", "punch-recover"]);
+assert.deepEqual(animationClipList("ataque").map(({ id }) => id), ["iron-fist", "flash-step", "punch-prepare", "punch-release", "punch-recover"]);
 assert.deepEqual(animationClipList("acción").map(({ id }) => id), ["prepare-technique", "earth-wall-cast"], "Las técnicas con pose propia deben vivir en el catálogo declarativo");
 assert.equal(PUPPET_ANIMATION_CLIPS["earth-wall-cast"].loop, false, "Muro Pétreo debe terminar antes de iniciar su spritesheet");
 assert.equal(PUPPET_ANIMATION_CLIPS["earth-wall-cast"].anchor, "ankleRight", "Muro Pétreo debe mantener anclado el pie derecho");

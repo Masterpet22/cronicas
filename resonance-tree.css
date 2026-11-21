@@ -136,7 +136,7 @@
 #dojo-panel-techniques .technique-loadout { border:0; border-radius:0; padding:12px; }
 #dojo-panel-techniques .technique-loadout > header p { display:block; font-size:13px; }
 #dojo-panel-techniques .technique-detail-body { padding:12px 16px; gap:8px; }
-#dojo-panel-techniques .technique-description,#dojo-panel-techniques .technique-accuracy,.resonance-effects p,.resonance-requirements p { font-size:14px !important; line-height:1.45; }
+#dojo-panel-techniques .technique-description,.resonance-effects p,.resonance-requirements p { font-size:14px !important; line-height:1.45; }
 #dojo-panel-techniques .technique-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
 #dojo-panel-techniques .technique-detail-actions { padding:12px; }
 .resonance-future-control { display:flex; align-items:center; gap:8px; padding:10px 12px; color:#e0dcc4; font-size:13px; }
@@ -172,9 +172,19 @@
   border-bottom: 1px solid #554b36;
 }
 
+.dojo-technique-navigation-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.dojo-technique-navigation.is-list > div:first-child {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  width: 100%;
+}
+.dojo-technique-navigation.is-list p { margin: 0; }
 .dojo-technique-navigation h3 { margin: 0; color: #f2e1c1; font: 700 17px "Cinzel", Georgia, serif; }
 .dojo-technique-navigation p { margin: 4px 0 0; color: #dcca9e; font-size: 13px; }
-.dojo-technique-navigation button, .dojo-technique-preview button {
+.dojo-technique-navigation button, .dojo-technique-play {
   min-height: 44px;
   padding: 7px 12px;
   border: 1px solid #9c8051;
@@ -185,8 +195,8 @@
   font-weight: 700;
   cursor: pointer;
 }
-.dojo-technique-navigation button:hover, .dojo-technique-preview button:hover { background: #42351f; }
-.dojo-technique-preview button:disabled { opacity: .65; cursor: wait; }
+.dojo-technique-navigation button:hover, .dojo-technique-play:hover { background: #42351f; }
+.dojo-technique-play:disabled { opacity: .65; cursor: wait; }
 
 .dojo-technique-list { overflow: auto; padding: 0 12px 10px; scrollbar-color: #706443 #14201d; scrollbar-gutter: stable; }
 .dojo-technique-list h4 { margin: 12px 0 6px; color: #dfc995; font-size: 13px; }
@@ -212,7 +222,7 @@
 .dojo-technique-list button:hover { background: #21302a; }
 .dojo-technique-list button[aria-pressed="true"] { background: #2c2c22; border-color: #b89559; }
 .dojo-technique-list button:focus-visible, .dojo-technique-navigation button:focus-visible,
-.dojo-technique-preview button:focus-visible { outline: 2px solid #92dfff; outline-offset: -2px; }
+.dojo-technique-play:focus-visible { outline: 2px solid #92dfff; outline-offset: -2px; }
 .technique-learning.is-tree { grid-template-rows: auto minmax(265px, 1fr) auto; overflow-y: auto; }
 #dojo-panel-techniques .technique-learning > .resonance-tree {
   grid-template-rows: minmax(0, 1fr) auto;
@@ -228,8 +238,23 @@
 .dojo-technique-title { display: flex; align-items: center; gap: 10px; }
 .dojo-technique-title .element-composition { width: 40px; height: 40px; flex: 0 0 auto; }
 .dojo-technique-title p { margin: 3px 0 0; color: #ced5c5; font-size: 13px; }
-.dojo-technique-title > span:last-child { margin-left: auto; color: #e5ca94; font-size: 13px; flex: 0 0 auto; }
+.dojo-technique-title-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  margin-left: auto;
+}
+.dojo-technique-play { white-space: nowrap; }
+.dojo-technique-level { color: #e5ca94; font-size: 13px; white-space: nowrap; }
 .dojo-technique-effect { margin: 0; color: #f0c999; font-size: 14px; line-height: 1.4; }
+.dojo-technique-combat-notes {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
 #dojo-panel-techniques .technique-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 #dojo-panel-techniques .technique-metrics small { font-size: 13px; }
 #dojo-panel-techniques .dojo-next-technique-level { color: #e8ce9c; }
@@ -245,14 +270,64 @@
 }
 .dojo-technique-stage canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
 .dojo-technique-preview figcaption {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
   color: #f3d4ab;
   font-size: 13px;
 }
-.dojo-technique-preview button { flex: 0 0 auto; }
+.dojo-technique-preview figcaption:not(:empty) { margin-top: 6px; }
+.dojo-technique-seals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.dojo-technique-seals li {
+  position: relative;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 4px;
+  width: clamp(76px, calc((100% - 24px) / 4), 100px);
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: 4px;
+  border: 1px solid #607983;
+  border-radius: 5px;
+  background: #10232d;
+  color: #e5eff1;
+  text-align: center;
+}
+.dojo-technique-seal-glyph {
+  width: 48px;
+  aspect-ratio: 1;
+  background-image: var(--dojo-seal-atlas);
+  background-size: var(--dojo-seal-size);
+  background-repeat: no-repeat;
+  mix-blend-mode: screen;
+}
+.dojo-technique-seal-label {
+  font-size: 13px;
+  line-height: 1.1;
+}
+.dojo-technique-seal-label kbd {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  padding: 2px 4px;
+  border: 1px solid #9c8051;
+  border-radius: 3px;
+  color: #ffe3ad;
+  font: inherit;
+  font-weight: 700;
+}
+
+@media (max-height: 780px) {
+  #dojo-panel-techniques .technique-detail-body { padding: 10px 14px; gap: 6px; }
+  .dojo-technique-stage { height: 118px; }
+  .dojo-technique-seals li { width: 72px; }
+  .dojo-technique-seal-glyph { width: 36px; }
+}
 
 @media (max-width: 1100px) {
   #dojo-panel-techniques .dojo-technique-workspace { grid-template-columns: minmax(240px, .9fr) minmax(0, 1.1fr); }

@@ -46,7 +46,7 @@ test('Técnicas permite consultar el árbol completo y leer la ficha a ambos tam
   for(const width of [1280,1440]){
     await page.setViewportSize({width,height:width===1280?720:900});
     await expect(page.locator('[data-technique-toggle="fire_embers"]')).toBeVisible();
-    expect(await page.locator('.dojo-technique-effect').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
+    expect(await page.locator('.technique-metrics strong').first().evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
     const metrics=await page.locator('.technique-detail').evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth}));
     expect(metrics.scroll).toBeLessThanOrEqual(metrics.width+1);
     await page.screenshot({path:testInfo.outputPath(`tecnicas-${width}.png`)});

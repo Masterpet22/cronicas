@@ -156,6 +156,8 @@ Fuego → Viento, Agua → Fuego, Tierra → Agua y Viento → Tierra.
 
 ## Habilidades, aprendizaje y maestría
 
+Esta sección describe la progresión jugable. El [diseño de técnicas elementales](ARBOL_RESONANCIA.md#diseño-de-técnicas-elementales) documenta la ampliación de las familias de nivel 2 y el desbloqueo de nivel 3 por misión secundaria.
+
 Una habilidad requiere su casilla, afinidades activas, nivel mínimo, PX de afinidad
 cuando corresponda y predecesoras al rango indicado. Cumplirlos habilita comprar
 el primer rango por 1 PR. Equipo, entrenamiento y combate validan esa adquisición.

@@ -1,6 +1,97 @@
-# Árbol de Resonancia
+# Técnicas, afinidades y Árbol de Resonancia
 
-El Dojo → Técnicas reproduce exactamente el plano de 39 hexágonos suministrado
+## Diseño de técnicas elementales
+
+Este diseño registra cómo se organizará el catálogo. El [árbol jugable actual](#árbol-jugable-actual) describe las casillas, las rutas y los requisitos vigentes.
+
+- **Afinidad principal del personaje** es la primera de sus afinidades base. Cada partida admite hasta tres afinidades base distintas de entre Fuego, Agua, Tierra y Viento.
+- **Nivel elemental de una técnica** indica la receta de su familia. Nivel 1 usa una afinidad base, nivel 2 combina una pareja y nivel 3 combina una familia de nivel 2 con una tercera afinidad base distinta.
+- **Nivel del personaje** determina cuándo se abre un requisito. **Rango de habilidad** indica las mejoras de una habilidad individual. En el árbol actual, los rangos van de 1 a 3.
+- **Técnica activa** es una acción de combate. Una **habilidad pasiva** aporta un modificador al cumplir sus requisitos. El catálogo de habilidades incluye ambas.
+
+### Nivel 1 — Técnicas de una afinidad
+
+Las técnicas propias de Fuego, Agua, Tierra y Viento pertenecen a la rama de su afinidad. El catálogo vigente tiene **20 técnicas elementales base** distribuidas en 6 de [Fuego](#fuego), 4 de [Agua](#agua), 4 de [Tierra](#tierra) y 6 de [Viento](#viento). Las tablas vigentes también enumeran las pasivas de cada rama y sus requisitos.
+
+#### Roles de combate por afinidad
+
+La propuesta del catálogo combina **ataques**, **mejoras temporales** (*buffs*) y **debilitamientos temporales** (*debuffs*). Cada afinidad base tendría al menos una técnica activa de mejora y una de debilitamiento. Ambas podrían ocupar una acción propia y aplicar su efecto sin daño directo. Los ataques que aplican un estado también tienen espacio en el catálogo.
+
+| Afinidad | Identidad | Ejemplo de mejora | Ejemplo de debilitamiento |
+|---|---|---|---|
+| Fuego | Ofensiva y presión | Aumentar la fuerza propia durante varios turnos | Reducir la defensa del rival para preparar un ataque |
+| Agua | Apoyo y control del ritmo | Aumentar la recuperación de chakra durante varios turnos | Ralentizar al rival |
+| Tierra | Defensa y desgaste | Aumentar la resistencia propia al daño | Reducir la fuerza del rival |
+| Viento | Movilidad y evasión | Aumentar la evasión propia durante varios turnos | Reducir la precisión del rival |
+
+El resto de los movimientos define cuánto pesa cada rol en la afinidad. Las familias mixtas pueden tomar funciones de ambas afinidades de origen. Los ejemplos indican la dirección de diseño. Queda por decidir qué técnicas ocuparán esos roles, a qué objetivos podrán aplicarse y cuáles serán sus valores, duraciones, costes y recargas.
+
+### Nivel 2 — Mezclas de dos afinidades
+
+Cada pareja da una familia de **tres técnicas activas** en el diseño. El orden de los elementos dentro de la pareja da la misma familia.
+
+| Afinidades base | Familia | Técnicas activas presentes en el árbol actual |
+|---|---|---|
+| Fuego + Agua | Vapor | Estallido de vapor |
+| Fuego + Tierra | Magma | Forja de magma |
+| Fuego + Viento | Rayo | Aguja de chispa, Cadena estática y Juicio del cielo |
+| Agua + Tierra | Planta | Enredo esmeralda |
+| Agua + Viento | Hielo | Lanza glacial |
+| Tierra + Viento | Arena | Prisión de arena |
+
+El diseño suma **18 técnicas de mezcla** en el catálogo. Una partida con tres afinidades base reúne tres parejas y puede llegar a desbloquear **9 técnicas de nivel 2**. Por ejemplo, Fuego, Agua y Tierra abren las familias Vapor, Magma y Planta. Las técnicas de las ramas base se cuentan aparte. El equipamiento en combate se rige por sus propias ranuras.
+
+Hoy hay ocho técnicas activas repartidas entre las seis familias y el árbol completa las otras posiciones de cada pareja con pasivas. Queda por definir qué diez técnicas completarán las familias y dónde quedarán esas pasivas en el nuevo diseño. Prisión del relámpago ya tiene animación y se puede consultar en **Más animaciones**.
+
+### Nivel 3 — Mezcla con una tercera afinidad
+
+La receta parte de una familia de nivel 2 y suma la afinidad base que queda fuera de esa pareja. El orden en que se equipan las tres afinidades da las mismas rutas. La familia de nivel 2 que se toma como punto de partida determina el resultado.
+
+| Afinidades base de la partida | Primera ruta | Segunda ruta | Tercera ruta |
+|---|---|---|---|
+| Fuego, Agua y Tierra | Vapor + Tierra → **Espora** | Magma + Agua → **Obsidiana** | Planta + Fuego → **Veneno** |
+| Fuego, Agua y Viento | Vapor + Viento → **Tormenta** | Rayo + Agua → **Plasma** | Hielo + Fuego → **Niebla** |
+| Fuego, Tierra y Viento | Magma + Viento → **Ceniza** | Rayo + Tierra → **Metal** | Arena + Fuego → **Vidrio** |
+| Agua, Tierra y Viento | Planta + Viento → **Raíz** | Hielo + Tierra → **Cristal** | Arena + Agua → **Lodo** |
+
+| Alcance | Familias de nivel 3 | Técnicas de nivel 3 |
+|---|---:|---:|
+| Catálogo completo | 12 | **24** con dos por familia |
+| Compatibles con una combinación de tres afinidades | 3 | **6** candidatas |
+| Desbloqueadas por partida | Una familia como máximo | **1** técnica como máximo |
+
+La exclusividad se aplica al desbloqueo de la técnica en la partida y se conserva al guardar y recargar. El diseño reserva el **hexágono central del panal, en `(0,0)`, con el icono de yin yang ☯** para representar esa técnica. Se reutiliza la posición central del plano de 39 celdas.
+
+El nivel de personaje requerido habilitará una **misión secundaria**. Completarla desbloqueará la técnica de nivel 3. Quedan pendientes el nivel exacto, el diseño de la misión, cómo se determina la técnica otorgada dentro de las opciones compatibles y los detalles de equipamiento. Los nombres individuales de las dos técnicas por familia, sus efectos, costes y rangos también quedan por definir. El desbloqueo por misión sigue pendiente de implementación.
+
+### Animaciones y ficha del Dojo
+
+El combate y la vista previa comparten la secuencia de animación. La **ficha** muestra el daño base, el estado cuando corresponda y su duración, el coste, la recarga, los sellos y los requisitos disponibles. La **reproducción** en el escenario se limita a la animación. Los datos de daño y estados se leen fuera de la escena.
+
+Debajo de la animación, cada cuadro muestra el símbolo, el nombre y la tecla del sello. La secuencia se lee de izquierda a derecha y coincide con el orden de ejecución en combate. Se consulta el rango mostrado en la ficha, incluido el sello que se elimina al alcanzar rango 3.
+
+**Dojo → Técnicas → Más animaciones** permite consultar técnicas del catálogo actual que carecen de casilla de Resonancia y muestras elementales. Una muestra es un recurso visual para el diseño de las familias. El catálogo jugable y sus requisitos determinan qué se puede aprender y equipar.
+
+| Familia de nivel 3 | Recurso visual disponible para reutilizar |
+|---|---|
+| Espora | Muestra elemental de Espora |
+| Obsidiana | Muestra elemental de Obsidiana |
+| Veneno | Flor venenosa |
+| Tormenta | Dominio de tormenta |
+| Plasma | Muestra elemental de Plasma |
+| Niebla | Muestra elemental de Niebla |
+| Ceniza | Réquiem de ceniza |
+| Metal | Bastión de metal |
+| Vidrio | Lluvia de vidrio |
+| Raíz | Raíz ancestral |
+| Cristal | Prisma cristalino. Corona de escarcha queda como candidata para la segunda técnica |
+| Lodo | Pendiente de animar |
+
+Los recursos de esta tabla son referencias visuales. Las recetas anteriores registran el diseño acordado y la implementación actual sigue consultando sus propias definiciones en [`src/elements.js`](../src/elements.js) y [`src/skills/definitions.js`](../src/skills/definitions.js).
+
+## Árbol jugable actual
+
+Dojo → Técnicas → Árbol de Resonancia reproduce el plano de 39 hexágonos suministrado
 por el usuario: 38 celdas de habilidades y una del personaje en `(0,0)`.
 
 | Grupo | Celdas | Posición | Color |
@@ -49,7 +140,8 @@ calendario actualiza el símbolo al volver al Dojo. No se guarda otra copia del 
   utilizan el azul definido en `PHYSICAL_COLOR`.
 - `src/ui/meta/resonance-tree.js`: representación SVG, vecindad hexagonal y
   controles de navegación. No contiene definiciones de habilidades.
-- `src/ui/meta/dojo-techniques.js`: ficha contextual, inversiones y equipamiento.
+- `src/ui/meta/dojo-techniques.js`: lista de técnicas, ficha, inversiones, equipamiento y catálogo de animaciones.
+- `src/ui/meta/technique-preview.js` y `src/battle/technique-sequences.js`: escena de vista previa y secuencias compartidas con combate.
 - `resonance-tree.css`: presentación del panal y adaptación de la ficha.
 
 `buildSkillTree(affinities, rank)` produce nodos con coordenadas `q, r`. El nivel
@@ -114,7 +206,7 @@ su casilla o incumplen requisitos se liberan como puntos disponibles.
 
 ## Interacción y ampliación
 
-Pasar el cursor muestra una ficha temporal; seleccionar fija la ficha. La inversión
+Seleccionar una técnica por su nombre o por su hexágono abre su ficha. La inversión
 se realiza desde su botón de desbloqueo o mejora. Las técnicas aprendidas conservan
 los controles para equipar, quitar y reemplazar una ranura de combate.
 

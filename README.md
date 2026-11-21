@@ -17,7 +17,7 @@ El contrato para añadir misiones, mecánicas y traducciones sin acoplarlas a un
 Las fórmulas y objetivos de progresión y combate están en
 [`docs/BALANCE_COMBATE.md`](docs/BALANCE_COMBATE.md).
 
-Las reglas normativas de progresión, recompensas y combate están en [docs/BALANCE_COMBATE.md](docs/BALANCE_COMBATE.md), y las rutas exactas de habilidades en [docs/ARBOL_RESONANCIA.md](docs/ARBOL_RESONANCIA.md).
+Las reglas normativas de progresión, recompensas y combate están en [Balance de combate](docs/BALANCE_COMBATE.md). El [diseño de técnicas y afinidades](docs/ARBOL_RESONANCIA.md#diseño-de-técnicas-elementales) reúne los tres niveles elementales, las familias y el desbloqueo de nivel 3 previsto. Las rutas con requisitos disponibles en la versión jugable figuran en el [Árbol de Resonancia actual](docs/ARBOL_RESONANCIA.md#árbol-jugable-actual).
 
 ## Ejecutar
 
@@ -85,6 +85,7 @@ Para probar el publicador, instala las dependencias con `npm ci --prefix functio
 - Las ranuras de técnicas se desbloquean en los niveles 1, 5 y 8; las nuevas técnicas requieren nivel, PX de afinidad y predecesoras entrenadas antes de comprarse por 1 punto de habilidad.
 - Selecciona una de las seis acciones con el ratón o las teclas `1–6` indicadas en cada acción.
 - Completa los sellos con la cuadrícula de teclado `QWER / ASDF / ZXCV`.
+- La ficha del Dojo muestra los sellos de cada técnica de izquierda a derecha. El combate usa ese mismo orden para el rango de la técnica.
 - También puedes pulsar el sello iluminado con el ratón.
 - Al cerrar una misión, primero se representa el regreso a la aldea y después aparece un informe de pergamino a pantalla completa, marcado con `APROBADO`, `ABANDONADO` o `FALLIDA`.
 - Una secuencia perfecta aumenta el daño un 10 %; demasiados errores lo reducen.
@@ -93,7 +94,7 @@ Para probar el publicador, instala las dependencias con `npm ci --prefix functio
 - Puedes regular el volumen y desactivar el movimiento de cámara o los destellos.
 - La reserva base es de 60 de chakra antes de equipo y afinidad. El personaje recupera 5 puntos al completar una acción propia; las técnicas iniciales cuestan 30–42 y las más potentes hasta 72 en nivel 1. Cada mejora añade +2 de daño y descuenta un 5 % del coste original (hasta −10 %). Los descuentos de equipo conservan como mínimo la mitad del coste de la técnica ya mejorada.
 - Las habilidades llegan hasta nivel 3. Los puntos de habilidad empiezan en 0 y se ganan 2 por cada subida de nivel, hasta 118 puntos al nivel 60. Al máximo, una técnica elemental usa un sello menos. Cada sello requiere 300 ms de preparación a velocidad 10: más sellos hacen más lento el tramo 80–100 %, y una mayor velocidad del personaje lo acelera.
-- **PRUEBAS → Catálogo de habilidades** lista las 44 habilidades activas, sus costes, daño base, sellos, preparación, recarga y enemigos que las usan. Las compartidas proceden de las mismas definiciones del jugador; Aguja tóxica permanece como exclusiva de enemigos y no se añade al Dojo. Los ataques físicos no usan sellos. Las técnicas enemigas muestran su secuencia automáticamente y respetan la misma preparación por velocidad efectiva y Empapado.
+- **PRUEBAS → Catálogo de habilidades** lista las 44 habilidades activas, sus costes, daño base, sellos, preparación, recarga y enemigos que las usan. Las compartidas proceden de las mismas definiciones del jugador. **Dojo → Técnicas → Más animaciones** permite consultar muestras elementales y técnicas sin ranura de Resonancia, incluida Aguja tóxica, exclusiva de enemigos en combate. Los ataques físicos se ejecutan sin sellos. Las técnicas enemigas muestran su secuencia automáticamente y respetan la misma preparación por velocidad efectiva y Empapado.
 - Los enemigos pagan chakra y vida al elegir su habilidad y respetan sus recargas. Cuando no tienen chakra pueden recuperar con Guardia; una técnica en recarga o un coste de vida inseguro usa Golpe veloz. Las técnicas compartidas usan también el mismo cálculo de daño, estados y efectos visuales, orientados hacia su adversario.
 - Todos los enemigos tienen una afinidad dominante. Usan las mismas restricciones elementales del jugador, incluidas las técnicas exclusivas y las combinaciones de afinidades. Los enemigos iniciales tienen una sola afinidad; las adicionales requieren nivel 15/30 y sus pruebas completadas, declaradas en `completedAffinityTrials`. El aro del retrato de ambos combatientes usa el color de su afinidad dominante y se actualiza al cambiar de rival.
 - Cada hexágono del árbol representa una única habilidad: 38 habilidades por personaje y el núcleo central.

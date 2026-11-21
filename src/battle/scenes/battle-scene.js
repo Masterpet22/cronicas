@@ -1,4 +1,5 @@
 import { queueTechniqueAnimations, registerTechniqueAnimations } from "../technique-animations.js?v=1.0.0";
+import { SEAL_ATLAS } from "../../seal-atlas.js?v=1.0.0";
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.171.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
@@ -8,7 +9,7 @@ import { clearSceneFilters, clearSceneParticles } from "../visual-resources.js?v
 import { SEALS, BASE_ACTIONS, JUTSU_LIBRARY, ENEMY_ACTIONS, ENEMY_ROSTER } from "../../data.js?v=1.5.0";
 import { applyStatus, affinityLabel, hasStatus, hitChance } from "../../rules.js?v=0.20.0";
 import { AFFINITY_CONFIG, affinityCycleModifier, furyDamageBonus, reprisalChance, reprisalDamage } from "../../affinity-system.js?v=0.114.0";
-import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.171.0";
+import { createPlayerFighter, destroyFighter, playFighterDamageReaction, preparePlayerPunch, queuePlayerFighterTextures, recoverPlayerPunch, releasePlayerPunch, startPlayerGuard, startPlayerRunning, stopPlayerGuard, stopPlayerRunning } from "../../fighters.js?v=0.179.0";
 import { enemyFighterAppearance, playerFighterAppearance } from "../../character.js?v=0.171.0";
 import { actionLines, createActionButton, createBar } from "../../ui.js?v=0.171.0";
 import { awardEncounter, cancelDoctorMission, completeMission, derivedStats, isTechniqueLearned, masterIdForCharacter, recordBestiaryObservation, resolveDoctorMissionCombat, writeSave } from "../../save.js?v=0.171.0";
@@ -27,9 +28,9 @@ import { bindBattleState, createBattleState } from "../battle-state.js?v=0.68.0"
 
 import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, Phaser, RANK_LEVELS, TECHNIQUE_VFX, TECHNIQUE_VFX_FRAMES, TIMELINE_END, TIMELINE_START, WIDTH, battleRuntime, drawCubicBezier, sharpenTextTree } from "../runtime.js?v=0.91.0";
 
-import { BattlePresentationMethods } from "./battle-presentation.js?v=0.171.0";
+import { BattlePresentationMethods } from "./battle-presentation.js?v=0.179.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.172.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.178.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.181.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.171.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
@@ -82,7 +83,7 @@ export class BattleScene extends Phaser.Scene {
       .flatMap(profile => [...(profile.pattern || []), ...(profile.phase2Pattern || [])]);
     const enemyNeedsSeals = enemyAbilities.some(id => ENEMY_ACTIONS[id]?.seals?.length);
     const needsSealSheet = Boolean(battleRuntime.activeMission.groupCombat) || enemyNeedsSeals || this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
-    if (needsSealSheet && !this.textures.exists("sealSheet")) this.load.image("sealSheet", "assets/sellos-constelaciones.png?v=1.0.1");
+    if (needsSealSheet && !this.textures.exists("sealSheet")) this.load.image("sealSheet", SEAL_ATLAS.url);
     this.battleVisualAbilities = [...new Set([...this.battleLoadout, ...enemyAbilities])];
     queueTechniqueAnimations(this, this.battleVisualAbilities);
     loadUiIcons(this);
@@ -348,12 +349,13 @@ export class BattleScene extends Phaser.Scene {
 
   makeSealFrames() {
     const texture = this.textures.get("sealSheet");
-    for (let row = 0; row < 4; row += 1) {
-      for (let col = 0; col < 3; col += 1) {
-        const index = row * 3 + col;
+    const { rows, columns, frameSize } = SEAL_ATLAS;
+    for (let row = 0; row < rows; row += 1) {
+      for (let col = 0; col < columns; col += 1) {
+        const index = row * columns + col;
         // La textura sobrevive al reinicio de la escena. Registrar los mismos
         // fotogramas otra vez deja la escena incompleta en algunas versiones.
-        if (!texture.has(index)) texture.add(index, 0, col * 512, row * 512, 512, 512);
+        if (!texture.has(index)) texture.add(index, 0, col * frameSize, row * frameSize, frameSize, frameSize);
       }
     }
   }
