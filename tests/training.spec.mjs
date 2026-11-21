@@ -24,6 +24,7 @@ async function prepare(page, origin) {
   await page.locator(`[data-go="${origin}"]`).click();
   const next = page.locator('[data-stage-speech]:not(.leaving) [data-stage-next]');
   for (let i = 0; i < 5 && await next.isVisible(); i++) await next.click();
+  await page.getByRole("tab", { name: "Entrenamiento" }).click();
   await expect(page.locator("[data-start-training]")).toBeVisible();
   await ensurePhaser(page);
   await page.evaluate(() => {

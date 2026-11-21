@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-async function openDojo(page, { level = 3, loadout = ["fire_embers", "fire_breath"], learned = [] } = {}) {
+async function openDojo(page, { level = 3, loadout = ["fire_embers", "fire_breath"], learned = [], tree = true } = {}) {
   await page.goto("/");
   await expect(page.locator(".save-selector")).toBeVisible();
   await page.evaluate(async ({ level, loadout, learned }) => {
@@ -15,18 +15,113 @@ async function openDojo(page, { level = 3, loadout = ["fire_embers", "fire_breat
     writeSave(save);
     sessionStorage.setItem("cronicas-save-slot-selected", "1");
   }, { level, loadout, learned });
-  await enterDojo(page);
+  await enterDojo(page, tree);
 }
 
-async function enterDojo(page) {
+async function enterDojo(page, tree = true) {
   await page.reload();
   await page.locator(".debug-tools-trigger").click();
   await page.locator('[data-debug-view="dojo"]').click();
   await expect(page.locator(".dojo-technique-workspace")).toBeVisible();
-  await page.locator("[data-tree-future]").check();
+  if (tree) {
+    await page.getByRole("button", { name: "Árbol de Resonancia" }).click();
+    await page.locator("[data-tree-future]").check();
+  }
 }
 
 const loadout = page => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).loadout);
+
+test("Ascuas veloces reproduce su animación sin simular daño ni quemadura", async ({ page }, testInfo) => {
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await openDojo(page, { level: 6, tree: false });
+  const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
+  const stage = page.locator("[data-technique-preview-stage]");
+  const result = page.locator("[data-technique-preview-status]");
+  await expect(page.getByRole("button", { name: /Ascuas veloces.*Equipada en ranura 1/ })).toBeVisible();
+  await expect(page.locator("[data-start-training]")).toBeHidden();
+  await expect(page.locator(".dojo-technique-effect")).toHaveText("QUEMADURA · 2 PV de daño por turno durante 2 turnos");
+  const fullPreviewIsVisible = await stage.evaluate(el =>
+    el.getBoundingClientRect().bottom <= el.closest(".technique-detail-body").getBoundingClientRect().bottom);
+  expect(fullPreviewIsVisible).toBe(true);
+
+  await page.evaluate(async () => {
+    const { loadPhaser } = await import("/src/battle/load-phaser.js?v=1.0.0");
+    const Phaser = await loadPhaser();
+    const factory = Phaser.GameObjects.GameObjectFactory.prototype;
+    const createSprite = factory.sprite;
+    window.previewProjectileFrames = [];
+    factory.sprite = function (x, y, key, ...args) {
+      const sprite = createSprite.call(this, x, y, key, ...args);
+      if (key === "technique-vfx-fire_embers") {
+        sprite.on("animationupdate", (_, frame) => window.previewProjectileFrames.push(frame.textureFrame));
+      }
+      return sprite;
+    };
+  });
+  const projectile = page.waitForResponse(response => response.url().includes("fire-embers-spritesheet.png"));
+  await page.getByRole("button", { name: "Ver técnica" }).click();
+  expect((await projectile).ok()).toBe(true);
+  await expect(stage.locator("canvas")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => new Set(window.previewProjectileFrames).size)).toBeGreaterThan(1);
+  await page.screenshot({ path: testInfo.outputPath("ascuas-veloces.png") });
+  await expect(result).toBeEmpty();
+  await expect(page.getByRole("button", { name: "Repetir técnica" })).toBeEnabled();
+  await expect(result).toBeEmpty();
+  await page.getByRole("button", { name: "Repetir técnica" }).click();
+  await page.getByRole("tab", { name: "Entrenamiento" }).click();
+  await expect(stage.locator("canvas")).toHaveCount(0);
+  await expect(page.locator("[data-start-training]")).toBeVisible();
+  expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
+  expect(errors).toEqual([]);
+});
+
+test("todas las técnicas activas del Dojo reproducen su animación", async ({ page }) => {
+  test.setTimeout(180000);
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await openDojo(page, { level: 60, tree: false });
+  const catalog = await page.evaluate(async () => {
+    const { SKILL_CATALOG, TAIJUTSUS_BY_ID } = await import("/src/skills/definitions.js");
+    return SKILL_CATALOG.filter(node => node.jutsuId || TAIJUTSUS_BY_ID.has(node.id)).map(node => ({
+      id: node.id, affinities: node.affinityIds
+    }));
+  });
+  const tested = new Set();
+  for (const affinities of [
+    ["fuego", "agua", "tierra"],
+    ["fuego", "viento", "agua"],
+    ["tierra", "viento", "fuego"]
+  ]) {
+    await page.evaluate(async affinities => {
+      const { loadSave, writeSave } = await import("/src/save.js");
+      const save = loadSave();
+      save.character.affinities = affinities;
+      save.character.knownAffinities = affinities;
+      save.campaign.elementRank = 3;
+      save.inventory.extraAffinityUnlocked = true;
+      save.campaign.completedSecondaryMissions = ["affinity_trial_2", "affinity_trial_3"];
+      writeSave(save);
+    }, affinities);
+    await enterDojo(page);
+    const saved = await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"));
+    for (const { id, affinities: required } of catalog) {
+      if (tested.has(id) || !required.every(affinity => affinities.includes(affinity))) continue;
+      await page.locator(`[data-skill-select="${id}"]`).click();
+      await page.locator(`[data-play-technique="${id}"]`).click();
+      await expect(page.getByRole("button", { name: "Repetir técnica" }), id).toBeEnabled();
+      await expect(page.locator("[data-technique-preview-stage] canvas")).toHaveCount(1);
+      await expect(page.locator("[data-technique-preview-status]")).toBeEmpty();
+      tested.add(id);
+    }
+    expect(await page.evaluate(() => localStorage.getItem("cronicas-del-sello-save-slot-1"))).toBe(saved);
+  }
+  await page.locator('[data-skill-select="physical_0"]').click();
+  await expect(page.locator("[data-play-technique]")).toHaveCount(0);
+  expect([...tested].sort()).toEqual(catalog.map(node => node.id).sort());
+  expect(errors).toEqual([]);
+});
 
 test("nivel y PX habilitan la compra, pero los padres y rangos son obligatorios", async ({ page }) => {
   await openDojo(page,{ level:6 });
@@ -55,7 +150,7 @@ test("el personaje empieza sin puntos y recibe dos al subir de nivel", async ({ 
   await openDojo(page, { level: 1 });
   await expect(page.locator("[data-resonance-points]")).toHaveText("0");
   await page.locator("[data-tree-core]").click();
-  await expect(page.locator(".technique-detail")).toContainText("Sin puntos iniciales");
+  await expect(page.locator(".technique-detail")).toContainText("0 PR disponibles");
   await page.locator('[data-skill-select="physical_0"]').click();
   await expect(page.locator('[data-skill-invest="physical_0"]')).toBeDisabled();
   await page.evaluate(async () => {
@@ -77,19 +172,19 @@ test("maestría tres: comprar mejoras actualiza daño, chakra, sellos y guardado
   await page.locator('[data-skill-select="fire_embers"]').click();
   const detail = page.locator(".technique-detail");
   const metrics = detail.locator(".technique-metrics strong");
-  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 1 / 3");
-  await expect(metrics).toHaveText(["14", "30 CH", "1 turnos", "2"]);
+  await expect(detail.locator(".dojo-technique-title > span:last-child")).toHaveText("Nivel 1/3");
+  await expect(metrics).toHaveText(["14", "30 CH", "1 turno", "2"]);
   for (const [level, cost, damage, seals] of [[2,29,16,2],[3,27,18,1]]) {
     await page.locator('[data-skill-invest="fire_embers"]').click();
-    await expect(detail.locator(".resonance-rank strong")).toHaveText(`NIVEL ${level} / 3`);
-    await expect(metrics).toHaveText([String(damage), `${cost} CH`, "1 turnos", String(seals)]);
+    await expect(detail.locator(".dojo-technique-title > span:last-child")).toHaveText(`Nivel ${level}/3`);
+    await expect(metrics).toHaveText([String(damage), `${cost} CH`, "1 turno", String(seals)]);
   }
   await expect(page.locator('[data-skill-invest="fire_embers"]')).toBeDisabled();
   await expect(detail).toContainText("NIVEL MÁXIMO");
   await enterDojo(page);
   await page.locator('[data-skill-select="fire_embers"]').click();
-  await expect(detail.locator(".resonance-rank strong")).toHaveText("NIVEL 3 / 3");
-  await expect(metrics).toHaveText(["18", "27 CH", "1 turnos", "1"]);
+  await expect(detail.locator(".dojo-technique-title > span:last-child")).toHaveText("Nivel 3/3");
+  await expect(metrics).toHaveText(["18", "27 CH", "1 turno", "1"]);
 });
 
 test("el núcleo sigue el color del jugador y mantiene legible el kanji", async ({ page }) => {
@@ -183,9 +278,7 @@ test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar t
   const physical = () => page.evaluate(() => JSON.parse(localStorage.getItem("cronicas-del-sello-save-slot-1")).taijutsuLoadout);
   await expect(page.locator(".taijutsu-loadout-slot")).toHaveCount(2);
   await expect(page.locator("[data-taijutsu-count]")).toHaveText("0/2 EQUIPADOS");
-  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-choose="0"]').click();
-  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="0"]')).toBeDisabled();
   for (const id of ["physical_0","physical_1","physical_2"]) {
     await page.locator(`[data-skill-select="${id}"]`).click();
@@ -201,12 +294,9 @@ test("dos ranuras independientes permiten desbloquear, equipar, mover y quitar t
   await expect(page.locator('[data-taijutsu-choose="0"]')).toContainText("Puño de hierro");
   await expect(page.locator('[data-taijutsu-choose="1"]')).toContainText("Paso fugaz");
   await expect(page.locator('[data-skill-select="physical_1"] .skill-state')).toHaveText("EN COMBATE · TAIJUTSU 1");
-  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-choose="0"]').click();
-  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-equip="physical_1"][data-taijutsu-target="1"]').click();
   expect(await physical()).toEqual(["physical_2","physical_1"]);
-  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-taijutsu-remove="0"]').click();
   expect(await physical()).toEqual([null,"physical_1"]);
   expect(await loadout(page)).toEqual(original);
@@ -320,7 +410,7 @@ test("las técnicas de tiers superiores reutilizan los iconos básicos", async (
   });
   await enterDojo(page);
   await page.locator('[data-skill-select="lightning_heaven"]').click();
-  await expect(page.locator(".technique-element-art .element-composition img")).toHaveCount(2);
+  await expect(page.locator(".dojo-technique-title .element-composition img")).toHaveCount(2);
   const images = await page.locator(".element-composition img").evaluateAll(images => images.map(img => ({ src: img.getAttribute("src"), loaded: img.complete && img.naturalWidth > 0 })));
   expect(images.every(image => image.src.startsWith("assets/elements/tier-1/") && image.loaded)).toBe(true);
   expect(await page.evaluate(() => performance.getEntriesByType("resource").filter(entry => /assets\/elements\/tier-[234]\//.test(entry.name)).length)).toBe(0);
@@ -333,12 +423,8 @@ test("nivel 24 explica la capacidad y permite reemplazar una equipada por una ap
   const errors = [];
   page.on("pageerror", error => errors.push(error.message));
   await openDojo(page,{ level:24,loadout:["fire_embers","fire_breath","fire_arc","fire_brand"],learned:["fire_arc","fire_brand","fire_ring"] });
-  await expect(page.locator("[data-equipped-count]")).toHaveText("4/4 EQUIPADAS");
+  await expect(page.locator("[data-equipped-count]")).toHaveText("4/4");
   await expect(page.locator("[data-loadout-locked]")).toHaveCount(0);
-  await page.locator(".technique-loadout-disclosure summary").click();
-  await expect(page.locator("[data-technique-feedback]")).toBeVisible();
-  await expect(page.locator("[data-technique-feedback]")).toContainText("ranuras están ocupadas");
-  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator('[data-skill-select="fire_ring"] .skill-state')).toHaveText("APRENDIDA");
   const original = await loadout(page);
   await page.locator('[data-skill-select="fire_ring"]').click();
@@ -361,14 +447,13 @@ test("nivel 24 explica la capacidad y permite reemplazar una equipada por una ap
   await expect(page.locator("[data-technique-feedback]")).toContainText("Ambas siguen aprendidas");
   await enterDojo(page);
   expect(await loadout(page)).toEqual(["fire_embers", "fire_ring", "fire_arc", "fire_brand"]);
-  await page.locator(".technique-loadout-disclosure summary").click();
   await expect(page.locator('[data-loadout-inspect="fire_ring"]')).toBeVisible();
   expect(errors).toEqual([]);
 });
 
 test("una ranura libre permite equipar y consultar una bloqueada no cambia el equipo", async ({ page }) => {
   await openDojo(page, { level:6,loadout: ["fire_embers"],learned:["fire_arc"] });
-  await expect(page.locator("[data-equipped-count]")).toHaveText("1/3 EQUIPADAS");
+  await expect(page.locator("[data-equipped-count]")).toHaveText("1/3");
   await expect(page.locator(".technique-loadout-slot.is-empty").first()).toContainText("Ranura libre");
   await page.locator('[data-skill-select="fire_arc"]').click();
   await expect(page.locator('[data-technique-toggle="fire_arc"]')).toHaveText("EQUIPAR EN RANURA LIBRE");
@@ -378,9 +463,7 @@ test("una ranura libre permite equipar y consultar una bloqueada no cambia el eq
   await expect(page.locator('[data-technique-toggle="fire_phoenix"]')).toBeDisabled();
   await expect(page.locator(".technique-detail")).toContainText("280 PX de afinidad");
   expect(await loadout(page)).toEqual(["fire_embers", "fire_arc"]);
-  await page.locator(".technique-loadout-disclosure summary").click();
   await page.locator('[data-loadout-remove="0"]').click();
-  await page.locator(".technique-loadout-disclosure summary").click();
   expect(await loadout(page)).toEqual(["fire_arc"]);
   await expect(page.locator('[data-skill-select="fire_embers"] .skill-state')).toHaveText("MEJORADA");
   await page.locator('[data-dojo-tab="appearance"]').click();
@@ -397,7 +480,7 @@ for (const { level, capacity, locked, initial, incoming } of [
   test(`el nivel ${level} muestra ${capacity} ranuras y equipa en el espacio nuevo`, async ({ page }) => {
     await openDojo(page,{ level,loadout:initial,learned:incoming === "fire_arc" ? [incoming] : [] });
     await expect(page.locator(".technique-loadout-slot.is-locked")).toHaveCount(locked);
-    await expect(page.locator("[data-equipped-count]")).toHaveText(`${initial.length}/${capacity} EQUIPADAS`);
+    await expect(page.locator("[data-equipped-count]")).toHaveText(`${initial.length}/${capacity}`);
     await page.locator(`[data-skill-select="${incoming}"]`).click();
     await page.locator(`[data-technique-toggle="${incoming}"]`).click();
     expect(await loadout(page)).toEqual([...initial,incoming]);
@@ -408,22 +491,21 @@ for (const { level, capacity, locked, initial, incoming } of [
 for (const viewport of [{ width: 1600, height: 900 }, { width: 1360, height: 748 }, { width: 1280, height: 720 }]) {
   test(`el detalle y sus acciones quedan dentro del panel a ${viewport.width}×${viewport.height}`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await openDojo(page);
-    await page.locator('[data-skill-select="fire_embers"]').click();
+    await openDojo(page, { tree: false });
+    await page.locator('[data-technique-select="fire_embers"]').click();
     await page.mouse.move(10,10);
     const layout = await page.locator("#dojo-panel-techniques").evaluate(panel => {
       const outer = panel.getBoundingClientRect();
       const detail = panel.querySelector(".technique-detail").getBoundingClientRect();
       const actions = panel.querySelector(".technique-detail-actions").getBoundingClientRect();
       const equip = panel.querySelector(".technique-equip-button").getBoundingClientRect();
-      const loadout = panel.querySelector(".technique-loadout-disclosure > summary").getBoundingClientRect();
-      const catalog = panel.querySelector(".resonance-tree").getBoundingClientRect();
+      const loadout = panel.querySelector(".technique-loadout").getBoundingClientRect();
+      const catalog = panel.querySelector(".dojo-technique-list").getBoundingClientRect();
       const contained = (child, parent) => child.top >= parent.top - 1 && child.bottom <= parent.bottom + 1 && child.left >= parent.left - 1 && child.right <= parent.right + 1;
       return { detail: contained(detail, outer), actions: contained(actions, detail), equip: contained(equip, actions), loadout: contained(loadout, outer), catalog: contained(catalog, outer), outerOverflow: panel.scrollHeight - panel.clientHeight, actionVisible: equip.height >= 44 };
     });
     expect(layout).toEqual({ detail: true, actions: true, equip: true, loadout: true, catalog: true, outerOverflow: 0, actionVisible: true });
-    await expect(page.locator("[data-tree-canvas]")).toBeVisible();
-    await expect(page.locator("[data-skill-select]")).toHaveCount(38);
+    await expect(page.locator("[data-tree-canvas]")).toHaveCount(0);
     await page.screenshot({ path: `test-results/dojo-techniques/panel-${viewport.width}.png` });
   });
 }

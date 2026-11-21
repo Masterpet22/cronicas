@@ -45,7 +45,8 @@ function battle(count = 1) {
     s[name] = async () => {};
   s.combatantEvasion = () => 0;
   s.rollHit = () => s.rolls.shift() ?? true;
-  for (const name of ["playerGuard", "executeEnemyAction", "enemyTurn", "clearGuard", "combatantAttack"])
+  for (const name of ["playerGuard", "executeEnemyAction", "enemyTurn", "clearGuard", "combatantAttack",
+    "attackVisuals", "playAttackPreparation", "playAttackAnimation", "playAttackRecovery"])
     s[name] = (...args) => BattleActionMethods.prototype[name].call(s, ...args);
   s.loseHealth = (...args) => BattleFeedbackMethods.prototype.loseHealth.call(s, ...args);
   s.actionCost = a => BattleFeedbackMethods.prototype.actionCost.call(s, a);

@@ -1,3 +1,4 @@
+import { queueTechniqueAnimations, registerTechniqueAnimations } from "../technique-animations.js?v=1.0.0";
 import { mountAccessibleBattleHud } from "../hud-accessibility.js?v=0.171.0";
 import { rememberCombatTexture } from "../combat-textures.js?v=1.0.0";
 import { upgradedTechnique } from "../../skills/progression.js?v=1.0.0";
@@ -28,7 +29,7 @@ import { BATTLE_ARENAS, COIN_DROP_VFX, EXPERIENCE_DROP_VFX, HEIGHT, HUD_THEMES, 
 
 import { BattlePresentationMethods } from "./battle-presentation.js?v=0.171.0";
 import { BattleFlowMethods } from "./battle-flow.js?v=0.172.0";
-import { BattleActionMethods } from "./battle-actions.js?v=0.171.0";
+import { BattleActionMethods } from "./battle-actions.js?v=0.178.0";
 import { BattleFeedbackMethods } from "./battle-feedback.js?v=0.171.0";
 import { installBattleMethods } from "./install-battle-methods.js?v=0.68.0";
 import { SHARED_BATTLE_ASSETS } from "../../asset-urls.js?v=0.115.0";
@@ -83,36 +84,7 @@ export class BattleScene extends Phaser.Scene {
     const needsSealSheet = Boolean(battleRuntime.activeMission.groupCombat) || enemyNeedsSeals || this.battleLoadout.some((id) => JUTSU_LIBRARY.find((jutsu) => jutsu.id === id)?.seals.length);
     if (needsSealSheet && !this.textures.exists("sealSheet")) this.load.image("sealSheet", "assets/sellos-constelaciones.png?v=1.0.1");
     this.battleVisualAbilities = [...new Set([...this.battleLoadout, ...enemyAbilities])];
-    Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
-      if (!this.battleVisualAbilities.includes(jutsuId)) return;
-      if (effect.creationFile) {
-        [["creation", effect.creationFile], ["destruction", effect.destructionFile]].filter(([, file]) => file).forEach(([phase, file]) => {
-          const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
-          rememberCombatTexture(this, phaseTexture, `${phaseTexture}-animation`);
-          if (!this.textures.exists(phaseTexture)) this.load.spritesheet(phaseTexture, `assets/vfx/${file}?v=0.81.0`, {
-            frameWidth: effect.frameWidth,
-            frameHeight: effect.frameHeight,
-            endFrame: effect.frames - 1
-          });
-        });
-        if (effect.projectileFile) {
-          const projectileTexture = `technique-vfx-${jutsuId}-projectile`;
-          rememberCombatTexture(this, projectileTexture);
-          if (!this.textures.exists(projectileTexture)) this.load.image(projectileTexture, `assets/vfx/${effect.projectileFile}?v=0.81.0`);
-        }
-        return;
-      }
-      const texture = `technique-vfx-${jutsuId}`;
-      rememberCombatTexture(this, texture, `${texture}-animation`);
-      if (this.textures.exists(texture)) return;
-      const source = `assets/vfx/${effect.file}?v=${effect.version || "0.81.0"}`;
-      if (Number.isFinite(effect.sourceY)) this.load.image(texture, source);
-      else this.load.spritesheet(texture, source, {
-          frameWidth: effect.frameWidth,
-          frameHeight: effect.frameHeight,
-          endFrame: (effect.frames || TECHNIQUE_VFX_FRAMES) - 1
-        });
-    });
+    queueTechniqueAnimations(this, this.battleVisualAbilities);
     loadUiIcons(this);
     if (missionStep(battleRuntime.activeMission, "choice")?.relicDecision) {
       if (!this.textures.exists("kagemori-investigation")) this.load.image("kagemori-investigation", SHARED_BATTLE_ASSETS.kagemori);
@@ -154,39 +126,7 @@ export class BattleScene extends Phaser.Scene {
     // lógico de 960 × 540, evitando que el navegador amplíe texto rasterizado.
     this.cameras.main.setZoom(battleRuntime.renderResolution).centerOn(WIDTH / 2, HEIGHT / 2);
     this.saveData = battleRuntime.activeSave;
-    Object.entries(TECHNIQUE_VFX).forEach(([jutsuId, effect]) => {
-      if (effect.creationFile) {
-        ["creation", "destruction"].forEach((phase) => {
-          const phaseTexture = `technique-vfx-${jutsuId}-${phase}`;
-          const phaseAnimation = `${phaseTexture}-animation`;
-          if (!this.textures.exists(phaseTexture) || this.anims.exists(phaseAnimation)) return;
-          this.anims.create({
-            key: phaseAnimation,
-            frames: this.anims.generateFrameNumbers(phaseTexture, { start: 0, end: effect.frames - 1 }),
-            frameRate: phase === "destruction" ? (effect.destructionFrameRate || effect.frameRate) : effect.frameRate,
-            repeat: 0,
-            hideOnComplete: phase === "destruction"
-          });
-        });
-        return;
-      }
-      const texture = `technique-vfx-${jutsuId}`;
-      const animation = `${texture}-animation`;
-      if (!this.textures.exists(texture) || this.anims.exists(animation)) return;
-      if (Number.isFinite(effect.sourceY)) {
-        const sheet = this.textures.get(texture);
-        Array.from({ length: effect.frames }, (_, index) => index).forEach((index) => {
-          if (!sheet.has(index)) sheet.add(index, 0, index * effect.frameWidth, effect.sourceY, effect.frameWidth, effect.frameHeight);
-        });
-      }
-      this.anims.create({
-        key: animation,
-        frames: this.anims.generateFrameNumbers(texture, { start: 0, end: (effect.frames || TECHNIQUE_VFX_FRAMES) - 1 }),
-        frameRate: effect.frameRate,
-        repeat: 0,
-        hideOnComplete: !effect.projectile
-      });
-    });
+    registerTechniqueAnimations(this);
     if (this.textures.exists("coin-drop") && !this.anims.exists("coin-drop-spin")) {
       this.anims.create({
         key: "coin-drop-spin",

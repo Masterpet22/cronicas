@@ -59,6 +59,7 @@ test("shuriken inicial: equipo, venta, recompra y animaciones reales con el kuna
     Phaser.Game = class extends Original { constructor(config) { super(config); window.__weaponGame = this; } };
   });
   const baseline = await stored(page);
+  await page.getByRole("tab", { name: "Entrenamiento" }).click();
   await page.locator("[data-start-training]").click();
   await expect(page.locator(".combat-access")).toBeVisible({ timeout: 45000 });
   for (const [action, sprite] of [["throwable_strike", "thrown-shuriken"], ["weapon_strike", "held-kunai"]]) {

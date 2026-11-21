@@ -87,7 +87,13 @@ export function locationSelectionComment(target, npcId) {
   if (data.saga) return "Has elegido una saga. Revisa sus encargos y prepara cada paso antes de partir.";
   if (control.hasAttribute("data-back-sagas")) return "Aquí tienes las sagas de nuevo. Cada una reúne un camino de nuestra historia.";
   if (data.dojoTab) {
-    const topics = { equipment: "Tu arma, sello, accesorio y compañero forman tu equipo.", techniques: "Elige un hexágono para consultar sus efectos y requisitos. Puedes arrastrar el panal. Ganas 2 PR por nivel; después de aprender una técnica, pulsa Equipar para llevarla al combate.", statistics: "Aquí puedes revisar tus atributos y distribuir los puntos disponibles.", appearance: "Aquí eliges cómo quieres presentarte al mundo." };
+    const topics = {
+      equipment: "Tu arma, sello, accesorio y compañero forman tu equipo.",
+      techniques: "Elige una técnica por su nombre para consultar sus efectos. Equipa las que quieras llevar al combate. En el Árbol de Resonancia puedes consultar qué habilidades abre cada mejora. Ganas 2 PR por nivel.",
+      statistics: "Aquí puedes revisar tus atributos y distribuir los puntos disponibles.",
+      appearance: "Aquí eliges cómo quieres presentarte al mundo.",
+      training: "Practica con la marioneta o elige varios rivales para ensayar un combate."
+    };
     return `${npcId === "daichi" ? "Con atención. " : "Vamos a ello. "}${topics[data.dojoTab] || "Revisa tu configuración."}`;
   }
   return null;

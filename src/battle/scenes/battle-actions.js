@@ -219,43 +219,15 @@ export class BattleActionMethods {
     const chance = hitChance(attacker, { ...defender, evasion: this.combatantEvasion(defender) }, jutsu);
     const originX = source.body.x;
     const originShadowX = source.shadow.x;
-    const usesWeapon = jutsu.type === "weapon";
-    const usesThrowable = jutsu.type === "throwable";
-    const usesPuppetPunch = (jutsu.id === "strike" || jutsu.type === "taijutsu" || usesWeapon) && source.joints?.shoulderRight;
-    const usesFireEmbersProjectile = jutsu.id === "fire_embers";
-    const usesWaterShurikenProjectile = jutsu.id === "water_bullet";
-    const usesWindPalmProjectile = jutsu.id === "wind_palm";
-    const usesWindBladeMultiHit = jutsu.id === "wind_blade";
-    const usesHandProjectile = usesFireEmbersProjectile || usesWaterShurikenProjectile || usesThrowable;
-    const usesCastPose = usesHandProjectile && source.animations?.supports("punch-release");
-    const usesEarthWallCast = jutsu.id === "earth_wall" && source.animations?.supports("earth-wall-cast");
-    const usesEarthFistProjectile = jutsu.id === "earth_fist";
+    const visuals = this.attackVisuals(jutsu, source);
+    const { usesWeapon, usesThrowable, usesPuppetPunch, usesFireEmbersProjectile, usesWaterShurikenProjectile,
+      usesWindPalmProjectile, usesWindBladeMultiHit, usesCastPose, usesEarthWallCast, usesEarthFistProjectile } = visuals;
     const removeWeapon = usesWeapon && ["kunai", "steel_kunai"].includes(jutsu.weaponId) ? holdKunai(this, actor) : null;
     const critical = this.rollHit(attacker.criticalChance);
     const previousActiveFighter = this.hudActiveFighter;
     this.hudActiveFighter = source;
     try {
-      if (usesPuppetPunch) {
-        await preparePlayerPunch(this, source);
-        const strikeX = target.body.x - 105 * direction;
-        await Promise.all([
-          this.tween({ targets: source.body, x: strikeX, duration: 250, ease: "Cubic.out" }),
-          this.tween({ targets: source.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
-        ]);
-        await releasePlayerPunch(this, source);
-      } else if (usesHandProjectile) {
-        if (usesCastPose) {
-          await preparePlayerPunch(this, source);
-          await releasePlayerPunch(this, source);
-        } else await this.delay(125);
-      } else if (usesEarthWallCast) {
-        await playEarthWallCast(this, source);
-      } else if (usesEarthFistProjectile) {
-        await this.delay(90);
-      } else {
-        this.tweens.add({ targets: source.targets, x: `+=${62 * direction}`, duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
-        await this.delay(125);
-      }
+      await this.playAttackPreparation(source, target, direction, visuals);
 
       if (!this.rollHit(chance)) {
         if (usesThrowable) { await throwShuriken(this, true, actor); if (this.finished) return; }
@@ -313,13 +285,8 @@ export class BattleActionMethods {
         }, actor);
         reaction = Promise.all(reactions);
       } else {
-        if (usesThrowable) { await throwShuriken(this, false, actor); if (this.finished) return; }
-        else if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false, actor);
-        else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false, actor);
-        else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false, actor);
-        else if (usesWindPalmProjectile) await this.playWindPalmProjectile(actor);
-        else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id, actor);
-        else this.createImpact(target.body.x, target.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
+        await this.playAttackAnimation(jutsu, actor, visuals);
+        if (usesThrowable && this.finished) return;
         this.tone(jutsu.cinematic ? 92 : 128, 0.12);
         this.shake(jutsu.cinematic ? 240 : 130, jutsu.cinematic ? 0.012 : 0.006);
         showElementalImpact(this, jutsu, target.body.x, target.body.y - 26, jutsu.cinematic ? 1.25 : 1);
@@ -337,15 +304,7 @@ export class BattleActionMethods {
       const elementNote = affinityLabel(1 + cycleModifier);
       if (playerAttacking && cycleModifier > 0 && attacker.primaryAffinity) this.recordEnemyObservation({ vulnerability: attacker.primaryAffinity });
       this.setMessage(`${jutsu.name}: ${damage} de daño${critical ? " · CRÍTICO" : ""}${statusNote}${elementNote ? ` · ${elementNote}` : ""}.`);
-      if (usesPuppetPunch) {
-        await Promise.all([
-          reaction,
-          recoverPlayerPunch(this, source),
-          this.tween({ targets: source.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
-          this.tween({ targets: source.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
-        ]);
-      } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, source)]);
-      else await reaction;
+      await this.playAttackRecovery(source, originX, originShadowX, visuals, reaction);
       await this.applyEarthReprisal(defender, attacker, source, amount);
       await this.delay(usesPuppetPunch || usesCastPose || usesEarthWallCast || usesEarthFistProjectile ? 150 : 430);
       source.body.x = originX;
@@ -354,6 +313,72 @@ export class BattleActionMethods {
       if (this.hudActiveFighter === source) this.hudActiveFighter = previousActiveFighter;
       removeWeapon?.();
     }
+  }
+
+  attackVisuals(jutsu, source) {
+    const usesWeapon = jutsu.type === "weapon";
+    const usesThrowable = jutsu.type === "throwable";
+    const usesPuppetPunch = (jutsu.id === "strike" || jutsu.type === "taijutsu" || usesWeapon) && source.joints?.shoulderRight;
+    const usesFireEmbersProjectile = jutsu.id === "fire_embers";
+    const usesWaterShurikenProjectile = jutsu.id === "water_bullet";
+    const usesWindPalmProjectile = jutsu.id === "wind_palm";
+    const usesWindBladeMultiHit = jutsu.id === "wind_blade";
+    const usesHandProjectile = usesFireEmbersProjectile || usesWaterShurikenProjectile || usesThrowable;
+    const usesCastPose = usesHandProjectile && source.animations?.supports("punch-release");
+    const usesEarthWallCast = jutsu.id === "earth_wall" && source.animations?.supports("earth-wall-cast");
+    const usesEarthFistProjectile = jutsu.id === "earth_fist";
+    return { usesWeapon, usesThrowable, usesPuppetPunch, usesFireEmbersProjectile, usesWaterShurikenProjectile,
+      usesWindPalmProjectile, usesWindBladeMultiHit, usesHandProjectile, usesCastPose, usesEarthWallCast, usesEarthFistProjectile };
+  }
+
+  async playAttackPreparation(source, target, direction, visuals) {
+    const { usesPuppetPunch, usesHandProjectile, usesCastPose, usesEarthWallCast, usesEarthFistProjectile } = visuals;
+    if (usesPuppetPunch) {
+      await preparePlayerPunch(this, source);
+      const strikeX = target.body.x - 105 * direction;
+      await Promise.all([
+        this.tween({ targets: source.body, x: strikeX, duration: 250, ease: "Cubic.out" }),
+        this.tween({ targets: source.shadow, x: strikeX, duration: 250, ease: "Cubic.out" })
+      ]);
+      await releasePlayerPunch(this, source);
+    } else if (usesHandProjectile) {
+      if (usesCastPose) {
+        await preparePlayerPunch(this, source);
+        await releasePlayerPunch(this, source);
+      } else await this.delay(125);
+    } else if (usesEarthWallCast) {
+      await playEarthWallCast(this, source);
+    } else if (usesEarthFistProjectile) {
+      await this.delay(90);
+    } else {
+      this.tweens.add({ targets: source.targets, x: `+=${62 * direction}`, duration: 120, yoyo: true, hold: 50, ease: "Quad.out" });
+      await this.delay(125);
+    }
+  }
+
+  async playAttackAnimation(jutsu, actor, visuals) {
+    const target = actor === "player" ? this.foe : this.hero;
+    const { usesThrowable, usesFireEmbersProjectile, usesWaterShurikenProjectile,
+      usesEarthFistProjectile, usesWindPalmProjectile } = visuals;
+    if (usesThrowable) await throwShuriken(this, false, actor);
+    else if (usesFireEmbersProjectile) await this.playFireEmbersProjectile(false, actor);
+    else if (usesWaterShurikenProjectile) await this.playWaterShurikenProjectile(false, actor);
+    else if (usesEarthFistProjectile) await this.playEarthFistProjectile(false, actor);
+    else if (usesWindPalmProjectile) await this.playWindPalmProjectile(actor);
+    else if (TECHNIQUE_VFX[jutsu.id]) await this.playTechniqueEffect(jutsu.id, actor);
+    else this.createImpact?.(target.body.x, target.body.y - 15, jutsu.color, jutsu.cinematic ? 1.6 : 1);
+  }
+
+  async playAttackRecovery(source, originX, originShadowX, { usesPuppetPunch, usesCastPose }, reaction) {
+    if (usesPuppetPunch) {
+      await Promise.all([
+        reaction,
+        recoverPlayerPunch(this, source),
+        this.tween({ targets: source.body, x: originX, duration: 260, ease: "Cubic.inOut" }),
+        this.tween({ targets: source.shadow, x: originShadowX, duration: 260, ease: "Cubic.inOut" })
+      ]);
+    } else if (usesCastPose) await Promise.all([reaction, recoverPlayerPunch(this, source)]);
+    else await reaction;
   }
 
   playTechniqueEffect(jutsuId, actor = "player") {
@@ -427,7 +452,7 @@ export class BattleActionMethods {
       hitFrames.forEach((hitFrame, hitIndex) => {
         if (hitFrame > frameIndex || deliveredFrames.has(hitFrame)) return;
         deliveredFrames.add(hitFrame);
-        onHit(hitIndex);
+        onHit?.(hitIndex);
       });
     };
 
@@ -547,7 +572,7 @@ export class BattleActionMethods {
       duration: 560,
       ease: "Linear"
     });
-    if (!missed) this.createImpact(destination.x, destination.y, 0x55bfff, 0.9);
+    if (!missed) this.createImpact?.(destination.x, destination.y, 0x55bfff, 0.9);
     projectile.destroy();
   }
 
@@ -570,7 +595,7 @@ export class BattleActionMethods {
       animationDone,
       this.tween({ targets: sprite, x: destination.x, y: destination.y, duration: 560, ease: "Cubic.in" })
     ]);
-    if (!missed) this.createImpact(destination.x, destination.y, 0xff8a38, 0.8);
+    if (!missed) this.createImpact?.(destination.x, destination.y, 0xff8a38, 0.8);
     await this.tween({
       targets: sprite,
       alpha: 0,

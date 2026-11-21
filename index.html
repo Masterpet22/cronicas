@@ -58,7 +58,7 @@
   <link rel="stylesheet" href="events.css?v=0.140.0">
   <link rel="stylesheet" href="village-map.css?v=0.154.0">
   <link rel="stylesheet" href="cursor.css?v=1.1.0">
-  <link rel="stylesheet" href="resonance-tree.css?v=0.140.0">
+  <link rel="stylesheet" href="resonance-tree.css?v=0.178.0">
   <link rel="stylesheet" href="dictionary.css?v=1.0.0">
 </head>
 <body>
@@ -132,7 +132,7 @@
     if (!mobileViewport.matches || compactEnabled) {
       const { installGameCursor } = await import("./src/game-cursor.js?v=0.5.0");
       installGameCursor(document.querySelector("main"));
-      await import("./game.js?v=0.176.0");
+      await import("./game.js?v=0.178.0");
     }
   </script>
 </body>

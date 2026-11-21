@@ -34,6 +34,7 @@ test('equipo y maestro mantienen Tab y Escape dentro del diálogo',async({page})
 test('Técnicas permite consultar el árbol completo y leer la ficha a ambos tamaños',async({page},testInfo)=>{
   await openDojo(page);
   await page.locator('[data-dojo-tab="techniques"]').click();
+  await page.getByRole("button", { name: "Árbol de Resonancia" }).click();
   const initial=await page.locator('[data-skill-select]').count();
   expect(initial).toBeLessThan(38);
   await page.locator('[data-tree-future]').check();
@@ -45,12 +46,11 @@ test('Técnicas permite consultar el árbol completo y leer la ficha a ambos tam
   for(const width of [1280,1440]){
     await page.setViewportSize({width,height:width===1280?720:900});
     await expect(page.locator('[data-technique-toggle="fire_embers"]')).toBeVisible();
-    expect(await page.locator('.technique-description').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
+    expect(await page.locator('.dojo-technique-effect').evaluate(el=>parseFloat(getComputedStyle(el).fontSize))).toBeGreaterThanOrEqual(14);
     const metrics=await page.locator('.technique-detail').evaluate(el=>({width:el.clientWidth,scroll:el.scrollWidth}));
     expect(metrics.scroll).toBeLessThanOrEqual(metrics.width+1);
     await page.screenshot({path:testInfo.outputPath(`tecnicas-${width}.png`)});
   }
-  await page.locator('.technique-loadout-disclosure summary').click();
   await expect(page.locator('[data-loadout-inspect="fire_embers"]')).toBeVisible();
 });
 

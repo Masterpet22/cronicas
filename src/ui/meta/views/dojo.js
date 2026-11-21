@@ -1,6 +1,6 @@
 import { COMPANIONS, chooseCompanion, kuroganeCompleted } from "../../../kurogane.js";
 import { rasterCharacterPreviewMarkup } from "../character-preview.js?v=0.171.0";
-import { createDojoTechniques } from "../dojo-techniques.js?v=0.140.0";
+import { createDojoTechniques } from "../dojo-techniques.js?v=0.178.0";
 import { appearanceControlsMarkup, mountDojoAppearance, refreshDojoAppearance } from "../dojo-appearance.js?v=0.171.0";
 import { countItem, equipItem } from "../../../inventory.js?v=0.171.0";
 import { createTraining } from "../../../training.js?v=0.171.0";
@@ -119,11 +119,28 @@ export function createDojoView(deps) {
       const xpForNext = deps.xpForNextLevel(progression.level);
       const atMaxLevel = progression.level >= MAX_CHARACTER_LEVEL;
       return `<div class="dojo-layout dojo-rework">
-        <header class="dojo-topbar"><div class="dojo-title"><span class="dojo-title-mark" aria-hidden="true">✦</span><div><p class="eyebrow">CONFIGURACIÓN DE COMBATE</p><h2>${deps.elementRankLabels[elementRank]}</h2></div></div><div class="training-setup"><label for="training-count">Rivales de entrenamiento</label><div><select id="training-count" data-training-count aria-label="Cantidad de enemigos de entrenamiento"><option value="1">1 marioneta · práctica libre</option><option value="2">2 rivales · combate real</option><option value="3">3 rivales · combate real</option></select><button type="button" class="training-entry" data-start-training>Entrenar</button></div></div><div class="dojo-level"><strong>NIVEL ${progression.level}</strong><span>${atMaxLevel ? "NIVEL MÁXIMO" : `${progression.xp}/${xpForNext} PX`}</span><i><b style="width:${atMaxLevel ? 100 : Math.min(100, progression.xp / xpForNext * 100)}%"></b></i></div><nav class="dojo-tabs" role="tablist" aria-label="Secciones de configuración"><button type="button" role="tab" data-dojo-tab="equipment" aria-controls="dojo-panel-equipment">♧ <span>Equipo</span></button><button type="button" role="tab" data-dojo-tab="techniques" aria-controls="dojo-panel-techniques">⚔ <span>Técnicas</span></button><button type="button" role="tab" data-dojo-tab="statistics" aria-controls="dojo-panel-statistics">⌁ <span>Estadísticas</span></button><button type="button" role="tab" data-dojo-tab="appearance" aria-controls="dojo-panel-appearance">◈ <span>Apariencia</span></button></nav></header>
+        <header class="dojo-topbar"><div class="dojo-title"><span class="dojo-title-mark" aria-hidden="true">✦</span><div><p class="eyebrow">CONFIGURACIÓN DE COMBATE</p><h2>${deps.elementRankLabels[elementRank]}</h2></div></div><div class="dojo-level"><strong>NIVEL ${progression.level}</strong><span>${atMaxLevel ? "NIVEL MÁXIMO" : `${progression.xp}/${xpForNext} PX`}</span><i><b style="width:${atMaxLevel ? 100 : Math.min(100, progression.xp / xpForNext * 100)}%"></b></i></div><nav class="dojo-tabs" role="tablist" aria-label="Secciones de configuración"><button type="button" role="tab" data-dojo-tab="equipment" aria-controls="dojo-panel-equipment">♧ <span>Equipo</span></button><button type="button" role="tab" data-dojo-tab="techniques" aria-controls="dojo-panel-techniques">⚔ <span>Técnicas</span></button><button type="button" role="tab" data-dojo-tab="statistics" aria-controls="dojo-panel-statistics">⌁ <span>Estadísticas</span></button><button type="button" role="tab" data-dojo-tab="appearance" aria-controls="dojo-panel-appearance">◈ <span>Apariencia</span></button><button type="button" role="tab" data-dojo-tab="training" aria-controls="dojo-panel-training">Entrenamiento</button></nav></header>
         <section class="dojo-main-panel"><div id="dojo-panel-equipment" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="equipment"><div class="equipment-columns"><section class="dojo-section equipment-column affinity-column"><div class="dojo-section-heading"><div><h3>Afinidades</h3></div><span>${affinities.length}/${activeAffinitySlots}</span></div><div class="affinity-slots">${affinitySlots}</div><p class="affinity-change-note">⌾ Principal 100 % · Secundaria 50 % · Tercera 25 %.</p></section><section class="dojo-section equipment-column loadout-column"><div class="dojo-section-heading"><div><h3>Equipamiento</h3></div></div>${save.campaign.kuroganeCompanion ? `<div class="dojo-cpu-companion"><label>Compañero de equipo<select data-cpu-companion ${kuroganeCompleted(save) ? "" : "disabled"}>${Object.values(COMPANIONS).map(c => `<option value="${c.id}" ${save.campaign.kuroganeCompanion === c.id ? "selected" : ""}>${c.name} · ${c.role}</option>`).join("")}</select></label><p>${kuroganeCompleted(save) ? "El compañero elegido participa al repetir la saga 2." : "El equipo permanece fijo hasta completar la saga 2."}</p></div>` : ""}<div class="equipment-grid">${equipmentSlot("weapon")}${equipmentSlot("throwable")}${equipmentSlot("seal")}${equipmentSlot("accessory")}${equipmentSlot("companion")}</div></section><section class="dojo-section equipment-column master-column"><div class="dojo-section-heading"><div><h3>Maestro</h3></div></div>${masterSummary}</section></div></div>
         <div id="dojo-panel-techniques" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="techniques">${techniqueMarkup}</div>
         <div id="dojo-panel-statistics" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="statistics"><section class="dojo-attributes"><header><p class="eyebrow">DISTRIBUCIÓN DE PUNTOS DE ESTADÍSTICAS</p><div class="dojo-attribute-actions"><strong><b data-attribute-points>${progression.attributePoints}</b> PUNTOS DE ATRIBUTO</strong></div></header><div class="statistics-layout">${preview("statistics-character-preview")}<div class="statistics-content"><div class="attribute-distribution-wrap">${attributeMarkup()}</div><section class="statistics-radar-card"><div class="stat-radar-wrap" data-stat-radar>${radarMarkup()}</div></section></div></div></section></div>
-          <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance"><section class="appearance-panel xenoverse-appearance"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3></div></div><div class="appearance-customizer">${preview()}<div class="cosmetic-menu" aria-label="Opciones de apariencia">${cosmeticControls}</div></div></section></div><p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
+          <div id="dojo-panel-appearance" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="appearance"><section class="appearance-panel xenoverse-appearance"><div class="dojo-section-heading"><div><h3>Personalizar apariencia</h3></div></div><div class="appearance-customizer">${preview()}<div class="cosmetic-menu" aria-label="Opciones de apariencia">${cosmeticControls}</div></div></section></div>
+        <div id="dojo-panel-training" class="dojo-tab-panel" role="tabpanel" data-dojo-panel="training" aria-labelledby="dojo-training-title">
+          <section class="dojo-section dojo-training-section">
+            <h3 id="dojo-training-title">Entrenamiento libre</h3>
+            <div class="training-setup">
+              <label for="training-count">Rivales de entrenamiento</label>
+              <div>
+                <select id="training-count" data-training-count>
+                  <option value="1">1 marioneta · práctica libre</option>
+                  <option value="2">2 rivales · combate real</option>
+                  <option value="3">3 rivales · combate real</option>
+                </select>
+                <button type="button" class="training-entry" data-start-training>Entrenar</button>
+              </div>
+            </div>
+          </section>
+        </div>
+        <p id="dojo-message" class="dojo-message" aria-live="polite">Los cambios se guardan automáticamente.</p>
         </section>
       </div><dialog class="equipment-modal" role="dialog" aria-modal="true" aria-labelledby="equipment-modal-title" hidden><div class="equipment-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">INVENTARIO</p><h2 id="equipment-modal-title">Elegir equipo</h2></div><button type="button" data-close-equipment aria-label="Cerrar">×</button></div><div class="equipment-modal-options"></div></div></dialog><dialog class="equipment-modal master-modal" role="dialog" aria-modal="true" aria-labelledby="master-modal-title" hidden><div class="equipment-modal-card master-modal-card"><div class="equipment-modal-heading"><div><p class="eyebrow">ENTRENAMIENTO</p><h2 id="master-modal-title">Elegir maestro</h2></div><button type="button" data-close-master aria-label="Cerrar selector de maestros">×</button></div><p class="master-modal-note">${masterSelectionUnlocked ? "Elige el maestro cuya ventaja complemente mejor tu estilo." : "Completa la saga 1 para cambiar de maestro. Puedes consultar sus ventajas desde ahora."}</p><div class="master-modal-options">${masterCards}</div></div></dialog>`;
     },
@@ -142,6 +159,7 @@ export function createDojoView(deps) {
       scope.listen(root.querySelector("[data-cpu-companion]"), "change", event => { currentState.save = deps.onPersist(chooseCompanion(getSave(), event.target.value)); });
       const persistDojo = (next) => { currentState.save = deps.onPersist(next); syncDojo(); };
       const selectDojoTab = (tabId, moveFocus = false) => {
+        if (tabId !== "techniques") techniquePanel.stopPreview();
         currentState.activeDojoTab = tabId;
         deps.onTabSelected(tabId);
         root.querySelectorAll("[data-dojo-tab]").forEach((button) => {
@@ -182,7 +200,7 @@ export function createDojoView(deps) {
         scope.listen(button, "click", () => selectDojoTab(button.dataset.dojoTab));
         scope.listen(button, "keydown", (event) => {
           if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-          const tabs = ["equipment", "techniques", "statistics", "appearance"];
+          const tabs = ["equipment", "techniques", "statistics", "appearance", "training"];
           const direction = event.key === "ArrowRight" ? 1 : -1;
           const next = (tabs.indexOf(currentState.activeDojoTab) + direction + tabs.length) % tabs.length;
           selectDojoTab(tabs[next], true);
