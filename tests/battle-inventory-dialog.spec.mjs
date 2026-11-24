@@ -51,14 +51,17 @@ test("el navegador muestra el kunai dentro y fuera de los modales y respeta la c
     loader.setAttribute("aria-busy", "true");
     element.append(loader);
   });
-  await expect(main).toHaveCSS("cursor", /shuriken\.png/);
+  await expect(page.locator(".game-cursor-loading.is-visible")).toHaveCSS("animation-name", "game-cursor-spin");
+  await expect(main).toHaveCSS("cursor", "none");
   await page.locator("#test-cursor-loader").evaluate(loader => { loader.hidden = true; });
   await expect(main).toHaveCSS("cursor", kunai);
+  await expect(page.locator(".game-cursor-loading")).toHaveCount(0);
   await page.locator("#test-cursor-loader").evaluate(loader => { loader.hidden = false; });
-  await expect(main).toHaveCSS("cursor", /shuriken\.png/);
+  await expect(page.locator(".game-cursor-loading.is-visible")).toHaveCSS("animation-name", "game-cursor-spin");
+  await expect(main).toHaveCSS("cursor", "none");
   await page.locator("#test-cursor-loader").evaluate(loader => loader.remove());
   await expect(main).toHaveCSS("cursor", kunai);
-  await expect(page.locator(".game-cursor")).toHaveCount(0);
+  await expect(page.locator(".game-cursor, .game-cursor-loading")).toHaveCount(0);
 });
 
 for (const width of [1280, 1600]) test(`Objetos conserva el cursor y permite cerrar y continuar a ${width}`, async ({ page }, testInfo) => {

@@ -7,7 +7,7 @@ from io import BytesIO
 
 import cv2
 import numpy as np
-from PIL import Image, ImageColor, ImageFilter, ImageOps
+from PIL import Image, ImageChops, ImageColor, ImageDraw, ImageFilter, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,8 +17,20 @@ ARM_COLUMNS = {
     "brazo_izquierdo": 1, "brazo_derecho": 2,
     "antebrazo_izquierdo": 3, "antebrazo_derecho": 4
 }
-BEARDS = {"daichi": (0, 94, 151, 75, 68), "iori": (1, 57, 136, 112, 96)}
+BEARDS = {"iori": (1, 57, 136, 112, 96)}
+CUSTOM_HAIR = {"goro": "goro-hair-v8.png", "ren": "ren-hair-v7.png", "mei": "mei-hair-v2.png"}
+DAICHI_FACIAL_HAIR_AT = (231, 152)
+DAICHI_CHIN_BEARD_AT = (246, 181)
 PORTRAIT_SCALE = .61
+HAIR_SCALE = 1.10
+HAIR_SHIFT_LEFT = .10
+EXTRA_HAIR_SCALE = 1.20
+EXTRA_HAIR_Y_SCALE = 1.10
+EXTRA_HAIR_Y_PX = {"yuna": 40, "goro": 18, "ren": 20, "daichi": 10}
+EXTRA_HAIR_X_PX = {"goro": 10, "ren": 13}
+HAIR_WIDTH_ADJUST = {"goro": .80}
+HAIR_HEIGHT_ADJUST = {"goro": .80, "ren": 1.20, "mei": 1.10}
+EXTRA_HAIR_HEIGHT_PX = {"goro": 10}
 # Source and destination rows of each sash in its individual costume.
 # The higher obi and the narrower belts fit between chest and hips differently.
 WAISTS = {
@@ -97,13 +109,13 @@ def extract(sheet, column, row, id):
     x, y = sheet.width // 6, sheet.height // 4
     left = column * x - (56 if column == 5 else 0)
     # Yuna's loose braid drops past the row, and the next ponytail begins below it.
-    top = row * y + (19 if id == "kureha" and column == 5 else 0)
+    top = row * y
     end = (row + 1) * y + (19 if id == "yuna" and column == 5 else 0)
     cell = sheet.crop((left, top, (column + 1) * x, min(end, sheet.height)))
     alpha = cell.getchannel("A").point(lambda value: max(0, min(255, round((value - 32) * 255 / 208))))
-    if column != 5:
-        # Adjacent ribbons and braids may reach into an arm cell. Only the
-        # connected garment is registered to the player's limb.
+    if column != 5 or id == "kureha":
+        # Keep the largest connected sprite: neighboring ribbons can enter
+        # arm cells, and Yuna's braid crosses into Kureha's hair cell.
         pixels = np.asarray(alpha)
         _, labels, stats, _ = cv2.connectedComponentsWithStats((pixels > 32).astype(np.uint8))
         component = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
@@ -198,13 +210,43 @@ def draw(image, piece, center, size):
     ))
 
 
-def registered_hair(donor, head, hair_box):
+def registered_hair(donor, head, hair_box, id):
     x, y, width, height = hair_box
     art = donor.resize((width, height), Image.Resampling.LANCZOS)
     columns = (np.arange(width)[None, :] + x) / head["width"]
     rows = (np.arange(height)[:, None] + y) / head["height"]
     # Long strands toward the back pass behind the ear, head and shoulder.
-    back_mix = np.clip((.27 - columns) * 18, 0, 1) * np.clip((rows - .37) * 16, 0, 1)
+    if id == "goro":
+        # His short nape has no separate tail; the head used to hide it.
+        back_mix = np.zeros((height, width), dtype=np.float32)
+    elif id == "yuna":
+        # Keep the crown and strands beside the ear in front. The polygon
+        # follows only the tied braid and its loose end in this hair sprite.
+        tail = Image.new("L", (width, height))
+        reference_outline = [
+            (120, 113), (151, 110), (174, 142), (170, 161),
+            (143, 187), (140, 217), (187, 305), (0, 305),
+            (0, 219), (50, 207), (65, 180), (100, 147), (101, 121)
+        ]
+        outline = [(round(px * width / 332), round(py * height / 305))
+                   for px, py in reference_outline]
+        ImageDraw.Draw(tail).polygon(outline, fill=255)
+        back_mix = np.asarray(tail.filter(ImageFilter.GaussianBlur(3)), dtype=np.float32) / 255
+    else:
+        # Ren's short temple strands stay in front until they meet the ear.
+        back_start = .60 if id == "ren" else .37
+        back_mix = np.clip((.27 - columns) * 18, 0, 1) * np.clip((rows - back_start) * 16, 0, 1)
+        if id == "daichi":
+            # His long side lock crosses the temple and the top of the ear.
+            # Keep these existing strands in front of the head to hide the
+            # exposed scalp without covering the whole ear.
+            temple = Image.new("L", (width, height))
+            ImageDraw.Draw(temple).polygon([
+                (50, 105), (115, 105), (115, 138),
+                (95, 152), (60, 158), (45, 135)
+            ], fill=255)
+            front_temple = np.asarray(temple.filter(ImageFilter.GaussianBlur(4)), dtype=np.float32) / 255
+            back_mix *= 1 - front_temple
     alpha = np.asarray(art.getchannel("A"), dtype=np.float32) / 255
     front_alpha = alpha * (1 - back_mix)
     # Split a single alpha layer without darkening semi-transparent edges.
@@ -213,6 +255,24 @@ def registered_hair(donor, head, hair_box):
     back.putalpha(Image.fromarray(np.rint(back_alpha * 255).astype(np.uint8)))
     front.putalpha(Image.fromarray(np.rint(front_alpha * 255).astype(np.uint8)))
     return back, front
+
+
+def scaled_hair_box(hair_box, id):
+    x, y, width, height = hair_box
+    scaled_width = round(width * HAIR_SCALE)
+    scaled_height = round(height * HAIR_SCALE)
+    x -= (scaled_width - width) // 2 + round(scaled_width * HAIR_SHIFT_LEFT)
+    y -= (scaled_height - height) // 2
+    extra_width = round(round(scaled_width * EXTRA_HAIR_SCALE) * HAIR_WIDTH_ADJUST.get(id, 1))
+    extra_height = round(round(round(scaled_height * EXTRA_HAIR_SCALE) * EXTRA_HAIR_Y_SCALE)
+                         * HAIR_HEIGHT_ADJUST.get(id, 1))
+    extra_height += round(EXTRA_HAIR_HEIGHT_PX.get(id, 0) / PORTRAIT_SCALE)
+    return (
+        x - (extra_width - scaled_width) // 2 + round(EXTRA_HAIR_X_PX.get(id, 0) / PORTRAIT_SCALE),
+        y - (extra_height - scaled_height) // 2 + round(EXTRA_HAIR_Y_PX.get(id, 0) / PORTRAIT_SCALE),
+        extra_width,
+        extra_height,
+    )
 
 
 def fitted_scalp(head_art, id):
@@ -271,14 +331,18 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     outfit_path = MODULAR / "outfits" / "training" / body
     outfit = {part.stem for part in outfit_path.glob("*.png")}
     image = Image.new("RGBA", (1000, 1475))
-    offset_x, offset_y = 500, 490
+    offset_x, offset_y = 500, 600
     head = rig["byId"]["cabeza"]
     head_center = (head["x"] + offset_x, head["y"] + offset_y)
     head_size = (head["width"], head["height"])
     top = (head_center[0] - head["width"] / 2, head_center[1] - head["height"] / 2)
+    hair_box = scaled_hair_box(hair_box, id)
     x, y, w, h = hair_box
     hair_at = (round(top[0] + x), round(top[1] + y))
-    back_hair, front_hair = registered_hair(extract(sheet, 5, row, id), head, hair_box)
+    hair_source = CUSTOM_HAIR.get(id)
+    hair_donor = (Image.open(OUTPUT / "source" / hair_source).convert("RGBA")
+                  if hair_source else extract(sheet, 5, row, id))
+    back_hair, front_hair = registered_hair(hair_donor, head, hair_box, id)
     image.alpha_composite(back_hair, hair_at)
     dressed_legs = {}
     for part in rig["layers"]:
@@ -334,8 +398,32 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
         half = beards.width // 2
         art = beards.crop((column * half, 0, (column + 1) * half, beards.height))
         art = art.crop(art.getchannel("A").point(lambda value: 255 if value > 24 else 0).getbbox())
-        draw(image, art, (top[0] + x + w / 2, top[1] + y + h / 2), (w, h))
+        beard_shift = round(w * HAIR_SHIFT_LEFT)
+        draw(image, art, (top[0] + x + w / 2 - beard_shift, top[1] + y + h / 2), (w, h))
+    if id == "goro":
+        # Continue the side hair down to the ear rim without moving the
+        # nose-directed front lock or removing pixels from the source.
+        side_hair = front_hair.copy()
+        side_mask = Image.new("L", side_hair.size)
+        ImageDraw.Draw(side_mask).polygon([
+            (0, 44), (70, 44), (70, 103), (52, 127), (0, 127)
+        ], fill=255)
+        side_mask = side_mask.filter(ImageFilter.GaussianBlur(3))
+        side_hair.putalpha(ImageChops.multiply(side_hair.getchannel("A"), side_mask))
+        image.alpha_composite(side_hair, (hair_at[0], hair_at[1] + 8))
     image.alpha_composite(front_hair, hair_at)
+    if id in ("goro", "ren"):
+        # Follow the ear silhouette so its complete black outline stays
+        # above the side hair without restoring a broad scalp-colored strip.
+        ear = skin(head_art, palette)
+        ear_mask = Image.new("L", ear.size)
+        ImageDraw.Draw(ear_mask).polygon([
+            (0, 110), (7, 105), (13, 103), (20, 105),
+            (27, 109), (34, 118), (40, 137), (40, 159), (31, 165),
+            (15, 165), (3, 154)
+        ], fill=255)
+        ear.putalpha(ImageChops.multiply(ear.getchannel("A"), ear_mask))
+        draw(image, ear, head_center, head_size)
 
     # Use one scale and a fixed footprint per rig. Hair cannot resize or
     # recenter a body, even for a high bun or a long side braid.
@@ -347,6 +435,23 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     figure = image.crop((left, bottom - crop_height, left + crop_width, bottom))
     canvas = Image.new("RGBA", (480, 800))
     canvas.alpha_composite(figure.resize(canvas.size, Image.Resampling.LANCZOS))
+    if id == "daichi":
+        # The three-quarter mustache and chin tuft are registered to his
+        # nose and jaw after the fixed portrait scale is applied.
+        with Image.open(OUTPUT / "source" / "daichi-facial-hair-v2.png") as facial_hair:
+            art = facial_hair.convert("RGBA")
+            # Fit the mustache between the nose and upper lip, with its
+            # thicker center beneath the nose in this three-quarter view.
+            fitted = Image.new("RGBA", art.size)
+            fitted.alpha_composite(art.crop((0, 0, art.width, 16)).resize(
+                (39, 10), Image.Resampling.LANCZOS), (9, 6))
+            canvas.alpha_composite(fitted, DAICHI_FACIAL_HAIR_AT)
+        # Extend the roots toward the lower lip while the tips stay on the
+        # chin, keeping the mouth and jaw outline visible.
+        with Image.open(OUTPUT / "source" / "daichi-chin-beard-v2.png") as chin_beard:
+            art = chin_beard.convert("RGBA")
+            canvas.alpha_composite(art.resize((art.width, 19), Image.Resampling.LANCZOS),
+                                   DAICHI_CHIN_BEARD_AT)
     encoded = BytesIO()
     canvas.save(encoded, format="WEBP", quality=91, method=6)
     temporary = OUTPUT / f"{id}.webp.tmp"

@@ -8,7 +8,7 @@ function pngSize(buffer) {
 }
 
 const assets = new Map([
-  ["kunai.png", [80, 69]],
+  ["kunai.png", [50, 52]],
   ["shuriken.png", [50, 52]],
   ["click-burst.png", [88, 96]]
 ]);
@@ -16,6 +16,7 @@ for (const [name, expected] of assets) {
   const contents = await readFile(new URL(`../assets/ui/cursor/${name}`, import.meta.url));
   assert.deepEqual(pngSize(contents), expected, `${name} debe conservar su tamaño optimizado`);
 }
+assert.deepEqual(assets.get("kunai.png"), assets.get("shuriken.png"), "El kunai debe tener el mismo tamaño que el shuriken");
 
 const visible = { hidden: false, getClientRects: () => [{}] };
 const hidden = { hidden: true, getClientRects: () => [{}] };
@@ -26,5 +27,7 @@ assert.equal(hasVisibleBusyState(null), false, "Sin superficie no debe existir u
 const cursorStyles = await readFile(new URL("../cursor.css", import.meta.url), "utf8");
 assert.match(cursorStyles, /kunai\.png[^)]+\) 1 1, auto/, "El cursor del navegador debe apuntar con la punta del kunai");
 assert.match(cursorStyles, /shuriken\.png[^)]+\) 25 26, progress/, "El shuriken debe usar su centro");
+assert.match(cursorStyles, /\.game-cursor-loading\s*\{[\s\S]*animation:\s*game-cursor-spin\s+\.72s\s+linear\s+infinite/, "El shuriken de carga debe girar continuamente");
+assert.match(cursorStyles, /@keyframes game-cursor-spin[\s\S]*rotate\(0turn\)[\s\S]*rotate\(1turn\)/, "La animación de carga debe completar giros completos del shuriken");
 
 console.log("Cursor kunai, shuriken de carga y destello de clic verificados.");
