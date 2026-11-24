@@ -42,6 +42,7 @@ jobs:
         run: |
           for attempt in {1..12}; do
             if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=$ARTIFACT_NAME" --jq '.artifacts[] | select(.expired == false) | .id' | grep -Fxq "$ARTIFACT_ID"; then
+              sleep 10
               exit 0
             fi
             sleep 5
