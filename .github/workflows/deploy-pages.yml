@@ -32,14 +32,16 @@ jobs:
         id: pages_artifact
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: ${{ runner.temp }}/cronicas-pages
       - name: Esperar el paquete en GitHub Pages
         env:
           GH_TOKEN: ${{ github.token }}
           ARTIFACT_ID: ${{ steps.pages_artifact.outputs.artifact_id }}
+          ARTIFACT_NAME: github-pages-${{ github.run_attempt }}
         run: |
           for attempt in {1..12}; do
-            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=github-pages" --jq '.artifacts[] | select(.expired == false) | .id' | grep -Fxq "$ARTIFACT_ID"; then
+            if gh api "repos/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID/artifacts?name=$ARTIFACT_NAME" --jq '.artifacts[] | select(.expired == false) | .id' | grep -Fxq "$ARTIFACT_ID"; then
               exit 0
             fi
             sleep 5
@@ -49,3 +51,5 @@ jobs:
       - name: Publicar
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-${{ github.run_attempt }}
