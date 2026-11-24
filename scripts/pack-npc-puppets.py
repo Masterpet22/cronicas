@@ -18,7 +18,12 @@ ARM_COLUMNS = {
     "antebrazo_izquierdo": 3, "antebrazo_derecho": 4
 }
 BEARDS = {"iori": (1, 57, 136, 112, 96)}
-CUSTOM_HAIR = {"goro": "goro-hair-v8.png", "ren": "ren-hair-v7.png", "mei": "mei-hair-v2.png"}
+CUSTOM_HAIR = {
+    "goro": "goro-hair-v8.png", "ren": "ren-hair-v7.png",
+    "mei": "mei-hair-v3.png", "sayo": "sayo-hair-v2.png",
+    "hana": "hana-hair-v3.png", "yuna": "yuna-hair-v2.png",
+    "kureha": "kureha-hair-v5.png"
+}
 DAICHI_FACIAL_HAIR_AT = (231, 152)
 DAICHI_CHIN_BEARD_AT = (246, 181)
 PORTRAIT_SCALE = .61
@@ -26,10 +31,10 @@ HAIR_SCALE = 1.10
 HAIR_SHIFT_LEFT = .10
 EXTRA_HAIR_SCALE = 1.20
 EXTRA_HAIR_Y_SCALE = 1.10
-EXTRA_HAIR_Y_PX = {"yuna": 40, "goro": 18, "ren": 20, "daichi": 10}
-EXTRA_HAIR_X_PX = {"goro": 10, "ren": 13}
-HAIR_WIDTH_ADJUST = {"goro": .80}
-HAIR_HEIGHT_ADJUST = {"goro": .80, "ren": 1.20, "mei": 1.10}
+EXTRA_HAIR_Y_PX = {"yuna": 40, "goro": 18, "ren": 20, "daichi": 10, "mei": 20, "sayo": 20, "hana": 20, "kureha": 25}
+EXTRA_HAIR_X_PX = {"goro": 10, "ren": 13, "mei": 5}
+HAIR_WIDTH_ADJUST = {"goro": .80, "kureha": 1.21275}
+HAIR_HEIGHT_ADJUST = {"goro": .80, "ren": 1.20, "mei": 1.10, "kureha": 1.21275}
 EXTRA_HAIR_HEIGHT_PX = {"goro": 10}
 # Source and destination rows of each sash in its individual costume.
 # The higher obi and the narrower belts fit between chest and hips differently.
@@ -213,25 +218,46 @@ def draw(image, piece, center, size):
 def registered_hair(donor, head, hair_box, id):
     x, y, width, height = hair_box
     art = donor.resize((width, height), Image.Resampling.LANCZOS)
+    if id in ("sayo", "hana"):
+        # Keep these complete hairstyles in one layer so no strands are cut
+        # by the head or partially blended across its silhouette.
+        return Image.new("RGBA", art.size), art
     columns = (np.arange(width)[None, :] + x) / head["width"]
     rows = (np.arange(height)[:, None] + y) / head["height"]
     # Long strands toward the back pass behind the ear, head and shoulder.
     if id == "goro":
         # His short nape has no separate tail; the head used to hide it.
         back_mix = np.zeros((height, width), dtype=np.float32)
-    elif id == "yuna":
-        # Keep the crown and strands beside the ear in front. The polygon
-        # follows only the tied braid and its loose end in this hair sprite.
+    elif id == "kureha":
+        # The entire ponytail passes behind the head and torso. The swept
+        # crown, fringe and temple lock remain in front of the face.
         tail = Image.new("L", (width, height))
         reference_outline = [
-            (120, 113), (151, 110), (174, 142), (170, 161),
-            (143, 187), (140, 217), (187, 305), (0, 305),
-            (0, 219), (50, 207), (65, 180), (100, 147), (101, 121)
+            (0, 0), (295, 0), (270, 55), (245, 75),
+            (175, 95), (170, 160), (205, 195), (225, 240),
+            (230, 382), (0, 382)
         ]
-        outline = [(round(px * width / 332), round(py * height / 305))
+        outline = [(round(px * width / 424), round(py * height / 382))
                    for px, py in reference_outline]
         ImageDraw.Draw(tail).polygon(outline, fill=255)
-        back_mix = np.asarray(tail.filter(ImageFilter.GaussianBlur(3)), dtype=np.float32) / 255
+        back_mix = np.asarray(tail, dtype=np.float32) / 255
+    elif id == "yuna":
+        # The braid, ribbons and loose end stay behind the head and shoulder.
+        # The crown, flower and temple lock remain in front.
+        tail = Image.new("L", (width, height))
+        reference_outline = [
+            (82, 101), (126, 100), (130, 113), (133, 145),
+            (149, 167), (132, 188), (127, 216), (109, 245),
+            (111, 336), (0, 336), (0, 215), (47, 203),
+            (47, 175), (69, 151), (70, 119)
+        ]
+        outline = [(round(px * width / 332), round(py * height / 336))
+                   for px, py in reference_outline]
+        ImageDraw.Draw(tail).polygon(outline, fill=255)
+        ImageDraw.Draw(tail).rectangle(
+            (0, round(170 * height / 336), round(160 * width / 332), height), fill=255
+        )
+        back_mix = np.asarray(tail, dtype=np.float32) / 255
     else:
         # Ren's short temple strands stay in front until they meet the ear.
         back_start = .60 if id == "ren" else .37
@@ -244,6 +270,17 @@ def registered_hair(donor, head, hair_box, id):
             ImageDraw.Draw(temple).polygon([
                 (50, 105), (115, 105), (115, 138),
                 (95, 152), (60, 158), (45, 135)
+            ], fill=255)
+            front_temple = np.asarray(temple.filter(ImageFilter.GaussianBlur(4)), dtype=np.float32) / 255
+            back_mix *= 1 - front_temple
+        elif id == "mei":
+            # The tied tail stays behind her head, while the loose side
+            # strands overlap the temple and upper ear instead of floating
+            # above an exposed strip of scalp.
+            temple = Image.new("L", (width, height))
+            ImageDraw.Draw(temple).polygon([
+                (72, 105), (152, 105), (152, 142),
+                (128, 164), (95, 168), (75, 145)
             ], fill=255)
             front_temple = np.asarray(temple.filter(ImageFilter.GaussianBlur(4)), dtype=np.float32) / 255
             back_mix *= 1 - front_temple
@@ -342,6 +379,12 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     hair_source = CUSTOM_HAIR.get(id)
     hair_donor = (Image.open(OUTPUT / "source" / hair_source).convert("RGBA")
                   if hair_source else extract(sheet, 5, row, id))
+    if id in ("sayo", "hana", "yuna", "kureha"):
+        # Keep visible strands solid; transparency belongs only in the gaps
+        # between strands and at the resized silhouette's antialiasing.
+        hair_donor.putalpha(hair_donor.getchannel("A").point(
+            lambda value: 255 if value >= 32 else 0
+        ))
     back_hair, front_hair = registered_hair(hair_donor, head, hair_box, id)
     image.alpha_composite(back_hair, hair_at)
     dressed_legs = {}
@@ -390,7 +433,10 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
         draw(image, art, center, size)
 
     head_art = Image.open(body_path / "cabeza.png").convert("RGBA")
-    draw(image, fitted_scalp(head_art, id), head_center, head_size)
+    # These hairstyles already frame their faces; a dark scalp underlay
+    # adds an artificial shadow at the hairline.
+    if id not in ("mei", "sayo", "hana"):
+        draw(image, fitted_scalp(head_art, id), head_center, head_size)
     face = Image.open(MODULAR / "faces" / f"male_{expression}_{tone}.png").convert("RGBA")
     draw(image, face, head_center, head_size)
     if id in BEARDS:
@@ -411,17 +457,34 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
         side_mask = side_mask.filter(ImageFilter.GaussianBlur(3))
         side_hair.putalpha(ImageChops.multiply(side_hair.getchannel("A"), side_mask))
         image.alpha_composite(side_hair, (hair_at[0], hair_at[1] + 8))
+    if id == "mei":
+        # Extend only the loose temple locks so the hair grows into the
+        # upper ear instead of ending above a bare wedge of scalp.
+        side_hair = hair_donor.resize((w, h), Image.Resampling.LANCZOS)
+        side_mask = Image.new("L", side_hair.size)
+        ImageDraw.Draw(side_mask).polygon([
+            (72, 104), (143, 104), (141, 145),
+            (119, 162), (82, 160), (68, 136)
+        ], fill=255)
+        side_mask = side_mask.filter(ImageFilter.GaussianBlur(4))
+        side_hair.putalpha(ImageChops.multiply(side_hair.getchannel("A"), side_mask))
+        image.alpha_composite(side_hair, (hair_at[0], hair_at[1] + 10))
     image.alpha_composite(front_hair, hair_at)
-    if id in ("goro", "ren"):
+    if id in ("goro", "ren", "yuna"):
         # Follow the ear silhouette so its complete black outline stays
         # above the side hair without restoring a broad scalp-colored strip.
         ear = skin(head_art, palette)
         ear_mask = Image.new("L", ear.size)
-        ImageDraw.Draw(ear_mask).polygon([
+        outline = ([
+            (10, 120), (14, 111), (20, 106), (26, 104), (32, 107),
+            (38, 115), (43, 128), (45, 143), (41, 156), (34, 167),
+            (25, 168), (17, 160), (11, 147)
+        ] if id == "yuna" else [
             (0, 110), (7, 105), (13, 103), (20, 105),
             (27, 109), (34, 118), (40, 137), (40, 159), (31, 165),
             (15, 165), (3, 154)
-        ], fill=255)
+        ])
+        ImageDraw.Draw(ear_mask).polygon(outline, fill=255)
         ear.putalpha(ImageChops.multiply(ear.getchannel("A"), ear_mask))
         draw(image, ear, head_center, head_size)
 
