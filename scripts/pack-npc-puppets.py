@@ -22,7 +22,7 @@ CUSTOM_HAIR = {
     "goro": "goro-hair-v8.png", "ren": "ren-hair-v7.png",
     "mei": "mei-hair-v3.png", "sayo": "sayo-hair-v2.png",
     "hana": "hana-hair-v3.png", "yuna": "yuna-hair-v2.png",
-    "kureha": "kureha-hair-v5.png"
+    "kureha": "kureha-hair-v7.png", "riku": "riku-hair-v2.png"
 }
 DAICHI_FACIAL_HAIR_AT = (231, 152)
 DAICHI_CHIN_BEARD_AT = (246, 181)
@@ -31,11 +31,12 @@ HAIR_SCALE = 1.10
 HAIR_SHIFT_LEFT = .10
 EXTRA_HAIR_SCALE = 1.20
 EXTRA_HAIR_Y_SCALE = 1.10
-EXTRA_HAIR_Y_PX = {"yuna": 40, "goro": 18, "ren": 20, "daichi": 10, "mei": 20, "sayo": 20, "hana": 20, "kureha": 25}
-EXTRA_HAIR_X_PX = {"goro": 10, "ren": 13, "mei": 5}
-HAIR_WIDTH_ADJUST = {"goro": .80, "kureha": 1.21275}
-HAIR_HEIGHT_ADJUST = {"goro": .80, "ren": 1.20, "mei": 1.10, "kureha": 1.21275}
+EXTRA_HAIR_Y_PX = {"yuna": 40, "goro": 18, "ren": 20, "daichi": 10, "mei": 20, "sayo": 20, "hana": 20, "kureha": 25, "riku": 20}
+EXTRA_HAIR_X_PX = {"goro": 10, "ren": 13, "mei": 5, "kureha": -5}
+HAIR_WIDTH_ADJUST = {"goro": .80, "kureha": 1.334025}
+HAIR_HEIGHT_ADJUST = {"goro": .80, "ren": 1.20, "mei": 1.10, "kureha": 1.334025}
 EXTRA_HAIR_HEIGHT_PX = {"goro": 10}
+KUREHA_SIDE_LOCK_BOX = (208, 186, 41, 56)  # Hair-local coordinates at 467 x 420.
 # Source and destination rows of each sash in its individual costume.
 # The higher obi and the narrower belts fit between chest and hips differently.
 WAISTS = {
@@ -435,7 +436,7 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
     head_art = Image.open(body_path / "cabeza.png").convert("RGBA")
     # These hairstyles already frame their faces; a dark scalp underlay
     # adds an artificial shadow at the hairline.
-    if id not in ("mei", "sayo", "hana"):
+    if id not in ("mei", "sayo", "hana", "riku"):
         draw(image, fitted_scalp(head_art, id), head_center, head_size)
     face = Image.open(MODULAR / "faces" / f"male_{expression}_{tone}.png").convert("RGBA")
     draw(image, face, head_center, head_size)
@@ -470,6 +471,14 @@ def assemble(sheet, row, profile, rigs, palettes, beards, sleeve_fabric):
         side_hair.putalpha(ImageChops.multiply(side_hair.getchannel("A"), side_mask))
         image.alpha_composite(side_hair, (hair_at[0], hair_at[1] + 10))
     image.alpha_composite(front_hair, hair_at)
+    if id == "kureha":
+        # A short lock grows from the crown into the gap above her ear; the
+        # ponytail remains entirely on its separate rear layer.
+        side_lock = Image.open(OUTPUT / "source" / "kureha-side-lock-v1.png").convert("RGBA")
+        lx, ly, lw, lh = KUREHA_SIDE_LOCK_BOX
+        lock_at = (hair_at[0] + round(lx * w / 467), hair_at[1] + round(ly * h / 420))
+        lock_size = (round(lw * w / 467), round(lh * h / 420))
+        image.alpha_composite(side_lock.resize(lock_size, Image.Resampling.LANCZOS), lock_at)
     if id in ("goro", "ren", "yuna"):
         # Follow the ear silhouette so its complete black outline stays
         # above the side hair without restoring a broad scalp-colored strip.
